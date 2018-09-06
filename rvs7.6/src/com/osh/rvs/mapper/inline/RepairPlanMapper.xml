@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.RepairPlanMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getShippingPlan" parameterType="String" resultType="map">
+		<![CDATA[
+			select `shipment`, `heavy_fix`, `light_fix`, `peripheral` from `repair_plan` 
+			where `plan_year` = #{planYear}
+			and `plan_month` = #{planMonth}
+		]]>
+	</select>
+
+</mapper>

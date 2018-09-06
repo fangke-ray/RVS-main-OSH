@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper  namespace="com.osh.rvs.mapper.manage.CapacityMapper">
+	
+	<!--查询产能设定的课室-->
+	<select id="searchSectionName" resultType="ScheduleEntity">
+	<![CDATA[
+		SELECT 
+		    name AS section_name,
+		    section_id
+		FROM
+		    section
+		WHERE
+		    inline_flg = 1 AND delete_flg = 0
+		ORDER BY section_id
+	]]>
+	</select>
+	
+	<!--查询所有产能-->
+	<select id="searchCapacitySetting" resultType="ScheduleEntity">
+	<![CDATA[
+		SELECT 
+	        line_id, px, section_id, upper_limit, light_fix_flg as level
+	    FROM
+	        capacity
+	    WHERE
+	        line_id = '14'
+	]]>
+	</select>
+	
+	<!--更新修改的最大产能-->
+	<update id="updateUpperLimit" parameterType="ScheduleEntity">
+	<![CDATA[
+		UPDATE 
+			capacity 
+		SET 
+		    upper_limit = #{upper_limit}
+		WHERE
+		    line_id = #{line_id} 
+	    AND px =#{px}
+	    AND section_id = #{section_id}
+	    AND light_fix_flg = #{level}
+	]]>
+	</update>
+
+	<!--判断数据是否已经存在-->
+	<select id="checkIsExist" parameterType="ScheduleEntity" resultType="String">
+	<![CDATA[
+		SELECT 
+			line_id
+		FROM
+		    capacity
+	    WHERE 
+	    	line_id = #{line_id}
+	    	AND px = #{px}
+	    	AND section_id = #{section_id}
+	    	AND light_fix_flg = #{level}
+	]]>
+	</select>
+	
+	<!--新建产能数据-->
+	<insert id="insertCapacity" parameterType="ScheduleEntity">
+	<![CDATA[
+		INSERT INTO capacity
+			(line_id,
+			px,
+			section_id,
+			light_fix_flg,
+			upper_limit) 
+		VALUES 
+			(#{line_id},
+			 #{px},
+			 #{section_id},
+			 #{level},
+			 #{upper_limit}) 
+	]]>
+	</insert>
+
+	<delete id="deleteCapacity" parameterType="ScheduleEntity">
+	<![CDATA[ 
+		DELETE from capacity WHERE line_id = #{line_id} AND px = #{px} AND section_id = #{section_id} AND light_fix_flg = #{level}
+	]]>
+	</delete>
+</mapper>

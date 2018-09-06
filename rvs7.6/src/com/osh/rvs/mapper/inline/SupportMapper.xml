@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.SupportMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getWorkingList" parameterType="String" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT 
+				`pf`.finish_time as finish_time, `p`.process_code as process_code, 
+				`o`.job_no as job_no, `o`.name as operator_name,
+				`p`.position_id,`p`.name as position_name, `o`.operator_id
+			FROM production_feature pf
+			JOIN position p
+				ON `pf`.position_id = `p`.position_id
+			LEFT JOIN operator o
+				ON `pf`.operator_id = `o`.operator_id
+			WHERE
+				`pf`.operate_result = 1
+				AND `pf`.section_id = #{section_id}
+		]]>
+			<if test="line_id!= null and line_id!= '' ">
+		<![CDATA[ 
+				AND `p`.line_id = #{line_id}
+		]]>
+			</if>
+			<if test="material_id!= null and material_id!= '' ">
+		<![CDATA[ 
+				AND `pf`.material_id = #{material_id}
+		]]>
+			</if>
+		<![CDATA[ 
+				ORDER BY process_code;
+		]]>
+	</select>
+
+	<select id="searchWorkingProductionFeature" resultType="ProductionFeatureEntity" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT material_id, `pf`.position_id, pace, rework, pf.section_id, pf.operator_id, operate_result, action_time,
+			finish_time, pcs_inputs, pcs_comments, use_seconds,
+			`p`.name as position_name, `o`.name as operator_name, `p`.line_id, `p`.line_name
+			FROM production_feature pf
+			JOIN `v_position` p
+				ON pf.position_id = p.position_id
+			JOIN `operator` o
+				ON pf.operator_id = o.operator_id
+			WHERE `pf`.position_id = #{position_id}
+			AND `pf`.section_id = #{section_id}
+			AND `pf`.operator_id = #{operator_id}
+			AND operate_result = 1
+			AND action_time IS NOT NULL
+			AND finish_time IS NULL
+		]]>
+	</select>
+
+	<select id="searchSupportingProductionFeature" resultType="ProductionFeatureEntity" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT material_id, position_id, pace, rework, section_id, operator_id, operate_result, action_time,
+			finish_time, pcs_inputs, pcs_comments, use_seconds
+			FROM production_feature
+		]]>
+		<where>
+			operate_result = 5
+			<if test="operator_id!= null and operator_id!= '' ">
+		<![CDATA[ 
+				AND operator_id = #{operator_id}
+		]]>
+			</if>
+			<if test="position_id!= null and position_id!= '' ">
+		<![CDATA[ 
+				AND position_id = #{position_id}
+		]]>
+			</if>
+			<if test="material_id!= null and material_id!= '' ">
+		<![CDATA[ 
+				AND material_id = #{material_id}
+		]]>
+			</if>
+		<![CDATA[ 
+			AND action_time IS NOT NULL
+			AND finish_time IS NULL
+		]]>
+		</where>
+	</select>
+	
+	<select id="searchComposeStorageWork" resultType="ProductionFeatureEntity" parameterType="ProductionFeatureEntity">
+		<![CDATA[
+			SELECT material_id, position_id, pace, rework, section_id, operator_id, operate_result, action_time,
+			finish_time, pcs_inputs, pcs_comments, use_seconds
+			FROM production_feature
+			WHERE 
+			operate_result = 5
+			AND
+			position_id=32 
+			AND pace >= 50
+		]]>
+		<if test="operator_id!= null and operator_id!= '' ">
+			<![CDATA[ 
+				AND operator_id = #{operator_id}
+			]]>
+		</if>
+		<![CDATA[ 
+			AND action_time IS NOT NULL
+			AND finish_time IS NULL
+		]]>
+	</select>
+
+	<select id="getSupportPace" resultType="int" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		SELECT coalesce(MAX(PACE), 50) + 1 FROM production_feature 
+			WHERE material_id = #{material_id} AND position_id = #{position_id} AND section_id = #{section_id} AND rework = #{rework}
+			AND operate_result = 5
+		]]>
+	</select>
+</mapper>

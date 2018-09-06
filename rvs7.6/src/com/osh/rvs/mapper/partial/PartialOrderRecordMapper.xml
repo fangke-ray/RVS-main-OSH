@@ -1,0 +1,828 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialOrderRecordMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="searchEchelons" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+	<![CDATA[ 
+	select 
+		condition_view.echelon, recept_num, agreed_num,
+		order_num, bo_num, round(bo_num/order_num*100) as bo_rate,
+		bo3days_num, round(bo3days_num/order_num*100,2) bo3days_rate,
+		workday, CEIL(ld_num / 8 * workday) as ld_num,
+		condition_view.echelon
+	from (
+		select count(1) as recept_num, 
+		sum(b.agreed_date is not null and b.break_back_flg = 0 and unrepair_flg <> 1) as agreed_num,
+		sum(a.occur_times is not null) as order_num,
+		sum(a.bo_flg in (1,2)) as bo_num,
+		sum(a.bo_flg in (1,2) and f_getworkdays(a.order_date,a.arrival_plan_date) > 3) as bo3days_num,
+		coalesce(c.echelon, 4) as echelon,
+		#{workday} workday
+		from material b 
+		left join material_partial a
+		on a.material_id = b.material_id
+		left join model_level_set c
+		on b.model_id = c.model_id and b.level=c.level
+	]]>
+	<where>
+			<if test="category_id != null and category_id != ''">
+				and exists (
+					select 1 from model where model.model_id = b.model_id and model.category_id in('${category_id}')
+				)
+			</if>
+			<if test="model_id != null and model_id != ''">
+				and b.model_id = #{model_id}
+			</if>
+			<if test="level!= null and level != '' and level != 9 and level != 5">
+				and b.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and b.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and b.level in (56,57,58,59)
+			</if>
+			<if test="agreed_date_start!= null and agreed_date_start!= '' ">
+				<![CDATA[
+				and b.agreed_date >= #{agreed_date_start}
+				]]>
+			</if>
+			<if test="agreed_date_end!= null and agreed_date_end!= '' ">
+				<![CDATA[
+				and b.agreed_date <= #{agreed_date_end}
+				]]>
+			</if>
+			
+			<if test="finish_date_start != null and finish_date_start != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where b.material_id = p.material_id and p.line_id=14 and p.finish_date >= #{finish_date_start}
+				)
+				]]>
+			</if>
+			<if test="finish_date_end != null and finish_date_end != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where b.material_id = p.material_id and p.line_id=14 and p.finish_date <= #{finish_date_end}
+				)
+				]]>
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and c.echelon in ('${echelon}')
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and a.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and date(a.order_date) <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and date_format(a.arrival_plan_date, '%Y-%m-%d') >= date_format(#{arrival_plan_date_start}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and date_format(a.arrival_plan_date, '%Y-%m-%d') <= date_format(#{arrival_plan_date_end}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="arrival_date_start != null and arrival_date_start != '' ">
+				<![CDATA[ 
+					and date_format(a.arrival_date, '%Y-%m-%d') >= date_format(#{arrival_date_start}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="arrival_date_end != null and arrival_date_end != '' ">
+				<![CDATA[ 
+					and date_format(a.arrival_date, '%Y-%m-%d') <= date_format(#{arrival_date_end}, '%Y-%m-%d')
+				]]>
+			</if>
+		</where>
+		group by coalesce(c.echelon, 4)
+		) as condition_view
+		left join
+		(
+			select sum(forecast_setting) as ld_num , echelon from model_level_set
+			group by echelon
+		) as ld_view
+		on condition_view.echelon = ld_view.echelon
+	</select>
+
+	<select id="searchPartials" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+		<![CDATA[ 
+		select partial_id, partial_code, partial_name, order_num, 
+			bo_num, round(bo_num/order_num*100, 1) as bo_rate, 
+			bo3days_num, round(bo3days_num/order_num*100, 1) as bo3days_rate, 
+			osh_foreboard_count as base_setting,
+			CEIL(osh_foreboard_count / 8 * #{workday}) as base_num, 
+			round(order_num / CEIL(osh_foreboard_count / 8 * #{workday}) *100, 1) as turnround_rate from
+		(
+		select c.partial_id,
+			pt.code as partial_code,
+			pt.name as partial_name,
+			sum(c.quantity) as order_num,
+			sum(c.quantity * (c.status in(3,4))) as bo_num,
+			sum(c.quantity * (c.status in(3,4) and (c.arrival_plan_date IS NULL or f_getworkdays(a.order_date, c.arrival_plan_date) > 3))) as bo3days_num,
+			pp.osh_foreboard_count
+		from material_partial_detail c
+		join material_partial a on c.material_id = a.material_id and c.occur_times = a.occur_times
+		join material b on b.material_id = a.material_id
+		join partial pt on c.partial_id = pt.partial_id
+		left join v_partial_prepair_osh pp 
+			on pp.partial_id = c.partial_id
+		]]>
+		<where>
+			<if test="category_id != null and category_id != ''">
+				and exists (
+					select 1 from model where model.model_id = b.model_id and model.category_id in('${category_id}')
+				)
+			</if>
+			<if test="model_id != null and model_id != ''">
+				and b.model_id = #{model_id}
+			</if>
+			<if test="level!= null and level != '' and level != 9 and level != 5">
+				and b.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and b.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and b.level in (56,57,58,59)
+			</if>
+			<if test="agreed_date_start!= null and agreed_date_start!= '' ">
+				<![CDATA[
+				and b.agreed_date >= #{agreed_date_start}
+				]]>
+			</if>
+			<if test="agreed_date_end!= null and agreed_date_end!= '' ">
+				<![CDATA[
+				and b.agreed_date <= #{agreed_date_end}
+				]]>
+			</if>
+			
+			<if test="finish_date_start != null and finish_date_start != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where b.material_id = p.material_id and p.line_id=14 and p.finish_date >= #{finish_date_start}
+				)
+				]]>
+			</if>
+			<if test="finish_date_end != null and finish_date_end != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where b.material_id = p.material_id and p.line_id=14 and p.finish_date <= #{finish_date_end}
+				)
+				]]>
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists (
+					select 1 from model_level_set mls where b.model_id = mls.model_id and b.level = mls.level and mls.echelon in ('${echelon}')
+				)
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and a.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and a.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and c.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and c.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start != null and arrival_date_start != '' ">
+				<![CDATA[ 
+					and a.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end != null and arrival_date_end != '' ">
+				<![CDATA[ 
+					and a.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="partial_code != null and partial_code != '' ">
+				and pt.code like concat('%','${partial_code}','%')
+			</if>
+			<if test="base_setting != null and base_setting != '' ">
+				and (pp.osh_foreboard_count IS NULL or pp.osh_foreboard_count = 0)
+			</if>
+		</where>
+		group by c.partial_id) condition_view
+	</select>
+
+	<select id="searchPartialsOnForeboardTopStick" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+		<![CDATA[ 
+	select timmach.*,
+	CASE
+			]]>
+	<if test="top_stick_high == true and l_high != 0 and l_high != '' ">
+		WHEN turnround_rate > #{l_high}
+	THEN 6
+		WHEN osh_turnround_rate > #{l_high} OR ogz_turnround_rate > #{l_high} 
+	THEN 5
+	</if>
+	<if test="top_stick_low == true and l_low != 0 and l_low != 0 ">
+		<![CDATA[ 
+		WHEN turnround_rate < #{l_low}
+	THEN 4
+		WHEN osh_turnround_rate < #{l_low} OR ogz_turnround_rate < #{l_low}
+	THEN 3
+			]]>
+	</if>
+		<![CDATA[ 
+	ELSE 0
+	END as special,
+	(base_num + order_num3) > 0 as based
+	FROM (SELECT *,
+		round(order_num / base_num *100, 1) as turnround_rate,
+		round(order_num1 / order_num4 *100, 1) as osh_turnround_rate,
+		round(order_num3 / (order_num5 + order_num6) *100, 1) as wh2p_turnround_rate,
+		round(order_num2 / order_num7 *100, 1) as ogz_turnround_rate,
+		(base_num + order_num3) > 0 as based
+	 from (select pt.partial_id,
+		pt.code as partial_code,
+		pt.name as partial_name,
+		pt.price,
+		pt.consumable_flg,
+		coalesce(supply.all_count, 0) as order_num,
+		coalesce(supply.sorcwh_count, 0) as order_num1,
+		coalesce(supply.ogz_count, 0) as order_num2,
+		coalesce(supply.wh2p_count, 0) as order_num3,
+		total_foreboard_count as base_setting,
+ 		CEIL(total_foreboard_count / 8 * #{workday}) as base_num, 
+ 		CEIL((sorcwh_foreboard_count / sorcwh_reference_ordering_cycle) * #{workday}) as order_num4, 
+  		CEIL((wh2p_foreboard_count / wh2p_reference_ordering_cycle) * #{workday}) as order_num5, 
+ 		CEIL((consumable_foreboard_count / consumable_reference_ordering_cycle) * #{workday}) as order_num6, 
+		CEIL(ogz_foreboard_count / ogz_reference_ordering_cycle * #{workday}) as order_num7,
+		sorcwh_foreboard_count, wh2p_foreboard_count, consumable_foreboard_count, ogz_foreboard_count
+	from
+		(select distinct ptl.partial_id, code, name, price, consumable_flg
+		from v_partial ptl
+		LEFT join partial_position_belong
+		on ptl.partial_id = partial_position_belong.partial_id
+		and partial_position_belong.history_limit_date >= current_date
+		WHERE (ptl.consumable_flg = 1 OR partial_position_belong.partial_id is NOT NULL) 
+		]]>
+		<if test="partial_code != null and partial_code != '' ">
+			and ptl.code like concat('%','${partial_code}','%')
+		</if>
+		<![CDATA[ 
+		) pt
+		left join partial_prepair pp 
+		on pp.partial_id = pt.partial_id
+	LEFT JOIN (
+SELECT 
+    partial_id,
+    sum(quantity) as all_count,
+    sum(quantity * (identification = 1)) as sorcwh_count,
+    sum(quantity * (identification = 4)) as wh2p_count,
+    sum(quantity * (identification = 2)) as ogz_count
+FROM
+    partial_supply
+]]>
+<where>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and supply_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and supply_date <= #{order_date_end}
+				]]>
+			</if>
+			and identification in (1, 2, 4)
+</where>
+	<![CDATA[
+	group by partial_id
+	) supply
+	on pt.partial_id = supply.partial_id
+	) timmac) timmach
+	order by special desc, based desc, (order_num > 0) desc, turnround_rate desc, order_num desc
+	]]>
+	</select>
+
+	<select id="searchPartialsOnForeboard" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+		<![CDATA[ 
+	SELECT *,
+		round(order_num / base_num *100, 1) as turnround_rate,
+		round(order_num1 / order_num4 *100, 1) as osh_turnround_rate,
+		round(order_num3 / (order_num5 + order_num6) *100, 1) as wh2p_turnround_rate,
+		round(order_num2 / order_num7 *100, 1) as ogz_turnround_rate,
+		(base_num + order_num3) > 0 as based
+	 from (select pt.partial_id,
+		pt.code as partial_code,
+		pt.name as partial_name,
+		pt.price,
+		pt.consumable_flg, 
+		coalesce(supply.all_count, 0) as order_num,
+		coalesce(supply.sorcwh_count, 0) as order_num1,
+		coalesce(supply.ogz_count, 0) as order_num2,
+		coalesce(supply.wh2p_count, 0) as order_num3,
+		total_foreboard_count as base_setting,
+ 		CEIL(total_foreboard_count / 8 * #{workday}) as base_num, 
+ 		CEIL((sorcwh_foreboard_count / sorcwh_reference_ordering_cycle) * #{workday}) as order_num4, 
+  		CEIL((wh2p_foreboard_count / wh2p_reference_ordering_cycle) * #{workday}) as order_num5, 
+ 		CEIL((consumable_foreboard_count / consumable_reference_ordering_cycle) * #{workday}) as order_num6, 
+		CEIL(ogz_foreboard_count / ogz_reference_ordering_cycle * #{workday}) as order_num7,
+		sorcwh_foreboard_count, wh2p_foreboard_count, consumable_foreboard_count, ogz_foreboard_count
+	from
+		(select distinct ptl.partial_id, code, name, price, consumable_flg
+		from v_partial ptl
+		LEFT join partial_position_belong
+		on ptl.partial_id = partial_position_belong.partial_id
+		and partial_position_belong.history_limit_date >= current_date
+		WHERE (ptl.consumable_flg = 1 OR partial_position_belong.partial_id is NOT NULL) 
+		]]>
+		<if test="partial_code != null and partial_code != '' ">
+			and ptl.code like concat('%','${partial_code}','%')
+		</if>
+		<![CDATA[ 
+		) pt
+		left join partial_prepair pp 
+		on pp.partial_id = pt.partial_id
+	LEFT JOIN (
+SELECT 
+    partial_id,
+    sum(quantity) as all_count,
+    sum(quantity * (identification = 1)) as sorcwh_count,
+    sum(quantity * (identification = 4)) as wh2p_count,
+    sum(quantity * (identification = 2)) as ogz_count
+FROM
+    partial_supply
+]]>
+<where>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and supply_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and supply_date <= #{order_date_end}
+				]]>
+			</if>
+			and identification in (1, 2, 4)
+</where>
+	<![CDATA[
+	group by partial_id
+	) supply
+	on pt.partial_id = supply.partial_id) timmac
+	order by based desc, (order_num > 0) desc, base_setting desc, order_num desc
+	]]>
+	</select>
+
+	<select id="searchLevelModels" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+	<![CDATA[ 
+		select result_view.*,
+			round(bo_num/order_num*100, 1) as bo_rate, 
+			round(bo3days_num/order_num*100, 1) as bo3days_rate, 
+			round(order_num / ld_num *100, 1) as turnround_rate
+		from 
+		(select condition_view.model_id, condition_view.`level`, mdl.name as model_name, coalesce(mls.echelon, 4) as echelon, 
+				count(1) as recept_num, sum(agreed_num) as agreed_num, sum(order_flg) as order_num, 
+				sum(bo_flg) as bo_num, sum(bo3days_num) as bo3days_num, 
+				forecast_setting as base_setting, CEIL(mls.forecast_setting / 8 * #{workday}) as ld_num
+			FROM
+			(select 
+				b.model_id,
+				b.`level`,
+				b.material_id,
+				(a.occur_times is not null) as order_flg,
+				max(coalesce(bo_flg, 0) in (1,2)) as bo_flg,
+				max(coalesce(bo_flg, 0) in (1,2) and 
+					(a.arrival_plan_date IS NULL or a.arrival_plan_date = '9999/12/31' or f_getworkdays(a.order_date, a.arrival_plan_date) > 3)) as bo3days_num,
+				(b.agreed_date is not null and b.break_back_flg = 0 and unrepair_flg <> 1) as agreed_num
+			from
+				material b
+			left join material_partial a ON a.material_id = b.material_id
+			left join model_level_set mls ON b.model_id = mls.model_id AND b.level = mls.level
+		]]>
+		<where>
+			b.break_back_flg in (0, 2) and b.`level` in (1,2,3)
+			<if test="category_id != null and category_id != ''">
+				and exists (
+					select 1 from model where model.model_id = b.model_id and model.category_id in('${category_id}')
+				)
+			</if>
+			<if test="model_id != null and model_id != ''">
+				and b.model_id = #{model_id}
+			</if>
+			<if test="level!= null and level != '' and level != 9 and level != 5">
+				and b.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and b.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and b.level in (56,57,58,59)
+			</if>
+			<if test="agreed_date_start!= null and agreed_date_start!= '' ">
+				<![CDATA[
+				and b.agreed_date >= #{agreed_date_start}
+				]]>
+			</if>
+			<if test="agreed_date_end!= null and agreed_date_end!= '' ">
+				<![CDATA[
+				and b.agreed_date <= #{agreed_date_end}
+				]]>
+			</if>
+			
+			<if test="finish_date_start != null and finish_date_start != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where a.material_id = p.material_id and p.line_id=14 and p.finish_date >= #{finish_date_start}
+				)
+				]]>
+			</if>
+			<if test="finish_date_end != null and finish_date_end != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where a.material_id = p.material_id and p.line_id=14 and p.finish_date <= #{finish_date_end}
+				)
+				]]>
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists (
+					select 1 from model_level_set mls where b.model_id = mls.model_id and b.level = mls.level and mls.echelon in('${echelon}') 
+				)
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and a.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and a.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and a.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and a.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start != null and arrival_date_start != '' ">
+				<![CDATA[ 
+					and a.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end != null and arrival_date_end != '' ">
+				<![CDATA[ 
+					and a.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="partial_code != null and partial_code != '' ">
+				<![CDATA[ 
+				and exists( select 1 from material_partial_detail mpd join partial pp on 
+				mpd.partial_id = pp.partial_id
+				where mpd.material_id = b.material_id
+				and pp.code like concat('%','${partial_code}','%'))
+				]]>
+			</if>
+		</where>
+	<![CDATA[ 
+			group by b.material_id) condition_view
+		join model mdl ON condition_view.model_id = mdl.model_id
+		left join
+		model_level_set mls
+		on condition_view.model_id = mls.model_id and condition_view.level = mls.level
+		group by model_id, `level`
+		) result_view
+		order by echelon, recept_num desc
+	]]>
+	</select>
+
+
+	<select id="searchLevelModelsOnForecast" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+	<![CDATA[ 
+		select result_view.*,
+			round(bo_num/order_num*100, 1) as bo_rate, 
+			round(bo3days_num/order_num*100, 1) as bo3days_rate, 
+			round(order_num / ld_num *100, 1) as turnround_rate
+		from 
+		(select mls.model_id, mls.`level`, mdl.name as model_name, coalesce(mls.echelon, 4) as echelon, 
+				count(condition_view.material_id) as recept_num, coalesce(sum(agreed_num), 0) as agreed_num, 
+				coalesce(sum(order_flg), 0) as order_num, 
+				coalesce(sum(bo_flg), 0) as bo_num, coalesce(sum(bo3days_num), 0) as bo3days_num, 
+				forecast_setting as base_setting, CEIL(mls.forecast_setting / 8 * #{workday}) as ld_num
+			FROM
+		model_level_set mls
+		left join
+			(select 
+				b.model_id,
+				b.`level`,
+				b.material_id,
+				(a.occur_times is not null) as order_flg,
+				max(coalesce(bo_flg, 0) in (1,2)) as bo_flg,
+				max(coalesce(bo_flg, 0) in (1,2) and 
+					(a.arrival_plan_date IS NULL or a.arrival_plan_date = '9999/12/31' or f_getworkdays(a.order_date, a.arrival_plan_date) > 3)) as bo3days_num,
+				(b.agreed_date is not null and b.break_back_flg = 0 and unrepair_flg <> 1) as agreed_num
+			from
+				material b
+			left join material_partial a ON a.material_id = b.material_id
+		]]>
+		<where>
+			b.break_back_flg in (0, 2) and b.`level` in (1,2,3)
+			<if test="category_id != null and category_id != ''">
+				and exists (
+					select 1 from model where model.model_id = b.model_id and model.category_id in('${category_id}')
+				)
+			</if>
+			<if test="model_id != null and model_id != ''">
+				and b.model_id = #{model_id}
+			</if>
+			<if test="level!= null and level != '' and level != 9 and level != 5">
+				and b.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and b.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and b.level in (56,57,58,59)
+			</if>
+			<if test="agreed_date_start!= null and agreed_date_start!= '' ">
+				<![CDATA[
+				and b.agreed_date >= #{agreed_date_start}
+				]]>
+			</if>
+			<if test="agreed_date_end!= null and agreed_date_end!= '' ">
+				<![CDATA[
+				and b.agreed_date <= #{agreed_date_end}
+				]]>
+			</if>
+			
+			<if test="finish_date_start != null and finish_date_start != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where a.material_id = p.material_id and p.line_id=14 and p.finish_date >= #{finish_date_start}
+				)
+				]]>
+			</if>
+			<if test="finish_date_end != null and finish_date_end != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where a.material_id = p.material_id and p.line_id=14 and p.finish_date <= #{finish_date_end}
+				)
+				]]>
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists (
+					select 1 from model_level_set mls where b.model_id = mls.model_id and b.level = mls.level and mls.echelon in('${echelon}') 
+				)
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and a.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and a.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and a.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and a.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start != null and arrival_date_start != '' ">
+				<![CDATA[ 
+					and a.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end != null and arrival_date_end != '' ">
+				<![CDATA[ 
+					and a.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="partial_code != null and partial_code != '' ">
+				<![CDATA[ 
+				and exists( select 1 from material_partial_detail mpd join partial pp on 
+				mpd.partial_id = pp.partial_id
+				where mpd.material_id = b.material_id
+				pp.name like concat('%','${partial_code}','%'))
+				]]>
+			</if>
+		</where>
+	<![CDATA[ 
+			group by b.material_id) condition_view
+		on condition_view.model_id = mls.model_id and condition_view.level = mls.level
+		join model mdl ON mls.model_id = mdl.model_id
+		where mls.forecast_setting > 0
+		group by model_id, `level`
+		) result_view
+		order by echelon, recept_num desc
+	]]>
+	</select>
+
+
+	<select id="getPeriodEdges" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+		select min(a.order_date) as mind, max(a.order_date) maxd, f_getworkdays(min(a.order_date), max(a.order_date)) + 1 as workday
+		from material_partial_detail c
+		join material_partial a on c.material_id = a.material_id and c.occur_times = a.occur_times
+		join material b on b.material_id = a.material_id
+		join partial pt on c.partial_id = pt.partial_id
+		left join partial_prepair pp 
+			on pp.partial_id = c.partial_id
+		<where>
+			<if test="category_id != null and category_id != ''">
+				and exists (
+					select 1 from model where model.model_id = b.model_id and model.category_id in('${category_id}')
+				)
+			</if>
+			<if test="model_id != null and model_id != ''">
+				and b.model_id = #{model_id}
+			</if>
+			<if test="level!= null and level != '' and level != 9 and level != 5">
+				and b.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and b.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and b.level in (56,57,58,59)
+			</if>
+			<if test="agreed_date_start!= null and agreed_date_start!= '' ">
+				<![CDATA[
+				and b.agreed_date >= #{agreed_date_start}
+				]]>
+			</if>
+			<if test="agreed_date_end!= null and agreed_date_end!= '' ">
+				<![CDATA[
+				and b.agreed_date <= #{agreed_date_end}
+				]]>
+			</if>
+			
+			<if test="finish_date_start != null and finish_date_start != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where b.material_id = p.material_id and p.line_id=14 and p.finish_date >= #{finish_date_start}
+				)
+				]]>
+			</if>
+			<if test="finish_date_end != null and finish_date_end != '' ">
+				<![CDATA[
+				and exists (
+					select 1 from material_process p where b.material_id = p.material_id and p.line_id=14 and p.finish_date <= #{finish_date_end}
+				)
+				]]>
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists (
+					select 1 from model_level_set mls where b.model_id = mls.model_id and b.level = mls.level and mls.echelon in ('${echelon}')
+				)
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and a.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and a.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and c.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and c.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start != null and arrival_date_start != '' ">
+				<![CDATA[ 
+					and a.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end != null and arrival_date_end != '' ">
+				<![CDATA[ 
+					and a.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="partial_code != null and partial_code != '' ">
+				and pt.code like concat('%','${partial_code}','%')
+			</if>
+		</where>
+	</select>
+
+	<select id="getTurnroundRateOfPartialInuse" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+		<![CDATA[ 
+		select pp.partial_id,
+			coalesce(sum(c.quantity), 0) /
+			CEIL(pp.osh_foreboard_count / 8 * (f_getworkdays(#{order_date_start}, #{order_date_end}) + 1)) as turnround_rate
+		from 
+		material_partial_detail c
+		join material_partial a on c.material_id = a.material_id and c.occur_times = a.occur_times
+		join v_partial_prepair_osh pp on pp.partial_id = c.partial_id
+		where c.partial_id = #{partial_id}
+		and a.order_date >= #{order_date_start} and a.order_date <= #{order_date_end}
+		]]>
+	</select>
+
+	<select id="getTurnroundRateOfPartialSupply" parameterType="PartialOrderRecordEntity" resultType="PartialOrderRecordEntity">
+		<![CDATA[ 
+		select pp.partial_id,
+			coalesce(sum(pa.quantity), 0) /
+			CEIL(pp.total_foreboard_count / 8 * wd.workdays) as turnround_rate,
+			coalesce(sum(pa.quantity * (identification in (1,4))), 0) /
+			CEIL((sorcwh_foreboard_count / sorcwh_reference_ordering_cycle 
+			+ wh2p_foreboard_count / wh2p_reference_ordering_cycle 
+			+ consumable_foreboard_count / consumable_reference_ordering_cycle) * wd.workdays) as osh_turnround_rate,
+			coalesce(sum(pa.quantity * (identification = 2)), 0) /
+			CEIL(pp.ogz_foreboard_count / ogz_reference_ordering_cycle * wd.workdays) as ogz_turnround_rate
+		from 
+		partial_supply pa
+		join partial_prepair pp on pp.partial_id = pa.partial_id
+		join (select (f_getworkdays(#{order_date_start}, #{order_date_end}) + 1) as workdays from dual) wd
+		where pa.partial_id = #{partial_id}
+		and pa.supply_date >= #{order_date_start} and pa.supply_date <= #{order_date_end}
+		]]>
+	</select>
+
+	<select id="getAgreeHistoryML" parameterType="PartialOrderRecordEntity" resultType="BigDecimal">
+		<![CDATA[ 
+		select count(1) / f_getworkdays(min(agreed_date), current_date) * #{workday} from material 
+		where model_id = #{model_id} and level=#{level} and agreed_date IS not null and break_back_flg = 0 and unrepair_flg = 0
+		]]>
+	</select>
+
+	<!-- 订购峰值 -->
+	<select id="getOrderHillML" parameterType="PartialOrderRecordEntity" resultType="String">
+		<![CDATA[ 
+			select concat(cast(counto as char), ' (', the_day, ')') from (
+			select date_format(order_date, '%m-%d') as the_day, count(1) as counto from material_partial mp
+			join material ma on ma.material_id = mp.material_id and mp.occur_times = 1 
+			where ma.model_id = #{model_id} and ma.level=#{level} and mp.order_date >= #{order_date_start} and mp.order_date <= #{order_date_end}
+			group by mp.order_date order by counto desc limit 1) max_order
+		]]>
+	</select>
+
+	<select id="getNoGoodTimesML" parameterType="PartialOrderRecordEntity" resultType="Integer">
+		<![CDATA[ 
+			select count(1) from material_partial mp
+			join material m on mp.material_id = m.material_id
+			where occur_times > 1 and m.model_id = #{model_id} and m.level=#{level}
+			and mp.order_date >= #{order_date_start} and mp.order_date <= #{order_date_end};
+		]]>
+	</select>
+
+	<select id="getAgreeHistoryP" parameterType="PartialOrderRecordEntity" resultType="BigDecimal">
+		<![CDATA[ 
+			select sum(quantity) / f_getworkdays(min(order_date), current_date) * #{workday} from material_partial mp
+			join material_partial_detail mpd 
+			on mp.material_id = mpd.material_id and mp.occur_times = mpd.occur_times
+			where mpd.partial_id = #{partial_id};
+		]]>
+	</select>
+
+	<select id="getOrderHillP" parameterType="PartialOrderRecordEntity" resultType="String">
+		<![CDATA[ 
+			select concat(cast(sumq as char), ' (', the_day, ')') from (
+				select date_format(order_date, '%m-%d') as the_day, sum(quantity) sumq from material_partial mp
+				join material_partial_detail mpd 
+				on mp.material_id = mpd.material_id and mp.occur_times = mpd.occur_times
+				where partial_id = #{partial_id}
+				group by order_date
+				order by sumq desc limit 1
+			) max_order
+		]]>
+	</select>
+
+	<select id="getNoGoodTimesP" parameterType="PartialOrderRecordEntity" resultType="Integer">
+		<![CDATA[ 
+			select coalesce(sum(mpd.quantity), 0) from material_partial mp
+			join material_partial_detail mpd on mp.material_id = mpd.material_id and mp.occur_times = mpd.occur_times
+			where mp.occur_times > 1 and mpd.partial_id = #{partial_id}
+			and mp.order_date >= #{order_date_start} and mp.order_date <= #{order_date_end};
+		]]>
+	</select>
+
+</mapper>

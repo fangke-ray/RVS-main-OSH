@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.pda.PdaApplyMapper">
+
+	<select id="searchApplyList" resultType="PdaApplyEntity">
+		SELECT 
+			ca.consumable_application_key
+			,replace(ca.application_no, 'P', 'P\n') AS application_no
+			,CONCAT(s.name, ' ', l.name) AS line_name
+			,ca.apply_time
+			,if(count(if(cad.apply_method = 1, true, null)) > 0, '*', '') AS flg
+			,count(if(cad.supply_quantity=0,true,null)) AS count
+			,SUM(ptl.price * cad.apply_quantity) AS total_price
+		FROM
+			consumable_application ca
+		JOIN
+			consumable_application_detail cad
+		ON 
+			ca.consumable_application_key = cad.consumable_application_key
+		JOIN
+			 section s
+		ON 
+			ca.section_id = s.section_id
+		JOIN
+			line l
+		ON 
+			ca.line_id = l.line_id
+		JOIN
+			partial ptl
+		ON
+			cad.partial_id = ptl.partial_id
+		WHERE
+			ca.apply_time is not null and ca.all_supplied != 1
+		GROUP BY ca.consumable_application_key
+		ORDER BY ca.material_id is null, ca.application_no
+	</select>
+
+	<select id="searchApplyDetailList" parameterType="String" resultType="PdaApplyEntity">
+		<![CDATA[ 
+		SELECT 
+			ca.consumable_application_key
+			,ca.application_no
+			,ca.apply_reason
+			,ca.section_id
+			,ca.line_id
+			,cad.partial_id
+			,cad.apply_method
+			,cad.apply_quantity
+			,cad.supply_quantity as db_supply_quantity
+			,cad.petitioner_id
+			,p.code
+			,p.name
+			,cm.type
+			,cm.stock_code
+			,cmu.content
+			,cm.available_inventory
+			,coalesce(omr_notifi_no, sorc_no) as omr_notifi_no
+		FROM
+			consumable_application ca
+		JOIN
+			consumable_application_detail cad
+		ON 
+			ca.consumable_application_key = cad.consumable_application_key
+		JOIN
+			consumable_manage cm
+		ON 
+			cad.partial_id = cm.partial_id
+		LEFT JOIN
+			consumable_measurement_unit cmu
+		ON
+			cad.partial_id = cmu.partial_id
+		JOIN
+			partial p
+		ON 
+			cad.partial_id = p.partial_id
+		LEFT JOIN
+			material m
+		ON 
+			ca.material_id = m.material_id
+		WHERE
+			ca.consumable_application_key = #{consumable_application_key}
+		AND
+			cad.supply_quantity < cad.apply_quantity
+		ORDER BY
+			cad.apply_method, cm.type, cm.stock_code, cad.partial_id
+		]]>
+	</select>
+	
+	<select id="getApplyElementDetail" parameterType="PdaApplyElementEntity" resultType="PdaApplyElementEntity">
+		SELECT *,
+ 			(price * apply_quantity) as total_price
+		FROM (
+		SELECT
+			cad.consumable_application_key,
+			cad.partial_id,
+			cad.petitioner_id,
+			p.code,
+			ca.application_no,
+			cm.type,
+			cm.available_inventory,
+			cm.on_passage,
+			cm.stock_code,
+			CASE WHEN cmu.content = 1
+			THEN 1
+			ELSE 
+				SUM(cad.apply_quantity)
+			END as apply_quantity,
+			CASE WHEN SUM(cad.pack_method = 1) > 0
+			THEN 1
+			ELSE 0
+			END as pack_method,
+			cmu.content,
+			cmu.unit_name,
+			p.price
+		FROM
+			consumable_application_detail cad
+		JOIN
+			partial p
+		ON
+			cad.partial_id = p.partial_id
+		JOIN
+			consumable_manage cm
+		ON
+			cad.partial_id = cm.partial_id
+		LEFT JOIN
+			consumable_measurement_unit cmu
+		ON
+			cad.partial_id = cmu.partial_id
+		JOIN
+			consumable_application ca
+		on
+			ca.consumable_application_key  = cad.consumable_application_key
+		WHERE
+			cad.consumable_application_key = #{consumable_application_key} and cad.partial_id = #{partial_id}
+		GROUP BY
+			cad.partial_id
+		) k
+	</select>
+</mapper>

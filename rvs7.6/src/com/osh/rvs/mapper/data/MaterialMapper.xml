@@ -1,0 +1,955 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.data.MaterialMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="getMaterialDetail" resultType="MaterialEntity">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				a.model_id,
+				(select name from model where model_id = a.model_id) as model_name,
+				a.serial_no,
+				a.ocm,
+				a.section_id,
+				(select name from section where section_id = a.section_id) as section_name,
+				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
+				a.reception_time,
+				a.agreed_date
+			 from Material a where a.material_id in 
+			 ]]>
+			 
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+              #{id}
+		</foreach> 
+
+		<![CDATA[
+			 and break_back_flg = 0;
+		]]>
+	</select>
+
+	<!-- 普通品 S1 6+1 张 / 普通品 非S1 9 张 / 纤维镜 6 张 / EndoEye S1 4 张 / EndoEye 非S1 3 张 / 单元 4 张 / QIS + 1 张 / 受理处直送 2 张-->
+	<select id="getMaterialDetailTicket" resultType="MaterialEntity">
+		<![CDATA[ 
+			SELECT 
+				`m`.material_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				`m`.model_id,
+				mdl.name as model_name,
+				(select date_format(finish_time, '%Y-%m-%d') from production_feature where position_id in (13,14,64) and material_id = `m`.material_id order by finish_time desc limit 1) as finish_time,
+				`m`.serial_no,
+				`m`.ocm,
+				`m`.section_id,
+				`m`.level,
+				`m`.service_repair_flg,
+				`m`.direct_flg + (`m`.direct_flg * `m`.Scheduled_expedited) as direct_flg,
+				`m`.selectable,
+				`m`.reception_time,
+				`m`.agreed_date,
+				mdl.kind,
+				(CASE 
+					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
+						THEN 7
+					WHEN mdl.category_id = 00000000013 OR `m`.fix_type = 2
+						THEN 4
+					WHEN mdl.category_id = 00000000016
+						THEN 5
+					WHEN mdl.kind = 03
+						THEN 6 
+					WHEN mdl.kind = 07
+						THEN 3 
+					WHEN `m`.level = 1
+						THEN 8
+					ELSE 14
+				END + (coalesce(`m`.service_repair_flg, 0) = 2)) as ticket_flg,
+			coalesce(`m`.scheduled_date, 
+			f_addworkdays(`m`.agreed_date, 
+			CASE
+				WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
+					THEN 2
+				WHEN `m`.Scheduled_expedited = 2 AND `m`.level = 1
+					THEN 2
+				WHEN `m`.Scheduled_expedited = 2
+					THEN 4
+				ELSE 6
+			END
+			)) as scheduled_date
+
+			from Material m
+			join v_model mdl
+			on `m`.model_id = mdl.model_id
+			where `m`.material_id in 
+			]]>
+			 
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+              #{id}
+		</foreach> 
+
+	</select>
+
+	<update id="updateMaterialTicket" parameterType="MaterialEntity">
+		<![CDATA[ 
+			UPDATE Material SET
+			ticket_flg = 1
+			where material_id in
+		]]>
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+              #{id}
+		</foreach> 
+	</update>
+
+	<update id="updateMaterialReturn" parameterType="MaterialEntity">
+		<![CDATA[ 
+			UPDATE Material SET
+			break_back_flg = 2,
+			outline_time = current_timestamp
+			where material_id in
+		]]>
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+			#{id}
+		</foreach> 
+	</update>
+
+	<update id="updateMaterialExpedite" parameterType="MaterialEntity">
+		<![CDATA[ 
+			UPDATE Material SET
+			scheduled_expedited = 1
+			where material_id in
+		]]>
+		<foreach item="id" collection="list" open="(" separator="," close=")">
+              #{id}
+		</foreach> 
+		<![CDATA[ 
+			and scheduled_expedited < 1
+		]]>
+	</update>
+
+	<update id="updateMaterialPat" parameterType="String">
+		<![CDATA[ 
+			UPDATE Material SET
+			pat_id = #{pat_id}
+			where material_id = #{material_id}
+		]]>
+	</update>
+
+	<select id="getMaterialEntityByKey" resultType="MaterialEntity">
+	<![CDATA[
+		select `m`.`material_id`,
+		coalesce(omr_notifi_no, sorc_no) as sorc_no,
+		`m`.`esas_no`,`m`.`model_id`,
+		`m`.`serial_no`,`m`.`ocm`,`m`.`level`,`m`.`reception_time`,
+		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`,
+		`m`.`storager`,`m`.`fix_type`,`m`.`service_repair_flg`,
+		`m`.`section_id`,`m`.`wip_location` as wip_location,`m`.`direct_flg`,
+		`m`.`am_pm`,`m`.`scheduled_expedited`,`m`.`scheduled_manager_comment`,`m`.`quotation_first`,
+		`m`.`outline_time`,`m`.`break_back_flg`,`m`.`pat_id`, `m`.`ns_partial_order`
+		FROM MATERIAL `m`
+		WHERE `m`.`material_id` = #{material_id};
+	]]>
+	</select>
+
+	<select id="getMaterialNamedEntityByKey" resultType="MaterialEntity">
+	<![CDATA[
+		select `m`.`material_id`,
+		coalesce(omr_notifi_no, sorc_no) as sorc_no,
+		`m`.`esas_no`,`m`.`model_id`,
+		`m`.`serial_no`,`m`.`ocm`,`m`.`level`,`m`.`reception_time`,
+		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`,
+		`m`.`storager`,`m`.`fix_type`,`m`.`service_repair_flg`,
+		`m`.`section_id`,`m`.`wip_location`,`m`.`direct_flg`,
+		`m`.`am_pm`,`m`.`scheduled_expedited`,`m`.`scheduled_manager_comment`,`m`.`quotation_first`,
+		`m`.`outline_time`,`m`.`break_back_flg`,`m`.`pat_id`,
+		`mdl`.`name` as model_name, `ctg`.`category_id`, `ctg`.`name` as category_name, `ctg`.`kind`
+		FROM MATERIAL `m` JOIN `MODEL` mdl
+			ON `m`.`model_id` = `mdl`.`model_id`
+		JOIN `CATEGORY` ctg
+			ON `mdl`.`category_id` = `ctg`.`category_id`
+		WHERE `m`.`material_id` = #{material_id};
+	]]>
+	</select>
+
+	<select id="searchMaterial" resultType="MaterialEntity" parameterType="MaterialEntity">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				a.model_id,
+				(select name from model where model_id = a.model_id) as model_name,
+				a.serial_no,
+				a.ocm,
+				a.level,
+				a.section_id,
+				a.scheduled_date,
+				(select name from section where section_id = a.section_id) as section_name,
+				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
+				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id = 13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position2,
+				mpr.scheduled_assign_date as scheduled_date_end,
+				mpr.finish_date as outline_time,
+				max(mpt.arrival_plan_date) as arrival_plan_date,
+				min(mpt.order_date) as partial_order_date,
+				a.reception_time,
+				a.agreed_date,
+				a.ocm_shipping_date,
+				a.break_back_flg
+			 from Material a left join material_process mpr on mpr.material_id = a.material_id and mpr.line_id = 14
+			 left join material_partial mpt on mpt.material_id = a.material_id
+		]]>
+		<where>
+				a.break_back_flg IN(0,1,2)
+			<if test="model_id!= null and model_id!= ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="level!= null and level!= ''">
+				and a.level = ${level}
+			</if>
+			<if test="levels!= null and levels!= ''">
+				and a.level IN(${levels})
+			</if>
+			<if test="model_id == null or model_id == ''">
+				<if test="category_id !=null and category_id != ''">
+					and a.model_id in (select model_id from model where category_id in (${category_id}))					
+				</if>
+			</if>
+				
+			<if test="serial_no!=null and serial_no!='' ">
+				 and a.serial_no = #{serial_no}
+			</if>
+			<if test="sorc_no!= null and sorc_no!='' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="esas_no!=null and esas_no!='' ">
+				 and a.esas_no = #{esas_no}
+			</if>
+			<if test="ocm!=null and ocm!='' ">
+				 and a.ocm = #{ocm}
+			</if>
+			<if test="direct_flg=='0' ">
+				 and a.direct_flg != 1
+			</if>
+			<if test="direct_flg!=null and direct_flg!='' ">
+				 and a.direct_flg = #{direct_flg}
+			</if>
+			<if test="section_id!= null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="reception_time_start!= null and reception_time_start!= '' ">
+				<![CDATA[ 
+				and a.reception_time >= #{reception_time_start}
+				]]>	
+			</if>
+			<if test="reception_time_end!= null and reception_time_end!= '' ">
+				<![CDATA[
+				and date_format(a.reception_time, '%Y-%m-%d') <= date_format(#{reception_time_end}, '%Y-%m-%d')
+				]]>
+			</if>
+			
+			<if test="inline_time_start!= null and inline_time_start!= '' ">
+				<![CDATA[
+				and a.inline_time >= #{inline_time_start}
+				]]>
+			</if>
+			<if test="inline_time_end!= null and inline_time_end!= '' ">
+				<![CDATA[
+				and date_format(a.inline_time, '%Y-%m-%d') <= date_format(#{inline_time_end}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="agreed_date_start!= null and agreed_date_start!= '' ">
+				<![CDATA[
+				and a.agreed_date >= #{agreed_date_start}
+				]]>
+			</if>
+			<if test="agreed_date_end!= null and agreed_date_end!= '' ">
+				<![CDATA[
+				and a.agreed_date <= #{agreed_date_end}
+				]]>
+			</if>
+			<if test="find_history!= null and find_history== 1">
+				<![CDATA[
+				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- TODO history
+				and a.break_back_flg = 0
+				]]>
+			</if>
+			<if test="find_history!= null and find_history== 2">
+				<![CDATA[
+				and a.outline_time IS NOT NULL -- TODO history
+				]]>
+			</if>
+			<if test="finish_time_start!= null and finish_time_start!= '' ">
+				<![CDATA[
+				and mpr.finish_date >= #{finish_time_start}
+				]]>
+			</if>
+			<if test="finish_time_end!= null and finish_time_end!= '' ">
+				<![CDATA[
+				and mpr.finish_date <= #{finish_time_end}
+				]]>
+			</if>
+			<if test="ocm_shipping_date_start!= null and ocm_shipping_date_start!= '' ">
+				<![CDATA[
+				and a.ocm_shipping_date >= #{ocm_shipping_date_start}
+				]]>
+			</if>
+			<if test="ocm_shipping_date_end!= null and ocm_shipping_date_end!= '' ">
+				<![CDATA[
+				and a.ocm_shipping_date <= #{ocm_shipping_date_end}
+				]]>
+			</if>
+			<if test="scheduled_date_start!= null or scheduled_date_end!= null or complete_date_start!= null or complete_date_end!= null">
+				<![CDATA[
+				and EXISTS (
+					SELECT 1 FROM material_process
+					WHERE material_id = a.material_id AND line_id = 14
+				]]>
+				<if test="scheduled_date_start!= null and scheduled_date_start!= '' ">
+					<![CDATA[
+					and scheduled_date >= #{scheduled_date_start}
+					]]>
+				</if>
+				<if test="scheduled_date_end!= null and scheduled_date_end!= '' ">
+					<![CDATA[
+					and scheduled_date <= #{scheduled_date_end}
+					]]>
+				</if>
+				<if test="complete_date_start!= null and complete_date_start!= '' ">
+					<![CDATA[
+					and scheduled_assign_date >= #{complete_date_start}
+					]]>
+				</if>
+				<if test="complete_date_end!= null and complete_date_end!= '' ">
+					<![CDATA[
+					and scheduled_assign_date <= #{complete_date_end}
+					]]>
+				</if>
+				<![CDATA[
+				)
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null or arrival_plan_date_end!= null or partial_order_date_start!= null or partial_order_date_end!= null">
+				<![CDATA[
+				and EXISTS (
+					SELECT 1 FROM material_partial
+					WHERE material_id = a.material_id AND occur_times = 1
+				]]>		
+				<if test="arrival_plan_date_start!= null or arrival_plan_date_end!= null">
+					<![CDATA[
+						AND ((arrival_plan_date IS NULL AND bo_flg <> 1) OR ( 1=1
+					]]>		
+					<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+						<![CDATA[
+						AND arrival_plan_date >= #{arrival_plan_date_start}
+						]]>
+					</if>
+					<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+						<![CDATA[
+						AND arrival_plan_date <= #{arrival_plan_date_end}
+						]]>
+					</if>
+					<![CDATA[
+					))
+					]]>
+				</if>
+				<if test="partial_order_date_start!= null and partial_order_date_start!= '' ">
+					<![CDATA[
+					and order_date >= #{partial_order_date_start}
+					]]>
+				</if>
+				<if test="partial_order_date_end!= null and partial_order_date_end!= '' ">
+					<![CDATA[
+					and order_date <= #{partial_order_date_end}
+					]]>
+				</if>
+				<![CDATA[
+				)
+				]]>
+			</if>
+			<if test="scheduled_expedited!= null and scheduled_expedited== 2 ">
+				and scheduled_expedited = 2
+			</if>
+			
+		</where>
+		group by a.material_id;
+	</select>
+
+	<select id="searchMaterialFiling" resultType="MaterialEntity" parameterType="MaterialEntity">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				a.break_back_flg,
+				-- a.filing_time,
+				a.model_id,
+				(select name from model where model_id = a.model_id) as model_name,
+				pf.finish_time,
+				a.serial_no,
+				a.ocm,
+				a.section_id,
+				a.scheduled_date,
+				(select scheduled_assign_date from material_process where material_id = a.material_id and line_id = 14) as scheduled_date_end,
+				a.reception_time,
+				a.agreed_date,
+				a.level
+			 from Material a
+			 JOIN production_feature pf
+			 ON a.material_id = pf.material_id AND pf.operate_result = 2
+			 JOIN position pos
+			 ON pf.position_id = pos.position_id and pos.line_id = 15
+		]]>
+		<where>
+		<![CDATA[
+			a.fix_type=1
+		]]>
+			<if test="break_back_flg == null">
+				and (a.break_back_flg = 0 or a.qa_check_time is not null)
+			</if>
+			<if test="model_id!= null and model_id!= ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="model_id == null or model_id == ''">
+				<if test="category_id !=null and category_id != ''">
+					and a.model_id in(select model_id from model where category_id = #{category_id})					
+				</if>
+			</if>
+			<if test="level!= null and level != 9 and level != 5">
+				and a.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and a.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and a.level in (56,57,58,59)
+			</if>
+			<if test="serial_no!=null and serial_no!='' ">
+				 and a.serial_no = #{serial_no}
+			</if>
+			<if test="sorc_no!= null and sorc_no!='' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="section_id!= null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="reception_time_start!= null and reception_time_start!= '' ">
+				<![CDATA[ 
+				and date_format(a.reception_time, '%Y-%m-%d') >= date_format(#{reception_time_start}, '%Y-%m-%d')
+				]]>	
+			</if>
+			<if test="reception_time_end!= null and reception_time_end!= '' ">
+				<![CDATA[
+				and date_format(a.reception_time, '%Y-%m-%d') <= date_format(#{reception_time_end}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="agreed_date_start!= null and agreed_date_start!= '' ">
+				<![CDATA[ 
+				and a.agreed_date >= #{agreed_date_start}
+				]]>	
+			</if>
+			<if test="agreed_date_end!= null and agreed_date_end!= '' ">
+				<![CDATA[ 
+				and a.agreed_date <= #{agreed_date_end}
+				]]>	
+			</if>
+			
+			
+			<if test="finish_time_start!= null or finish_time_end!= null">
+				<![CDATA[
+				and EXISTS (
+					SELECT 1 FROM production_feature
+					WHERE material_id = a.material_id AND position_id = 47
+				]]>
+				<if test="finish_time_start!= null and finish_time_start!= '' ">
+					<![CDATA[
+					and finish_time >= #{finish_time_start}
+					]]>
+				</if>
+				<if test="finish_time_end!= null and finish_time_end!= '' ">
+					<![CDATA[
+					and date(finish_time) <= #{finish_time_end}
+					]]>
+				</if>
+				<![CDATA[
+				)
+				]]>
+			</if>
+
+			<if test="find_history!= null and find_history== 1">
+				<![CDATA[
+				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- TODO history
+				]]>
+			</if>
+			<if test="find_history!= null and find_history== 2">
+				<![CDATA[
+				and a.outline_time IS NOT NULL
+				]]>
+			</if>
+			<if test="scheduled_date_start!= null or scheduled_date_end!= null">
+				<![CDATA[
+				and EXISTS (
+					SELECT 1 FROM material_process
+					WHERE material_id = a.material_id AND line_id = 14
+				]]>
+				<if test="scheduled_date_start!= null and scheduled_date_start!= '' ">
+					<![CDATA[
+					and scheduled_date >= #{scheduled_date_start}
+					]]>
+				</if>
+				<if test="scheduled_date_end!= null and scheduled_date_end!= '' ">
+					<![CDATA[
+					and scheduled_date <= #{scheduled_date_end}
+					]]>
+				</if>
+				<![CDATA[
+				)
+				]]>
+			</if>
+			<if test="complete_date_start!= null and complete_date_start!= '' ">
+				<![CDATA[
+				and pf.finish_time >= #{complete_date_start}
+				]]>
+			</if>
+			<if test="complete_date_end!= null and complete_date_end!= '' ">
+				<![CDATA[
+				and date(pf.finish_time) <= #{complete_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null or arrival_plan_date_end!= null">
+				<![CDATA[
+				and EXISTS (
+					SELECT 1 FROM material_partial
+					WHERE material_id = a.material_id AND occur_times = 1
+					AND (arrival_plan_date IS NULL AND bo_flg <> 1) OR ( 1=1
+				]]>		
+				<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+					<![CDATA[
+					and arrival_plan_date >= #{arrival_plan_date_start}
+					]]>
+				</if>
+				<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+					<![CDATA[
+					and arrival_plan_date <= #{arrival_plan_date_end}
+					]]>
+				</if>
+				<![CDATA[
+				)
+				)
+				]]>
+			</if>
+		</where>
+	</select>
+
+	<select id="searchMaterialIds" resultType="java.lang.String" parameterType="MaterialEntity">
+		<![CDATA[
+			SELECT material_id from material a
+		]]>
+		<where>
+			1=1
+			<if test="break_back_flg == null">
+				and a.break_back_flg = 0
+			</if>
+			<if test="model_id!= null and model_id!= ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="model_id == null or model_id == ''">
+				<if test="category_id !=null and category_id != ''">
+					and a.model_id in(select model_id from model where category_id = #{category_id})					
+				</if>
+			</if>
+				
+			<if test="serial_no!=null and serial_no!='' ">
+				 and a.serial_no = #{serial_no}
+			</if>
+			<if test="sorc_no!= null and sorc_no!='' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="section_id!= null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="reception_time_start!= null and reception_time_start!= '' ">
+				<![CDATA[ 
+				and date_format(a.reception_time, '%Y-%m-%d') >= date_format(#{reception_time_start}, '%Y-%m-%d')
+				]]>	
+			</if>
+			<if test="reception_time_end!= null and reception_time_end!= '' ">
+				<![CDATA[
+				and date_format(a.reception_time, '%Y-%m-%d') <= date_format(#{reception_time_end}, '%Y-%m-%d')
+				]]>
+			</if>
+			
+			<if test="inline_time_start!= null and inline_time_start!= '' ">
+				<![CDATA[
+				and date_format(a.inline_time, '%Y-%m-%d') >= date_format(#{inline_time_start}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="inline_time_end!= null and inline_time_end!= '' ">
+				<![CDATA[
+				and date_format(a.inline_time, '%Y-%m-%d') <= date_format(#{inline_time_end}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="find_history!= null and find_history== 1 ">
+				<![CDATA[
+				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- TODO history
+				]]>
+			</if>
+			<if test="find_history!= null and find_history== 2 ">
+				<![CDATA[
+				and a.outline_time IS NOT NULL -- TODO history
+				]]>
+			</if>
+			<if test="break_back_flg!= null ">
+				<![CDATA[
+				and a.break_back_flg = #{break_back_flg}
+				]]>
+			</if>
+		</where>
+	</select>
+	
+	<select id="searchMaterialProcessIds" resultType="java.lang.String" parameterType="MaterialEntity">
+		<![CDATA[
+			 select material_id from material_process
+		]]>
+		<where>
+			line_id = 14
+			<if test="scheduled_date_start!= null and scheduled_date_start!= '' ">
+				<![CDATA[
+				and date_format(scheduled_date, '%Y-%m-%d') >= date_format(#{scheduled_date_start}, '%Y-%m-%d')
+				]]>
+			</if>
+			<if test="scheduled_date_end!= null and scheduled_date_end!= '' ">
+				<![CDATA[
+				and date_format(scheduled_date, '%Y-%m-%d') <= date_format(#{scheduled_date_end}, '%Y-%m-%d')
+				]]>
+			</if>
+		</where>
+	</select>
+	
+	<select id="loadMaterialDetail" resultType="MaterialEntity" parameterType="java.lang.String">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				a.esas_no,
+				a.model_id,
+				(select name from model where model_id = a.model_id) as model_name,
+				a.serial_no,
+				a.ocm,
+				a.package_no,
+				a.level,
+				a.section_id,
+				(select name from section where section_id = a.section_id) as section_name,
+				a.scheduled_expedited,
+				a.direct_flg, 
+				a.service_repair_flg,
+				a.fix_type,
+				a.wip_location,
+				a.pat_id,
+				(select Concat(p1.process_code," ",p1.name) from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
+				date_format(a.reception_time, '%Y-%m-%d') as reception_time, 
+				date_format(a.agreed_date, '%Y-%m-%d') as agreed_date,
+				date_format(a.inline_time, '%Y-%m-%d') as inline_time,
+				(select date_format(finish_time, '%Y-%m-%d') from production_feature where position_id in (13,14,64) and material_id = a.material_id order by finish_time desc limit 1) as finish_time,
+				(select operate_result from production_feature where material_id = a.material_id and operate_result not in (5, 8) order by (1-ISNULL(action_time)), action_time desc limit 1) as operate_result,
+				date_format(a.outline_time, '%Y-%m-%d') as outline_time,
+				a.scheduled_manager_comment,
+				coalesce(a.scheduled_date ,(select scheduled_date from material_process where line_id = 14 and material_id = a.material_id)) as scheduled_date,
+				a.am_pm
+			 from Material a where a.material_id = #{id};
+		]]>
+	</select>
+
+	<select id="loadMaterialDetailAccpetance" resultType="MaterialEntity" parameterType="java.lang.String">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				a.esas_no,
+				a.model_id,
+				(select name from model where model_id = a.model_id) as model_name,
+				a.serial_no,
+				a.ocm,
+				a.package_no,
+				a.level,
+				a.section_id,
+				(select name from section where section_id = a.section_id) as section_name,
+				a.scheduled_expedited,
+				a.direct_flg, 
+				a.service_repair_flg,
+				a.fix_type,
+				a.wip_location,
+				a.reception_time, 
+				a.agreed_date,
+				a.selectable,
+				(select date_format(finish_time, '%Y-%m-%d') from production_feature where position_id in (13,14,64) and material_id = a.material_id order by finish_time desc limit 1) as finish_time,
+				date_format(a.outline_time, '%Y-%m-%d') as outline_time,
+				a.scheduled_manager_comment,
+				(select date_format(scheduled_date, '%Y-%m-%d') from material_process where line_id = 14 and material_id = a.material_id) as scheduled_date,
+				a.am_pm,
+				a.Quotation_first
+			 from Material a where a.material_id = #{id} and a.break_back_flg = 0;
+		]]>
+	</select>
+
+	<update id="updateMaterial" parameterType="MaterialEntity">
+		<![CDATA[ 
+			UPDATE Material SET
+			omr_notifi_no = #{sorc_no}
+			,esas_no = #{esas_no}
+			,model_id = #{model_id}
+			,serial_no = #{serial_no}
+		]]>
+			<if test="ocm!= null and ocm!= ''">
+			,ocm = #{ocm}
+			</if>
+			<if test="package_no!= null">
+			,package_no = #{package_no}
+			</if>
+		<![CDATA[ 
+			,level = #{level}
+		]]>
+			<if test="section_id!= null and section_id!= ''">
+			,section_id = #{section_id}
+			</if>
+			<if test="section_id == null or section_id == ''">
+			,section_id = null
+			</if>
+			<if test="scheduled_expedited!= null and scheduled_expedited!=9">
+			,scheduled_expedited = #{scheduled_expedited}
+			</if>
+		<![CDATA[ 
+			,direct_flg = #{direct_flg}
+			,service_repair_flg = #{service_repair_flg}
+			,fix_type = #{fix_type}
+		]]>
+			<if test="selectable!= null">
+			,selectable = #{selectable}
+			</if>
+			<!--if test="reception_time!= null">
+			,reception_time = #{reception_time}
+			</if-->
+			<if test="agreed_date!= null">
+			,agreed_date = #{agreed_date}
+			</if>
+			<if test="customer_id != null">
+			,customer_id = #{customer_id}
+			</if>
+			<if test="ocm_rank != null">
+			,ocm_rank = #{ocm_rank}
+			</if>
+			<if test="bound_out_ocm != null">
+			,bound_out_ocm = #{bound_out_ocm}
+			</if>
+			<if test="ocm_deliver_date != null">
+			,ocm_deliver_date = #{ocm_deliver_date}
+			</if>
+			<!--if test="inline_time!= null">
+			,inline_time = #{inline_time}
+			</if-->
+			<!--if test="outline_time!= null">
+			,outline_time = #{outline_time}
+			</if-->
+			<if test="pat_id!= null and pat_id!=''">
+			,pat_id = #{pat_id}
+			</if>
+			<if test="scheduled_manager_comment!= null">
+			,scheduled_manager_comment = #{scheduled_manager_comment}
+			</if>
+			<if test="ticket_flg!= null">
+			,ticket_flg = #{ticket_flg}
+			</if>
+			<if test="am_pm!= null">
+			,am_pm = #{am_pm}
+			</if>
+			<if test="pat_id!= null and pat_id!= ''">
+			,pat_id = #{pat_id}
+			</if>
+		<![CDATA[ 
+			where material_id = #{material_id}
+		]]>
+	</update>
+
+	<update id="updateMaterialNsPartial" parameterType="String">
+		<![CDATA[ 
+			UPDATE Material SET
+			ns_partial_order = 1
+			where material_id = #{material_id}
+		]]>
+	</update>
+
+	<update id="updateMaterialComment" parameterType="String">
+		<![CDATA[ 
+			UPDATE Material SET
+		]]>
+			<if test="fix_type == null">
+			scheduled_manager_comment = #{scheduled_manager_comment}
+			</if>
+			<if test="fix_type != null and fix_type==1">
+			scheduled_manager_comment = CASE
+				WHEN scheduled_manager_comment IS NULL
+				THEN #{scheduled_manager_comment}
+				ELSE concat(#{scheduled_manager_comment}, CHAR(10), scheduled_manager_comment)
+			END
+			</if>
+			<if test="fix_type != null and fix_type==2">
+			scheduled_manager_comment = CASE
+				WHEN scheduled_manager_comment IS NULL
+				THEN #{scheduled_manager_comment}
+				ELSE concat(scheduled_manager_comment, CHAR(10), #{scheduled_manager_comment})
+			END
+			</if>
+		<![CDATA[ 
+			where material_id = #{material_id}
+		]]>
+	</update>
+
+	<insert id="insertMaterial" parameterType="MaterialEntity">
+		<![CDATA[ 
+		INSERT INTO Material (
+				omr_notifi_no, 
+				esas_no,
+				model_id,
+				serial_no,
+				ocm,
+				level,
+				package_no,
+				storager,
+				direct_flg,
+				service_repair_flg,
+				fix_type,
+				reception_time,
+				am_pm,
+				section_id,
+				scheduled_expedited,
+				agreed_date,
+				inline_time,
+				outline_time,
+				scheduled_manager_comment
+		) VALUES (
+			#{sorc_no}, 
+			#{esas_no}, 
+			#{model_id}, 
+			#{serial_no}, 
+			#{ocm}, 
+			#{level}, 
+			#{package_no}, 
+			#{storager}, 
+			#{direct_flg}, 
+			#{service_repair_flg}, 
+			#{fix_type},
+			#{reception_time},
+			#{am_pm},
+			#{section_id},
+			#{scheduled_expedited},
+			#{agreed_date},
+			#{inline_time},
+			#{outline_time},
+			#{scheduled_manager_comment}
+		);
+		]]>
+	</insert>
+	
+	<!-- 零件签收详细数据 -->
+	<select id="searchMaterialReceptByMaterialID" resultType="MaterialEntity" >
+		<![CDATA[
+			SELECT 
+				date(ma.reception_time) AS reception_time,
+				ma.ocm,
+				ma.agreed_date,
+				coalesce(ma.omr_notifi_no, ma.sorc_no) as sorc_no,
+				mo.name as model_name,
+				ma.serial_no,
+				ma.level,
+				ma.service_repair_flg,
+				ma.direct_flg,
+				srm.service_free_flg,
+				mp.arrival_plan_date AS arrival_plan_date_start
+			FROM
+				material ma
+			LEFT JOIN 
+				(select * from service_repair_manage where material_id like '0%') `srm`
+			ON
+				cast(`ma`.material_id as char) = `srm`.material_id
+			LEFT JOIN
+				model mo
+			ON
+				ma.model_id=mo.model_id
+			LEFT JOIN
+				material_partial mp
+			ON
+				ma.material_id=mp.material_id
+			WHERE 
+				ma.material_id=#{material_id} and mp.occur_times=#{occur_times}
+		]]>
+	</select>
+	
+	<!--  WIP库存 -->
+	<select id="getWipCount" parameterType="MaterialEntity" resultType="int">
+		<![CDATA[
+			select 
+			    count(wip_location)
+			from
+			    material
+			where
+			    wip_location is not null and model_id = #{model_id} and level = #{level}
+		]]>
+	</select>
+	
+	<!-- 受理数 -->
+	<select id="getReceptCount" parameterType="MaterialEntity" resultType="int"> 
+		<![CDATA[
+			select 
+			    count(1)
+			from
+			    material
+			where
+			    reception_time >= #{reception_time_start}
+				and date(reception_time) <= #{reception_time_end}
+				and break_back_flg in(0,2)
+				and model_id=#{model_id}
+				and level=#{level}
+		]]>
+	</select>
+	
+	<!-- 同意数 -->
+	<select id="getAgreeCount" parameterType="MaterialEntity" resultType="int">
+		<![CDATA[
+			select 
+			    count(1)
+			from
+			    material
+			where
+			    reception_time >= #{reception_time_start}
+				and date(reception_time) <= #{reception_time_end}
+				and unrepair_flg <> 1
+				and break_back_flg = 0
+			    and agreed_date is not null
+			 	and model_id=#{model_id}
+				and level=#{level}
+		]]>
+	</select>
+	
+	<!-- 等级型号拉动台数平均同意数 -->
+	<select id="getAverageAgreeOfLevelModelLeeds" resultType="double" parameterType="MaterialEntity">
+		<![CDATA[
+			select 
+			    (select 
+			     	count(1)
+			      from
+			     	material
+			      where
+			      	model_id = #{model_id} 
+			      	and level = #{level}
+			        and break_back_flg = 0
+			        and agreed_date >= #{agreed_date_start} 
+			        and agreed_date <= #{agreed_date_end}
+			     ) * 8 / (SELECT f_getworkdays(#{agreed_date_start},#{agreed_date_end}) FROM dual)
+			from dual; 
+		]]>
+	</select>
+	
+	<!--客户管理归并操作 将归并源客户替换成归并目标客户  -->
+	<update id="updateCustomerId" parameterType="String">
+		<![CDATA[
+			update material set customer_id=#{target_customer_id} where customer_id=#{original_customer_id}
+		]]>
+	</update>
+</mapper>

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PositionMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getPositionByID" resultType="PositionEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT POSITION_ID,
+			NAME,
+			LINE_ID,
+			LINE_NAME,
+			PROCESS_CODE,
+			UPDATED_BY,
+			UPDATED_TIME,
+			light_worktime_rate,
+			light_division_flg
+		FROM V_POSITION
+		WHERE DELETE_FLG = 0
+		AND POSITION_ID = #{position_id};
+		]]>
+	</select>
+
+	<select id="getAllPosition" resultType="PositionEntity">
+		<![CDATA[ 
+		SELECT POSITION_ID,
+			NAME,
+			LINE_ID,
+			LINE_NAME,
+			PROCESS_CODE,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_POSITION
+		WHERE DELETE_FLG = 0
+		ORDER BY PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="searchPosition" resultType="PositionEntity">
+		<![CDATA[ 
+		SELECT POSITION_ID,
+			NAME,
+			LINE_ID,
+			LINE_NAME,
+			PROCESS_CODE,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_POSITION
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="position_id!= null and position_id!= '' ">
+				AND POSITION_ID = #{position_id}
+			</if>
+			<if test="line_id!= null and line_id!= '' ">
+				AND LINE_ID = #{line_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="process_code!= null and process_code!= '' ">
+				AND PROCESS_CODE = #{process_code}
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY PROCESS_CODE, UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<select id="getPositionByInlineFlg" resultType="PositionEntity">
+		<![CDATA[ 
+		SELECT P.POSITION_ID, P.NAME, P.PROCESS_CODE
+		FROM POSITION P
+		JOIN LINE L ON L.LINE_ID = P.LINE_ID
+		WHERE P.DELETE_FLG = 0
+			AND L.DELETE_FLG = 0
+			AND L.INLINE_FLG = 1
+		ORDER BY P.PROCESS_CODE;
+		]]>
+	</select>
+
+	<insert id="insertPosition" parameterType="PositionEntity">
+		<![CDATA[ 
+		INSERT INTO POSITION 
+			(NAME, LINE_ID, PROCESS_CODE, UPDATED_BY, UPDATED_TIME,light_worktime_rate,light_division_flg) 
+		VALUES 
+			(#{name}, #{line_id}, #{process_code}, #{updated_by}, current_timestamp,#{light_worktime_rate},#{light_division_flg});
+		]]>
+	</insert>
+
+	<update id="updatePosition" parameterType="PositionEntity">
+		<![CDATA[ 
+		UPDATE POSITION SET NAME = #{name},
+			LINE_ID = #{line_id},
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp,
+			light_worktime_rate = #{light_worktime_rate},
+			light_division_flg = #{light_division_flg}
+		WHERE POSITION_ID = #{position_id};
+		]]>
+	</update>
+
+	<update id="deletePosition" parameterType="PositionEntity">
+		<![CDATA[ 
+		UPDATE POSITION SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE POSITION_ID = #{position_id};
+		]]>
+	</update>
+
+	<select id="getDividePositions" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT POSITION_ID
+		FROM POSITION
+		WHERE DELETE_FLG = 0
+		AND light_division_flg = 1;
+		]]>
+	</select>
+
+</mapper>

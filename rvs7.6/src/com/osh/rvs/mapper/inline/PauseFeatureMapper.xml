@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.PauseFeatureMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="makePauseFeature" parameterType="PauseFeatureEntity">
+	<![CDATA[
+		INSERT INTO `pause_feature`
+			(OPERATOR_ID, FINISHER_ID, REASON, ALARM_MESSSAGE_ID, MATERIAL_ID, SECTION_ID, POSITION_ID, COMMENTS, PAUSE_START_TIME, PAUSE_FINISH_TIME, snout_serial_no) 
+		VALUES 
+			(#{operator_id}, #{finisher_id}, #{reason}, #{alarm_messsage_id}, #{material_id}, #{section_id}, #{position_id}, #{comments}, current_timestamp, #{pause_finish_time}, #{snout_serial_no} );
+	]]>
+	</insert>
+	
+	<update id="finishPauseFeature" parameterType="PauseFeatureEntity">
+	<![CDATA[ 
+		UPDATE `pause_feature` SET
+			FINISHER_ID = #{finisher_id},
+			COMMENTS = #{comments},
+			PAUSE_FINISH_TIME = current_timestamp
+		WHERE OPERATOR_ID = #{operator_id}
+			AND PAUSE_START_TIME = #{pause_start_time};
+	]]>
+	</update>
+
+	<update id="stopPauseFeature" parameterType="String">
+	<![CDATA[ 
+		UPDATE `pause_feature` SET
+			FINISHER_ID = #{finisher_id},
+			PAUSE_FINISH_TIME = current_timestamp
+		WHERE MATERIAL_ID = #{material_id}
+	]]>
+			<if test="section_id!= null and section_id!= '' and section_id !='00000000000'">
+	<![CDATA[ 
+			AND SECTION_ID = #{section_id}
+	]]>
+			</if>
+	<![CDATA[ 
+			AND POSITION_ID = #{position_id}
+			AND PAUSE_FINISH_TIME IS NULL
+			AND REASON BETWEEN 70 AND 99;
+	]]>
+	</update>
+
+	<select id="checkPauseFeature" parameterType="String" resultType="String">
+	<![CDATA[ 
+		SELECT 'exist' FROM `pause_feature`
+		WHERE MATERIAL_ID = #{material_id}
+	]]>
+			<if test="section_id!= null and section_id!= '' and section_id !='00000000000'">
+	<![CDATA[ 
+			AND SECTION_ID = #{section_id}
+	]]>
+			</if>
+	<![CDATA[ 
+			AND POSITION_ID = #{position_id}
+			AND PAUSE_FINISH_TIME IS NULL
+			AND REASON BETWEEN 70 AND 99;
+	]]>
+	</select>
+
+	<update id="stopBreakFeature" parameterType="String">
+	<![CDATA[ 
+		UPDATE `pause_feature` SET
+			FINISHER_ID = #{finisher_id},
+			PAUSE_FINISH_TIME = current_timestamp
+		WHERE MATERIAL_ID = #{material_id}
+	]]>
+			<if test="position_id!= null and position_id!= ''">
+	<![CDATA[ 
+			AND POSITION_ID = #{position_id}
+	]]>
+			</if>
+	<![CDATA[ 
+			AND PAUSE_FINISH_TIME IS NULL
+			AND REASON < 20;
+	]]>
+	</update>
+
+	<update id="stopOperatorPauseFeature" parameterType="String">
+	<![CDATA[ 
+		UPDATE `pause_feature` SET
+			FINISHER_ID = #{operator_id},
+			PAUSE_FINISH_TIME = current_timestamp
+		WHERE OPERATOR_ID = #{operator_id}
+			AND (PAUSE_FINISH_TIME IS NULL OR PAUSE_FINISH_TIME > current_timestamp)
+			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70)
+			;
+	]]>
+	</update>
+
+	<select id="checkOperatorPauseFeature" parameterType="String" resultType="String">
+	<![CDATA[ 
+		SELECT 'exist' FROM `pause_feature`
+		WHERE OPERATOR_ID = #{operator_id}
+			AND (PAUSE_FINISH_TIME IS NULL OR PAUSE_FINISH_TIME > current_timestamp)
+			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70)
+		order by pause_start_time desc
+		limit 1
+		;
+	]]>
+	</select>
+
+	<select id="getPauseFeatureByKey" resultType="PauseFeatureEntity" parameterType="PauseFeatureEntity">
+	<![CDATA[ 
+		SELECT OPERATOR_ID, FINISHER_ID, REASON, ALARM_MESSSAGE_ID, MATERIAL_ID, SECTION_ID, POSITION_ID, COMMENTS, PAUSE_START_TIME, PAUSE_FINISH_TIME
+		FROM `pause_feature`
+		WHERE OPERATOR_ID = #{operator_id}
+			AND PAUSE_START_TIME = #{pause_start_time};
+	]]>
+	</select>
+
+	<select id="searchPauseFeature" resultType="PauseFeatureEntity" parameterType="PauseFeatureEntity">
+	<![CDATA[ 
+		SELECT `pf`.OPERATOR_ID, `pf`.FINISHER_ID, `pf`.REASON, `pf`.ALARM_MESSSAGE_ID, `pf`.MATERIAL_ID,
+			`pf`.SECTION_ID, `pf`.POSITION_ID, `pf`.COMMENTS, `pf`.PAUSE_START_TIME, `pf`.PAUSE_FINISH_TIME
+		FROM `pause_feature` pf
+		]]>
+		<where>
+			`pf`.PAUSE_FINISH_TIME IS NOT NULL
+			<if test="operator_id!= null and operator_id!= '' ">
+				AND `pf`.OPERATOR_ID = #{operator_id}
+			</if>
+			<if test="finisher_id!= null and finisher_id!= '' ">
+				AND `pf`.FINISHER_ID = #{finisher_id}
+			</if>
+			<if test="material_id!= null and material_id!= '' ">
+				AND `pf`.MATERIAL_ID = #{material_id}
+			</if>
+			<if test="section_id!= null and section_id!= '' ">
+				AND `pf`.SECTION_ID = #{section_id}
+			</if>
+			<if test="position_id!= null and position_id!= '' ">
+				AND `pf`.POSITION_ID = #{position_id}
+			</if>
+			<if test="pause_start_time!= null and pause_start_time!= '' ">
+				AND `pf`.PAUSE_START_TIME = #{pause_start_time}
+			</if>
+		</where>
+	</select>
+
+	<select id="getAllPositionBreaked" resultType="String" parameterType="PauseFeatureEntity">
+	<![CDATA[ 
+		SELECT Distinct POSITION_ID
+		FROM `pause_feature`
+		WHERE MATERIAL_ID = #{material_id}
+			AND PAUSE_FINISH_TIME IS NULL;
+	]]>
+	</select>
+
+	<update id="stopPauseFeatureSnout" parameterType="String">
+	<![CDATA[ 
+		UPDATE `pause_feature` SET
+			FINISHER_ID = #{finisher_id},
+			PAUSE_FINISH_TIME = current_timestamp
+		WHERE snout_serial_no = #{snout_serial_no}
+	]]>
+			<if test="section_id!= null and section_id!= '' and section_id !='00000000000'">
+	<![CDATA[ 
+			AND section_id = #{section_id}
+	]]>
+			</if>
+	<![CDATA[ 
+			AND POSITION_ID = #{position_id}
+			AND PAUSE_FINISH_TIME IS NULL
+			AND REASON BETWEEN 70 AND 99;
+	]]>
+	</update>
+
+</mapper>

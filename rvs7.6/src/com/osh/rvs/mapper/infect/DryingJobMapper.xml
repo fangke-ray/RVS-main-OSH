@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.DryingJobMapper">
+	<select id="search" parameterType="DryingJobEntity" resultType="DryingJobEntity">
+		<![CDATA[
+			SELECT 
+			    dj.drying_job_id,
+			    dj.content,
+			    dj.drying_time,
+			    dj.hardening_condition,
+			    dj.slots,
+			    dj.position_id,
+			    pos.process_code,
+				dm.manage_code,
+				dm.model_name,
+				GROUP_CONCAT(category.name SEPARATOR '\n') AS category_name,
+				dt.name AS device_name
+			FROM
+			    drying_job dj
+			JOIN
+			    position pos 
+			ON 
+				dj.position_id = pos.position_id
+			LEFT JOIN
+				drying_oven_device dod
+			ON
+				dj.device_manage_id = dod.device_manage_id
+			LEFT JOIN
+				devices_manage dm
+			ON
+				dm.devices_manage_id = dod.device_manage_id
+			LEFT JOIN
+				drying_job_of_category djoc
+			ON
+				djoc.drying_job_id = dj.drying_job_id
+			LEFT JOIN
+				category 
+			ON
+				category.category_id = djoc.category_id
+			LEFT JOIN
+				devices_type dt
+			ON
+				dm.devices_type_id = dt.devices_type_id
+		]]>
+		<where>
+			dj.delete_flg = 0
+			<if test="content!=null and content!=''">
+			<![CDATA[
+				AND dj.content LIKE CONCAT('%',#{content},'%')
+			]]>
+			</if>
+			<if test="hardening_condition==0">
+			<![CDATA[
+				 AND dj.hardening_condition = 0
+			]]>
+			</if>
+			<if test="hardening_condition!=null and hardening_condition!=''">
+			<![CDATA[
+				AND dj.hardening_condition = #{hardening_condition}
+			]]>
+			</if>
+			<if test="position_id!=null and position_id!=''">
+			<![CDATA[
+				AND dj.position_id = #{position_id}
+			]]>
+			</if>
+		</where>
+		GROUP BY
+		drying_job_id
+	</select>
+
+	<insert id="insertDryingJob" parameterType="DryingJobEntity">
+		<![CDATA[
+		INSERT INTO drying_job
+			(
+			position_id,
+			content,
+			drying_time,
+			hardening_condition,
+			device_manage_id,
+			slots
+			)
+		VALUES
+			(
+			#{position_id},
+			#{content},
+			#{drying_time},
+			#{hardening_condition},
+			#{device_manage_id},
+			#{slots}
+			)
+		]]>
+	</insert>
+
+	<insert id="insertDryingJobOfCategory" parameterType="DryingJobEntity">
+		<![CDATA[
+			insert into drying_job_of_category(drying_job_id,category_id) values(#{drying_job_id},#{category_id})
+		]]>
+	</insert>
+	
+	<select id="getDryingJobDetail" parameterType="DryingJobEntity" resultType="DryingJobEntity">
+		<![CDATA[
+			SELECT
+				dj.position_id,
+				pos.name AS position_name,
+				dj.content,
+				dj.drying_time,
+				dj.hardening_condition,
+				dj.device_manage_id,
+				dm.manage_code,
+				dj.slots,
+				dod.slot
+			FROM
+				drying_job dj
+			JOIN
+				position pos 
+			ON 
+				dj.position_id = pos.position_id
+			LEFT JOIN
+				drying_oven_device dod
+			ON
+				dj.device_manage_id = dod.device_manage_id
+			LEFT JOIN
+				devices_manage dm
+			ON
+				dm.devices_manage_id = dod.device_manage_id
+			WHERE
+				dj.drying_job_id = #{drying_job_id}
+		]]>
+	</select>
+	
+	<select id="getDryingJobOfCategory" parameterType="DryingJobEntity" resultType="DryingJobEntity">
+		<![CDATA[
+			select category_id from drying_job_of_category where drying_job_id = #{drying_job_id}
+		]]>
+	</select>
+	
+	<update id="updateDryingJob" parameterType="DryingJobEntity">
+		<![CDATA[
+			UPDATE
+				drying_job
+			SET
+				position_id = #{position_id},
+				content = #{content},
+				drying_time = #{drying_time},
+				hardening_condition = #{hardening_condition},
+				device_manage_id = #{device_manage_id},
+				slots = #{slots}
+			WHERE 
+				drying_job_id =  #{drying_job_id}
+		]]>
+	</update>
+	
+	<delete id="deleteDryingJobCategoryById" parameterType="string">
+		<![CDATA[
+			delete from drying_job_of_category where drying_job_id = #{drying_job_id}
+		]]>
+	</delete>
+	
+	<delete id="deleteDryingJobById" parameterType="string">
+		<![CDATA[
+			update drying_job set delete_flg = 1 where drying_job_id = #{drying_job_id}
+		]]>
+	</delete>
+
+	<select id="getDryingJobWithMaterialInPosition" parameterType="String" resultType="DryingJobEntity">
+		<![CDATA[
+SELECT dj.drying_job_id, content, hardening_condition, dj.device_manage_id, dj.slots
+FROM drying_job dj
+LEFT join devices_manage dm
+on dj.device_manage_id = dm.devices_manage_id
+
+where dj.position_id = #{position_id}
+and (exists
+	(select 1 from drying_job_of_category djoc
+	join v_model mdl
+		on (djoc.category_id = mdl.CATEGORY_ID)
+	join material ma
+		on mdl.MODEL_ID = ma.model_id
+	where ma.material_id = #{material_id}
+		and drying_job_id = dj.drying_job_id
+	)
+	or 
+	not exists
+	(select 1 from drying_job_of_category djoc
+	where drying_job_id = dj.drying_job_id
+	)
+)
+order by (dm.section_id = #{section_id} or dm.section_id is null) desc;
+		]]>
+	</select>
+
+	<select id="getDryingJobWithModelInPosition" parameterType="String" resultType="DryingJobEntity">
+		<![CDATA[
+SELECT dj.drying_job_id, content, hardening_condition, dj.device_manage_id, dj.slots
+FROM drying_job dj
+LEFT join devices_manage dm
+on dj.device_manage_id = dm.devices_manage_id
+
+where dj.position_id = #{position_id}
+and (exists
+	(select 1 from drying_job_of_category djoc
+	join v_model mdl
+		on (djoc.category_id = mdl.CATEGORY_ID)
+	where mdl.model_id = #{model_id}
+		and drying_job_id = dj.drying_job_id
+	)
+	or 
+	not exists
+	(select 1 from drying_job_of_category djoc
+	where drying_job_id = dj.drying_job_id
+	)
+)
+order by (dm.section_id = #{section_id} or dm.section_id is null) desc;
+		]]>
+	</select>
+</mapper>

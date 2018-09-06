@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.LevelModelLeedsMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<!-- 型号等级拉动台数一览 -->
+	<select id="searchModelLevelSet" parameterType="ModelLevelSetEntity" resultType="ModelLevelSetEntity">
+		<![CDATA[
+				select
+					mls.model_id,
+					mo.name as model_name,
+					mls.level,
+					mls.echelon,
+					mls.forecast_setting,
+					frs.forecast_result
+				from
+					model_level_set mls
+				join
+					model mo
+				on
+					mo.model_id=mls.model_id
+				left join 
+				(
+					select 
+						model_id, level, max(forecast_result) as forecast_result
+					from 
+						forecast_sampling_record 
+					where 
+						end_date=(select max(end_date) from forecast_sampling_record)
+					group by model_id, level
+				) frs
+				on
+					mls.model_id = frs.model_id and mls.level = frs.level
+		]]>
+		<where>
+			1=1
+			<if test="echelon!=null and echelon!='' ">
+				<![CDATA[
+					and mls.echelon=#{echelon}
+				]]>
+			</if>
+			<if test="model_id!=null and model_id!='' ">
+				<![CDATA[
+					and mls.model_id=#{model_id}
+				]]>
+			</if>
+			<if test="level!=null and level!='' ">
+				<![CDATA[
+					and mls.level=#{level}
+				]]>
+			</if>
+			<if test="warn==-1">
+				<![CDATA[
+					 and frs.forecast_result Is not null AND  (mls.forecast_setting >= frs.forecast_result * .8 and mls.forecast_setting <= frs.forecast_result * 1.2)
+				]]>
+			</if>
+			<if test="warn==1">
+				<![CDATA[
+					and frs.forecast_result Is not null AND (mls.forecast_setting < frs.forecast_result * .8 or mls.forecast_setting > frs.forecast_result * 1.2)
+				]]>
+			</if>
+		</where>
+	</select>
+	
+	<!-- 模拟拉动 -->
+	<select id="searchLeed" parameterType="ModelLevelSetEntity" resultType="ModelLevelSetEntity">
+		<![CDATA[
+			select 
+			    model_id,
+			    level,
+			    start_date,
+			    end_date,
+			    sampling_recept_count,
+			    sampling_agree_count,
+			    order_count_of_period
+			from
+			    forecast_sampling_record
+			where
+			    model_id = #{model_id}
+			and 
+				level = #{level}
+			and
+				end_date = (select max(end_date) from forecast_sampling_record)
+			order by 
+				start_date asc;
+		]]>
+	</select>
+	
+	<!-- 更新设置拉动台数 -->
+	<update id="updateForecastSetting" parameterType="ModelLevelSetEntity">
+		<![CDATA[
+			update 
+				model_level_set
+		]]>
+		<set>
+			<if test="forecast_setting!=null and forecast_setting!='' ">
+				forecast_setting = #{forecast_setting},
+			</if>
+			<if test="coverage!=null and coverage!='' ">
+				coverage = #{coverage},
+			</if>
+			<if test="echelon!=null and echelon!='' ">
+				echelon = #{echelon}
+			</if>
+		</set>
+		<![CDATA[
+			where
+				model_id=#{model_id} and level=#{level}
+		]]>
+	</update>
+	
+	<!-- 拉动台数统计 -->
+	<select id="getForecastResultSetCount" resultType="int" parameterType="ModelLevelSetEntity">
+		<![CDATA[
+			select 
+				count(forecast_result)
+			from
+				forecast_histroy
+			where
+				model_id=#{model_id}
+				and level=#{level}
+				and start_date <#{end_date}
+				and end_date>=#{end_date}
+		]]>
+	</select>
+	
+	<!-- 波动系数 -->
+	<select id="getCoefficientOfVariation" parameterType="ModelLevelSetEntity" resultType="double">
+	<![CDATA[
+		select 
+		    (select sum(forecast_setting) from model_level_set where echelon=#{echelon}) / 8 * i.interv  /  count(mls.echelon)  
+		from
+		    material ma
+	    join
+		    model_level_set mls 
+		on 
+		 	ma.model_id = mls.model_id and ma.level = mls.level
+		join
+			(select f_getworkdays(date_add(current_date,INTERVAL - 6 month),current_date) as interv from dual ) i
+		where
+		    ma.unrepair_flg <> 1
+	        and ma.break_back_flg = 0
+	        and ma.agreed_date >= date_add(current_date,INTERVAL - 6 month)
+	        and ma.agreed_date <= current_date
+	        and mls.echelon = #{echelon}
+        ]]>
+	</select>
+	
+	<!-- 梯队 -->
+	<select id="getEchelon" parameterType="ModelLevelSetEntity" resultType="int">
+		<![CDATA[
+			select
+				ehs.echelon
+			from
+				echelon_history eh
+			join
+				echelon_history_set ehs
+			on
+				eh.echelon_history_key=ehs.echelon_history_key
+			where
+				eh.start_date<=#{start_date} 
+				and eh.end_date>=#{end_date}
+				and ehs.model_id= #{model_id}
+				and ehs.level=#{level};
+		]]>
+	</select>
+
+
+	 <select id="getForecastSetting" parameterType="ModelLevelSetEntity" resultType="int">
+	 	<![CDATA[
+	 		select
+	 			forecast_setting
+	 		from
+	 			model_level_set
+	 		where
+	 			model_id=#{model_id}
+	 			and level=#{level}
+	 	]]>
+	 </select>
+	 
+	 <select id="getModelLevelSet" parameterType="ModelLevelSetEntity" resultType="ModelLevelSetEntity">
+	 	<![CDATA[
+	 		SELECT
+				model_level_set.model_id,
+				model_level_set.level,
+				model_level_set.echelon,
+				model_level_set.avaliable_end_date,
+				model_level_set.forecast_setting,
+				model_level_set.coverage,
+				v_model.kind
+			FROM 
+				model_level_set
+			LEFT  JOIN
+			    v_model ON model_level_set.model_id = v_model.model_id
+			WHERE
+				model_level_set.model_id=#{model_id} and model_level_set.level=#{level}
+	 	]]>
+	 </select>
+</mapper>

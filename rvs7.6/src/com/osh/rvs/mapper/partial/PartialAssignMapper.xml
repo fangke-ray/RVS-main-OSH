@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialAssignMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="searchMaterialPartialDetail" resultType="MaterialPartialDetailEntity" parameterType="MaterialPartialDetailEntity">
+			<![CDATA[
+				SELECT
+					mpd.material_partial_detail_key,
+					mpd.material_id,
+					mpd.partial_id,
+					mpd.occur_times,
+					mpd.quantity,
+					mpd.price,
+					mpd.belongs,
+					mpd.position_id,
+					CASE
+					WHEN mpd.status IN (5,6,7) THEN mpd.quantity -- 消耗品/组件/调整临时
+					ELSE mpd.waiting_quantity
+					END
+					as waiting_quantity,
+					mpd.status,
+					p.process_code,
+					pa.code,
+					pa.name as partial_name
+				FROM
+					material_partial_detail mpd
+				JOIN
+					material_partial mp
+				ON 
+					mp.material_id=mpd.material_id AND mp.occur_times=mpd.occur_times
+				left JOIN
+					position p
+				ON 
+					mpd.position_id = p.position_id
+				left join
+					partial pa
+				on
+					pa.partial_id = mpd.partial_id
+				WHERE 
+					mp.bo_flg in (0, 1, 9) -- temp
+				ORDER BY 
+					 (p.line_id = 13) DESC, (p.line_id = 12) DESC, p.position_id
+			]]>
+	</select>
+
+	<!-- ,status=#{status} -->
+	<!-- update by Gonglm 2014/1/9 Start -->
+	<update id="updateMaterialPartialDetail" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			UPDATE 
+				material_partial_detail
+			SET
+				waiting_quantity=#{waiting_quantity},
+				recent_signin_time=now()
+			WHERE
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
+	<!--update id="updateMaterialPartialDetail" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			UPDATE 
+				material_partial_detail
+			SET
+				waiting_quantity=#{waiting_quantity},
+				recent_signin_time=now()
+			WHERE
+				material_id=#{material_id} AND partial_id=#{partial_id} AND occur_times=#{occur_times}
+		]]>
+	</update-->
+	<!-- update by Gonglm 2014/1/9 End -->
+
+	<select id="searchStatus" parameterType="String" resultType="int">
+		select exists(select 1 from material_partial_detail where material_id=#{material_id} AND occur_times=#{occur_times} AND status=#{status}) from dual
+	</select>
+
+	<select id="checkWaiting" parameterType="String" resultType="int">
+		select exists(select 1 from material_partial_detail where material_id=#{material_id} AND occur_times=#{occur_times} AND waiting_quantity>0) from dual
+	</select>
+
+	<update id="updateArrivePlanDate" parameterType="MaterialPartialDetailEntity">
+		UPDATE
+			material_partial_detail
+		SET
+			arrival_plan_date=#{arrival_plan_date}
+		WHERE
+			material_id=#{material_id} AND partial_id=#{partial_id} AND occur_times=#{occur_times}
+	</update>
+</mapper>

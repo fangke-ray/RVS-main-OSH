@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialWasteModifyHistoryMapper">
+  <select id="searchPartialWasteModifyHistory" parameterType="PartialWasteModifyHistoryEntity" resultType="PartialWasteModifyHistoryEntity">
+  <![CDATA[
+	    SELECT                                                      
+			PWMH.MODEL_ID, 																				      
+			M.NAME AS MODEL_NAME,  																			
+			OLD_P.CODE AS OLD_CODE,  																		
+			OLD_P.NAME AS OLD_NAME,																			
+			NEW_P.CODE AS NEW_CODE,																			
+			NEW_P.NAME AS NEW_NAME,																			
+			PWMH.OLD_PARTIAL_ID,																				
+			PWMH.NEW_PARTIAL_ID,																				
+			PWMH.ACTIVE_DATE,   
+			O.NAME AS operator,	
+			PWMH.UPDATED_TIME   																				
+		FROM 
+			 PARTIAL_WASTE_MODIFY_HISTORY PWMH											
+		JOIN
+			 MODEL M																				    
+		ON                                                          
+			PWMH.MODEL_ID = M.MODEL_ID                                  
+		JOIN
+			 PARTIAL OLD_P                                     
+		ON                                                          
+			PWMH.OLD_PARTIAL_ID = OLD_P.PARTIAL_ID                      
+		JOIN 
+			PARTIAL NEW_P                                         
+		ON                                                          
+			PWMH.NEW_PARTIAL_ID = NEW_P.PARTIAL_ID    
+		LEFT JOIN
+			OPERATOR  O
+		ON 
+		  	PWMH.UPDATED_BY=O.OPERATOR_ID
+	]]>                
+    <where>	
+		<if test="model_id!=null and model_id!='' ">
+			<![CDATA[
+			   PWMH.MODEL_ID=#{model_id}
+			]]>
+	    </if> 
+	    <if test="old_partial_id !=null and old_partial_id!='' ">
+			<![CDATA[
+			   AND PWMH.old_partial_id=#{old_partial_id}
+			]]>
+	    </if> 
+	    <if test="new_partial_id !=null and new_partial_id!='' ">
+			<![CDATA[
+			   AND PWMH.new_partial_id=#{new_partial_id}
+			]]>
+	    </if> 
+	    <if test="model_name!=null and model_name!=''">
+	       <![CDATA[
+	           AND  M.NAME LIKE CONCAT('%',#{model_name},'%') 
+	       ]]>
+	    </if>                     
+	    <if test="code!=null and code!=''">
+	       <![CDATA[
+	          AND OLD_P.CODE LIKE CONCAT('%',#{code},'%') 
+	       ]]>
+	    </if>              			
+	    <if test="name!=null and name!=''">
+	       <![CDATA[
+	          AND NEW_P.NAME LIKE CONCAT('%',#{name},'%') 
+	       ]]>
+	    </if>	
+	     <if test="active_date_start!=null and active_date_start!=''">
+	       <![CDATA[
+	          AND (PWMH.ACTIVE_DATE>=#{active_date_start} OR PWMH.ACTIVE_DATE IS NULL)
+	       ]]>
+	    </if>	
+	    
+	     <if test="active_date_end!=null and active_date_end!=''">
+	       <![CDATA[
+	          AND DATE(PWMH.ACTIVE_DATE) <=DATE(#{active_date_end}) 
+	       ]]>
+	    </if>
+	    
+	      <if test="operator_id!=null and operator_id!=''">
+	       <![CDATA[
+	          AND operator_id=#{operator_id}
+	       ]]>
+	    </if>
+	      <if test="operator_type==1">
+	       <![CDATA[
+	          AND old_partial_id !=new_partial_id
+	       ]]>
+	    </if>
+	    
+	     <if test="operator_type==2">
+	       <![CDATA[
+	          AND old_partial_id =new_partial_id
+	       ]]>
+	    </if>
+	    
+	    <if test="operator_type==3">
+	       <![CDATA[
+	       
+	       ]]>
+	    </if>
+	    
+	</where>   
+	ORDER BY PWMH.UPDATED_TIME DESC
+  </select>
+</mapper>

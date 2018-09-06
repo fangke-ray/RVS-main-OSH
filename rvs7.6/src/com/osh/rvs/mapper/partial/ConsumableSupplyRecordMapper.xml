@@ -1,0 +1,283 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableSupplyRecordMapper">
+
+	<select id="search" resultType="ConsumableSupplyRecordEntity" parameterType="ConsumableSupplyRecordEntity">
+    <![CDATA[
+	SELECT 
+		ca.application_no,
+		section.name AS section_name,
+		line.name AS line_name,
+		position.process_code,
+		ca.apply_time,
+		COALESCE(material.omr_notifi_no,material.sorc_no) as omr_notifi_no,
+		ca.apply_reason,
+		ca_operator.name AS supplier_name,
+		cad.apply_method,
+		ca.supply_time,
+		ptl.code AS partial_code,
+		ptl.name AS partial_name,
+		cm.type,
+		ptl.price,
+		cad_operator.name AS petitioner_name,
+		cad.apply_quantity,
+		cad.supply_quantity,
+		ptl.price * cad.supply_quantity AS total_price,
+		cm.benchmark,
+		cm.safety_lever,
+		cm.stock_code
+	FROM 
+		consumable_application ca 
+	JOIN 
+		consumable_application_detail cad
+	ON 
+		ca.consumable_application_key = cad.consumable_application_key
+	JOIN 
+		partial ptl 
+	ON 
+		cad.partial_id = ptl.partial_id
+	JOIN 
+		consumable_manage cm 
+	ON 
+		cad.partial_id = cm.partial_id
+	JOIN
+		section
+	ON
+		section.section_id = ca.section_id
+	LEFT JOIN
+		line
+	ON
+		line.line_id = ca.line_id
+	LEFT JOIN
+		position
+	ON
+		position.position_id = ca.position_id
+	LEFT JOIN
+		material
+	ON
+		material.material_id = ca.material_id
+	JOIN
+		operator ca_operator
+	ON
+		ca_operator.operator_id = ca.supplier_id
+	JOIN
+		operator cad_operator
+	ON
+		cad_operator.operator_id = cad.petitioner_id
+	WHERE 
+		cad.supply_quantity > 0
+ 	]]>
+	<if test="supply_time_start!=null and supply_time_start!='' ">
+	<![CDATA[
+	AND ca.supply_time >= #{supply_time_start}
+	]]>
+	</if>
+	<if test="supply_time_end!=null and supply_time_end!='' ">
+	<![CDATA[
+	AND ca.supply_time < DATE_ADD(#{supply_time_end}, interval 1 day)
+	]]>
+	</if>
+	<if test="apply_method!=null and apply_method!='' ">
+	<![CDATA[
+	AND cad.apply_method = #{apply_method}
+	]]>
+	</if>
+	<if test="types!=null and types!='' ">
+	<![CDATA[
+	AND cm.type IN (${types})
+	]]>
+	</if>
+ 	ORDER BY ca.supply_time
+	</select>
+	
+	<select id="searchConsumableSubstitute" resultType="ConsumableSupplyRecordEntity" parameterType="ConsumableSupplyRecordEntity">
+    <![CDATA[
+    SELECT 
+		section.name AS section_name,
+		line.name AS line_name,
+		position.process_code,
+		COALESCE(material.omr_notifi_no,material.sorc_no) AS omr_notifi_no,
+		5 AS apply_method,
+		ca.substitute_time AS supply_time,
+		ptl.code AS partial_code,
+		ptl.name AS partial_name,
+		cm.type,
+		ptl.price,
+		ca.quantity AS supply_quantity,
+		ptl.price * ca.quantity AS total_price,
+		cm.benchmark,
+		cm.safety_lever,
+		cm.stock_code
+	FROM 
+		consumable_substitute ca
+	JOIN
+		material
+	ON
+		material.material_id = ca.material_id
+    LEFT JOIN
+		material_partial_detail mpd
+	ON
+		ca.material_id = mpd.material_id AND ca.occur_times = mpd.occur_times AND ca.partial_id = mpd.partial_id
+	JOIN 
+		partial ptl 
+	ON 
+		ca.partial_id = ptl.partial_id
+	JOIN 
+		consumable_manage cm 
+	ON 
+		ca.partial_id = cm.partial_id
+	JOIN
+		section
+	ON
+		section.section_id = material.section_id
+	LEFT JOIN
+		position
+	ON
+		(position.position_id = ca.position_id OR position.position_id = mpd.position_id)
+	LEFT JOIN
+		line
+	ON
+		line.line_id = position.line_id
+	JOIN
+		operator ca_operator
+	ON
+		ca_operator.operator_id = ca.operator_id
+	WHERE 
+		ca.occasion_flg = 1
+    ]]>
+    <if test="supply_time_start!=null and supply_time_start!='' ">
+	<![CDATA[
+	AND ca.substitute_time >= #{supply_time_start}
+	]]>
+	</if>
+	<if test="supply_time_end!=null and supply_time_end!='' ">
+	<![CDATA[
+	AND ca.substitute_time < DATE_ADD(#{supply_time_end}, interval 1 day)
+	]]>
+	</if>
+	<if test="types!=null and types!='' ">
+	<![CDATA[
+	AND cm.type IN (${types})
+	]]>
+	</if>
+    GROUP BY
+		ca.consumable_substitute_key
+	ORDER BY 
+		ca.substitute_time
+    </select>
+    
+    <select id="searchConsumableTopTen" resultType="ConsumableSupplyRecordEntity" parameterType="ConsumableSupplyRecordEntity">
+    <![CDATA[
+    SELECT
+		partial_id,
+		partial_code,
+        price,
+		SUM(supply_quantity) AS supply_quantity,
+		SUM(total_price) AS total_price,
+        consumpt_quota
+	FROM
+	(
+    ]]>
+    <![CDATA[
+    SELECT 
+		ptl.partial_id,
+		ptl.code AS partial_code,
+        ptl.price,
+		cad.supply_quantity,
+		ptl.price * cad.supply_quantity AS total_price,
+        cm.consumpt_quota
+	FROM 
+		consumable_application ca 
+	JOIN 
+		consumable_application_detail cad
+	ON 
+		ca.consumable_application_key = cad.consumable_application_key
+	JOIN 
+		partial ptl 
+	ON 
+		cad.partial_id = ptl.partial_id
+	JOIN 
+		consumable_manage cm 
+	ON 
+		cad.partial_id = cm.partial_id
+	WHERE 
+		cad.supply_quantity > 0
+    ]]>
+    <if test="supply_time_start!=null and supply_time_start!='' ">
+	<![CDATA[
+	AND ca.supply_time >= #{supply_time_start}
+	]]>
+	</if>
+	<if test="supply_time_end!=null and supply_time_end!='' ">
+	<![CDATA[
+	AND ca.supply_time < DATE_ADD(#{supply_time_end}, interval 1 day)
+	]]>
+	</if>
+	<if test="apply_method!=null and apply_method!='' ">
+	<![CDATA[
+	AND cad.apply_method = #{apply_method}
+	]]>
+	</if>
+	<if test="types!=null and types!='' ">
+	<![CDATA[
+	AND cm.type IN (${types})
+	]]>
+	</if>
+	UNION ALL
+	<![CDATA[
+	SELECT 
+		ptl.partial_id,
+		ptl.code AS partial_code,
+		ptl.price,
+		ca.quantity AS supply_quantity,
+		ptl.price * ca.quantity AS total_price,
+        cm.consumpt_quota
+	FROM 
+		consumable_substitute ca
+	JOIN 
+		partial ptl 
+	ON 
+		ca.partial_id = ptl.partial_id
+	JOIN 
+		consumable_manage cm 
+	ON 
+		ca.partial_id = cm.partial_id
+	WHERE 
+		ca.occasion_flg = 1
+	]]>
+	<if test="supply_time_start!=null and supply_time_start!='' ">
+	<![CDATA[
+	AND ca.substitute_time >= #{supply_time_start}
+	]]>
+	</if>
+	<if test="supply_time_end!=null and supply_time_end!='' ">
+	<![CDATA[
+	AND ca.substitute_time < DATE_ADD(#{supply_time_end}, interval 1 day)
+	]]>
+	</if>
+	<if test="types!=null and types!='' ">
+	<![CDATA[
+	AND cm.type IN (${types})
+	]]>
+	</if>
+	GROUP BY
+		ca.consumable_substitute_key
+	) temp
+	GROUP BY
+		partial_id
+	ORDER BY
+		${order_by} DESC
+	LIMIT 10
+    </select>
+    
+    <select id="getOutLineQuantity" parameterType="ConsumableSupplyRecordEntity" resultType="int">
+    <![CDATA[
+    SELECT 
+    	count(*) 
+    FROM 
+    	material 
+    WHERE 
+    	break_back_flg = 0 AND outline_time >= #{supply_time_start} AND outline_time < DATE_ADD(#{supply_time_end}, interval 1 day)
+    ]]>
+    </select>
+</mapper>

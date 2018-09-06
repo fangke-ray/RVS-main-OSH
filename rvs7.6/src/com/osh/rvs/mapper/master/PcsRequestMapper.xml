@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PcsRequestMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getPcsRequest" resultType="PcsRequestEntity" parameterType="PcsRequestEntity">
+		<![CDATA[ 
+			SELECT `pr`.`pcs_request_key`,
+			    `pr`.`request_date`,
+			    `pr`.`request_db_no`,
+			    `pr`.`description`,
+			    `pr`.`line_type`,
+			    `pr`.`line_id`,
+			    `pr`.`target_model_id`,
+			    mdl.name as target_model_name,
+			    `pr`.`file_name`,
+			    `pr`.`org_file_name`,
+			    `pr`.`change_means`,
+			    `pr`.`importer_id`,
+			    o.name as `importer_name`,
+			    `pr`.`import_time`,
+			    `pr`.`change_detail`,
+			    `pr`.`delete_flg`,
+			    `pr`.`reacted_model`
+			FROM `pcs_request` `pr`
+			JOIN model mdl
+			on `pr`.`target_model_id` = mdl.model_id
+			LEFT JOIN operator o
+			on pr.importer_id = o.operator_id
+			WHERE `pr`.`pcs_request_key` = #{pcs_request_key}
+			;
+		]]>
+	</select>
+
+	<select id="searchPcsRequests" resultType="PcsRequestEntity" parameterType="PcsRequestEntity">
+		<![CDATA[ 
+			SELECT `pr`.`pcs_request_key`,
+			    `pr`.`request_date`,
+			    `pr`.`request_db_no`,
+			    `pr`.`description`,
+			    `pr`.`line_type`,
+			    `pr`.`line_id`,
+			    mdl.name as target_model_name,
+			    `pr`.`target_model_id`,
+			    `pr`.`file_name`,
+			    `pr`.`org_file_name`,
+			    `pr`.`change_means`,
+			    `pr`.`importer_id`,
+			    o.name as `importer_name`,
+			    `pr`.`import_time`,
+			    `pr`.`change_detail`,
+			    `pr`.`delete_flg`,
+			    `pr`.`reacted_model`
+			FROM `pcs_request` `pr`
+			JOIN model mdl
+			on `pr`.`target_model_id` = mdl.model_id
+			LEFT JOIN operator o
+			on pr.importer_id = o.operator_id
+		]]>
+		<where>
+			`pr`.`delete_flg` = 0
+			<if test="request_date_start!=null and request_date_start!='' ">
+			<![CDATA[ 
+				AND `pr`.`request_date` >= #{request_date_start}
+			]]>
+			</if>
+			<if test="request_date_end!=null and request_date_end!='' ">
+			<![CDATA[ 
+				AND `pr`.`request_date` <= #{request_date_end}
+			]]>
+			</if>
+			<if test="import_time_start!=null and import_time_start!='' ">
+			<![CDATA[ 
+				AND `pr`.`import_time` >= #{import_time_start}
+			]]>
+			</if>
+			<if test="import_time_end!=null and import_time_end!='' ">
+			<![CDATA[ 
+				AND date(`pr`.`import_time`) <= #{import_time_end}
+			]]>
+			</if>
+			<if test="request_db_no!=null ">
+				AND `pr`.`request_db_no` = #{request_db_no}
+			</if>
+			<if test="description!=null and description!='' ">
+				AND (`pr`.description LIKE CONCAT('%', #{description}, '%') || `pr`.change_detail LIKE CONCAT('%', #{description}, '%'))
+			</if>
+			<if test="line_type!=null ">
+				AND `pr`.`line_type` = #{line_type}
+			</if>
+			<if test="file_name!=null and file_name!='' ">
+				AND (`pr`.file_name LIKE CONCAT('%', #{file_name}, '%') || `pr`.org_file_name LIKE CONCAT('%', #{file_name}, '%'))
+			</if>
+			<if test="change_means!=null ">
+				AND `pr`.`change_means` = #{change_means}
+			</if>
+			<if test="target_model_id!=null ">
+				AND `pr`.`target_model_id` = #{target_model_id}
+			</if>
+			<![CDATA[ 
+			AND (import_time is null OR change_means <> 4)
+			]]>
+		</where> 
+		<![CDATA[ 
+		ORDER BY (`pr`.`import_time` is null) desc, `pr`.`request_date` DESC;
+		]]>
+	</select>
+
+	<select id="getTestOflines" resultType="PositionEntity" parameterType="String">
+		select p.position_id, p.name, process_code, o.operator_id as line_id, o.job_no as line_name 
+		from position p
+		left join 
+		(select position_id, operator_id, job_no
+		 from operator where delete_flg = 0 order by position_id, (work_count_flg = 1) desc) o
+		on p.position_id = o.position_id
+		where
+		p.line_id = #{line_id}
+		and p.delete_flg = 0
+		group by p.position_id
+		order by process_code;
+	</select>
+
+	<insert id="createPcsRequest" parameterType="PcsRequestEntity">
+		<![CDATA[ 
+			INSERT INTO `pcs_request`
+			(
+			`request_date`,
+			`request_db_no`,
+			`description`,
+			`line_type`,
+			`line_id`,
+			`target_model_id`,
+			`file_name`,
+			`org_file_name`,
+			`change_means`,
+			`change_detail`,
+			`reacted_model`)
+			VALUES
+			(
+			#{request_date},
+			#{request_db_no},
+			#{description},
+			#{line_type},
+			#{line_id},
+			#{target_model_id},
+			#{file_name},
+			#{org_file_name},
+			#{change_means},
+			#{change_detail},
+			#{reacted_model});
+		]]>
+	</insert>
+
+	<update id="removePcsRequest" parameterType="String">
+		<![CDATA[ 
+		UPDATE `pcs_request` SET `delete_flg` = 1
+		WHERE `pcs_request_key` = #{pcs_request_key};
+		]]>
+	</update>
+
+	<update id="importPcsRequest" parameterType="PcsRequestEntity">
+		<![CDATA[ 
+		UPDATE `pcs_request` SET `importer_id` = #{importer_id},
+			`import_time` = current_timestamp
+		WHERE `pcs_request_key` = #{pcs_request_key};
+		]]>
+	</update>
+
+	<select id="getWorkingByModel" resultType="MaterialEntity" parameterType="String">
+		SELECT m.material_id, coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, m.model_id, mdl.name as model_name, m.level,
+		group_concat(distinct pos.process_code separator ' ') as processing_position
+		FROM material m
+		join model mdl
+		on m.model_id = mdl.model_id
+		join production_feature pf
+		on m.material_id = pf.material_id
+		and pf.finish_time is null
+		join position pos
+		on pf.position_id = pos.position_id
+		where 
+		m.fix_type = 1
+		and m.model_id = #{model_id}
+		and m.inline_time is not null and m.outline_time is null
+		group by m.material_id
+		order by process_code
+		;	
+	</select>
+
+	<insert id="setOldType" parameterType="String">
+		<![CDATA[ 
+			REPLACE INTO `pcs_request_ignore`
+			(
+			`pcs_request_key`,
+			`material_id`)
+			VALUES
+			(
+			#{pcs_request_key},
+			#{material_id});
+		]]>
+	</insert>
+
+	<insert id="setReactedModels" parameterType="String">
+		<![CDATA[ 
+			REPLACE INTO `pcs_request_reacted_model`
+			(
+			`pcs_request_key`,
+			`model_id`)
+			VALUES
+			(
+			#{pcs_request_key},
+			#{model_id});
+		]]>
+	</insert>
+
+	<select id="getReactedModelsByKey" resultType="String" parameterType="String">
+		<![CDATA[ 
+			SELECT `model_id`
+			FROM `pcs_request_reacted_model`
+			where pcs_request_key = #{pcs_request_key};
+		]]>
+	</select>
+
+	<update id="updatePcsRequest" parameterType="PcsRequestEntity">
+		<![CDATA[ 
+		UPDATE `pcs_request` SET 
+		`request_date` = #{request_date},
+		`request_db_no` = #{request_db_no},
+		]]>
+		<if test="file_name!=null ">
+			`file_name` = #{file_name},
+			`org_file_name` = #{org_file_name},
+		</if>
+		<![CDATA[ 
+		`description` = #{description},
+		`change_detail` = #{change_detail}
+		WHERE `pcs_request_key` = #{pcs_request_key};
+		]]>
+	</update>
+
+	<select id="checkMaterialAssignAsOld" resultType="PcsRequestEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT pr.* 
+			FROM pcs_request pr
+			join 
+			pcs_request_ignore pri
+			on pr.pcs_request_key = pri.pcs_request_key
+			where material_id = #{material_id}
+			order by pr.import_time desc
+			;
+		]]>
+	</select>
+
+	<select id="getFixHistoryOfMaterial" resultType="PcsRequestEntity" parameterType="String">
+		<![CDATA[ 
+			select * from 
+			(select pr.pcs_request_key, pr.line_type, m.model_id as target_model_id from material m
+			join pcs_request_reacted_model prrm
+			on m.model_id = prrm.model_id
+			join pcs_request pr
+			on prrm.pcs_request_key = pr.pcs_request_key
+			where m.material_id = #{material_id}
+			and pr.delete_flg != 1
+			and m.qa_check_time < pr.import_time
+			order by import_time
+			) hiss group by hiss.line_type
+			;
+		]]>
+	</select>
+
+</mapper>

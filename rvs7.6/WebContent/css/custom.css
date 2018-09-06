@@ -1,0 +1,1004 @@
+﻿@CHARSET "UTF-8";
+
+/* 全局字体设定*/
+* {
+	font-family: "Microsoft YaHei";
+}
+
+/* 全局Body设定*/
+body {
+	font-size: 12px;
+	color: #333;
+	margin: 0px;
+}
+
+/* 外层展示Body设定*/
+body.outer {
+	background: #091174;
+	background: -moz-linear-gradient(left,  #091174 0%, #0e22ba 50%, #091174 100%);
+	background: -webkit-gradient(linear, left top, right top, color-stop(0%,#091174), color-stop(50%,#0e22ba), color-stop(100%,#091174));
+	background: -webkit-linear-gradient(left,  #091174 0%,#0e22ba 50%,#091174 100%);
+	background: -o-linear-gradient(left,  #091174 0%,#0e22ba 50%,#091174 100%);
+	background: -ms-linear-gradient(left,  #091174 0%,#0e22ba 50%,#091174 100%);
+	background: linear-gradient(to right,  #091174 0%,#0e22ba 50%,#091174 100%);
+	overflow-x: hidden;
+}
+
+/* 粗体属性重置 */
+b,strong,th,h1,h2,h3,h4 {
+	font-weight: bold;
+}
+
+/* 粗体属性重置 */
+p,strong,li,dd,dt {
+	line-height: 1.5;
+}
+
+/* 表格属性重置 */
+table {
+	margin: 2px;
+}
+
+table.subform {
+	border-collapse: collapse;
+}
+
+/* 表格属性重置 */
+table.condform td, table.subform td {
+	border: 1px solid #93C3CD;
+}
+
+/* 浮动消除 */
+.clear {
+	clear: both;
+}
+
+/* jqgrid字体重设 */
+.ui-jqgrid .ui-jqgrid-title
+{
+	font-size: 16px;
+}
+
+/* jqgrid字体重设 */
+.ui-jqgrid-sortable,.ui-pg-div
+{
+	font-size: 12px;
+}
+
+/* jqgrid字体重设 */
+.ui-jqgrid tr.jqgrow td
+{
+	font-size: 11px;
+}
+
+/* jqgrid字体重设 */
+.ui-widget-header span {
+	font-size: 16px;
+}
+
+/* 区块高度设定  */
+div.areaencloser {
+	height: 32px;
+	margin-top: -1px;
+}
+
+/* 功能按钮区块高度设定  */
+div.areabase {
+	height: 44px;
+	margin-top: -1px;
+	valign: center;
+}
+
+/* 宽度设定-全宽容器  */
+div.width-full {
+	width: 1278px;
+}
+
+/* 宽度设定-全宽容器  */
+div.width-full {
+	width: 1278px;
+}
+
+/* 宽度设定-全宽内容  */
+div.dwidth-full {
+	width: 1248px;
+	margin:auto;
+}
+
+/* 宽度设定-半宽内容  */
+div.dwidth-half {
+	width: 604px;
+	margin:auto;
+}
+
+/* 宽度设定-大输入框  */
+input.dwidth-half {
+	width: 600px;
+	margin:auto;
+}
+
+/* 宽度设定-左部内容  */
+div.dwidth-left {
+	width: 224px;
+	margin:auto;
+}
+
+/* 宽度设定-中部内容  */
+div.dwidth-middle {
+	width: 768px;
+	margin:auto;
+}
+
+/* 宽度设定-右部内容  */
+div.dwidth-right {
+	width: 192px;
+	margin:auto;
+}
+
+/* 宽度设定-中右部内容  */
+div.width-middleright {
+	width: 994px;
+	margin:auto;
+}
+
+/* 宽度设定-中右部内容  */
+div.dwidth-middleright {
+	width: 992px;
+	margin:auto;
+}
+
+/* 标题栏标题 */
+span.areatitle {
+	float: left;
+	margin: .3em .4em .2em .3em;
+}
+
+/* 标题栏右侧按钮 */
+a.areacloser {
+	float: right;
+	right: 0px;
+	width: 19px;
+	margin: .3em 0 0 0;
+	padding: 1px;
+	height: 18px;
+}
+
+/* 标题栏右侧按钮 */
+a.areacloser span {
+	margin: 1px;
+}
+
+/* 表格属性名格子 */
+td.td-title {
+	width: 110px;
+	padding: 6px;
+}
+
+/* 表格属性内容格子 */
+td.td-content {
+	width: 220px;
+	padding: 1px;
+	padding-left: 3px;
+}
+
+/* 表格属性内容格子-右文本 */
+td.td-content-text {
+	width: 220px;
+	padding: 6px;
+	text-align: right;
+}
+
+/* 表格属性内容格子-标签文本 */
+td.td-content label {
+	padding: 2px;
+}
+
+/* 错误信息-单个 */
+input.errorarea-single,textarea.errorarea-single,select.errorarea-single {
+	margin-right:20px;
+	text-align: left;
+	color: #CD0A0A !important;
+	background : #ffc8c8;
+	border-color : #CD0A0A !important;
+	filter:glow(color=#FF0000,strengh=2);
+}
+
+/* 错误信息-单个 */
+label.errorarea-single {
+	margin-right:20px;
+	text-align: left;
+	color: #CD0A0A !important;
+}
+
+/* 错误信息输入对象-闪烁 TODO CSS3 */
+.errorarea-blink {
+	border-color : #CD0A0A !important;
+	border-style : dashed !important;
+}
+
+/* TODO 废弃 */
+.chat-message {
+	border : #aEaEaE 1px solid;
+	margin-bottom : 4px;
+	background: #ffffff;
+	background: -moz-linear-gradient(left,  hsla(0,0%,100%,1) 0%, hsla(0,0%,90%,1) 100%);
+	background: -webkit-gradient(linear, left top, right top, color-stop(0%,hsla(0,0%,100%,1)), color-stop(100%,hsla(0,0%,90%,1)));
+	background: -webkit-linear-gradient(left,  hsla(0,0%,100%,1) 0%,hsla(0,0%,90%,1) 100%);
+	background: -o-linear-gradient(left,  hsla(0,0%,100%,1) 0%,hsla(0,0%,90%,1) 100%);
+	background: -ms-linear-gradient(left,  hsla(0,0%,100%,1) 0%,hsla(0,0%,90%,1) 100%);
+	background: linear-gradient(to right,  hsla(0,0%,100%,1) 0%,hsla(0,0%,90%,1) 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#e5e5e5',GradientType=1 );
+	padding-top: 4px;
+	padding-left: 6px;
+	padding-bottom: 4px;
+	box-shadow: 2px 2px 12px #e5e5e5;
+}
+
+/* 工程检查票输入框 */
+.pcs_content input[type=text] {
+	background:transparent;
+	border: 0;
+	border-bottom: 1px solid;
+	/* width: 120px; */
+}
+
+/* 工程检查票输入域 */
+.pcs_content textarea {
+	background:transparent;
+	border: 1px solid;
+	width: 96%;
+	height: 96%;
+	font-size: 12px;
+}
+.pcs_content textarea.i_frequent {
+	background:white;
+	height: 2.2em;
+}
+.pcs_content textarea.i_frequent[changed] {
+	background:transparent;
+}
+
+.pcs_content textarea[readonly] {
+	border-color: transparent;
+}
+
+.pcs_content textarea.s {
+height: 3em;
+resize: none;
+}
+
+.pcs_content .i_switchM {
+	border : 1px solid white;
+	background-color : lightgray;
+	width:5em;
+}
+.pcs_content .i_switchM[checkval="1"] {
+	background-color : #71f92c;
+	color : white;
+}
+.pcs_content .i_switchM[checkval="-1"] {
+	background-color : #f44a2c;
+	color : white;
+}
+/* jquery ui datepicker 宽度重设 TODO 单体 menu */
+div.ui-datepicker {
+   width: 219px;
+}
+
+/* 页面表示主体 */
+.ui-widget-panel {
+	border : #08107b 1px solid;
+	background: #efefef; /* Old browsers */
+	box-shadow: 2px 2px 12px #85cbfd;
+	margin-bottom:16px;
+	background: #08107b; /* Old browsers */
+	background: -moz-linear-gradient(-45deg,  #08107b 0%, #85cbfd 10%, #ffffff 65%, #ffffff 80%, #ffb300 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, right bottom, color-stop(0%,#08107b), color-stop(10%,#85cbfd), color-stop(65%,#ffffff), color-stop(80%,#ffffff), color-stop(100%,#ffb300)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(-45deg,  #08107b 0%,#85cbfd 10%,#ffffff 65%,#ffffff 80%,#ffb300 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(-45deg,  #08107b 0%,#85cbfd 10%,#ffffff 65%,#ffffff 80%,#ffb300 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(-45deg,  #08107b 0%,#85cbfd 10%,#ffffff 65%,#ffffff 80%,#ffb300 100%); /* IE10+ */
+	background: linear-gradient(135deg,  #08107b 0%,#85cbfd 10%,#ffffff 65%,#ffffff 80%,#ffb300 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#08107b', endColorstr='#ffb300',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+	min-height: 540px;
+}
+
+/* 进度条/黄色 */
+.tube-yellow {
+	background: #fa802b; /* Old browsers */
+	background: -moz-linear-gradient(top,  #fa802b 0%, #f9ec54 0%, #f9ec54 23%, #fff268 38%, #f4e327 39%, #c9be44 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fa802b), color-stop(0%,#f9ec54), color-stop(23%,#f9ec54), color-stop(38%,#fff268), color-stop(39%,#f4e327), color-stop(100%,#c9be44)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* W3C */
+}
+
+/* 进度条/绿色 */
+.tube-green {
+	background: #71f92c; /* Old browsers */
+	background: -moz-linear-gradient(top,  #71f92c 0%, #8bf954 23%, #9aff68 38%, #6bf427 39%, #70c944 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#71f92c), color-stop(23%,#8bf954), color-stop(38%,#9aff68), color-stop(39%,#6bf427), color-stop(100%,#70c944)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #71f92c 0%,#8bf954 23%,#9aff68 38%,#6bf427 39%,#70c944 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #71f92c 0%,#8bf954 23%,#9aff68 38%,#6bf427 39%,#70c944 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #71f92c 0%,#8bf954 23%,#9aff68 38%,#6bf427 39%,#70c944 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #71f92c 0%,#8bf954 23%,#9aff68 38%,#6bf427 39%,#70c944 100%); /* W3C */
+}
+
+/* 进度条/红色 */
+.tube-red {
+	background: #f44a2c; /* Old browsers */
+	background: -moz-linear-gradient(top,  #f44a2c 0%, #f47055 23%, #ff8168 38%, #ef4726 39%, #c45842 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f44a2c), color-stop(23%,#f47055), color-stop(38%,#ff8168), color-stop(39%,#ef4726), color-stop(100%,#c45842)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #f44a2c 0%,#f47055 23%,#ff8168 38%,#ef4726 39%,#c45842 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #f44a2c 0%,#f47055 23%,#ff8168 38%,#ef4726 39%,#c45842 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #f44a2c 0%,#f47055 23%,#ff8168 38%,#ef4726 39%,#c45842 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #f44a2c 0%,#f47055 23%,#ff8168 38%,#ef4726 39%,#c45842 100%); /* W3C */
+}
+
+/* 进度条/橙色 */
+.tube-orange {
+	background: #F4AE2D; /* Old browsers */
+	background: -moz-linear-gradient(top,  #f47055 0%, #F4AE2D 23%, #F4C055 38%, #EFAD25 39%, #C49942 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f47055), color-stop(23%,#F4AE2D), color-stop(38%,#F4C055), color-stop(39%,#EFAD25), color-stop(100%,#C49942)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #f47055 0%,#F4AE2D 23%,#F4C055 38%,#EFAD25 39%,#C49942 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #f47055 0%,#F4AE2D 23%,#F4C055 38%,#EFAD25 39%,#C49942 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #f47055 0%,#F4AE2D 23%,#F4C055 38%,#EFAD25 39%,#C49942 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #f47055 0%,#F4AE2D 23%,#F4C055 38%,#EFAD25 39%,#C49942 100%); /* W3C */
+}
+
+/* 进度条/灰色 */
+.tube-gray {
+	background: #e0e0e0; /* Old browsers */
+	background: -moz-linear-gradient(top,  #e4e4e4 0%, #e0e0e0 23%, #f4f4f4 38%, #a0a0a0 39%, #505050 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#e4e4e4), color-stop(23%,#e0e0e0), color-stop(38%,#f4f4f4), color-stop(39%,#a0a0a0), color-stop(100%,#505050)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #e4e4e4 0%,#e0e0e0 23%,#f4f4f4 38%,#a0a0a0 39%,#505050 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #e4e4e4 0%,#e0e0e0 23%,#f4f4f4 38%,#a0a0a0 39%,#505050 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #e4e4e4 0%,#e0e0e0 23%,#f4f4f4 38%,#a0a0a0 39%,#505050 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #e4e4e4 0%,#e0e0e0 23%,#f4f4f4 38%,#a0a0a0 39%,#505050 100%); /* W3C */
+}
+
+/* 进度条/蓝色 */
+.tube-blue {
+	background: #127bd6;
+	background: -moz-linear-gradient(top,  #127bd6 0%, #5b9dd3 23%, #89b2d3 38%, #5199d1 38%, #127bd6 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#127bd6), color-stop(23%,#5b9dd3), color-stop(38%,#89b2d3), color-stop(38%,#5199d1), color-stop(100%,#127bd6));
+	background: -webkit-linear-gradient(top,  #127bd6 0%,#5b9dd3 23%,#89b2d3 38%,#5199d1 38%,#127bd6 100%);
+	background: -o-linear-gradient(top,  #127bd6 0%,#5b9dd3 23%,#89b2d3 38%,#5199d1 38%,#127bd6 100%);
+	background: -ms-linear-gradient(top,  #127bd6 0%,#5b9dd3 23%,#89b2d3 38%,#5199d1 38%,#127bd6 100%);
+	background: linear-gradient(to bottom,  #127bd6 0%,#5b9dd3 23%,#89b2d3 38%,#5199d1 38%,#127bd6 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#127bd6', endColorstr='#127bd6',GradientType=0 );
+}
+
+/* 进度条/粉色 */
+.tube-pink {
+	background: #f0a799;
+	background: -moz-linear-gradient(top,  #f0a799 0%, #ce969a 23%, #efb6ac 38%, #d3b6b7 38%, #d3838f 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f0a799), color-stop(23%,#ce969a), color-stop(38%,#efb6ac), color-stop(38%,#d3b6b7), color-stop(100%,#d3838f));
+	background: -webkit-linear-gradient(top,  #f0a799 0%,#ce969a 23%,#efb6ac 38%,#d3b6b7 38%,#d3838f 100%);
+	background: -o-linear-gradient(top,  #f0a799 0%,#ce969a 23%,#efb6ac 38%,#d3b6b7 38%,#d3838f 100%);
+	background: -ms-linear-gradient(top,  #f0a799 0%,#ce969a 23%,#efb6ac 38%,#d3b6b7 38%,#d3838f 100%);
+	background: linear-gradient(to bottom,  #f0a799 0%,#ce969a 23%,#efb6ac 38%,#d3b6b7 38%,#d3838f 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#f0a799', endColorstr='#d3838f',GradientType=0 );
+}
+
+/* 进度条-外框 */
+.tube {
+	border: 1px #9da2b5 solid;
+	margin:4px;
+	height:20px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	-khtml-border-radius: 8px;
+	border-radius: 8px; 
+}
+
+/* 进度条-内容 */
+.tube-liquid {
+	height:20px;
+	padding-left:6px;
+	inline-height:20px;
+	-moz-border-radius: 8px;
+	-webkit-border-radius: 8px;
+	-khtml-border-radius: 8px;
+	border-radius: 8px; 
+	white-space:nowrap;
+	position: relative;
+}
+
+.tube-liquid .material_flags
+{
+width: 100%;
+height: 100%;
+background-color: transparent;
+position: absolute;
+right: 1em;
+text-align: center;
+border:1px solid transparent;
+top: -0.1em;
+}
+
+.tube-liquid .material_flags div
+{
+width: 1.5em;
+height: 1.5em;
+position: static;
+float:right;
+top: 0.1em;
+border-radius: 0.7em;
+background-color: rgb(0, 208, 0);
+border:1px solid gray;
+color: rgb(0, 48, 0);
+}
+
+.tube-liquid .material_flags .direct_flg
+{
+background-color: rgb(0, 208, 0);
+border:1px solid gray;
+color: rgb(0, 48, 0);
+}
+
+.tube-liquid .material_flags .rapid_direct_flg
+{
+background-color: rgb(62, 248, 62);
+border:1px solid gray;
+color: rgb(0, 48, 0);
+overflow-x: hidden;
+position: relative;
+}
+
+.tube-liquid .material_flags .light_fix
+{
+background-color: rgb(204, 118, 204);
+border:1px solid gray;
+color: rgb(0, 48, 0);
+}
+
+.tube-liquid .material_flags .b_flg
+{
+background-color: rgb(204, 118, 204);
+border:1px solid gray;
+color: rgb(0, 48, 0);
+}
+
+.tube-liquid .material_flags .over_time
+{
+background-color: rgb(247, 9, 9);
+border:1px solid gray;
+color: rgb(255, 255, 56);
+}
+
+.tube-liquid .material_flags .service_repair_flg
+{
+background-color: rgb(255, 215, 79);
+border:1px solid gray;
+color: rgb(0, 48, 0);
+}
+
+.tube-liquid > .finish_time_left
+{
+float:right;
+margin-right:-55px;
+margin-top:-3px
+}
+
+.leader_grid .sorc_no
+{
+	float:left;
+}
+
+.leader_grid .direct_flg,
+.leader_grid .rapid_direct_flg,
+.leader_grid .small_flg,
+.leader_grid .service_repair_flg
+{
+border: 1px solid #808080;
+border-radius: 0.7em;
+color: #003000;
+font-size: 10px;
+height: 1.5em;
+position: absolute;
+text-align: center;
+width: 1.5em;
+}
+
+.leader_grid .direct_flg
+{
+background-color: #00D000;
+}
+
+.leader_grid .rapid_direct_flg
+{
+background-color: rgb(62, 248, 62);
+overflow-x: hidden;
+}
+
+.leader_grid .small_flg
+{
+background-color: #cc76cc;
+}
+
+.leader_grid .service_repair_flg
+{
+background-color: rgb(255, 215, 79);
+border:1px solid gray;
+color: rgb(0, 48, 0);
+}
+
+@keyframes moverapid {
+	0% {left: 1em;}
+	100% {left: -4em;} 
+}
+
+@-webkit-keyframes moverapid {
+	0% {left: 1em;}
+	100% {left: -4em;} 
+}
+
+@-moz-keyframes moverapid {
+	0% {left: 1em;}
+	100% {left: -4em;} 
+}
+
+.leader_grid .rapid_direct_flg > *,
+.tube-liquid .material_flags .rapid_direct_flg > *
+ {
+	position: absolute;
+	-webkit-animation: moverapid 1s linear infinite;
+	-moz-animation: moverapid 1s linear infinite;
+	animation: moverapid 1s linear infinite;
+}
+
+/* jquery ui buttonset 大小重设 */
+.ui-buttonset .ui-button-text {
+	padding: 0.2em 0.8em !important;
+}
+
+/* 幻灯片效果 TODO 单体/不一定使用 */
+.prev_map a, .prev_map a:link, .prev_map a:hover, .prev_map a:visited, .next_map a, .next_map a:link, .next_map a:hover, .next_map a:visited {
+	background: url(../../images/ico_pointer.png?id=1308797939125) no-repeat scroll 0 -85px;
+	width: 35px;
+	height: 53px;
+	margin: 0 2px;
+	display: block;
+}
+
+/* 幻灯片效果 TODO 单体/不一定使用 */
+.prev_map {
+	float: left;
+	display: block;
+	width: 43px;
+	padding: 192px 0 0 2px;
+}
+
+/* 幻灯片效果 TODO 单体/不一定使用 */
+.next_map {
+	float: right;
+	display: block;
+	width: 43px;
+	padding: 192px 2px 0 0;
+}
+
+/* 幻灯片效果 TODO 单体/不一定使用 */
+.next_map a, .next_map a:link, .next_map a:hover, .next_map a:visited {
+	background-position: -64px -85px;
+}
+
+/* WIP图 */
+.wip-table {
+	text-align:center;
+}
+
+/* WIP已存放表示 */
+.wip-heaped:hover,.wip-heaped-hover {
+	 background: #ffffff !important;
+	 font-weight: bold;
+	 color: #f8bb14 !important; 
+	 text-decoration: underline;
+}
+
+/* WIP选取表示 TODO 不要 */
+.wip-heaped-checked, .wip-heaped-checked:hover {
+	 background: #0080FF !important;
+	 border :3px #0000FF solid;
+	 color: white !important; 
+}
+
+/* WIP空位表示 */
+.wip-empty {
+	cursor: pointer;
+}
+.wip-empty:hover {
+	background: #f0f0ff !important;
+	content: '入';
+	cursor: pointer;
+}
+
+/* jquery ui datepicker 节日表示 */
+td.ui-datepicker-holiday a {
+	color: red !important;
+}
+
+/* tabs标签外形-自定义 */
+.ui-corner-up + label {
+	-moz-border-radius-topleft: 6px;
+	-webkit-border-top-left-radius: 6px;
+	-khtml-border-top-left-radius: 6px;
+	border-top-left-radius: 6px;
+	-moz-border-radius-topright: 6px;
+	-webkit-border-top-right-radius: 6px;
+	-khtml-border-top-right-radius: 6px;
+	border-top-right-radius: 6px;
+	height:42px;
+	margin-right:4px;
+}
+
+/* tabs标签外形-自定义 */
+.ui-corner-up + label span {
+	font-size:16px;
+	margin-top:8px;
+}
+
+/* tabs标签外形-工程检查票 */
+.ui-corner-up-s + label {
+	-moz-border-radius-topleft: 4px;
+	-webkit-border-top-left-radius: 4px;
+	-khtml-border-top-left-radius: 4px;
+	border-top-left-radius: 4px;
+	-moz-border-radius-topright: 4px;
+	-webkit-border-top-right-radius: 4px;
+	-khtml-border-top-right-radius: 4px;
+	border-top-right-radius: 4px;
+	height:32px;
+	margin-left:4px;
+	font-size :14px;
+}
+
+/* 工程检查票区域 */
+.pcsarea {
+	border:1px solid #93C3CD;
+}
+
+/* 扫描框 */
+input.scanner_inputer {
+	height: 128px;
+	valign: center;
+}
+
+/* 等待区维修品 TODO 过期 */
+.prewaiting {
+	border : #1e5799 2px solid;
+	border-left : none;
+	margin-bottom : 4px;
+	background: none;
+	height : 16px;
+	width : 16px;
+	padding-top: 4px;
+	padding-left: 6px;
+	box-shadow: 2px 2px 12px #1e5799;
+}
+
+/* 等待区维修品 */
+.waiting {
+	background: none;
+	margin-bottom : 12px;
+	height : 16px;
+	width : 500px;
+	box-shadow: 2px 2px 12px #1e5799;
+}
+
+/* 等待区维修品,小画面 */
+.slim .waiting {
+	width : 320px;
+}
+
+/* 隐藏信息区 TODO 单体  */
+div.hidemessage {
+	background-color: transparent;
+	border-width: 0;
+	position: fixed;
+	_position: absolute;
+	right: 0;
+	_right: 18px;
+	left: auto;
+	bottom: auto;
+	top: 40px;
+	z-index: 99;
+}
+
+/* 隐藏菜单 TODO 单体 */
+div.hidemenu {
+	background-color: transparent;
+	border-width: 0;
+	position: fixed;
+	_position: absolute;
+	left: 0;
+	_left: 18px;
+	right: auto;
+	bottom: auto;
+	top: 40px;
+	z-index: 99;
+}
+
+/* 线长界面 效果 TODO 单体 */
+#performance_list tr.ui-state-highlight > td:first-child{
+	background : white;
+}
+
+/* 菜单链接 */
+#accordion a {
+	font-size: 13px;
+	margin-bottom: 6px;
+	text-decoration:none;
+}
+
+/* 菜单链接 */
+#accordion a:before {
+	content: "\25A0\20";
+	color: gray;
+	font-family: "Microsoft YaHei",arial,verdana,tahoma;
+}
+#accordion a.processing:before {
+	color:red;
+}
+#accordion px {
+	padding-left :2em;
+}
+#accordion px a:before {
+	content: "\20\00BB\20";
+}
+
+/* 菜单链接 */
+#accordion a:hover:before,
+#accordion px a:hover,
+#accordion a:hover + br + px .px_on:before,
+#accordion a:hover + br + px .px_on {
+	color: #FFB300;
+}
+
+/* 去掉浏览器带来的边框 */
+input,button,select,textarea,div{
+	outline:none
+}
+
+/* 文本框只显示效果 */
+textarea:disabled {
+	background-color: transparent;
+	border: 0;
+	color: inherit;
+}
+
+/** 出错警告框标题 */
+.ui-error-dialog .ui-widget-header {
+	background: #ea6b66;
+	background: -moz-linear-gradient(top,  #ea6b66 0%, #dc0800 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ea6b66), color-stop(100%,#dc0800));
+	background: -webkit-linear-gradient(top,  #ea6b66 0%,#dc0800 100%);
+	background: -o-linear-gradient(top,  #ea6b66 0%,#dc0800 100%);
+	background: -ms-linear-gradient(top,  #ea6b66 0%,#dc0800 100%);
+	background: linear-gradient(top,  #ea6b66 0%,#dc0800 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ea6b66', endColorstr='#dc0800',GradientType=0 );
+	border: 1px #dc0800 solid;
+}
+
+/** 提示警告框标题 */
+.ui-warn-dialog .ui-widget-header {
+	background: #fa802b; /* Old browsers */
+	background: -moz-linear-gradient(top,  #fa802b 0%, #f9ec54 0%, #f9ec54 23%, #fff268 38%, #f4e327 39%, #c9be44 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#fa802b), color-stop(0%,#f9ec54), color-stop(23%,#f9ec54), color-stop(38%,#fff268), color-stop(39%,#f4e327), color-stop(100%,#c9be44)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #fa802b 0%,#f9ec54 0%,#f9ec54 23%,#fff268 38%,#f4e327 39%,#c9be44 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fa802b', endColorstr='#fff268',GradientType=0 );
+	border: 1px #fff268 solid;
+	color : #333991;
+}
+
+/** 通知警告框标题 */
+.ui-info-dialog .ui-widget-header {
+	background: #2B80FA; /* Old browsers */
+	background: -moz-linear-gradient(top,  #2B80FA 0%, #54ECF9 0%, #54ECF9 23%, #68F2FF 38%, #27E3F4 39%, #44BEC9 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#2B80FA), color-stop(0%,#54ECF9), color-stop(23%,#54ECF9), color-stop(38%,#68F2FF), color-stop(39%,#27E3F4), color-stop(100%,#44BEC9)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top,  #2B80FA 0%,#54ECF9 0%,#54ECF9 23%,#68F2FF 38%,#27E3F4 39%,#44BEC9 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top,  #2B80FA 0%,#54ECF9 0%,#54ECF9 23%,#68F2FF 38%,#27E3F4 39%,#44BEC9 100%); /* Opera 11.10+ */
+	background: -ms-linear-gradient(top,  #2B80FA 0%,#54ECF9 0%,#54ECF9 23%,#68F2FF 38%,#27E3F4 39%,#44BEC9 100%); /* IE10+ */
+	background: linear-gradient(to bottom,  #2B80FA 0%,#54ECF9 0%,#54ECF9 23%,#68F2FF 38%,#27E3F4 39%,#44BEC9 100%); /* W3C */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#2B80FA', endColorstr='#68F2FF',GradientType=0 );
+	border: 1px #68F2FF solid;
+	color : #333991;
+}
+
+/** 参照选择器代替下拉框 */
+.referchooser {
+	position : absolute;
+	display : none;
+	max-width : 640px;
+	max-height: 480px;
+	overflow-y: auto;
+}
+
+.referchooser .subform {
+	max-width : 640px;
+	cursor: pointer;
+}
+
+.referchooser .subform td {
+	padding-left : 2px;
+	padding-right : 2px;
+}
+
+input.grid_input {
+	border:0;
+	width:90%;
+}
+
+.ui-storage-highlight {
+	background-color : #E6DC84;
+}
+.if_message-dialog {
+	transition: .8s;
+	top: 200px;
+	background-color: rgb(255, 255, 255);
+	border: 1px solid rgb(128, 128, 128);
+	padding: 0 1px 1em 1px;
+	left: -100%;
+	position: fixed;
+	pointer-events: none;
+	margin-left: -50%;
+}
+
+.if_message-dialog.show {
+	left: 50%;
+	pointer-events: auto;
+	z-index: 1;
+}
+
+.if_message-dialog input[type=button]{
+	float:right;
+}
+.fit2rapid {
+	background-color : rgb(62, 248, 62);
+}
+
+.i_total.forbid {
+	color : red;
+}
+
+table.dryProcessesTable tr {
+	cursor:pointer;
+}
+.tube-liquid .pa_flags {
+	width: 100%;
+	height: 100%;
+	background-color: transparent;
+	position: absolute;
+	left: -1.5em;
+	text-align: center;
+	border:1px solid transparent;
+	top: -0.1em;
+}
+.tube-liquid .pa_flags div
+{
+width: 1.5em;
+position: static;
+float:left;
+border-radius: 0.7em;
+border:1px solid gray;
+color: rgb(0, 48, 0);
+}
+
+.tube-liquid .pa_flags .bo_flg
+{
+background: rgba(244, 174, 45, 0.8);
+background: linear-gradient(to right,  rgba(244, 174, 45, 1) 70%, rgba(244, 174, 45, 0) 100%);
+border-top-right-radius: 0px;
+border-bottom-right-radius: 0px;
+border-right:none;
+width: 2em;
+box-shadow: 2px 2px 12px #1e5799;
+}
+
+#position_time table{
+	border:1px solid #93c3cd;
+	margin-top:-4px;
+	margin-left:5px;
+	text-align: center;
+	width: 98.5%;
+	border-collapse: collapse;
+	font-size: 20x;
+	font-weight: bold;
+}
+
+#position_time table tr{
+	height: 15px;
+	line-height: 15px;
+}
+
+#plan_process td{
+	border:1px solid #ccc;
+}
+#acture_process td{
+	border:1px solid #ccc;
+}
+
+#position_time table td.plan_process{
+	background-color: #57E2E6;
+}
+
+#position_time table td.plan_half{
+	background:linear-gradient(to right, #57E2E6 0%, #57E2E6 50%, #fff 50%, #fff 100%);
+}
+
+#position_time table td.acture_process{
+	background-color: #90D050;
+}
+
+#position_time table td.acture_half{
+	background:linear-gradient(to right, #90D050 0%, #90D050 50%, #fff 50%, #fff 100%);
+}
+#position_time table td.overtime{
+	background-color: #FF8000;
+}
+#position_time table td.overtime_half{
+	background:linear-gradient(to right, #FF8000 0%, #FF8000 50%, #fff 50%, #fff 100%);
+}
+span.textlink {
+	color : blue;
+	cursor : pointer;
+	text-decoration: underline;
+}
+#other_px_area {
+	position:relative;
+}
+.other_px_count {
+	float: left;
+}
+.other_px_change_button {
+	width: 10em;
+}
+.other_px_count .other_px_waiting {
+	display:none;
+	position:absolute;
+	right:0;
+	background:lightgray;
+	font-size:12px;
+	font-weight: normal;
+}
+.other_px_count:hover .other_px_waiting {
+	display:block;
+	z-index: 10;
+}
+.other_px_count .other_px_waiting > * {
+	margin-left: 20px;
+}
+.other_px_count .other_px_waiting > *:first-child {
+	margin-top: 20px;
+}
+.opd_re_comment {
+	background-color : lightyellow;
+	position : absolute;
+	left:105%;
+	top:20%;
+	padding:0 .2em;
+	width:8em;
+	white-space:nowrap;
+	font-weight: normal;
+	overflow:hidden;
+	text-overflow:ellipsis;
+	border:1px solid lightgray;
+	cursor:pointer;
+}
+.opd_re_comment[leak="1"] {
+	border:1px solid orange;
+	color : orangered;
+	text-align: center;
+}
+.dwidth-golden_section_large_part {
+	width: 756px;
+}
+.dwidth-golden_section_small_part {
+	width: 468px;
+}
+.roll_cell {
+	display:none;
+}

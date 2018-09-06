@@ -1,0 +1,1525 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.MaterialPartialMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="loadMaterialPartial" resultType="MaterialPartialEntity" parameterType="MaterialPartialEntity">
+		<![CDATA[ 
+			SELECT 
+				b.material_id,
+				b.bo_flg,
+				b.occur_times,
+				b.position_id,
+				b.bo_contents,
+				b.order_date,
+				b.arrival_date,
+				b.arrival_plan_date
+			 from material_partial b where material_id = #{material_id} and occur_times = #{occur_times}
+		]]>
+	</select>
+
+
+	<select id="loadMaterialPartialGroup" resultType="MaterialPartialEntity" parameterType="MaterialPartialEntity">
+		<![CDATA[ 
+			SELECT 
+				b.material_id,
+				CASE
+					WHEN max(b.bo_flg in (7, 8, 9)) = 1
+					THEN 9
+					WHEN max(b.bo_flg = 1) = 1
+					THEN 1
+					WHEN max(b.bo_flg = 2) = 1
+					THEN 2
+					ELSE 0
+				END bo_flg,
+				max(b.occur_times) as occur_times,
+				min(b.order_date) as order_date,
+				min(b.arrival_date) as arrival_date,
+				max(b.arrival_plan_date) as arrival_plan_date
+			 from material_partial b where material_id = #{material_id} 
+		]]>
+	</select>
+
+	<select id="getOccurTimesById" resultType="java.lang.String" parameterType="java.lang.String">
+		<![CDATA[ 
+			SELECT 
+				occur_times
+			 from material_partial where material_id = #{id}
+			 order by occur_times asc
+		]]>
+	</select>
+	
+	<update id="updateMaterialPartial" parameterType="MaterialPartialEntity">
+		<![CDATA[ 
+			UPDATE material_partial SET
+		]]>
+			<if test="bo_flg!= null and bo_flg!= '' ">
+			bo_flg = #{bo_flg},
+			order_date = #{order_date},
+			arrival_date = #{arrival_date},
+			bo_contents = #{bo_contents},
+			</if>
+		<![CDATA[ 
+			arrival_plan_date = #{arrival_plan_date}
+		]]>
+		<where>
+			<![CDATA[ 
+				material_id = #{material_id}
+			and
+				occur_times = #{occur_times}
+			]]>
+		</where>
+	</update>
+
+	<update id="updateReachDateBySorc" parameterType="map">
+		<![CDATA[ 
+			UPDATE material_partial SET
+			arrival_plan_date = #{arrival_plan_date}
+			WHERE
+				material_id IN 
+				(SELECT material_id FROM MATERIAL WHERE sorc_no =  #{sorc_no} AND break_back_flg = 0)
+			AND
+				((arrival_plan_date <> #{arrival_plan_date}
+				AND arrival_plan_date <> '9999/12/31')
+				OR arrival_plan_date IS NULL)
+		]]>
+	</update>
+
+<!--INSERT-->
+	<insert id="insertMaterialPartial" parameterType="MaterialPartialEntity">
+		<![CDATA[ 
+		REPLACE INTO `material_partial`
+			(MATERIAL_ID, BO_FLG, ORDER_DATE) 
+		VALUES 
+			(#{material_id}, 8, current_timestamp);
+		]]>
+	</insert>
+
+	<select id="searchMaterialByKey" parameterType="MaterialPartialEntity" resultType="String">
+	<![CDATA[ 
+		SELECT 
+			a.material_id,
+			b.bo_flg,
+			b.bo_contents,
+			(select group_concat(c.code SEPARATOR ' ') from partial c join material_partial_detail d on c.partial_id = d.partial_id where d.material_id = a.material_id and d.status in (3,4)) as bo_contents_new, 
+			b.order_date,
+			b.arrival_date,
+			b.arrival_plan_date,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.model_id,
+			b.occur_times,
+			(select name from model where model_id = a.model_id) as model_name,
+			a.level,
+			a.serial_no,
+			a.scheduled_expedited
+		 from material a, material_partial b
+			where a.material_id = b.material_id
+			and a.material_id = #{material_id}
+		]]>
+	</select>
+
+	<select id="getMaterialByKey" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+			a.material_id,
+			b.bo_flg,
+			b.bo_contents,
+			(select group_concat(c.code SEPARATOR ' ') from partial c join material_partial_detail d on c.partial_id = d.partial_id where d.material_id = a.material_id and d.status in (3,4)) as bo_contents_new, 
+			b.order_date,
+			b.arrival_date,
+			b.arrival_plan_date,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.model_id,
+			b.occur_times,
+			(select name from model where model_id = a.model_id) as model_name,
+			a.level,
+			a.serial_no,
+			a.scheduled_expedited
+		 from material a 
+		 LEFT JOIN material_partial b
+		 ON a.material_id = b.material_id
+			where a.material_id = #{material_id}
+			and b.occur_times = #{occur_times}
+		]]>
+	</select>
+
+	<select id="getMaterialByMaterialId" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+			a.material_id,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.model_id,
+			(select name from model where model_id = a.model_id) as model_name,
+			a.level,
+			a.serial_no
+			from material a 
+			where a.material_id = #{material_id}
+		]]>
+	</select>
+
+	<select id="getMaterialWithPositionedByMaterialId" parameterType="MaterialPartialDetailEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+			a.material_id,
+			a.fix_type,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.model_id,
+			(select name from model where model_id = a.model_id) as model_name,
+			a.level,
+			a.serial_no,
+			not exists (SELECT 1 FROM material_partial_detail mpd WHERE material_id = #{material_id} and occur_times = #{occur_times} and (position_id IS NULL or position_id = 0) and status != 9) as isHistory,
+			coalesce(mp.bo_flg, 8) as bo_flg
+		from 
+			material a
+		left join
+			material_partial mp
+		on
+			a.material_id = mp.material_id and mp.occur_times =#{occur_times}
+		where 
+			a.material_id = #{material_id}
+		]]>
+	</select>
+
+	<select id="searchMaterialPartialDetail" parameterType="MaterialPartialDetailEntity" resultType="MaterialPartialDetailEntity">
+		SELECT 
+			a.material_partial_detail_key,
+			b.code as partial_code,
+			b.name as partial_name,
+			cm.available_inventory,
+			a.quantity - a.waiting_quantity as cur_quantity,
+			a.quantity,
+			p.process_code,
+			p.line_id,
+			CASE WHEN r_operator_id IS NULL THEN NULL ELSE a.recent_receive_time END as recent_signin_time,
+			a.arrival_plan_date,
+			a.status
+		FROM
+			material_partial_detail a
+		JOIN
+			partial b
+		ON	a.partial_id=b.partial_id
+		LEFT JOIN
+			position p
+		ON a.position_id = p.position_id
+		left join
+			consumable_manage cm
+		on
+			b.partial_id = cm.partial_id and cm.delete_flg = 0
+		where a.material_id = #{material_id}
+	<if test="occur_times!= null and occur_times != 0 ">
+		and a.occur_times = #{occur_times}
+	</if>
+	<if test="line_id!= null and line_id != 12 ">
+		and exists(
+			select 1 from position
+				where position_id = a.position_id
+	 			and line_id = #{line_id}
+		)
+	</if>
+	<if test="line_id!= null and line_id == 12 ">
+		and (exists(
+			select 1 from position
+				where position_id = a.position_id
+	 			and line_id = #{line_id}
+		) or a.position_id IS null)
+	</if>
+	<if test="partial_id!= null and partial_id != 0 ">
+		and a.partial_id = #{partial_id}
+	</if>
+		and a.status != 9
+		ORDER BY a.waiting_quantity desc,a.position_id
+	</select>
+
+	<select id="searchMaterial" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+		    a.material_id,
+		    b.bo_flg,
+		    b.bo_contents,
+				(select group_concat(c.code SEPARATOR ' ') from partial c 
+					join material_partial_detail d on c.partial_id = d.partial_id 
+					where d.material_id = a.material_id and d.occur_times = b.occur_times 
+					and d.waiting_quantity > 0 and d.status <> 2) as bo_contents_new,
+		    b.order_date,
+		    b.arrival_date,
+		    b.arrival_plan_date,
+		    b.occur_times,
+			trim(concat(coalesce(blocked.process_code, ''), ' ', coalesce(blocked_ns.process_code, ''))) as line_name,
+			trim(concat(coalesce(processed.process_code, ''), ' ', coalesce(processed_ns.process_code, ''))) as process_name,
+		    coalesce(omr_notifi_no, sorc_no) as sorc_no,
+		    a.model_id,
+			mdl.name as model_name,
+		    a.level,
+		    a.serial_no,
+		    a.scheduled_expedited,
+		    a.scheduled_date
+		from
+		    material a
+		JOIN
+		    material_partial b
+		ON
+			a.material_id = b.material_id
+		JOIN
+			model mdl
+		ON 
+			a.model_id = mdl.model_id
+	]]>
+	<![CDATA[ 
+		LEFT JOIN 
+			(select material_id,
+				(select p1.process_code from position p1 join production_feature p2 ON p1.position_id = p2.position_id where p2.material_id = m.material_id
+					and p1.line_id <> 13 and p2.operate_result not in (5, 8) order by (1 - ISNULL(p2.action_time)) , p2.action_time desc limit 1) as process_code
+			from material m where inline_time is not null and outline_time is null) processed
+		ON processed.material_id = a.material_id
+		LEFT JOIN 
+			(select material_id,
+				(select p1.process_code from position p1 join production_feature p2 ON p1.position_id = p2.position_id where p2.material_id = m.material_id
+					and p1.line_id = 13 and p2.operate_result not in (5 , 8) order by (1 - ISNULL(p2.action_time)) , p2.action_time desc limit 1) as process_code
+			from material m where inline_time is not null and outline_time is null
+			and exists (select 1 from material_process where material_id = m.material_id 
+			and line_id =13 and finish_date is null)) processed_ns
+		ON processed_ns.material_id = a.material_id
+		LEFT JOIN 
+			(select mpd.material_id, min(process_code) as process_code 
+			from material_partial_detail mpd
+			join position mpdp
+			ON mpd.position_id = mpdp.position_id
+			where mpd.waiting_quantity > 0
+			and mpdp.line_id <> 13
+			group by mpd.material_id) blocked
+		ON blocked.material_id = a.material_id
+		LEFT JOIN 
+			(select mpd.material_id, min(process_code) as process_code 
+			from material_partial_detail mpd
+			join position mpdp
+			ON mpd.position_id = mpdp.position_id
+			where mpd.waiting_quantity > 0
+			and mpdp.line_id = 13
+			group by mpd.material_id) blocked_ns
+		ON blocked_ns.material_id = a.material_id
+	]]>
+		<where>
+			<!-- AND a.outline_time is NULL -->
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="model_id!= null and model_id != ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="section_id!= null and section_id != ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="serial_no!= null and serial_no != ''">
+				and a.serial_no = #{serial_no}
+			</if>
+			<if test="level!= null and level != 9 and level != 5">
+				and a.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and a.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and a.level in (56,57,58,59)
+			</if>
+			<if test="bo_flg!= null">
+				and b.bo_flg = #{bo_flg}
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and b.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and b.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start!= null and arrival_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end!= null and arrival_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<choose>
+				<when test="occur_times==1">
+					<![CDATA[ 
+						and b.occur_times = 1
+					]]> 
+				</when>
+				<when test="occur_times==2">
+					<![CDATA[ 
+						and b.occur_times > 1
+					]]> 
+				</when>
+			</choose>
+			<choose>
+				<when test="range==1">
+					<![CDATA[ 
+						and (a.outline_time is null OR a.outline_time >= current_date)
+					]]> 
+				</when>
+				<when test="range==2">
+					<![CDATA[ 
+						and a.outline_time < current_date
+					]]> 
+				</when>
+			</choose>
+			<if test="bo_occur_line !=null and bo_occur_line !=''">
+				and exists(select 1 from material_partial_detail c join position d on c.position_id = d.position_id where c.material_id = a.material_id and d.line_id = #{bo_occur_line} and c.status in(3,4))
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists(select 1 from model_level_set e where a.level = e.level and a.model_id = e.model_id and e.echelon = #{echelon})
+			</if>
+			<if test="outline_date_start!= null and outline_date_start!= '' ">
+				<![CDATA[ 
+					and a.outline_time >= #{outline_date_start}
+				]]>
+			</if>
+			<if test="outline_date_end!= null and outline_date_end!= '' ">
+				<![CDATA[ 
+					and date(a.outline_time) <= #{outline_date_end}
+				]]>
+			</if>
+
+			<if test="bo_partial!= null and bo_partial!= '' ">
+				<![CDATA[ 
+					and EXISTS (SELECT 1 FROM material_partial_detail WHERE material_id = b.material_id and occur_times = b.occur_times
+						AND waiting_quantity > 0 AND partial_id IN (select partial_id from partial where code = #{bo_partial})
+					)
+				]]>
+			</if>
+		</where>
+		order by b.order_date asc
+	</select>
+	
+	<select id="searchMaterialReport" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+			b.bo_flg,
+			b.order_date,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			b.occur_times,
+			(select name from model where model_id = a.model_id) as model_name,
+			a.level,
+			(select echelon from model_level_set where level = a.level and model_id = a.model_id) as echelon,
+			(bo_flg in (1 , 2) and
+			b.arrival_plan_date IS NOT NULL and b.arrival_plan_date <> '9999/12/31'
+      		AND f_getworkdays(b.order_date, b.arrival_plan_date) <= 3) as bo_within_3days
+		 from material a, material_partial b
+	]]>
+		
+		<where>
+			a.material_id = b.material_id
+			<!-- AND a.outline_time is NULL -->
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="model_id!= null and model_id != ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="section_id!= null and section_id != ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="serial_no!= null and serial_no != ''">
+				and a.serial_no = #{serial_no}
+			</if>
+			<if test="level!= null">
+				and a.level = #{level}
+			</if>
+			<if test="bo_flg!= null">
+				and b.bo_flg = #{bo_flg}
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and b.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and b.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start!= null and arrival_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end!= null and arrival_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<choose>
+				<when test="occur_times==1">
+					<![CDATA[ 
+						and b.occur_times = 1
+					]]> 
+				</when>
+				<when test="occur_times==2">
+					<![CDATA[ 
+						and b.occur_times > 1
+					]]> 
+				</when>
+			</choose>
+			<choose>
+				<when test="range==1">
+					<![CDATA[ 
+						and (a.outline_time is null OR a.outline_time >= current_date)
+					]]> 
+				</when>
+				<when test="range==2">
+					<![CDATA[ 
+						and a.outline_time < current_date
+					]]> 
+				</when>
+			</choose>
+			<if test="bo_occur_line !=null and bo_occur_line !=''">
+				and exists(select 1 from material_partial_detail c join position d on c.position_id = d.position_id where c.material_id = a.material_id and d.line_id = #{bo_occur_line} and c.status in(3,4))
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists(select 1 from model_level_set e where a.level = e.level and a.model_id = e.model_id and e.echelon = #{echelon})
+			</if>
+		</where>
+		order by b.order_date asc
+	</select>
+
+    <!--外科镜-->
+	<select id="searchMaterialBoReport" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+			b.order_date,
+			b.occur_times,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.level,
+			(select name from model where model_id = a.model_id) as model_name,
+			(select echelon from model_level_set where level = a.level and model_id = a.model_id) as echelon,
+			(select p.code from partial p where p.partial_id = c.partial_id)as bo_item,
+			(select 1 from partial_bom_set where model_id = a.model_id and level = LEFT(a.level,1) and partial_id = c.partial_id) as type_of_bo_item,
+			c.arrival_plan_date IS NOT NULL and c.arrival_plan_date <> '9999/12/31'
+			AND f_getworkdays(b.order_date, c.arrival_plan_date) <= 3 as bo_within_3days,
+			(select osh_foreboard_count from v_partial_prepair_osh where partial_id = c.partial_id) as safety
+		 from material_partial_detail c 
+		 left join material_partial b on c.material_id = b.material_id and c.occur_times = b.occur_times
+		 left join material a on a.material_id = b.material_id
+		 left join model mo on mo.model_id = a.model_id
+		 left join category ca on ca.category_id = mo.category_id
+	]]>
+		<where>
+			<![CDATA[ 
+			c.status in(3,4)
+			]]>
+			<choose>
+				<when test="kind==1">
+					<![CDATA[
+						and ca.kind not in(6,7) and a.level not in(9,91,92,93,96,97,98)
+					]]>
+				</when>
+				<when test="kind==2">
+					<![CDATA[
+						and ca.kind=6
+					]]>
+				</when>
+				<when test="kind==3">
+					<![CDATA[
+						and a.level in(9,91,92,93,96,97,98,99) 
+					]]>
+				</when>
+				<when test="kind==4">
+					<![CDATA[
+						and ca.kind=7
+					]]>
+				</when>
+			</choose>
+			<!-- AND a.outline_time is NULL -->
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="section_id!= null and section_id != ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="model_id!= null and model_id != ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="serial_no!= null and serial_no != ''">
+				and a.serial_no = #{serial_no}
+			</if>
+			<if test="level!= null">
+				and a.level = #{level}
+			</if>
+				and b.bo_flg in (1,2)
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and b.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and b.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start!= null and arrival_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end!= null and arrival_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<choose>
+				<when test="occur_times==1">
+					<![CDATA[ 
+						and b.occur_times = 1
+					]]> 
+				</when>
+				<when test="occur_times==2">
+					<![CDATA[ 
+						and b.occur_times > 1
+					]]> 
+				</when>
+			</choose>
+			<if test="bo_occur_line !=null and bo_occur_line !=''">
+				and exists(select 1 from material_partial_detail c join position d on c.position_id = d.position_id where c.material_id = a.material_id and d.line_id = #{bo_occur_line} and c.status in(3,4))
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists(select 1 from model_level_set e where a.level = e.level and a.model_id = e.model_id and e.echelon = #{echelon})
+			</if>
+			and c.status != 9
+		</where>
+		order by b.order_date asc, a.material_id
+	</select>
+	
+	<!--零件追加明细-->
+	<select id="searchPartialAddtionalInf" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+		    b.bo_flg,
+		    b.order_date,
+		    b.occur_times,
+		    coalesce(omr_notifi_no, sorc_no) as sorc_no,
+		    a.level,
+		    a.outline_time as outline_date_start,
+		    a.serial_no,
+		    mo.name as model_name,
+		    mls.echelon as echelon,
+		    p.code as bo_item,
+		    c.belongs,
+		    c.quantity as qty,
+			c.price,
+			(c.quantity*c.price) as totalPrice,
+		    (bo_flg in (1 , 2)
+		        and b.arrival_plan_date IS NOT NULL
+		        and b.arrival_plan_date <> '9999/12/31'
+		        AND f_getworkdays(b.order_date, b.arrival_plan_date) <= 3) as bo_within_3days,
+		    exists( select 
+		            1
+		        from
+		            partial_bom_set
+		        where
+		            model_id = a.model_id
+		                and level = LEFT(a.level,1)
+		                and partial_id = c.partial_id) as type_of_bo_item,
+		    pp.osh_foreboard_count as safety
+		from
+		    material_partial_detail c
+		        left join
+		    material_partial b ON c.material_id = b.material_id
+		        and c.occur_times = b.occur_times
+		        left join
+		    partial p ON p.partial_id = c.partial_id
+		        join
+		    material a ON a.material_id = b.material_id
+		        left join
+		    model mo ON mo.model_id = a.model_id
+		        left join
+		    model_level_set mls ON mls.level = a.level
+		        and mls.model_id = a.model_id
+		        left join
+		    v_partial_prepair_osh pp ON pp.partial_id = c.partial_id
+	]]>
+		<where>
+			c.belongs in(3,4,5,6,7,8)
+			<!-- AND a.outline_time is NULL -->
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="section_id!= null and section_id != ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="model_id!= null and model_id != ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="serial_no!= null and serial_no != ''">
+				and a.serial_no = #{serial_no}
+			</if>
+			<if test="level!= null">
+				and a.level = #{level}
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and b.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and b.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start!= null and arrival_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end!= null and arrival_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<choose>
+				<when test="range==1">
+					<![CDATA[ 
+						and (a.outline_time is null OR a.outline_time >= current_date)
+					]]> 
+				</when>
+				<when test="range==2">
+					<![CDATA[ 
+						and a.outline_time < current_date
+					]]> 
+				</when>
+			</choose>
+			<if test="bo_occur_line !=null and bo_occur_line !=''">
+				and exists(select 1 from material_partial_detail c join position d on c.position_id = d.position_id where c.material_id = a.material_id and d.line_id = #{bo_occur_line} and c.status in(3,4))
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists(select 1 from model_level_set e where a.level = e.level and a.model_id = e.model_id and e.echelon = #{echelon})
+			</if>
+		</where>
+	order by a.outline_time asc, a.material_id
+	</select>
+	
+	<!-- 零件订购item -->
+	<select id="searchMaterialItemReport" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+	<![CDATA[ 
+		SELECT 
+			b.bo_flg,
+			b.order_date,
+			b.occur_times,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.level,
+			sum(c.quantity) as qty,
+			mo.name as model_name,
+			mls.echelon as echelon,
+			p.code as bo_item,
+			(bo_flg in (1 , 2) and
+			b.arrival_plan_date IS NOT NULL and b.arrival_plan_date <> '9999/12/31'
+      		AND f_getworkdays(b.order_date, b.arrival_plan_date) <= 3) as bo_within_3days,
+			exists (select 1 from partial_bom_set where model_id = a.model_id and level = LEFT(a.level,1) and partial_id = c.partial_id) as type_of_bo_item,
+			pp.osh_foreboard_count as safety
+		 from 
+		 	material_partial_detail c 
+		  join
+		 	 material_partial b 
+		 on 
+		 	c.material_id = b.material_id and c.occur_times = b.occur_times
+		  join
+		 	partial p
+		 on
+		 	p.partial_id = c.partial_id
+		  join 
+		 	material a 
+		 on 
+		 	a.material_id = b.material_id
+		  left join 
+		  model mo 
+          on mo.model_id = a.model_id
+		  left join 
+		model_level_set mls 
+          on mls.level = a.level and mls.model_id = a.model_id 
+		   left join 
+		v_partial_prepair_osh pp on pp.partial_id = c.partial_id
+	]]>
+		<where>
+			<!-- AND a.outline_time is NULL -->
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="section_id!= null and section_id != ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="model_id!= null and model_id != ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="serial_no!= null and serial_no != ''">
+				and a.serial_no = #{serial_no}
+			</if>
+			<if test="level!= null">
+				and a.level = #{level}
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and b.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and b.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start!= null and arrival_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end!= null and arrival_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<choose>
+				<when test="range==1">
+					<![CDATA[ 
+						and (a.outline_time is null OR a.outline_time >= current_date)
+					]]> 
+				</when>
+				<when test="range==2">
+					<![CDATA[ 
+						and a.outline_time < current_date
+					]]> 
+				</when>
+			</choose>
+			<if test="bo_occur_line !=null and bo_occur_line !=''">
+				and exists(select 1 from material_partial_detail c join position d on c.position_id = d.position_id where c.material_id = a.material_id and d.line_id = #{bo_occur_line} and c.status in(3,4))
+			</if>
+			<if test="echelon !=null and echelon !=''">
+				and exists(select 1 from model_level_set e where a.level = e.level and a.model_id = e.model_id and e.echelon = #{echelon})
+			</if>
+		</where>
+		group by b.material_id, b.occur_times, c.partial_id
+		order by b.order_date asc, a.material_id
+	</select>
+
+	<select id="getTotalBo"  resultType="Integer">
+		<![CDATA[ 
+			select count(1) from material_partial where bo_flg in (1,2)
+		]]> 
+	</select>
+	<select id="getTodayBoRate" resultType="Double" parameterType="Date">
+		<![CDATA[ 
+		SELECT 
+			avg(bo_flg in (1,2)) 
+		FROM 
+			material_partial mp
+		join
+			material ma
+		on
+			mp.material_id = ma.material_id
+		where 
+			mp.bo_flg in (0,1,2) and ma.level not in(56,57,58) and mp.order_date >= #{from}
+		]]> 
+			<if test="to !=null and to !=''">
+		<![CDATA[ 
+			and mp.order_date <= #{to}
+		]]> 
+			</if>
+		<![CDATA[ 
+		;
+		]]> 
+	</select>
+
+	<select id="get3daysBoRate" resultType="Double" parameterType="Date">
+		<![CDATA[ 
+		select 
+		avg(bo_flg in (1,2) and 
+			(all_signin_date is null or all_signin_date='9999/12/31' 
+			or f_getworkdays(order_date,all_signin_date) > 3)) 
+		from 
+		(select 
+			mp.bo_flg,
+			CASE
+				WHEN bo_flg = 1
+				THEN mp.arrival_plan_date
+				ELSE
+					date(max(recent_signin_time)) 
+			END as all_signin_date, 
+			order_date
+		from
+		    material_partial mp
+		JOIN
+			material_partial_detail mpd
+		on
+			mp.material_id = mpd.material_id
+		and
+			mp.occur_times = mpd.occur_times
+		join
+			material ma
+		on
+			mp.material_id = ma.material_id
+		where
+		    bo_flg in (0 , 1, 2) and ma.level not in(56,57,58) and order_date >= #{from} 
+		]]> 
+			<if test="to !=null and to !=''">
+		<![CDATA[ 
+			and order_date <= #{to}
+		]]> 
+			</if>
+		<![CDATA[ 
+		group by mp.material_id, mp.occur_times) ords
+		;
+		]]> 
+	</select>
+	
+	<select id="getTodayBoRateGroupMaterial" resultType="Double" parameterType="Date">
+		<![CDATA[ 
+		select 
+		avg(bo_flg in (1,2)) 
+		from 
+		(select 
+			mp.material_id, max(bo_flg) as bo_flg
+		from
+		    material_partial mp
+		where
+		    bo_flg in (0 , 1, 2) and order_date >= #{from}
+		]]> 
+			<if test="to !=null and to !=''">
+		<![CDATA[ 
+			and order_date < #{to}
+		]]> 
+			</if>
+		<![CDATA[ 
+		group by material_id) ords
+		;
+		]]> 
+	</select>
+
+	<select id="get3daysBoRateGroupMaterial" resultType="Double" parameterType="Date">
+		<![CDATA[ 
+		select 
+		avg(bo_flg in (1,2) and 
+			(all_signin_date is null or all_signin_date='9999/12/31' 
+			or f_getworkdays(order_date,all_signin_date) > 3)) 
+		from 
+		(select 
+			mp.material_id, max(bo_flg) as bo_flg,
+			CASE
+				WHEN bo_flg = 1
+				THEN max(mp.arrival_plan_date)
+				ELSE
+					date(max(recent_signin_time)) 
+			END as all_signin_date, 
+			min(order_date) order_date
+		from
+		    material_partial mp
+		JOIN
+			material_partial_detail mpd
+		on
+			mp.material_id = mpd.material_id
+		and
+			mp.occur_times = mpd.occur_times
+		where
+		    bo_flg in (0 , 1, 2) and order_date >= #{from}
+		]]> 
+			<if test="to !=null and to !=''">
+		<![CDATA[ 
+			and order_date < #{to}
+		]]> 
+			</if>
+		<![CDATA[ 
+		group by material_id) ords
+		;
+		]]> 
+	</select>
+
+	<update id="updateBoFlg" parameterType="MaterialPartialEntity">
+		<![CDATA[
+			update 
+				material_partial
+			set
+		]]> 
+			<if test="bo_flg !=null and bo_flg == 4">
+		<![CDATA[ 
+			arrival_plan_date = 
+				CASE 
+				WHEN arrival_plan_date IS NULL THEN curdate()
+				ELSE arrival_plan_date
+				END,
+		]]> 
+			</if>
+		<![CDATA[ 
+				bo_flg=#{bo_flg}
+			where 
+				material_id=#{material_id} AND occur_times=#{occur_times}
+		]]>
+	</update>
+	
+	<update id="updateOrderDate" parameterType="MaterialPartialEntity">
+		<![CDATA[
+			update 
+				material_partial
+			set
+				arrival_date=curdate()
+			where 
+				material_id=#{material_id} AND occur_times=#{occur_times} AND arrival_date IS NULL
+		]]>
+	</update>
+
+	<update id="updateBoFlgAndOrderDate" parameterType="MaterialPartialEntity">
+		<![CDATA[
+			update 
+				material_partial
+			set
+				bo_flg=#{bo_flg},
+				arrival_date=curdate()
+		]]>
+		<if test="bo_flg !=null and bo_flg == 0">
+				,arrival_plan_date=curdate()
+		</if>
+		<![CDATA[
+			where 
+				material_id=#{material_id} AND occur_times=#{occur_times} -- AND arrival_date IS NULL
+		]]>
+	</update>
+	
+	<!-- 零件签收对象一览 -->
+	<select id="searchMaterialPartialRecept" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
+		<![CDATA[
+			SELECT 
+				ma.material_id,
+				mo.name as model_name,
+				ma.serial_no,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				ma.level,
+				mp.bo_flg,
+				mp.occur_times,
+				exists (select 1 from material_partial_detail mpd
+				left join position po on mpd.position_id = po.position_id
+				where mpd.material_id = mp.material_id
+					and mpd.occur_times = mp.occur_times
+ 
+		]]>
+			<if test="line_id==12">
+				and po.line_id in(12,14)
+			</if>
+			<if test="line_id==13 or line_id==14">
+				and po.line_id = #{line_id}
+			</if>
+			<![CDATA[
+				and waiting_quantity < waiting_receive_quantity) as remarks
+			FROM
+				material ma 
+			JOIN
+				material_partial mp
+			ON
+				mp.material_id=ma.material_id
+			JOIN
+				model mo
+			ON
+				mo.model_id=ma.model_id
+		]]>
+		<where>
+			ma.outline_time is null
+			<if test="sorc_no!=null and sorc_no!='' ">
+				<![CDATA[ 
+					AND (sorc_no like CONCAT('%',#{sorc_no},'%') or omr_notifi_no like CONCAT('%',#{sorc_no},'%'))
+				]]> 
+			</if>
+			<if test="order_date_start!=null and order_date_start!='' ">
+				<![CDATA[
+					AND mp.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!=null and order_date_end!='' ">
+				<![CDATA[
+					AND mp.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="bo_flg==1 ">
+				<![CDATA[
+					AND mp.bo_flg in (1,2)
+				]]>
+			</if>
+			<if test="bo_flg==9 ">
+				<![CDATA[
+					AND mp.bo_flg in (0,9)
+				]]>
+			</if>
+		<if test="section_id!=null and (section_id == 1 or section_id == 2)">
+			AND ma.section_id = #{section_id}
+		</if>
+			
+		</where>
+		ORDER BY remarks desc, ma.agreed_date
+	</select>
+
+	<select id="getMpdForConsumable" resultType="MaterialPartialDetailEntity" parameterType="MaterialPartialEntity">
+		<![CDATA[ 
+			SELECT material_partial_detail_key,part.code,part.name as partial_name,
+				waiting_quantity,quantity,
+				pos.process_code,status,recent_receive_time,part.consumable_flg as append
+			FROM material_partial_detail mpd
+			join v_partial part
+				ON mpd.partial_id = part.partial_id
+			left join position pos
+				ON mpd.position_id = pos.position_id
+			where material_id = #{material_id} and occur_times = #{occur_times}
+			AND part.consumable_flg = 1
+			AND waiting_quantity > 0
+			order by append = 1 desc;
+		]]>
+	</select>
+
+	<select id="getMpdForSnout" resultType="MaterialPartialDetailEntity" parameterType="MaterialPartialEntity">
+		<![CDATA[ 
+			SELECT material_partial_detail_key,part.code,part.name as partial_name,
+				waiting_quantity,quantity,
+				pos.process_code,status,recent_receive_time
+			FROM material_partial_detail mpd
+			join partial part
+				ON mpd.partial_id = part.partial_id
+			left join position pos
+				ON mpd.position_id = pos.position_id
+			where material_id = #{material_id} and occur_times = #{occur_times}
+			AND waiting_quantity > 0
+			and exists(SELECT 1 FROM premake_partial pmp
+				WHERE pmp.partial_id = part.partial_id and standard_flg = 1)
+			;
+		]]>
+	</select>
+
+	<update id="updateMaterialInstead" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			update 
+				material_partial_detail
+			set
+				waiting_quantity = 0,
+				waiting_receive_quantity = 0,
+				`status` = #{status},
+				recent_signin_time = current_timestamp,
+				r_operator_id = #{r_operator_id},
+				recent_receive_time = current_timestamp,
+				arrival_plan_date = current_date
+			where 
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
+	<update id="sparedMaterialInstead" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			update 
+				material_partial_detail
+			set
+				quantity = quantity - #{recept_quantity},
+				waiting_quantity = waiting_quantity - #{recept_quantity},
+				waiting_receive_quantity = waiting_receive_quantity - #{recept_quantity}
+			where 
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
+
+	<update id="updatePartialArrivalPlanDateByKey" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			update 
+				material_partial_detail
+			set
+				r_operator_id = #{r_operator_id},
+				arrival_plan_date = #{arrival_plan_date}
+			where 
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
+
+	<insert id="insertMaterialInstead" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			INSERT INTO `material_partial_detail`
+			(`material_id`, `partial_id`, `occur_times`, `quantity`, `price`, `belongs`, `position_id`,
+			 `waiting_quantity`, `recent_signin_time`, `status`, `waiting_receive_quantity`, `recent_receive_time`, `arrival_plan_date`, `r_operator_id`)
+			SELECT `material_id`, `partial_id`, `occur_times`, #{recept_quantity} as `quantity`, `price`, `belongs`, `position_id`,
+			 0 as `waiting_quantity`, current_timestamp, #{status} as `status`,  0 as `waiting_receive_quantity`, current_timestamp, `arrival_plan_date`, #{r_operator_id} as r_operator_id
+			FROM `material_partial_detail` WHERE material_partial_detail_key=#{material_partial_detail_key}
+			;
+		]]>
+	</insert>
+	
+	<select id="getMaterialPartialDetailByKey" resultType="MaterialPartialDetailEntity" parameterType="String">
+		SELECT
+		mpd.`material_partial_detail_key`,
+		mpd.`material_id`,
+		mpd.`partial_id`,
+		mpd.`occur_times`,
+		mpd.`quantity`,
+		mpd.`price`,
+		mpd.`belongs`,
+		mpd.`position_id`,
+		mpd.`waiting_quantity`,
+		mpd.`recent_signin_time`,
+		mpd.`status`,
+		mpd.`waiting_receive_quantity`,
+		mpd.`r_operator_id`,
+		mpd.`recent_receive_time`,
+		mpd.`arrival_plan_date`,
+		mp.`order_date`,
+		mp.`arrival_date`,
+		mp.`bo_flg`,
+		coalesce(omr_notifi_no, sorc_no) as sorc_no,
+		p.`code`,
+		p.`consumable_flg`
+		FROM `material_partial_detail` mpd
+		JOIN `material_partial` mp
+		ON mpd.`material_id` = mp.`material_id` AND mpd.`occur_times` = mp.`occur_times`
+		JOIN `material` m
+		ON mpd.`material_id` = m.`material_id`
+		JOIN `v_partial` p
+		ON mpd.`partial_id` = p.`partial_id`
+		WHERE material_partial_detail_key=#{material_partial_detail_key}
+		;
+	</select>
+
+	<update id="resetBoStatusByInstead" parameterType="MaterialPartialEntity">
+		<![CDATA[
+			update 
+				material_partial
+			set
+				bo_flg = 0
+			where 
+				material_id=#{material_id} AND occur_times=#{occur_times} AND bo_flg = 1
+				and not exists (select 1 from material_partial_detail where material_id=#{material_id} AND occur_times=#{occur_times} and waiting_quantity > 0);
+				;
+		]]>
+	</update>
+
+	<update id="updateArrivePlanDateNoBoOnPartial" parameterType="MaterialPartialEntity">
+		update material_partial mp set arrival_plan_date = order_date
+		where not exists(
+		select 1 from material_partial_detail where status in (0,1,3,4) 
+		and material_id = mp.material_id and occur_times = mp.occur_times)
+		and arrival_plan_date is null
+	</update>
+
+	<update id="updateArrivePlanDateBoOnPartial" parameterType="String">
+		update material_partial mp 
+		join (
+			select material_id, occur_times, max(arrival_plan_date) as arrival_plan_date
+			from (
+				select material_id, occur_times, coalesce(arrival_plan_date, cast('9999/12/31' as date)) as arrival_plan_date
+				from material_partial_detail where status = 3 
+				) coaled
+			group by material_id, occur_times) maxed
+		on maxed.material_id = mp.material_id and maxed.occur_times = mp.occur_times
+		set mp.arrival_plan_date = maxed.arrival_plan_date
+		<if test="material_id!=null and material_id!=''">
+			<![CDATA[
+				WHERE mp.material_id = #{material_id}
+			]]>
+		</if>
+	</update>
+
+	<update id="updateArrivedPlanDateBoResolvedOnPartial" parameterType="MaterialPartialEntity">
+		update material_partial mp 
+		join (
+			select material_id, occur_times, max(arrival_plan_date) as m_arrival_plan_date
+			from (
+				select material_id, occur_times, arrival_plan_date
+				from material_partial_detail where status = 4 
+				) coaled
+			group by material_id, occur_times
+			having m_arrival_plan_date is not null
+			) maxed
+		on maxed.material_id = mp.material_id and maxed.occur_times = mp.occur_times
+		set mp.arrival_plan_date = maxed.m_arrival_plan_date
+		where mp.arrival_plan_date = '9999/12/31' and mp.bo_flg = 2;
+	</update>
+
+	<select id="archiveOfPartialRecept" parameterType="String" resultType="MaterialPartialDetailEntity">
+		<![CDATA[
+			select
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				ma.serial_no,
+				mo.name as model_name,
+				mp.occur_times,
+				mp.order_date,
+				mp.arrival_date,
+				pa.code as partial_code,
+				pa.name as partial_name,
+				mpd.quantity,
+				mpd.recent_signin_time,
+				mpd.recent_receive_time,
+				oper.job_no
+			from
+				material ma
+			join
+				model mo
+			on
+				ma.model_id=mo.model_id
+			join
+				material_partial mp
+			on
+				ma.material_id=mp.material_id
+			 join
+				material_partial_detail mpd
+			on
+				mp.material_id=mpd.material_id and	mp.occur_times=mpd.occur_times
+			join
+				partial pa
+			on
+				mpd.partial_id=pa.partial_id
+			left join
+				operator oper
+			on
+				oper.operator_id=mpd.r_operator_id
+			where 
+				ma.material_id=#{material_id}
+			and
+				mpd.status != 9
+			order by
+				mpd.occur_times , mpd.recent_signin_time , pa.code
+		]]>
+	</select>
+
+	<select id="searchWaitingMaterialPartialDetail" parameterType="String" resultType="MaterialPartialDetailEntity">
+		<![CDATA[
+		SELECT 
+			b.code as partial_code,
+			b.name as partial_name,
+			a.quantity - a.waiting_quantity as cur_quantity,
+			a.quantity,
+			p.process_code,
+			p.line_id,
+			a.recent_receive_time as recent_signin_time,
+			a.arrival_plan_date,
+			a.status
+		FROM
+			material_partial_detail a
+		JOIN
+			partial b
+		ON	a.partial_id=b.partial_id
+		LEFT JOIN
+			position p
+		ON a.position_id = p.position_id
+		where a.material_id = #{material_id}
+		and waiting_receive_quantity > 0
+		]]>
+		<if test="line_id!=null and line_id!='' ">
+			<![CDATA[
+				AND p.line_id = #{line_id}
+			]]>
+		</if>
+	</select>
+
+<select id="searchPartialPosition" parameterType="MaterialPartialDetailEntity" resultType="MaterialPartialDetailEntity">
+	SELECT 
+	    current_date > history_limit_date as isOverdue,
+		new_partial_id != partial_id as isEqual,
+		partial_id,
+		new_partial_id
+	FROM
+	    partial_position_belong 
+	where
+	    MODEL_ID = #{model_id}
+	    AND PARTIAL_ID = #{partial_id};
+ </select>
+
+<select id="getBoPartialOfPosition" parameterType="String" resultType="String">
+	SELECT 
+	    group_concat(ptl.code separator ' ')
+	FROM
+	    material_partial_detail mpd
+	    JOIN partial ptl
+	ON mpd.partial_id = ptl.partial_id
+	where
+	    Material_id = #{material_id}
+<if test="position_id!=null and position_id!=''">
+	    AND Position_id = #{position_id}
+</if>
+	    AND waiting_quantity > 0;
+</select>
+
+<select id="getBoPartialOfLineOfPosition" parameterType="String" resultType="String">
+	SELECT 
+	    group_concat(ptl.code separator ' ')
+	FROM
+	    material_partial_detail mpd
+	    JOIN partial ptl
+	ON mpd.partial_id = ptl.partial_id
+		JOIN position pos
+	ON mpd.position_id = pos.position_id
+		JOIN position pv
+	ON pv.position_id = #{position_id}
+	where
+	    Material_id = #{material_id}
+	    AND pos.line_id = pv.line_id
+	    AND waiting_quantity > 0;
+</select>
+
+<!-- 原先mp.arrival_plan_date = ELSE coalesce(mp.arrival_plan_date, '9999/12/31') 改为 mp.arrival_plan_date -->
+	<update id="updateBoFlgWithDetail" parameterType="MaterialPartialEntity">
+		<![CDATA[
+		update material_partial mp
+		join
+		(
+		select material_id, occur_times, sum(status = 4) boed , sum(status = 3) boing,
+		max(recent_signin_time) as recent_signin_time,
+		max(
+CASE 
+WHEN waiting_quantity = 0 THEN NULL
+WHEN arrival_plan_date IS NULL THEN '9999-12-31'
+ELSE 
+arrival_plan_date END
+) as arrival_plan_date
+		from material_partial_detail
+		where material_id = #{material_id} and occur_times = #{occur_times}) 
+		mpd
+		ON mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times	
+		
+		set 
+		mp.bo_flg = 
+		CASE
+			WHEN boing > 0 THEN 1
+			WHEN boed > 0 THEN 2
+			ELSE 0
+		END,
+		mp.arrival_date =
+		CASE
+			WHEN mp.arrival_date IS NULL THEN current_date
+			ELSE mp.arrival_date
+		END,
+		mp.arrival_plan_date =
+		CASE
+	        WHEN
+	            boing + boed = 0
+	                AND (mp.arrival_plan_date IS NULL
+	                OR mp.arrival_plan_date = '9999/12/31')
+	        THEN
+	            order_date
+	        WHEN
+	            boing = 0 and boed > 0
+	                AND (mp.arrival_plan_date IS NULL
+	                OR mp.arrival_plan_date = '9999/12/31')
+	        THEN
+	            date(recent_signin_time)
+			WHEN
+				mpd.arrival_plan_date IS NOT NULL AND 
+				(mpd.arrival_plan_date < mp.arrival_plan_date OR mp.arrival_plan_date IS NULL)
+			THEN
+				mpd.arrival_plan_date
+			ELSE mp.arrival_plan_date
+		END
+		WHERE mp.material_id = #{material_id} and mp.occur_times = #{occur_times}
+		;
+	]]>
+	</update>
+
+	<update id="updateBoFlgWithDetailMantains" parameterType="MaterialPartialEntity">
+		<![CDATA[
+		update material_partial mp
+		join
+		(
+		select material_id, occur_times, sum(status = 4) boed , sum(status = 3) boing,
+		max(recent_signin_time) as recent_signin_time,
+		max(
+CASE 
+WHEN waiting_quantity = 0 THEN NULL
+WHEN arrival_plan_date IS NULL THEN '9999-12-31'
+ELSE 
+arrival_plan_date END
+) as arrival_plan_date
+		from material_partial_detail
+		where material_id = #{material_id} and occur_times = #{occur_times}) 
+		mpd
+		ON mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times	
+		
+		set 
+		mp.bo_flg = 
+		CASE
+			WHEN mp.bo_flg = 9 THEN 9
+			WHEN boing > 0 THEN 1
+			WHEN boed > 0 THEN 2
+			ELSE 0
+		END,
+		mp.arrival_date =
+		CASE
+			WHEN mp.bo_flg = 9 THEN NULL
+			WHEN mp.arrival_date IS NULL THEN current_date
+			ELSE mp.arrival_date
+		END,
+		mp.arrival_plan_date =
+		CASE
+			WHEN mp.bo_flg = 9 THEN NULL
+	        WHEN
+	            boing + boed = 0
+	                AND (mp.arrival_plan_date IS NULL
+	                OR mp.arrival_plan_date = '9999/12/31')
+	        THEN
+	            order_date
+	        WHEN
+	            boing = 0 and boed > 0
+	                AND (mp.arrival_plan_date IS NULL
+	                OR mp.arrival_plan_date = '9999/12/31')
+			THEN date(recent_signin_time)
+			WHEN
+				mpd.arrival_plan_date IS NOT NULL AND 
+				(mpd.arrival_plan_date < mp.arrival_plan_date OR mp.arrival_plan_date IS NULL)
+			THEN
+				mpd.arrival_plan_date
+			ELSE mp.arrival_plan_date
+		END
+		WHERE mp.material_id = #{material_id} and mp.occur_times = #{occur_times}
+		;
+	]]>
+	</update>
+		
+</mapper>

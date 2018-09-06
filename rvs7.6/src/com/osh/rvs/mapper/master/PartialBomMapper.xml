@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PartialBomMapper">
+	<!-- 删除 零件BOM表信息-->
+	<delete id="deleteBom">
+		<![CDATA[
+			DELETE FROM partial_bom_set
+		]]>
+	</delete>
+	<!-- 导入BOM表 -->
+	<insert id="insertBom" parameterType="PartialBomEntity">
+		<![CDATA[
+			REPLACE INTO partial_bom_set(
+				model_id,		
+				level,
+				partial_id,
+				quantity)
+			VALUES(#{model_id},#{level},#{partial_id},#{quantity})
+		]]>
+	</insert>
+
+	<!-- 零件BOM信息一览 -->
+	<select id="searchPartialBom" parameterType="PartialBomEntity" resultType="PartialBomEntity">
+		<![CDATA[
+			select 
+			    pbs.partial_id,
+			    mo.name as model_name,
+				pbs.level,
+			    pa.code,
+			    pa.name as partial_name,
+			    pbs.quantity,
+			    mls.echelon
+			FROM
+			    partial_bom_set pbs
+			LEFT JOIN
+			    partial pa 
+			ON 
+				pbs.partial_id = pa.partial_id
+			LEFT JOIN
+			    model_level_set mls 
+			ON 
+				pbs.model_id = mls.model_id AND pbs.level=mls.level
+			LEFT JOIN
+				model mo
+			ON
+				mo.model_id=pbs.model_id
+		]]>
+		<where>
+			<if test="model_id !=null and model_id !='' ">
+				<![CDATA[
+					pbs.model_id =#{model_id}
+				]]>
+			</if>
+			<if test="level !=null and level !='' ">
+				<![CDATA[
+					AND pbs.level=#{level}
+				]]>
+			</if>
+				<if test="code !=null and code !='' ">
+				<![CDATA[
+					AND pa.code LIKE CONCAT("%",#{code},"%")
+				]]>
+			</if>
+		</where>
+		order by
+			mls.level,mo.name
+	</select>
+
+	<!--查询有效截止日期之前且零件ID修改过的零件  -->
+	<select id="searchNewPartial" resultType="PartialBomEntity">
+		<![CDATA[
+			SELECT 
+				pbm.model_id, 
+				pbm.partial_id, 
+				ppb.new_partial_id 
+			FROM 
+				partial_bom_set pbm
+			JOIN
+				partial_position_belong ppb
+			ON
+				pbm.model_id = ppb.model_id AND pbm.partial_id = ppb.partial_id 
+			WHERE 
+				ppb.history_limit_date<CURDATE() AND ppb.new_partial_id <> ppb.partial_id
+		]]>
+	</select>
+
+	<!-- 更新有效截止日期之前且零件ID修改过的零件的ID  -->
+	<update id="updateBom"  parameterType="PartialBomEntity">
+		<![CDATA[
+			UPDATE 
+				partial_bom_set
+			SET 
+				partial_id=#{new_partial_id}
+			WHERE
+				model_id=#{model_id} AND partial_id=#{partial_id}
+		]]>
+	</update>
+
+	<!-- 查询有效截止日期之前且零件ID没有修改过的零件 -->
+	<select id="searchHistoryPartial" resultType="PartialBomEntity">
+		<![CDATA[
+			SELECT 
+				pbm.model_id, 
+				pbm.partial_id
+			FROM 
+				partial_bom_set pbm
+			JOIN
+				partial_position_belong ppb
+			ON
+				pbm.model_id = ppb.model_id AND pbm.partial_id = ppb.partial_id 
+			WHERE 
+				ppb.history_limit_date<CURDATE() AND ppb.new_partial_id = ppb.partial_id
+		]]>
+	</select>
+
+	<!-- 删除有效截止日期之前且零件ID没有修改过的零件的ID -->
+	<delete id="deleteHistoryPartialBom" parameterType="PartialBomEntity">
+		<![CDATA[
+			DELETE FROM partial_bom_set WHERE model_id=#{model_id} AND partial_id=#{partial_id}
+		]]>
+	</delete>
+</mapper>

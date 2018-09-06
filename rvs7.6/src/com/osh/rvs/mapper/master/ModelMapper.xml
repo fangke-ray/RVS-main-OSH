@@ -1,0 +1,479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.ModelMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getModelByID" resultType="ModelEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT MODEL_ID,
+			NAME,
+			CATEGORY_ID,
+			CATEGORY_NAME,
+			KIND,
+			FEATURE1,
+			FEATURE2,
+			SERIES,
+			UPDATED_BY,
+			UPDATED_TIME,
+			SELECTABLE,
+			el_base_type,
+			s_connector_base_type,
+			operate_part_type,
+			ocular_type,
+			item_code,
+			default_pat_id,
+			description
+		FROM `v_model`
+		WHERE DELETE_FLG = 0
+		AND MODEL_ID = #{model_id};
+		]]>
+	</select>
+
+	<select id="getAllModel" resultType="ModelEntity">
+		<![CDATA[ 
+		SELECT MODEL_ID,
+			NAME,
+			CATEGORY_ID,
+			CATEGORY_NAME,
+			KIND,
+			FEATURE1,
+			FEATURE2,
+			SERIES,
+			UPDATED_BY,
+			UPDATED_TIME,
+			SELECTABLE,
+			el_base_type,
+			s_connector_base_type,
+			operate_part_type,
+			ocular_type
+		FROM `v_model`
+		WHERE DELETE_FLG = 0
+		ORDER BY CATEGORY_ID, NAME;
+		]]>
+	</select>
+
+	<select id="searchModel" resultType="ModelEntity">
+		<![CDATA[ 
+		SELECT MODEL_ID,
+			NAME,
+			CATEGORY_ID,
+			CATEGORY_NAME,
+			FEATURE1,
+			FEATURE2,
+			SERIES,
+			UPDATED_BY,
+			UPDATED_TIME,
+			el_base_type,
+			s_connector_base_type,
+			operate_part_type,
+			ocular_type
+		FROM `v_model`
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="model_id!= null and model_id!= '' ">
+				AND MODEL_ID = #{model_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="category_id!= null and category_id!= '' ">
+				AND CATEGORY_ID = #{category_id}
+			</if>
+			<if test="feature1!= null and feature1!= '' ">
+				AND FEATURE1 = #{feature1}
+			</if>
+			<if test="feature2!= null and feature2!= '' ">
+				AND FEATURE2 = #{feature2}
+			</if>
+			<if test="series!= null and series!= '' ">
+				AND SERIES = #{series}
+			</if>
+			<if test="el_base_type!= null and el_base_type!= '' ">
+				AND el_base_type = #{el_base_type}
+			</if>
+			<if test="s_connector_base_type!= null and s_connector_base_type!= '' ">
+				AND s_connector_base_type = #{s_connector_base_type}
+			</if>
+			<if test="operate_part_type!= null and operate_part_type!= '' ">
+				AND operate_part_type = #{operate_part_type}
+			</if>
+			<if test="ocular_type!= null and ocular_type!= '' ">
+				AND ocular_type = #{ocular_type}
+			</if>
+			<if test="imbalance_line_id != null and imbalance_line_id != '' ">
+				AND EXISTS (SELECT * FROM model_imbalance_of_line ml 
+						WHERE v_model.MODEL_ID = ml.MODEL_ID and ml.line_id = #{imbalance_line_id})
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<select id="getFeature1AutoCompletes" resultType="String">
+		<![CDATA[ 
+		SELECT FEATURE1 FROM model WHERE FEATURE1 <> '' AND DELETE_FLG = 0 group by FEATURE1 order by count(*) desc;
+		]]>
+	</select>
+
+	<select id="getFeature2AutoCompletes" resultType="String">
+		<![CDATA[ 
+		SELECT FEATURE2 FROM model WHERE FEATURE2 <> '' AND DELETE_FLG = 0 group by FEATURE2 order by count(*) desc;
+		]]>
+	</select>
+
+	<select id="getFeature3AutoCompletes" resultType="String">
+		<![CDATA[ 
+		SELECT SERIES FROM model WHERE SERIES <> '' AND DELETE_FLG = 0 group by SERIES order by count(*) desc limit 10;
+		]]>
+	</select>
+
+	<insert id="insertModel" parameterType="ModelEntity">
+		<![CDATA[ 
+		INSERT INTO `model`
+			(NAME, CATEGORY_ID, FEATURE1, FEATURE2, SERIES, UPDATED_BY, UPDATED_TIME,el_base_type,s_connector_base_type,operate_part_type,ocular_type,item_code,description
+			,default_pat_id) 
+		VALUES 
+			(#{name}, #{category_id}, #{feature1}, #{feature2}, #{series}, #{updated_by}, current_timestamp,#{el_base_type},#{s_connector_base_type},#{operate_part_type},#{ocular_type},#{item_code},#{description}
+			,#{default_pat_id});
+		]]>
+	</insert>
+
+	<update id="updateModel" parameterType="ModelEntity">
+		<![CDATA[ 
+		UPDATE `model` SET
+			NAME = #{name},
+			CATEGORY_ID = #{category_id},
+			FEATURE1 = #{feature1},
+			FEATURE2 = #{feature2},
+			SERIES = #{series},
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp,
+			el_base_type=#{el_base_type},
+			s_connector_base_type=#{s_connector_base_type},
+			operate_part_type=#{operate_part_type},
+			ocular_type=#{ocular_type},
+			item_code = #{item_code},
+			description = #{description},
+			default_pat_id = #{default_pat_id},
+		]]>
+		<if test="selectable!=null and selectable==1">
+			SELECTABLE = 1
+		</if>
+		<if test="selectable!=null and selectable==2">
+			SELECTABLE = 0
+		</if>
+		<![CDATA[ 
+			WHERE MODEL_ID = #{model_id};
+		]]>
+	</update>
+
+	<update id="deleteModel" parameterType="ModelEntity">
+		<![CDATA[ 
+		UPDATE `model` SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE MODEL_ID = #{model_id};
+		]]>
+	</update>
+
+	<select id="getCategoryNameByModelName" resultType="String">
+		<![CDATA[ 
+		SELECT CATEGORY_NAME
+		FROM `v_model`
+		WHERE NAME REGEXP #{model_name}
+		AND DELETE_FLG = 0 LIMIT 1;
+		]]>
+	</select>
+
+	<select id="getModelByName" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT MODEL_ID
+		FROM `model`
+		WHERE NAME REGEXP #{model_name}
+		AND DELETE_FLG = 0 LIMIT 1;
+		]]>
+	</select>
+
+	<select id="getModelByItemCode" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT MODEL_ID
+		FROM `model`
+		WHERE item_code = #{item_code}
+		AND DELETE_FLG = 0 LIMIT 1;
+		]]>
+	</select>
+
+	<select id="checkModelByName" resultType="String" parameterType="ModelEntity">
+		<![CDATA[ 
+		SELECT MODEL_ID
+		FROM `model`
+		WHERE NAME = #{name}
+		]]>
+			<if test="model_id!= null and model_id!= '' ">
+		<![CDATA[ 
+			AND MODEL_ID <> #{model_id}
+		]]>
+			</if>
+		<![CDATA[ 
+		AND DELETE_FLG = 0;
+		]]>
+	</select>
+	<select id="getPositionsOfModel" resultType="PositionEntity" parameterType="String">
+		<![CDATA[ 
+		select 
+		p.position_id, p.process_code, p.`name`
+		from
+			position p
+		where 
+			p.line_id in (00000000011, 00000000015, 00000000017)
+			or p.position_id in (
+		select 
+			p.position_id
+		from
+		  process_assign_template pat
+		join 
+		  v_model vm
+		on 
+		  pat.process_assign_template_id = vm.default_pat_id
+		join 
+		  process_assign pa
+		on 
+		  pat.process_assign_template_id =pa.refer_id
+		join 
+		  position p
+         on 
+        p.position_id=pa.position_id
+		where 
+		    pa.position_id < 9000000
+		and vm.model_id =#{model_id}
+		)
+		order by  p.process_code asc
+		]]>
+	</select>
+	
+	<select id="searchModelIdByName" resultType="String" parameterType="java.util.List">
+	    select model_id  from model where name in
+	     <foreach item="item" collection="list" index="index" open="(" separator="," close=")">
+	      		#{item}
+	    </foreach>
+	</select>
+	
+	<select id="searchAbolishOfModelLevel" resultType="ModelEntity" parameterType="ModelEntity">
+		<![CDATA[ 
+			select 
+				mls.model_id,
+			    mls.level,
+			    mls.echelon,
+			    mls.avaliable_end_date,
+			    mls.forecast_setting,
+			    ma.agree_count
+			from
+			    model_level_set mls
+			left join
+			    (select 
+			        model_id, level, COUNT(1) AS agree_count
+			    from
+			        material
+			    where
+			        break_back_flg = 0
+					and agreed_date is not null
+					and unrepair_flg <> 1
+					group by
+						model_id,level) ma 
+			ON 
+				ma.model_id = mls.model_id and ma.level = mls.level 
+			where mls.model_id=#{model_id}
+		]]>
+		<if test="level!=null and level==-1 ">
+			<![CDATA[ 
+				AND mls.level=0
+			]]>
+		</if>
+		<if test="level!=null and level==-2 ">
+			<![CDATA[ 
+				AND mls.level IN(1,2,3)
+			]]>
+		</if>
+	</select>
+	
+	<update id="updateAvaliablEndDate" parameterType="ModelEntity">
+		<![CDATA[ 
+			update 
+				model_level_set
+			set
+				avaliable_end_date=CASE
+								   		WHEN #{avaliable_end_date} != ''  THEN #{avaliable_end_date}
+								   		ELSE '9999-12-31'
+								   END
+			where
+				model_id=#{model_id} and level=#{level}
+		]]>
+	</update>
+	
+	<update id="updateOperator" parameterType="ModelEntity">
+		<![CDATA[ 
+			update
+				model
+			set
+				updated_by=#{updated_by},
+				updated_time=current_timestamp
+			where
+				model_id=#{model_id}
+		]]>
+	</update>
+	
+	<!-- 追加 -->
+	<insert id="insertModelLevel" parameterType="ModelEntity">
+		<![CDATA[ 
+			insert into model_level_set
+				(model_id,level,echelon)
+			values
+				(#{model_id},#{level}
+		]]>
+		<if test="echelon!=null and echelon=-1 ">
+			<![CDATA[
+				,0)
+			]]> 
+		</if>
+		<if test="echelon==null and echelon=='' ">
+			<![CDATA[
+				,4)
+			]]> 
+		</if>
+	</insert>
+	
+	<!-- 插入型号等级设定历史 -->
+	<insert id="insertModelLevelSetHistory" parameterType="ModelEntity">
+		<![CDATA[ 
+			insert into model_level_set_history
+				(model_id,level,avaliable_end_date,updated_by,updated_time)
+			values
+				(#{model_id},#{level},#{avaliable_end_date},#{updated_by},CURRENT_TIMESTAMP())
+		]]>
+	</insert>
+	
+	<select id="searchExitsModelLevelSetHistory" parameterType="ModelEntity" resultType="ModelEntity">
+		<![CDATA[ 
+			select
+				*
+			from
+				model_level_set_history
+			where
+				model_id=#{model_id} and level=#{level} and avaliable_end_date=#{avaliable_end_date}
+		]]>
+	</select>
+	
+	<select id="checkModelDepacy" parameterType="String" resultType="String">
+		<![CDATA[ 
+			select
+				date_format(avaliable_end_date, '%Y-%m-%d')
+			from
+				model_level_set
+			where
+				model_id=#{model_id}
+		]]>
+		<if test="level==null">
+			<![CDATA[
+				and not exists(select 1 from model_level_set where model_id = #{model_id} and avaliable_end_date >= current_date)
+			]]> 
+		</if>
+		<if test="level!=null">
+			<![CDATA[
+				and level=#{level} 
+			]]> 
+		</if>
+		<![CDATA[ 
+				and avaliable_end_date < current_date
+				order by avaliable_end_date desc
+				limit 1
+		]]>
+	</select>
+	
+	<select id="getElBaseTypeAutoCompletes" resultType="String">
+		<![CDATA[ 
+			SELECT el_base_type FROM model WHERE el_base_type <> '' AND DELETE_FLG = 0 group by el_base_type order by count(*) desc;
+		]]>
+	</select>
+	
+	<select id="getSConnectorBaseTypeAutoCompletes" resultType="String">
+		<![CDATA[ 
+			SELECT s_connector_base_type FROM model WHERE s_connector_base_type <> '' AND DELETE_FLG = 0 group by s_connector_base_type order by count(*) desc;
+		]]>
+	</select>
+	
+	<select id="getOperatePartTypeAutoCompletes" resultType="String">
+		<![CDATA[ 
+			SELECT operate_part_type FROM model WHERE operate_part_type <> '' AND DELETE_FLG = 0 group by operate_part_type order by count(*) desc;
+		]]>
+	</select>
+	
+	<select id="getOcularTypeAutoCompletes" resultType="String">
+		<![CDATA[ 
+			SELECT ocular_type FROM model WHERE ocular_type <> '' AND DELETE_FLG = 0 group by ocular_type order by count(*) desc;
+		]]>
+	</select>
+	
+	<select id="getModeLevelSet" resultType="ModelEntity" parameterType="ModelEntity">
+		<![CDATA[ 
+			select * from  model_level_set where model_id = #{model_id} AND level = #{level}
+		]]>
+	</select>
+	
+	<insert id="insertModeLevelSet" parameterType="ModelEntity">
+		<![CDATA[
+			insert model_level_set(model_id,level,echelon) values (#{model_id},#{level},#{echelon})
+		]]>
+	</insert>
+	
+	<update id="updateModeLevelSet" parameterType="ModelEntity">
+		<![CDATA[
+			update model_level_set set echelon = #{echelon} where model_id = #{model_id} AND level = #{level}
+		]]>
+	</update>
+
+	<select id="getModelByKind7" resultType="ModelEntity">
+		<![CDATA[ 
+		SELECT MODEL_ID,NAME,CATEGORY_NAME
+		FROM `v_model`
+		WHERE DELETE_FLG = 0 AND KIND='07'
+		]]>
+	</select>
+
+	<select id="getModelImbalanceLine" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT LINE_ID FROM model_imbalance_of_line WHERE MODEL_ID = #{model_id};
+		]]>
+	</select>
+
+	<select id="getLineImbalanceModel" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT MODEL_ID FROM model_imbalance_of_line
+		]]>
+		<if test="line_id!= null and line_id!= '' ">
+		<![CDATA[ 
+		WHERE LINE_ID = #{line_id}
+		]]>
+		</if>
+		;
+	</select>
+
+	<update id="deleteModelImbalanceLine" parameterType="ModelEntity">
+		<![CDATA[ 
+		DELETE FROM model_imbalance_of_line
+		WHERE MODEL_ID = #{model_id}
+		]]>
+	</update>
+
+	<insert id="insertModelImbalanceLine" parameterType="ModelEntity">
+		<![CDATA[ 
+		INSERT INTO model_imbalance_of_line
+			(MODEL_ID, LINE_ID) 
+		VALUES 
+			(#{model_id}, #{imbalance_line_id})
+		]]>
+	</insert>
+</mapper>

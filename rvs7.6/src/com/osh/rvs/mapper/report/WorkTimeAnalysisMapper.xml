@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.report.WorkTimeAnalysisMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchAvgWorkTimeByMonth" resultType="WorkTimeAnalysisEntity" parameterType="WorkTimeAnalysisEntity">
+		<![CDATA[
+		SELECT
+			temp.yearMonth,
+			CEIL(AVG(temp.use_seconds)/60) AS avgWorkTime
+		FROM
+		(
+			SELECT 
+				DATE_FORMAT(pf.finish_time,'%Y%m') AS yearMonth,
+		]]>
+		<if test="rework==1">
+		<![CDATA[
+			pf.use_seconds
+		]]>
+		</if>
+		<if test="rework==2">
+		<![CDATA[
+			MAX(pf.use_seconds) AS use_seconds
+		]]>
+		</if>
+		<![CDATA[
+			FROM
+			    production_feature pf
+			JOIN
+			    material ma 
+			ON 
+				pf.material_id = ma.material_id
+			JOIN
+				v_model
+			ON
+				v_model.model_id = ma.model_id
+			WHERE
+				(pf.operate_result = 2 OR pf.operate_result = 6)
+			AND	pf.finish_time >= #{finish_time_start}
+			AND	pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 MONTH)
+		]]>
+		<if test="category_id!=null and category_id!=''">
+		<![CDATA[
+			AND v_model.category_id = #{category_id}
+		]]>
+		</if>
+		<if test="model_id!=null and model_id!=''">
+		<![CDATA[
+			AND ma.model_id = #{model_id}
+		]]>
+		</if>
+		<if test="level==1">
+		<![CDATA[
+			AND ma.level IN (1,2,3)
+		]]>
+		</if>
+		<if test="level==9">
+		<![CDATA[
+			AND ma.level IN (9,91,92,93,96,97,98,99)
+		]]>
+		</if>
+		<if test="level==5">
+		<![CDATA[
+			AND ma.level IN (56,57,58,59)
+		]]>
+		</if>
+		<if test="section_id!=null and section_id!=''">
+		<![CDATA[
+			AND pf.section_id = #{section_id}
+		]]>
+		</if>
+		<if test="position_id!=null and position_id!=''">
+		<![CDATA[
+			AND pf.position_id = #{position_id}
+		]]>
+		</if>
+		<if test="scheduled_expedited==1">
+		<![CDATA[
+			AND ma.scheduled_expedited > 0
+		]]>
+		</if>
+		<if test="scheduled_expedited==2">
+		<![CDATA[
+			AND ma.scheduled_expedited = 0
+		]]>
+		</if>
+		<if test="operator_id!=null and operator_id!=''">
+		<![CDATA[
+			AND pf.operator_id = #{operator_id}
+		]]>
+		</if>
+		<if test="rework==2">
+		<![CDATA[
+			GROUP BY pf.material_id, pf.position_id
+		]]>
+		</if>
+		<if test="upper!=null and upper!=''">
+		<![CDATA[
+			HAVING use_seconds >= (100 - #{upper}) / 100 * #{standardWorkTime} * 60 AND use_seconds <= (100 + #{upper}) / 100 * #{standardWorkTime} * 60
+		]]>
+		</if>
+	<![CDATA[
+		)temp
+		GROUP BY
+			temp.yearMonth 
+		ORDER BY 
+			temp.yearMonth
+	]]>
+	</select>
+	
+	<select id="searchAvgWorkTimeByWeek" resultType="WorkTimeAnalysisEntity" parameterType="WorkTimeAnalysisEntity">
+		<![CDATA[
+		SELECT
+			temp.yearMonth,
+			CEIL(AVG(temp.use_seconds)/60) AS avgWorkTime
+		FROM
+		(
+			SELECT 
+				DATE_FORMAT(pf.finish_time,'%Y%u') AS yearMonth,
+		]]>
+		<if test="rework==1">
+		<![CDATA[
+			pf.use_seconds
+		]]>
+		</if>
+		<if test="rework==2">
+		<![CDATA[
+			MAX(pf.use_seconds) AS use_seconds
+		]]>
+		</if>
+		<![CDATA[
+			FROM
+			    production_feature pf
+			JOIN
+			    material ma 
+			ON 
+				pf.material_id = ma.material_id
+			JOIN
+				v_model
+			ON
+				v_model.model_id = ma.model_id
+			WHERE
+				(pf.operate_result = 2 OR pf.operate_result = 6)
+			AND	pf.finish_time >= #{finish_time_start}
+			AND	pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 MONTH)
+		]]>
+		<if test="category_id!=null and category_id!=''">
+		<![CDATA[
+			AND v_model.category_id = #{category_id}
+		]]>
+		</if>
+		<if test="model_id!=null and model_id!=''">
+		<![CDATA[
+			AND ma.model_id = #{model_id}
+		]]>
+		</if>
+		<if test="level==1">
+		<![CDATA[
+			AND ma.level IN (1,2,3)
+		]]>
+		</if>
+		<if test="level==9">
+		<![CDATA[
+			AND ma.level IN (9,91,92,93,96,97,98)
+		]]>
+		</if>
+		<if test="level==5">
+		<![CDATA[
+			AND ma.level IN (56,57,58)
+		]]>
+		</if>
+		<if test="section_id!=null and section_id!=''">
+		<![CDATA[
+			AND pf.section_id = #{section_id}
+		]]>
+		</if>
+		<if test="position_id!=null and position_id!=''">
+		<![CDATA[
+			AND pf.position_id = #{position_id}
+		]]>
+		</if>
+		<if test="scheduled_expedited==1">
+		<![CDATA[
+			AND ma.scheduled_expedited > 0
+		]]>
+		</if>
+		<if test="scheduled_expedited==2">
+		<![CDATA[
+			AND ma.scheduled_expedited = 0
+		]]>
+		</if>
+		<if test="operator_id!=null and operator_id!=''">
+		<![CDATA[
+			AND pf.operator_id = #{operator_id}
+		]]>
+		</if>
+		<if test="rework==2">
+		<![CDATA[
+			GROUP BY pf.material_id, pf.position_id
+		]]>
+		</if>
+		<if test="upper!=null and upper!=''">
+		<![CDATA[
+			HAVING use_seconds >= (100 - #{upper}) / 100  * #{standardWorkTime} * 60 AND use_seconds <= (100 + #{upper}) / 100  * #{standardWorkTime} * 60
+		]]>
+		</if>
+	<![CDATA[
+		)temp
+		GROUP BY
+			temp.yearMonth 
+		ORDER BY 
+			temp.yearMonth
+	]]>
+	</select>
+	
+	<select id="searchAnomaly" resultType="WorkTimeAnalysisEntity" parameterType="WorkTimeAnalysisEntity">
+		<![CDATA[
+			SELECT 
+			    ma.omr_notifi_no,
+				v_model.name AS model_name,
+				ma.serial_no,
+				ma.level,
+				v_position.process_code,
+				MIN(pf.action_time) AS action_time,
+				MAX(pf.finish_time) AS finish_time,
+				CEIL(MAX(pf.use_seconds)/60) AS use_seconds,
+				GROUP_CONCAT(DISTINCT operator.name SEPARATOR ' ') AS operator_name,
+				v_model.category_name,
+				section.name AS section_name,
+				v_position.line_name
+			FROM
+			    production_feature pf
+			JOIN
+				material ma
+			ON
+				pf.material_id = ma.material_id
+			JOIN
+				v_model
+			ON
+				v_model.model_id = ma.model_id
+			JOIN
+				v_position
+			ON
+				v_position.position_id = pf.position_id
+			JOIN
+				operator
+			ON
+				operator.operator_id = pf.operator_id
+			JOIN
+				section
+			ON
+				section.section_id = pf.section_id
+			WHERE
+				v_position.process_code NOT IN('251','252','321','400')
+			AND
+				pf.finish_time >= #{finish_time_start}
+			AND	
+				pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 DAY)
+		]]>
+		<if test="section_id!=null and section_id!=''">
+		<![CDATA[
+			AND pf.section_id = #{section_id}
+		]]>
+		</if>
+		<if test="line_id!=null and line_id!=''">
+		<![CDATA[
+			AND v_position.line_id = #{line_id}
+		]]>
+		</if>
+		<![CDATA[
+			GROUP BY 
+				pf.material_id,pf.position_id,pf.rework
+			ORDER BY
+				pf.action_time
+		]]>
+	</select>
+</mapper>

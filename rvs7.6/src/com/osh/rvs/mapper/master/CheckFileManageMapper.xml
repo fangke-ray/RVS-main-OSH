@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.CheckFileManageMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<!-- 检索 -->
+	<select id="search" parameterType="CheckFileManageEntity" resultType="CheckFileManageEntity">
+		<![CDATA[
+			SELECT
+				cfm.check_file_manage_id,
+				cfm.check_manage_code,
+				cfm.sheet_file_name,
+				cfm.devices_type_id,
+				cfm.access_place,
+				cfm.cycle_type,
+				cfm.updated_by,
+				cfm.updated_time,
+				cfm.filing_means,
+				cfm.specified_model_name,
+				dt.name,
+				op.name AS update_name
+			FROM
+				check_file_manage cfm
+			LEFT JOIN
+				devices_type dt
+			ON
+				cfm.devices_type_id=dt.devices_type_id
+			LEFT JOIN
+				operator op
+			ON
+				op.operator_id=cfm.updated_by
+		]]>
+		<where>
+			<![CDATA[
+				cfm.delete_flg=0
+			]]>
+			<if test="check_manage_code!=null and check_manage_code!=''">
+				<![CDATA[
+					AND	cfm.check_manage_code LIKE CONCAT('%',#{check_manage_code},'%')
+				]]>
+			</if>
+			<if test="sheet_file_name!=null and sheet_file_name!=''">
+				<![CDATA[
+					AND cfm.sheet_file_name LIKE CONCAT('%',#{sheet_file_name},'%')
+				]]>
+			</if>
+			<if test="devices_type_id!=null and devices_type_id!=''">
+				<![CDATA[
+					AND cfm.devices_type_id=#{devices_type_id}
+				]]>
+			</if>
+			<if test="access_place!=null and access_place!=''">
+				<![CDATA[
+					AND cfm.access_place=#{access_place}
+				]]>
+			</if>
+			<if test="cycle_type!=null and cycle_type!=''">
+				<![CDATA[
+					AND cfm.cycle_type=#{cycle_type}
+				]]>
+			</if>
+			<if test="filing_means!=null and filing_means!=''">
+				<![CDATA[
+					AND cfm.filing_means=#{filing_means}
+				]]>
+			</if>
+		</where>
+		ORDER BY
+			  cfm.updated_time DESC
+	</select>
+
+	<select id="getByKey" parameterType="String" resultType="CheckFileManageEntity">
+SELECT `check_file_manage_id`,
+    `check_manage_code`,
+    `sheet_file_name`,
+    `devices_type_id`,
+    `access_place`,
+    `cycle_type`,
+    `delete_flg`,
+    `updated_by`,
+    `updated_time`
+FROM `check_file_manage`
+WHERE `check_file_manage_id` = #{check_file_manage_id};
+	</select>
+
+	<!-- 删除 -->
+	<update id="delete" parameterType="CheckFileManageEntity">
+		<![CDATA[
+			UPDATE  check_file_manage SET delete_flg=1 WHERE check_file_manage_id=#{check_file_manage_id}
+		]]>
+	</update>
+	
+	<!-- 新建点检表 -->
+	<insert id="insert" parameterType="CheckFileManageEntity">
+		<![CDATA[
+			INSERT INTO 
+				check_file_manage(
+					check_manage_code,
+					sheet_file_name,
+					devices_type_id,
+					access_place,
+					cycle_type,
+					specified_model_name,
+					updated_by,
+					updated_time,
+					filing_means)
+			VALUES(
+				   #{check_manage_code},
+				   #{sheet_file_name},
+				   #{devices_type_id},
+				   #{access_place},
+				   #{cycle_type},
+				   #{specified_model_name},
+				   #{updated_by},
+				   current_timestamp(),
+				   #{filing_means})
+		]]>
+	</insert>
+	
+	<!-- 检查点检表管理号是否已经存在 -->
+	<select id="checkManageCodeIsExist" parameterType="CheckFileManageEntity" resultType="int">
+		<![CDATA[
+			SELECT COUNT(1) FROM check_file_manage WHERE check_manage_code=#{check_manage_code} AND delete_flg!=1
+		]]>	
+	</select>
+	
+	<!-- 检查是否是当前ID -->
+	<select id="checkIdIsCurrent" parameterType="CheckFileManageEntity" resultType="String">
+		<![CDATA[
+			SELECT check_file_manage_id FROM check_file_manage WHERE check_manage_code=#{check_manage_code} AND delete_flg!=1
+		]]>	
+	</select> 
+
+	<!-- 更新点检表 -->
+	<update id="update" parameterType="CheckFileManageEntity">
+		<![CDATA[
+			UPDATE  
+				check_file_manage 
+			SET
+				check_manage_code=#{check_manage_code},
+				devices_type_id=#{devices_type_id},
+				access_place=#{access_place},
+				cycle_type=#{cycle_type},
+				specified_model_name=#{specified_model_name},
+				updated_by=#{updated_by},
+				updated_time=current_timestamp(),
+				filing_means=#{filing_means}
+		]]>	
+		<if test="sheet_file_name!=null and sheet_file_name!=''">
+			<![CDATA[
+			,sheet_file_name=#{sheet_file_name}
+			]]>	
+		</if>
+		<![CDATA[
+			WHERE 
+				check_file_manage_id=#{check_file_manage_id}
+		]]>
+	</update>
+
+	<!-- 点检人员身份全部相关表格  -->
+    <select id="searchManageCodeByOperator" resultType="CheckFileManageEntity" parameterType="CheckResultEntity">
+	   <![CDATA[
+	select dm.devices_manage_id ,dt.name, dm.manage_code, dm.model_name, check_file_manage_id
+		, cfm.check_manage_code, cfm.sheet_file_name, cfm.access_place, cfm.cycle_type 
+		, pos.position_id, pos.process_code
+	from devices_manage dm
+	join devices_type dt
+		on dm.devices_type_id = dt.devices_type_id
+	join check_file_manage cfm
+		on dt.devices_type_id = cfm.devices_type_id
+		AND dm.delete_flg = 0 AND cfm.delete_flg = 0
+		AND (cfm.specified_model_name IS NULL OR cfm.specified_model_name LIKE concat('%', dm.model_name, '%'))
+	left join position pos
+		on dm.position_id = pos.position_id
+	where manage_level <= 2 and `status` = 1
+	and section_id = #{section_id}
+	and (dm.position_id = #{position_id} 
+	or (dm.position_id is null AND dm.line_id = #{line_id})
+	)
+	   ]]>
+		<if test="sheet_manage_no!=null and sheet_manage_no!=''">
+			and cfm.sheet_file_name like concat('%', #{sheet_manage_no}, '%') 
+		</if>
+		<if test="manage_code!=null and manage_code!=''">
+			and dm.manage_code like concat('%', #{manage_code}, '%') 
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			and dm.model_name like concat('%', #{model_name}, '%') 
+		</if>
+		<if test="devices_type_id!=null and devices_type_id!=''">
+			and dm.devices_type_id = #{devices_type_id}
+		</if>
+	   <![CDATA[
+	and dm.delete_flg = 0 and cfm.delete_flg = 0
+	and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+		where cur.manage_id = dm.devices_manage_id and cur.manage_id = 1
+		and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+	;
+	   ]]>
+	</select>
+
+    <select id="searchManageCodeByManager" resultType="CheckFileManageEntity" parameterType="CheckResultEntity">
+	   <![CDATA[
+	select dm.devices_manage_id ,dt.name, dm.manage_code, dm.model_name, check_file_manage_id
+		, cfm.check_manage_code, cfm.sheet_file_name, cfm.access_place, cfm.cycle_type 
+		, pos.position_id, pos.process_code
+	from devices_manage dm
+	join devices_type dt
+		on dm.devices_type_id = dt.devices_type_id
+	join check_file_manage cfm
+		on dm.devices_type_id = cfm.devices_type_id
+		and dm.delete_flg = 0 and cfm.delete_flg = 0
+		AND (cfm.specified_model_name IS NULL OR cfm.specified_model_name LIKE concat('%', dm.model_name, '%'))
+	left join position pos
+		on dm.position_id = pos.position_id
+	where manage_level <= 2 
+	   ]]>
+		<if test="operator_id!=null and operator_id!=''">
+			and `status` = 1 and cfm.access_place != 9
+			and manager_operator_id = #{operator_id}
+		</if>
+		<if test="operator_id==null or operator_id==''">
+			and ((`status` = 1 and cfm.access_place != 9) or (`status` = 5 and cfm.access_place != 1))
+		</if>
+		<if test="sheet_manage_no!=null and sheet_manage_no!=''">
+			and cfm.sheet_file_name like concat('%', #{sheet_manage_no}, '%') 
+		</if>
+		<if test="manage_code!=null and manage_code!=''">
+			and dm.manage_code like concat('%', #{manage_code}, '%') 
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			and dm.model_name like concat('%', #{model_name}, '%') 
+		</if>
+		<if test="devices_type_id!=null and devices_type_id!=''">
+			and dm.devices_type_id = #{devices_type_id}
+		</if>
+		<if test="position_id!=null and position_id!=''">
+			and dm.position_id = #{position_id}
+		</if>
+	;
+	</select>
+
+    <insert id="addSeqItem" parameterType="DeviceCheckItemEntity">
+	   <![CDATA[
+INSERT INTO `devices_check_item`
+(`check_file_manage_id`,
+`seq_no`,
+`cycle_type`,
+`trigger_state`,
+`data_type`,
+`upper_limit`,
+`lower_limit`,
+`trigger_time`,
+`specified_model_name`)
+VALUES
+(#{check_file_manage_id},
+#{item_seq},
+#{cycle_type},
+#{trigger_state},
+#{data_type},
+#{upper_limit},
+#{lower_limit},
+#{trigger_time},
+#{model_relative});
+	   ]]>
+	</insert>
+
+	<select id="getSeqItemsByFile" resultType="DeviceCheckItemEntity" parameterType="String">
+		select check_file_manage_id,
+		seq_no as item_seq,
+		cycle_type,
+		trigger_state,
+		upper_limit,
+		lower_limit,
+		trigger_time,
+		specified_model_name
+		from `devices_check_item` where `check_file_manage_id` = #{check_file_manage_id}
+	</select>
+
+	<delete id="deleteDevicesCheckItem" parameterType="String">
+		delete
+		from `devices_check_item` where `check_file_manage_id` = #{check_file_manage_id}
+	</delete>
+
+	<select id="checkDataIsExist" parameterType="CheckFileManageEntity" resultType="CheckFileManageEntity">
+		<![CDATA[
+			SELECT check_file_manage_id, specified_model_name
+			FROM check_file_manage 
+			WHERE delete_flg != 1
+			AND access_place = 9
+			AND devices_type_id = #{devices_type_id}
+		]]>
+		<if test="check_file_manage_id!=null and check_file_manage_id!=''">
+			AND check_file_manage_id != #{check_file_manage_id}
+		</if>
+	</select>
+</mapper>

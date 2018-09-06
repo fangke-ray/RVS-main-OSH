@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PremakePartialMapper">
+	
+	<select id="search" parameterType="PremakePartialEntity" resultType="PremakePartialEntity">
+		<![CDATA[
+			SELECT
+				pp.partial_id,
+				pp.model_id,
+				partial.code,
+				model.name AS model_name,
+				pp.standard_flg
+			FROM
+				premake_partial pp
+			LEFT JOIN
+				partial
+			ON
+				pp.partial_id = partial.partial_id
+			LEFT JOIN
+				model
+			ON
+				pp.model_id = model.model_id
+		]]>
+		<where>
+			<if test="code!=null and code!=''">
+				<![CDATA[
+					partial.code like CONCAT('%',#{code},'%')
+				]]>
+			</if>
+			<if test="model_id!=null and model_id!=''">
+				<![CDATA[
+					AND model.model_id = #{model_id}
+				]]>
+			</if>
+			<if test="standard_flg!=null and standard_flg==1">
+				<![CDATA[
+					AND pp.standard_flg = 1
+				]]>
+			</if>
+			<if test="standard_flg!=null and standard_flg==-1">
+				<![CDATA[
+					AND pp.standard_flg = 0
+				]]>
+			</if>
+		</where>
+	</select>
+	
+	<update id="update" parameterType="PremakePartialEntity">
+		<![CDATA[
+			UPDATE
+				premake_partial
+			SET
+				standard_flg = #{standard_flg}
+			WHERE
+				partial_id = #{partial_id}
+			AND
+				model_id = #{model_id}
+		]]>
+	</update>
+	
+	<select id="checkExist" parameterType="PremakePartialEntity" resultType="PremakePartialEntity">
+		<![CDATA[
+			select * from premake_partial where partial_id = #{partial_id} and model_id = #{model_id}
+		]]>
+	</select>
+	
+	<insert id="insert" parameterType="PremakePartialEntity">
+		<![CDATA[
+			INSERT INTO premake_partial (partial_id,model_id,standard_flg) VALUES (#{partial_id},#{model_id},#{standard_flg})
+		]]>
+	</insert>
+	
+ </mapper>

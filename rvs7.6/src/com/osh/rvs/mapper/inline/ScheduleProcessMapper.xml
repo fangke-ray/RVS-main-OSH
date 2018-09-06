@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.ScheduleProcessMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="searchMaterialIdsByCondition" parameterType="ScheduleEntity" resultType="java.lang.String">
+		<![CDATA[
+			SELECT distinct c.material_id from material_process c , 
+				(SELECT a.material_id from material a LEFT JOIN material_partial b ON b.material_id = a.material_id
+		]]>
+		
+		<where>
+				a.break_back_flg = 0
+				AND (a.outline_time >= current_date OR a.outline_time IS Null)
+			<if test="sorc_no!= null and sorc_no!='' ">
+				and (sorc_no like CONCAT('%', #{sorc_no}, '%') or omr_notifi_no like CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="serial_no!=null and serial_no!='' ">
+				 and a.serial_no = #{serial_no}
+			</if>
+			<if test="esas_no!= null and esas_no!='' ">
+				and a.esas_no = #{esas_no}
+			</if>
+			<if test="agreed_date_start!= null">
+				<![CDATA[ 
+				and a.agreed_date >= #{agreed_date_start}
+				]]>	
+			</if>
+			<if test="agreed_date_end!= null">
+				<![CDATA[
+				and a.agreed_date <= #{agreed_date_end}
+				]]>
+			</if>
+			<if test="scheduled_date_start!= null">
+				<![CDATA[ 
+				and a.scheduled_date >= #{scheduled_date_start}
+				]]>	
+			</if>
+			<if test="scheduled_date_end!= null">
+				<![CDATA[
+				and a.scheduled_date <= #{scheduled_date_end}
+				]]>
+			</if>
+			<if test="level!= null and level != '' and level != 9 and level != 5">
+				and a.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and a.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and a.level in (56,57,58,59)
+			</if>
+			<if test="section_id!=null and section_id!='' ">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="scheduled_expedited!=null">
+				and a.scheduled_expedited = #{scheduled_expedited}
+			</if>
+			
+			<if test="bo_flg!=null">
+				and b.bo_flg = #{bo_flg}
+				and b.material_id = a.material_id
+			</if>
+			<if test="arrival_plan_date_start!=null and arrival_plan_date_start!='' ">
+				<![CDATA[
+					and b.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!=null and arrival_plan_date_end!='' ">
+				<![CDATA[
+					and b.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<if test="category_id !=null and category_id != ''">
+				and a.model_id in(select model_id from model where category_id = #{category_id})					
+			</if>
+			and NOT EXISTS (SELECT 1 FROM for_solution_area WHERE material_id = a.material_id AND solved_time IS NULL)
+		</where>
+		<![CDATA[
+			) as e 
+		]]>
+		<where>
+			c.material_id = e.material_id
+			<if test="complete_date_start!= null">
+				<![CDATA[ 
+				and c.scheduled_assign_date >= #{complete_date_start}
+				]]>	
+			</if>
+			<if test="complete_date_end!= null">
+				<![CDATA[
+				and c.scheduled_assign_date <= #{complete_date_end}
+				]]>
+			</if>
+			<if test="position_id!=null and position_id!='' ">
+				<choose>
+					<when test="position_eval == 0">
+						<![CDATA[
+						and not exists(select material_id from production_feature d where d.material_id = c.material_id and d.position_id = #{position_id} and d.operate_result NOT IN (5,8))
+						]]>				
+					</when>
+					<when test="position_eval == 1">
+						<![CDATA[
+						and exists(select material_id from production_feature d where d.material_id = c.material_id and d.position_id = #{position_id} and d.operate_result NOT IN (5,8))
+						and not exists(select material_id from production_feature dpf where dpf.material_id = c.material_id and dpf.position_id = #{position_id} and dpf.operate_result = 2)
+						]]>
+					</when>
+					<when test="position_eval == 2">
+						<![CDATA[
+						and exists(select material_id from production_feature d where d.material_id = c.material_id and d.position_id = #{position_id} and d.operate_result NOT IN (5,8))
+						]]>
+					</when>
+				</choose>				
+			</if>
+		</where>
+	</select>
+	
+	<select id="searchMaterialByIds" resultType="ScheduleEntity">	
+		<![CDATA[
+		SELECT
+			a.material_id,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.esas_no,
+			mdl.category_name,
+			a.model_id,
+			mdl.name as model_name,
+			a.serial_no,
+			a.level,
+			a.agreed_date,
+			a.direct_flg,
+			a.ocm,
+			a.inline_time,
+			mp.arrival_plan_date,
+			mp.arrival_date,
+			mp.bo_flg,
+			mp.bo_contents,
+			mp.order_date,
+			a.section_id,
+			sc.name as section_name,
+			dismantle.action_time as dismantle_time,
+			(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
+			(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id =13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as ns_processing_position,
+			mpd.scheduled_date as dec_plan_date,
+			mpd.finish_date as dec_finish_date,
+			mpn.scheduled_date as ns_plan_date,
+			mpn.finish_date as ns_finish_date,
+			mpc.scheduled_date as com_plan_date,
+			mpc.finish_date as com_finish_date,
+			mpc.scheduled_assign_date > current_date as schedule_assigned,
+			a.am_pm,
+			a.scheduled_expedited,
+			a.scheduled_manager_comment,
+			EXISTS (SELECT * FROM production_feature p where material_id = a.material_id and operate_result = 3 and action_time is null) as break_message,
+			a.scheduled_date as scheduled_date_end
+		FROM material a
+		join v_model mdl
+			on a.model_id = mdl.model_id
+		left join section sc
+			on a.section_id = sc.section_id
+		left join (SELECT
+			mpd.material_id,
+			CASE
+				WHEN max(mpd.bo_flg = 1) = 1
+				THEN 1
+				WHEN max(mpd.bo_flg in (8, 9)) = 1
+				THEN 9
+				WHEN max(mpd.bo_flg = 2) = 1
+				THEN 2
+				ELSE 0
+			END bo_flg,
+			max(mpd.occur_times) as occur_times,
+			min(mpd.order_date) as order_date,
+			min(mpd.arrival_date) as arrival_date,
+			max(mpd.arrival_plan_date) as arrival_plan_date,
+			coalesce(group_concat(bo_contents separator ','),
+			(select group_concat(ptl.code SEPARATOR ' ') from partial ptl join material_partial_detail mpdd on ptl.partial_id = mpdd.partial_id
+					where mpdd.material_id = mpd.material_id and mpdd.status in (3,4))) as bo_contents
+			from material_partial mpd
+			where mpd.material_id in
+		]]>
+			<foreach item="id" collection="list" open="(" separator="," close=")">
+				#{id}
+ 			</foreach> 
+		<![CDATA[
+			group by mpd.material_id) mp
+			on a.material_id = mp.material_id
+		left join (
+			SELECT material_id, scheduled_date, finish_date
+			FROM material_process
+			WHERE line_id = 12
+			) mpd
+			on a.material_id = mpd.material_id
+		left join (
+			SELECT material_id, scheduled_date, finish_date
+			FROM material_process
+			WHERE line_id = 13
+			) mpn
+			on a.material_id = mpn.material_id
+		left join (
+			SELECT material_id, scheduled_date, finish_date, scheduled_assign_date
+			FROM material_process
+			WHERE line_id = 14
+			) mpc
+			on a.material_id = mpc.material_id
+		left join (
+			select material_id, min(action_time) as action_time from production_feature
+			where position_id = 16
+			group by material_id
+			) dismantle
+			on a.material_id = dismantle.material_id
+		where
+			break_back_flg = 0
+			and a.material_id in
+		]]>
+			<foreach item="id" collection="list" open="(" separator="," close=")">
+				#{id}
+ 			</foreach> 
+	</select>
+	
+	<select id="searchSchedule" resultType="ScheduleEntity" parameterType="ScheduleEntity">
+		<![CDATA[
+			SELECT
+				a.material_id,
+				b.line_id,
+				l.name as line_name,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				a.model_id,
+				mdl.name as model_name,
+				mdl.category_name as category_name,
+				a.serial_no,
+				a.level,				
+				a.direct_flg,
+				a.agreed_date,
+				a.ocm,
+				max(mp.arrival_plan_date) as arrival_plan_date,
+				CASE
+					WHEN max(mp.bo_flg in (8, 9)) = 1
+					THEN 9
+					WHEN max(mp.bo_flg = 1) = 1
+					THEN 1
+					WHEN max(mp.bo_flg = 2) = 1
+					THEN 2
+					ELSE 0
+				END bo_flg,
+				a.section_id,
+				(select name from section where section_id = a.section_id) as section_name,
+				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
+				(select scheduled_assign_date from material_process where line_id = 14 and  material_id = a.material_id) as com_plan_date,
+				b.finish_date,
+				a.am_pm,
+				a.scheduled_date as scheduled_date_end
+			FROM
+				material a
+			JOIN
+				material_process b
+			ON
+				a.material_id = b.material_id
+			JOIN
+				`v_model` mdl
+			ON
+				a.model_id = mdl.model_id
+			JOIN
+				`line` l
+			ON 
+				l.line_id=b.line_id
+			LEFT JOIN material_partial mp
+				ON a.material_id = mp.material_id
+			WHERE
+				b.line_id IS NOT NULL 
+			and
+				b.SCHEDULED_ASSIGN_DATE = curdate()
+			]]>
+			<choose>
+				<when test="line_id != null and line_id != ''">
+					and b.line_id = #{line_id}
+					group by a.material_id, b.line_id
+				</when>
+				<otherwise>
+					<![CDATA[
+					group by material_id
+						union
+						SELECT
+							distinct
+							a.material_id,
+							p.line_id,
+							(select name from line where line_id=p.line_id) as line_name,
+							coalesce(omr_notifi_no, sorc_no) as sorc_no,
+							a.model_id,
+							mdl.name as model_name,
+							mdl.category_name as category_name,
+							a.serial_no,
+							a.level,				
+				a.direct_flg,
+							a.agreed_date,
+							a.ocm,
+				max(mp.arrival_plan_date) as arrival_plan_date,
+				CASE
+					WHEN max(mp.bo_flg = 1) = 1
+					THEN 1
+					WHEN max(mp.bo_flg in (8, 9)) = 1
+					THEN 9
+					WHEN max(mp.bo_flg = 2) = 1
+					THEN 2
+					ELSE 0
+				END bo_flg,
+							a.section_id,
+							(select name from section where section_id = a.section_id) as section_name,
+							(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
+							(select scheduled_date from material_process where line_id=14 and  material_id = a.material_id) as com_plan_date,
+							NULL as finish_date,
+							a.am_pm,
+							a.scheduled_date as scheduled_date_end
+						  FROM        material a
+						  JOIN production_feature b
+						    ON a.material_id = b.material_id
+						  JOIN `position` p
+						    ON b.position_id = p.position_id
+						   JOIN     `v_model` mdl
+						  ON a.model_id = mdl.model_id
+							LEFT JOIN material_partial mp
+								ON a.material_id = mp.material_id
+						   WHERE b.action_time >= curdate()
+ 							and p.line_id in (12, 13, 14)
+							and 
+							a.material_id not in (
+								SELECT
+									a.material_id
+								FROM
+									material a, material_process b
+								WHERE
+									a.material_id = b.material_id
+								and
+									b.line_id IS NOT NULL 
+								and
+								b.SCHEDULED_ASSIGN_DATE = curdate()
+							)
+							group by a.material_id
+						]]>
+				</otherwise>
+			</choose>
+</select>
+		
+	<select id="searchOutSchedule" resultType="ScheduleEntity">
+		<![CDATA[
+		SELECT
+			distinct
+			a.material_id,
+			p.line_id,
+			(select name from line where line_id=p.line_id) as line_name,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			a.model_id,
+			mdl.name as model_name,
+			mdl.category_name as category_name,
+			a.serial_no,
+			a.level,				
+			a.direct_flg,
+			a.agreed_date,
+			a.ocm,
+			(select arrival_plan_date from material_partial where material_id = a.material_id order by (1-ISNULL(arrival_plan_date)), arrival_plan_date desc limit 1) as arrival_plan_date,
+			(select bo_flg from material_partial where material_id = a.material_id and bo_flg = 1 limit 1) as bo_flg,
+			a.section_id,
+			(select name from section where section_id = a.section_id) as section_name,
+			(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
+			(select scheduled_date from material_process where line_id=14 and  material_id = a.material_id) as com_plan_date,
+			NULL as finish_date,
+			a.am_pm,
+			a.scheduled_date as scheduled_date_end
+		  FROM material a
+		  JOIN production_feature b
+		    ON a.material_id = b.material_id
+		  JOIN `position` p
+		    ON b.position_id = p.position_id
+		   JOIN     `v_model` mdl
+		  ON a.model_id = mdl.model_id
+		   WHERE b.action_time >= curdate()
+			and p.line_id in (12, 13, 14)
+			and 
+			a.material_id not in (
+				SELECT
+					a.material_id
+				FROM
+					material a, material_process b
+				WHERE
+					a.material_id = b.material_id
+				and
+					b.line_id IS NOT NULL 
+				and
+				b.SCHEDULED_ASSIGN_DATE = curdate()
+			)
+			group by material_id
+		]]>
+		
+	</select>
+	
+	<update id="updateSchedule" parameterType="ScheduleEntity">
+		<![CDATA[
+			UPDATE
+				MATERIAL_PROCESS
+			SET
+				SCHEDULED_ASSIGN_DATE = DATE_FORMAT(curdate(), '%Y-%m-%d')
+			WHERE
+				MATERIAL_ID = #{material_id} AND
+				LINE_ID = #{line_id}
+		]]>
+	</update>
+
+	<update id="deleteSchedule" parameterType="ScheduleEntity">
+		<![CDATA[
+			UPDATE
+				MATERIAL_PROCESS
+			SET
+				SCHEDULED_ASSIGN_DATE = null
+			WHERE
+				MATERIAL_ID = #{material_id} AND
+				LINE_ID = #{line_id}
+		]]>
+	</update>
+	
+	<update id="updateToPuse" parameterType="java.lang.String">
+		<![CDATA[
+			UPDATE production_feature set operate_result = 3
+			where material_id = #{material_id}
+			and action_time = (
+				select * from (select max(action_time) from production_feature where material_id = #{material_id}) as tmp
+			)
+		]]>
+	</update>
+</mapper>

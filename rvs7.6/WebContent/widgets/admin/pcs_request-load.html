@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<base href=".">
+
+<div id="import_area">
+	<form id="import_form" method="POST">
+		<table class="condform">
+			<tbody>
+				<tr>
+					<td class="ui-state-default td-title">依赖发布日期</td>
+					<td class="td-content">
+						<input type="hidden" name="pcs_request_key" id="import_pcs_request_key"/>
+						<input type="text" alt="依赖发布日期" name="request_date" id="import_request_date" tabindex="-1" maxlength="15" class="ui-widget-content" readonly="readonly">
+					</td>
+					<td class="ui-state-default td-title">依赖DB号</td>
+					<td class="td-content">
+						<input type="text" alt="依赖DB号" name="request_db_no" id="import_request_db_no" maxlength="12" class="ui-widget-content">
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">依赖描述</td>
+					<td class="td-content"><textarea type="text" name="description" id="import_description" maxlength="120" class="ui-widget-content"></textarea></td>
+					<td class="ui-state-default td-title">更改描述</td>
+					<td class="td-content"><textarea type="text" name="change_detail" id="import_change_detail" maxlength="120" class="ui-widget-content"></textarea></td>
+				</tr>
+
+				<tr>
+					<td class="ui-state-default td-title">工程检查票类型</td>
+					<td class="td-content">
+						<select alt="工程检查票类型" name="line_type" id="import_line_type" class="ui-widget-content">
+							
+						</select>
+					</td>
+					<td class="ui-state-default td-title">针对型号</td>
+					<td class="td-content">
+						<input type="text" id="import_target_model" maxlength="100" class="ui-widget-content"/>
+						<input type="hidden" name="target_model_id" id="import_target_model_id"/>
+						<input type="button" id="import_target_model_plus" value="＋" style="padding: 0;"/>
+						<style>
+						#added_model_names input[type=button] {padding: 1px 4px;margin-left:8px;}
+						</style>
+						<div id="added_model_names"></div>
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">文件</td>
+					<td class="td-content"><input type="file" alt="文件" name="file" id="import_file_name" maxlength="160" class="ui-widget-content"></td>
+					<td class="ui-state-default td-title">修改方式</td>
+					<td class="td-content">
+						<select name="change_means" alt="修改方式" id="import_change_means" class="ui-widget-content" style="display: none;">
+						</select>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>

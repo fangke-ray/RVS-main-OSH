@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+  <!DOCTYPE web-app PUBLIC
+	"-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+	"http://java.sun.com/dtd/web-app_2_4.dtd">
+
+<web-app xmlns="http://java.sun.com/xml/ns/j2ee"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd"
+	version="2.4">
+
+	<display-name>Repair Visualization System for Olympus Shanghai</display-name>
+
+	<!-- Standard Action Servlet Configuration -->
+	<servlet>
+		<servlet-name>action</servlet-name>
+		<servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+		<init-param>
+			<param-name>config</param-name>
+			<param-value>/WEB-INF/struts-config.xml</param-value>
+		</init-param>
+		<load-on-startup>2</load-on-startup>
+	</servlet>
+
+	<servlet>
+	  <description>文件系统目录使用设置</description>
+	  <servlet-name>InitFilePathServlet</servlet-name>
+	  <servlet-class>com.osh.rvs.common.InitFilePathServlet</servlet-class>
+	  <init-param>
+	    <description>文件系统根目录</description>
+	    <param-name>BASE_PATH</param-name>
+	    <param-value>E:\rvs</param-value>
+	  </init-param>
+	  <init-param>
+	    <description>带格式的报表对应模板</description>
+	    <param-name>REPORT_TEMPLATE</param-name>
+	    <param-value>\ReportTemplates</param-value>
+	  </init-param>
+	  <init-param>
+	    <description>日常报表</description>
+	    <param-name>REPORT</param-name>
+	    <param-value>\Reports</param-value>
+	  </init-param>
+	  <init-param>
+	    <description>上传下载时临时文件</description>
+	    <param-name>LOAD_TEMP</param-name>
+	    <param-value>\LoadFiles</param-value>
+	  </init-param>
+	  <init-param>
+	    <description>工程检查票模板</description>
+	    <param-name>PCS_TEMPLATE</param-name>
+	    <param-value>\PcsTemplates</param-value>
+	  </init-param>
+	  <init-param>
+	    <description>工程检查票成果</description>
+	    <param-name>PCS</param-name>
+	    <param-value>\Pcs</param-value>
+	  </init-param>
+	  <init-param>
+	    <description>用户可修改配置</description>
+	    <param-name>PROPERTIES</param-name>
+	    <param-value>\Properties</param-value>
+	  </init-param>
+	  <init-param>
+	  <description>报价说明书模板</description>
+	  	 <param-name>QU_BOOKS</param-name>
+	    <param-value>\QuBooks</param-value>
+	  </init-param>
+	  <init-param>
+	  <description>上传照片位置</description>
+	  	 <param-name>PHOTOS</param-name>
+	    <param-value>\Photos</param-value>
+	  </init-param>
+	  <init-param>
+	   <description>点检表文件</description>
+	  	 <param-name>DEVICEINFECTION</param-name>
+	    <param-value>\DeviceInfection</param-value>
+	  </init-param>
+	  
+	  <init-param>
+	   <description>点检结果文档</description>
+	  	 <param-name>INFECTIONS</param-name>
+	    <param-value>\Infections</param-value>
+	  </init-param>
+	  
+	  <init-param>
+	   <description>图片</description>
+	  	 <param-name>IMAGES</param-name>
+	    <param-value>\Images</param-value>
+	  </init-param>
+	  
+	  <load-on-startup>3</load-on-startup>
+	</servlet>
+
+	<!-- Standard Action Servlet Mapping -->
+	<servlet-mapping>
+		<servlet-name>action</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+  	<servlet-mapping>
+	    <servlet-name>InitFilePathServlet</servlet-name>
+	    <url-pattern>/servlet/InitFilePathServlet</url-pattern>
+  	</servlet-mapping>
+
+	<filter>
+		<!--
+		字符码设定Filter
+		-->
+		<filter-name>EncodeFilter</filter-name>
+
+		<filter-class>framework.huiqing.common.util.filters.SetCharacterEncodingFilter</filter-class>
+
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+	</filter>
+
+    <filter>
+        <filter-name>SessionCheckFilter</filter-name>
+        <filter-class>com.osh.rvs.filter.SessionCheckFilter</filter-class>
+    </filter>
+
+	<!--
+	全URL Pattern都进行的Filter处理
+	-->
+	<filter-mapping>
+		<filter-name>EncodeFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+	<filter-mapping>
+		<filter-name>SessionCheckFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+		<dispatcher>REQUEST</dispatcher>
+		<dispatcher>FORWARD</dispatcher>
+	</filter-mapping>
+
+	<!-- The Usual Welcome File List -->
+	<welcome-file-list>
+		<welcome-file>login.do</welcome-file>
+	</welcome-file-list>
+
+    <session-config>  
+         <session-timeout>120</session-timeout>  
+    </session-config> 
+
+    <jsp-config>
+        <jsp-property-group>
+        	<display-name>JSPConfiguration</display-name>
+            <url-pattern>/pages</url-pattern>
+            <el-ignored>false</el-ignored>
+        </jsp-property-group>
+    </jsp-config>
+</web-app>

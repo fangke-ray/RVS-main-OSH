@@ -1,0 +1,266 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.DailyKpiMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getFinalInspectPassRate" parameterType="java.util.Date" resultType="decimal">
+		select round(sum(operate_result = 2) / count(1) * 100, 2) 
+		from production_feature pf where 
+		position_id in (46, 52)
+		and date(pf.finish_time) = #{count_date}
+		and operate_result in (2,6);
+	</select>
+
+	<select id="getIntimeCompleteRate" parameterType="java.util.Date" resultType="decimal">
+		select 
+		round(sum(
+			m.scheduled_date >= #{count_date}
+		)
+		/ count(1) * 100, 1)
+		from material m where
+		date(m.outline_time) = #{count_date}
+		and m.break_back_flg = 0
+		and m.fix_type = 1;
+	</select>
+
+	<select id="getPlanProcessedRate" parameterType="map" resultType="decimal">
+		select
+		
+		round((select count(1) from material_process mp
+		join material ma
+		on mp.material_id = ma.material_id
+		and mp.line_id = 14
+		where finish_date = #{count_date}
+		<if test="section_id != null and section_id != ''">
+			and ma.section_id = #{section_id}
+		</if>
+		)
+		/ 
+		(select count(1) from schedule_history sh
+		join material ma
+		on sh.material_id = ma.material_id
+		and sh.remove_flg = 0
+		where sh.scheduled_date = #{count_date}
+		<if test="section_id != null and section_id != ''">
+			and ma.section_id = #{section_id}
+		</if>
+		)
+		* 100, 1) from dual
+		;
+	</select>
+
+	<select id="getQuotationLtRate" parameterType="java.util.Date" resultType="decimal">
+	<![CDATA[ 
+		select 
+		round(sum(f_getworkdays(pf111.finish_time, pf151.finish_time) <= 3) / count(1) * 100, 1) from material ma 
+		join production_feature pf111
+		on ma.material_id = pf111.material_id
+		and pf111.position_id = 9
+		and pf111.operate_result = 2
+		join production_feature pf151
+		on ma.material_id = pf151.material_id
+		and pf151.position_id in (13, 14)
+		and pf151.operate_result = 2
+		where 
+		ma.break_back_flg in (0, 2)
+		and
+		date(pf151.finish_time) = #{count_date}
+	]]>
+	</select>
+
+	<select id="getDirectQuotationLtRate" parameterType="java.util.Date" resultType="decimal">
+	<![CDATA[ 
+		select 
+		round(sum(f_getworkdays(pf111.finish_time, pf161.finish_time) <= 3) / count(1) * 100, 1) from material ma 
+		join production_feature pf111
+		on ma.material_id = pf111.material_id
+		and pf111.position_id = 9
+		and pf111.operate_result = 2
+		join production_feature pf161
+		on ma.material_id = pf161.material_id
+		and pf161.position_id = 14
+		and pf161.operate_result = 2
+		where 
+		ma.break_back_flg in (0, 2)
+		and
+		date(pf161.finish_time) = #{count_date}
+	]]>
+	</select>
+
+	<select id="getByDate" parameterType="java.util.Date" resultType="DailyKpiDataEntity">
+	<![CDATA[ 
+		SELECT `count_date`,
+		    `service_repair_back_rate`,
+		    `final_inspect_pass_rate`,
+		    `intime_complete_rate`,
+		    `total_plan_processed_rate`,
+		    `section1_plan_processed_rate`,
+		    `section2_plan_processed_rate`,
+		    `ns_regenerate_rate`,
+		    `inline_passthrough_rate`,
+		    `quotation_lt_rate`,
+		    `direct_quotation_lt_rate`,
+		    half_period_complete,
+		    `half_period_light_complete`,
+		    `half_period_peripheral_complete`,
+		    month_complete, comment
+		FROM `daily_kpi_data`
+		WHERE `count_date` = #{count_date};
+	]]>
+	</select>
+
+	<select id="getOutCount" parameterType="java.util.Date" resultType="int">
+	<![CDATA[ 
+		SELECT count(1) FROM material WHERE
+		ocm_shipping_date between #{start_date} and #{end_date};
+	]]>
+	</select>
+
+	<insert id="insert" parameterType="java.util.Date">
+	<![CDATA[ 
+		INSERT INTO `daily_kpi_data` (`count_date`) VALUES (#{count_date});
+	]]>
+	</insert>
+
+	<update id="update" parameterType="java.util.Date">
+	<![CDATA[ 
+		UPDATE `daily_kpi_data` SET 
+	]]>
+		<if test="service_repair_back_rate != null and service_repair_back_rate != ''">
+			service_repair_back_rate = #{service_repair_back_rate},
+		</if>
+		<if test="final_inspect_pass_rate != null and final_inspect_pass_rate != ''">
+			final_inspect_pass_rate = #{final_inspect_pass_rate},
+		</if>
+		<if test="intime_complete_rate != null and intime_complete_rate != ''">
+			intime_complete_rate = #{intime_complete_rate},
+		</if>
+		<if test="total_plan_processed_rate != null and total_plan_processed_rate != ''">
+			total_plan_processed_rate = #{total_plan_processed_rate},
+		</if>
+		<if test="section1_plan_processed_rate != null and section1_plan_processed_rate != ''">
+			section1_plan_processed_rate = #{section1_plan_processed_rate},
+		</if>
+		<if test="section2_plan_processed_rate != null and section2_plan_processed_rate != ''">
+			section2_plan_processed_rate = #{section2_plan_processed_rate},
+		</if>
+		<if test="ns_regenerate_rate != null and ns_regenerate_rate != ''">
+			ns_regenerate_rate = #{ns_regenerate_rate},
+		</if>
+		<if test="inline_passthrough_rate != null and inline_passthrough_rate != ''">
+			inline_passthrough_rate = #{inline_passthrough_rate},
+		</if>
+		<if test="quotation_lt_rate != null and quotation_lt_rate != ''">
+			quotation_lt_rate = #{quotation_lt_rate},
+		</if>
+		<if test="direct_quotation_lt_rate != null and direct_quotation_lt_rate != ''">
+			direct_quotation_lt_rate = #{direct_quotation_lt_rate},
+		</if>
+		<if test="ns_regenerate_rate != null and ns_regenerate_rate != ''">
+			ns_regenerate_rate = #{ns_regenerate_rate},
+		</if>
+		<if test="half_period_complete != null and half_period_complete != ''">
+			half_period_complete = #{half_period_complete},
+		</if>
+		<if test="month_complete != null and month_complete != ''">
+			month_complete = #{month_complete},
+		</if>
+		<if test="comment != null and comment != ''">
+			comment = #{comment},
+		</if>
+		<if test="half_period_light_complete != null and half_period_light_complete != ''">
+			half_period_light_complete = #{half_period_light_complete},
+		</if>
+		<if test="half_period_peripheral_complete != null and half_period_peripheral_complete != ''">
+			half_period_peripheral_complete = #{half_period_peripheral_complete},
+		</if>
+	<![CDATA[ 
+		`count_date` = #{count_date}
+	    WHERE 
+	    `count_date` = #{count_date}
+		;
+	]]>
+	</update>
+
+	<update id="update4ServiceRepairBackRateZero" parameterType="java.util.Date">
+	<![CDATA[ 
+		UPDATE `daily_kpi_data` SET 
+	]]>
+		<if test="final_inspect_pass_rate != null and final_inspect_pass_rate != ''">
+			final_inspect_pass_rate = #{final_inspect_pass_rate},
+		</if>
+		<if test="intime_complete_rate != null and intime_complete_rate != ''">
+			intime_complete_rate = #{intime_complete_rate},
+		</if>
+		<if test="total_plan_processed_rate != null and total_plan_processed_rate != ''">
+			total_plan_processed_rate = #{total_plan_processed_rate},
+		</if>
+		<if test="section1_plan_processed_rate != null and section1_plan_processed_rate != ''">
+			section1_plan_processed_rate = #{section1_plan_processed_rate},
+		</if>
+		<if test="section2_plan_processed_rate != null and section2_plan_processed_rate != ''">
+			section2_plan_processed_rate = #{section2_plan_processed_rate},
+		</if>
+		<if test="ns_regenerate_rate != null and ns_regenerate_rate != ''">
+			ns_regenerate_rate = #{ns_regenerate_rate},
+		</if>
+		<if test="inline_passthrough_rate != null and inline_passthrough_rate != ''">
+			inline_passthrough_rate = #{inline_passthrough_rate},
+		</if>
+		<if test="quotation_lt_rate != null and quotation_lt_rate != ''">
+			quotation_lt_rate = #{quotation_lt_rate},
+		</if>
+		<if test="direct_quotation_lt_rate != null and direct_quotation_lt_rate != ''">
+			direct_quotation_lt_rate = #{direct_quotation_lt_rate},
+		</if>
+		<if test="half_period_complete != null and half_period_complete != ''">
+			half_period_complete = #{half_period_complete},
+		</if>
+		<if test="month_complete != null and month_complete != ''">
+			month_complete = #{month_complete},
+		</if>
+		<if test="comment != null and comment != ''">
+			comment = #{comment},
+		</if>
+		<if test="half_period_light_complete != null and half_period_light_complete != ''">
+			half_period_light_complete = #{half_period_light_complete},
+		</if>
+		<if test="half_period_peripheral_complete != null and half_period_peripheral_complete != ''">
+			half_period_peripheral_complete = #{half_period_peripheral_complete},
+		</if>
+		service_repair_back_rate = #{service_repair_back_rate}
+	<![CDATA[ 
+	    WHERE 
+	    `count_date` = #{count_date}
+		;
+	]]>
+	</update>
+
+	<select id="regularQuotationTime">
+select ma.material_id, 
+case 
+when pwfg.pause_start_time is not null
+then pwfg.pause_start_time
+else pdf.finish_time
+end as quotation_time
+from material ma
+left join
+production_feature pdf
+on 
+pdf.material_id = ma.material_id
+and operate_result = 2
+and pdf.position_id in (13, 14, 64)
+left join (
+select material_id, min(pause_start_time) as pause_start_time 
+from pause_feature pwf
+where pwf.reason in (73,74)
+and pwf.position_id in (13, 14, 64)
+group by material_id) pwfg
+on ma.material_id = pwfg.material_id
+having quotation_time is not null
+;
+	</select>
+
+</mapper>

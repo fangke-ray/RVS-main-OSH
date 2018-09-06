@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.WipMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="searchMaterial" resultType="MaterialEntity" parameterType="MaterialEntity">
+		<![CDATA[ 
+			SELECT
+				a.material_id,
+				coalesce(a.omr_notifi_no, a.sorc_no) as sorc_no,
+				a.esas_no,
+				a.model_id,
+				(select name from model where model_id = a.model_id) as model_name,
+				a.serial_no,
+				a.level,
+				a.direct_flg,
+				a.fix_type,
+				a.reception_time,
+				a.wip_location,
+				a.wip_date,
+				a.unrepair_flg,
+				a.break_back_flg,
+				a.wip_date <= date_add(current_date, interval -2 month) as operate_result
+			FROM Material a
+		]]>
+		<where>
+			wip_location IS NOT NULL
+			<if test="model_id!= null and model_id!= ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="serial_no!=null and serial_no!='' ">
+				and a.serial_no = #{serial_no}
+			</if>
+			<if test="sorc_no!= null and sorc_no!='' ">
+				and (a.SORC_NO LIKE CONCAT('%', #{sorc_no}, '%') or a.omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="esas_no!= null and esas_no!='' ">
+				and a.esas_no = #{esas_no}
+			</if>
+			<if test="section_id!= null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="level!= null and level != 9 and level != 5">
+				and a.level = #{level}
+			</if>
+			<if test="level!= null and level == 9">
+				and a.level in (9,91,92,93,96,97,98,99)
+			</if>
+			<if test="level!= null and level == 5">
+				and a.level in (56,57,58,59)
+			</if>
+			<if test="direct_flg!= null">
+				and a.direct_flg = #{direct_flg}
+			</if>
+			<if test="wip_location!= null and wip_location!= ''">
+				and a.wip_location = #{wip_location}
+			</if>
+			<if test="reception_time_start!= null and reception_time_start!= '' ">
+				<![CDATA[ 
+				and a.reception_time >= #{reception_time_start}
+				]]>	
+			</if>
+			<if test="reception_time_end!= null and reception_time_end!= '' ">
+				<![CDATA[
+				and a.reception_time < DATE_ADD(#{reception_time_end}, INTERVAL 1 DAY)
+				]]>
+			</if>
+		</where>
+	</select>
+
+	<select id="getWipHeaped" resultType="String">
+		<![CDATA[ 
+			SELECT
+				a.wip_location
+			 FROM Material a
+			 WHERE wip_location IS NOT NULL
+		]]>
+	</select>
+
+	<insert id="insert" parameterType="MaterialEntity">
+		<![CDATA[ 
+		INSERT INTO Material (
+				omr_notifi_no, 
+				esas_no,
+				model_id,
+				serial_no,
+				ocm,
+				level,
+				package_no,
+				storager,
+				direct_flg,
+				service_repair_flg,
+				fix_type,
+				wip_date,
+				wip_location,
+				break_back_flg
+		) VALUES (
+			#{sorc_no}, 
+			#{esas_no}, 
+			#{model_id}, 
+			#{serial_no}, 
+			#{ocm}, 
+			#{level}, 
+			#{package_no}, 
+			#{storager}, 
+			#{direct_flg}, 
+			#{service_repair_flg}, 
+			#{fix_type},
+			current_date,
+			#{wip_location},
+			1
+		);
+		]]>
+	</insert>
+
+	<delete id="remove" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM MATERIAL
+		WHERE material_id = #{material_id}
+		AND break_back_flg = 1;
+		]]>
+	</delete>
+
+	<update id="warehousing" parameterType="String">
+		<![CDATA[ 
+		UPDATE MATERIAL
+		SET wip_location = #{wip_location}
+		WHERE material_id = #{material_id};
+		]]>
+	</update>
+
+	<select id="getresystemcount" resultType="int" parameterType="MaterialEntity">
+		<![CDATA[ 
+		SELECT COALESCE(MAX(m2.break_back_flg), 2) + 1 FROM MATERIAL m2 WHERE m2.model_id = #{model_id} AND m2.serial_no = #{serial_no} AND m2.break_back_flg >= 3
+		]]>
+	</select>
+	
+	<update id="resystem" parameterType="MaterialEntity">
+		<![CDATA[ 
+		UPDATE MATERIAL
+		SET wip_location = null,
+		break_back_flg = #{break_back_flg}
+		WHERE material_id = #{material_id};
+		]]>
+	</update>
+
+	<update id="stop" parameterType="String">
+		<![CDATA[ 
+		UPDATE MATERIAL
+		SET wip_location = null,
+		break_back_flg = 2,
+		outline_time = current_timestamp
+		WHERE material_id = #{material_id};
+		]]>
+	</update>
+
+	<insert id="copyProductionFeature" parameterType="String">
+		<![CDATA[ 
+		Insert into `production_feature`
+		(material_id,position_id,pace,rework,section_id,operator_id,operate_result,action_time,finish_time,use_seconds) 
+		select 
+		#{new_material_id},position_id,pace,rework,section_id,operator_id,operate_result,action_time,finish_time,use_seconds
+		FROM `production_feature`
+		WHERE material_id = #{material_id}
+		AND position_id IN (9,10,11,12);
+		]]>
+	</insert>
+
+	<update id="changeLocation" parameterType="String">
+		<![CDATA[ 
+		UPDATE MATERIAL
+		SET wip_location = #{wip_location}
+		WHERE material_id = #{material_id};
+		]]>
+	</update>
+
+	<select id="checkImgCheckReworking" resultType="boolean">
+		<![CDATA[ 
+		SELECT count(1) > 0 FROM production_feature
+		WHERE material_id = #{material_id}
+			and position_id = #{position_id}
+			and finish_time Is NULL
+		]]>
+	</select>
+</mapper>

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.SorcLossMapper">
+
+<!-- SORC损金  详细-->
+  <select id="searchSorcLoss" resultType="SorcLossEntity" parameterType="SorcLossEntity">
+	 <![CDATA[
+		select * from
+			(select 
+			    mp.order_date,
+				cast(m.material_id as char) as material_id,
+			    mpd.material_partial_detail_key,
+			    mpd.quantity,
+			    mpd.price,
+			    mpd.belongs,
+			    (mpd.price * mpd.quantity) as loss_price,
+			    m.ocm_shipping_date,
+			    coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no,
+			    m.serial_no,
+			    m.ocm,
+			    m.ocm_rank,
+			    m.level,
+			    mdl.KIND,
+			    mdl.name as model_name,
+			    case
+			    	when mdl.kind = 03 then '否'
+			        when m.ocm_rank = 0 then '-'
+			        when m.ocm_rank = m.level mod 5 then '否'
+			        else '是'
+			    END change_rank,
+			    p.code,
+			    ld.service_free_flg,
+			    ld.comment,
+			    ld.liability_flg,
+			    ld.nogood_description
+			from
+			    material_partial_detail mpd
+			        left join
+			    loss_detail ld ON ld.material_partial_detail_key = mpd.material_partial_detail_key
+			        left join
+			    material_partial mp ON mpd.material_id = mp.material_id
+			        and mpd.occur_times = mp.occur_times
+			        join
+			    material m ON m.material_id = mpd.material_id
+			        JOIN
+			    v_model mdl ON m.model_id = mdl.model_id
+			        JOIN
+			    partial p ON mpd.partial_id = p.partial_id
+	     ]]>
+		<where>
+	          belongs>=3 
+			  <if test="ocm_shipping_date!=null and ocm_shipping_date!='' ">
+				<![CDATA[
+				 and m.ocm_shipping_date =#{ocm_shipping_date}
+		        ]]>
+			  </if>
+			  <if test="ocm_shipping_month!=null and ocm_shipping_month!='' ">
+				<![CDATA[
+				 and (m.ocm_shipping_date>=date_add(date_add(last_day(#{ocm_shipping_month}),interval 1 day),interval -1 month)) and (m.ocm_shipping_date <= last_day(#{ocm_shipping_month}))
+		        ]]>
+			  </if>
+		 	  <if test="sorc_no!=null and sorc_no!='' ">
+				<![CDATA[
+				   and (m.sorc_no LIKE CONCAT('%',#{sorc_no},'%') or m.omr_notifi_no LIKE CONCAT('%',#{sorc_no},'%'))
+				]]>
+			  </if>
+			  <if test="order_date!=null and order_date!='' ">
+					<![CDATA[
+					   and mp.order_date=#{order_date}
+					]]>
+			  </if>
+	    </where>
+		) mtl
+			left join 
+			(select * from service_repair_manage where material_id like '0%') srm 
+			ON mtl.material_id = srm.material_id
+			where 
+		(srm.service_repair_flg not in (1,2) or srm.service_repair_flg is null or 
+			(srm.service_repair_flg = 1 and srm.service_free_flg = 1))
+	order by mtl.ocm_shipping_date, mtl.sorc_no
+  </select>
+  
+  <!-- SORC损金  详细  维修对象-->
+  <select id="searchSorcLossOfRepair" resultType="SorcLossEntity" parameterType="SorcLossEntity">
+	 <![CDATA[
+		select 
+		    sra.liability_flg,
+		    srm.countermeasures,
+		    srm.service_free_flg,
+		    mdl.name as model_name,
+		    m.ocm_shipping_date,
+		    coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no,
+		    m.serial_no,
+		    m.ocm,
+		    m.ocm_rank,
+		    mdl.KIND,
+		    m.level,
+		    case
+		    	when mdl.kind = 03 then '否'
+		        when m.ocm_rank = 0 then '-'
+		        when m.ocm_rank = m.level then '否'
+		        else '是'
+		    END change_rank,
+		    ld.comment,
+		    ld.nogood_description,
+		    p.code,
+		    1 as quantity,
+		    sum(mpd.quantity * mpd.price) - coalesce(qp.charge_amount, 0) as price,
+		    9 as belongs,
+		    sum(mpd.quantity * mpd.price) as loss_price
+		from
+		    loss_detail ld
+		        right join
+		    material_partial_detail mpd ON ld.material_partial_detail_key = mpd.material_partial_detail_key
+		        join
+		    material_partial mp ON mpd.material_id = mp.material_id
+		        and mpd.occur_times = mp.occur_times
+		        join
+		    material m ON m.material_id = mp.material_id
+		        JOIN
+		    v_model mdl ON m.model_id = mdl.model_id
+		        JOIN
+		    partial p ON mpd.partial_id = p.partial_id
+		        join
+		    (select cast(material_id as unsigned) as material_id, service_repair_flg, service_free_flg, model_name, serial_no, rc_mailsend_date, countermeasures 
+		    	from service_repair_manage where material_id like '0%') srm 
+		    	ON `m`.material_id = srm.material_id
+		        left join
+		    service_repair_analysis sra ON sra.model_name = srm.model_name
+		        and sra.serial_no = srm.serial_no
+		        and sra.rc_mailsend_date = srm.rc_mailsend_date
+		        left join
+		    qis_payout qp ON qp.model_name = srm.model_name
+		        and qp.serial_no = srm.serial_no
+		        and qp.rc_mailsend_date = srm.rc_mailsend_date
+	     ]]>
+		<where>
+	           srm.service_repair_flg = 1
+        	   and srm.service_free_flg in (2 , 3)
+        	  
+        	  <if test="ocm_shipping_time!=null and ocm_shipping_time!='' ">
+			  	<![CDATA[
+				 AND (m.ocm_shipping_date>=date_add(date_add(last_day(#{ocm_shipping_time}),interval 1 day),interval -1 month)) and (m.ocm_shipping_date <= last_day(#{ocm_shipping_time}))
+		     	 ]]>
+		     </if>
+		     
+		      <if test="ocm_shipping_date!=null and ocm_shipping_date!='' ">
+			  	<![CDATA[
+				 AND (m.ocm_shipping_date>=date_add(date_add(last_day(#{ocm_shipping_date}),interval 1 day),interval -1 month)) and (m.ocm_shipping_date <= last_day(#{ocm_shipping_date}))
+		     	 ]]>
+		     </if>
+			  
+			  <if test="order_date!=null and order_date!='' ">
+					<![CDATA[
+					   and mp.order_date=#{order_date}
+					]]>
+			  </if>
+	    </where>
+			    group by m.material_id
+		order by m.ocm_shipping_date ,sorc_no
+  </select>
+  
+  <!-- 月损金数据 -->
+   <select id="searchSorcLossMonth" resultType="SorcLossEntity" parameterType="SorcLossEntity">
+	 <![CDATA[
+		select 
+		    m.ocm_shipping_date,
+		    coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no,
+		    mdl.name as model_name,
+		    m.serial_no,
+		    m.ocm,
+		    m.ocm_rank,
+		    mdl.KIND,
+		    m.level,
+			 case
+			 	when m.ocm_rank = 0 then '-'
+		        when m.ocm_rank = m.level then '否'
+		        else '是' END change_rank,
+		    ld.liability_flg,
+		    ld.nogood_description,
+		    p.code,
+		    mpd.quantity,
+		    mpd.price,
+		    mpd.belongs,
+		    (mpd.price * mpd.quantity) as loss_price,
+		    ld.service_free_flg,
+		    ld.comment
+		from
+		    loss_detail ld
+		        right join
+		    material_partial_detail mpd ON ld.material_partial_detail_key = mpd.material_partial_detail_key
+		         join
+		    material m ON m.material_id = mpd.material_id
+		    	JOIN
+		    v_model mdl ON m.model_id = mdl.model_id
+		    	JOIN
+		    partial p ON mpd.partial_id = p.partial_id
+	]]>
+	<where>	  
+			srm.service_repair_flg = 1
+        	and srm.service_free_flg in (2 , 3)
+			<![CDATA[
+			and  (m.ocm_shipping_date>=date_add(date_add(last_day(#{ocm_shipping_time}),interval 1 day),interval -1 month)) and (m.ocm_shipping_date <= last_day(#{ocm_shipping_time}))
+	        ]]>
+	</where>
+	order by m.ocm_shipping_date ,sorc_no
+  </select>
+ <!-- 查询出损金所有的不良简述 -->
+ <select id="searchLossDetailOfNogoodDescription" resultType="SorcLossEntity">
+     select 
+         nogood_description, count(1) as cnt
+     from loss_detail where nogood_description is not null
+		group by nogood_description
+		having cnt > 2
+		order by cnt desc
+ </select>
+ 
+ <!-- 更新损金的不良简述 -->
+ <update id="updateNogoodDescription" parameterType="SorcLossEntity">
+     REPLACE INTO loss_detail 
+		(nogood_description,material_partial_detail_key)
+     values 
+        (#{nogood_description},#{material_partial_detail_key})
+ </update>
+  
+ <!-- 插入SORC损金 -->
+ <insert id="insertSorcLoss" parameterType="SorcLossEntity">
+		<![CDATA[
+			insert into loss_detail
+				(
+				material_partial_detail_key,
+				liability_flg,
+				nogood_description,
+				service_free_flg,
+				comment)
+			values
+			    (
+				#{material_partial_detail_key},
+				#{liability_flg},
+				#{nogood_description},
+				#{service_free_flg},
+				#{comment}
+			    )
+		]]>
+	</insert>
+	
+	<!-- 更新SORC损金  -->
+ <insert id="updateSorcLoss" parameterType="SorcLossEntity">
+		<![CDATA[
+			REPLACE INTO loss_detail
+				(
+				material_partial_detail_key,
+				liability_flg,
+				nogood_description,
+				service_free_flg,
+				comment
+				) 
+			VALUES
+				(
+				#{material_partial_detail_key},
+				#{liability_flg},
+				#{nogood_description},
+				#{service_free_flg},
+				#{comment}
+				)
+		]]>
+	</insert>
+	
+	<!-- 更新（插入） material_partial_detail表  -->
+ <update id="updateMaterialPartialDetail" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			UPDATE material_partial_detail SET
+				belongs=#{belongs}
+			WHERE
+				material_partial_detail_key =#{material_partial_detail_key}
+		]]>
+	</update>
+	
+</mapper>

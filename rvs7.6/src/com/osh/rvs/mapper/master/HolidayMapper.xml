@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.HolidayMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchHoliday" resultType="java.util.Date" parameterType="java.util.Date">
+		<![CDATA[ 
+		SELECT HOLIDAY
+		FROM HOLIDAY
+		WHERE HOLIDAY BETWEEN #{s_date} AND #{e_date}
+		ORDER BY HOLIDAY
+		]]>
+	</select>
+
+	<select id="searchHolidayOfNowMonth" resultType="String">
+		<![CDATA[ 
+		SELECT HOLIDAY
+		FROM HOLIDAY
+		WHERE HOLIDAY BETWEEN #{s_date} AND #{e_date}
+		ORDER BY HOLIDAY
+		]]>
+	</select>
+
+	<select id="searchHolidayOfMonth" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT DATE_FORMAT(HOLIDAY , '%d')
+		FROM HOLIDAY
+		WHERE DATE_FORMAT(HOLIDAY , '%Y/%m') = #{month}
+		ORDER BY HOLIDAY
+		]]>
+	</select>
+
+	<select id="existsHoliday" resultType="boolean" parameterType="java.util.Date">
+		<![CDATA[ 
+		SELECT COUNT(TRUE) FROM HOLIDAY
+		WHERE HOLIDAY = #{date};
+		]]>
+	</select>
+
+	<insert id="createHoliday" parameterType="java.util.Date">
+		<![CDATA[ 
+		INSERT HOLIDAY
+		VALUES (#{date});
+		]]>
+	</insert>
+
+	<delete id="removeHoliday" parameterType="java.util.Date">
+		<![CDATA[ 
+		DELETE FROM HOLIDAY
+		WHERE HOLIDAY = #{date};
+		]]>
+	</delete>
+
+	<select id="addWorkdays" resultType="java.util.Date">
+		<![CDATA[ 
+		SELECT f_addworkdays(#{date}, #{interval}) FROM DUAL;
+		]]>
+	</select>
+
+	<select id="compareExperial" resultType="String">
+		<![CDATA[ 
+		SELECT 
+			f_getworkdays(current_date, #{scheduled_date})
+		FROM DUAL;
+		]]>
+	</select>
+	<!--
+		CASE
+			WHEN #{am_pm} = 1 THEN
+				f_getworkdays(current_date, #{scheduled_date}) - (hour(current_timestamp) > 12)
+			ELSE
+				f_getworkdays(current_date, #{scheduled_date})
+		END 
+	-->
+</mapper>

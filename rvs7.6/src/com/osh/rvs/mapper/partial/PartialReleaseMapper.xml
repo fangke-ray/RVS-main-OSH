@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialReleaseMapper">
+	<!-- 零件发放维修对象一览 -->
+	<select id="searchMaterialPartialRelease" resultType="MaterialPartialEntity" parameterType="MaterialPartialEntity">
+		<![CDATA[ 
+			SELECT 
+				ma.material_id,
+				mp.occur_times,
+				mo.name as model_name,
+				ma.serial_no,
+				sec.name as section_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				ma.level,
+				mp.bo_flg,
+				mp.arrival_date,
+				mp.order_time,
+				trim(concat(coalesce(blocked.process_code, ''), ' ', coalesce(blocked_ns.process_code, ''))) as line_name,
+				CASE 
+				WHEN processed.process_code IS NULL THEN
+					'不在线'
+				ELSE
+					trim(concat(coalesce(processed.process_code, ''), ' ', coalesce(processed_ns.process_code, '')))
+				END as process_name
+			FROM 
+				(
+				select material_id, occur_times from
+					(select material_id, occur_times from 
+					    material_partial_detail mpd 
+					WHERE
+					    mpd.waiting_quantity > 0) mpd_core
+				group by material_id, occur_times
+				) mpd
+			JOIN 
+				material_partial mp
+			ON 
+				mpd.material_id=mp.material_id AND mpd.occur_times=mp.occur_times
+			JOIN
+				material ma
+			ON
+				ma.material_id = mp.material_id
+			JOIN
+				model mo
+			ON
+				mo.model_id=ma.model_id
+			LEFT JOIN 
+				(select material_id,
+					(select p1.process_code from position p1 join production_feature p2 ON p1.position_id = p2.position_id where p2.material_id = m.material_id
+						and p1.line_id <> 13 and p2.operate_result not in (5, 8) order by (1 - ISNULL(p2.action_time)) , p2.action_time desc limit 1) as process_code
+				from material m where inline_time is not null and outline_time is null) processed
+			ON 
+				processed.material_id = ma.material_id
+			LEFT JOIN 
+				(select material_id,
+					(select p1.process_code from position p1 join production_feature p2 ON p1.position_id = p2.position_id where p2.material_id = m.material_id
+						and p1.line_id = 13 and p2.operate_result not in (5 , 8) order by (1 - ISNULL(p2.action_time)) , p2.action_time desc limit 1) as process_code
+				from material m where inline_time is not null and outline_time is null
+				and exists (select 1 from material_process where material_id = m.material_id 
+				and line_id =13 and finish_date is null)) processed_ns
+			ON 
+				processed_ns.material_id = ma.material_id
+			LEFT JOIN 
+				(select material_id, min(process_code) as process_code 
+				from (
+					select mpd.material_id, process_code
+					from material_partial_detail mpd
+					join position mpdp
+					ON mpd.position_id = mpdp.position_id
+					where mpd.waiting_quantity > 0
+					and mpdp.line_id <> 13
+				) blocked_in
+				group by blocked_in.material_id) blocked
+			ON 
+				blocked.material_id = ma.material_id
+			LEFT JOIN 
+				(select mpd.material_id, min(process_code) as process_code 
+				from material_partial_detail mpd
+				join position mpdp
+				ON mpd.position_id = mpdp.position_id
+				where mpd.waiting_quantity > 0
+				and mpdp.line_id = 13
+				group by mpd.material_id) blocked_ns
+			ON 
+				blocked_ns.material_id = ma.material_id
+			LEFT JOIN 
+				section sec 
+			ON
+				sec.section_id = ma.section_id
+			WHERE 
+				mp.bo_flg not in (7, 8)
+		]]>
+		<if test="sorc_no!=null and sorc_no!='' ">
+			<![CDATA[ 
+				AND (sorc_no like CONCAT('%',#{sorc_no},'%') or omr_notifi_no like CONCAT('%',#{sorc_no},'%')) 
+			]]> 
+		</if>
+		<if test="order_date_start!=null and order_date_start!='' ">
+				<![CDATA[
+					AND mp.order_date >= #{order_date_start}
+				]]>
+		</if>
+		<if test="order_date_end!=null and order_date_end!='' ">
+			<![CDATA[
+				AND mp.order_date <= #{order_date_end}
+			]]>
+		</if>
+		<if test="bo_flg==1 ">
+			<![CDATA[
+				AND mp.bo_flg in (1,2)
+			]]>
+		</if>
+		<if test="bo_flg==9 ">
+			<![CDATA[
+				AND mp.bo_flg in (0,9)
+			]]>
+		</if>
+		<if test="isHistory!=null and isHistory==1">
+				AND ma.outline_time is null
+		</if>
+		<![CDATA[ 	
+			GROUP BY
+				mpd.material_id,mpd.occur_times
+			ORDER by 
+				mp.order_time ASC
+		]]>
+	</select>
+	
+	<!-- 零件一览 -->
+	<select id="secrchPartialOfRelease" parameterType="MaterialPartialDetailEntity" resultType="MaterialPartialDetailEntity">
+		<![CDATA[ 
+		select 
+			mpd.material_partial_detail_key,
+			pa.partial_id,
+			mpd.material_id,
+			mpd.occur_times,
+			pa.code,
+			pa.name as partial_name,
+			mpd.waiting_quantity,
+			mpd.quantity,
+			cm.available_inventory as append,
+			mpd.status,
+			p.process_code,
+			mpd.belongs
+		from
+			material_partial_detail mpd
+		left join
+			partial pa
+		on
+			mpd.partial_id=pa.partial_id
+		left join
+			position p
+		on 
+			mpd.position_id = p.position_id
+		left join
+			consumable_manage cm
+		on
+			cm.partial_id=pa.partial_id
+		and
+			cm.delete_flg = 0
+		where
+			 material_id=#{material_id} and mpd.occur_times=#{occur_times}
+		order by
+			mpd.waiting_quantity desc
+		]]>
+	</select>
+	
+	<!--更新未发放数量和状态  -->
+	<update id="updateWaitingQuantityAndStatus" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[ 
+			UPDATE
+				material_partial_detail mpd
+			JOIN material_partial mp
+				ON mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times	
+			SET
+				status = 
+					CASE
+						WHEN waiting_quantity - #{cur_quantity} > 0 THEN 3
+						WHEN status = 1 THEN 2
+						WHEN status = 3 AND mp.arrival_date = current_date 
+							AND (mp.arrival_plan_date IS NULL OR mp.arrival_plan_date = '9999/12/31' OR mp.arrival_plan_date <= current_date) THEN 2
+						WHEN status = 3 THEN 4
+						ELSE status
+					END,
+				waiting_quantity = mpd.waiting_quantity - #{cur_quantity},
+				recent_signin_time = 
+					CASE
+						WHEN #{cur_quantity} > 0 THEN current_timestamp
+						ELSE recent_signin_time
+					END,
+				mpd.arrival_plan_date =
+					CASE
+						WHEN status = 4 
+							AND (mpd.arrival_plan_date IS NULL OR mpd.arrival_plan_date='9999/12/31') 
+						THEN date(recent_signin_time)
+						WHEN status = 3 AND mpd.arrival_plan_date IS NULL
+						THEN '9999/12/31'
+						WHEN status = 2
+						THEN NULL
+						ELSE mpd.arrival_plan_date
+					END,
+				mpd.r_operator_id = 
+					CASE
+						WHEN #{cur_quantity} > 0
+						THEN null
+						ELSE mpd.r_operator_id 
+					END
+			WHERE
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
+	
+	<delete id="deletePartial" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			delete
+			from
+				material_partial_detail
+			where
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</delete>
+	
+	<!-- 更新未发放数量和状态,消耗品发放 -->
+	<update id="updateWaitingQuantityAndStatuOfAppend" parameterType="MaterialPartialDetailEntity">
+	<![CDATA[
+		UPDATE
+			material_partial_detail mpd
+		JOIN 
+			material_partial mp
+		ON 
+			mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times	
+		SET
+			status = #{status},
+			waiting_quantity=mpd.waiting_quantity - #{cur_quantity},
+			recent_signin_time = 
+				CASE
+					WHEN #{cur_quantity} > 0 THEN current_timestamp
+					ELSE recent_signin_time
+				END
+		WHERE
+			material_partial_detail_key=#{material_partial_detail_key}
+	]]>
+	</update>
+
+	<!-- 标记可发放零件，实际不发放 -->
+	<!-- 已经替代签收的，不变化 -->
+	<update id="updateStatusOfReady" parameterType="MaterialPartialDetailEntity">
+	<![CDATA[
+		UPDATE
+			material_partial_detail mpd
+		SET
+			status = #{status}
+		WHERE
+			material_partial_detail_key=#{material_partial_detail_key}
+		AND
+			status not in (5, 6)
+	]]>
+	</update>
+</mapper>

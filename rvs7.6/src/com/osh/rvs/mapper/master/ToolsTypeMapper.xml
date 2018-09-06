@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.ToolsTypeMapper">
+
+    <!-- 治具品名详细 -->
+    <select id="searchToolsType" resultType="ToolsTypeEntity" parameterType="ToolsTypeEntity">
+		<![CDATA[ 
+	    select 
+		    tt.tools_type_id,
+		    tt.name,
+		    tt.delete_flg,
+		    o.name as updated_by,
+		    tt.updated_time
+		from
+		    tools_type tt
+		LEFT JOIN
+		    OPERATOR O ON tt.UPDATED_BY = O.OPERATOR_ID
+		]]>
+		<where>
+		   tt.delete_flg =0 
+		   <if test="name!=null and name!='' ">
+			<![CDATA[
+			 and tt.name LIKE CONCAT('%',#{name},'%')
+		      ]]>
+			</if>
+		</where>
+		ORDER BY updated_time DESC
+	</select>	
+	
+	<!-- 新建治具品名 -->
+	<update id="insertToolsType" parameterType="ToolsTypeEntity">
+		   <![CDATA[
+		    INSERT INTO 
+		    	tools_type
+		    	(name,
+		    	UPDATED_BY,
+		    	UPDATED_TIME)
+		   VALUES(
+			]]>
+	       #{name},#{updated_by},current_timestamp)
+	 </update>
+	 
+	 <!-- 删除治具品名 -->
+	<update id="deleteToolsType" parameterType="ToolsTypeEntity">
+	   <![CDATA[
+	     UPDATE tools_type SET 
+			updated_by =#{updated_by},
+			updated_time = current_timestamp,
+			delete_flg=1
+		 WHERE 
+		    tools_type_id=#{tools_type_id}
+	   ]]>
+	</update>
+	
+	<!-- 更新治具品名 -->
+	<update id="updateToolsType" parameterType="ToolsTypeEntity">
+	   <![CDATA[
+	    UPDATE tools_type SET  
+			name=#{name},
+			updated_by =#{updated_by},
+			updated_time = current_timestamp
+		WHERE 
+		    tools_type_id=#{tools_type_id}
+	   ]]>
+	</update>
+	
+	<!-- 查询所有治具名称 -->
+	<select id="getAllToolsName" resultType="ToolsTypeEntity">
+	  <![CDATA[
+      	select tools_type_id, name from tools_type where delete_flg = 0
+      ]]>
+	</select>
+</mapper>

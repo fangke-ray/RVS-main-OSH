@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.data.OperatorProductionMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getProductionFeatureByCondition" parameterType="OperatorProductionEntity" resultType="OperatorProductionEntity">
+		<![CDATA[
+			SELECT a.operator_id, coalesce(b.action_date, #{action_time_start}, current_date) as action_time,
+				a.job_no,
+				a.name,
+				pos_main.name as main_ability,
+				group_concat(distinct pos_work.process_code separator ' ') as position_name,
+				sum(worktime) as worktime
+			FROM operator a
+			left join (
+				SELECT 
+				position_id,
+				operator_id,
+				date(action_time) as action_date,
+				COALESCE(sum(COALESCE(unix_timestamp(finish_time) - unix_timestamp(action_time),0)), 0) as worktime
+				FROM production_feature
+				WHERE action_time is not null
+				]]>
+				<if test="action_time_start !=null">
+					<![CDATA[
+					and action_time >= #{action_time_start}
+					]]>
+				</if>		
+				<if test="action_time_end !=null">
+					<![CDATA[
+					and action_time < date_add(#{action_time_end}, interval 1 day)
+					]]>
+				</if>
+				<![CDATA[
+				group by position_id,operator_id,action_date
+
+				UNION ALL
+
+				SELECT 
+				position_id,
+				operator_id,
+				date(action_time) as action_date,
+				COALESCE(sum(COALESCE(unix_timestamp(finish_time) - unix_timestamp(action_time),0)), 0) as worktime
+				FROM solo_production_feature
+				WHERE action_time is not null
+				]]>
+				<if test="action_time_start !=null">
+					<![CDATA[
+					and action_time >= #{action_time_start}
+					]]>
+				</if>		
+				<if test="action_time_end !=null">
+					<![CDATA[
+					and action_time < date_add(#{action_time_end}, interval 1 day)
+					]]>
+				</if>
+				<![CDATA[
+				group by position_id,operator_id,action_date
+				]]>
+			<![CDATA[
+			) b on a.operator_id = b.operator_id
+			left join position pos_main on a.position_id = pos_main.position_id
+			left join position pos_work on b.position_id = pos_work.position_id
+		]]>
+		<where>
+			<![CDATA[
+				a.work_count_flg <> 0
+			]]>
+			<if test="section_id != null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="job_no != null and job_no!= ''">
+				and a.job_no = #{job_no}
+			</if>	
+			<if test="name != null and name!= ''">
+				and a.name like CONCAT('%','${name}','%') 
+			</if>
+			<if test="line_id != null and line_id!= ''">
+				and pos_main.line_id =#{line_id}
+			</if>
+			<if test="delete_flg == null or delete_flg == ''">
+				and a.delete_flg = 0
+			</if>
+		</where>
+		<![CDATA[
+			group by a.operator_id, b.action_date
+		]]>
+	</select>
+
+	<select id="getProductionFeatureByConditionOfDay" parameterType="OperatorProductionEntity" resultType="OperatorProductionEntity">
+		<![CDATA[
+			select wkrslt.operator_id, wkrslt.action_time ,wkrslt.job_no ,wkrslt.name ,wkrslt.main_ability,
+				pn.name as position_name,
+				COALESCE(wt.worktime, 0) as worktime
+			from
+			(
+			SELECT DISTINCT a.operator_id, 
+				date(#{action_time_start}) as action_time,
+				date_add(#{action_time_start}, interval 1 day) as action_time_end,
+				a.job_no,
+				a.name,
+				c.name as main_ability
+			FROM operator a
+			left join production_feature b on a.operator_id = b.operator_id
+				and (b.action_time is not null)
+				and b.action_time >= #{action_time_start} and b.action_time < date_add(#{action_time_start}, interval 1 day)
+			left join position c on a.position_id = c.position_id
+		]]>
+		<where>
+			<![CDATA[
+				a.work_count_flg <> 0
+			]]>
+			<if test="job_no != null and job_no!= ''">
+				and a.job_no = #{job_no}
+			</if>	
+			<if test="name != null and name!= ''">
+				and a.name like CONCAT('%','${name}','%') 
+			</if>
+			<if test="section_id != null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="line_id != null and line_id!= ''">
+				and a.position_id in (select position_id from position where line_id=#{line_id})
+			</if>
+			<if test="delete_flg == null or delete_flg == ''">
+				and a.delete_flg = 0
+			</if>
+		</where>
+		<![CDATA[
+		) wkrslt
+		left join (select operator_id, sum(unix_timestamp(finish_time) - unix_timestamp(action_time)) as worktime 
+			from production_feature
+			where finish_time is not null
+			and action_time >= #{action_time_start} and action_time < date_add(#{action_time_start}, interval 1 day)
+			group by operator_id
+			) wt
+		ON wt.operator_id = wkrslt.operator_id
+		left join 
+		    (select operator_id, name from (
+				select 
+		            p2.operator_id, p1.name, count(1) as cnt
+		        from
+		            position p1
+		                join
+		            production_feature p2 ON p1.position_id = p2.position_id
+		        where p2.action_time >= #{action_time_start}
+		                and action_time < date_add(#{action_time_start}, interval 1 day)
+		        group by p2.operator_id, p1.name
+		        order by p2.operator_id, cnt desc) 
+				pn_in group by operator_id ) pn
+		ON wkrslt.operator_id = pn.operator_id
+		order by wkrslt.action_time;
+		]]>
+	</select>
+
+	<select id="getDetail" parameterType="OperatorProductionEntity" resultType="OperatorProductionEntity">
+		<![CDATA[
+			SELECT distinct
+			    a.name,
+			    a.operator_id,
+			    a.section_id,
+			    a.line_id,
+			    #{action_time} as action_time,
+			    tmp.process_code as process_code,
+			    c.name as line_name
+			FROM
+			    operator a
+			left join
+			    (select 
+			        p1.process_code, p1.line_id, p2.operator_id
+			    from
+			        position p1
+			    join production_feature p2 ON p1.position_id = p2.position_id
+			    where
+			        p2.operator_id = #{operator_id}
+			            and action_time  >= #{action_time} 
+			            and action_time < date_add(#{action_time}, interval 1 day)
+			    group by p1.name
+			    order by count(*) desc
+			    limit 1) as tmp ON tmp.operator_id = a.operator_id
+			LEFT JOIN
+			    line c ON tmp.line_id = c.line_id
+			where a.operator_id = #{operator_id};
+		]]>
+	</select>
+	
+	<select id="getProductionFeatureByKey" parameterType="OperatorProductionEntity" resultType="OperatorProductionEntity">
+		<![CDATA[
+		SELECT
+			 c.position_id,
+			 (select process_code from position where position_id = c.position_id) as process_code,
+			 c.pause_start_time, 
+			 c.pause_finish_time,
+			 c.sorc_no,
+			 c.model_name as model_name,
+			 c.reason,
+			 c.comments,
+			 c.operate_result,
+			 c.pace
+		 from (
+			SELECT 
+				a.position_id,
+				a.action_time as pause_start_time,
+				a.finish_time as pause_finish_time,
+				(select name from model where model_id = am.model_id) as model_name,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				'' as reason,
+				'' as comments,
+				a.operate_result,
+				EXISTS(select 1 from foundry_time 
+					where operator_id = #{operator_id}
+					and a.finish_time >= start_time AND (end_time IS NULL OR a.finish_time <= end_time)) as pace
+			FROM production_feature a
+			JOIN material am
+			ON a.material_id = am.material_id
+			WHERE a.operator_id = #{operator_id}
+			AND position_id not in (24, 51) -- 先端组件以独立作业为准
+			AND (a.action_time between #{action_time} and DATE_ADD(#{action_time},INTERVAL 1 DAY))
+			union
+			SELECT 
+				'' as position_id,
+				b.pause_start_time,
+				b.pause_finish_time,
+				'' as model_name,
+				'' as sorc_no,
+				b.reason,
+				b.comments,
+				'' as operate_result,
+				'' as pace
+			FROM pause_feature b
+			WHERE b.operator_id = #{operator_id}
+			AND (b.reason between 100 and 300 OR b.reason between 49 and 70)
+			AND date_format(b.pause_start_time, '%Y-%m-%d') = date_format(#{action_time}, '%Y-%m-%d')
+			union
+			SELECT 
+				spf.position_id as position_id,
+				spf.action_time as pause_start_time,
+				spf.finish_time as pause_finish_time,
+				COALESCE(spf.model_name, mdl_spf.name) as model_name,
+				CASE
+					WHEN position_id = 51
+					THEN
+						CONCAT("判定机身号: ", spf.serial_no)
+					ELSE
+						CONCAT("先端组件号: ", spf.serial_no)
+				END as sorc_no,
+				'' as reason,
+				CASE
+					WHEN position_id = 51
+					THEN replace(replace(pcs_comments, '{"GC6210100":"', ''),'"}','')
+					ELSE ''
+				END as comments,
+				spf.operate_result,
+				spf.pace
+			FROM solo_production_feature spf
+			LEFT JOIN model mdl_spf
+			ON spf.model_id = mdl_spf.model_id
+			WHERE spf.operator_id = #{operator_id}
+			AND date_format(spf.action_time, '%Y-%m-%d') = date_format(#{action_time}, '%Y-%m-%d')
+		) as c order by pause_start_time,pause_finish_time
+		]]>
+	</select>
+
+	<select id="getProductionFeatureByLine" parameterType="OperatorProductionEntity" resultType="map">
+		<![CDATA[
+		SELECT o.name as operator_name, o.job_no as job_no, (o.WORK_COUNT_FLG + 0) as WORK_COUNT_FLG, 
+		p.process_code, 
+		timestampdiff(minute, #{action_time}, cnt.action_time) as action_time,
+		timestampdiff(minute, #{action_time}, cnt.finish_time) as finish_time,
+		cnt.sorc_no, cnt.model_name, cnt.reason FROM
+		(
+			SELECT 
+				a.operator_id,
+				a.position_id,
+				a.action_time as action_time,
+				a.finish_time as finish_time,
+				(select name from model where model_id = am.model_id) as model_name,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				'' as reason,
+				a.operate_result
+			FROM production_feature a
+			JOIN material am
+			ON a.material_id = am.material_id
+			WHERE (a.action_time between #{action_time} and DATE_ADD(#{action_time},INTERVAL 1 DAY))
+			AND position_id not in (24, 51) -- 先端组件以独立作业为准
+			union
+			SELECT 
+				b.operator_id,
+				'' as position_id,
+				b.pause_start_time as action_time,
+				b.pause_finish_time,
+				'' as model_name,
+				'' as sorc_no,
+				b.reason,
+				'' as operate_result
+			FROM pause_feature b
+			WHERE (b.pause_start_time between #{action_time} and DATE_ADD(#{action_time},INTERVAL 1 DAY))
+			AND (b.reason between 100 and 300 OR b.reason between 49 and 70)
+			union
+			SELECT 
+				spf.operator_id,
+				spf.position_id as position_id,
+				spf.action_time as action_time,
+				spf.finish_time as finish_time,
+				COALESCE(spf.model_name, mdl_spf.name) as model_name,
+				CASE
+					WHEN position_id = 51
+					THEN
+						CONCAT("判定机身号: ", spf.serial_no)
+					ELSE
+						CONCAT("先端组件号: ", spf.serial_no)
+				END as sorc_no,
+				'' as reason,
+				spf.operate_result
+			FROM solo_production_feature spf
+			LEFT JOIN model mdl_spf
+			ON spf.model_id = mdl_spf.model_id
+			WHERE (spf.action_time between #{action_time} and DATE_ADD(#{action_time},INTERVAL 1 DAY))
+		) as cnt 
+		JOIN `v_operator_named` o
+		ON cnt.operator_id = o.operator_id
+		LEFT JOIN `position` p
+		ON cnt.position_id = p.position_id
+		WHERE o.line_id = #{line_id} AND o.section_id = #{section_id}
+		ORDER BY o.WORK_COUNT_FLG = 4, o.WORK_COUNT_FLG = 0, cnt.operator_id, cnt.action_time, cnt.finish_time;
+		]]>
+	</select>
+
+	<insert id="savePause" parameterType="OperatorProductionEntity">
+		<![CDATA[
+			INSERT INTO pause_feature(operator_id,finisher_id,reason,comments,pause_start_time,pause_finish_time)
+			VALUES (#{operator_id},#{operator_id},#{reason},#{comments},#{pause_start_time},#{pause_finish_time})
+		]]>
+	</insert>
+	
+	<delete id="deletePause" parameterType="OperatorProductionEntity">
+		<![CDATA[
+			DELETE FROM pause_feature
+			WHERE operator_id = #{operator_id}
+			AND pause_start_time = #{pause_start_time}
+			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70);
+		]]>
+	</delete>
+
+	<delete id="deletePauseOvertime" parameterType="OperatorProductionEntity">
+		<![CDATA[
+			DELETE FROM pause_feature
+			WHERE operator_id = #{operator_id}
+			AND pause_start_time = #{pause_start_time}
+			AND reason in(40,41)
+		]]>
+	</delete>
+
+	<update id="updatePause" parameterType="OperatorProductionEntity">
+		<![CDATA[
+			UPDATE pause_feature
+			SET reason = #{reason}, 
+		]]>
+		<if test="pause_finish_time != null">
+			pause_finish_time = #{pause_finish_time},
+		</if>	
+		<![CDATA[
+				comments = #{comments}
+			WHERE operator_id = #{operator_id}
+			AND pause_start_time = #{pause_start_time}
+			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70);
+		]]>
+	</update>
+	
+	<update id="updatePauseOvertime" parameterType="OperatorProductionEntity">
+		<![CDATA[
+			UPDATE pause_feature
+			SET reason = #{reason}, comments = #{comments},pause_start_time = #{pause_start_time},pause_finish_time=#{pause_finish_time}
+			WHERE operator_id = #{operator_id}
+			AND pause_start_time between #{action_time} and date_add(#{action_time}, interval 1 day)
+			AND reason in(40,41)
+		]]>
+	</update>
+	
+	<select id="existPause" resultType="java.lang.String" parameterType="OperatorProductionEntity">
+		<![CDATA[ 
+			SELECT operator_id
+			FROM pause_feature
+			WHERE operator_id = #{operator_id}
+				AND pause_start_time = #{pause_start_time}
+				AND alarm_messsage_id IS NULL
+				AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70);
+		]]>
+	</select>
+
+	<select id="getPauseOvertime" parameterType="OperatorProductionEntity" resultType="OperatorProductionEntity">
+		<![CDATA[ 
+			SELECT 
+				operator_id,
+				pause_start_time,
+				pause_finish_time,
+				reason as overwork_reason,
+				comments
+			FROM pause_feature
+			WHERE operator_id = #{operator_id}
+			AND pause_start_time between #{action_time} and DATE_ADD(#{action_time},INTERVAL 1 DAY)
+			AND reason in(40,41)
+		]]>
+	</select>
+
+	<select id="getProcessingPauseStart" parameterType="String" resultType="OperatorProductionEntity">
+		<![CDATA[ 
+			SELECT pause_start_time, reason , comments
+			FROM pause_feature 
+			where pause_finish_time is null
+			and operator_id = #{operator_id}
+			and reason >= 100
+			order by pause_start_time desc
+			limit 1
+			;
+		]]>
+	</select>
+
+	<select id="getLastProceedFinish" parameterType="String" resultType="java.util.Date">
+		<![CDATA[ 
+			select max(finish_time) from
+			(
+				SELECT max(pause_finish_time) as finish_time 
+				FROM pause_feature 
+				where pause_start_time > current_date
+				and pause_finish_time is not null
+				and operator_id = #{operator_id}
+				union
+				SELECT max(finish_time) as finish_time 
+				FROM production_feature
+				where action_time > current_date
+				and operator_id = #{operator_id}
+				and finish_time is not null
+				union
+				SELECT max(finish_time) as finish_time 
+				FROM solo_production_feature
+				where action_time > current_date
+				and finish_time is not null
+				and operator_id = #{operator_id}
+			) mft
+			;
+		]]>
+	</select>
+
+</mapper>

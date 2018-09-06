@@ -1,0 +1,439 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.OperatorMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getOperatorByID" resultType="OperatorEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT OPERATOR_ID,
+			NAME,
+			JOB_NO,
+			WORK_COUNT_FLG,
+			SECTION_ID,
+			LINE_ID,
+			ROLE_ID,
+			POSITION_ID,
+			EMAIL,
+			PX,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM OPERATOR
+		WHERE DELETE_FLG = 0
+		AND OPERATOR_ID = #{operator_id};
+		]]>
+	</select>
+
+	<select id="getOperatorNamedByID" resultType="OperatorNamedEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT OPERATOR_ID,
+			NAME,
+			JOB_NO,
+			WORK_COUNT_FLG,
+			SECTION_NAME,
+			LINE_NAME,
+			ROLE_NAME,
+			EMAIL,
+			PX,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_OPERATOR_NAMED
+		WHERE DELETE_FLG = 0
+		AND OPERATOR_ID = #{operator_id};
+		]]>
+	</select>
+
+	<select id="getAllOperator" resultType="OperatorEntity">
+		<![CDATA[ 
+		SELECT OPERATOR_ID,
+			NAME,
+			JOB_NO,
+			WORK_COUNT_FLG,
+			SECTION_ID,
+			LINE_ID,
+			ROLE_ID,
+			POSITION_ID,
+			EMAIL,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM OPERATOR
+		WHERE DELETE_FLG = 0
+		AND OPERATOR_ID <> 1
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<select id="getAllOperatorNamed" resultType="OperatorNamedEntity">
+		<![CDATA[ 
+		SELECT OPERATOR_ID,
+			NAME,
+			JOB_NO,
+			WORK_COUNT_FLG,
+			SECTION_NAME,
+			LINE_NAME,
+			ROLE_NAME,
+			EMAIL,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_OPERATOR_NAMED
+		WHERE DELETE_FLG = 0
+		AND OPERATOR_ID <> 1
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<select id="searchOperator" resultType="OperatorNamedEntity">
+		<![CDATA[ 
+		SELECT OPERATOR_ID,
+			o.NAME,
+			JOB_NO,
+			WORK_COUNT_FLG,
+			SECTION_NAME,
+			LINE_NAME,
+			ROLE_NAME,
+			RANK_KIND,
+			EMAIL,
+			PX,
+			o.UPDATED_BY,
+			o.UPDATED_TIME
+		FROM V_OPERATOR_NAMED o
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="operator_id!= null and operator_id!= '' ">
+				AND OPERATOR_ID = #{operator_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND o.NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="job_no!= null and job_no!= '' ">
+				AND JOB_NO = #{job_no}
+			</if>
+			<if test="work_count_flg!= null and work_count_flg!= '' ">
+				AND WORK_COUNT_FLG = #{work_count_flg}
+			</if>
+			<if test="section_id!= null and section_id!= '' ">
+				AND SECTION_ID = #{section_id}
+			</if>
+			<if test="line_id!= null and line_id!= '' ">
+				AND LINE_ID = #{line_id}
+			</if>
+			<if test="role_id!= null and role_id!= '' ">
+				AND o.ROLE_ID = #{role_id}
+			</if>
+			<if test="rank_kind!= null and rank_kind!= '' ">
+				AND RANK_KIND = #{rank_kind}
+			</if>
+			<if test="position_id != null and position_id != '' ">
+				AND EXISTS (SELECT * FROM operator_abilities a 
+						WHERE o.OPERATOR_ID = a.OPERATOR_ID and a.POSITION_ID = #{position_id})
+			</if>
+		</where> 
+		<![CDATA[ 
+		AND OPERATOR_ID <> 1
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+	
+	<select id="searchToolsOperator" resultType="OperatorNamedEntity">
+		<![CDATA[ 
+		SELECT DISTINCT OPERATOR_ID,
+					o.NAME,
+					JOB_NO,
+					WORK_COUNT_FLG,
+					SECTION_NAME,
+					LINE_NAME,
+					ROLE_NAME,
+					RANK_KIND,
+					EMAIL,
+					o.UPDATED_BY,
+					o.UPDATED_TIME
+				FROM V_OPERATOR_NAMED o
+		        join tools_manage tm on tm.responsible_operator_id=o.operator_id
+		where 
+		o.DELETE_FLG = 0 and tm.status in(1,4)
+		AND o.OPERATOR_ID <> 1
+				ORDER BY o.UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<select id="searchLoginOperator" resultType="LoginData">
+		<![CDATA[ 
+		SELECT OPERATOR_ID,
+			NAME,
+			JOB_NO,
+			SECTION_ID,
+			LINE_ID,
+			ROLE_ID,
+			POSITION_ID,
+			work_count_flg,
+			SECTION_NAME,
+			PROCESS_CODE,
+			LINE_NAME,
+			ROLE_NAME,
+			POSITION_NAME,
+			PWD_DATE,
+			PX
+		FROM V_OPERATOR_LOGIN
+		WHERE DELETE_FLG = 0
+			AND JOB_NO = #{job_no}
+			AND PWD = #{pwd};
+		]]>
+	</select>
+
+	<select id="getPwdDate" resultType="Date">
+		<![CDATA[ 
+		SELECT PWD_DATE
+		FROM OPERATOR
+		WHERE DELETE_FLG = 0
+			AND OPERATOR_ID = #{operator_id};
+		]]>
+	</select>
+
+	<insert id="insertOperator" parameterType="OperatorEntity">
+		<![CDATA[ 
+		INSERT INTO OPERATOR 
+			(NAME, JOB_NO, PWD, WORK_COUNT_FLG, SECTION_ID, LINE_ID, ROLE_ID, POSITION_ID, EMAIL, PX, UPDATED_BY, UPDATED_TIME) 
+		VALUES 
+			(#{name}, #{job_no}, #{pwd}, #{work_count_flg}, #{section_id}, #{line_id}, #{role_id}, #{position_id}, #{email}, #{px}, #{updated_by}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="updateOperator" parameterType="OperatorEntity">
+		<![CDATA[ 
+		UPDATE OPERATOR SET NAME = #{name},
+			JOB_NO = #{job_no},
+		]]>
+		<if test="pwd!= null and pwd!= ''">
+		<![CDATA[ 
+			PWD = #{pwd},
+			PWD_DATE = #{pwd_date},
+		]]>
+		</if>
+		<![CDATA[ 
+			WORK_COUNT_FLG = #{work_count_flg},
+			SECTION_ID = #{section_id},
+			LINE_ID = #{line_id},
+			ROLE_ID = #{role_id},
+			POSITION_ID = #{position_id},
+			EMAIL = #{email},
+			PX = #{px},
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE OPERATOR_ID = #{operator_id};
+		]]>
+	</update>
+
+	<update id="updatePassword" parameterType="OperatorEntity">
+		<![CDATA[ 
+		UPDATE OPERATOR SET
+			PWD = #{pwd},
+			PWD_DATE = #{pwd_date}
+		WHERE OPERATOR_ID = #{operator_id};
+		]]>
+	</update>
+
+	<update id="deleteOperator" parameterType="OperatorEntity">
+		<![CDATA[ 
+		UPDATE OPERATOR SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE OPERATOR_ID = #{operator_id};
+		]]>
+	</update>
+
+	<select id="getRolesOfOperator" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT ROLE_ID
+		FROM ROLE_OF_OPERATOR
+		WHERE OPERATOR_ID = #{operator_id}
+		AND EXPIRATION > current_timestamp;
+		]]>
+	</select>
+
+	<select id="getRolesOfOperatorNamed" resultType="RoleEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT `ro`.ROLE_ID as role_id, `r`.`NAME`
+		FROM ROLE_OF_OPERATOR `ro`
+		JOIN ROLE `r`
+		ON `ro`.ROLE_ID = `r`.ROLE_ID
+		WHERE `ro`.OPERATOR_ID = #{operator_id}
+		AND `ro`.EXPIRATION > current_timestamp;
+		]]>
+	</select>
+
+	<insert id="insertRoleOfOperator" parameterType="String">
+		<![CDATA[ 
+		INSERT INTO ROLE_OF_OPERATOR 
+			(OPERATOR_ID, ROLE_ID, EXPIRATION) 
+		VALUES 
+			(#{operator_id}, #{role_id}, #{expiration});
+		]]>
+	</insert>
+
+	<update id="updateRoleOfOperator" parameterType="String">
+		<![CDATA[ 
+		UPDATE ROLE_OF_OPERATOR SET EXPIRATION = #{expiration},
+		WHERE OPERATOR_ID = #{operator_id}
+		AND ROLE_ID = #{role_id};
+		]]>
+	</update>
+
+	<update id="deleteRoleOfOperator" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM ROLE_OF_OPERATOR 
+		WHERE OPERATOR_ID = #{operator_id};
+		]]>
+	</update>
+
+	<select id="getPositionsOfOperator" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT POSITION_ID
+		FROM OPERATOR_ABILITIES
+		WHERE OPERATOR_ID = #{operator_id}
+		]]>
+		<if test="chief != null and chief != '' ">
+			AND CHIEF = #{chief}
+		</if>
+	</select>
+
+	<select id="getPositionsOfOperatorNamed" resultType="PositionEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT `oa`.POSITION_ID, `p`.NAME, `p`.PROCESS_CODE, `p`.LINE_ID , `p`.LINE_NAME
+		, `p`.light_division_flg
+		FROM OPERATOR_ABILITIES `oa`
+		JOIN V_POSITION `p`
+			ON `oa`.POSITION_ID = `p`.POSITION_ID
+		WHERE oa.OPERATOR_ID = #{operator_id}
+		AND p.DELETE_FLG = 0;
+		]]>
+	</select>
+
+	<insert id="insertPositionOfOperator" parameterType="String">
+		<![CDATA[ 
+		INSERT INTO OPERATOR_ABILITIES 
+			(OPERATOR_ID, POSITION_ID, CHIEF) 
+		VALUES 
+			(#{operator_id}, #{position_id}, #{chief});
+		]]>
+	</insert>
+
+	<delete id="deletePositionOfOperator" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM OPERATOR_ABILITIES 
+		WHERE OPERATOR_ID = #{operator_id};
+		]]>
+	</delete>
+
+	<select id="getResolver" resultType="OperatorNamedEntity">
+		<![CDATA[ 
+		SELECT OPERATOR_ID,
+			NAME,
+			ROLE_NAME
+		FROM V_OPERATOR_NAMED
+		WHERE DELETE_FLG = 0
+		AND OPERATOR_ID <> 1
+		AND ROLE_ID IN (4, 5, 9)
+		ORDER BY ROLE_ID DESC;
+		]]>
+	</select>
+	
+	<select id="getOperatorWithPrivacy" resultType="OperatorEntity" parameterType="int">
+		<![CDATA[
+			select 
+			    op.operator_id,
+			    op.name,
+				ro.name as role_name   
+			from
+			    operator op
+			        join
+			    role ro ON op.role_id = ro.role_id
+			        join
+			    privacy_of_role pr ON ro.role_id = pr.role_id
+			        join
+			    privacy priv ON pr.privacy_id = priv.privacy_id
+			where
+			    op.delete_flg = 0
+			        and priv.privacy_id = #{privacy_id}
+			union select distinct
+			    op.operator_id, op.name,ro.name as role_name
+			from
+			   operator op
+			        join
+			    role_of_operator roo ON roo.operator_id = op.operator_id
+			        join
+			    role ro ON roo.role_id = ro.role_id
+			        join
+			    privacy_of_role pr ON ro.role_id = pr.role_id
+			        join
+			    privacy priv ON pr.privacy_id = priv.privacy_id
+			where
+			    op.delete_flg = 0
+			        and priv.privacy_id = #{privacy_id}
+		]]>
+			order by role_name
+	</select>
+
+	<select id="getPrivaciesOfOperator" resultType="int" parameterType="String">
+		<![CDATA[
+			select
+				priv.privacy_id
+			from
+			    operator op
+			        join
+			    role ro ON op.role_id = ro.role_id
+			        join
+			    privacy_of_role pr ON ro.role_id = pr.role_id
+			        join
+			    privacy priv ON pr.privacy_id = priv.privacy_id
+			where
+			    op.operator_id = #{operator_id}
+			and 
+				ro.delete_flg = 0
+			union select distinct
+			    priv.privacy_id
+			from
+			   operator op
+			        join
+			    role_of_operator roo ON roo.operator_id = op.operator_id
+			        join
+			    role ro ON roo.role_id = ro.role_id
+			        join
+			    privacy_of_role pr ON ro.role_id = pr.role_id
+			        join
+			    privacy priv ON pr.privacy_id = priv.privacy_id
+			where
+			    op.operator_id = #{operator_id}
+			and 
+				ro.delete_flg = 0
+		]]>
+	</select>
+
+	<select id="getOperatorWithRole" resultType="OperatorEntity">
+		<![CDATA[
+		SELECT * FROM v_operator_named vo
+		WHERE
+			delete_flg = 0
+		AND (vo.role_id = #{role_id}
+		OR EXISTS(
+			SELECT 1 FROM role_of_operator
+			WHERE role_id = #{role_id}
+			AND operator_id = vo.operator_id
+		));
+		]]>
+	</select>
+
+	<select id="getOperatorWithPosition" resultType="OperatorEntity">
+		<![CDATA[
+		SELECT * FROM v_operator_named vo
+		WHERE
+ 			delete_flg = 0
+		AND EXISTS(
+			SELECT 1 FROM operator_abilities
+			WHERE position_id = #{position_id}
+			AND operator_id = vo.operator_id
+		);
+		]]>
+	</select>
+</mapper>

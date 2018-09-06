@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.ProcessAssignMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getProcessAssignTemplateByID" resultType="ProcessAssignTemplateEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT PROCESS_ASSIGN_TEMPLATE_ID,
+			NAME,
+			derive_kind,
+			derive_from_id,
+			fix_type,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM PROCESS_ASSIGN_TEMPLATE
+		WHERE DELETE_FLG = 0
+		AND PROCESS_ASSIGN_TEMPLATE_ID = #{process_assign_template_id};
+		]]>
+	</select>
+
+	<select id="getAllProcessAssignTemplate" resultType="ProcessAssignTemplateEntity">
+		<![CDATA[ 
+		SELECT PROCESS_ASSIGN_TEMPLATE_ID,
+			NAME,
+			derive_kind,
+			derive_from_id,
+			fix_type,
+			DELETE_FLG,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM PROCESS_ASSIGN_TEMPLATE
+		ORDER BY PROCESS_ASSIGN_TEMPLATE_ID ASC;
+		]]>
+	</select>
+
+	<select id="searchProcessAssignTemplate" resultType="ProcessAssignTemplateEntity">
+		<![CDATA[ 
+		SELECT PROCESS_ASSIGN_TEMPLATE_ID,
+			pr.NAME,
+			derive_kind,
+			derive_from_id,
+			fix_type,
+			op.NAME AS UPDATED_BY,
+			pr.UPDATED_TIME
+		FROM PROCESS_ASSIGN_TEMPLATE pr
+		LEFT JOIN
+		    operator op
+		ON 
+		    pr.updated_by =op.operator_id
+		]]>
+		<where>
+			pr.DELETE_FLG = 0
+			<if test="process_assign_template_id!= null and process_assign_template_id!= '' ">
+				AND pr.PROCESS_ASSIGN_TEMPLATE_ID = #{process_assign_template_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND pr.NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="derive_kind!=null and derive_kind!='' ">
+				AND pr.derive_kind = #{derive_kind}
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<insert id="insertProcessAssignTemplate" parameterType="ProcessAssignTemplateEntity">
+		<![CDATA[ 
+		INSERT INTO PROCESS_ASSIGN_TEMPLATE 
+			(NAME, 
+			derive_kind,
+			derive_from_id,
+			fix_type,
+			UPDATED_BY, UPDATED_TIME) 
+		VALUES 
+			(#{name}, 
+			#{derive_kind},
+			#{derive_from_id},
+			#{fix_type},
+			#{updated_by}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="updateProcessAssignTemplate" parameterType="ProcessAssignTemplateEntity">
+		<![CDATA[ 
+		UPDATE PROCESS_ASSIGN_TEMPLATE SET NAME = #{name},
+			derive_kind = #{derive_kind},
+			derive_from_id = #{derive_from_id},
+			fix_type = #{fix_type},
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE PROCESS_ASSIGN_TEMPLATE_ID = #{process_assign_template_id};
+		]]>
+	</update>
+
+	<update id="deleteProcessAssignTemplate" parameterType="ProcessAssignTemplateEntity">
+		<![CDATA[ 
+		UPDATE PROCESS_ASSIGN_TEMPLATE SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE PROCESS_ASSIGN_TEMPLATE_ID = #{process_assign_template_id};
+		]]>
+	</update>
+
+	<select id="getProcessAssignByTemplateID" resultType="ProcessAssignEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT REFER_TYPE, 
+			REFER_ID, 
+			LINE_ID, 
+			POSITION_ID, 
+			SIGN_POSITION_ID, 
+			PREV_POSITION_ID, 
+			NEXT_POSITION_ID
+		FROM PROCESS_ASSIGN
+		WHERE REFER_ID = #{process_assign_template_id}
+		AND REFER_TYPE = 1;
+		]]>
+	</select>
+
+	<select id="getProcessAssign" resultType="ProcessAssignEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT REFER_TYPE, 
+			REFER_ID, 
+			LINE_ID, 
+			POSITION_ID, 
+			SIGN_POSITION_ID, 
+			PREV_POSITION_ID, 
+			NEXT_POSITION_ID
+		FROM PROCESS_ASSIGN
+		WHERE REFER_ID = #{process_assign_template_id}
+		AND POSITION_ID = #{position_id}
+		AND REFER_TYPE = 1;
+		]]>
+	</select>
+
+	<insert id="insertProcessAssign" parameterType="ProcessAssignEntity">
+		<![CDATA[ 
+		INSERT INTO PROCESS_ASSIGN
+			(REFER_TYPE, REFER_ID, LINE_ID, POSITION_ID, SIGN_POSITION_ID, PREV_POSITION_ID, NEXT_POSITION_ID) 
+		VALUES 
+			(#{refer_type}, #{refer_id}, #{line_id}, #{position_id}, #{sign_position_id}, #{prev_position_id}, #{next_position_id});
+		]]>
+	</insert>
+
+	<delete id="deleteProcessAssignByTemplateID" parameterType="int">
+		<![CDATA[ 
+		DELETE FROM PROCESS_ASSIGN
+		WHERE REFER_ID = #{process_assign_template_id}
+		AND REFER_TYPE = 1;
+		]]>
+	</delete>
+
+	<select id="getInlinePositions" resultType="map">
+		<![CDATA[ 
+		SELECT `p`.POSITION_ID as value,
+			`p`.process_code,
+			`p`.NAME as text,
+			`l`.NAME as plbl
+		FROM POSITION p
+		JOIN LINE l
+			ON `p`.LINE_ID = `l`.LINE_ID
+			AND `l`.INLINE_FLG = 1
+		WHERE `p`.DELETE_FLG = 0
+		ORDER BY `p`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getPartStart" resultType="String">
+		<![CDATA[ 
+		SELECT position_id FROM process_assign p
+		WHERE refer_id = #{refer_id} AND line_id = #{line_id} AND prev_position_id = 0;
+		]]>
+	</select>
+
+	<select id="getPartAll" resultType="String">
+		<![CDATA[ 
+		SELECT position_id FROM process_assign p
+		WHERE refer_id = #{refer_id} AND line_id = #{line_id};
+		]]>
+	</select>
+
+	<select id="getPositionsOfLine" resultType="map">
+		<![CDATA[ 
+		SELECT `p`.POSITION_ID as value,
+			`p`.NAME as text,
+			`l`.NAME as plbl
+		FROM POSITION p
+		JOIN LINE l
+			ON `p`.LINE_ID = `l`.LINE_ID
+			AND `l`.LINE_ID = #{line_id}
+		WHERE `p`.DELETE_FLG = 0
+		ORDER BY `p`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getPositionsOfLineByPat" resultType="map">
+		<![CDATA[ 
+		SELECT `p`.POSITION_ID as value,
+			`p`.NAME as text,
+			`p`.process_code
+		FROM PROCESS_ASSIGN pa
+		LEFT JOIN POSITION p
+			ON `pa`.POSITION_ID = `p`.POSITION_ID
+		WHERE `pa`.REFER_ID = #{process_assign_template_id}
+			AND `pa`.REFER_TYPE = 1
+			AND `p`.DELETE_FLG = 0
+			AND `p`.LINE_ID = #{line_id}
+			AND `p`.PROCESS_CODE not in ('251,','252','321','400')
+		ORDER BY (`p`.PROCESS_CODE like '5%') DESC, `p`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getNextPositions" resultType="PositionEntity">
+		<![CDATA[ 
+		SELECT `pa`.POSITION_ID as POSITION_ID,
+			`p`.PROCESS_CODE as PROCESS_CODE,
+			`pa`.line_id as line_id
+		FROM PROCESS_ASSIGN pa
+		LEFT JOIN POSITION p
+			ON `pa`.POSITION_ID = `p`.POSITION_ID
+		JOIN PROCESS_ASSIGN spa
+		WHERE `pa`.REFER_ID = #{process_assign_template_id}
+			AND `pa`.REFER_TYPE = 1
+			AND `pa`.PREV_POSITION_ID = `spa`.sign_position_id
+			AND `spa`.REFER_ID = #{process_assign_template_id}
+			AND `spa`.REFER_TYPE = 1
+			AND `spa`.POSITION_ID = #{position_id}
+		ORDER BY `p`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getPrevPositions" resultType="PositionEntity">
+		<![CDATA[ 
+		SELECT `pa`.POSITION_ID as POSITION_ID,
+			`p`.PROCESS_CODE as PROCESS_CODE,
+			`pa`.line_id as line_id
+		FROM PROCESS_ASSIGN pa
+		LEFT JOIN POSITION p
+			ON `pa`.POSITION_ID = `p`.POSITION_ID
+		JOIN PROCESS_ASSIGN spa
+		WHERE `pa`.REFER_ID = #{process_assign_template_id}
+			AND `pa`.REFER_TYPE = 1
+			AND `pa`.NEXT_POSITION_ID = `spa`.sign_position_id
+			AND `spa`.REFER_ID = #{process_assign_template_id}
+			AND `spa`.REFER_TYPE = 1
+			AND `spa`.POSITION_ID = #{position_id}
+		ORDER BY `p`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getFinishedByLine" resultType="boolean">
+		<![CDATA[ 
+		SELECT COUNT(1) = 0 FROM
+		(SELECT `pf`.operate_result from material m
+		JOIN PROCESS_ASSIGN pa
+		  ON `m`.pat_id = `pa`.refer_id AND `pa`.refer_type = 1
+		  AND `pa`.line_id = #{line_id} AND `pa`.position_id < 9000000
+		LEFT JOIN `production_feature` pf
+		  ON `m`.material_id = `pf`.material_id
+		  AND `pa`.position_id = `pf`.position_id AND `pf`.operate_result = 2
+		WHERE `m`.material_id = #{material_id}) wk
+		WHERE operate_result IS NULL
+		;
+		]]>
+	</select>
+
+	<select id="checkWorked" resultType="boolean">
+		<![CDATA[ 
+		SELECT COUNT(`pf`.operate_result) > 0
+		FROM PROCESS_ASSIGN pa
+		JOIN PRODUCTION_FEATURE pf
+		ON `pf`.POSITION_ID = `pa`.POSITION_ID
+		AND `pf`.operate_result = 2
+		WHERE `pa`.POSITION_ID = #{position_id}
+		AND `pf`.material_id = #{material_id}
+		AND `pa`.REFER_ID = #{process_assign_template_id}
+		AND `pa`.REFER_TYPE = 1
+		;
+		]]>
+	</select>
+
+	<select id="checkWorking" resultType="int">
+		<![CDATA[ 
+SELECT count(*)
+FROM PRODUCTION_FEATURE pf
+WHERE `pf`.POSITION_ID = #{position_id} AND `pf`.material_id = #{material_id} AND `pf`.operate_result <> 5 AND `pf`.FINISH_TIME IS NULL ;
+		]]>
+	</select>
+
+	<select id="get20" resultType="int">
+		<![CDATA[ 
+		SELECT COUNT(1) FROM PRODUCTION_FEATURE pf WHERE `pf`.operate_result = 2 AND MATERIAL_ID = #{material_id}  AND `pf`.POSITION_ID IN (17,18,19,26);
+		]]>
+	</select>
+
+	<select id="get32" resultType="int">
+		<![CDATA[ 
+		SELECT COUNT(1) FROM PRODUCTION_FEATURE pf WHERE `pf`.operate_result = 2 AND MATERIAL_ID = #{material_id}  AND `pf`.POSITION_ID IN (23,31);
+		]]>
+	</select>
+
+	<select id="getFinishedPositionsInline" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+		SELECT `p`.position_id, `pf`.finish_time, `o`.NAME as operator_name 
+		FROM PRODUCTION_FEATURE pf
+		JOIN `POSITION` p
+		  ON `pf`.position_id = `p`.position_id
+		  AND p.line_id IN (select line_id FROM LINE where inline_flg = 1)
+		JOIN `OPERATOR` o
+		  ON `pf`.operator_id = `o`.operator_id
+		WHERE `pf`.material_id = #{material_id}
+		AND `pf`.operate_result = 2;
+		]]>
+	</select>
+
+	<select id="getFinishedPositionsByLine" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+		SELECT `p`.position_id, `pf`.finish_time, `o`.NAME as operator_name 
+		FROM PRODUCTION_FEATURE pf
+		JOIN `POSITION` p
+		  ON `pf`.position_id = `p`.position_id
+		  AND p.line_id = #{line_id}
+		JOIN `OPERATOR` o
+		  ON `pf`.operator_id = `o`.operator_id
+		WHERE `pf`.material_id = #{material_id}
+		AND `pf`.operate_result = 2;
+		]]>
+	</select>
+	
+	<select id="getFinishedCountByPositions" resultType="int">
+		<![CDATA[ 
+		SELECT COUNT(position_id) as operator_name 
+		FROM PRODUCTION_FEATURE pf
+		WHERE `pf`.material_id = #{material_id}
+		AND position_id in 
+		]]>
+        <foreach collection="position_ids" index="index" item="item" open="(" separator="," close=")"> 
+            #{item}
+        </foreach> 		
+		<![CDATA[ 
+		AND `pf`.operate_result = 2;
+		]]>
+	</select>
+
+	<select id="getNonfinishedPositions" resultType="String">
+		<![CDATA[ 
+		select p.process_code
+		from material m
+		JOIN process_assign pa
+		ON m.pat_id = pa.refer_id
+		AND pa.refer_type = 1
+		JOIN `position` p
+		ON pa.position_id = p.position_id
+
+		WHERE material_id = #{material_id}
+		AND NOT EXISTS 
+			(SELECT 1 FROM production_feature 
+			WHERE material_id = m.material_id
+			AND position_id = p.position_id
+			AND operate_result = 2)
+		]]>
+	</select>
+
+	<select id="getFirstPosition" resultType="String" parameterType="String">
+		<![CDATA[ 
+			select position_id from process_assign 
+			where refer_type = 1
+			and refer_id = #{template_id}
+			and line_id = #{line_id}
+			and prev_position_id = 0
+			;
+		]]>
+	</select>
+
+	<select id="checkHasLine" resultType="boolean" parameterType="String">
+		<![CDATA[ 
+SELECT count(1) FROM process_assign 
+where refer_type = 1 and refer_id = #{process_assign_template_id}
+and position_id in (select position_id from position where line_id = #{line_id} and delete_flg = 0);
+		]]>
+	</select>
+
+	<select id="getDerivePair" resultType="map" parameterType="String">
+		<![CDATA[ 
+			select pat_base.name as base_name, 
+				pat_derive.process_assign_template_id as derive_id, 
+				pat_derive.name as derive_name
+			from process_assign_template pat_base 
+			left join process_assign_template pat_derive
+			on pat_derive.derive_from_id = pat_base.process_assign_template_id
+			and pat_derive.derive_kind =  #{derive_kind}
+			and pat_derive.delete_flg = 0
+			where pat_base.process_assign_template_id =  #{process_assign_template_id}
+			order by pat_derive.updated_time desc
+			limit 1;
+		]]>
+	</select>
+
+</mapper>

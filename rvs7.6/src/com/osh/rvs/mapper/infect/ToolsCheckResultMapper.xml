@@ -1,0 +1,193 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.ToolsCheckResultMapper">
+
+    <!-- 治具点检结果 -->
+    <select id="searchToolsCheckResult" resultType="ToolsCheckResultEntity" parameterType="ToolsCheckResultEntity">
+		<![CDATA[ 
+			select 
+			    coalesce(s_cr.manage_id, tm.tools_manage_id) as manage_id,
+			    s_cr.operator_id,
+			    s_cr.checked_status,
+			    tm.manage_code,
+			    tm.responsible_operator_id,
+			    coalesce(tt.name,tm.tool_name) as tools_name,
+			    tm.tools_no,
+			    tm.section_id,
+			    s.name as section_name,
+			    tm.line_id,
+			    l.name as line_name,
+			    tm.position_id,
+			    p.process_code,
+			    o.name as operator
+			from
+			    (select 
+			        ccc.manage_id,
+			            ccc.operator_id,
+			            CASE
+			                WHEN ccc.broken > 0 THEN 2
+			                WHEN ccc.lost > 0 THEN 3
+			                WHEN ccc.stored > 0 THEN 4
+			                WHEN ccc.inuse > 0 THEN 1
+			                ELSE 0
+			            END as checked_status
+			    from
+			        (select 
+			        dd.manage_id,
+			            dd.operator_id,
+			            sum(dd.checked_status = 1) inuse,
+			            sum(dd.checked_status = 2) broken,
+			            sum(dd.checked_status = 3) lost,
+			            sum(dd.checked_status = 4) stored
+			    from
+			        (select 
+			        cr . *
+			    from
+			        tool_check_result cr
+			    join (select 
+			        manage_id,
+			            operator_id,
+			            max(check_confirm_time) as check_confirm_time
+			    from
+			        tool_check_result
+			    where
+			         date(check_confirm_time)>=#{firstDate} and date(check_confirm_time) < #{lastDate}
+			    group by manage_id) aaa ON cr.manage_id = aaa.manage_id
+			        and cr.check_confirm_time = aaa.check_confirm_time) dd
+			    group by dd.manage_id) ccc) s_cr
+		]]>
+		    <if test="(manager_operator_id !='' and manager_operator_id !=null) or (responsible_operator_id !='' and responsible_operator_id !=null)">
+			   right join
+		    </if>
+		    <if test="(manager_operator_id =='' or manager_operator_id == null) and (responsible_operator_id =='' or responsible_operator_id ==null)">
+			   join
+		    </if>
+		<![CDATA[ 
+			    tools_manage tm ON s_cr.manage_id= tm.tools_manage_id 
+			    	left join
+			    tools_type tt ON tm.tools_type_id =tt.tools_type_id 
+			        left join
+			    section s ON tm.section_id = s.section_id
+			        left join
+			    line l ON tm.line_id = l.line_id
+			        left join
+			    position p ON tm.position_id = p.position_id
+			        left join
+			    operator o ON o.operator_id = s_cr.operator_id
+		]]>
+		<where>
+				tm.delete_flg=0
+			<if test="manage_code !='' and manage_code !=null">
+		        <![CDATA[
+				and tm.manage_code  LIKE CONCAT('%',#{manage_code},'%')
+		         ]]>
+			</if>
+			<if test="tools_type_id !='' and tools_type_id !=null">
+		        <![CDATA[
+				and tm.tools_type_id = #{tools_type_id}
+		         ]]>
+			</if>
+		    <if test="tools_name!=null and tools_name!='' ">
+				<![CDATA[
+				    and tm.tool_name LIKE CONCAT('%',#{tools_name},'%')
+			    ]]>
+			</if>
+		     <if test="tools_no!='' and tools_no !=null">
+		         <![CDATA[
+				and tm.tools_no  LIKE CONCAT('%',#{tools_no},'%')
+		         ]]>
+		    </if>
+			<if test="section_id !='' and section_id !=null">
+		         <![CDATA[
+				and tm.section_id  =#{section_id}
+		         ]]>
+		    </if>
+			<if test="line_id !='' and line_id !=null">
+		         <![CDATA[
+				and tm.line_id =#{line_id}
+		         ]]>
+			</if>
+			<if test="position_id !='' and position_id !=null">
+		         <![CDATA[
+				and tm.position_id  =#{position_id}
+		         ]]>
+			</if>
+			<if test="manager_operator_id !='' and manager_operator_id !=null">
+		        <![CDATA[
+				and (tm.manager_operator_id  =#{manager_operator_id} or tm.responsible_operator_id  =#{manager_operator_id})
+				and tm.status = 1
+				and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+				where cur.manage_id = tm.tools_manage_id and cur.manage_id = 2
+				and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+		         ]]>
+			</if>
+			<if test="responsible_operator_id !='' and responsible_operator_id !=null">
+			    <![CDATA[
+				and tm.responsible_operator_id  =#{responsible_operator_id}
+				and tm.status = 1
+				and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+				where cur.manage_id = tm.tools_manage_id and cur.manage_id = 2
+				and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+		         ]]>
+			</if>
+			<if test="operator_id !='' and operator_id !=null">
+		        <![CDATA[
+				and s_cr.operator_id  =#{operator_id}
+		        ]]>
+			</if>
+		</where>
+	</select>	
+	
+	<select id="searchSectionLinePosition" resultType="ToolsCheckResultEntity" parameterType="ToolsCheckResultEntity">
+		<![CDATA[ 
+		    SELECT 
+		    	tm.tools_manage_id,
+				s.name as section_name,
+			    l.name as line_name,
+			    p.process_code,
+			    p.name as position_name
+			FROM
+			    tools_manage tm
+			    left join section s 
+				on tm.section_id = s.section_id
+				left join line l
+				on tm.line_id = l.line_id
+				left join position p
+					on tm.position_id = p.position_id
+			where
+			    tm.tools_manage_id =#{manage_id}
+		]]>
+	</select>	
+
+   <select id="searchCheckResult" resultType="ToolsCheckResultEntity" parameterType="ToolsCheckResultEntity">
+      <![CDATA[
+      SELECT 
+		    date(n_cr.check_confirm_time) as check_confirm_time,
+		    op.name as operator ,
+		    CASE
+		        WHEN n_cr.broken > 0 THEN 2
+		        WHEN n_cr.lost > 0 THEN 3
+		        WHEN n_cr.stored > 0 THEN 4
+		        WHEN n_cr.inuse > 0 THEN 1
+		        ELSE 0
+		    END AS checked_status
+		FROM
+		    (SELECT 
+		            check_confirm_time,
+		            cr.operator_id,
+		            sum(checked_status = 1) inuse,
+		            sum(checked_status = 2) broken,
+		            sum(checked_status = 3) lost,
+		            sum(checked_status = 4) stored
+		    FROM
+		        tool_check_result cr
+		    WHERE
+		        cr.check_confirm_time >=#{firstDate}
+		            and DATE(cr.check_confirm_time) <#{lastDate}
+		            and cr.manage_id = #{manage_id}
+		    GROUP BY cr.manage_id , cr.operator_id , DATE(cr.check_confirm_time)) n_cr
+		left join operator op on op.operator_id =n_cr.operator_id
+		ORDER BY n_cr.check_confirm_time DESC
+      ]]>
+   </select>
+</mapper>

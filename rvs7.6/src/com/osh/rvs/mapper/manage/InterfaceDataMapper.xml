@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.InterfaceDataMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchAllContent" resultType="InterfaceDataEntity">
+		<![CDATA[
+			SELECT A1.kind,
+				A1.if_sap_message_key,
+				A2.seq,
+				A2.resolved,
+				A2.content,
+				A2.invalid_message
+			FROM if_sap_message A1, if_sap_message_content A2
+			WHERE A1.if_sap_message_key = A2.if_sap_message_key
+				AND A2.resolved = 2
+			ORDER BY A1.kind, A2.if_sap_message_key, A2.seq
+		]]>
+	</select>
+
+	<select id="searchContentByKey" resultType="InterfaceDataEntity" parameterType="String">
+		<![CDATA[
+			SELECT if_sap_message_key,
+				seq,
+				content
+			FROM if_sap_message_content
+			WHERE if_sap_message_key = #{if_sap_message_key}
+				AND seq = #{seq}
+		]]>
+	</select>
+
+	<update id="updateResolved" parameterType="InterfaceDataEntity">
+		<![CDATA[ 
+			UPDATE if_sap_message_content SET
+				resolved = #{resolved},
+				invalid_message = #{invalid_message}
+			WHERE if_sap_message_key = #{if_sap_message_key}
+				AND seq = #{seq}
+		]]>
+	</update>
+
+	<update id="updateContent" parameterType="InterfaceDataEntity">
+		<![CDATA[ 
+			UPDATE if_sap_message_content SET
+				content = #{content}
+			WHERE if_sap_message_key = #{if_sap_message_key}
+				AND seq = #{seq}
+		]]>
+	</update>
+
+	<delete id="deleteContent" parameterType="String">
+		<![CDATA[ 
+			DELETE FROM if_sap_message_content
+			WHERE if_sap_message_key = #{if_sap_message_key}
+				AND seq = #{seq}
+		]]>
+	</delete>
+</mapper>

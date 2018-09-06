@@ -1,0 +1,644 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.ProductionFeatureMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="insertProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		REPLACE INTO production_feature (
+				material_id,
+				position_id,
+				pace,
+				section_id,
+				action_time,
+				operator_id,
+				operate_result,
+				rework
+		) VALUES (
+			#{material_id}, 
+			#{position_id}, 
+			#{pace}, 
+			#{section_id}, 
+			#{action_time},
+			#{operator_id}, 
+			#{operate_result}, 
+			#{rework}
+		);
+		]]>
+	</insert>
+
+	<insert id="insertAcceptanceProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		INSERT INTO production_feature (
+				material_id,
+				position_id,
+				pace,
+				section_id,
+				operator_id,
+				operate_result,
+				action_time,
+				finish_time,
+				use_seconds,
+				rework
+		) VALUES (
+			#{material_id}, 
+			#{position_id}, 
+			#{pace}, 
+			#{section_id}, 
+			#{operator_id}, 
+			#{operate_result},
+			date_add(current_timestamp , interval -#{use_seconds} second),
+			current_timestamp,
+			#{use_seconds},
+			#{rework}
+		);
+		]]>
+	</insert>
+
+	<select id="getMaterialDetailForRecept" resultType="MaterialEntity" parameterType="java.sql.Timestamp">
+		<![CDATA[ 
+			SELECT
+				a.material_id, a.reception_time, coalesce(a.omr_notifi_no, a.sorc_no) as sorc_no, a.esas_no, a.model_id,
+				(select name from model where model_id = a.model_id) as model_name,
+				a.serial_no,a.ocm,a.agreed_date,a.level,a.package_no,b.operator_id,
+				o.name as operator_name, a.ocm_rank, 
+				c.name as customer_name, 
+				c.vip as quotation_first,
+				a.ocm_deliver_date,
+				a.storager,a.direct_flg,a.service_repair_flg,a.fix_type,a.selectable,
+				not a.ticket_flg as sterilized, b.finish_time, a.bound_out_ocm ,
+				a.scheduled_expedited, tcs.location as wip_location,
+				CASE
+				WHEN 
+				avaliable_end_date > dy.avaliable_date THEN null
+				ELSE avaliable_end_date 
+				END as inline_time
+			FROM material a
+			LEFT JOIN production_feature b
+				ON a.material_id = b.material_id
+				AND b.position_id = 9
+			LEFT JOIN operator o
+				ON o.operator_id = b.operator_id
+			LEFT JOIN customer c
+				ON a.customer_id = c.customer_id
+			LEFT JOIN turnover_case_storage tcs ON a.material_id = tcs.material_id
+			LEFT JOIN (
+select model_id, min(avaliable_end_date) as avaliable_end_date 
+from model_level_set
+group by model_id
+			) mdl_exp
+			ON a.model_id = mdl_exp.model_id
+			JOIN (select date_add(current_date, interval 15 day) as avaliable_date) dy 
+			WHERE a.break_back_flg = 0
+and a.inline_time is null -- [SpeedUp]
+			and not exists (
+				select material_id from production_feature p1
+				where p1.material_id = a.material_id
+				and p1.position_id in(10,11)
+			)
+			ORDER BY reception_time DESC;
+		]]>
+	</select>
+	
+	<select id="checkOperateResult" resultType="int" parameterType="java.lang.String">
+			<![CDATA[ 
+				SELECT count(*) from production_feature where material_id = #{material_id}
+				AND (OPERATE_RESULT = 1 || OPERATE_RESULT = 4) AND ACTION_TIME IS NOT NULL AND FINISH_TIME IS NULL
+			]]>
+	</select>
+
+	<select id="searchProductionFeature" resultType="ProductionFeatureEntity" parameterType="ProductionFeatureEntity">
+			<![CDATA[ 
+				SELECT material_id, position_id, pace, rework, section_id, operator_id, operate_result, action_time,
+				finish_time, pcs_inputs, pcs_comments, use_seconds
+				FROM production_feature
+			]]>
+		<where>
+			1 = 1
+			<if test="material_id!= null and material_id!= ''">
+				AND material_id = #{material_id}
+			</if>
+			<if test="position_id!= null and position_id!= ''">
+				AND position_id = #{position_id}
+			</if>
+			<if test="pace!= null">
+				AND pace = #{pace}
+			</if>
+			<if test="rework!= null">
+				AND rework = #{rework}
+			</if>
+			<if test="section_id!= null and section_id!= ''">
+				AND section_id = #{section_id}
+			</if>
+			<if test="operate_result!= null">
+				AND operate_result = #{operate_result}
+			</if>
+		</where> 
+	</select>
+
+	<!-- 判断是否存在未完成的辅助作业 -->
+	<select id="checkSupporting" resultType="String" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT o.name
+			FROM production_feature pf
+			JOIN operator o
+				ON pf.operator_id = o.operator_id
+			WHERE
+				pf.MATERIAL_ID = #{material_id}
+			AND pf.POSITION_ID = #{position_id}
+			AND pf.operate_result = 5
+			AND pf.finish_time IS NULL
+		]]>
+	</select>
+
+	<!-- 开始作业 -->
+	<update id="startProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATOR_ID = #{operator_id},
+				OPERATE_RESULT = 1,
+				ACTION_TIME = current_timestamp
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace}
+		AND REWORK = #{rework};
+		]]>
+	</update>
+
+	<!-- 开始辅助作业 -->
+	<insert id="supportProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		INSERT INTO production_feature (
+				material_id,
+				position_id,
+				pace,
+				section_id,
+				action_time,
+				operator_id,
+				operate_result,
+				rework
+		) VALUES (
+			#{material_id}, 
+			#{position_id}, 
+			#{pace}, 
+			#{section_id}, 
+			current_timestamp,
+			#{operator_id},
+			5, 
+			#{rework}
+		);
+		]]>
+	</insert>
+
+	<!-- 开始作业批量 -->
+	<update id="startBatchProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATOR_ID = #{operator_id},
+				OPERATE_RESULT = 7,
+				ACTION_TIME = current_timestamp
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace}
+		AND REWORK = #{rework};
+		]]>
+	</update>
+
+	<!-- 完成/中断/暂停/辅助完成 -->
+	<update id="finishProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATOR_ID = #{operator_id},
+				OPERATE_RESULT = #{operate_result},
+				FINISH_TIME = current_timestamp,
+				PCS_INPUTS = #{pcs_inputs},
+				PCS_COMMENTS = #{pcs_comments},
+				USE_SECONDS = #{use_seconds}
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace}
+		AND REWORK = #{rework};
+		]]>
+	</update>
+
+	<!-- 完成/中断/暂停/辅助完成 强制工作时间 -->
+	<update id="finishProductionFeatureSetFinish" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATOR_ID = #{operator_id},
+				OPERATE_RESULT = #{operate_result},
+				FINISH_TIME = date_add(action_time , interval #{use_seconds} second),
+				PCS_INPUTS = #{pcs_inputs},
+				PCS_COMMENTS = #{pcs_comments},
+				USE_SECONDS = #{use_seconds}
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace}
+		AND REWORK = #{rework};
+		]]>
+	</update>
+
+	<!-- 线长完成 -->
+	<update id="finishPatchProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATOR_ID = #{operator_id},
+				OPERATE_RESULT = #{operate_result},
+				ACTION_TIME = current_timestamp,
+				FINISH_TIME = current_timestamp,
+				PCS_INPUTS = #{pcs_inputs},
+				USE_SECONDS = #{use_seconds}
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND ACTION_TIME IS NULL;
+		]]>
+	</update>
+
+	<!-- 作业暂停2/作业再开 -->
+	<update id="pauseWaitProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATE_RESULT = #{operate_result},
+				ACTION_TIME = current_timestamp
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace}
+		AND REWORK = #{rework};
+		]]>
+	</update>
+
+	<!-- 更新工程检查票 -->
+	<update id="updatePcsProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET PCS_INPUTS = #{pcs_inputs},
+				PCS_COMMENTS = #{pcs_comments}
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace}
+		AND REWORK = #{rework};
+		]]>
+	</update>
+
+	<!-- 中断 TO 暂停 -->
+	<update id="breakOverOperateResult" parameterType="String">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATE_RESULT = 4
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND OPERATE_RESULT = 3
+		AND ACTION_TIME IS NULL
+		;
+		]]>
+	</update>
+
+	<!-- 返工：进行中工位等待记录删除 -->
+	<update id="removeBreakWaiting" parameterType="String">
+		<![CDATA[ 
+		UPDATE production_feature
+		SET OPERATE_RESULT = 8
+			, FINISH_TIME = current_timestamp
+			, pcs_inputs = #{pcs_inputs}
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND OPERATE_RESULT = 3
+		AND FINISH_TIME IS NULL
+		;
+		]]>
+	</update>
+
+	<!-- 完成 TO 返工 -->
+	<update id="reworkOperateResult" parameterType="String">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET OPERATE_RESULT = 6
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND OPERATE_RESULT = 2
+		;
+		]]>
+	</update>
+
+	<select id="getProductionFeatureByMaterialId" parameterType="ProductionFeatureEntity" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				a.position_id,
+				b.process_code,
+				b.name as position_name,
+				a.action_time,
+				a.finish_time,
+				a.operator_id,
+				(select name from operator where operator_id = a.operator_id) as operator_name,
+				a.operate_result,
+				a.use_seconds,
+				a.rework,
+				(select '返工前' from production_feature where position_id = a.position_id and material_id = #{material_id} having count(*) > 1 and a.rework < max(rework)) as beforeRework
+			 from production_feature a, position b 
+			]]>
+			
+		 <where>
+			 	a.position_id = b.position_id
+			 and
+			 	a.material_id = #{material_id}
+			 and 
+			 	a.action_time is not NUll
+			<if test="noRework != null and noRework != ''">
+				<![CDATA[ 
+				and not exists(select 1 from production_feature where position_id = a.position_id and material_id = #{material_id} having count(*) > 1 and a.rework < max(rework))
+				]]>
+			</if>
+			<if test="onlyFinish != null and onlyFinish != ''">
+				and (a.operate_result = 2 or a.operate_result = 6)
+			</if>
+		 </where>
+		<![CDATA[ 	
+			 order by a.action_time asc
+		]]>
+	</select>
+	<select id="getNoBeforeRework" parameterType="java.lang.String" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				a.position_id,
+				b.process_code,
+				b.name as position_name,
+				a.action_time,
+				a.finish_time,
+				a.operator_id,
+				(select name from operator where operator_id = a.operator_id) as operator_name,
+				a.operate_result,
+				a.use_seconds,
+				a.rework				
+			 from production_feature a, position b 
+			 where
+			 	a.position_id = b.position_id
+			 and
+			 	a.material_id = #{id}
+			 and 
+			 	a.action_time is not NUll
+			 and
+			 	not exists(select 1 from production_feature where position_id = a.position_id and material_id = #{id} having count(*) > 1 and a.rework < max(rework))
+			 order by a.action_time asc
+		]]>
+	</select>
+
+	<select id="getFinishProductionFeature" parameterType="java.lang.String" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT 
+				a.material_id,
+				a.position_id,
+				b.process_code,
+				b.name as position_name,
+				a.action_time,
+				a.finish_time,
+				a.operator_id,
+				(select name from operator where operator_id = a.operator_id) as operator_name,
+				a.operate_result,
+				a.use_seconds,
+				a.rework
+			 from production_feature a, position b 
+			 where
+			 	a.position_id = b.position_id
+			 and
+			 	a.material_id = #{id}
+			 and 
+			 	a.action_time is not NUll
+			 and
+			 	(a.operate_result = 2 or a.operate_result = 6)
+			 order by a.action_time asc
+		]]>
+	</select>
+
+	<select id="getReworkCount" parameterType="String" resultType="int">
+		<![CDATA[ 
+			SELECT 
+				COALESCE(MAX(`pf`.rework), 0)
+			FROM production_feature pf
+			WHERE
+				`pf`.material_id = #{material_id}
+				AND `pf`.position_id NOT IN (15, 25)
+				;
+		]]>
+	</select>
+
+	<select id="getReworkCountWithPositions" parameterType="map" resultType="int">
+		<![CDATA[ 
+			SELECT 
+				COALESCE(MAX(`pf`.rework), 0)
+			FROM production_feature pf
+			WHERE
+				`pf`.material_id = #{material_id}
+			AND `pf`.position_id in 
+		]]>
+        <foreach collection="position_ids" index="index" item="item" open="(" separator="," close=")"> 
+            #{item}
+        </foreach> 		
+		<![CDATA[ 
+		;
+		]]>
+	</select>
+
+	<select id="getReworkCountWithLine" parameterType="String" resultType="int">
+		<![CDATA[ 
+			SELECT 
+				COALESCE(MAX(`pf`.rework), 0)
+			FROM production_feature pf
+			WHERE
+				`pf`.material_id = #{material_id}
+			AND `pf`.position_id NOT IN (15, 25)
+			AND `pf`.position_id in 
+			(SELECT position_id FROM v_position WHERE line_id = #{line_id})
+			;
+		]]>
+	</select>
+
+	<select id="getProductionPcsOnRework" parameterType="ProductionFeatureEntity" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT 
+				`pf`.finish_time as finish_time, `pf`.section_id as section_id, `pf`.position_id as position_id,
+				`pf`.rework as rework, `pf`.pace as pace,
+				`p`.process_code as process_code, `o`.job_no as job_no, `o`.name as operator_name,
+				`pf`.pcs_inputs, `pf`.pcs_comments, `pf`.operate_result
+			FROM production_feature pf
+			JOIN position p
+				ON `pf`.position_id = `p`.position_id
+			LEFT JOIN operator o
+				ON `pf`.operator_id = `o`.operator_id
+			WHERE
+				(`pf`.operate_result = 2 or `pf`.operate_result = 3 or `pf`.operate_result = 6 
+					or (`pf`.operate_result in (1, 4) AND (`pf`.position_id in (select position_id from position where line_id = 15))) or `pf`.operate_result = 8)
+				AND `pf`.material_id = #{material_id}
+				AND (`pf`.pcs_inputs IS NOT NULL OR `pf`.pcs_comments IS NOT NULL)
+				AND `pf`.rework = #{rework};
+		]]>
+	</select>
+
+	<select id="checkPositionDid" resultType="boolean" parameterType="java.lang.String">
+		<![CDATA[ 
+			select exists(select 1 from PRODUCTION_FEATURE where MATERIAL_ID = #{material_id} and POSITION_ID = #{position_id} 
+		]]>
+		<if test="operate_result != null and operate_result != ''">
+			and operate_result = #{operate_result}
+		</if>
+		<if test="rework != null and rework != ''">
+			and rework = #{rework}
+		</if>
+		<![CDATA[ 
+			) from dual;
+		]]>
+	</select>
+
+	<select id="checkLineDid" resultType="boolean" parameterType="java.lang.String">
+		<![CDATA[ 
+			select exists(select 1 from PRODUCTION_FEATURE where MATERIAL_ID = #{material_id} and POSITION_ID IN 
+			(select POSITION_ID FROM POSITION WHERE LINE_ID = #{line_id})
+			) from dual;
+		]]>
+	</select>
+
+	<update id="changeSection" parameterType="String">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET section_id = #{section_id}
+		WHERE MATERIAL_ID = #{material_id}
+		AND FINISH_TIME IS NULL
+		;
+		]]>
+	</update>
+
+	<!-- 更换工艺流程前前 -->
+	<delete id="removeWaiting" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM production_feature
+		WHERE MATERIAL_ID = #{material_id}
+		]]>
+		<if test="position_id!= null and position_id!= ''">
+		AND POSITION_ID = #{position_id}
+		</if>
+		<![CDATA[ 
+		-- AND ACTION_TIME IS NULL
+		AND FINISH_TIME IS NULL
+		;
+		]]>
+	</delete>
+
+	<!-- 删除工位作业 -->
+	<delete id="removeAllOfPosition" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM production_feature
+		WHERE MATERIAL_ID = #{material_id}
+		]]>
+		<if test="position_id!= null and position_id!= ''">
+		AND POSITION_ID = #{position_id}
+		</if>
+		<![CDATA[ 
+		-- AND ACTION_TIME IS NULL
+		AND FINISH_TIME IS NULL
+		;
+		]]>
+	</delete>
+
+	<select id="getLastPositionAndStatus" parameterType="String" resultType="map">
+		<![CDATA[ 
+			SELECT DISTINCT
+				`p`.process_code as process_code, `p`.name as position_name, CAST(`pf`.operate_result AS char(1)) as operate_result
+			FROM `production_feature` pf
+			JOIN `position` p
+				ON `pf`.position_id = `p`.position_id
+			WHERE material_id = #{material_id}
+				AND operate_result not in (5, 8)
+				AND (`pf`.action_time = (SELECT max(action_time) FROM `production_feature` WHERE material_id = #{material_id})
+				OR `pf`.finish_time IS NULL)
+			ORDER BY process_code
+			;
+		]]>
+	</select>
+
+	<select id="getWorkedPositionOfMaterial" parameterType="String" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT DISTINCT p.position_id, p.process_code, p.name as position_name FROM production_feature pf
+			JOIN
+			  position p
+			ON pf.position_id = p.position_id
+			
+			WHERE pf.material_id = #{material_id}
+			order by p.position_id
+			;
+		]]>
+	</select>
+
+	<select id="getSikakeMaterialOfPosition" parameterType="String" resultType="MaterialEntity">
+		<![CDATA[ 
+			SELECT pf.material_id, coalesce(omr_notifi_no, sorc_no) as sorc_no, mdl.name as model_name, serial_no,	ma.scheduled_date, level,
+			case when exists(select 1 from production_feature 
+				where operate_result = 3 
+				and pf.material_id = material_id 
+				and pf.position_id = position_id
+				and pf.section_id = section_id
+				and pf.rework = rework) then 3 else operate_result end as operate_result
+			FROM production_feature pf
+			JOIN material ma
+			ON pf.material_id = ma.material_id
+			JOIN model mdl
+			ON ma.model_id = mdl.model_id
+			WHERE position_id = #{position_id}
+				and pf.section_id = #{section_id}
+			and finish_time is null;
+		]]>
+	</select>
+
+	<!-- unused -->
+	<select id="getPositionHeap" parameterType="String" resultType="int">
+		<![CDATA[ 
+		SELECT Count(1)
+		FROM production_feature p
+		join Material ma
+		ON p.material_id = ma.material_id
+		WHERE position_id = #{position_id}
+		]]>
+		<if test="section_id!= null and section_id!= '' ">
+		AND p.section_id = #{section_id}
+		</if>
+		<if test='px!= null and px eq "A" '>
+		AND quotation_first = 0
+		</if>
+		<if test='px!= null and px eq "B" '>
+		AND quotation_first = 1
+		</if>
+		<![CDATA[ 
+		AND finish_time is NULL AND operate_result not in (5, 8)
+		;
+		]]>
+	</select>
+	
+	<select id="getFinishedProductionFeatureByMaterialId" parameterType="string" resultType="ProductionFeatureEntity">
+		<![CDATA[ 
+			select
+				pf.action_time,
+				pf.finish_time,
+				p.process_code
+			from
+				production_feature pf
+			JOIN
+				position p
+			on
+				pf.position_id = p.position_id
+			where 
+				pf.material_id = #{material_id}
+				and pf.operate_result = 2
+				and p.line_id = #{line_id}
+		]]>
+	</select>
+
+</mapper>

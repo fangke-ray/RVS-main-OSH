@@ -1,0 +1,651 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.CheckResultMapper">
+
+    <select id="getNeedDailyCheck" resultType="CheckResultEntity">
+		<![CDATA[ 
+			SELECT 
+			    dcr.`manage_id`,
+			    dcr.`check_file_manage_id`,
+			    dcr.`item_seq`,
+			    `operator_id`,
+			    dcr.`check_confirm_time`,
+			    `digit`,
+			    `checked_status`
+			FROM
+			    `device_check_result` dcr
+			JOIN (
+			SELECT 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`,
+			    max(`check_confirm_time`) as `check_confirm_time`
+			FROM
+			    `device_check_result`
+			WHERE manage_id = #{manage_id}
+				AND check_file_manage_id = #{check_file_manage_id}
+				AND date(`check_confirm_time`) = current_date
+			group by 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`
+			) mcct
+			ON dcr.manage_id = mcct.manage_id
+			AND dcr.check_file_manage_id = mcct.check_file_manage_id
+			AND dcr.item_seq = mcct.item_seq
+			AND dcr.check_confirm_time = mcct.check_confirm_time
+			;
+		]]>
+	</select>	
+
+    <select id="getCapacyBeforeUseCheck" resultType="CheckResultEntity">
+		<![CDATA[ 
+			SELECT 
+			    dcr.`manage_id`,
+			    dcr.`check_file_manage_id`,
+			    dcr.`item_seq`,
+			    `operator_id`,
+			    dcr.`check_confirm_time`,
+			    `digit`,
+			    `checked_status`
+			FROM
+			    `device_check_result` dcr
+			JOIN (
+			SELECT 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`,
+			    max(`check_confirm_time`) as `check_confirm_time`
+			FROM
+			    `device_check_result`
+			WHERE manage_id = #{manage_id}
+				AND check_file_manage_id = #{check_file_manage_id}
+				AND date(`check_confirm_time`) = current_date
+			group by 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`
+			) mcct
+			ON dcr.manage_id = mcct.manage_id
+			AND dcr.check_file_manage_id = mcct.check_file_manage_id
+			AND dcr.item_seq = mcct.item_seq
+			AND dcr.check_confirm_time = mcct.check_confirm_time
+			;
+		]]>
+	</select>	
+
+    <select id="getNeedTorsionCheck" resultType="CheckResultEntity" parameterType="CheckResultEntity">
+		<![CDATA[ 
+			SELECT 
+			    dcr.`manage_id`,
+			    dcr.`check_file_manage_id`,
+			    dcr.`item_seq`,
+			    `operator_id`,
+			    dcr.`check_confirm_time`,
+			    `digit`,
+			    `checked_status`
+			FROM
+			    `device_check_result` dcr
+			JOIN (
+			SELECT 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`,
+			    max(`check_confirm_time`) as `check_confirm_time`
+			FROM
+			    `device_check_result` dcr
+			    JOIN devices_manage dm
+			    ON dcr.manage_id = dm.devices_manage_id
+			WHERE dm.section_id = #{section_id} AND dm.position_id = #{position_id}
+				AND check_file_manage_id = #{check_file_manage_id}
+				AND date(`check_confirm_time`) between #{check_confirm_time_start} and #{check_confirm_time_end}
+			group by 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`
+			) mcct
+			ON dcr.manage_id = mcct.manage_id
+			AND dcr.check_file_manage_id = mcct.check_file_manage_id
+			AND dcr.item_seq = mcct.item_seq
+			AND dcr.check_confirm_time = mcct.check_confirm_time
+			;
+		]]>
+	</select>
+
+    <select id="getNeedElectricIronCheck" resultType="CheckResultEntity" parameterType="CheckResultEntity">
+		<![CDATA[ 
+			SELECT 
+			    dcr.`manage_id`,
+			    dcr.`check_file_manage_id`,
+			    dcr.`item_seq`,
+			    `operator_id`,
+			    dcr.`check_confirm_time`,
+			    `digit`,
+			    `checked_status`
+			FROM
+			    `device_check_result` dcr
+			JOIN (
+			SELECT 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`,
+			    max(`check_confirm_time`) as `check_confirm_time`
+			FROM
+			    `device_check_result` dcr
+			    JOIN devices_manage dm
+			    ON dcr.manage_id = dm.devices_manage_id
+			WHERE dm.section_id = #{section_id} AND dm.position_id = #{position_id}
+				AND check_file_manage_id = #{check_file_manage_id}
+				AND date(`check_confirm_time`) = current_date
+			group by 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`
+			) mcct
+			ON dcr.manage_id = mcct.manage_id
+			AND dcr.check_file_manage_id = mcct.check_file_manage_id
+			AND dcr.item_seq = mcct.item_seq
+			AND dcr.check_confirm_time = mcct.check_confirm_time
+			;
+		]]>
+	</select>
+
+    <select id="getNeedRegularCheck" resultType="CheckResultEntity" parameterType="CheckResultEntity">
+		<![CDATA[ 
+			SELECT 
+			    dcr.`manage_id`,
+			    dcr.`check_file_manage_id`,
+			    dcr.`item_seq`,
+			    `operator_id`,
+			    dcr.`check_confirm_time`,
+			    `digit`,
+			    `checked_status`
+			FROM
+			    `device_check_result` dcr
+			JOIN (
+			SELECT 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`,
+			    max(`check_confirm_time`) as `check_confirm_time`
+			FROM
+			    `device_check_result`
+			WHERE manage_id = #{manage_id}
+				AND check_file_manage_id = #{check_file_manage_id}
+				AND date(`check_confirm_time`) between #{check_confirm_time_start} and #{check_confirm_time_end}
+			group by 
+			    `manage_id`,
+			    `check_file_manage_id`,
+			    `item_seq`
+			) mcct
+			ON dcr.manage_id = mcct.manage_id
+			AND dcr.check_file_manage_id = mcct.check_file_manage_id
+			AND dcr.item_seq = mcct.item_seq
+			AND dcr.check_confirm_time = mcct.check_confirm_time
+			;
+		]]>
+	</select>
+
+
+	<insert id="createDeviceWaitingCheck" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		INSERT INTO `device_check_result`
+			(`manage_id`,
+			`check_file_manage_id`,
+			`item_seq`,
+			`operator_id`,
+			`check_confirm_time`,
+			`checked_status`)
+		VALUES 
+			(#{manage_id}, #{check_file_manage_id}, #{item_seq}, 0, current_timestamp, 0);
+		]]>
+	</insert>
+
+	<insert id="insertToolCheck" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		INSERT INTO `tool_check_result`
+			(`manage_id`,
+			`operator_id`,
+			`section_id`,
+			`position_id`,
+			`check_confirm_time`,
+			`checked_status`)
+		VALUES 
+			(#{manage_id}, #{operator_id}, #{section_id}, #{position_id}, current_timestamp, #{checked_status});
+		]]>
+	</insert>
+
+	<insert id="insertDeviceCheck" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		INSERT INTO `device_check_result`
+			(`manage_id`,
+			`check_file_manage_id`,
+			`item_seq`,
+			`operator_id`,
+			`check_confirm_time`,
+			`digit`,
+			`checked_status`)
+		VALUES 
+			(#{manage_id}, #{check_file_manage_id}, #{item_seq}, #{operator_id}, current_timestamp, #{digit}, #{checked_status});
+		]]>
+	</insert>
+
+    <select id="getResponseStamp" resultType="CheckResultEntity" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		select op.job_no, sp.section_id, sp.position_id
+		from (
+		SELECT cr.operator_id, cr.section_id, cr.position_id
+		,(cr.operator_id = tm.responsible_operator_id) as self, count(1) as cnt
+		FROM tool_check_result cr
+		join tools_manage tm
+		where cr.manage_id = tm.tools_manage_id
+		and date(cr.check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		]]>
+			<if test="section_id!= null and section_id!=''">
+		<![CDATA[ 
+			and cr.section_id = #{section_id}
+		]]>
+			</if>
+		<![CDATA[ 
+		]]>
+			<if test="position_id!= null and position_id!=''">
+		<![CDATA[ 
+			and cr.position_id = #{position_id}
+		]]>
+			</if>
+			<if test="operator_id!= null and operator_id!=''">
+		<![CDATA[ 
+			and tm.responsible_operator_id = #{operator_id}
+		]]>
+			</if>
+		<![CDATA[ 
+		group by cr.section_id, cr.position_id, cr.operator_id
+		order by self desc,cnt desc
+		) sp join operator op
+		where sp.operator_id = op.operator_id
+		group by sp.section_id, sp.position_id
+		;
+		]]>
+	</select>
+
+	<select id="searchToolCheckPositionsByOperator"  parameterType="CheckResultEntity" resultType="ToolsManageEntity">
+		<![CDATA[
+		SELECT 
+			tm.section_id, tm.position_id, tm.responsible_operator_id, pos.process_code,
+			CASE 
+			WHEN #{manage_code} IS NULL THEN NULL
+			WHEN sum(tm.manage_code = #{manage_code}) = 0 THEN #{manage_code}
+			ELSE NULL
+			END as manage_code,
+			CASE
+			WHEN sum(coalesce(cr.checked_status, 0)) = 0
+			THEN 0
+			WHEN sum(coalesce(cr.checked_status, 0) > 0) = count(1)
+			THEN 2
+			ELSE 1
+			end as classify,
+			sum(coalesce(cr.checked_status, 0) in (2,3)) as `status`
+			FROM 
+				tools_manage tm
+		left Join 
+		(
+		select 
+			tcr.manage_id, tcr.checked_status
+		from
+			tool_check_result tcr
+		join (select 
+		            manage_id, max(check_confirm_time) as check_confirm_time
+		        from
+		            tool_check_result
+		        where
+		            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		        group by manage_id) tcras
+		ON tcr.manage_id = tcras.manage_id
+		AND tcr.check_confirm_time = tcras.check_confirm_time
+		)
+		cr on
+		cr.manage_id = tm.tools_manage_id
+		join position pos
+		on tm.position_id = pos.position_id
+		    ]]>
+		<where>
+		<if test="operator_id!=null and operator_id!='' ">
+			<![CDATA[
+		and tm.responsible_operator_id = #{operator_id}
+			]]>
+		</if>
+		<if test="manager_operator_id!=null and manager_operator_id!='' ">
+			<![CDATA[
+		and (tm.manager_operator_id = #{manager_operator_id} or tm.responsible_operator_id = #{manager_operator_id})
+			]]>
+		</if>
+		<if test="position_id!= null and position_id!=''">
+		<![CDATA[ 
+			and tm.position_id = #{position_id}
+		]]>
+		</if>
+		and tm.status = 1 and tm.delete_flg = 0
+		</where>
+		group by position_id,tm.section_id,tm.responsible_operator_id
+	</select>
+
+	<select id="searchToolUncheckedOnPosition"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		<![CDATA[ 
+		select distinct tm.tools_manage_id from tools_manage tm 
+		LEFT JOIN tool_check_result tcr 
+		ON tcr.manage_id = tm.tools_manage_id
+		AND date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		WHERE
+		tm.section_id = #{section_id}
+		AND
+		tm.position_id = #{position_id}
+		AND
+		tcr.checked_status is null
+		AND delete_flg = 0 AND status = 1
+		AND (tm.provide_date != current_date OR tm.provide_date is null)
+		and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+			where cur.manage_id = tm.tools_manage_id and cur.manage_id = 2
+			and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+		]]>
+	</select>
+
+	<select id="searchDailyDeviceUncheckedOnPosition"  parameterType="CheckResultEntity" resultType="String">
+		<![CDATA[ 
+		SELECT group_concat(distinct dm.manage_code) FROM device_check_result dcr
+		JOIN check_file_manage cfm
+		on dcr.check_file_manage_id = cfm.check_file_manage_id
+		join devices_manage dm
+		on dm.devices_manage_id = dcr.manage_id
+		join devices_check_item dci
+		on dci.check_file_manage_id = dcr.check_file_manage_id
+		and dcr.item_seq = dci.seq_no
+		where check_confirm_time > current_date
+		and dcr.checked_status = 0
+		and cfm.access_place = 1
+		AND (cfm.delete_flg = 0 or cfm.delete_flg = 2) AND dm.delete_flg = 0 AND dm.status = 1
+		and dm.section_id = #{section_id}
+		and (dm.position_id = #{position_id}
+			or (dm.position_id is null and dm.line_id = #{line_id}))
+		AND (dm.provide_date != current_date OR dm.provide_date is null)
+		and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+			where cur.manage_id = dm.devices_manage_id and cur.manage_id = 1
+			and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+		;
+		]]>
+	</select>
+
+	<select id="searchRegularyDeviceUncheckedOnPosition"  parameterType="CheckResultEntity" resultType="String">
+		<![CDATA[ 
+		SELECT group_concat(distinct dm.manage_code) FROM device_check_result dcr
+		JOIN check_file_manage cfm
+		on dcr.check_file_manage_id = cfm.check_file_manage_id
+		join devices_manage dm
+		on dm.devices_manage_id = dcr.manage_id
+		join devices_check_item dci
+		on dci.check_file_manage_id = dcr.check_file_manage_id
+		and dcr.item_seq = dci.seq_no
+		where dcr.checked_status = 0
+		and cfm.access_place = 2
+		and cfm.cycle_type = #{cycle_type}
+		AND cfm.delete_flg = 0 AND dm.delete_flg = 0 AND dm.status = 1
+		and check_confirm_time between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and dm.section_id = #{section_id}
+		and (dm.position_id = #{position_id}
+			or (dm.position_id is null and dm.line_id = #{line_id}))
+		AND (dm.provide_date != current_date or dm.provide_date is null)
+		and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+			where cur.manage_id = dm.devices_manage_id and cur.manage_id = 1
+			and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+		;
+		]]>
+	</select>
+
+	<select id="searchTorsionDeviceUncheckedOnPosition"  parameterType="CheckResultEntity" resultType="String">
+		<![CDATA[ 
+		SELECT group_concat(distinct dm.manage_code) FROM device_check_result dcr
+		join devices_manage dm
+		on dm.devices_manage_id = dcr.manage_id
+		where dcr.checked_status = 0
+		and dcr.check_file_manage_id = 98
+		and dm.delete_flg = 0 AND dm.status = 1
+		and check_confirm_time between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and dm.section_id = #{section_id}
+		and (dm.position_id = #{position_id}
+			or (dm.position_id is null and dm.line_id = #{line_id}))
+		AND (dm.provide_date != current_date OR dm.provide_date is null)
+		and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+			where cur.manage_id = dm.devices_manage_id and cur.manage_id = 1
+			and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+		;
+		]]>
+	</select>
+
+	<select id="getDeviceCheckInPeriod"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		select 
+			dcr.manage_id, dcr.checked_status, dcr.check_confirm_time, dcr.item_seq, dcr.digit, op.job_no, dci.cycle_type
+		from
+			device_check_result dcr
+		left join devices_check_item dci
+		ON 
+			dcr.check_file_manage_id = dci.check_file_manage_id
+			and dcr.item_seq = dci.seq_no
+		join (select 
+		            manage_id, item_seq, max(check_confirm_time) as check_confirm_time
+		        from
+		            device_check_result
+		        where
+		        	manage_id = #{manage_id}
+		        and
+		        	check_file_manage_id = #{check_file_manage_id}
+		        and
+		            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		        and
+		        	checked_status > 0
+		        group by manage_id, item_seq) dcras
+		ON dcr.manage_id = dcras.manage_id
+		AND dcr.item_seq = dcras.item_seq
+		AND dcr.check_confirm_time = dcras.check_confirm_time
+		join operator op
+		on dcr.operator_id = op.operator_id
+	</select>
+
+	<select id="getTorsionDeviceCheckInPeriod"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		select 
+			dcr.manage_id, dcr.checked_status, dcr.check_confirm_time, dcr.item_seq, dcr.digit, op.job_no
+		from
+			device_check_result dcr
+		join torsion_device td
+		ON 
+			dcr.manage_id = td.manage_id
+			and dcr.item_seq = td.seq
+		join (select 
+	            manage_id, item_seq, max(check_confirm_time) as check_confirm_time
+	        from
+	            device_check_result
+	        where
+	        	manage_id = #{manage_id}
+	        and
+	        	check_file_manage_id = #{check_file_manage_id}
+	        and
+	        	item_seq = #{item_seq}
+	        and
+	            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+	        and
+	        	checked_status > 0
+	        group by manage_id, item_seq) dcras
+		ON dcr.manage_id = dcras.manage_id
+		AND dcr.item_seq = dcras.item_seq
+		AND dcr.check_confirm_time = dcras.check_confirm_time
+		join operator op
+		on dcr.operator_id = op.operator_id
+	</select>
+
+	<select id="getDeviceReferInPeriod"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		select 
+            item_seq, base_digit as digit
+        from
+            device_check_refer
+        where
+        	manage_id = #{manage_id}
+        and
+        	check_file_manage_id = #{check_file_manage_id}
+        and
+            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+	</select>
+
+    <select id="getUpperStamp" resultType="CheckResultEntity" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		SELECT op.job_no FROM tool_manager_confirm tmc
+		join operator op
+		on tmc.upper_confirmer_id = op.operator_id
+		where date(confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and tmc.section_id = #{section_id}
+		and tmc.position_id = #{position_id}
+		order by (op.section_id = tmc.section_id) desc,confirm_time desc;
+		]]>
+	</select>
+
+	<insert id="setUpperConfirm" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		INSERT INTO `tool_manager_confirm`
+			(`section_id`,
+			`position_id`,
+			`upper_confirmer_id`,
+			`confirm_time`)
+		VALUES 
+			(#{section_id}, #{position_id}, #{operator_id}, current_timestamp);
+		]]>
+	</insert>
+
+	<delete id="removeWaitDeviceCheck" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		DELETE FROM `device_check_result` 
+		WHERE 
+			manage_id = #{manage_id}
+			AND check_file_manage_id = #{check_file_manage_id}
+			AND item_seq = #{item_seq}
+			AND checked_status = 0
+		]]>
+	</delete>
+
+	<insert id="insertDeviceCheckRefer" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		INSERT INTO `device_check_refer`
+			(`manage_id`,
+			`check_file_manage_id`,
+			`item_seq`,
+			`check_confirm_time`,
+			`base_digit`)
+		VALUES 
+			(#{manage_id}, #{check_file_manage_id}, #{item_seq}, current_timestamp, #{digit});
+		]]>
+	</insert>
+
+	<select id="getEIDeviceCheckOfDate"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		select 
+			dcr.manage_id, dcr.checked_status, dcr.check_confirm_time, dcr.item_seq, dcr.digit, op.job_no
+		from
+			device_check_result dcr
+		join electric_iron_device td
+		ON 
+			dcr.manage_id = td.manage_id
+			and dcr.item_seq = td.seq
+		join (select 
+	            manage_id, item_seq, max(check_confirm_time) as check_confirm_time
+	        from
+	            device_check_result
+	        where
+	        	manage_id = #{manage_id}
+	        and
+	        	check_file_manage_id = #{check_file_manage_id}
+	        and
+	        	item_seq = #{item_seq}
+	        and
+	            date(check_confirm_time) = #{check_confirm_time}
+	        and
+	        	checked_status > 0
+	        group by manage_id, item_seq) dcras
+		ON dcr.manage_id = dcras.manage_id
+		AND dcr.item_seq = dcras.item_seq
+		AND dcr.check_confirm_time = dcras.check_confirm_time
+		join operator op
+		on dcr.operator_id = op.operator_id
+	</select>
+
+	<select id="getDeviceCheckCommentInPeriodByManageId"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		SELECT 
+			content as `comment`,
+			date(input_time) as check_confirm_time,
+			op.job_no,
+			dm.manage_code
+		FROM check_comment cc
+		JOIN operator op
+		ON cc.operator_id = op.operator_id
+		JOIN devices_manage dm
+		ON cc.manage_id = dm.devices_manage_id
+		where manage_id = #{manage_id}
+		and object_type = 1
+		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		order by input_time
+		;
+	</select>
+
+	<select id="getJigCheckCommentInPeriodByManageId"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		SELECT group_concat(content, ' ' , date_format(input_time, '%m-%d') order by input_time separator '\n') FROM check_comment
+		where manage_id = #{manage_id}
+		and object_type = 2
+		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		;
+	</select>
+
+	<select id="getDeviceCheckCommentInPeriodByManageIdGroup"  parameterType="CheckResultEntity" resultType="String">
+		SELECT group_concat(content, ' ' , date_format(input_time, '%m-%d') order by input_time separator '\n') FROM check_comment
+		where manage_id = #{manage_id}
+		and object_type = 1
+		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		;
+	</select>
+
+	<select id="getJigCheckCommentInPeriodByManageIdGroup"  parameterType="CheckResultEntity" resultType="String">
+		SELECT group_concat(content, ' ' , date_format(input_time, '%m-%d') order by input_time separator '\n') FROM check_comment
+		where manage_id = #{manage_id}
+		and object_type = 2
+		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		;
+	</select>
+
+	<insert id="inputCheckComment" parameterType="CheckResultEntity">
+		<![CDATA[ 
+		INSERT INTO `check_comment`
+			(`manage_id`,
+			`object_type`,
+			`input_time`,
+			`operator_id`,
+			`content`)
+		VALUES 
+			(#{manage_id}, #{object_type}, #{check_confirm_time}, #{operator_id}, #{comment});
+		]]>
+	</insert>
+
+    <select id="getWeekCheck" resultType="int" parameterType="CheckResultEntity">
+		<![CDATA[ 
+			SELECT 
+			    count(1)
+			FROM
+			    device_check_result dcr
+			        JOIN
+			    devices_manage dm ON dcr.manage_id = dm.devices_manage_id and dm.delete_flg = 0
+			        JOIN
+			    check_file_manage cjm ON cjm.devices_type_id = dm.devices_type_id
+					and dcr.checked_status > 0
+			        and (cjm.specified_model_name is null
+			        OR cjm.specified_model_name LIKE CONCAT('%', dm.model_name, '%'))
+			        and cjm.access_place = 9
+			        and cjm.delete_flg = 0
+			WHERE
+				dcr.manage_id = #{manage_id}
+				AND date(dcr.check_confirm_time) >= #{check_confirm_time_start}
+			;
+		]]>
+	</select>
+</mapper>

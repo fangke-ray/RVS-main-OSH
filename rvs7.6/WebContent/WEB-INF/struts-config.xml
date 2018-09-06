@@ -1,0 +1,1381 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Licensed to the Apache Software Foundation (ASF) under one or more contributor 
+	license agreements. See the NOTICE file distributed with this work for additional 
+	information regarding copyright ownership. The ASF licenses this file to 
+	You under the Apache License, Version 2.0 (the "License"); you may not use 
+	this file except in compliance with the License. You may obtain a copy of 
+	the License at http://www.apache.org/licenses/LICENSE-2.0 Unless required 
+	by applicable law or agreed to in writing, software distributed under the 
+	License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS 
+	OF ANY KIND, either express or implied. See the License for the specific 
+	language governing permissions and limitations under the License. -->
+
+<!DOCTYPE struts-config PUBLIC
+	  "-//Apache Software Foundation//DTD Struts Configuration 1.3//EN"
+	  "http://struts.apache.org/dtds/struts-config_1_3.dtd">
+
+<struts-config>
+
+
+	<!-- ================================================ Form Bean Definitions -->
+
+	<form-beans>
+		<form-bean name="uploadForm" type="com.osh.rvs.form.UploadForm" />
+		<form-bean name="privacyForm" type="com.osh.rvs.form.master.PrivacyForm" />
+		<form-bean name="categoryForm" type="com.osh.rvs.form.master.CategoryForm" />
+		<form-bean name="modelForm" type="com.osh.rvs.form.master.ModelForm" />
+		<form-bean name="roleForm" type="com.osh.rvs.form.master.RoleForm" />
+		<form-bean name="sectionForm" type="com.osh.rvs.form.master.SectionForm" />
+		<form-bean name="lineForm" type="com.osh.rvs.form.master.LineForm" />
+		<form-bean name="positionForm" type="com.osh.rvs.form.master.PositionForm" />
+		<form-bean name="operatorForm" type="com.osh.rvs.form.master.OperatorForm" />
+		<form-bean name="processAssignTemplateForm" type="com.osh.rvs.form.master.ProcessAssignTemplateForm" />
+		<form-bean name="materialForm" type="com.osh.rvs.form.data.MaterialForm" />
+		<form-bean name="partialBoForm" type="com.osh.rvs.form.partial.MaterialPartialForm" />
+		<form-bean name="materialProcessForm" type="com.osh.rvs.form.inline.MaterialProcessForm" />
+		<form-bean name="scheduleForm" type="com.osh.rvs.form.inline.ScheduleForm" />
+		<form-bean name="materFactForm" type="com.osh.rvs.form.qf.MaterialFactForm" />
+		<form-bean name="productionFeatureForm" type="com.osh.rvs.form.data.ProductionFeatureForm" />
+		<form-bean name="positionProductionForm" type="com.osh.rvs.form.data.PositionProductionForm" />
+		<form-bean name="operatorProductionForm" type="com.osh.rvs.form.data.OperatorProductionForm" />
+		<form-bean name="alarmMessageForm" type="com.osh.rvs.form.data.AlarmMesssageForm" />
+		<form-bean name="soloProductionFeatureForm" type="com.osh.rvs.form.inline.SoloProductionFeatureForm" />
+		<form-bean name="snoutForm" type="com.osh.rvs.form.inline.SnoutForm" />
+		<form-bean name="qaResultForm" type="com.osh.rvs.form.data.QaResultForm" />
+		<form-bean name="serviceRepairManageForm" type="com.osh.rvs.form.qa.ServiceRepairManageForm"/>
+		<form-bean name="composeStorageForm" type="com.osh.rvs.form.inline.ComposeStorageForm"/>
+		<form-bean name="partialForm" type="com.osh.rvs.form.master.PartialForm"></form-bean>
+		<form-bean name="pcsFixOrderForm" type="com.osh.rvs.form.manage.PcsFixOrderForm"></form-bean>
+		<form-bean name="partialPositionForm" type="com.osh.rvs.form.master.PartialPositionForm"></form-bean>
+		<form-bean name="partialOrderForm" type="com.osh.rvs.form.partial.MaterialPartialDetailForm"></form-bean>
+		<form-bean name="partialBomForm" type="com.osh.rvs.form.master.PartialBomForm"/>
+		<form-bean name="materialPartialDetailForm" type="com.osh.rvs.form.partial.MaterialPartialDetailForm"/>
+		<form-bean name="partialWasteModifyHistoryForm" type="com.osh.rvs.form.partial.PartialWasteModifyHistoryForm"></form-bean>
+		<form-bean name="modelLevelSetForm" type="com.osh.rvs.form.manage.ModelLevelSetForm"/>
+		<form-bean name="echelonAllocateForm" type="com.osh.rvs.form.manage.EchelonAllocateForm"></form-bean>
+		<form-bean name="partialOrderRecordForm" type="com.osh.rvs.form.partial.PartialOrderRecordForm"></form-bean>
+		<form-bean name="PartialBaseLineValueForm" type="com.osh.rvs.form.partial.PartialBaseLineValueForm"/>
+		<form-bean name="userDefineCodesForm" type="com.osh.rvs.form.manage.UserDefineCodesForm"></form-bean>
+		<form-bean name="partialSupplyForm" type="com.osh.rvs.form.partial.PartialSupplyForm"></form-bean>
+		<form-bean name="partialOrderManageForm" type="com.osh.rvs.form.partial.PartialOrderManageForm"></form-bean>
+		<form-bean name="partialBaseValueAdjustHistoryForm" type="com.osh.rvs.form.partial.PartialBaseValueAdjustHistoryForm"></form-bean>
+		<form-bean name="modelLevelSetHistoryForm" type="com.osh.rvs.form.manage.ModelLevelSetHistoryForm"></form-bean>
+		<form-bean name="customerForm" type="com.osh.rvs.form.master.CustomerForm" />
+		<form-bean name="sorcLossForm" type="com.osh.rvs.form.partial.SorcLossForm"></form-bean>
+		<form-bean name="badLossSummaryForm" type="com.osh.rvs.form.partial.BadLossSummaryForm"></form-bean>
+		<form-bean name="devicesTypeForm" type="com.osh.rvs.form.master.DevicesTypeForm"></form-bean>
+		<form-bean name="devicesManageForm" type="com.osh.rvs.form.master.DevicesManageForm"></form-bean>
+		<form-bean name="forSolutionAreaForm" type="com.osh.rvs.form.inline.ForSolutionAreaForm"></form-bean>
+		<form-bean name="CheckFileManageForm" type="com.osh.rvs.form.master.CheckFileManageForm"></form-bean>
+		<form-bean name="CheckUnqualifiedRecordForm" type="com.osh.rvs.form.infect.CheckUnqualifiedRecordForm"></form-bean>
+		<form-bean name="ToolsTypeForm" type="com.osh.rvs.form.master.ToolsTypeForm"></form-bean>
+		<form-bean name="ToolsManageForm" type="com.osh.rvs.form.master.ToolsManageForm"></form-bean>
+
+		<form-bean name="DailyCheckResultForm" type="com.osh.rvs.form.infect.DailyCheckResultForm"></form-bean>
+		<form-bean name="ToolsCheckResultForm" type="com.osh.rvs.form.infect.ToolsCheckResultForm"></form-bean>
+
+		<form-bean name="MaterialOgzForm" type="com.osh.rvs.form.inline.MaterialOgzForm"></form-bean>
+		<form-bean name="DeviceRegularlyCheckResultForm" type="com.osh.rvs.form.infect.DeviceRegularlyCheckResultForm"></form-bean>
+		<form-bean name="ToolsDistributeForm" type="com.osh.rvs.form.infect.ToolsDistributeForm"></form-bean>
+		<form-bean name="ExternalAdjustmentForm" type="com.osh.rvs.form.infect.ExternalAdjustmentForm"></form-bean>
+		<form-bean name="CheckResultFilingForm" type="com.osh.rvs.form.infect.CheckResultFilingForm"></form-bean>
+		<form-bean name="UsageCheckForm" type="com.osh.rvs.form.infect.UsageCheckForm"></form-bean>
+		
+		<form-bean name="TorsionDeviceForm" type="com.osh.rvs.form.infect.TorsionDeviceForm"></form-bean>
+		<form-bean name="CustomerForm" type="com.osh.rvs.form.master.CustomerForm"></form-bean>
+		<form-bean name="ElectricIronDeviceForm" type="com.osh.rvs.form.infect.ElectricIronDeviceForm"></form-bean>
+		
+		<form-bean name="SystemImageManageForm" type="com.osh.rvs.form.master.SystemImageManageForm"></form-bean>
+		<form-bean name="PcsRequestForm" type="com.osh.rvs.form.master.PcsRequestForm"></form-bean>
+		<form-bean name="ConsumableListForm" type="com.osh.rvs.form.partial.ConsumableListForm"></form-bean>
+
+		<form-bean name="interfaceDataForm" type="com.osh.rvs.form.manage.InterfaceDataForm"></form-bean>
+		
+		<form-bean name="consumableManageForm" type="com.osh.rvs.form.partial.ConsumableManageForm"></form-bean>
+		<form-bean name="consumableOnlineForm" type="com.osh.rvs.form.partial.ConsumableOnlineForm"></form-bean>
+		<form-bean name="ConsumableApplicationForm" type="com.osh.rvs.form.partial.ConsumableApplicationForm"></form-bean>
+		<form-bean name="PdaSupplyForm" type="com.osh.rvs.form.pda.PdaSupplyForm"></form-bean>
+		<form-bean name="pdaApplyForm" type="com.osh.rvs.form.pda.PdaApplyForm"></form-bean>
+		<form-bean name="pdaApplyDetailForm" type="com.osh.rvs.form.pda.PdaApplyDetailForm"></form-bean>
+		<form-bean name="PdaApplyElementForm" type="com.osh.rvs.form.pda.PdaApplyElementForm"></form-bean>
+		<form-bean name="MaterialProcessAssignForm" type="com.osh.rvs.form.inline.MaterialProcessAssignForm"></form-bean>
+		<form-bean name="LightFixForm" type="com.osh.rvs.form.master.LightFixForm"></form-bean>
+		<form-bean name="PremakePartialForm" type="com.osh.rvs.form.partial.PremakePartialForm"></form-bean>
+		
+		<form-bean name="TurnoverCaseForm" type="com.osh.rvs.form.qf.TurnoverCaseForm"></form-bean>
+		<form-bean name="PeripheralInfectDeviceForm" type="com.osh.rvs.form.infect.PeripheralInfectDeviceForm"></form-bean>
+		<form-bean name="PartialStorageForm" type="com.osh.rvs.form.partial.PartialStorageForm"></form-bean>
+		<form-bean name="DryingOvenDeviceForm" type="com.osh.rvs.form.infect.DryingOvenDeviceForm"></form-bean>
+		<form-bean name="DryingJobForm" type="com.osh.rvs.form.infect.DryingJobForm"></form-bean>
+		<form-bean name="DryingProcessForm" type="com.osh.rvs.form.inline.DryingProcessForm"></form-bean>
+		<form-bean name="WorkTimeAnalysisForm" type="com.osh.rvs.form.report.WorkTimeAnalysisForm"></form-bean>
+		<form-bean name="ProductivityForm" type="com.osh.rvs.form.report.ProductivityForm"></form-bean>
+		<form-bean name="LineBalanceRateForm" type="com.osh.rvs.form.report.LineBalanceRateForm"></form-bean>
+		<form-bean name="FoundryForm" type="com.osh.rvs.form.report.FoundryForm"></form-bean>
+		<form-bean name="WaittingTimeReportForm" type="com.osh.rvs.form.report.WaittingTimeReportForm"></form-bean>
+		<form-bean name="RemainTimeReportForm" type="com.osh.rvs.form.report.RemainTimeReportForm"></form-bean>
+		<form-bean name="workDurationForm" type="com.osh.rvs.form.report.WorkDurationForm"></form-bean>
+		<form-bean name="SteelWireContainerWashProcessForm" type="com.osh.rvs.form.inline.SteelWireContainerWashProcessForm"></form-bean>
+		<form-bean name="ConsumableSupplyRecordForm" type="com.osh.rvs.form.partial.ConsumableSupplyRecordForm"></form-bean>
+	</form-beans>
+
+
+	<!-- ========================================= Global Exception Definitions -->
+
+	<global-exceptions>
+		<!-- sample exception handler <exception key="expired.password" type="app.ExpiredPasswordException" 
+			path="/changePassword.jsp"/> end sample -->
+	</global-exceptions>
+
+
+	<!-- =========================================== Global Forward Definitions -->
+
+	<global-forwards>
+		<!-- Default forward to "Welcome" action -->
+		<forward name="error" path="/pages/error.jsp" />
+		<forward name="logout" path="/pages/login.jsp" />
+	</global-forwards>
+
+
+	<!-- =========================================== Action Mapping Definitions -->
+
+	<action-mappings>
+
+		<action path="/login" type="com.osh.rvs.action.LoginAction" name="operatorForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/login.jsp" />
+			<forward name="success" path="/category.do" />
+			<forward name="pda_init" path="/pages/pda/pda_login.jsp" />
+			<forward name="pda_menu" path="/pages/pda/pda_menu.jsp" />
+		</action>
+
+		<action path="/category" type="com.osh.rvs.action.master.CategoryAction" name="categoryForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/category.jsp" />
+			<forward name="success" path="/pages/admin/category.jsp" />
+		</action>
+
+		<action path="/model" type="com.osh.rvs.action.master.ModelAction" name="modelForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/model.jsp" />
+			<forward name="success" path="/pages/admin/model.jsp" />
+		</action>
+
+		<action path="/privacy" type="com.osh.rvs.action.master.PrivacyAction" name="privacyForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/privacy.jsp" />
+			<forward name="success" path="/pages/admin/privacy.jsp" />
+		</action>
+
+		<action path="/role" type="com.osh.rvs.action.master.RoleAction" name="roleForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/role.jsp" />
+			<forward name="success" path="/pages/admin/role.jsp" />
+		</action>
+
+		<action path="/section" type="com.osh.rvs.action.master.SectionAction" name="sectionForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/section.jsp" />
+			<forward name="success" path="/pages/admin/section.jsp" />
+		</action>
+
+		<action path="/line" type="com.osh.rvs.action.master.LineAction" name="lineForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/line.jsp" />
+			<forward name="success" path="/pages/admin/line.jsp" />
+		</action>
+
+		<action path="/position" type="com.osh.rvs.action.master.PositionAction" name="positionForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/position.jsp" />
+			<forward name="success" path="/pages/admin/position.jsp" />
+		</action>
+
+		<action path="/operator" type="com.osh.rvs.action.master.OperatorAction" name="operatorForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/operator.jsp" />
+			<forward name="success" path="/pages/admin/operator.jsp" />
+		</action>
+
+		<action path="/holiday" type="com.osh.rvs.action.master.HolidayAction" scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/holiday.jsp" />
+			<forward name="success" path="/pages/admin/holiday.jsp" />
+		</action>
+
+		<action path="/properties" type="com.osh.rvs.action.master.HolidayAction" scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/properties.jsp" />
+			<forward name="success" path="/pages/admin/properties.jsp" />
+		</action>
+
+		<action path="/adminmenu" type="com.osh.rvs.action.master.OperatorAction" name="operatorForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/master_design.jsp" />
+			<forward name="success" path="/pages/admin/master_design.jsp" />
+		</action>
+
+		<action path="/processAssignTemplate" type="com.osh.rvs.action.master.ProcessAssignTemplateAction" name="processAssignTemplateForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/process_assign_template.jsp" />
+			<forward name="success" path="/pages/admin/process_assign_template.jsp" />
+		</action>
+
+		<!-- =========Front -->
+
+		<!-- #qf# 受理 start -->
+		<action path="/acceptance" type="com.osh.rvs.action.qf.AcceptanceAction" parameter="method" validate="false" name="materialForm">
+			<forward name="init" path="/pages/qf/acceptance-1.jsp" />
+			<forward name="success" path="/pages/qf/acceptance-1.jsp" />
+		</action>
+
+		<!-- acceptance config end -->
+
+		<!-- inline 工位 -->
+		<action path="/position_panel" type="com.osh.rvs.action.inline.PositionPanelAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/position_panel.jsp" />
+			<forward name="result" path="/pages/inline/position_panel_with_result.jsp" />
+			<forward name="snout" path="/pages/inline/position_panel_snout.jsp" />
+			<forward name="simple" path="/pages/inline/position_panel_simple.jsp" />
+			<forward name="precieve" path="/pages/inline/position_panel_precieve.jsp" />
+			<forward name="usesnout" path="/pages/inline/position_panel_usesnout.jsp" />
+			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
+			<forward name="success" path="/pages/inline/position_panel.jsp" />
+		</action>
+		<action path="/position_panel1" type="com.osh.rvs.action.inline.prototype.PositionPanel1Action" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/position_panel.jsp" />
+			<forward name="result" path="/pages/inline/position_panel_with_result.jsp" />
+			<forward name="snout" path="/pages/inline/position_panel_snout.jsp" />
+			<forward name="simple" path="/pages/inline/position_panel_simple.jsp" />
+			<forward name="precieve" path="/pages/inline/position_panel_precieve.jsp" />
+			<forward name="usesnout" path="/pages/inline/position_panel_usesnout.jsp" />
+			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
+			<forward name="success" path="/pages/inline/position_panel.jsp" />
+		</action>
+		<action path="/position_panel2" type="com.osh.rvs.action.inline.prototype.PositionPanel2Action" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/position_panel.jsp" />
+			<forward name="result" path="/pages/inline/position_panel_with_result.jsp" />
+			<forward name="snout" path="/pages/inline/position_panel_snout.jsp" />
+			<forward name="simple" path="/pages/inline/position_panel_simple.jsp" />
+			<forward name="precieve" path="/pages/inline/position_panel_precieve.jsp" />
+			<forward name="usesnout" path="/pages/inline/position_panel_usesnout.jsp" />
+			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
+			<forward name="success" path="/pages/inline/position_panel.jsp" />
+		</action>
+		<action path="/position_panel3" type="com.osh.rvs.action.inline.prototype.PositionPanel3Action" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/position_panel.jsp" />
+			<forward name="result" path="/pages/inline/position_panel_with_result.jsp" />
+			<forward name="snout" path="/pages/inline/position_panel_snout.jsp" />
+			<forward name="simple" path="/pages/inline/position_panel_simple.jsp" />
+			<forward name="precieve" path="/pages/inline/position_panel_precieve.jsp" />
+			<forward name="usesnout" path="/pages/inline/position_panel_usesnout.jsp" />
+			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
+			<forward name="success" path="/pages/inline/position_panel.jsp" />
+		</action>
+		<action path="/position_panel4" type="com.osh.rvs.action.inline.prototype.PositionPanel4Action" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/position_panel.jsp" />
+			<forward name="result" path="/pages/inline/position_panel_with_result.jsp" />
+			<forward name="snout" path="/pages/inline/position_panel_snout.jsp" />
+			<forward name="simple" path="/pages/inline/position_panel_simple.jsp" />
+			<forward name="precieve" path="/pages/inline/position_panel_precieve.jsp" />
+			<forward name="usesnout" path="/pages/inline/position_panel_usesnout.jsp" />
+			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
+			<forward name="success" path="/pages/inline/position_panel.jsp" />
+		</action>
+		<action path="/position_panel5" type="com.osh.rvs.action.inline.prototype.PositionPanel5Action" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/position_panel.jsp" />
+			<forward name="result" path="/pages/inline/position_panel_with_result.jsp" />
+			<forward name="snout" path="/pages/inline/position_panel_snout.jsp" />
+			<forward name="simple" path="/pages/inline/position_panel_simple.jsp" />
+			<forward name="precieve" path="/pages/inline/position_panel_precieve.jsp" />
+			<forward name="usesnout" path="/pages/inline/position_panel_usesnout.jsp" />
+			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
+			<forward name="success" path="/pages/inline/position_panel.jsp" />
+		</action>
+
+		<!-- inline 先端预制 -->
+		<action path="/position_panel_snout" type="com.osh.rvs.action.inline.PositionPanelSnoutAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/position_panel_snout.jsp" />
+			<forward name="success" path="/pages/inline/position_panel_snout.jsp" />
+		</action>
+
+		<!-- data 维修对象 -->
+		<action path="/material" type="com.osh.rvs.action.data.MaterialAction" parameter="method" validate="false" name="materialForm" scope="request">
+			<forward name="init" path="/pages/data/list_materials-page.jsp" />
+			<forward name="success" path="/pages/data/list_materials-page.jsp" />
+		</action>
+ 		
+		<!-- partial 订购零件 -->
+		<action path="/materialPartial" type="com.osh.rvs.action.partial.MaterialPartialAction" parameter="method" validate="false" name="materialPartialForm" scope="request">
+			<forward name="init" path="/pages/partial/bo_partial.jsp" />
+			<forward name="success" path="/pages/partial/bo_partial.jsp" />
+		</action>
+ 		
+		<!-- inline 维修进度 -->
+		<action path="/materialProcess" type="com.osh.rvs.action.inline.MaterialProcessAction" parameter="method" validate="false" name="materialProcessForm" scope="request"> 
+		</action>
+		
+		<!-- qf 投线 -->
+		<action path="/materialFact" type="com.osh.rvs.action.qf.MaterialFactAction" parameter="method" validate="false" name="materialFactForm" scope="request">
+			<forward name="init" path="/pages/qf/fact_material.jsp" />
+			<forward name="success" path="/pages/qf/fact_material.jsp" />
+		</action>
+
+		<!-- qf 报价 -->
+		<action path="/quotation" type="com.osh.rvs.action.qf.QuotationAction" parameter="method" validate="false" name="materialForm" scope="request">
+			<forward name="init" path="/pages/qf/quotation.jsp" />
+			<forward name="success" path="/pages/qf/quotation.jsp" />
+		</action>
+
+		<!-- manage 计划 -->
+		<action path="/schedule" type="com.osh.rvs.action.inline.ScheduleAction" parameter="method" validate="false" name="scheduleForm" scope="request">
+			<forward name="init" path="/pages/inline/schedule.jsp" />
+			<forward name="success" path="/pages/inline/schedule.jsp" />
+		</action>
+		<!-- manage 进度 -->
+		<action path="/scheduleProcessing" type="com.osh.rvs.action.inline.ScheduleProcessingAction" parameter="method" validate="false" name="scheduleForm" scope="request">
+			<forward name="init" path="/pages/inline/schedule_processing.jsp" />
+			<forward name="success" path="/pages/inline/schedule_processing.jsp" />
+			
+			<forward name="capacity_setting" path="/widgets/manage/capacity_setting.jsp"/>
+
+			<forward name="daily_report" path="/widgets/report/daily_report.jsp" />
+		</action>
+		<!-- data 作业 -->
+		<action path="/productFeature" type="com.osh.rvs.action.data.ProductionFeatureAction" parameter="method" validate="false" name="productionFeatureForm" scope="request">
+		</action>
+		<!-- data 工位工作记录 -->
+		<action path="/positionProduction" type="com.osh.rvs.action.data.PositionProductionAction" parameter="method" validate="false" name="positionProductionForm" scope="request">
+			<forward name="init" path="/pages/data/list_positions-page.jsp" />
+			<forward name="success" path="/pages/data/list_positions-page.jsp" />
+		</action>
+		<!-- data 人员工作记录 -->
+		<action path="/operatorProduction" type="com.osh.rvs.action.data.OperatorProductionAction" parameter="method" validate="false" name="operatorProductionForm" scope="request">
+			<forward name="init" path="/pages/data/list_operators-page.jsp" />
+			<forward name="success" path="/pages/data/list_operators-page.jsp" />
+			<forward name="monthly" path="/pages/report/monthly_report.jsp" />
+		</action>
+		<!-- inline 线长 -->
+		<action path="/lineLeader" type="com.osh.rvs.action.inline.LineLeaderAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/line_leader.jsp" />
+			<forward name="success" path="/pages/inline/line_leader.jsp" />
+		</action>
+
+		<!--action path="/snout" type="com.osh.rvs.action.app.SnoutAction" parameter="method" validate="false" name="soloProductionFeatureForm" scope="request">
+			<forward name="init" path="/pages/app/list_snouts.jsp" />
+			<forward name="success" path="/pages/app/list_snouts.jsp" />
+		</action-->
+
+		<!-- data 工程检查票 -->
+		<action path="/materialPcs" type="com.osh.rvs.action.data.MaterialAction" parameter="method" validate="false" name="materialForm" scope="request">
+			<forward name="init" path="/pages/data/list_pcses-page.jsp" />
+			<forward name="success" path="/pages/data/list_pcses-page.jsp" />
+		</action>
+
+		<!-- data 警报 -->
+		<action path="/alarmMessage" type="com.osh.rvs.action.data.AlarmMessageAction" parameter="method" validate="false" name="alarmMessageForm" scope="request">
+			<forward name="nogoodedit" path="/widgets/nogood-edit.jsp" />
+			<forward name="detail" path="/widgets/message-detail.jsp" />
+			<forward name="init" path="/pages/data/list_messages.jsp" />
+			<forward name="success" path="/pages/data/list_messages.jsp" />
+		</action>
+
+		<!-- qa 品保最终检验 -->
+		<action path="/qualityAssurance" type="com.osh.rvs.action.qa.QualityAssuranceAction" parameter="method" validate="false" name="materialForm" scope="request">
+			<forward name="init" path="/pages/qa/quality_assurance.jsp" />
+			<forward name="success" path="/pages/qa/quality_assurance.jsp" />
+		</action>
+
+		<!-- qf WIP库位 -->
+		<action path="/wip" type="com.osh.rvs.action.qf.WipAction" parameter="method" validate="false" name="materialForm" scope="request">
+			<forward name="init" path="/pages/qf/wip.jsp" />
+			<forward name="success" path="/pages/qf/wip.jsp" />
+		</action>
+
+		<!-- inline 支援 -->
+		<action path="/support" type="com.osh.rvs.action.inline.SupportAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/inline/support.jsp" />
+			<forward name="success" path="/pages/inline/support.jsp" />
+		</action>
+ 
+		<!-- qf 报价线长 -->
+		<action path="/beforeLineLeader" type="com.osh.rvs.action.qf.BeforeLineLeaderAction" parameter="method" name="materialForm" scope="request" validate="false">
+			<forward name="init" path="/pages/qf/before_line_leader.jsp" />
+			<forward name="success" path="/pages/qf/before_line_leader.jsp" />
+		</action>
+ 
+		<!-- qf 出货 -->
+		<action path="/shipping" type="com.osh.rvs.action.qf.ShippingAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/qf/shipping.jsp" />
+			<forward name="success" path="/pages/qf/shipping.jsp" />
+		</action>
+ 
+		<!-- report 归档 -->
+		<action path="/filing" type="com.osh.rvs.action.report.FilingAction" parameter="method" validate="false" name="materialForm" scope="request">
+			<forward name="init" path="/pages/report/filing.jsp" />
+			<forward name="success" path="/pages/report/filing.jsp" />
+		</action>
+ 
+		<!-- data 先端组件 -->
+		<action path="/snouts" type="com.osh.rvs.action.data.SnoutsAction" name="snoutForm" parameter="method" validate="false" scope="request">
+			<forward name="init" path="/pages/data/list_snouts.jsp" />
+			<forward name="success" path="/pages/data/list_snouts.jsp" />
+			<forward name="detail" path="/widgets/snout-detail.jsp" />
+		</action>
+ 
+		<!-- =========Common -->
+		<action path="/upload" type="com.osh.rvs.action.UploadAction" name="uploadForm" parameter="method" validate="false" scope="request">
+		</action>
+
+		<action path="/download" type="com.osh.rvs.action.DownloadAction" parameter="method" validate="false">
+		</action>
+
+		<action path="/header" type="com.osh.rvs.action.HeaderAction" parameter="method" validate="false">
+			<forward name="init" path="/widgets/header.jsp" />
+			<forward name="success" path="/widgets/header.jsp" />
+			<forward name="post_confirm" path="/widgets/header.jsp" />
+			<forward name="partialManage" path="/partialManage.do?method=init" />
+			<forward name="partialAssign" path="/partial_distrubute.do?method=init" />
+			<forward name="partialOrder" path="/partial_order.do?method=init" />
+			<forward name="partialRecept" path="/partial_recept.do?method=init" />
+			<forward name="materialPartial" path="/materialPartial.do?method=init" />
+			<forward name="infect" path="/devices_distribute.do?method=init" />
+			<forward name="infectM" path="/devices_manage.do?method=init" />
+		</action>
+
+		<action path="/appmenu" type="com.osh.rvs.action.AppMenuAction" parameter="method" validate="false">
+			<forward name="init" path="/widgets/appmenu.jsp" />
+			<forward name="partial" path="/widgets/partialmenu.jsp" />
+			<forward name="tools" path="/widgets/toolsmenu.jsp" />
+			<forward name="success" path="/widgets/appmenu.jsp" />
+			<forward name="init-ex" path="/widgets/appmenu-ex.jsp" />
+			<forward name="partial-ex" path="/widgets/partialmenu-ex.jsp" />
+			<forward name="tools-ex" path="/widgets/toolsmenu-ex.jsp" />
+			<forward name="pda_menu" path="/pages/pda/pda_menu.jsp" />
+		</action>
+
+		<action path="/panel" type="com.osh.rvs.action.PanelAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/panel.jsp" />
+			<forward name="acceptance" path="/acceptance.do?method=init" />
+			<forward name="quotation" path="/quotation.do?method=init" />
+			<forward name="fact" path="/materialFact.do?method=init" />
+			<forward name="position" path="/position_panel.do?method=init" />
+			<forward name="schedule" path="/schedule.do?method=init" />
+			<forward name="lineleader" path="/lineLeader.do?method=init" />
+			<forward name="blineleader" path="/beforeLineLeader.do?method=init" />
+			<forward name="qualityAssurance" path="/qualityAssurance.do?method=init" />
+			<forward name="shipping" path="/shipping.do?method=init" />
+			<forward name="material" path="/material.do?method=init" />
+			<forward name="partialm" path="/partialManage.do?method=init" />
+			<forward name="success" path="/panel.do?method=init" />
+		</action>
+
+		<!-- common 密码 -->
+		<action path="/password" type="com.osh.rvs.action.ChangePasswordAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/password.jsp" />
+			<forward name="success" path="/pages/password.jsp" />
+		</action>
+ 
+		<action path="/widget" type="com.osh.rvs.action.WidgetAction" parameter="method" validate="false">
+			<forward name="init" path="/widgets/panel.jsp" />
+			<forward name="breakoperator" path="/widgets/break-operator.jsp" />
+			<forward name="pauseoperator" path="/widgets/pause-operator.jsp" />
+			<forward name="stepoperator" path="/widgets/step-operator.jsp" />
+			<forward name="nogoodedit" path="/widgets/nogood-edit.jsp" />
+			<forward name="rework" path="/widgets/rework.jsp" />
+			<forward name="materialDetail" path="/widgets/material-detail.jsp" />
+			<forward name="cleanPosition" path="/widgets/clean-position.jsp" />
+			<forward name="photoEditor" path="/widgets/photo_editor.jsp" />
+			<forward name="pauseWorkreport" path="/widgets/pause-workreport.jsp" />
+			<forward name="success" path="/widgets/panel.jsp" />
+		</action>
+
+		<action path="/show" type="org.apache.struts.actions.ForwardAction" parameter="/pages/show.jsp" validate="false">
+		</action>
+
+		<!-- rvs 二期Start -->
+		
+		<!-- data 出检结果 -->
+		<action path="/qaResult" 
+		              type="com.osh.rvs.action.data.QaResultAction"
+		              parameter="method" 
+		              name="qaResultForm"
+		              scope="request"
+		              validate="false">
+		      <forward name="init" path="/pages/data/qa_result.jsp" />
+		      <forward name="success"  path="/pages/data/qa_result.jsp"/>
+		</action>
+
+		<!-- qa 返品QIS管理 -->
+		<action path="/service_repair_manage"
+				type="com.osh.rvs.action.qa.ServiceRepairManageAction"
+				parameter="method"
+				scope="request"
+				name="serviceRepairManageForm"
+				validate="false">
+				<forward name="init" path="/pages/qa/service_repair_manage.jsp" />
+		</action>
+
+		<action path="/partial" type="com.osh.rvs.action.master.PartialAction" 
+				parameter="method"
+				scope="request"
+				name="partialForm"
+				validate="false">
+			<forward name="init" path="/pages/admin/partial.jsp" />
+		</action>
+
+		<!--action path="/partialManage" type="com.osh.rvs.action.master.PartialAction" 
+				parameter="method"
+				scope="request"
+				name="partialForm"
+				validate="false">
+			<forward name="init" path="/pages/admin/partial-page.jsp" />
+		</action-->
+		<action path="/partialManage" type="org.apache.struts.actions.ForwardAction" parameter="/pages/partial/partial-page.jsp" validate="false">
+		</action>
+
+		<!-- qa 出检展示数据修改 -->
+		<action path="/qaStatictis" 
+		              type="com.osh.rvs.action.qa.QaStatictisAction"
+		              parameter="method" 
+		              scope="request"
+		              validate="false">
+		      <forward name="init" path="/pages/qa/qa_statictis.jsp" />
+		      <forward name="success"  path="/pages/qa/qa_statictis.jsp"/>
+		</action>
+
+		<!-- inline 总组库位 -->
+		<action path="/compose_storage"
+				type="com.osh.rvs.action.inline.ComposeStorageAction"
+				parameter="method"
+				name="composeStorageForm"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/inline/compose_storage.jsp"/>
+		</action>
+
+		<!-- data 标准工时 -->
+		<action path="/standard_work_time" type="com.osh.rvs.action.data.StandardWorkTimeAction" parameter="method" scope="request"
+				validate="false">
+		    <forward name="init" path="/pages/data/standard_work_time.jsp"/>
+		    <forward name="success" path="/pages/data/standard_work_time.jsp"/>
+		</action>
+
+		<!-- manage 工程检查票修改 -->
+		<action path="/pcsFixOrder"
+				type="com.osh.rvs.action.manage.PcsFixOrderAction"
+				parameter="method"
+				name="pcsFixOrderForm"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/admin/pcs_fix_order.jsp"/>
+				<forward name="pcpage" path="/widgets/position_clean.jsp"/>
+		</action>
+
+		<!-- qa 返品QIS判定 -->
+		<action path="/service_repair_referee" 
+				type="com.osh.rvs.action.qa.ServiceRepairRefereeAction"
+				parameter="method"
+				scope="request"
+				name="serviceRepairManageForm"
+				validate="false">
+				<forward name="init" path="/pages/qa/service_repair_referee.jsp" />
+		</action>
+
+		<!-- report 工作记录表 -->
+		<action path="/daily_work_sheet" 
+				type="com.osh.rvs.action.qa.DailyWorkSheetAction"
+				parameter="method"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/qa/daily_work_sheet.jsp" />
+		</action>
+
+		<!-- data 工程检查票模板 -->
+		<action path="/pcsTemplate" 
+				type="com.osh.rvs.action.data.PcsTemplateAction"
+				parameter="method"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/data/pcs_template.jsp" />
+		</action>
+
+		<!-- master 零件BOM表 -->
+		<action path="/partial_bom"
+				type="com.osh.rvs.action.master.PartialBomAction"
+				parameter="method"
+				scope="request"
+				name="partialBomForm"
+				validate="false">
+				<forward name="init" path="/pages/admin/partial_bom.jsp"/>
+		</action>
+
+		<!-- partial 零件发放 -->
+		<action path="/partial_assign"
+				type="com.osh.rvs.action.partial.PartialAssignAction"
+				parameter="method"
+				scope="request"
+				name="materialPartialDetailForm"
+				validate="false">
+				<forward name="init" path="/pages/partial/partial_assign.jsp"/>
+		</action>
+
+		<!-- master 零件定位 -->
+		<action path="/partial_position" 
+				type="com.osh.rvs.action.master.PartialPositionAction" 
+				name="partialPositionForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/admin/partial_position_page.jsp" />
+			   <forward name="success" path="/pages/admin/partial_position_page.jsp" />
+		</action>
+
+		<!-- partial 零件订购 -->
+		<action path="/partial_order" 
+				type="com.osh.rvs.action.partial.PartialOrderAction" 
+				name="partialOrderForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/partial/partial_order_page.jsp" />
+		</action>
+
+		<!-- partial 零件签收 -->
+		<action path="/partial_recept"
+				type="com.osh.rvs.action.partial.PartialReceptAction"
+				parameter="method"
+				name="materialPartialDetailForm"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/partial/partial_recept.jsp"/>
+		</action>
+
+		<!-- data 零件改废增履历 -->
+		<action path="/partial_waste_modify_history"
+				type="com.osh.rvs.action.partial.PartialWasteModifyHistoryAction"
+				parameter="method"
+				scope="request"
+				name="partialWasteModifyHistoryForm"
+				validate="false">
+				<forward name="init" path="/pages/partial/partial_waste_modify_history.jsp"/>
+		</action>
+
+		<!-- partial 等级型号拉动台数 -->
+		<action path="/levelmodel_leeds"
+				type="com.osh.rvs.action.manage.LevelModelLeedsAction"
+				parameter="method"
+				scope="request"
+				name="modelLevelSetForm"
+				validate="false">
+				<forward name="init" path="/pages/manage/levelmodel_leeds.jsp"/>
+		</action>
+
+		<!-- partial 维修梯队 -->
+		<action path="/echelon_allocate"
+				type="com.osh.rvs.action.manage.EchelonAllocateAction"
+				parameter="method"
+				scope="request"
+				name="echelonAllocateForm"
+				validate="false">
+				<forward name="init" path="/pages/manage/echelon_allocate.jsp"/>
+		</action>
+
+		<!-- partial 零件订购现状 -->
+		<action path="/partial_order_record" type="com.osh.rvs.action.partial.PartialOrderRecordAction" parameter="method" validate="false" name="partialOrderRecordForm" scope="request">
+			<forward name="init" path="/pages/partial/partial_order_record.jsp" />
+			<forward name="success" path="/pages/partial/partial_order_record.jsp" />
+		</action>
+
+		<!-- partial 零件监控 -->
+		<action path="/partial_monitor" type="com.osh.rvs.action.partial.PartialMonitorAction" parameter="method" validate="false" name="partialOrderRecordForm" scope="request">
+			<forward name="init" path="/pages/partial/partial_monitor.jsp" />
+			<forward name="success" path="/pages/partial/partial_monitor.jsp" />
+		</action>
+
+		<!-- partial 零件基准值 -->
+		<action path="/partial_base_line_value"
+				type="com.osh.rvs.action.partial.PartialBaseLineValueAction"
+				parameter="method"
+				scope="request"
+				name="PartialBaseLineValueForm"
+				validate="false">
+				<forward name="init" path="/pages/partial/partial_base_line_value.jsp"/>
+		</action>
+
+		<!-- manage 用户定义 -->
+		<action path="/user_define_codes" type="com.osh.rvs.action.manage.UserDefineCodesAction" parameter="method" validate="false" name="userDefineCodesForm" scope="request">
+			<forward name="init" path="/pages/manage/user_define_codes.jsp" />
+			<forward name="success" path="/pages/manage/user_define_codes.jsp" />
+		</action>
+		
+
+		<!-- report 零件报表 -->
+		<action path="/partial_filing" 
+				type="com.osh.rvs.action.report.PartialFilingAction"
+				parameter="method"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/partial/partial_filing.jsp" />
+		</action>
+
+		<!-- partial 零件发放 NEW -->
+		<action path="/partial_distrubute" 
+				type="com.osh.rvs.action.app.PartialReleaseAction"
+				parameter="method"
+				scope="request"
+				name="materialPartialDetailForm"
+				validate="false">
+				<forward name="init" path="/pages/app/partial_release.jsp" />
+		</action>
+
+		<!-- partial 零件补充 -->
+		<action path="/partial_supply" 
+				type="com.osh.rvs.action.partial.PartialSupplyAction"
+				parameter="method"
+				scope="request"
+				name="partialSupplyForm"
+				validate="false">
+				<forward name="init" path="/pages/partial/partial_supply.jsp" />
+		</action>
+
+		<!-- partial 零件相关文件导入 -->
+		<action path="/partialUpload" type="com.osh.rvs.action.partial.PartialUploadAction" name="uploadForm" parameter="method" validate="false" scope="request">
+		</action>
+
+		<!-- qf 维修对象信息导入 -->
+		<action path="/summary" type="com.osh.rvs.action.qf.SetInlineStatusAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/qf/set_inline_status.jsp" />
+			<forward name="success" path="/pages/qf/set_inline_status.jsp" />
+		</action>
+	
+		<!-- manage 零件订购管理 -->
+		<action path="/partial_order_manage" type="com.osh.rvs.action.partial.PartialOrderManageAction" parameter="method" validate="false" name="partialOrderManageForm" scope="request">
+			<forward name="init" path="/pages/partial/partial_order_manage.jsp" />
+			<forward name="success" path="/pages/partial/partial_order_manage.jsp" />
+		</action>
+
+		<!-- data 零件基准值调整履历 -->
+		<action path="/partial_base_value_adjust_history" 
+				type="com.osh.rvs.action.data.PartialBaseValueAdjustHistoryAction"
+				parameter="method"
+				name="partialBaseValueAdjustHistoryForm"
+				scope="request">
+				<forward name="init" path="/pages/partial/partial_base_value_adjust_history.jsp"/>			
+		</action>
+
+		<!-- manage 拉动台数调整履历 -->
+		<action path="/model_level_set_history"
+				type="com.osh.rvs.action.manage.ModelLevelSetHistoryAction"
+				parameter="method"
+				name="modelLevelSetHistoryForm"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/manage/model_level_set_history.jsp"/>	
+		</action>
+		<!-- rvs 二期End  -->
+		<!-- rvs external Start -->
+		<action path="/model_interface" type="com.osh.rvs.action.extra.MaterialAngleAction" parameter="method" validate="false" name="materialForm">
+		</action>
+
+		<!-- rvs  三期start -->
+		<action path="/forSolutionArea"
+			type="com.osh.rvs.action.inline.ForSolutionAreaAction"
+			parameter="method"
+			name="forSolutionAreaForm"
+			scope="request"
+			validate="false">			
+			<forward name="init" path="/pages/inline/for_solution_area.jsp"></forward>		
+		</action>
+
+		<!-- SORC 损金 -->
+		<action path="/sorc_loss"
+			type="com.osh.rvs.action.partial.SorcLossAction"
+			parameter="method"
+			name="sorcLossForm"
+			scope="request"
+			validate="false">
+			<forward name="init" path="/pages/partial/sorc_loss.jsp"></forward>		
+		</action>
+
+		<action path="/pcsManage" type="org.apache.struts.actions.ForwardAction" parameter="/pages/app/pcsfix-page.jsp" validate="false">
+		</action>
+
+		<!-- 损金汇总 -->
+		<action path="/bad_loss_summary"
+				type="com.osh.rvs.action.partial.BadLossSummaryAction"
+				parameter="method"
+				name="badLossSummaryForm"
+				scope="request"
+				validate="false">			
+				<forward name="init" path="/pages/partial/bad_loss_summary.jsp"></forward>		
+		</action>
+
+		<!-- 单元/保内返修损金导入 -->
+		<action path="/upload_loss" 
+				type="com.osh.rvs.action.partial.LossUploadAction" 
+				name="uploadForm" 
+				parameter="method" 
+				validate="false" 
+				scope="request">
+		</action>
+
+		<!-- 入 -->
+		<action path="/imageUpload" 
+				type="com.osh.rvs.action.ImageAction" 
+				name="uploadForm" 
+				parameter="method" 
+				validate="false" 
+				scope="request">
+		</action>
+
+		<!--设备工具品名 -->
+		<action path="/devices_type"
+				type="com.osh.rvs.action.master.DevicesTypeAction"
+				parameter="method"
+				name="devicesTypeForm"
+				scope="request"
+				validate="false">			
+				<forward name="init" path="/pages/admin/devices_type.jsp"></forward>	
+				<forward name="success" path="/pages/admin/devices_type.jsp"></forward>		
+		</action>
+		
+		<!--设备工具管理 -->
+		<action path="/devices_manage"
+				type="com.osh.rvs.action.master.DevicesManageAction"
+				parameter="method"
+				name="devicesManageForm"
+				scope="request"
+				validate="false">			
+				<forward name="init" path="/pages/admin/devices_manage.jsp"></forward>	
+				<forward name="success" path="/pages/admin/devices_manage.jsp"></forward>		
+		</action>
+		
+		<!-- 点检表管理 -->
+		<action path="/check_file_manage"
+				type="com.osh.rvs.action.master.CheckFileManageAction"
+				name="CheckFileManageForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/admin/check_file_manage.jsp"></forward>
+		</action>
+		
+
+		<!-- 点检不合格记录 -->
+		<action path="/check_unqualified_record"
+				type="com.osh.rvs.action.infect.CheckUnqualifiedRecordAction"
+				name="CheckUnqualifiedRecordForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/check_unqualified_record.jsp"></forward>
+		</action>
+		
+
+		<!-- 治具品名 -->
+		<action path="/tools_type"
+				type="com.osh.rvs.action.master.ToolsTypeAction"
+				name="ToolsTypeForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/admin/tools_type.jsp"></forward>
+		</action>
+
+		<!-- 治具管理 -->
+		<action path="/tools_manage"
+				type="com.osh.rvs.action.master.ToolsManageAction"
+				name="ToolsManageForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/admin/tools_manage.jsp"></forward>
+		</action>
+
+		<!-- 日常点检结果 -->
+		<action path="/daily_check_result"
+				type="com.osh.rvs.action.infect.DailyCheckResultAction"
+				name="DailyCheckResultForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/daily_check_result.jsp"></forward>
+		</action>
+
+		<!-- 治具点检结果 -->
+		<action path="/tools_check_result"
+				type="com.osh.rvs.action.infect.ToolsCheckResultAction"
+				name="ToolsCheckResultForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/tools_check_result.jsp"></forward>
+		</action>
+
+		<!--  OGZ维修对象进度信息 -->
+		<action path="/material_ogz"
+				type="com.osh.rvs.action.inline.MaterialOgzAction"
+				name="MaterialOgzForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/inline/material_ogz.jsp"></forward>
+		</action>
+
+		<!-- 设备工具定期点检 -->
+		<action path="/device_regularly_check_result"
+				type="com.osh.rvs.action.infect.DeviceRegularlyCheckResultAction"
+				name="DeviceRegularlyCheckResultForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/device_regularly_check_result.jsp"></forward>
+		</action>
+
+		<!-- 治具分布 -->
+		<action path="/tools_distribute"
+				type="com.osh.rvs.action.infect.ToolsDistributeAction"
+				name="ToolsDistributeForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/tools_distribute.jsp"></forward>
+		</action>
+
+		<!-- 设备工具分布 -->
+		<action path="/devices_distribute"
+				type="com.osh.rvs.action.infect.DevicesDistributeAction"
+				name="devicesManageForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/devices_distribute.jsp"></forward>
+		</action>
+
+		<!-- 点检操作 -->
+		<action path="/usage_check"
+				type="com.osh.rvs.action.infect.UsageCheckAction"
+				name="UsageCheckForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/usage_check.jsp"></forward>
+		</action>
+		<!-- 检查机器校正 -->
+		<action path="/external_adjustment"
+				type="com.osh.rvs.action.infect.ExternalAdjustmentAction"
+				name="ExternalAdjustmentForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/external_adjustment.jsp"></forward>
+		</action>
+
+		<!-- 点检结果归档-->
+		<action path="/check_result_filing"
+				type="com.osh.rvs.action.infect.CheckResultFilingAction"
+				name="CheckResultFilingForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/check_result_filing.jsp"></forward>
+		</action>
+
+		<!--点检结果归档文件下载-->
+		<action path="/filingdownload" type="com.osh.rvs.action.FilingDownloadAction" parameter="method" validate="false" scope="request">
+		</action>
+
+		<!-- 力矩设备画面-->
+		<action path="/torsion_device"
+				type="com.osh.rvs.action.infect.TorsionDeviceAction"
+				name="TorsionDeviceForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/torsion_device.jsp"></forward>
+		</action>
+
+		<!-- 电烙铁工具管理-->
+		<action path="/electric_iron_device"
+				type="com.osh.rvs.action.infect.ElectricIronDeviceAction"
+				name="ElectricIronDeviceForm"
+				parameter="method"
+				validate="false"
+				scope="request">
+				<forward name="init" path="/pages/infect/electric_iron_device.jsp"></forward>
+		</action>
+
+		<!-- 客户管理 -->
+		<action path="/customer"
+				type="com.osh.rvs.action.master.CustomerAction"
+				name="CustomerForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/admin/customer.jsp"></forward>
+		</action>
+		
+		<!-- rvs  三期end -->
+		
+		<!--系统图片管理 -->
+		<action path="/system_image_manage"
+				type="com.osh.rvs.action.master.SystemImageManageAction"
+				name="SystemImageManageForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/admin/system_image_manage.jsp"/>
+				<forward name="success" path="/pages/admin/system_image_manage.jsp"/>
+		</action>
+
+		<action path="/pcs_request"
+				type="com.osh.rvs.action.manage.PcsRequestAction"
+				name="PcsRequestForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+				<forward name="init" path="/pages/admin/pcs_request.jsp"/>
+				<forward name="success" path="/pages/admin/pcs_request.jsp"/>
+		</action>
+		
+		<!--  消耗品仓库库存一览	 -->
+		<action path="/consumable_list" 
+				type="com.osh.rvs.action.partial.ConsumableListAction" 
+				name="ConsumableListForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/partial/consumable_list.jsp" />
+			   <forward name="success" path="/pages/partial/consumable_list.jsp" />
+		</action>
+
+		<!-- 接口数据归档 -->
+		<action path="/interface_data" 
+				type="com.osh.rvs.action.manage.InterfaceDataAction"
+				parameter="method"
+				name="interfaceDataForm"
+				scope="request"				
+				validate="false">
+			<forward name="init" path="/pages/admin/interface_data.jsp" />
+			<forward name="success" path="/pages/admin/interface_data.jsp" />
+		</action>
+		
+		<!-- 消耗品仓库管理记录  -->
+		<action path="/consumable_manage"
+			type="com.osh.rvs.action.partial.ConsumableManageAction"
+			name="consumableManageForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/partial/consumable_manage.jsp" />
+			<forward name="success" path="/pages/partial/consumable_manage.jsp" />
+		</action>
+		<action path="/consumable_order"
+			type="com.osh.rvs.action.partial.ConsumableOrderAction"
+			name="consumableManageForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/partial/consumable_manage.jsp" />
+			<forward name="success" path="/pages/partial/consumable_manage.jsp" />
+		</action>
+		<action path="/consumable_supply"
+			type="com.osh.rvs.action.partial.ConsumableSupplyAction"
+			name="consumableManageForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/partial/consumable_manage.jsp" />
+			<forward name="success" path="/pages/partial/consumable_manage.jsp" />
+		</action>
+		
+		<!-- 申请领用记录 -->
+		<action path="/consumable_apply"
+				type="com.osh.rvs.action.partial.ConsumableApplyAction"
+				name="ConsumableApplicationForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+			<forward name="init" path="/pages/partial/consumable_manage.jsp" />
+			<forward name="edit" path="/widgets/partial/consumable_application_edit.jsp" />
+			<forward name="success" path="/pages/partial/consumable_manage.jsp" />
+		</action>
+
+		<action path="/consumable_inventory"
+			type="com.osh.rvs.action.partial.ConsumableInventoryAction"
+			name="consumableManageForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/partial/consumable_manage.jsp" />
+			<forward name="success" path="/pages/partial/consumable_manage.jsp" />
+		</action>
+
+		<!-- 消耗品在线一览  -->
+		<action path="/consumable_online"
+				type="com.osh.rvs.action.partial.ConsumableOnlineAction"
+				name="consumableOnlineForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+			<forward name="init" path="/pages/partial/consumable_online.jsp" />
+		</action>
+
+
+		<!--消耗品入库  -->
+		<action path="/pda_supply"
+			type="com.osh.rvs.action.pda.PdaSupplyAction"
+			name="PdaSupplyForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_supply.jsp" />
+		</action>
+
+		<action path="/pda_apply"
+			type="com.osh.rvs.action.pda.PdaApplyAction"
+			name="pdaApplyForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_application.jsp" />
+			<forward name="success" path="/pda_apply_detail.do?method=init" />
+		</action>
+
+		<action path="/pda_apply_detail"
+			type="com.osh.rvs.action.pda.PdaApplyDetailAction"
+			name="pdaApplyDetailForm"
+			scope="session"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_application_detail.jsp" />
+			<forward name="success" path="/pda_apply_element.do?method=init" />
+			<forward name="toList" path="/pda_apply.do?method=init" />
+		</action>
+		
+		<!-- 消耗品申请单发放 -->
+		<action path="/pda_apply_element"
+			type="com.osh.rvs.action.pda.PdaApplyElementAction"
+			name="PdaApplyElementForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_apply.jsp" />
+			<forward name="success" path="/pages/pda/pda_application_detail.jsp" />
+		</action>
+
+		<!-- rvs  四期end -->
+
+		<!-- 维修对象独有修理流程 -->
+		<action path="/material_process_assign"
+				type="com.osh.rvs.action.inline.MaterialProcessAssignAction"
+				name="MaterialProcessAssignForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+		</action>
+
+		<!-- 小修理标准编制管理 -->
+		<action path="/light_fix"
+				type="com.osh.rvs.action.master.LightFixAction"
+				name="LightFixForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/admin/light_fix.jsp"></forward>
+		</action>
+
+		<!-- 零件预制 -->
+		<action path="/premake_partial"
+				type="com.osh.rvs.action.partial.PremakePartialAction"
+				name="PremakePartialForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/partial/premake_partial.jsp"></forward>
+		</action>
+		
+		<!-- rvs  五期end -->
+
+		<!-- 通箱一览 -->
+		<action path="/turnover_case"
+				type="com.osh.rvs.action.qf.TurnoverCaseAction"
+				name="TurnoverCaseForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/qf/turnover_case.jsp"></forward>
+		</action>
+
+		<!-- 周转箱存放 -->
+		<action path="/pda_turnover_case_storage"
+			type="com.osh.rvs.action.pda.PdaTcStorageAction"
+			name="TurnoverCaseForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_turnover_case_storage.jsp" />
+		</action>
+
+		<!-- 周转箱出库 -->
+		<action path="/pda_turnover_case_shipping"
+			type="com.osh.rvs.action.pda.PdaTcShippingAction"
+			name="TurnoverCaseForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_turnover_case_shipping.jsp" />
+		</action>
+
+		<!-- 周边设备点检关系 -->
+		<action path="/peripheral_infect_device"
+				type="com.osh.rvs.action.infect.PeripheralInfectDeviceAction"
+				name="PeripheralInfectDeviceForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/infect/peripheral_infect_device.jsp"></forward>
+		</action>
+
+		<!-- partial 零件库存 -->
+		<action path="/partial_storage" 
+				type="com.osh.rvs.action.partial.PartialStorageAction" 
+				name="PartialStorageForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/partial/partial_storage.jsp" />
+		</action>
+		
+		<action path="/drying_oven_device_forward" type="org.apache.struts.actions.ForwardAction" parameter="/pages/infect/drying_oven_device-page.jsp" validate="false">
+		</action>
+		
+		<!-- 烘箱管理 -->
+		<action path="/drying_oven_device" 
+				type="com.osh.rvs.action.infect.DryingOvenDeviceAction" 
+				name="DryingOvenDeviceForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/widgets/infect/drying_oven_device.jsp" />
+		</action>
+		
+		
+		<!-- 烘干作业种类 -->
+		<action path="/drying_job" 
+				type="com.osh.rvs.action.infect.DryingJobAction" 
+				name="DryingJobForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+		</action>
+		
+		<!-- 烘干作业 -->
+		<action path="/drying_process" 
+				type="com.osh.rvs.action.inline.DryingProcessAction" 
+				name="DryingProcessForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/inline/drying_process.jsp" />
+		</action>
+		
+		<!-- 工时分析 -->
+		<action path="/worktime_analysis" 
+				type="com.osh.rvs.action.report.WorkTimeAnalysisAction" 
+				name="WorkTimeAnalysisForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/report/worktime_analysis.jsp" />
+		</action>
+		
+		<!-- 产能管理 -->
+		<action path="/productivity" 
+				type="com.osh.rvs.action.report.ProductivityAction" 
+				name="ProductivityForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/report/productivity.jsp" />
+		</action>
+	
+		<!-- 线平衡 -->
+		<action path="/line_balance_rate" 
+				type="com.osh.rvs.action.report.LineBalanceRateAction" 
+				name="LineBalanceRateForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/report/line_balance_rate.jsp" />
+		</action>
+
+		<!-- 代工 -->
+		<action path="/foundry" 
+				type="com.osh.rvs.action.report.FoundryAction" 
+				name="FoundryForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/report/foundry.jsp" />
+		</action>
+		
+		<!-- 中断停止时间 -->
+		<action path="/waitting_time_report" 
+				type="com.osh.rvs.action.report.WaittingTimeReportAction" 
+				name="WaittingTimeReportForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/report/waitting_time_report.jsp" />
+		</action>
+		
+		<!-- 倒计时 -->
+		<action path="/remain_time_report" 
+				type="com.osh.rvs.action.report.RemainTimeReportAction" 
+				name="RemainTimeReportForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/report/remain_time_report.jsp" />
+		</action>
+
+		<!-- rvs  六期end -->
+
+		<!-- 工时图 -->
+		<action path="/work_duration" 
+				type="com.osh.rvs.action.report.WorkDurationAction" 
+				name="workDurationForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/report/work_duration.jsp" />
+		</action>
+		
+		<!-- 钢丝固定件清洗作业 -->
+		<action path="/steel_wire_container_wash_process" 
+				type="com.osh.rvs.action.inline.SteelWireContainerWashProcessAction" 
+				name="SteelWireContainerWashProcessForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/inline/steel_wire_container_wash_process.jsp" />
+		</action>
+		
+		<action path="/consumable_supply_record" 
+				type="com.osh.rvs.action.partial.ConsumableSupplyRecordAction" 
+				name="ConsumableSupplyRecordForm"
+				parameter="method"
+				scope="request"
+				validate="false">
+			   <forward name="init" path="/pages/partial/consumable_supply_record.jsp" />
+		</action>
+
+		<!-- rvs  七期end -->
+
+	</action-mappings>
+	<!-- ======================================== Message Resources Definitions -->
+
+	<message-resources parameter="resources.message" key="message" />
+
+	<!-- =============================================== Plug Ins Configuration -->
+</struts-config>

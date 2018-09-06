@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialSupplyMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getPartialSupplyOfDate" parameterType="date" resultType="PartialSupplyEntity">
+		<![CDATA[ 
+			SELECT
+			ps.`partial_id`,
+			`supply_date`,
+			`identification`,
+			`quantity`,
+			p.`code`,
+			p.`name` as partial_name
+			FROM `partial_supply` ps
+			join partial p
+			on ps.`partial_id` = p.`partial_id`
+			WHERE `supply_date` = #{supply_date};
+		]]>
+	</select>
+
+	<insert id="insertPartialSupply" parameterType="PartialSupplyEntity">
+		<![CDATA[ 
+			INSERT INTO `partial_supply`
+			(`partial_id`,
+			`supply_date`,
+			`identification`,
+			`quantity`)
+			VALUES
+			(
+			#{partial_id},
+			#{supply_date},
+			#{identification},
+			#{quantity}
+			);
+		]]>
+	</insert>
+
+	<delete id="deletePartialSupplyOfDate" parameterType="date">
+		<![CDATA[ 
+			DELETE
+			FROM `partial_supply`
+			WHERE `supply_date` = #{supply_date}
+			AND identification <> 3
+			;
+		]]>
+	</delete>
+	<delete id="deletePartialSupply" parameterType="PartialSupplyEntity">
+		<![CDATA[ 
+			DELETE
+			FROM `partial_supply`
+			WHERE `supply_date` = #{supply_date}
+			AND partial_id = #{partial_id}
+			AND identification = #{identification}
+			;
+		]]>
+	</delete>
+
+	<update id="updatePartialSupplyOfQuantity">
+		<![CDATA[
+			update
+				partial_supply
+			set
+				quantity=#{quantity}
+			where
+				partial_id=#{partial_id} and supply_date=#{supply_date} and identification=#{identification}
+		]]>
+	</update>
+	
+	<select id="getPartialSupply" parameterType="PartialSupplyEntity" resultType="PartialSupplyEntity">
+		select * from partial_supply where  partial_id = #{partial_id} and supply_date = #{supply_date} and identification = #{identification}
+	</select>
+</mapper>

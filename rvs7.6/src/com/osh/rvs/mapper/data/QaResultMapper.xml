@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.data.QaResultMapper">
+
+
+<select id="searchQaResult" resultType="QaResultEntity" parameterType="QaResultEntity">
+<![CDATA[
+    SELECT     
+        ma.material_id,
+        coalesce(ma.omr_notifi_no, ma.sorc_no) as sorc_no,
+        ma.serial_no,
+        ma.reception_time,
+        ma.agreed_date,
+        mo.name as model_name,
+        pr.finish_time,
+        pr.operate_result,
+        op.name as operation_name,
+        ma.fix_type,
+        ma.service_repair_flg,
+        ma.direct_flg,
+        p.process_code
+    FROM
+         material ma
+    LEFT JOIN
+         model mo
+    ON ma.model_id=mo.model_id
+    JOIN
+        production_feature pr
+    ON pr.material_id=ma.material_id
+    	and pr.operate_result in (2,6)
+    JOIN 
+    	position p 
+    ON pr.position_id = p.position_id
+    JOIN production_feature prEx
+    	ON prEx.material_id=ma.material_id
+    	AND prEx.pcs_inputs like '%"EN61___":"%'
+		AND pr.rework = prEx.rework
+    JOIN 
+    	operator op
+    ON prEx.operator_id=op.operator_id
+]]>
+    <where>
+  	pr.position_id in (select position_id from position where line_id='15')
+    and ma.break_back_flg = 0
+        <if test="category_id!=null and category_id!='' ">
+            and mo.category_id=#{category_id}
+        </if>
+        <if test="model_id!=null and model_id!='' ">
+           and ma.model_id=#{model_id}
+        </if>
+        <if test="serial_no!=null and serial_no!='' ">
+            and ma.serial_no=#{serial_no}
+        </if>
+        <if test="sorc_no!=null and sorc_no!='' ">
+            and (ma.sorc_no LIKE CONCAT('%',#{sorc_no},'%') or ma.omr_notifi_no LIKE CONCAT('%',#{sorc_no},'%'))
+        </if>
+        <if test="section_id!=null and section_id!='' ">
+            and ma.section_id=#{section_id}
+        </if>
+        <if test="reception_time_start!=null and reception_time_start!='' ">
+            <![CDATA[
+                and ma.reception_time>=#{reception_time_start}
+            ]]>
+        </if>
+        <if test="reception_time_end!=null and reception_time_end!='' ">
+            <![CDATA[
+                and date(ma.reception_time)<=#{reception_time_end}
+            ]]>
+        </if>
+        <if test="complete_date_start!=null and complete_date_start!='' ">
+            <![CDATA[
+                and pr.finish_time>=#{complete_date_start}
+            ]]>
+        </if>
+        <if test="complete_date_end!=null and complete_date_end!='' ">
+            <![CDATA[
+                 and date(pr.finish_time)<=#{complete_date_end}
+            ]]>
+        </if>
+        <if test="scheduled_date_start!=null and scheduled_date_start!='' ">
+            <![CDATA[
+                  and ma.scheduled_date>=#{scheduled_date_start}
+            ]]>
+        </if>
+        <if test="scheduled_date_end!=null and scheduled_date_end!='' ">
+        <![CDATA[
+                 and date(ma.scheduled_date)<=#{scheduled_date_end}
+        ]]>
+        </if>
+        <if test="operator_id!=null and operator_id!='' ">
+        		and op.operator_id=#{operator_id}
+        </if>
+        <if test="fix_type!=null and fix_type!='' ">
+        		and ma.fix_type=#{fix_type}
+        </if>
+        <if test="service_repair_flg!=null and service_repair_flg!='' ">
+        		and ma.service_repair_flg=#{service_repair_flg}
+        </if>
+        <if test="direct_flg!=null and direct_flg!='' ">
+        		and ma.direct_flg=#{direct_flg}
+        </if>
+    </where>
+     ORDER BY   pr.finish_time DESC;
+</select>
+</mapper>

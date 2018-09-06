@@ -1,0 +1,816 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qa.ServiceRepairManageMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="checkExistsByKey" resultType="long" parameterType="ServiceRepairManageEntity">
+		<![CDATA[ 
+			SELECT
+				COUNT(1)
+			FROM
+				service_repair_manage 
+			WHERE
+				model_name = #{model_name}
+			AND
+				serial_no = #{serial_no}
+		]]>
+	</select>
+
+	<select id="insertServiceRepairManage" parameterType="ServiceRepairManageEntity">
+		<![CDATA[ 
+		INSERT INTO `service_repair_manage`
+			(MATERIAL_ID,
+			MODEL_NAME,
+			SERIAL_NO,
+			SORC_NO,
+			KIND,
+			SERVICE_REPAIR_FLG,
+			RC_MAILSEND_DATE,
+			RC_SHIP_ASSIGN_DATE,
+			QA_RECEPTION_TIME,
+			QA_REFEREE_TIME,
+			ANSWER_IN_DEADLINE,
+			SERVICE_FREE_FLG,
+			QA_SECONDARY_REFEREE_DATE,
+			RANK,
+			WORKSHOP,
+			COUNTERMEASURES,
+			COMMENT,
+			MENTION) 
+		VALUES 
+			(#{material_id},
+			#{model_name},
+			#{serial_no},
+			#{sorc_no},
+			#{kind},
+			#{service_repair_flg},
+			#{rc_mailsend_date},
+			#{rc_ship_assign_date},
+			#{qa_reception_time},
+			#{qa_referee_time},
+			#{answer_in_deadline},
+			#{service_free_flg},
+			#{qa_secondary_referee_date},
+			#{rank},
+			#{workshop},
+			#{countermeasures},
+			#{comment},
+			#{mention});
+		]]>
+	</select>
+
+	<select id="insertServiceRepairPastMaterial" parameterType="ServiceRepairManageEntity">
+		<![CDATA[ 
+		INSERT INTO `service_repair_past_material`
+			(MODEL_NAME,
+			SERIAL_NO,
+			RC_MAILSEND_DATE,
+			RECEPTION_DATE,
+			QUOTATION_DATE,
+			AGREED_DATE,
+			INLINE_DATE,
+			OUTLINE_DATE) 
+		VALUES 
+			(#{model_name},
+			#{serial_no},
+			#{rc_mailsend_date},
+			#{reception_date},
+			#{quotation_date},
+			#{agreed_date},
+			#{inline_date},
+			#{outline_date});
+		]]>
+	</select>
+	
+	<select id="getModelNameAutoCompletes" resultType="String">
+		<![CDATA[ 
+				SELECT DISTINCT
+					model_name 
+				FROM 
+					service_repair_manage
+		]]>
+	</select>
+	
+	
+	<select id="getMinReceptionTime" resultType="Date">
+		<![CDATA[
+			SELECT 
+				COALESCE(MIN(qa_reception_time),CURDATE()) AS qa_reception_time
+			FROM 
+				service_repair_manage
+			WHERE
+				qa_referee_time is NULL
+		]]>
+	</select>
+
+	<select id="searchServiceRepairByMaterial_id" parameterType="String" resultType="ServiceRepairManageEntity">
+		<![CDATA[
+			SELECT 
+			    srm.material_id,
+			    srm.countermeasures,
+				srm.service_free_flg,
+			    srm.serial_no
+			FROM
+				service_repair_manage srm
+			JOIN material m
+				ON srm.material_id = m.material_id
+			WHERE
+				(m.serial_no, m.reception_time) IN 
+				(
+				SELECT serial_no, reception_time FROM material 
+				WHERE material_id = #{material_id}
+				)
+			AND srm.countermeasures IS NOT NULL
+		]]>
+	</select>
+
+	<select id="searchServiceRepair" parameterType="ServiceRepairManageEntity" resultType="ServiceRepairManageEntity">
+		<![CDATA[
+			SELECT 
+			    sra.usage_frequency,
+			    srm.material_id,
+			    srm.model_name,
+			    srm.serial_no,
+			    COALESCE(ma.omr_notifi_no, srm.sorc_no, ma.sorc_no) AS sorc_no,
+			    srm.service_repair_flg,
+			    srm.rc_mailsend_date,
+			    srm.rc_ship_assign_date,
+			    COALESCE(ma.reception_time, srpm.reception_date) AS reception_date,
+			    srm.qa_reception_time,
+			    srm.qa_referee_time,
+			    srm.answer_in_deadline,
+			    srm.qa_secondary_referee_date,
+			    srm.rank,
+			    srm.service_free_flg,
+			    srm.workshop,
+			    srm.countermeasures,
+			    COALESCE(pr.finish_time, srpm.quotation_date) AS quotation_date,
+			    COALESCE(ma.agreed_date, srpm.agreed_date) AS agreed_date,
+			    COALESCE(ma.inline_time, srpm.inline_date) AS inline_date,
+			    COALESCE(ma.outline_time, srpm.outline_date) AS outline_date,
+			    (ma.break_back_flg = 2) AS unfix_back_flg,
+			    srm.`comment`,
+			    srm.mention,
+			    srm.quality_judgment,
+			    srm.qis_isuse,
+			    qis.quality_info_no,
+			    qis.qis_invoice_no,
+			    qis.qis_invoice_date,
+			    qis.include_month,
+			    qis.charge_amount,
+			    sra.model_name,
+			    sra.serial_no,
+			    sra.rc_mailsend_date,
+			    sra.analysis_no,
+			    sra.customer_id,
+			    sra.customer_name,
+			    sra.analysis_result,
+			    sra.fix_demand,
+			    sra.trouble_discribe,
+			    sra.trouble_cause,
+			    sra.liability_flg,
+			    sra.manufactory_flg,
+			    sra.append_component,
+			    sra.quantity,
+			    sra.loss_amount,
+			    sra.last_sorc_no,
+			    sra.last_shipping_date,
+			    sra.last_rank,
+			    sra.last_trouble_feature,
+			    sra.wash_feature,
+			    sra.disinfect_feature,
+			    sra.steriliza_feature,
+			    sra.usage_frequency,
+			    sra.analysis_correspond_suggestion,
+			    sra.corresponse_flg,
+			    sra.entity_send_flg,
+			    sra.trouble_item_reception_date,
+			    sra.trouble_item_in_bussiness_date,
+			    sra.trouble_item_out_bussiness_date,
+			    sra.qis2_date,
+			    sra.qis3_date,
+			    sra.waste_certificated_date,
+			    srm.kind,
+			    sra.m_trouble_phenomenon_confirm,
+				sra.m_judgment_result,
+				sra.m_analysis_result_brief,
+				sra.m_correspond_method,
+				sra.m_solutions,
+				srm.etq_no,
+				sra.setup_date,
+				sra.trouble_happen_date,
+				sra.use_count,
+				sra.use_elapse
+			FROM
+			    service_repair_manage srm
+			        LEFT JOIN
+			    service_repair_past_material srpm ON srm.model_name = srpm.model_name
+			        AND srm.serial_no = srpm.serial_no
+			        AND srm.rc_mailsend_date = srpm.rc_mailsend_date
+			        LEFT JOIN
+			    production_feature pr ON srm.material_id = pr.material_id
+			        AND pr.position_id in (13 , 14)
+			        AND pr.operate_result = 2
+			        LEFT JOIN
+			    qis_payout qis ON srm.model_name = qis.model_name
+			        AND srm.serial_no = qis.serial_no
+			        AND srm.rc_mailsend_date = qis.rc_mailsend_date
+			        LEFT JOIN
+			    material ma ON srm.material_id = ma.material_id
+			        LEFT JOIN
+			    service_repair_analysis sra ON sra.model_name = srm.model_name
+			        AND sra.serial_no = srm.serial_no
+			        AND sra.rc_mailsend_date = srm.rc_mailsend_date
+		]]>
+		<where>
+		<if test="model_name!=null and model_name!='' ">
+			<![CDATA[
+			 srm.model_name LIKE CONCAT('%',#{model_name},'%')
+			]]>
+		</if>
+		<if test="serial_no!=null and serial_no!='' ">
+			<![CDATA[
+				AND srm.serial_no=#{serial_no}
+			]]>
+		</if>
+		<if test="sorc_no!=null and sorc_no!='' ">
+			<![CDATA[
+				AND (ma.sorc_no LIKE CONCAT('%',#{sorc_no},'%') OR srm.sorc_no LIKE CONCAT('%',#{sorc_no},'%') or ma.omr_notifi_no LIKE CONCAT('%',#{sorc_no},'%'))
+			]]>
+		</if>
+		<if test="rc_mailsend_date!=null and rc_mailsend_date!='' ">
+			<![CDATA[
+				AND srm.rc_mailsend_date = #{rc_mailsend_date}
+			]]>
+		</if>
+		
+		<if test="service_repair_flg!=null and service_repair_flg!='' ">
+			<![CDATA[
+				AND srm.service_repair_flg=#{service_repair_flg}
+			]]>
+		</if>
+		<if test="qa_reception_time_start!=null and qa_reception_time_start!='' ">
+			<![CDATA[
+				AND (srm.qa_reception_time>=#{qa_reception_time_start} OR srm.qa_reception_time IS NULL)
+			]]>
+		</if>
+		<if test="qa_reception_time_end!=null and qa_reception_time_end!='' ">
+			<![CDATA[
+				AND DATE(srm.qa_reception_time)<=DATE(#{qa_reception_time_end})
+			]]>
+		</if>
+		<if test="qa_referee_time_start!=null and qa_referee_time_start!='' ">
+			<![CDATA[
+				AND DATE(srm.qa_referee_time)>=#{qa_referee_time_start}
+			]]>
+		</if>
+		<if test="qa_referee_time_end!=null and qa_referee_time_end!='' ">
+			<![CDATA[
+				AND DATE(srm.qa_referee_time)<=DATE(#{qa_referee_time_end})
+			]]>
+		</if>		
+		<if test="answer_in_deadline==2">
+			<![CDATA[
+				AND srm.answer_in_deadline=2
+			]]>
+		</if>
+		<if test="answer_in_deadline==1">
+			<![CDATA[
+				AND srm.answer_in_deadline=1 or srm.answer_in_deadline=2
+			]]>
+		</if>
+		<if test="answer_in_deadline==0 ">
+			<![CDATA[
+				AND srm.answer_in_deadline=0
+			]]>
+		</if>
+		<if test="service_free_flg!=null and service_free_flg!='' ">
+			<![CDATA[
+				AND srm.service_free_flg=#{service_free_flg}
+			]]>
+		</if>
+		<if test="unfix_back_flg==1">
+			<![CDATA[
+				AND ma.break_back_flg = 2
+			]]>
+		</if>
+		<if test="unfix_back_flg==-1">
+			<![CDATA[
+				AND ma.break_back_flg = 0
+			]]>
+		</if>
+		<if test="material_id!=null and material_id!='' ">
+			<![CDATA[
+				AND srm.material_id=#{material_id}
+			]]>
+		</if>
+		<if test="entity_send_flg!=null and entity_send_flg==1 ">
+			<![CDATA[
+				AND sra.entity_send_flg LIKE CONCAT('1','%')
+			]]>
+		</if>
+		<if test="entity_send_flg!=null and entity_send_flg==-1 ">
+			<![CDATA[
+				AND sra.entity_send_flg LIKE CONCAT('2','%')
+			]]>
+		</if>
+		<if test="quality_info_no!=null and quality_info_no!='' ">
+			<![CDATA[
+				AND qis.quality_info_no LIKE CONCAT('%',#{quality_info_no},'%')
+			]]>
+		</if>
+		<if test="qis_invoice_no!=null and qis_invoice_no!='' ">
+			<![CDATA[
+				AND qis.qis_invoice_no LIKE CONCAT('%',#{qis_invoice_no},'%')
+			]]>
+		</if>
+		<if test="kind!=null and kind!='' or kind ==0 ">
+			<![CDATA[
+				AND srm.kind = #{kind}
+			]]>
+		</if>
+		<if test="etq_no!=null and etq_no!='' ">
+			<![CDATA[
+				AND srm.etq_no LIKE CONCAT('%',#{etq_no},'%')
+			]]>
+		</if>
+		</where>
+		ORDER BY
+		srm.rc_mailsend_date,srm.qa_reception_time,srm.qa_referee_time
+	</select>
+	
+	<select id="searchServiceRepairAnalysisGram" resultType="ServiceRepairManageEntity" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+		    SELECT 
+		       seq_no,
+		       image_uuid
+		    FROM 
+		       service_repair_analysis_gram	
+		    WHERE 
+		        model_name=#{model_name} 
+		        AND serial_no=#{serial_no} 
+		        AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</select>
+	
+	<select id="getMaxSeqNo" resultType="String" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+		    SELECT 
+		      MAX(seq_no)
+		    FROM 
+		       service_repair_analysis_gram	
+		    WHERE 
+		        model_name=#{model_name} 
+		        AND serial_no=#{serial_no} 
+		        AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</select>
+	
+	<delete id="deleteAnalysisGram" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			DELETE
+			FROM
+				service_repair_analysis_gram
+			WHERE
+				model_name=#{model_name} 
+				AND serial_no=#{serial_no} 
+				AND rc_mailsend_date=#{rc_mailsend_date} 
+				AND seq_no=#{seq_no}
+		]]>
+	</delete>
+	
+	<select id="getRankAutoCompletes" resultType="String">
+		<![CDATA[
+			SELECT DISTINCT 
+				rank
+			FROM
+				service_repair_manage
+			WHERE rank is not null
+		]]>
+	</select>
+	
+	<select id="getRecept" resultType="MaterialEntity" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			SELECT
+			    mo.name AS model_name,
+				ma.serial_no,
+				coalesce(ma.omr_notifi_no, ma.sorc_no) as sorc_no,
+				ma.reception_time AS reception_time,
+				ma.level,
+				COALESCE(ma.service_repair_flg, 0) as service_repair_flg,
+				ma.ocm,
+				ma.direct_flg,
+				mo.kind
+			FROM
+				material ma
+			LEFT JOIN
+				v_model mo
+			ON 
+				ma.model_id=mo.model_id
+			
+		]]>
+		<where>
+		<if test="material_id!=null and material_id!='' ">
+			<![CDATA[
+				AND ma.material_id=#{material_id}
+			]]>
+		</if>
+		<if test="sorc_no!=null and sorc_no!='' ">
+			<![CDATA[
+				AND (ma.sorc_no LIKE CONCAT('%',#{sorc_no},'%') or ma.omr_notifi_no LIKE CONCAT('%',#{sorc_no},'%'))
+			]]>
+		</if>
+		</where>
+	</select>
+
+	<select id="getPrimaryKey" resultType="ServiceRepairManageEntity" parameterType="ServiceRepairManageEntity">
+		SELECT *
+		FROM service_repair_manage
+		WHERE model_name=#{model_name}
+		AND serial_no=#{serial_no}
+		AND rc_mailsend_date=#{rc_mailsend_date}
+	</select>
+
+	<!-- select id="getPrimaryKey" parameterType="ServiceRepairManageEntity" resultType="ServiceRepairManageEntity">
+		<![CDATA[
+SELECT
+model_name,
+serial_no,
+rc_mailsend_date
+FROM
+service_repair_manage
+WHERE
+model_name=#{model_name}
+and serial_no=#{serial_no}
+and rc_mailsend_date=#{rc_mailsend_date};
+		]]>	
+	</select-->
+	
+	<select id="getMaterialIds" resultType="MaterialEntity" parameterType="ServiceRepairManageEntity">
+	<![CDATA[
+		SELECT 
+			ma.material_id,
+			ma.reception_time
+		FROM 
+			material ma
+		LEFT JOIN
+			model mo
+		ON
+			ma.model_id=mo.model_id
+		WHERE
+			mo.name=#{model_name}
+		AND
+			ma.serial_no=#{serial_no}
+	]]>
+	</select>
+	
+	<update id="updateServiceRepairManage" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				service_repair_manage
+			SET
+				kind = #{kind},
+				service_repair_flg=#{service_repair_flg},
+				rank = #{rank},
+				service_free_flg=#{service_free_flg},
+				workshop=#{workshop},
+		]]>
+		<if test="qa_secondary_referee_date!=null and qa_secondary_referee_date!='' ">
+			<![CDATA[
+				qa_secondary_referee_date=current_date(),
+			]]>
+		</if>
+		<![CDATA[
+				etq_no = #{etq_no},
+				countermeasures=#{countermeasures},
+				comment=#{comment},
+				quality_judgment=#{quality_judgment},
+				qis_isuse=#{qis_isuse}
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</update>
+	
+	<update id="updateMaterialId" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				service_repair_manage
+			SET
+				material_id=#{new_material_id}
+			WHERE
+				material_id=#{material_id}
+		]]>
+	</update>
+	
+	<delete id="deleteQisPayout" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			DELETE
+			FROM
+				qis_payout
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</delete>
+	
+	<insert id="updateQisPayout" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			REPLACE INTO qis_payout
+				(model_name,
+				serial_no,
+				rc_mailsend_date,
+				quality_info_no,
+				qis_invoice_no,
+				qis_invoice_date,
+				include_month,
+				charge_amount) 
+			VALUES
+				(#{model_name},
+				#{serial_no},
+				#{rc_mailsend_date},
+				#{quality_info_no},
+				#{qis_invoice_no},
+				#{qis_invoice_date},
+				#{include_month},
+				#{charge_amount})
+		]]>
+	</insert>
+	
+	<select id="getMaxMaterialId" resultType="String"  parameterType="String">
+		<![CDATA[
+			SELECT MAX(material_id) FROM service_repair_manage
+			WHERE material_id like CONCAT(#{type},'%');
+		]]>
+	</select>
+
+	<delete id="deleteServiceRepairManage" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			DELETE
+			FROM
+				service_repair_manage
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</delete>
+
+	<select id="matchQis" resultType="String"  parameterType="String">
+		<![CDATA[
+			SELECT material_id FROM service_repair_manage
+			WHERE service_repair_flg = 2
+			AND material_id like 'Q%' 
+			AND qa_referee_time IS NULL
+		]]>
+		<if test="model_name!=null and model_name!='' ">
+		<![CDATA[
+			AND model_name = #{model_name}
+		]]>
+		</if>
+		<![CDATA[
+			AND serial_no = #{serial_no};
+		]]>
+	</select>
+	
+	<!--获取保期内返品+QIS分析表详细数据-->
+	<select id="searchServiceRepairAnalysis" resultType="ServiceRepairManageEntity"  parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			SELECT 
+			    ma.reception_time,
+			    srm.qa_referee_time,
+			    srm.countermeasures,
+			    COALESCE(ma.omr_notifi_no,srm.sorc_no, ma.sorc_no) AS sorc_no, 
+				srm.service_repair_flg,
+			    sra.rc_mailsend_date,
+			    sra.model_name,
+			    sra.serial_no,			  
+			    sra.analysis_no,
+			    sra.analysis_correspond_suggestion,
+				sra.customer_id,           
+				sra.customer_name,		      
+				sra.analysis_result, 
+				sra.fix_demand, 
+				sra.trouble_discribe, 
+				sra.trouble_cause,
+				sra.liability_flg,         
+				sra.manufactory_flg,       
+				sra.append_component,      
+				sra.quantity,              
+				sra.loss_amount,           
+				sra.last_sorc_no,          
+				sra.last_shipping_date,    
+				sra.last_rank, 
+				sra.last_ocm_rank,            
+				sra.last_trouble_feature,  
+				sra.wash_feature,          
+				sra.disinfect_feature,     
+				sra.steriliza_feature,     
+				sra.usage_frequency,
+				sra.corresponse_flg,
+				sra.entity_send_flg,
+				sra.trouble_item_reception_date,
+				sra.trouble_item_in_bussiness_date,
+				sra.trouble_item_out_bussiness_date,
+				sra.qis2_date,
+				sra.qis3_date,
+				sra.waste_certificated_date,
+				sra.m_trouble_phenomenon_confirm,
+				sra.m_judgment_result,
+				sra.m_analysis_result_brief,
+				sra.m_correspond_method,
+				sra.m_solutions,
+				sra.setup_date,
+				sra.trouble_happen_date,
+				sra.use_count,
+				sra.use_elapse
+			FROM
+			     service_repair_analysis sra
+			        left join
+			    service_repair_resolve  srr ON srr.model_name = sra.model_name
+			        and srr.serial_no = sra.serial_no
+			        and srr.rc_mailsend_date = sra.rc_mailsend_date
+			        join
+			    service_repair_manage srm ON srm.model_name = sra.model_name
+			        and srm.serial_no = sra.serial_no
+			        and srm.rc_mailsend_date = sra.rc_mailsend_date
+			        left join
+			    material  ma ON ma.material_id = srm.material_id
+		]]>
+		<where>
+			<if test="model_name!=null and model_name!=''">
+			<![CDATA[
+				 sra.model_name = #{model_name}
+			]]>
+			</if>
+			<if test="serial_no!=null and serial_no!=''">
+			<![CDATA[
+				AND sra.serial_no = #{serial_no}
+			]]>
+			</if>
+			<if test="rc_mailsend_date!=null and rc_mailsend_date!=''">
+			<![CDATA[
+				AND sra.rc_mailsend_date = #{rc_mailsend_date}
+			]]>
+			</if>
+		</where>
+		<if test="rc_mailsend_date==null">
+		<![CDATA[
+			order by rc_mailsend_date desc
+			limit 1
+		]]>
+		</if>
+	</select>
+	
+	<!--更新分析表的数据-->
+	<insert id="updateServiceRepairAnalysis" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			REPLACE INTO service_repair_analysis
+				(model_name,
+				serial_no,
+				rc_mailsend_date,
+				analysis_no,
+				customer_name,
+				fix_demand,
+				trouble_cause,
+				trouble_discribe,
+				analysis_result,
+				liability_flg,
+				manufactory_flg,
+				append_component,
+				quantity,
+				loss_amount,
+				last_sorc_no,
+				last_shipping_date,
+				last_rank,
+				last_ocm_rank,
+				last_trouble_feature,
+				wash_feature,
+				disinfect_feature,
+				steriliza_feature,
+				usage_frequency,
+				analysis_correspond_suggestion,
+				m_trouble_phenomenon_confirm,
+				m_judgment_result,
+				m_analysis_result_brief,
+				m_correspond_method,
+				m_solutions,
+				setup_date,
+				trouble_happen_date,
+				use_count,
+				use_elapse
+			]]>
+			<if test="service_repair_flg==2">
+				,corresponse_flg
+			</if>
+			<if test="service_repair_flg!=null">
+				,entity_send_flg
+				,qis3_date
+				<if test="entity_send_flg!=21 and entity_send_flg!=22">
+					<![CDATA[
+						,trouble_item_reception_date
+						,trouble_item_in_bussiness_date
+						,trouble_item_out_bussiness_date
+						,qis2_date
+						,waste_certificated_date
+					]]>
+				</if>
+			</if>
+			
+			<![CDATA[
+				) 
+			VALUES
+				(
+				#{model_name},
+				#{serial_no},
+				#{rc_mailsend_date},
+				#{analysis_no},
+				#{customer_name},
+				#{fix_demand},
+				#{trouble_cause},
+				#{trouble_discribe},
+				#{analysis_result},
+				#{liability_flg},
+				#{manufactory_flg},
+				#{append_component},
+				#{quantity},
+				#{loss_amount},
+				#{last_sorc_no},
+				#{last_shipping_date},
+				#{last_rank},
+				#{last_ocm_rank},
+				#{last_trouble_feature},
+				#{wash_feature},
+				#{disinfect_feature},
+				#{steriliza_feature},
+				#{usage_frequency},
+				#{analysis_correspond_suggestion},
+				#{m_trouble_phenomenon_confirm},
+				#{m_judgment_result},
+				#{m_analysis_result_brief},
+				#{m_correspond_method},
+				#{m_solutions},
+				#{setup_date},
+				#{trouble_happen_date},
+				#{use_count},
+				#{use_elapse}
+			]]>
+			<if test="service_repair_flg==2">
+				,#{corresponse_flg}
+			</if>
+			<if test="service_repair_flg!=null">
+				,#{entity_send_flg}
+				,#{qis3_date}
+				<if test="entity_send_flg!=21 and entity_send_flg!=22">
+					<![CDATA[
+						,#{trouble_item_reception_date}
+						,#{trouble_item_in_bussiness_date}
+						,#{trouble_item_out_bussiness_date}
+						,#{qis2_date}
+						,#{waste_certificated_date}
+					]]>
+				</if>
+			</if>
+			<![CDATA[
+				)
+		]]>
+	</insert>
+	
+	<!--更新保内返品分析图像-->
+	<insert id="updateServiceRepairAnalysisGram" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+		     REPLACE INTO service_repair_analysis_gram
+		     	(model_name, serial_no,rc_mailsend_date,seq_no,image_uuid)
+		     VALUES
+		        (#{model_name},#{serial_no},#{rc_mailsend_date},#{seq_no},#{image_uuid})
+		]]>
+	</insert>
+	
+	
+	<!--更新提要-->
+	<update id="updateMention" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				service_repair_manage
+			SET
+				mention=#{mention}
+			WHERE
+				model_name=#{model_name}
+				and serial_no=#{serial_no}
+				and rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</update>
+
+	<!--取消判定开始-->
+	<update id="undoRefeeWork" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				service_repair_manage
+			SET
+				QA_RECEPTION_TIME = null
+			WHERE
+				model_name=#{model_name}
+				and serial_no=#{serial_no}
+				and rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</update>
+	
+</mapper>

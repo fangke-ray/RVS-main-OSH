@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.ScheduleHistoryMapper">
+
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getOtherInfo" resultType="ScheduleHistoryEntity" parameterType="String">
+		<![CDATA[
+			SELECT max(mp.arrival_plan_date) as arrival_plan_date, m.scheduled_expedited
+			FROM material m
+			LEFT JOIN material_partial mp
+			ON m.material_id = mp.material_id
+			WHERE
+				m.material_id = #{material_id}
+			;
+		]]>
+	</select>
+
+	<select id="getByKey" resultType="ScheduleHistoryEntity" parameterType="ScheduleHistoryEntity">
+		<![CDATA[
+			SELECT scheduled_date, material_id, in_schedule_means, remove_flg, arrival_plan_date, scheduled_expedited
+			FROM SCHEDULE_HISTORY
+			WHERE
+				scheduled_date = #{scheduled_date}
+			AND
+				MATERIAL_ID = #{material_id}
+			;
+		]]>
+	</select>
+
+	<insert id="append" parameterType="ScheduleHistoryEntity">
+		<![CDATA[
+			INSERT INTO
+				SCHEDULE_HISTORY
+			(scheduled_date, material_id, in_schedule_means, remove_flg, arrival_plan_date, scheduled_expedited, plan_day_period)
+			VALUES
+			(#{scheduled_date}, #{material_id}, #{in_schedule_means}, #{remove_flg}, #{arrival_plan_date}, #{scheduled_expedited}, 4)
+			;
+		]]>
+	</insert>
+
+	<update id="appendTodayAsUpdate" parameterType="ScheduleHistoryEntity">
+		<![CDATA[
+			UPDATE
+				SCHEDULE_HISTORY
+			SET
+				IN_SCHEDULE_MEANS = REMOVE_FLG,
+				REMOVE_FLG = 0
+			WHERE
+				MATERIAL_ID = #{material_id} AND
+				SCHEDULED_DATE = #{scheduled_date}
+			;
+		]]>
+	</update>
+
+	<update id="removeToday" parameterType="ScheduleHistoryEntity">
+		<![CDATA[
+			UPDATE
+				SCHEDULE_HISTORY
+			SET
+				REMOVE_FLG = IN_SCHEDULE_MEANS,
+				IN_SCHEDULE_MEANS = 4
+			WHERE
+				MATERIAL_ID = #{material_id} AND
+				SCHEDULED_DATE = #{scheduled_date}
+			;
+		]]>
+	</update>
+
+	<update id="updatePeriod" parameterType="ScheduleHistoryEntity">
+		<![CDATA[
+			UPDATE
+				SCHEDULE_HISTORY
+			SET
+				PLAN_DAY_PERIOD = #{plan_day_period}
+			WHERE
+				MATERIAL_ID = #{material_id} AND
+				SCHEDULED_DATE = #{scheduled_date}
+			;
+		]]>
+	</update>
+</mapper>

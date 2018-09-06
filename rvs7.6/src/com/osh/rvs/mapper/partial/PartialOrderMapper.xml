@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialOrderMapper">
+<!-- 插入到零件订购信息 -->
+  <insert id="insertMaterialPartialDetail" parameterType="MaterialPartialDetailEntity">
+	   INSERT INTO MATERIAL_PARTIAL_DETAIL
+					(MATERIAL_ID,
+					PARTIAL_ID,
+					OCCUR_TIMES,
+					QUANTITY,
+					PRICE,
+					BELONGS,
+					POSITION_ID,
+					WAITING_QUANTITY,
+					WAITING_RECEIVE_QUANTITY,
+					RECENT_SIGNIN_TIME,
+					STATUS)
+	   VALUES
+				  ( #{material_id},
+					#{partial_id},
+					#{occur_times},
+					#{quantity},
+					#{price},
+					#{belongs},
+					#{position_id},
+					#{quantity},
+					#{quantity},
+					#{recent_signin_time},
+					#{status});
+  </insert>
+  <!-- 查询零件订购信息 -->
+  <select id="searchPartialOrder" parameterType="MaterialPartialDetailEntity" resultType="MaterialPartialDetailEntity">
+     SELECT
+        MPD.MATERIAL_PARTIAL_DETAIL_KEY,
+        P.CODE ,
+        P.PARTIAL_ID,
+		P.NAME AS PARTIAL_NAME,
+		MPD.QUANTITY,
+		MPD.PRICE,
+		MPD.WAITING_QUANTITY,
+	    MPD.waiting_receive_quantity,
+		PO.PROCESS_CODE,
+		MPD.OCCUR_TIMES
+	  FROM 
+	     MATERIAL_PARTIAL_DETAIL  MPD
+	  JOIN
+	  	 PARTIAL P
+	  ON 
+		MPD.PARTIAL_ID = P.PARTIAL_ID 
+	  LEFT JOIN 
+		POSITION PO
+	  ON   
+	  	MPD.POSITION_ID= PO.POSITION_ID
+	<where> 
+	<if test="belongs!=null and belongs lt 6">
+		 AND MPD.BELONGS=#{belongs}
+	</if>
+ 	<if test="belongs!=null and belongs gt 5">
+		 AND MPD.BELONGS > 5
+	</if>
+ 	<if test="material_id!=null and material_id!=''">
+		 AND MPD.MATERIAL_ID=#{material_id}
+	</if>
+	<if test="occur_times!=null and occur_times!=''">
+		 AND MPD.OCCUR_TIMES=#{occur_times}
+	</if>
+  	<if test="partial_id!=null and partial_id!=''">
+		 AND MPD.PARTIAL_ID=#{partial_id}
+	</if>
+	</where> 
+	;
+  </select>
+    
+<!-- 判断material_partial_detail表中是否已经有维修对象文件中的零件信息 -->  
+   <select id="checkMaterialPartialDetailIsNull" parameterType="MaterialPartialDetailEntity" resultType="MaterialPartialDetailEntity">
+     SELECT
+        MPD.MATERIAL_PARTIAL_DETAIL_KEY,
+        P.CODE ,
+        P.PARTIAL_ID,
+		P.NAME AS PARTIAL_NAME,
+		MPD.QUANTITY,
+		MPD.PRICE,
+		PO.PROCESS_CODE 
+	  FROM 
+	     MATERIAL_PARTIAL_DETAIL  MPD
+	  JOIN
+	  	 PARTIAL P
+	  ON 
+		MPD.PARTIAL_ID = P.PARTIAL_ID 
+	  LEFT JOIN 
+		POSITION PO
+	  ON   
+	  	MPD.POSITION_ID= PO.POSITION_ID
+	<where> 
+    <if test="belongs!=null and belongs!=''">
+		 AND MPD.BELONGS=#{belongs}
+	</if>
+  	<if test="material_id!=null and material_id!=''">
+		 AND MPD.MATERIAL_ID=#{material_id}
+	</if>
+	<if test="occur_times!=null and occur_times!=''">
+		 AND MPD.OCCUR_TIMES=#{occur_times}
+	</if>
+  	<if test="partial_id!=null and partial_id!=''">
+		 AND MPD.PARTIAL_ID=#{partial_id}
+	</if>
+	</where> 
+	;
+  </select>
+  
+  <!-- 根据belongs进行多个对象追加 -->
+  <update id="updateByBelongs" parameterType="MaterialPartialDetailEntity">
+  <![CDATA[
+    UPDATE `material_partial_detail`
+    SET
+     `belongs` =#{belongs}
+    where 
+      material_partial_detail_key = #{material_partial_detail_key}       
+  	]]>         
+  </update>
+  
+  <!-- 根据material_id 和occur_times查询本条记录是否已经存在(如果存在表示，该条数据已经在加载页面提交完毕了，不需要再进行显示，更不需要插入material_partial_detail表) -->
+  <select id="searchMaterialPartial" parameterType="MaterialPartialDetailEntity" resultType="MaterialPartialEntity">
+  <![CDATA[
+    SELECT                                                         
+		mp.MATERIAL_ID,                                                   
+		mp.BO_FLG,                                                        
+		mp.OCCUR_TIMES,                                                   
+		mp.POSITION_ID,                                                   
+		mp.BO_CONTENTS,                                                   
+		mp.ORDER_DATE,
+		mp.ARRIVAL_DATE,                                                  
+		mp.ARRIVAL_PLAN_DATE                                              
+	FROM 
+		MATERIAL_PARTIAL mp                                         
+	WHERE 
+		mp.MATERIAL_ID=#{material_id}
+	AND
+	 	mp.OCCUR_TIMES=#{occur_times}
+	AND
+		EXISTS (SELECT 1 FROM MATERIAL_PARTIAL_DETAIL WHERE material_id = mp.material_id AND OCCUR_TIMES = mp.OCCUR_TIMES) --  AND status <> 0
+  	]]>         
+  </select>
+ 
+ <!-- 提交到material_partial表 TO sdsa -->
+  <insert id="insertMaterialPartial" parameterType="MaterialPartialEntity">
+	<![CDATA[ 
+    REPLACE INTO MATERIAL_PARTIAL
+		(MATERIAL_ID,
+		BO_FLG,
+		OCCUR_TIMES,
+		POSITION_ID,
+		ORDER_DATE,
+		ORDER_TIME)
+	VALUES	
+	(#{material_id}, #{bo_flg}, #{occur_times}, #{position_id}, current_date,CURRENT_TIMESTAMP);    
+	]]>
+   </insert>
+   
+   <!--更新到material_partial_detail status=1（导入订购后）  -->
+   <!-- 接口作用后可能有单独需要定位的零件, 所以要只对status = 0起作用  -->
+   <update id="formalizeMaterialPartialDetail" parameterType="MaterialPartialDetailEntity">
+     UPDATE 
+     	material_partial_detail
+	 SET
+		status = #{status},
+		waiting_quantity = quantity,
+		waiting_receive_quantity = quantity
+		where 
+		    material_id=#{material_id}
+		and
+			occur_times = #{occur_times}
+		<if test="status == 1">
+			AND status = 0
+		</if>
+		;
+   </update>
+
+   <!--更新到material_partial_detail status=1（导入订购后）  -->
+   <update id="setOverBom" parameterType="MaterialPartialDetailEntity">
+     UPDATE 
+     	material_partial_detail
+	 SET
+	 	position_id = #{position_id},
+		quantity = #{quantity},
+		waiting_quantity = #{waiting_quantity},
+		waiting_receive_quantity = #{waiting_receive_quantity},
+		belongs = #{belongs}   
+		where 
+		    material_partial_detail_key=#{material_partial_detail_key};
+   </update>
+   
+   <!--插入新的数据-->
+    <insert id="insertDetail" parameterType="MaterialPartialDetailEntity">
+	   INSERT INTO MATERIAL_PARTIAL_DETAIL
+					(MATERIAL_ID,
+					SMO_ITEM_NO,
+					PARTIAL_ID,
+					OCCUR_TIMES,
+					QUANTITY,
+					PRICE,
+					BELONGS,
+					POSITION_ID,
+					WAITING_QUANTITY,
+					WAITING_RECEIVE_QUANTITY,
+					RECENT_SIGNIN_TIME,
+					STATUS)
+	   VALUES
+				  ( #{material_id},
+				  	#{smo_item_no},
+					#{partial_id},
+					#{occur_times},
+					#{quantity},
+					#{price},
+					#{belongs},
+					#{position_id},
+					#{waiting_quantity},
+					#{waiting_receive_quantity},
+					#{recent_signin_time},
+					#{status});
+   </insert>
+
+   <select id="searchMaterialPartialDetailCode" parameterType="map" resultType="MaterialPartialDetailEntity">
+      <![CDATA[
+	  SELECT 	
+	  		MPD.MATERIAL_PARTIAL_DETAIL_KEY,
+		    P.CODE, MPD.QUANTITY,PO.PROCESS_CODE,
+		    MPD.MATERIAL_ID,
+		    MPD.PARTIAL_ID,
+		    MPD.OCCUR_TIMES,    
+		    MPD.PRICE,
+		    MPD.BELONGS,
+		    MPD.POSITION_ID,
+		    MPD.WAITING_QUANTITY,
+		    MPD.RECENT_SIGNIN_TIME,
+		    MPD.STATUS
+		FROM
+		    MATERIAL_PARTIAL_DETAIL MPD
+		JOIN PARTIAL P
+		ON MPD.PARTIAL_ID = P.PARTIAL_ID
+		LEFT JOIN POSITION PO
+		ON MPD.POSITION_ID = PO.POSITION_ID
+	  where 
+          material_partial_detail_key  in
+		]]>
+     <foreach item="material_partial_detail_key" collection="keys" index="index" open="(" separator="," close=")">
+          #{material_partial_detail_key} 
+    </foreach>   
+   </select>
+   
+    <select id="searchMaterialPartialDetailByKey"  resultType="MaterialPartialDetailEntity" parameterType="String">
+      <![CDATA[
+	  SELECT 	
+	  		MPD.MATERIAL_PARTIAL_DETAIL_KEY,
+		    P.CODE, MPD.QUANTITY,PO.PROCESS_CODE,
+		    MPD.MATERIAL_ID,
+		    MPD.PARTIAL_ID,
+		    MPD.OCCUR_TIMES,    
+		    MPD.PRICE,
+		    MPD.BELONGS,
+		    MPD.POSITION_ID,
+		    MPD.WAITING_QUANTITY,
+		    MPD.waiting_receive_quantity,
+		    MPD.RECENT_SIGNIN_TIME,
+		    MPD.STATUS,
+		    MPD.SMO_ITEM_NO
+		FROM
+		    MATERIAL_PARTIAL_DETAIL MPD
+		JOIN PARTIAL P
+		ON MPD.PARTIAL_ID = P.PARTIAL_ID
+		LEFT JOIN POSITION PO
+		ON MPD.POSITION_ID = PO.POSITION_ID
+	  where 
+          material_partial_detail_key =#{material_partial_detail_key}
+		]]>
+   </select>
+   
+   <!-- 更新成BOM material_partial_detail的quantity 和partial_bom_set的quantity 相比较时，零件等于或者小与时将相等的部分更新成BOM类型  -->
+   <update id="updateMaterialPartialDetailWithBom" parameterType="MaterialPartialEntity">
+    <![CDATA[
+     UPDATE MATERIAL_PARTIAL_DETAIL SET BELONGS =#{belongs}
+
+		WHERE MATERIAL_PARTIAL_DETAIL_KEY IN 		
+		(SELECT 
+			LOCATE.MATERIAL_PARTIAL_DETAIL_KEY 
+		FROM
+		( 
+			SELECT 
+				MATERIAL_PARTIAL_DETAIL_KEY
+			FROM 
+				MATERIAL_PARTIAL_DETAIL MPD
+			JOIN
+				MATERIAL M
+			ON 
+				M.MATERIAL_ID = MPD.MATERIAL_ID
+			LEFT JOIN
+				PARTIAL_BOM_SET PBS
+			ON 
+				M.MODEL_ID = PBS.MODEL_ID
+			AND LEFT(M.level,1) = PBS.LEVEL
+			AND MPD.PARTIAL_ID = PBS.PARTIAL_ID
+			WHERE 
+				MPD.MATERIAL_ID =#{material_id}
+				AND MPD.OCCUR_TIMES =#{occur_times} 
+				AND MPD.BELONGS = 0
+				AND MPD.QUANTITY <= PBS.QUANTITY
+		) LOCATE
+		);
+		]]>
+   </update>
+
+   <!-- 查询material_partial_detail的quantity和partial_bom_set的quantity多出来的数量和零件订购信息 -->
+   <select id="searchMaterialPartialDetailQuantityUnmatch" parameterType="MaterialPartialEntity" resultType="MaterialPartialDetailEntity">
+     <![CDATA[
+		   SELECT 
+		   		MPD.*,
+		   	    PBS.QUANTITY AS BOM_QUANTITY
+			FROM 
+				MATERIAL_PARTIAL_DETAIL MPD
+			JOIN
+				MATERIAL M
+			ON 
+				M.MATERIAL_ID = MPD.MATERIAL_ID
+			LEFT JOIN 
+				PARTIAL_BOM_SET PBS
+			ON 
+				M.MODEL_ID = PBS.MODEL_ID
+			AND
+				LEFT(M.level,1) = PBS.LEVEL
+			AND 
+				MPD.PARTIAL_ID = PBS.PARTIAL_ID
+			WHERE 
+				MPD.MATERIAL_ID =#{material_id} 
+				AND MPD.OCCUR_TIMES = #{occur_times} 
+			AND MPD.BELONGS = 0
+			AND MPD.QUANTITY > PBS.QUANTITY
+		]]>
+   </select>
+   
+   <update id="updateMaterialPartialDetailWithNoGood" parameterType="MaterialPartialEntity">
+    <![CDATA[
+			UPDATE
+			    material_partial_detail mpd
+			JOIN (
+				SELECT partial_id, COUNT(1) as position_count FROM partial_position_belong 
+				WHERE model_id = #{model_id} group by model_id,partial_id
+			) pc
+			ON mpd.partial_id = pc.partial_id
+			SET
+				mpd.belongs = #{belongs}
+			where
+			    mpd.material_id = #{material_id} and occur_times = #{occur_times}
+			and mpd.belongs = 0
+			and (mpd.position_id <> 0 AND pc.position_count = 1) 
+			;
+		]]>
+   </update>
+   
+   <!--查询出可定位工位 -->
+   <select id="getPositionSimply" resultType="String"  parameterType="MaterialPartialDetailEntity">
+    <![CDATA[
+     SELECT 
+   		 PPB.POSITION_ID
+	 FROM
+	    PARTIAL_POSITION_BELONG PPB
+	 WHERE
+	    PPB.POSITION_ID <> 0
+	        AND PPB.MODEL_ID IN (SELECT 
+	            MODEL_ID
+	        FROM
+	            MATERIAL
+	        WHERE
+	            MATERIAL_ID =#{material_id})
+	        AND PPB.PARTIAL_ID = #{partial_id}
+	        AND (SELECT 
+	            COUNT(1)
+	        FROM
+	            PARTIAL_POSITION_BELONG
+	        WHERE
+	            MODEL_ID = PPB.MODEL_ID
+	                AND PARTIAL_ID = PPB.PARTIAL_ID) = 1
+	  ]]>
+   </select>
+   
+   <!-- 根据维修对象型号和零件ID查找 工位 -->
+    <select id="searchPartialPositionBelongProcessCode" parameterType="PartialPositionEntity" resultType="MaterialPartialDetailEntity">
+         SELECT 
+			PO.PROCESS_CODE,
+			PPB.POSITION_ID
+		 FROM 
+			PARTIAL_POSITION_BELONG PPB
+		 LEFT 
+		 	JOIN POSITION PO
+		 ON 
+		 	PPB.POSITION_ID = PO.POSITION_ID
+		 WHERE 
+		 	PPB.model_id=#{model_id}
+		 	AND PPB.partial_id=#{partial_id}         
+    </select>
+    
+    <!-- 查询出待确定的零件 status =0 -->
+    <select id="searchMaterialPartialDetailWithStatus" resultType="MaterialPartialDetailEntity">
+	    SELECT DISTINCT
+		MPD.MATERIAL_ID,
+		MPD.OCCUR_TIMES 
+		FROM
+		 MATERIAL_PARTIAL_DETAIL MPD
+		WHERE STATUS='0'
+    </select>
+    
+	<!-- 移动定位数量后剩下的 -->
+	<update id="substractSelf" parameterType="MaterialPartialDetailEntity">
+	<![CDATA[
+		UPDATE `material_partial_detail`
+		SET
+		 `QUANTITY` = #{quantity},
+		WAITING_QUANTITY = #{quantity},
+		WAITING_RECEIVE_QUANTITY = #{quantity}
+	 
+		where 
+		  material_partial_detail_key = #{material_partial_detail_key}       
+	]]>         
+	</update>
+
+	<delete id="cancelPartialOrder" parameterType="String">
+	   DELETE FROM MATERIAL_PARTIAL_DETAIL
+	   WHERE material_id = #{material_id} and occur_times = #{occur_times}
+	   AND `status` = 0;
+ 	</delete>
+</mapper>

@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableApplicationMapper">
+
+	<select id="search" parameterType="ConsumableApplicationEntity" resultType="ConsumableApplicationEntity">
+		<![CDATA[ 
+			SELECT 
+				ca.consumable_application_key,
+				ca.application_no,
+				ca.apply_time,
+				CASE
+					WHEN line.name IS NULL THEN section.name
+					ELSE CONCAT(section.name, ' ', line.name) 
+				END AS line_name,
+				SUM(apply_method = 1) > 0 AS flg,
+				ca.apply_reason,
+				ca.supply_time,
+				ca.all_supplied,
+				ca.material_id,
+				coalesce(omr_notifi_no, sorc_no) as sorc_no,
+				CASE WHEN ca.supply_time IS NULL THEN null
+				ELSE SUM(ptl.price * supply_quantity) 
+				END as price
+			FROM
+				consumable_application ca
+			JOIN
+				 section 
+			ON 
+				section.section_id = ca.section_id
+			LEFT JOIN
+				line 
+			ON 
+				line.line_id = ca.line_id
+			JOIN
+				consumable_application_detail  cad
+			ON 
+				cad.consumable_application_key = ca.consumable_application_key
+			JOIN 
+				partial ptl
+			ON cad.partial_id = ptl.partial_id
+			LEFT JOIN 
+				material ma
+			ON
+				ma.material_id = ca.material_id
+		]]>
+		<where>
+			<if test="consumable_application_key!= null and consumable_application_key!='' ">
+				ca.consumable_application_key = #{consumable_application_key}
+			</if>
+			<if test="application_no!=null and application_no!='' ">
+				AND ca.application_no = #{application_no}
+			</if>
+			<if test="section_id!=null and section_id!='' ">
+				AND ca.section_id = #{section_id}
+			</if>
+			<if test="line_id!=null and line_id!=''">
+				AND ca.line_id = #{line_id}
+			</if>
+			<if test="all_supplied!=null and all_supplied==1">
+				AND ca.all_supplied = 1
+			</if>
+			<if test="all_supplied!=null and all_supplied==-1">
+				AND ca.all_supplied = 0
+			</if>
+			<if test="apply_time_start!=null and apply_time_start!=''">
+			<![CDATA[ 
+				AND ca.apply_time >= #{apply_time_start}
+			]]>
+			</if>
+			<if test="apply_time_end!=null and apply_time_end!='' ">
+				<![CDATA[ 
+					AND DATE(ca.apply_time) <= #{apply_time_end}
+				]]>
+			</if>
+			<if test="flg!=null and flg==1">
+				AND cad.apply_method = 1
+			</if>
+		</where>
+		
+		GROUP BY ca.consumable_application_key
+		
+		ORDER BY ca.all_supplied,ca.application_no DESC
+	</select>
+	
+	<select id="searchConsumableApplicationById" parameterType="string" resultType="ConsumableApplicationEntity">
+		SELECT 
+			ca.consumable_application_key,
+			ca.application_no,
+			ca.section_id,
+			ca.line_id,
+			CASE
+				WHEN line.name IS NULL THEN section.name
+				ELSE CONCAT(section.name, ' ', line.name) 
+			END AS line_name,
+			ca.apply_time,
+			coalesce(omr_notifi_no, sorc_no) AS use_no,
+			ca.apply_reason,
+			position.process_code,
+			CASE
+				WHEN ca.material_id is null THEN null
+				ELSE (SELECT op.name FROM consumable_application_detail dtl JOIN operator op ON dtl.petitioner_id = op.operator_id 
+				WHERE dtl.consumable_application_key = ca.consumable_application_key LIMIT 1)
+			END as operator_name
+		FROM
+			consumable_application ca
+		JOIN
+			 section 
+		ON 
+			section.section_id = ca.section_id
+		LEFT JOIN
+			line 
+		ON 
+			line.line_id = ca.line_id
+		LEFT JOIN
+			material
+		ON
+			ca.material_id = material.material_id
+		LEFT JOIN
+			position
+		ON
+			ca.position_id = position.position_id
+		WHERE
+			ca.consumable_application_key = #{consumable_application_key}
+	</select>
+	
+
+	<select id="getCollectingApplicationByLine" parameterType="String" resultType="ConsumableApplicationEntity">
+		<![CDATA[ 
+		SELECT
+			cp.consumable_application_key,
+			cp.application_no,
+			cp.material_id,
+			cp.apply_reason,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no
+		FROM 
+			consumable_application cp
+		LEFT JOIN material ma
+			ON ma.material_id = cp.material_id
+		WHERE
+			cp.section_id = #{section_id}
+		]]>
+		<if test="line_id!=null and line_id!=''">
+		AND
+			cp.line_id = #{line_id}
+		</if>
+		<![CDATA[ 
+		AND
+			apply_time IS NULL
+		AND
+			cp.material_id IS NULL
+		]]>
+		<if test="line_id==null">
+			ORDER BY consumable_application_key LIMIT 1
+		</if>
+		<![CDATA[ 
+		;
+		]]>
+	</select>
+
+	<select id="getMaxApplicationByLine" parameterType="String" resultType="String">
+		<![CDATA[ 
+		SELECT
+			max(cp.application_no) as application_no
+		FROM 
+			consumable_application cp
+		WHERE
+			application_no like concat(#{application_no}, '%');
+		]]>
+	</select>
+	
+	<update id="update" parameterType="ConsumableApplicationEntity">
+		<![CDATA[ 
+			UPDATE 
+				consumable_application 
+			SET 
+				supplier_id = #{supplier_id},
+				supply_time = CURRENT_TIMESTAMP,
+				all_supplied = #{all_supplied} 
+			WHERE 
+				consumable_application_key = #{consumable_application_key}
+		]]>
+	</update>
+
+	<update id="confirm" parameterType="ConsumableApplicationEntity">
+		<![CDATA[ 
+			UPDATE 
+				consumable_application 
+			SET 
+		]]>
+			<if test="apply_time!=null and apply_time!=''">
+				apply_time = CURRENT_TIMESTAMP,
+			</if>
+			<if test="material_id!=null and material_id!=''">
+				material_id = #{material_id},
+			</if>
+			<if test="apply_reason!=null and apply_reason!=''">
+				apply_reason = #{apply_reason},
+			</if>
+		<![CDATA[ 
+				confirmer_id = #{confirmer_id}, 
+				all_supplied = 0
+			WHERE 
+				consumable_application_key = #{consumable_application_key}
+		]]>
+	</update>
+
+	<insert id="insert" parameterType="ConsumableApplicationEntity">
+		<![CDATA[ 
+		INSERT INTO `consumable_application`
+		(
+		`application_no`,
+		`section_id`,
+		`line_id`,
+		`apply_time`,
+		`material_id`,
+		`position_id`,
+		`apply_reason`,
+		`confirmer_id`,
+		`all_supplied`)
+		VALUES (
+		#{application_no},
+		#{section_id},
+		#{line_id},
+		#{apply_time},
+		#{material_id},
+		#{position_id},
+		#{apply_reason},
+		#{confirmer_id},
+		0);
+		]]>
+	</insert>
+
+</mapper>

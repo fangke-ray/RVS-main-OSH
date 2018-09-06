@@ -1,0 +1,180 @@
+@CHARSET "UTF-8";
+
+.chartarea * {margin:0; padding:0;}
+ 
+.chartarea {
+	padding: 4px; position: relative;
+
+	transition: all 0.5s;
+	-webkit-transition: all 0.5s;
+	-moz-transition: all 0.5s;
+}
+
+.edgeposition {
+		-moz-transition: all 0.5s ease 0s;
+		padding-top: 20px;
+		position: relative;
+		clear:both;
+}
+
+.edgeposition + .edgeposition::before{
+	content: '';
+	position: absolute; top: 0; left: 50%;
+	border-left: 1px solid #CCCCCC;
+	width: 0; height: 23px;
+}
+
+.chartarea > .edgeposition:not(:first-child) .pos:before {
+		content: "";
+		height: 20px;
+		position: absolute;
+		top: 0;
+/*    border-left: 1px solid #ccc;
+		left: 50%;
+		width: 0; */
+}
+
+.chartarea > .edgeposition:first-child{ 
+	padding-top: 0;
+	margin:auto;
+}
+
+.edgeposition .pos {
+	float: left; text-align: center;
+	list-style-type: none;
+	position: relative;
+	padding: 20px 5px 0 5px;
+	
+	transition: all 0.5s;
+	-webkit-transition: all 0.5s;
+	-moz-transition: all 0.5s;
+}
+
+.edgeposition .pos::before, .edgeposition .pos::after{
+	content: '';
+	position: absolute; top: 0; right: 50%;
+	border-top: 1px solid #CCCCCC;
+	width: 50%; height: 20px;
+}
+.edgeposition .pos::after{
+	right: auto; left: 50%;
+	border-left: 1px solid #ccc;
+}
+
+.edgeposition .pos:only-child::after, .edgeposition .pos:only-child::before {
+	display: none;
+}
+
+.edgeposition .pos:only-child{ padding-top: 0;}
+
+.edgeposition .pos:first-child::before, .edgeposition .pos:last-child::after{
+	border: 0 none;
+}
+
+.edgeposition .pos:only-child::before{
+	border-radius: 0 !important;
+	-webkit-border-radius: 0 !important;
+	-moz-border-radius: 0 !important;
+}
+
+.edgeposition:not(:first-child) .pos:last-child::before{
+	border-right: 1px solid #CCCCCC;
+	border-radius: 0 5px 0 0;
+	-webkit-border-radius: 0 5px 0 0;
+	-moz-border-radius: 0 5px 0 0;
+}
+
+.edgeposition .pos:first-child::after{
+	border-radius: 5px 0 0 0;
+	-webkit-border-radius: 5px 0 0 0;
+	-moz-border-radius: 5px 0 0 0;
+}
+
+.edgeposition .pos span {
+		-moz-transition: all 0.5s ease 0s;
+		border: 1px solid #CCCCCC;
+		border-radius: 5px 5px 5px 5px;
+		color: #666666;
+		display: inline-block;
+		font-family: "Microsoft YaHei",arial,verdana,tahoma;
+		font-size: 12px;
+		padding: 5px 10px;
+		text-decoration: none;
+		box-shadow: 3px 3px 9px #CCCCCC;
+}
+
+.edgeposition .pos span.suceed {
+	background-color: #58B848;
+	color: black;
+}
+
+.edgeposition .pos span.nogood {
+	background-color: #B85848;
+	color: black;
+}
+
+.edgeposition .pos span.point {
+	background-color: #A5E6FF;
+	color: black;
+	font-weight: bold;
+}
+.edgeposition .pos span.point.nogood {
+	background: linear-gradient(to bottom,  #A5E6FF 80%,#B85848 80%);
+}
+.edgeposition .pos span.suceed.point {
+	background: linear-gradient(to bottom,  #A5E6FF 80%,#58B848 80%);
+}
+
+.edgeposition .pos span.rework {
+	background: #B8B8B8!important;
+	color: black;
+	font-weight: bold;
+}
+
+.edgeposition .pos span.suceed:hover , .edgeposition .pos span.nogood:hover {
+	cursor: pointer;
+}
+
+.just-multi {
+	border-radius: 5px 5px 5px 5px;
+	border: 1px solid #CCCCCC;
+	padding-bottom: 2px;
+}
+
+.just {
+	display: table;
+	margin:auto;
+	position: relative;
+	left: 1px;
+}
+
+.feature_result {
+	border: 1px solid #CCCCCC;
+	border-radius: 5px 5px 5px 5px;
+	position: absolute;
+	font-size: 10px;
+	background-color: #88e878;
+	right: -40px;
+	bottom: 26px;
+	z-index: -10;
+}
+
+.edgeposition .pos span.suceed:hover + .feature_result, .edgeposition .pos span.nogood:hover + .feature_result {
+	z-index: 10;
+	border: 2px solid green;
+	background-color: white;
+}
+
+.options {
+	position: absolute;
+	border: 1px solid #333;
+	background: #f7f5d1;
+	padding: 10px;
+	color: #333;
+	display: none;
+	box-shadow: 10px 10px 25px #ccc;
+	background: #fff;
+	-moz-border-radius: 6px;
+	-webkit-border-radius: 6px;
+	z-index: 9999;
+}

@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.RoleMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getRoleByID" resultType="RoleEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT ROLE_ID,
+			NAME,
+			RANK_KIND,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_ROLE
+		WHERE DELETE_FLG = 0
+		AND ROLE_ID = #{role_id};
+		]]>
+	</select>
+
+	<select id="getAllRole" resultType="RoleEntity">
+		<![CDATA[ 
+		SELECT ROLE_ID,
+			NAME,
+			UPDATED_BY,
+			RANK_KIND,
+			UPDATED_TIME
+		FROM ROLE
+		WHERE DELETE_FLG = 0
+		AND ROLE_ID <> 0
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<select id="searchRole" resultType="RoleEntity">
+		<![CDATA[ 
+		SELECT v_r.ROLE_ID,
+			v_r.NAME,
+			v_r.RANK_KIND,
+			op.NAME AS UPDATED_BY,
+			v_r.UPDATED_TIME 
+		FROM V_ROLE v_r
+		LEFT JOIN 
+		    operator op
+		ON
+		    v_r.UPDATED_BY = op.operator_id
+		]]>
+		<where>
+			v_r.DELETE_FLG = 0
+			<if test="condition.role_id!= null and condition.role_id!= '' ">
+				AND v_r.ROLE_ID = #{condition.role_id}
+			</if>
+			<if test="condition.name!=null and condition.name!='' ">
+				AND v_r.NAME LIKE CONCAT('%', #{condition.name}, '%')
+			</if>
+			<if test="condition.rank_kind!=null and condition.rank_kind!='' ">
+				AND v_r.RANK_KIND LIKE CONCAT('%', #{condition.rank_kind}, '%')
+			</if>
+			<if test="privacy_id!=null and privacy_id!='' ">
+				AND v_r.ROLE_ID IN (SELECT ROLE_ID FROM PRIVACY_OF_ROLE WHERE PRIVACY_ID = #{privacy_id})
+			</if>
+		</where> 
+		<![CDATA[ 
+		AND v_r.ROLE_ID <> 0
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<insert id="insertRole" parameterType="RoleEntity">
+		<![CDATA[ 
+		INSERT INTO ROLE 
+			(NAME, RANK_KIND, UPDATED_BY, UPDATED_TIME) 
+		VALUES 
+			(#{name}, #{rank_kind}, #{updated_by}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="updateRole" parameterType="RoleEntity">
+		<![CDATA[ 
+		UPDATE ROLE SET NAME = #{name},
+			RANK_KIND = #{rank_kind},
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE ROLE_ID = #{role_id};
+		]]>
+	</update>
+
+	<update id="deleteRole" parameterType="RoleEntity">
+		<![CDATA[ 
+		UPDATE ROLE SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE ROLE_ID = #{role_id};
+		]]>
+	</update>
+
+	<select id="getPrivaciesOfRole" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT PRIVACY_ID
+		FROM PRIVACY_OF_ROLE
+		WHERE ROLE_ID = #{role_id};
+		]]>
+	</select>
+
+	<insert id="insertPrivacyOfRole" parameterType="String">
+		<![CDATA[ 
+		INSERT INTO PRIVACY_OF_ROLE 
+			(ROLE_ID, PRIVACY_ID) 
+		VALUES 
+			(#{role_id}, #{privacy_id});
+		]]>
+	</insert>
+
+	<delete id="deletePrivacyOfRole" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM PRIVACY_OF_ROLE 
+		WHERE ROLE_ID = #{role_id};
+		]]>
+	</delete>
+
+</mapper>

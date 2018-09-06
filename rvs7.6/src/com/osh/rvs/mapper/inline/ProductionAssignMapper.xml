@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.ProductionAssignMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getProductionAssignByOperator" parameterType="String" resultType="ProductionAssignEntity">
+		<![CDATA[
+select pa.material_id, ma.omr_notifi_no,
+pa.position_id, pos.process_code,
+pa.in_place_time, unix_timestamp(current_timestamp) - unix_timestamp(pa.in_place_time) > 1200 as overtime
+,case when pa.assigned_operator_id = op.operator_id then pa.assigned_operator_id else null end as assigned_operator_id
+,pa.assigned_flg
+,op.operator_id from `production_assign` pa
+join material ma on pa.material_id = ma.material_id
+join operator op on op.section_id = ma.section_id
+join position pos on pa.position_id = pos.position_id
+where 
+op.operator_id = #{operator_id}
+and
+(op.position_id = pa.position_id 
+or exists (select 1 from operator_abilities where operator_id = op.operator_id and position_id = pos.position_id) 
+)
+order by pa.in_place_time
+		]]>
+	</select>
+
+	<select id="getProductionAssignByLine" parameterType="String" resultType="ProductionAssignEntity">
+		<![CDATA[
+select pa.material_id, ma.omr_notifi_no,
+pa.position_id, pos.process_code,
+pa.in_place_time, unix_timestamp(current_timestamp) - unix_timestamp(pa.in_place_time) > 1200 as overtime
+,pa.assigned_operator_id
+,pa.assigned_flg
+from `production_assign` pa
+join material ma on pa.material_id = ma.material_id
+join position pos on pa.position_id = pos.position_id
+where 
+ma.section_id = #{section_id}
+and
+pos.line_id = #{line_id}
+order by pa.in_place_time
+		]]>
+	</select>
+
+	<insert id="create" parameterType="ProductionAssignEntity">
+		<![CDATA[
+			INSERT INTO `production_assign`
+			(`material_id`,
+			`position_id`,
+			`in_place_time`,
+			`assigned_operator_id`,
+			`assigned_flg`)
+			VALUES
+			(#{material_id},
+			#{position_id},
+			current_timestamp,
+			#{assigned_operator_id},
+			#{assigned_flg});
+		]]>
+	</insert>
+
+	<update id="leaderAssign" parameterType="ProductionAssignEntity">
+		<![CDATA[
+			UPDATE `production_assign`
+			SET
+			`assigned_operator_id` = #{assigned_operator_id},
+			`assigned_flg` = 1
+			WHERE `material_id` = #{material_id} 
+			AND `position_id` = #{position_id};
+		]]>
+	</update>
+
+	<delete id="remove" parameterType="ProductionAssignEntity">
+		<![CDATA[
+			DELETE FROM `production_assign`
+			WHERE `material_id` = #{material_id} 
+			AND `position_id` = #{position_id};
+		]]>
+	</delete>
+</mapper>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.SystemImageManageMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+    <select id="searchImageDescription" parameterType="SystemImageManageEntity" resultType="SystemImageManageEntity">
+    	<![CDATA[
+    	     SELECT
+    	     	 file_name,classify,description
+    	     FROM 
+    	         image_description
+    	]]>
+    	<where>
+		<if test="file_name!=null and file_name!='' ">
+			<![CDATA[
+			    file_name = #{file_name}
+			]]>
+		</if>
+		<if test="classify!=null and classify!='' ">
+			<![CDATA[
+			    classify = #{classify}
+			]]>
+		</if>
+		<if test="description!=null and description!='' ">
+			<![CDATA[
+				AND description LIKE CONCAT('%',#{description},'%')
+			]]>
+		</if>
+    	</where>
+    </select>
+
+	<update id="replaceImageDescription" parameterType="SystemImageManageEntity">
+		<![CDATA[ 
+		    REPLACE INTO image_description
+		    (file_name,classify,description)
+		    VALUES(#{file_name},#{classify},#{description})
+		]]>
+	</update>
+
+</mapper>

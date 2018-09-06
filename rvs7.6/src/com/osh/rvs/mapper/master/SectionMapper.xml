@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.SectionMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getSectionByID" resultType="SectionEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT SECTION_ID,
+			NAME,
+			INLINE_FLG,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_SECTION
+		WHERE DELETE_FLG = 0
+		AND SECTION_ID = #{section_id};
+		]]>
+	</select>
+
+	<select id="getAllSection" resultType="SectionEntity">
+		<![CDATA[ 
+		SELECT SECTION_ID,
+			NAME,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM SECTION
+		WHERE DELETE_FLG = 0
+		AND SECTION_ID <> 0
+		ORDER BY SECTION_ID;
+		]]>
+	</select>
+
+	<select id="getInlineSection" resultType="SectionEntity">
+		<![CDATA[ 
+		SELECT SECTION_ID,
+			NAME,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM SECTION
+		WHERE DELETE_FLG = 0
+		AND INLINE_FLG = 1
+		ORDER BY SECTION_ID;
+		]]>
+	</select>
+
+	<select id="searchSection" resultType="SectionEntity">
+		<![CDATA[ 
+		SELECT SECTION_ID,
+			NAME,
+			INLINE_FLG,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_SECTION
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="section_id!= null and section_id!= '' ">
+				AND SECTION_ID = #{section_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="inline_flg!=null and inline_flg!='' ">
+				AND INLINE_FLG = #{inline_flg}
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<insert id="insertSection" parameterType="SectionEntity">
+		<![CDATA[ 
+		INSERT INTO SECTION 
+			(NAME, UPDATED_BY, INLINE_FLG, UPDATED_TIME) 
+		VALUES 
+			(#{name}, #{updated_by}, #{inline_flg}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="updateSection" parameterType="SectionEntity">
+		<![CDATA[ 
+		UPDATE SECTION SET NAME = #{name},
+			UPDATED_BY = #{updated_by},
+			INLINE_FLG = #{inline_flg},
+			UPDATED_TIME = current_timestamp
+		WHERE SECTION_ID = #{section_id};
+		]]>
+	</update>
+
+	<update id="deleteSection" parameterType="SectionEntity">
+		<![CDATA[ 
+		UPDATE SECTION SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE SECTION_ID = #{section_id};
+		]]>
+	</update>
+
+	<select id="getPositionsOfSection" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT POSITION_ID
+		FROM POSITION_OF_SECTION
+		WHERE SECTION_ID = #{section_id};
+		]]>
+	</select>
+
+	<select id="getSectionsOfPosition" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT SECTION_ID
+		FROM POSITION_OF_SECTION
+		WHERE POSITION_ID = #{position_id};
+		]]>
+	</select>
+
+	<insert id="insertPositionOfSection" parameterType="String">
+		<![CDATA[ 
+		INSERT INTO POSITION_OF_SECTION 
+			(SECTION_ID, POSITION_ID) 
+		VALUES 
+			(#{section_id}, #{position_id});
+		]]>
+	</insert>
+
+	<delete id="deletePositionOfSection" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM POSITION_OF_SECTION 
+		WHERE SECTION_ID = #{section_id};
+		]]>
+	</delete>
+
+	<select id="getSectionByOperator" resultType="SectionEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT distinct sec.* FROM section sec
+		JOIN position_of_section pos
+		on sec.section_id = pos.section_id
+		WHERE sec.delete_flg = 0
+		AND (pos.position_id IN
+		(SELECT position_id 
+			FROM operator_abilities oa
+			WHERE oa.operator_id = #{operator_id}
+		)
+		OR pos.position_id IN
+		(SELECT position_id 
+			FROM operator op
+			WHERE op.operator_id = #{operator_id}
+		))
+		]]>
+	</select>
+
+</mapper>

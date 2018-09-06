@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.MaterialRemainTimeMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<!-- 取得维修对象在工程内的预计划时间 -->
+	<select id="getMaterialRemainTime" resultType="date" parameterType="String">
+		<![CDATA[
+		SELECT expected_finish_time
+		    FROM material_remain_time
+		    WHERE material_id = #{material_id} AND line_id = #{line_id};
+		]]>
+	</select>
+
+	<select id="checkMaterialRemainTime" resultType="int" parameterType="String">
+	<![CDATA[ 
+		select count(*) from material_remain_time where  material_id = #{material_id} AND line_id = #{line_id}
+	]]>
+	</select>
+
+</mapper>

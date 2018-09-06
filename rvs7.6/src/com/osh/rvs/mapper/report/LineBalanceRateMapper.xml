@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.report.LineBalanceRateMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchList" resultType="LineBalanceRateEntity" parameterType="LineBalanceRateEntity">
+	<![CDATA[
+		SELECT 
+		    temp.process_code,
+		    temp.position_name,
+			ROUND(AVG(temp.use_seconds) / 60) AS avgWorkTime
+		FROM
+		    (SELECT 
+				pf.material_id,
+				pf.position_id,
+		        p.process_code,
+		        p.name as position_name,
+	]]>
+	<if test="rework==1">
+	<![CDATA[
+		pf.use_seconds
+	]]>
+	</if>
+	<if test="rework==2">
+	<![CDATA[
+		max(pf.use_seconds) as use_seconds
+	]]>
+	</if>
+	<![CDATA[
+		    FROM
+		        production_feature pf
+		    JOIN material ma ON pf.material_id = ma.material_id
+		    JOIN v_model vm ON vm.model_id = ma.model_id
+		    JOIN position p ON p.position_id = pf.position_id
+		    JOIN material_process mp ON ma.material_id = mp.material_id AND mp.line_id = #{line_id}
+		    WHERE
+		    	(pf.operate_result = 2 OR pf.operate_result = 6)
+				AND pf.finish_time >= #{finish_time_start}
+		        AND pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 MONTH)
+				AND p.process_code not in ('200','251','252','301','302','303','321','400')
+	]]>
+	<if test="process_codes!=null and process_codes!=''">
+	<![CDATA[
+		AND p.process_code in (${process_codes})
+	]]>
+	</if>
+	<if test="section_id!=null and section_id!=''">
+	<![CDATA[
+		AND pf.section_id = #{section_id}
+	]]>
+	</if>
+	<if test="line_id!=null and line_id!=''">
+	<![CDATA[
+		AND p.line_id = #{line_id}
+	]]>
+	</if>
+	<if test="category_id!=null and category_id!=''">
+	<![CDATA[
+		AND vm.category_id = #{category_id}
+	]]>
+	</if>
+	<if test="model_id!=null and model_id!=''">
+	<![CDATA[
+		AND ma.model_id = #{model_id}
+	]]>
+	</if>
+	<if test="level==1">
+	<![CDATA[
+		AND ma.level IN (1,2,3)
+	]]>
+	</if>
+	<if test="level==9">
+	<![CDATA[
+		AND ma.level IN (9,91,92,93,96,97,98,99)
+	]]>
+	</if>
+	<if test="level==5">
+	<![CDATA[
+		AND ma.level IN (56,57,58,59)
+	]]>
+	</if>
+	<if test="px == 0">
+	<![CDATA[
+		AND mp.px = 0
+	]]>
+	</if>
+	<if test="px == 1">
+	<![CDATA[
+		AND mp.px in (1, 4, 7)
+	]]>
+	</if>
+	<if test="px == 2">
+	<![CDATA[
+		AND mp.px = 2
+	]]>
+	</if>
+	<if test="px == 3">
+	<![CDATA[
+		AND mp.px = 3
+	]]>
+	</if>
+	<if test="px == 4">
+	<![CDATA[
+		AND mp.px = 4
+	]]>
+	</if>
+	<if test="px == 7">
+	<![CDATA[
+		AND mp.px = 7
+	]]>
+	</if>
+	<if test="rework==2">
+	<![CDATA[
+		GROUP BY pf.material_id, pf.position_id
+	]]>
+	</if>
+	<![CDATA[
+		) temp
+		GROUP BY temp.position_id
+		ORDER BY (temp.process_code like '5%') DESC, temp.process_code
+	]]>
+	</select>
+</mapper>

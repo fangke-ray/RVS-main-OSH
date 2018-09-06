@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.ExternalAdjustmentMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<!-- 一览 -->
+	<select id="search" parameterType="ExternalAdjustmentEntity" resultType="ExternalAdjustmentEntity">
+		<![CDATA[
+			SELECT
+				ea.devices_manage_id,
+				ea.object_type,
+				coalesce(dm.manage_code, tm.manage_code) as manage_code,
+				coalesce(dt.name, tm.tool_name) as name,
+				dm.brand,
+				coalesce(dm.model_name, tm.tools_no) as model_name,
+				dm.products_code,
+				sec.name AS section_name,
+				line.name AS line_name,
+				ea.checked_date,
+				ea.available_end_date,
+				ea.effect_interval,
+				ea.check_cost,
+				ea.organization_type,
+				ea.institution_name,
+				ea.checking_flg,
+				coalesce(dm.manage_level, tm.manage_level) as manage_level,
+				CASE  
+					WHEN ea.available_end_date <CURRENT_DATE() THEN 1
+					ELSE 0
+				END AS isover
+			FROM 	
+				external_adjustment ea
+			LEFT JOIN
+				devices_manage dm
+			ON
+				ea.devices_manage_id=dm.devices_manage_id AND ea.object_type = 1
+			LEFT JOIN
+				devices_type dt
+			ON
+				dt.devices_type_id=dm.devices_type_id
+			LEFT JOIN
+				tools_manage tm
+			ON
+				ea.devices_manage_id=tm.tools_manage_id	AND ea.object_type = 2
+			LEFT JOIN
+				tools_type tt
+			ON
+				tt.tools_type_id=tm.tools_type_id
+			LEFT JOIN
+				section sec
+			ON
+				sec.section_id=dm.section_id
+			LEFT JOIN
+				line 
+			ON
+				line.line_id=dm.line_id
+			WHERE
+				dm.waste_date IS NULL AND tm.waste_date IS NULL
+		]]>
+		<if test="devices_type_id!=null and devices_type_id!=''">
+			<![CDATA[
+				AND (dt.devices_type_id=#{devices_type_id} OR tt.tools_type_id=#{devices_type_id}) AND ea.object_type=#{object_type}
+			]]>
+		</if>
+		<if test="brand!=null and brand!=''">
+			<![CDATA[
+				AND dm.brand LIKE CONCAT('%',#{brand},'%')
+			]]>
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			<![CDATA[
+				AND (dm.model_name LIKE CONCAT('%',#{model_name},'%') OR tm.tools_no LIKE CONCAT('%',#{model_name},'%'))
+			]]>
+		</if>
+		<if test="manage_code!=null and manage_code!=''">
+			<![CDATA[
+				AND (dm.manage_code LIKE CONCAT('%',#{manage_code},'%') OR tm.manage_code LIKE CONCAT('%',#{manage_code},'%'))
+			]]>
+		</if>
+		<if test="products_code!=null and products_code!=''">
+			<![CDATA[
+				AND dm.products_code LIKE CONCAT('%',#{products_code},'%')
+			]]>
+		</if>
+		<if test="section_id!=null and section_id!=''">
+			<![CDATA[
+				AND (dm.section_id=#{section_id} OR tm.section_id=#{section_id})
+			]]>
+		</if>
+		<if test="line_id!=null and line_id!=''">
+			<![CDATA[
+				AND (dm.line_id=#{line_id} OR tm.line_id=#{line_id})
+			]]>
+		</if>
+		<if test="checked_date_start!=null and checked_date_start!=''">
+			<![CDATA[
+				AND ea.checked_date >=#{checked_date_start}
+			]]>
+		</if>
+		<if test="checked_date_end!=null and checked_date_end!=''">
+			<![CDATA[
+				AND ea.checked_date <=#{checked_date_end}
+			]]>
+		</if>
+		<if test="available_end_date_start!=null and available_end_date_start!=''">
+			<![CDATA[
+				AND ea.available_end_date >=#{available_end_date_start}
+			]]>
+		</if>
+		<if test="available_end_date_end!=null and available_end_date_end!=''">
+			<![CDATA[
+				AND ea.available_end_date <=#{available_end_date_end}
+			]]>
+		</if>
+		<if test="effect_interval!=null and effect_interval!=''">
+			<![CDATA[
+				AND ea.effect_interval=#{effect_interval}
+			]]>
+		</if>
+		<if test="organization_type!=null and organization_type!=''">
+			<![CDATA[
+				AND ea.organization_type=#{organization_type}
+			]]>
+		</if>
+		<if test="institution_name!=null and institution_name!=''">
+			<![CDATA[
+				AND ea.institution_name LIKE CONCAT('%',#{institution_name},'%')
+			]]>
+		</if>
+		<![CDATA[
+			ORDER BY ea.checked_date
+				
+		]]>
+	</select>
+	
+	<select id="getTotalCost" resultType="ExternalAdjustmentEntity">
+		<![CDATA[
+			SELECT 
+				organization_type,
+				SUM(check_cost) AS total_check_cost 
+			FROM 
+				external_adjustment 
+			GROUP BY 
+				organization_type 
+			ASC
+		]]>
+	</select>
+	
+	<!-- 设备管理编号下拉框 -->
+	<select id="getDeviceManageCodeReferChooser" resultType="ExternalAdjustmentEntity">
+		<![CDATA[
+			SELECT 
+			    dm.devices_manage_id, dm.manage_code,dt.name
+			FROM
+			    devices_manage dm
+			LEFT JOIN
+				devices_type dt
+			ON
+				dm.devices_type_id=dt.devices_type_id
+			WHERE
+			    dm.manage_level = 1 AND dm.delete_flg = 0
+		        AND dm.waste_date IS NULL
+		        AND dm.status IN (1 , 4)
+		        AND dm.devices_manage_id NOT IN 
+		        (SELECT 
+		        	ea.devices_manage_id 
+		        FROM 
+		        	external_adjustment ea 
+		        LEFT JOIN 
+		        	devices_manage dm 
+		        ON 
+		        	ea.devices_manage_id = dm.devices_manage_id 
+		        AND 
+		        	object_type = 1
+		        )
+		]]>
+	</select>
+	
+	<!-- 工具管理编号下拉框 -->
+	<select id="getToolsManageCodeReferChooser" resultType="ExternalAdjustmentEntity">
+		<![CDATA[
+			SELECT 
+			    tools_manage_id, manage_code,tool_name as name
+			FROM
+			    tools_manage
+			WHERE
+			    manage_level = 1 AND delete_flg = 0
+		        AND waste_date IS NULL
+		        AND status IN (1 , 4)
+		        AND tools_manage_id NOT IN 
+		        (SELECT 
+		        	ea.devices_manage_id 
+		        FROM 
+		        	external_adjustment ea 
+		        LEFT JOIN 
+		        	tools_manage tm 
+		        ON 
+		        	ea.devices_manage_id = tm.tools_manage_id 
+		        AND 
+		        	object_type = 2
+		        )
+		]]>
+	</select>
+	
+	
+	
+	<!-- 设备管理编号change事件 -->
+	<select id="searchDeviceBaseInfo" parameterType="ExternalAdjustmentEntity" resultType="ExternalAdjustmentEntity">
+		<![CDATA[
+			SELECT
+				coalesce(dt.name,'') as name,
+				dm.brand,
+				dm.model_name,
+				dm.products_code,
+				sec.name AS section_name,
+				line.name AS line_name
+			FROM
+				devices_manage dm
+			LEFT JOIN
+				devices_type dt
+			ON
+				dt.devices_type_id=dm.devices_type_id
+			LEFT JOIN
+				section sec
+			ON
+				sec.section_id=dm.section_id
+			LEFT JOIN
+				line 
+			ON
+				line.line_id=dm.line_id
+			WHERE
+				devices_manage_id=#{devices_manage_id}
+		]]>
+	</select>
+	
+	<!-- 治具管理编号change事件 -->
+	<select id="searchToolsBaseInfo" parameterType="ExternalAdjustmentEntity" resultType="ExternalAdjustmentEntity">
+		<![CDATA[
+			SELECT 
+			    tm.tool_name as name,
+			    tm.tools_no AS model_name,
+			    sec.name AS section_name,
+			    line.name AS line_name
+			FROM
+			    tools_manage tm
+			LEFT JOIN
+			    section sec ON sec.section_id = tm.section_id
+			LEFT JOIN
+			    line ON line.line_id = tm.line_id
+			WHERE
+				tools_manage_id=#{devices_manage_id}
+		]]>
+	</select>
+	
+	
+	
+	<!-- 新建 -->
+	<insert id="insert" parameterType="ExternalAdjustmentEntity">
+		<![CDATA[
+			INSERT INTO external_adjustment
+			(
+				devices_manage_id,
+				object_type,
+				checked_date,
+				available_end_date,
+				effect_interval,
+				check_cost,
+				organization_type,
+				institution_name,
+				checking_flg,
+				comment
+			)VALUES
+			(
+				#{devices_manage_id},
+				#{object_type},
+				#{checked_date},
+				#{available_end_date},
+				#{effect_interval},
+				#{check_cost},
+				#{organization_type},
+				#{institution_name},
+				0,
+				#{comment}
+			)
+		]]>
+	</insert>
+	
+	<!-- 送检 -->
+	<update id="checking" parameterType="ExternalAdjustmentEntity">
+		<![CDATA[
+			UPDATE external_adjustment SET checking_flg=1 WHERE devices_manage_id=#{devices_manage_id} AND object_type=#{object_type}
+		]]>
+	</update>
+	
+	<!--详细信息-->
+	<select id="getDetailById" parameterType="ExternalAdjustmentEntity" resultType="ExternalAdjustmentEntity">
+		<![CDATA[
+			SELECT
+				ea.devices_manage_id,
+				ea.object_type,
+				coalesce(dm.manage_code, tm.manage_code) as manage_code,
+				coalesce(dt.name, tm.tool_name) as name,
+				dm.brand,
+				coalesce(dm.model_name, tm.tools_no) as model_name,
+				dm.products_code,
+				sec.name AS section_name,
+				line.name AS line_name,
+				ea.checked_date,
+				ea.available_end_date,
+				ea.effect_interval,
+				ea.check_cost,
+				ea.organization_type,
+				ea.institution_name,
+				ea.comment,
+				ea.checking_flg
+			FROM 	
+				external_adjustment ea
+			LEFT JOIN
+				devices_manage dm
+			ON
+				ea.devices_manage_id=dm.devices_manage_id AND ea.object_type = 1
+			LEFT JOIN
+				devices_type dt
+			ON
+				dt.devices_type_id=dm.devices_type_id
+			LEFT JOIN
+    			tools_manage tm 
+    		ON 
+    			ea.devices_manage_id = tm.tools_manage_id AND ea.object_type = 2
+			LEFT JOIN
+				section sec
+			ON
+				sec.section_id=dm.section_id
+			LEFT JOIN
+				line 
+			ON
+				line.line_id=dm.line_id
+			WHERE
+				ea.devices_manage_id=#{devices_manage_id} and ea.object_type = #{object_type}
+		]]>
+	</select>
+	
+	<update id="update" parameterType="ExternalAdjustmentEntity">
+		<![CDATA[
+			UPDATE 
+				external_adjustment 
+			SET
+				check_cost=#{check_cost},
+				organization_type=#{organization_type},
+				institution_name=#{institution_name},
+				comment=#{comment}
+		]]>
+		<if test="checking_flg==1 and isover==1"><!-- 校验中 并且校验时间改变 -->
+			<![CDATA[
+				,
+				checked_date=#{checked_date},
+				available_end_date=#{available_end_date},
+				checking_flg=0
+			]]>
+		</if>
+		<where>
+			<![CDATA[
+				devices_manage_id=#{devices_manage_id} AND object_type = #{object_type}
+			]]>
+		</where>
+	</update>
+	
+	<!-- 停止检验-->
+	<update id="stopChecking" parameterType="ExternalAdjustmentEntity">
+		<![CDATA[
+			DELETE  FROM external_adjustment WHERE	devices_manage_id=#{devices_manage_id} AND object_type = #{object_type}
+		]]>
+	</update>
+	
+	
+</mapper>

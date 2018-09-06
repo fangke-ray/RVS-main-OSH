@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.report.RemainTimeReportMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchRateList" resultType="RemainTimeReportEntity" parameterType="RemainTimeReportEntity">
+		<![CDATA[ 
+			SELECT 
+				tmp.line_id,
+				tmp.line_name,
+				DATE_FORMAT(tmp.finish_time, '%Y%m') AS finish_month,
+				round(avg(tmp.finish_time <= tmp.expected_finish_time) * 100, 1) as finish_rate
+			FROM
+				(SELECT 
+					pf.material_id,
+					p.line_id,
+					p.line_name,
+					max(pf.finish_time) as finish_time,
+					mrt.expected_finish_time
+				FROM
+					production_feature pf
+				join material m ON m.material_id = pf.material_id
+				join v_position p ON p.position_id = pf.position_id
+				join material_process mp on mp.material_id = pf.material_id
+					and mp.line_id = p.line_id
+				join material_remain_time mrt ON mrt.material_id = pf.material_id
+					and mrt.line_id = p.line_id
+				WHERE
+					m.section_id = '00000000001'
+					and mp.px not in (1, 3)
+					and p.line_id in ('00000000012', '00000000013', '00000000014')
+					and mp.finish_date >= #{start_date}
+					and mp.finish_date < DATE_ADD(#{end_date},INTERVAL 1 DAY)
+					and mrt.expected_finish_time is not null
+				GROUP BY pf.material_id, p.line_id) tmp
+			GROUP BY tmp.line_id, finish_month
+			ORDER BY tmp.line_id, finish_month
+		]]>
+	</select>
+
+	<select id="searchPartialRateList" resultType="RemainTimeReportEntity" parameterType="RemainTimeReportEntity">
+		<![CDATA[ 
+			SELECT
+				DATE_FORMAT(tmp.finish_time, '%Y%m') AS finish_month,
+				round(avg(f_diffminutes(tmp.action_time, tmp.finish_time) <= 120) * 100, 1) as finish_rate
+			FROM
+				(SELECT 
+				    mp.material_id,
+				    min(mp.order_time) as action_time,
+				    min(mpt.recent_signin_time) as finish_time
+				FROM
+				    material_partial mp
+				        join
+				    material_partial_detail mpt ON mpt.material_id = mp.material_id
+				        and mpt.occur_times = mp.occur_times
+				        join
+				    material m ON m.material_id = mp.material_id
+				        join
+				    material_process mpr ON m.material_id = mpr.material_id
+				WHERE
+				    m.section_id = '00000000001'
+					and mpr.px not in (1, 3)
+			        and mp.occur_times = 1
+			        and mp.arrival_date >= #{start_date}
+			        and mp.arrival_date < DATE_ADD(#{end_date},INTERVAL 1 DAY)
+			        and mpt.status < 5
+				GROUP BY mp.material_id) tmp
+			GROUP BY finish_month
+			ORDER BY finish_month
+		]]>
+	</select>
+
+	<select id="searchDetailList" resultType="RemainTimeReportEntity" parameterType="RemainTimeReportEntity">
+		<![CDATA[ 
+			SELECT
+			    tmp.material_id,
+			    tmp.omr_notifi_no,
+			    tmp.level,
+			    tmp.model_name,
+			    tmp.category_name,
+			    tmp.action_time,
+			    tmp.finish_time,
+			    tmp.expected_finish_time,
+			    f_diff_factwork_minutes(tmp.action_time,
+			            tmp.finish_time,
+			            tmp.material_id) as factwork_minutes,
+			    f_diffminutes(tmp.action_time,
+			            tmp.expected_finish_time) as expected_minutes,
+				(SELECT count(1) FROM material_partial
+						WHERE material_id = tmp.material_id and bo_flg in (1 , 2)) as bo_flg,
+				(SELECT count(1) FROM production_feature pf JOIN position pos ON pf.position_id = pos.position_id AND pos.line_id = #{line_id}
+						WHERE material_id = tmp.material_id and operate_result = 8) as rework
+			FROM
+			    (SELECT 
+			        pf.material_id,
+					m.omr_notifi_no,
+					m.level,
+					vm.name as model_name,
+					vm.category_name,
+		]]>
+		<if test="line_id != '00000000013'">
+		<![CDATA[
+					min(pf.action_time) as action_time,
+		]]>
+		</if>
+		<if test="line_id == '00000000013'">
+		<![CDATA[
+					coalesce(min(case
+						when pf.position_id = ppt.min_position_id then pf.action_time
+					end), min(pf.action_time)) as action_time,
+		]]>
+		</if>
+		<![CDATA[ 
+					max(pf.finish_time) as finish_time,
+					mrt.expected_finish_time
+			    FROM
+			        production_feature pf
+			    join material m ON m.material_id = pf.material_id
+			    join v_position p ON p.position_id = pf.position_id
+				join material_process mp on mp.material_id = pf.material_id
+					and mp.line_id = p.line_id
+			    left join material_remain_time mrt ON mrt.material_id = pf.material_id
+			        and mrt.line_id = p.line_id
+			    left join v_model vm ON vm.model_id = m.model_id
+		]]>
+		<if test="line_id == '00000000013'">
+		<![CDATA[
+			    left join (SELECT 
+				        material_id, min(position_id) as min_position_id
+				    FROM
+				        position_plan_time
+				    WHERE
+				        line_id = '00000000013'
+				    GROUP BY material_id) ppt ON ppt.material_id = pf.material_id
+		]]>
+		</if>
+		<![CDATA[ 
+			    WHERE
+			        m.section_id = '00000000001'
+					and mp.px not in (1, 3)
+			        and mp.finish_date >= #{start_date}
+			        and mp.finish_date < DATE_ADD(#{end_date},INTERVAL 1 DAY)
+			        and p.line_id = #{line_id}
+		]]>
+		<if test="line_id == '00000000012'">
+		<![CDATA[
+					and p.process_code = '261'
+		]]>
+		</if>
+		<if test="line_id == '00000000013'">
+		<![CDATA[
+					and p.process_code in ('331', '341', '351', '361')
+		]]>
+		</if>
+		<if test="line_id == '00000000014'">
+		<![CDATA[
+					and p.process_code <> '400'
+		]]>
+		</if>
+		<![CDATA[
+			    GROUP BY pf.material_id) tmp
+		]]>
+	</select>
+
+	<select id="searchPartialDetailList" resultType="RemainTimeReportEntity" parameterType="RemainTimeReportEntity">
+		<![CDATA[ 
+			SELECT 
+			    tmp.omr_notifi_no,
+			    tmp.level,
+			    tmp.model_name,
+			    tmp.action_time,
+			    tmp.finish_time,
+			    f_diffminutes(tmp.action_time, tmp.finish_time) as factwork_minutes,
+				(SELECT count(1) FROM material_partial
+					WHERE material_id = tmp.material_id and bo_flg in (1 , 2)) as bo_flg
+			FROM
+			    (SELECT
+			    	mp.material_id,
+			        m.omr_notifi_no,
+					m.level,
+					vm.name as model_name,
+					min(mp.order_time) as action_time,
+					min(mpt.recent_signin_time) as finish_time
+			    FROM
+			        material_partial mp
+			    join material_partial_detail mpt ON mpt.material_id = mp.material_id
+			        and mpt.occur_times = mp.occur_times
+			    join material m ON m.material_id = mp.material_id
+			    left join v_model vm ON vm.model_id = m.model_id
+			        join
+			    material_process mpr ON m.material_id = mpr.material_id
+			    WHERE
+			        m.section_id = '00000000001'
+					and mpr.px not in (1, 3)
+					and mp.occur_times = 1
+					and mp.arrival_date >= #{start_date}
+					and mp.arrival_date < DATE_ADD(#{end_date},INTERVAL 1 DAY)
+					and mpt.status < 5
+			    GROUP BY mp.material_id) tmp
+		]]>
+	</select>
+</mapper>

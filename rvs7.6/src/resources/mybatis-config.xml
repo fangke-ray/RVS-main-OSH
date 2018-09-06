@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<properties />
+	<settings>
+		<setting name="cacheEnabled" value="true" />
+		<setting name="lazyLoadingEnabled" value="true" />
+		<setting name="multipleResultSetsEnabled" value="true" />
+		<setting name="useColumnLabel" value="true" />
+		<setting name="useGeneratedKeys" value="true" />
+		<setting name="defaultExecutorType" value="SIMPLE" />
+	</settings>
+	<typeAliases>
+		<typeAlias alias="LoginData" type="com.osh.rvs.bean.LoginData" />
+		<typeAlias alias="CategoryEntity" type="com.osh.rvs.bean.master.CategoryEntity" />
+		<typeAlias alias="ModelEntity" type="com.osh.rvs.bean.master.ModelEntity" />
+		<typeAlias alias="SectionEntity" type="com.osh.rvs.bean.master.SectionEntity" />
+		<typeAlias alias="LineEntity" type="com.osh.rvs.bean.master.LineEntity" />
+		<typeAlias alias="PositionEntity" type="com.osh.rvs.bean.master.PositionEntity" />
+		<typeAlias alias="OperatorEntity" type="com.osh.rvs.bean.master.OperatorEntity" />
+		<typeAlias alias="OperatorNamedEntity" type="com.osh.rvs.bean.master.OperatorNamedEntity" />
+		<typeAlias alias="PrivacyEntity" type="com.osh.rvs.bean.master.PrivacyEntity" />
+		<typeAlias alias="PrivacyGroupEntity" type="com.osh.rvs.bean.master.PrivacyGroupEntity" />
+		<typeAlias alias="RoleEntity" type="com.osh.rvs.bean.master.RoleEntity" />
+		<typeAlias alias="ProcessAssignTemplateEntity" type="com.osh.rvs.bean.master.ProcessAssignTemplateEntity" />
+		<typeAlias alias="ProcessAssignEntity" type="com.osh.rvs.bean.master.ProcessAssignEntity" />
+		<typeAlias alias="PcsFixOrderEntity" type="com.osh.rvs.bean.master.PcsFixOrderEntity"/>
+		<typeAlias alias="CustomerEntity" type="com.osh.rvs.bean.master.CustomerEntity" />
+		<typeAlias alias="LightFixEntity" type="com.osh.rvs.bean.master.LightFixEntity"/>
+		<typeAlias alias="SystemImageManageEntity" type="com.osh.rvs.bean.master.SystemImageManageEntity"/>
+		<typeAlias alias="PcsRequestEntity" type="com.osh.rvs.bean.master.PcsRequestEntity"/>
+
+		<typeAlias alias="PartialEntity" type="com.osh.rvs.bean.master.PartialEntity"/>
+		<typeAlias alias="PartialPositionEntity" type="com.osh.rvs.bean.master.PartialPositionEntity"/>
+		<typeAlias alias="PartialBomEntity" type="com.osh.rvs.bean.master.PartialBomEntity"/>
+
+		<typeAlias alias="DevicesTypeEntity" type="com.osh.rvs.bean.master.DevicesTypeEntity"/>
+		<typeAlias alias="DevicesManageEntity" type="com.osh.rvs.bean.master.DevicesManageEntity"/>
+		<typeAlias alias="ToolsTypeEntity" type="com.osh.rvs.bean.master.ToolsTypeEntity"/>
+		<typeAlias alias="ToolsManageEntity" type="com.osh.rvs.bean.master.ToolsManageEntity"/>
+		<typeAlias alias="CheckFileManageEntity" type="com.osh.rvs.bean.master.CheckFileManageEntity"/>
+		<typeAlias alias="DeviceCheckItemEntity" type="com.osh.rvs.bean.master.DeviceCheckItemEntity"/>
+
+		<typeAlias alias="ModelLevelSetEntity" type="com.osh.rvs.bean.manage.ModelLevelSetEntity"/>
+		<typeAlias alias="ModelLevelSetHistoryEntity" type="com.osh.rvs.bean.manage.ModelLevelSetHistoryEntity"/>
+		<typeAlias alias="EchelonAllocateEntity" type="com.osh.rvs.bean.manage.EchelonAllocateEntity"/>
+		<typeAlias alias="UserDefineCodesEntity" type="com.osh.rvs.bean.manage.UserDefineCodesEntity"/>
+		<typeAlias alias="InterfaceDataEntity" type="com.osh.rvs.bean.manage.InterfaceDataEntity"/>
+
+		<typeAlias alias="MaterialEntity" type="com.osh.rvs.bean.data.MaterialEntity" />
+		<typeAlias alias="ProductionFeatureEntity" type="com.osh.rvs.bean.data.ProductionFeatureEntity" />
+		<typeAlias alias="PositionProductionEntity" type="com.osh.rvs.bean.data.PositionProductionEntity" />
+		<typeAlias alias="OperatorProductionEntity" type="com.osh.rvs.bean.data.OperatorProductionEntity" />
+		<typeAlias alias="AlarmMesssageEntity" type="com.osh.rvs.bean.data.AlarmMesssageEntity" />
+		<typeAlias alias="AlarmMesssageSendationEntity" type="com.osh.rvs.bean.data.AlarmMesssageSendationEntity" />
+		<typeAlias alias="SnoutEntity" type="com.osh.rvs.bean.data.SnoutEntity" />
+		<typeAlias alias="QaResultEntity" type="com.osh.rvs.bean.data.QaResultEntity"/>
+		<typeAlias alias="PostMessageEntity" type="com.osh.rvs.bean.data.PostMessageEntity"/>
+		<typeAlias alias="PauseFeatureEntity" type="com.osh.rvs.bean.inline.PauseFeatureEntity" />
+		<typeAlias alias="MaterialProcessEntity" type="com.osh.rvs.bean.inline.MaterialProcessEntity" />
+		<typeAlias alias="MaterialFactEntity" type="com.osh.rvs.bean.inline.MaterialFactEntity" />
+		<typeAlias alias="WaitingEntity" type="com.osh.rvs.bean.inline.WaitingEntity" />
+		<typeAlias alias="LineLeaderEntity" type="com.osh.rvs.bean.inline.LineLeaderEntity" />
+		<typeAlias alias="ScheduleEntity" type="com.osh.rvs.bean.inline.ScheduleEntity" />
+		<typeAlias alias="SoloProductionFeatureEntity" type="com.osh.rvs.bean.inline.SoloProductionFeatureEntity" />
+		<typeAlias alias="ComposeStorageEntity" type="com.osh.rvs.bean.inline.ComposeStorageEntity"/>
+		<typeAlias alias="MaterialOgzEntity" type="com.osh.rvs.bean.inline.MaterialOgzEntity"/>
+		<typeAlias alias="ForSolutionAreaEntity" type="com.osh.rvs.bean.inline.ForSolutionAreaEntity"/>
+		<typeAlias alias="ForSolutionAreaEventEntity" type="com.osh.rvs.bean.inline.ForSolutionAreaEventEntity"/>
+		<typeAlias alias="DailyKpiDataEntity" type="com.osh.rvs.bean.inline.DailyKpiDataEntity"/>
+
+		<typeAlias alias="MaterialPartialEntity" type="com.osh.rvs.bean.partial.MaterialPartialEntity" />
+		<typeAlias alias="MaterialPartialDetailEntity" type="com.osh.rvs.bean.partial.MaterialPartialDetailEntity"/>
+		<typeAlias alias="PartialWasteModifyHistoryEntity" type="com.osh.rvs.bean.partial.PartialWasteModifyHistoryEntity"/>
+		<typeAlias alias="PartialOrderRecordEntity" type="com.osh.rvs.bean.partial.PartialOrderRecordEntity"/>
+		<typeAlias alias="PartialBaseLineValueEntity" type="com.osh.rvs.bean.partial.PartialBaseLineValueEntity"/>
+		<typeAlias alias="PartialSupplyEntity" type="com.osh.rvs.bean.partial.PartialSupplyEntity"/>
+		<typeAlias alias="PartialOrderManageEntity" type="com.osh.rvs.bean.partial.PartialOrderManageEntity"/>
+		<typeAlias alias="PartialBaseValueAdjustHistoryEntity" type="com.osh.rvs.bean.partial.PartialBaseValueAdjustHistoryEntity"/>
+		<typeAlias alias="SorcLossEntity" type="com.osh.rvs.bean.partial.SorcLossEntity"/>
+		<typeAlias alias="BadLossSummaryEntity" type="com.osh.rvs.bean.partial.BadLossSummaryEntity"/>
+		<typeAlias alias="ConsumableListEntity" type="com.osh.rvs.bean.partial.ConsumableListEntity"/>
+		<typeAlias alias="ConsumableOrderEntity" type="com.osh.rvs.bean.partial.ConsumableOrderEntity"/>
+		<typeAlias alias="ConsumableSupplyEntity" type="com.osh.rvs.bean.partial.ConsumableSupplyEntity"/>
+		<typeAlias alias="ConsumableApplicationEntity" type="com.osh.rvs.bean.partial.ConsumableApplicationEntity"/>
+		<typeAlias alias="ConsumableInventoryEntity" type="com.osh.rvs.bean.partial.ConsumableInventoryEntity"/>
+		<typeAlias alias="ConsumableOnlineEntity" type="com.osh.rvs.bean.partial.ConsumableOnlineEntity"/>
+		<typeAlias alias="ConsumableApplicationDetailEntity" type="com.osh.rvs.bean.partial.ConsumableApplicationDetailEntity"/>
+
+		<typeAlias alias="DailyCheckResultEntity" type="com.osh.rvs.bean.infect.DailyCheckResultEntity"/>
+		<typeAlias alias="ToolsCheckResultEntity" type="com.osh.rvs.bean.infect.ToolsCheckResultEntity"/>
+		<typeAlias alias="CheckUnqualifiedRecordEntity" type="com.osh.rvs.bean.infect.CheckUnqualifiedRecordEntity"/>
+		<typeAlias alias="DeviceRegularlyCheckResultEntity" type="com.osh.rvs.bean.infect.DeviceRegularlyCheckResultEntity"/>
+		<typeAlias alias="ToolsDistributeEntity" type="com.osh.rvs.bean.infect.ToolsDistributeEntity"/>
+		<typeAlias alias="CheckResultEntity" type="com.osh.rvs.bean.infect.CheckResultEntity"/>
+		<typeAlias alias="ExternalAdjustmentEntity" type="com.osh.rvs.bean.infect.ExternalAdjustmentEntity"/>
+		<typeAlias alias="CheckResultFilingEntity" type="com.osh.rvs.bean.infect.CheckResultFilingEntity"/>
+		
+		<typeAlias alias="TorsionDeviceEntity" type="com.osh.rvs.bean.infect.TorsionDeviceEntity"/>
+		<typeAlias alias="ElectricIronDeviceEntity" type="com.osh.rvs.bean.infect.ElectricIronDeviceEntity"/>
+
+		<typeAlias alias="PdaSupplyEntity" type="com.osh.rvs.bean.pda.PdaSupplyEntity"/>
+		<typeAlias alias="PdaApplyEntity" type="com.osh.rvs.bean.pda.PdaApplyEntity"/>
+		<typeAlias alias="PdaApplyElementEntity" type="com.osh.rvs.bean.pda.PdaApplyElementEntity"/>
+		<typeAlias alias="ConsumableSubstituteEntity" type="com.osh.rvs.bean.partial.ConsumableSubstituteEntity"/>
+		<typeAlias alias="MaterialProcessAssignEntity" type="com.osh.rvs.bean.inline.MaterialProcessAssignEntity"/>
+		<typeAlias alias="ProductionAssignEntity" type="com.osh.rvs.bean.inline.ProductionAssignEntity"/>
+		<typeAlias alias="ScheduleHistoryEntity" type="com.osh.rvs.bean.inline.ScheduleHistoryEntity"/>
+		<typeAlias alias="PremakePartialEntity" type="com.osh.rvs.bean.partial.PremakePartialEntity"/>
+
+		<typeAlias alias="ServiceRepairManageEntity" type="com.osh.rvs.bean.qa.ServiceRepairManageEntity"/>
+		<typeAlias alias="TurnoverCaseEntity" type="com.osh.rvs.bean.qf.TurnoverCaseEntity"/>
+		<typeAlias alias="PeripheralInfectDeviceEntity" type="com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity"/>
+		<typeAlias alias="PartialStorageEntity" type="com.osh.rvs.bean.partial.PartialStorageEntity"/>
+		<typeAlias alias="DryingOvenDeviceEntity" type="com.osh.rvs.bean.infect.DryingOvenDeviceEntity"/>
+		<typeAlias alias="DryingJobEntity" type="com.osh.rvs.bean.infect.DryingJobEntity"/>
+		<typeAlias alias="DryingProcessEntity" type="com.osh.rvs.bean.inline.DryingProcessEntity"/>
+		<typeAlias alias="WorkTimeAnalysisEntity" type="com.osh.rvs.bean.report.WorkTimeAnalysisEntity"/>
+		<typeAlias alias="ProductivityEntity" type="com.osh.rvs.bean.report.ProductivityEntity"/>
+		<typeAlias alias="LineBalanceRateEntity" type="com.osh.rvs.bean.report.LineBalanceRateEntity"/>
+		<typeAlias alias="PositionPlanTimeEntity" type="com.osh.rvs.bean.manage.PositionPlanTimeEntity"/>
+		<typeAlias alias="FoundryEntity" type="com.osh.rvs.bean.report.FoundryEntity"/>
+		<typeAlias alias="WaittingTimeReportEntity" type="com.osh.rvs.bean.report.WaittingTimeReportEntity"/>
+		<typeAlias alias="RemainTimeReportEntity" type="com.osh.rvs.bean.report.RemainTimeReportEntity"/>
+
+		<typeAlias alias="SteelWireContainerWashProcessEntity" type="com.osh.rvs.bean.inline.SteelWireContainerWashProcessEntity"/>
+		<typeAlias alias="ConsumableSupplyRecordEntity" type="com.osh.rvs.bean.partial.ConsumableSupplyRecordEntity"/>
+	</typeAliases>
+	<typeHandlers />
+	<environments default="development">
+		<environment id="development">
+			<transactionManager type="JDBC" />
+			<dataSource type="POOLED">
+				<property name="driver" value="com.mysql.jdbc.Driver" />
+				<property name="url" value="jdbc:mysql://localhost:3306/rvsdb?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf8" />
+				<property name="username" value="dbma" />
+				<property name="password" value="FEDur7s#" />
+			</dataSource>
+		</environment>
+	</environments>
+	<mappers>
+		<mapper resource="com/osh/rvs/mapper/CommonMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/CategoryMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/ModelMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/SectionMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/LineMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/PositionMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/OperatorMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/PrivacyMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/RoleMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/HolidayMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/ProcessAssignMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/PartialMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/CustomerMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/DevicesTypeMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/DevicesManageMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/master/CheckFileManageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/ToolsTypeMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/ToolsManageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/PartialPositionMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/PartialBomMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/SystemImageManageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/PcsRequestMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/LightFixMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/data/AlarmMesssageMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/data/MaterialMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/data/OperatorProductionMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/data/PositionProductionMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/data/PostMessageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/data/QaResultMapper.xml" />
+
+		<mapper resource="com/osh/rvs/mapper/infect/CheckResultFilingMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/CheckResultMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/CheckUnqualifiedRecordMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/DailyCheckResultMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/DeviceRegularlyCheckResultMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/DevicesDistributeMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/DryingJobMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/DryingOvenDeviceMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/ElectricIronDeviceMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/ExternalAdjustmentMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/PeripheralInfectDeviceMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/ToolsCheckResultMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/ToolsDistributeMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/infect/TorsionDeviceMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/inline/AbnormalWorkStateMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/ComposeStorageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/DailyKpiMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/DryingProcessMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/ForSolutionAreaMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/LeaderPcsInputMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/LineLeaderMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/MaterialCommentMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/MaterialOgzMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/MaterialProcessAssignMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/MaterialProcessMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/PauseFeatureMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/PositionPanelMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/ProductionAssignMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/ProductionFeatureMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/RepairPlanMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/ScheduleHistoryMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/ScheduleMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/ScheduleProcessMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/SoloProductionFeatureMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/SteelWireContainerWashProcessMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/inline/SupportMapper.xml" />
+
+		<mapper resource="com/osh/rvs/mapper/manage/CapacityMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/EchelonAllocateMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/LevelModelLeedsMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/MaterialRemainTimeMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/ModelLevelSetHistoryMapping.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/PcsFixOrderMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/PositionPlanTimeMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/UserDefineCodesMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/InterfaceDataMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/partial/BadLossSummaryMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableApplicationMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableApplicationDetailMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableInventoryMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableListMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableOnlineMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableOrderMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableSubstituteMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableSupplyMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ConsumableSupplyRecordMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/MaterialPartialMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/partial/PartialAssignMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialBaseLineValueMapping.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialBaseValueAdjustHistoryMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialOrderMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialOrderManageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialOrderRecordMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialReceptMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialReleaseMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialStorageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialSupplyMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialWasteModifyHistoryMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PremakePartialMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/SorcLossMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/pda/PdaSupplyMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/pda/PdaApplyMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/qf/AcceptanceMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qf/MaterialFactMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qf/QuotationMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qf/ShippingMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qf/TurnoverCaseMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/qf/WipMapper.xml" />
+
+		<mapper resource="com/osh/rvs/mapper/qa/QualityAssuranceMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qa/ServiceRepairManageMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qa/ServiceRepairRefereeMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/report/WorkTimeAnalysisMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/report/ProductivityMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/report/LineBalanceRateMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/report/FoundryMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/report/WaittingTimeReportMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/report/RemainTimeReportMapper.xml"/>
+	</mappers>
+</configuration> 

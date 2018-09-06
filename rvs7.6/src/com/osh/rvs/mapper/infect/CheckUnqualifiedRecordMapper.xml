@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.CheckUnqualifiedRecordMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<!-- 检索 -->
+	<select id="search" parameterType="CheckUnqualifiedRecordEntity" resultType="CheckUnqualifiedRecordEntity">
+		<![CDATA[
+			SELECT
+				cur.check_unqualified_record_key,
+				cur.manage_id,
+				cur.object_type,
+				cur.happen_time,
+				COALESCE(dm.manage_code,tm.manage_code,'') AS manage_code,
+				COALESCE(dt.name,tm.tool_name,'') AS name,
+				dm.devices_type_id,
+				tm.tools_type_id,
+				cur.check_item,
+				cur.unqualified_status,
+				cur.product_content,
+				cur.position_handle,
+				cur.object_handle,
+				cur.repair_date_start,
+				cur.repair_date_end,
+				responsible_op.name AS responsible_operator_name,
+				line_op.name AS line_leader_name,
+				cur.object_final_handle_result,
+				cur.product_result,
+				tm.tools_no
+			FROM
+				check_unqualified_record cur
+			LEFT JOIN
+				devices_manage dm
+			ON
+				cur.manage_id=dm.devices_manage_id AND cur.object_type=1
+			LEFT JOIN
+				devices_type dt
+			ON
+				dt.devices_type_id=dm.devices_type_id
+			LEFT JOIN
+				tools_manage tm
+			ON
+				cur.manage_id=tm.tools_manage_id AND cur.object_type=2
+			LEFT JOIN
+				operator responsible_op
+			ON
+				cur.responsible_operator_id=responsible_op.operator_id
+			LEFT JOIN
+				operator line_op
+			ON
+				cur.line_leader_id=line_op.operator_id
+		]]>
+		<where>
+			<if test="manage_code!=null and manage_code!=''">
+				<![CDATA[
+					dm.manage_code LIKE CONCAT('%',#{manage_code},'%') OR tm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+				]]>
+			</if>
+			<if test="name!=null and name!=''">
+				<![CDATA[
+					AND dt.name LIKE CONCAT('%',#{name},'%') OR tm.tool_name LIKE CONCAT('%',#{name},'%')
+				]]>
+			</if>
+			<if test="check_item!=null and check_item!=''">
+				<![CDATA[
+					AND cur.check_item LIKE CONCAT('%',#{check_item},'%')
+				]]>
+			</if>
+			<if test="product_content!=null and product_content!=''">
+				<![CDATA[
+					AND cur.product_content=#{product_content}
+				]]>
+			</if>
+			<if test="position_handle!=null and position_handle!=''">
+				<![CDATA[
+					AND cur.position_handle=#{position_handle}
+				]]>
+			</if>
+			<if test="object_handle!=null and object_handle!=''">
+				<![CDATA[
+					AND cur.object_handle=#{object_handle}
+				]]>
+			</if>
+			<if test="object_final_handle_result!=null and object_final_handle_result!=''">
+				<![CDATA[
+					AND cur.object_final_handle_result=#{object_final_handle_result}
+				]]>
+			</if>
+			<if test="happen_time_start!=null and happen_time_start!=''">
+				<![CDATA[
+					AND cur.happen_time >= #{happen_time_start}
+				]]>
+			</if>
+			<if test="happen_time_end!=	null and happen_time_end!=''">
+				<![CDATA[
+					AND DATE(cur.happen_time) <= #{happen_time_end}
+				]]>
+			</if>
+			<if test="repair_date_start_start!=null and repair_date_start_start!=''">
+				<![CDATA[
+					AND cur.repair_date_start >= #{repair_date_start_start}
+				]]>
+			</if>
+			<if test="repair_date_start_end!=null and repair_date_start_end!=''">
+				<![CDATA[
+					AND cur.repair_date_start <= #{repair_date_start_end}
+				]]>
+			</if>
+		</where>
+		order by (line_leader_handle_time is not null), (technology_handle_time is not null), happen_time desc
+	</select>
+	
+	<!-- 设备工具名称下拉框 -->
+	<select id="getDevicesNameReferChooser" parameterType="DevicesManageEntity" resultType="DevicesManageEntity">
+		<![CDATA[
+			SELECT
+				dm.devices_manage_id,
+				dt.name,
+				dm.manage_code,
+				dm.model_name
+			FROM
+				devices_manage dm
+			LEFT JOIN
+				devices_type  dt
+			ON
+				dm.devices_type_id=dt.devices_type_id
+			WHERE
+				dm.devices_type_id=#{devices_type_id} AND dm.devices_manage_id<>#{devices_manage_id} AND dm.delete_flg=0 AND dm.status IN(1,4)
+		]]>
+	</select>
+	
+	<select id="getToolsNameReferChooser" parameterType="ToolsManageEntity" resultType="ToolsManageEntity">
+		<![CDATA[
+				SELECT
+					tm.tools_manage_id,
+					tm.tool_name AS tools_name,
+					tm.manage_code,
+					tm.tools_no,
+					sec.name as section_name,
+					pos.process_code
+				FROM
+					tools_manage tm
+				LEFT JOIN
+					section sec
+					ON sec.section_id = tm.section_id
+				LEFT JOIN
+					position pos
+					ON pos.position_id = tm.position_id
+				WHERE
+					tm.tools_no=#{tools_no} AND tm.tools_manage_id<>#{tools_manage_id} AND tm.delete_flg=0 AND tm.status IN(1,4)
+		]]>
+	</select>
+	
+	<select id="getById" parameterType="CheckUnqualifiedRecordEntity" resultType="CheckUnqualifiedRecordEntity">
+		<![CDATA[
+			SELECT
+				cur.check_unqualified_record_key,
+				cur.manage_id,
+				cur.happen_time,
+				cur.line_leader_id,
+				cur.object_type,
+				COALESCE(dm.manage_code,tm.manage_code,'') AS manage_code,
+				COALESCE(dt.name,tm.tool_name,'') AS name,
+				dm.model_name,
+				cur.check_item,
+				cur.unqualified_status,
+				cur.product_content,
+				cur.position_handle,
+				cur.object_handle,
+				cur.repair_date_start,
+				cur.repair_date_end,
+				cur.borrow_object_id,
+				cur.alarm_message_id,
+				cur.technology_comment,
+				responsible_op.name AS responsible_operator_name,
+				line_op.name AS line_leader_name,
+				manager_op.name AS manager_name,
+				cur.line_leader_handle_time,
+				cur.manager_handle_time,
+				cur.object_final_handle_result,
+				cur.product_result,
+				COALESCE(borrow_dt.name,borrow_tm.tool_name,'') AS borrow_object_name,
+				borrow_dm.model_name AS borrow_model_name,
+				COALESCE(borrow_dm.manage_code, borrow_tm.manage_code) AS borrow_manage_no, 
+				tm.tools_no
+			FROM
+				check_unqualified_record cur
+			LEFT JOIN
+				devices_manage dm
+			ON
+				cur.manage_id=dm.devices_manage_id AND cur.object_type=1
+			LEFT JOIN
+				devices_type dt
+			ON
+				dt.devices_type_id=dm.devices_type_id
+			LEFT JOIN
+				tools_manage tm
+			ON
+				cur.manage_id=tm.tools_manage_id AND cur.object_type=2
+			LEFT JOIN
+				operator responsible_op
+			ON
+				cur.responsible_operator_id=responsible_op.operator_id
+			LEFT JOIN
+				operator line_op
+			ON
+				cur.line_leader_id=line_op.operator_id
+			LEFT JOIN
+				operator manager_op
+			ON
+				cur.manager_id=manager_op.operator_id
+			LEFT JOIN
+				devices_manage borrow_dm
+			ON
+				cur.borrow_object_id=borrow_dm.devices_manage_id AND cur.object_type=1
+			LEFT JOIN
+				devices_type borrow_dt
+			ON
+				borrow_dm.devices_type_id=borrow_dt.devices_type_id
+			LEFT JOIN
+				tools_manage borrow_tm
+			ON
+				cur.borrow_object_id=borrow_tm.tools_manage_id AND cur.object_type=2
+			WHERE
+				cur.check_unqualified_record_key=#{check_unqualified_record_key}	
+		]]>
+	</select>
+	
+	<!-- 线长确认 -->
+	<update id="updateByLineLeader" parameterType="CheckUnqualifiedRecordEntity">
+		<![CDATA[
+			UPDATE 
+				check_unqualified_record
+			SET
+				position_handle=#{position_handle},
+				line_leader_id=#{line_leader_id},
+				line_leader_handle_time=CURRENT_TIMESTAMP()
+		]]>
+		<if test="position_handle!=null and position_handle==1">
+			<![CDATA[
+				,
+				borrow_object_id=#{borrow_object_id}
+			]]>
+		</if>
+		<where>
+			<![CDATA[
+				check_unqualified_record_key=#{check_unqualified_record_key}
+			]]>
+		</where>
+	</update>
+	
+	<!-- 经理确认 -->
+	<update id="updateByManage" parameterType="CheckUnqualifiedRecordEntity">
+		<![CDATA[
+			UPDATE 
+				check_unqualified_record
+			SET
+				manager_id=#{manager_id},
+				manager_handle_time=CURRENT_TIMESTAMP(),
+				product_result=#{product_result}
+		]]>
+		<if test="object_handle!=null and object_handle!=''">
+			<![CDATA[
+				,
+				object_handle=#{object_handle}
+			]]>
+		</if>
+		<if test="product_content!=null and product_content!=''">
+			<![CDATA[
+				,
+				product_content=#{product_content}
+			]]>
+		</if>
+		<where>
+			<![CDATA[
+				check_unqualified_record_key=#{check_unqualified_record_key}
+			]]>
+		</where>
+	</update>
+	
+	<!-- 设备管理员确认 -->
+	<update id="updateByTechnology" parameterType="CheckUnqualifiedRecordEntity">
+		<![CDATA[
+			UPDATE 
+				check_unqualified_record
+			SET
+				object_final_handle_result=#{object_final_handle_result},
+				repair_date_start=#{repair_date_start},
+				repair_date_end=#{repair_date_end},
+				technology_id=#{technology_id},
+				technology_handle_time=CURRENT_TIMESTAMP(),
+				technology_comment=#{technology_comment}
+		]]>
+		<where>
+			<![CDATA[
+				check_unqualified_record_key=#{check_unqualified_record_key}
+			]]>
+		</where>
+	</update>
+	
+	<insert id="create" parameterType="CheckUnqualifiedRecordEntity">
+		<![CDATA[ 
+		INSERT INTO `rvsdb`.`check_unqualified_record`
+			(
+			`manage_id`,
+			`object_type`,
+			`happen_time`,
+			`unqualified_status`,
+			`check_item`,
+			Responsible_operator_id,
+			alarm_message_id,
+			Line_leader_id)
+			VALUES
+			(
+			#{manage_id},
+			#{object_type},
+			current_timestamp,
+			#{unqualified_status},
+			#{check_item},
+			#{responsible_operator_id},
+			#{alarm_message_id},
+			#{line_leader_id});
+		]]>
+	</insert>
+	
+	<select id="checkBlockedToolsOnPosition" resultType="Boolean" parameterType="CheckUnqualifiedRecordEntity">
+		<![CDATA[ 
+		select count(1) from check_unqualified_record cur
+		JOIN tools_manage tm 
+		ON cur.manage_id = tm.tools_manage_id
+		AND object_type = 2
+		AND tm.section_id = #{section_id}
+		AND tm.position_id = #{position_id}
+		WHERE
+		(position_handle =3 or position_handle is null)
+		AND
+		(product_content != 1 or position_handle is null)
+		]]>
+	</select>
+
+	<select id="checkBlockedDevicesOnPosition" resultType="Boolean" parameterType="CheckUnqualifiedRecordEntity">
+		<![CDATA[ 
+		select count(1) from check_unqualified_record cur
+		JOIN devices_manage dm 
+		ON cur.manage_id = dm.devices_manage_id
+		AND object_type = 1
+		AND dm.section_id = #{section_id}
+		AND dm.position_id = #{position_id}
+		AND dm.status = 1
+		WHERE
+		(position_handle =3 or position_handle is null)
+		AND
+		(product_content != 1 or position_handle is null)
+		]]>
+	</select>
+
+	<select id="getSectionAndLine" resultType="CheckUnqualifiedRecordEntity" parameterType="CheckUnqualifiedRecordEntity">
+		<![CDATA[ 
+			select
+				section.name as section_name,
+				position.process_code
+			from
+		]]>
+		<if test="object_type==1">
+			<![CDATA[ 
+				devices_manage  manage
+			left join
+				section
+			on
+				manage.section_id=section.section_id
+			left join
+				position
+			on
+				manage.position_id=position.position_id
+			where
+				manage.devices_manage_id=#{borrow_object_id}
+			]]>
+		</if>
+		<if test="object_type==2">
+			<![CDATA[ 
+				tools_manage manage
+			left join
+				section
+			on
+				manage.section_id=section.section_id
+			left join
+				position
+			on
+				manage.position_id=position.position_id
+			where
+				manage.tools_manage_id=#{borrow_object_id}
+			]]>
+		</if>
+	</select>
+	
+	<update id="updateStatus" parameterType="CheckUnqualifiedRecordEntity">
+		<if test="object_type==1">
+			<![CDATA[ 
+				update 
+					devices_manage
+				set
+					waste_date=CURRENT_DATE(),
+					updated_by=#{technology_id},
+					updated_time=CURRENT_TIMESTAMP(),
+					status=2
+				where
+					devices_manage_id=#{manage_id}
+				and status!=2
+			]]>
+		</if>
+		<if test="object_type==2">
+			<![CDATA[ 
+				update 
+					tools_manage
+				set
+					waste_date=CURRENT_DATE(),
+					updated_by=#{technology_id},
+					updated_time=CURRENT_TIMESTAMP(),
+					status=2
+				where
+					tools_manage_id=#{manage_id}
+				and status!=2
+			]]>
+		</if>
+	</update>
+</mapper>

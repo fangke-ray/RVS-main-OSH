@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.MaterialOgzMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="search" parameterType="MaterialOgzEntity" resultType="MaterialOgzEntity">
+		<![CDATA[
+			SELECT 
+				maogz.material_id,
+				maogz.sorc_no,
+				maogz.sfdc_no,
+				maogz.esas_no,
+				mo.name AS model_name,
+				maogz.serial_no,
+				maogz.ocm,
+				maogz.reception_time,
+				maogz.agreed_date,
+				maogz.shipping_time
+			FROM 
+				material_ogz maogz
+			JOIN
+				model mo
+			ON
+				maogz.model_id=mo.model_id
+			WHERE 1=1
+		]]>
+		<if test="sorc_no!='' and sorc_no!=null">
+			<![CDATA[
+				AND maogz.sorc_no  LIKE CONCAT('%',#{sorc_no},'%')
+			]]>
+		</if>
+		<if test="sfdc_no!='' and sfdc_no!=null">
+			<![CDATA[
+				AND maogz.sfdc_no  LIKE CONCAT('%',#{sfdc_no},'%')
+			]]>
+		</if>
+		<if test="esas_no!='' and esas_no!=null">
+			<![CDATA[
+				AND maogz.esas_no =#{esas_no}
+			]]>
+		</if>
+		<if test="model_id!='' and model_id!=null">
+			<![CDATA[
+				AND maogz.model_id = #{model_id}
+			]]>
+		</if>
+		<if test="serial_no!='' and serial_no!=null">
+			<![CDATA[
+				AND maogz.serial_no = #{serial_no}
+			]]>
+		</if>
+		<if test="ocm!='' and ocm!=null">
+			<![CDATA[
+				AND maogz.ocm = #{ocm}
+			]]>
+		</if>
+		<if test="reception_time_start!='' and reception_time_start!=null">
+			<![CDATA[
+				AND DATE(maogz.reception_time) >= #{reception_time_start}
+			]]>
+		</if>
+		<if test="reception_time_end!='' and reception_time_end!=null">
+			<![CDATA[
+				AND DATE(maogz.reception_time) <= DATE(#{reception_time_end})
+			]]>
+		</if>
+		<if test="agreed_date_start!='' and agreed_date_start!=null">
+			<![CDATA[
+				AND DATE(maogz.agreed_date) >= #{agreed_date_start}
+			]]>
+		</if>
+		<if test="agreed_date_end!='' and agreed_date_end!=null">
+			<![CDATA[
+				AND DATE(maogz.agreed_date) <= DATE(#{agreed_date_end})
+			]]>
+		</if>
+		<if test="outline_time_start!='' and outline_time_start!=null">
+			<![CDATA[
+				AND DATE(maogz.outline_time) >= #{outline_time_start}
+			]]>
+		</if>
+		<if test="outline_time_end!='' and outline_time_end!=null">
+			<![CDATA[
+				AND DATE(maogz.outline_time) <= DATE(#{outline_time_end})
+			]]>
+		</if>
+	</select>
+	
+	<select id="getMaterialOgzById" parameterType="String" resultType="MaterialOgzEntity">
+	<![CDATA[
+		SELECT 
+			maogz.material_id,
+			maogz.sorc_no,
+			maogz.sfdc_no,
+			maogz.esas_no,
+			maogz.ocm,
+			maogz.serial_no,
+			maogz.ocm_deliver_date,
+			maogz.reception_time,
+			maogz.sterilization_time,
+			maogz.quotation_complete_time,
+			maogz.agreed_date,
+			maogz.inline_time,
+			maogz.dec_complete_time,
+			maogz.ns_complete_time,
+			maogz.com_complete_time,
+			maogz.outline_time,
+			maogz.shipping_time,
+			maogz.ocm_shipping_date,
+			mo.name as model_name
+		FROM 
+			material_ogz  maogz
+		JOIN
+			model mo
+		ON
+			maogz.model_id=mo.model_id
+		WHERE 
+		    maogz.material_id = #{material_id}
+	]]>
+	</select>
+	
+	<update id="update" parameterType="MaterialOgzEntity">
+	<![CDATA[
+		UPDATE 
+			material_ogz 
+		SET
+			ocm_deliver_date=#{ocm_deliver_date},
+			reception_time=#{reception_time},
+			sterilization_time=#{sterilization_time},
+			quotation_complete_time=#{quotation_complete_time},
+			agreed_date=#{agreed_date},
+			inline_time=#{inline_time},
+			ns_complete_time=#{ns_complete_time},
+			dec_complete_time=#{dec_complete_time},
+			com_complete_time=#{com_complete_time},
+			outline_time=#{outline_time},
+			shipping_time=#{shipping_time},
+			ocm_shipping_date=#{ocm_shipping_date}
+		WHERE
+			material_id=#{material_id}
+	]]>
+	</update>
+	
+</mapper>

@@ -1,0 +1,497 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.PositionPanelMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="checkPositionStartedWorkTime" resultType="int" parameterType="String">
+	<![CDATA[ 
+		SELECT unix_timestamp(current_timestamp) - unix_timestamp(COALESCE(min(pf.action_time), current_timestamp))
+		FROM production_feature pf
+		JOIN material m
+			ON pf.material_id = m.material_id
+		JOIN position pos
+			ON pf.position_id = pos.position_id
+		LEFT JOIN material_process mp
+			ON m.material_id = mp.material_id AND pos.line_id = mp.line_id
+		WHERE pf.position_id = #{position_id}
+		and pf.section_id = #{section_id}
+		and pf.action_time > current_date
+	]]>
+	<if test='level == "1"'>
+	<![CDATA[ 
+		and mp.px = 0
+	]]>
+	</if>
+	<if test='level == "2"'>
+	<![CDATA[ 
+		and mp.px in (1, 3)
+	]]>
+	</if>
+	<if test='level == "3"'>
+	<![CDATA[ 
+		and mp.px = 2
+	]]>
+	</if>
+	</select>
+
+	<select id="checkTodayWorkCost" resultType="int" parameterType="String">
+	<![CDATA[ 
+		SELECT COALESCE(sum(unix_timestamp(pf.finish_time) - unix_timestamp(pf.action_time)), 0)
+		FROM production_feature pf
+		JOIN material m
+			ON pf.material_id = m.material_id
+		JOIN position pos
+			ON pf.position_id = pos.position_id
+		LEFT JOIN material_process mp
+			ON m.material_id = mp.material_id AND pos.line_id = mp.line_id
+		WHERE pf.position_id = #{position_id}
+		and pf.section_id = #{section_id}
+		and pf.finish_time is not null
+		and pf.action_time > current_date
+	]]>
+	<if test='level == "1"'>
+	<![CDATA[ 
+		and mp.px = 0
+	]]>
+	</if>
+	<if test='level == "2"'>
+	<![CDATA[ 
+		and mp.px in (1, 3)
+	]]>
+	</if>
+	<if test='level == "3"'>
+	<![CDATA[ 
+		and mp.px = 2
+	]]>
+	</if>
+	</select>
+
+	<select id="getFinishCount" resultType="int" parameterType="String">
+	<![CDATA[ 
+		SELECT count(pf.operate_result)
+		FROM production_feature pf
+		JOIN material m
+			ON pf.material_id = m.material_id
+		JOIN position pos
+			ON pf.position_id = pos.position_id
+		LEFT JOIN material_process mp
+			ON m.material_id = mp.material_id AND pos.line_id = mp.line_id
+		WHERE pf.position_id = #{position_id}
+		and pf.section_id = #{section_id}
+		and pf.operate_result = 2
+		and pf.action_time > current_date
+	]]>
+	<if test='level == "1"'>
+	<![CDATA[ 
+		and mp.px = 0
+	]]>
+	</if>
+	<if test='level == "2"'>
+	<![CDATA[ 
+		and mp.px in (1, 3)
+	]]>
+	</if>
+	<if test='level == "3"'>
+	<![CDATA[ 
+		and mp.px = 2
+	]]>
+	</if>
+	</select>
+
+	<select id="getLeaderSupportFinishCount" resultType="int" parameterType="String">
+	<![CDATA[ 
+		SELECT count(pf.operate_result)
+		FROM production_feature pf
+		JOIN operator o
+			ON pf.operator_id = o.operator_id
+		JOIN material m
+			ON pf.material_id = m.material_id
+		JOIN position pos
+			ON pf.position_id = pos.position_id
+		LEFT JOIN material_process mp
+			ON m.material_id = mp.material_id AND pos.line_id = mp.line_id
+		WHERE pf.position_id = #{position_id}
+		and pf.section_id = #{section_id}
+		and pf.operate_result = 2
+		and pf.action_time > current_date
+	]]>
+	<if test='level == "1"'>
+	<![CDATA[ 
+		and mp.px = 0
+	]]>
+	</if>
+	<if test='level == "2"'>
+	<![CDATA[ 
+		and mp.px in (1, 3)
+	]]>
+	</if>
+	<if test='level == "3"'>
+	<![CDATA[ 
+		and mp.px = 2
+	]]>
+	</if>
+	<![CDATA[
+		and not EXISTS (
+			SELECT role_id
+			FROM privacy_of_role
+			WHERE privacy_id = 107
+			AND role_id = o.role_id
+		);
+	]]>
+	</select>
+
+	<select id="getWaiting" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT 
+			pf.material_id, pf.position_id, pf.section_id, 
+			pf.pace, pf.operator_id, pf.operate_result, pf.action_time, 
+			pf.finish_time, pf.pcs_inputs, pf.pcs_comments, pf.rework
+		FROM production_feature pf
+		JOIN material m
+			ON pf.material_id = m.material_id
+		JOIN position pos
+			ON pf.position_id = pos.position_id
+		LEFT JOIN material_process mp
+			ON m.material_id = mp.material_id AND pos.line_id = mp.line_id
+		WHERE pf.position_id = #{position_id}
+	]]>
+		<if test="section_id!= null and section_id!= '' ">
+		<![CDATA[ 
+			and pf.section_id = #{section_id}
+		]]>
+		</if>
+		<if test="material_id!= null and material_id!= '' ">
+		<![CDATA[ 
+			and pf.material_id = #{material_id}
+		]]>
+		</if>
+	<![CDATA[ 
+		and pf.action_time is null
+		and pf.finish_time is null
+	]]>
+		<if test='level == "1"'>
+		<![CDATA[ 
+			and mp.px = 0
+		]]>
+		</if>
+		<if test='level == "2"'>
+		<![CDATA[ 
+			and mp.px in (1, 3)
+		]]>
+		</if>
+		<if test='level == "3"'>
+		<![CDATA[ 
+			and mp.px = 2
+		]]>
+		</if>
+	</select>
+
+	<select id="getWaitingCount" resultType="int" parameterType="String">
+	<![CDATA[ 
+		SELECT Count(material_id) FROM production_feature
+		WHERE position_id = #{position_id}
+		and section_id = #{section_id}
+		and action_time is null
+		and finish_time is null;
+	]]>
+	</select>
+
+	<!-- 取本工位等待作业一览 加急 当日计划 纳期 入库 AM>PM-->
+	<select id="getWaitingMaterial" resultType="WaitingEntity" parameterType="java.lang.String">
+	<![CDATA[ 
+		SELECT `m`.material_id, coalesce(`m`.omr_notifi_no, `m`.sorc_no) as sorc_no, `m`.model_id, `mdl`.name as model_name,
+			`c`.name as category_name, `m`.serial_no,
+			(`m`.scheduled_expedited * 10 + COALESCE(`mp`.line_expedited,0)) as expedited, `pf`.operate_result as waitingat,
+			coalesce(`psf`.reason, 20) as pause_reason,
+			coalesce(`mp`.scheduled_assign_date = current_date, 0) as today, 
+			(`mp`.rework_trigger_position_id is not null) as reworked,
+			coalesce(`m`.direct_flg, 0) as direct_flg,
+			m.level in (9,91,92,93,96,97,98,99) as light_fix,
+	]]>
+	<if test='level == "1"'>
+	<![CDATA[ 
+		mp.px = 0 as imbalance,
+	]]>
+	</if>
+	<if test='level == "2"'>
+	<![CDATA[ 
+		mp.px in (1, 3) as imbalance,
+	]]>
+	</if>
+	<if test='level == "3"'>
+	<![CDATA[ 
+		mp.px = 2 as imbalance,
+	]]>
+	</if>
+	<![CDATA[ 
+				date_format(pa.in_place_time, '%Y/%m/%d %T') as in_place_time,
+				date_format(m.scheduled_date, '%m-%d') as scheduled_monthday,
+			CASE 
+			WHEN
+				EXISTS (select 1 from material_partial_detail 
+					where material_id = m.material_id and position_id = pf.position_id and waiting_quantity > 0)
+				THEN 1
+			WHEN
+				EXISTS (select 1 from `for_solution_area` 
+					where material_id = m.material_id and position_id = pf.position_id and solved_time IS NULL)
+				THEN 2
+			ELSE 0
+			END as block_status,
+			coalesce(mp.scheduled_date, m.scheduled_date) as scheduled_date_inline
+		FROM production_feature pf
+		JOIN material m
+			ON `pf`.material_id = `m`.material_id
+		JOIN model mdl
+			ON `m`.model_id = `mdl`.model_id
+		JOIN category c
+			ON `mdl`.category_id = `c`.category_id
+		LEFT JOIN material_process mp
+			ON `mp`.line_id = #{line_id}
+				AND `mp`.material_id = `m`.material_id
+		LEFT JOIN (select material_id, SECTION_ID, POSITION_ID, reason from pause_feature where PAUSE_FINISH_TIME IS NULL) psf
+			ON `pf`.material_id = `psf`.material_id
+				AND `psf`.SECTION_ID = `pf`.section_id
+				AND `psf`.POSITION_ID = `pf`.position_id
+		LEFT JOIN production_assign pa
+			ON pf.material_id = pa.material_id AND pf.position_id = pa.position_id
+		WHERE `pf`.position_id = #{position_id}
+	]]>
+	<if test="section_id!= null and section_id!= '' ">
+	<![CDATA[ 
+			AND `pf`.section_id = #{section_id}
+	]]>
+	</if>
+	<![CDATA[ 
+			AND `pf`.action_time is null
+			AND `pf`.finish_time is null
+			AND `pf`.operate_result not in (5, 8)
+			AND (`pf`.operator_id = #{operator_id} OR `pf`.operate_result <> 3)
+	]]>
+	<if test='division != null'>
+		<if test='level == "1"'>
+		<![CDATA[ 
+			and mp.px = 0
+		]]>
+		</if>
+		<if test='level == "2"'>
+		<![CDATA[ 
+			and mp.px in (1, 3)
+		]]>
+		</if>
+		<if test='level == "3"'>
+		<![CDATA[ 
+			and mp.px = 2
+		]]>
+		</if>
+	</if>
+	<![CDATA[
+		ORDER BY pause_reason DESC, operate_result DESC,
+		scheduled_date_inline = current_date DESC, scheduled_date_inline < current_date DESC, 
+		(`m`.scheduled_expedited = 1) DESC, `m`.scheduled_date,
+		today DESC, light_fix DESC, (`m`.scheduled_expedited = 2) DESC, (`m`.service_repair_flg = 2) DESC, (`m`.service_repair_flg = 1) DESC,
+		`mp`.line_expedited DESC, `m`.direct_flg DESC;
+	]]>
+	</select>
+
+	<select id="getTodayBreak" resultType="map" parameterType="String">
+	<![CDATA[ 
+		SELECT pf.reason, count(pf.reason) as count_reason
+		FROM pause_feature pf
+		JOIN material m
+			ON pf.material_id = m.material_id
+		JOIN position pos
+			ON pf.position_id = pos.position_id
+		LEFT JOIN material_process mp
+			ON m.material_id = mp.material_id AND pos.line_id = mp.line_id
+		WHERE pf.pause_start_time > current_date
+		and pf.position_id = #{position_id}
+		and pf.section_id = #{section_id}
+	]]>
+	<if test='level == "1"'>
+	<![CDATA[ 
+		and mp.px = 0
+	]]>
+	</if>
+	<if test='level == "2"'>
+	<![CDATA[ 
+		and mp.px in (1, 3)
+	]]>
+	</if>
+	<if test='level == "3"'>
+	<![CDATA[ 
+		and mp.px = 2
+	]]>
+	</if>
+	<![CDATA[ 
+		GROUP BY pf.reason;
+	]]>
+	</select>
+
+	<select id="getMaterialDetail" resultType="MaterialEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT 
+			`m`.material_id,
+			coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no,
+			`m`.model_id,
+			`mdl`.name as model_name,
+			`ctg`.name as category_name,
+			`m`.serial_no,
+			`m`.ocm,
+			`m`.level,
+			`m`.section_id,
+			`m`.reception_time,
+			`m`.agreed_date
+		 FROM material m 
+		 JOIN model mdl
+		 	ON `m`.model_id = `mdl`.model_id
+		 JOIN `category` ctg
+		 	ON `mdl`.category_id = `ctg`.category_id
+		 WHERE `m`.material_id = #{material_id};
+	]]>
+	</select>
+
+	<select id="getPositionWorksByMaterial" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT `pf`.material_id, `pf`.position_id, `pf`.section_id, `pf`.pace, `pf`.operator_id, `pf`.operate_result,
+			`pf`.action_time, `pf`.finish_time, `pf`.pcs_inputs, `pf`.pcs_comments, `pf`.rework, `s`.name as section_name
+		FROM production_feature pf
+		LEFT JOIN section s
+			ON `pf`.section_id = `s`.section_id
+		WHERE `pf`.position_id = #{position_id}
+		AND `pf`.material_id = #{material_id}
+		AND `pf`.action_time IS NOT NULL
+		ORDER BY action_time;
+	]]>
+	</select>
+
+	<!-- 暂停标记的那个不算 TODOv2 -->
+	<select id="getTotalTimeByRework" resultType="int" parameterType="ProductionFeatureEntity">
+	<![CDATA[ 
+		SELECT COALESCE(sum(unix_timestamp(COALESCE(finish_time, current_timestamp)) - unix_timestamp(action_time)), 0) FROM production_feature
+		WHERE position_id = #{position_id}
+		and section_id = #{section_id}
+		and material_id = #{material_id}
+		and not (operate_result = 4 and finish_time is null)
+		and rework = #{rework};
+	]]>
+	</select>
+
+	<select id="getWorking" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT material_id, p.position_id, pf.section_id, pace, operator_id, operate_result,
+			action_time, finish_time, pcs_inputs, pcs_comments, rework,
+			(unix_timestamp(current_timestamp) - unix_timestamp(action_time)) as use_seconds,
+			p.process_code, p.name as position_name, s.name as section_name, `l`.line_id as line_id, `l`.name as line_name
+		FROM production_feature pf
+    	JOIN `position` p
+    	ON pf.position_id = p.position_id
+    	JOIN `line` l
+    	ON p.line_id = l.line_id
+    	LEFT JOIN `section` s
+    	ON pf.section_id = s.section_id
+		WHERE operate_result = 1
+		AND operator_id = #{operator_id};
+	]]>
+	</select>
+
+	<select id="getProcessing" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT material_id, p.position_id, pf.section_id, pace, operator_id, operate_result,
+			action_time, finish_time, pcs_inputs, pcs_comments, rework,
+			(unix_timestamp(current_timestamp) - unix_timestamp(action_time)) as use_seconds,
+			p.process_code, p.name as position_name, s.name as section_name, `l`.line_id as line_id, `l`.name as line_name
+		FROM (select * from production_feature where finish_time IS NULL) pf
+    	JOIN `position` p
+    	ON pf.position_id = p.position_id
+    	JOIN `line` l
+    	ON p.line_id = l.line_id
+    	LEFT JOIN `section` s
+    	ON pf.section_id = s.section_id
+		WHERE (operate_result = 1 OR (operate_result = 4 AND action_time IS NOT NULL))
+		AND operator_id = #{operator_id};
+	]]>
+	</select>
+
+	<select id="getSupporting" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT material_id, p.position_id, pf.section_id, pace, operator_id, operate_result,
+			action_time, finish_time, pcs_inputs, pcs_comments, rework,
+			(unix_timestamp(current_timestamp) - unix_timestamp(action_time)) as use_seconds,
+			p.process_code, p.name as position_name, s.name as section_name, `l`.line_id as line_id, `l`.name as line_name
+		FROM production_feature pf
+    	JOIN `position` p
+    	ON pf.position_id = p.position_id
+    	JOIN `line` l
+    	ON p.line_id = l.line_id
+    	LEFT JOIN `section` s
+    	ON pf.section_id = s.section_id
+		WHERE (operate_result = 1 OR operate_result = 5)
+		AND finish_time IS NULL
+		AND operator_id = #{operator_id};
+	]]>
+	</select>
+
+	<select id="getPausing" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT material_id, p.position_id, pf.section_id, pace, operator_id, operate_result,
+			action_time, finish_time, pcs_inputs, pcs_comments, rework,
+			(unix_timestamp(current_timestamp) - unix_timestamp(action_time)) as use_seconds,
+			p.process_code, p.name as position_name, s.name as section_name, `l`.line_id as line_id, `l`.name as line_name
+		FROM production_feature pf
+    	JOIN `position` p
+    	ON pf.position_id = p.position_id
+    	JOIN `line` l
+    	ON p.line_id = l.line_id
+    	LEFT JOIN `section` s
+    	ON pf.section_id = s.section_id
+		WHERE operate_result = 4
+		AND action_time IS NOT NULL AND finish_time IS NULL
+		AND operator_id = #{operator_id};
+	]]>
+	</select>
+
+	<select id="getWorkingBatch" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT material_id, p.position_id, pf.section_id, pace, operator_id, operate_result,
+			action_time, finish_time, pcs_inputs, pcs_comments, rework,
+			(unix_timestamp(current_timestamp) - unix_timestamp(action_time)) as use_seconds,
+			p.process_code, p.name as position_name, s.name as section_name, `l`.line_id as line_id, `l`.name as line_name
+		FROM production_feature pf
+    	JOIN `position` p
+    	ON pf.position_id = p.position_id
+    	JOIN `line` l
+    	ON p.line_id = l.line_id
+    	LEFT JOIN `section` s
+    	ON pf.section_id = s.section_id
+		WHERE operate_result = 7
+		AND `pf`.position_id = #{position_id}
+		AND `pf`.operator_id = #{operator_id};
+	]]>
+	</select>
+
+	<select id="getWorkStatusOnOperator" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT material_id, position_id, section_id, pace, operator_id, operate_result,
+			`action_time, finish_time, pcs_inputs, pcs_comments, rework
+		FROM production_feature
+		WHERE operator_id = #{operator_id}
+		ORDER BY COALESCE(action_time, "9999/12/31")
+		LIMIT 1;
+	]]>
+	</select>
+
+	<!--select id="getPositionWorksByMaterial" resultType="ProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT `pf`.material_id, `pf`.position_id, `pf`.section_id, `pf`.pace, `pf`.operator_id, `pf`.operate_result,
+			`pf`.action_time, `pf`.finish_time, `pf`.pcs_inputs, `pf`.pcs_comments, `pf`.rework, `s`.name as section_name
+		FROM production_feature pf
+		LEFT JOIN section s
+			ON `pf`.section_id = `s`.section_id
+		WHERE `pf`.position_id = #{position_id}
+		AND `pf`.material_id = #{material_id}
+		ORDER BY COALESCE(action_time, "9999/12/31");
+	]]>
+	</select-->
+</mapper>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableSupplyMapper">
+	<select id="searchSupplyList" parameterType="ConsumableSupplyEntity" resultType="ConsumableSupplyEntity">
+		<![CDATA[ 
+		SELECT
+			p.partial_id
+			,p.code
+			,p.name
+			,cm.type
+			,ps.supply_date
+			,ps.quantity
+		FROM 
+			partial_supply ps
+		JOIN 
+			partial p ON ps.partial_id = p.partial_id
+		JOIN 
+			consumable_manage cm ON cm.partial_id = p.partial_id
+		]]>
+		<where>
+			identification = 3
+			<if test="supply_date != null and supply_date != ''">
+		    	and ps.supply_date = #{supply_date}
+			</if>
+			<if test="code != null and code != ''">
+		    	and p.code like CONCAT('%',#{code},'%')
+			</if>
+			<if test="supply_date_start != null and supply_date_start != ''">
+				<![CDATA[
+				and ps.supply_date >= #{supply_date_start}
+				]]>
+			</if>
+			<if test="supply_date_end != null and supply_date_end != ''">
+				<![CDATA[ 
+		   		and ps.supply_date <= #{supply_date_end}
+		   		]]>
+			</if>
+		</where>
+		ORDER BY ps.supply_date desc
+	</select>
+
+	<!-- 查询输入零件 -->
+   <select id="getPartialByCode" parameterType="String" resultType="ConsumableSupplyEntity" >
+		<![CDATA[ 
+			SELECT
+				p.name
+				, cm.partial_id
+			FROM 
+				partial p
+			LEFT JOIN 
+				consumable_manage cm ON p.partial_id = cm.partial_id
+			WHERE
+				p.code like CONCAT(#{code},'%')
+			ORDER BY p.code
+		]]>		
+	</select>
+
+	<!-- 零件补充记录_查询 -->
+   <select id="searchPartialSupply" parameterType="ConsumableSupplyEntity" resultType="String" >
+		<![CDATA[ 
+			SELECT
+				partial_id
+			FROM 
+				partial_supply
+			WHERE
+				partial_id = #{partial_id}
+				and supply_date = curdate()
+				and identification = 3
+		]]>		
+	</select>
+
+	<!-- 零件补充记录_插入 -->
+	<insert id="insertPartialSupply" parameterType="ConsumableSupplyEntity">
+		<![CDATA[ 
+			INSERT INTO partial_supply (
+				partial_id, 
+				supply_date,
+				identification,
+				quantity
+				) 					
+	        VALUES (
+	        	#{partial_id},
+				curdate(),
+				3,
+				#{quantity}
+				);
+		]]>
+	</insert>
+
+	<!-- 零件补充记录_更新 -->
+	<update id="updatePartialSupply" parameterType="ConsumableSupplyEntity">
+		<![CDATA[ 
+			UPDATE partial_supply 
+			SET 
+				quantity = quantity + #{quantity}
+			WHERE partial_id = #{partial_id}
+				and supply_date = curdate()
+				and identification = 3
+		]]>
+	</update>
+
+	<!-- 消耗品修正数据_更新 -->
+	<update id="updateConsumableManage" parameterType="ConsumableSupplyEntity">
+		<![CDATA[ 
+			UPDATE consumable_manage 
+			SET 
+				available_inventory = available_inventory + #{quantity},
+			    on_passage = CASE
+			        WHEN on_passage - #{quantity} < 0 THEN 0
+			        ELSE on_passage - #{quantity}
+			    END
+			WHERE partial_id = #{partial_id}
+		]]>
+	</update>
+</mapper>

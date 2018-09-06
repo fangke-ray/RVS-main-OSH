@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableApplicationDetailMapper">
+	
+	<select id="serach" parameterType="string" resultType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+		SELECT
+			cad.partial_id,
+			cad.apply_method,
+			cad.petitioner_id,
+			ptl.code,
+			ptl.name AS partial_name,
+			cad.apply_quantity,
+			cad.pack_method,
+			cad.supply_quantity,
+			CASE
+				WHEN cad.apply_quantity - cad.supply_quantity < 0 THEN 0
+				ELSE
+					cad.apply_quantity - cad.supply_quantity
+			END AS waitting_quantity,
+			cm.available_inventory,
+			cm.type,
+			cmu.content,
+			cmu.unit_name,
+			cm.stock_code,
+			ptl.price
+		FROM
+			consumable_application_detail cad
+		JOIN
+			partial ptl
+		ON
+			cad.partial_id = ptl.partial_id
+		JOIN
+			consumable_manage cm
+		ON
+			cad.partial_id = cm.partial_id
+		LEFT JOIN
+			consumable_measurement_unit cmu
+		ON
+			cad.partial_id = cmu.partial_id
+		WHERE
+			cad.consumable_application_key = #{consumable_application_key}
+		ORDER BY
+			cad.apply_method,cm.stock_code
+		]]>
+	</select>
+	
+	<update id="updateSupplyQuantity" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			UPDATE
+				consumable_application_detail
+			SET
+				supply_quantity = #{supply_quantity}
+			WHERE
+				consumable_application_key = #{consumable_application_key} AND partial_id = #{partial_id}
+				AND petitioner_id = #{petitioner_id}
+		]]>
+	</update>
+	
+	<update id="updateAvailableInventory" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			UPDATE
+				consumable_manage
+			SET
+				available_inventory = #{available_inventory}
+		]]>
+		<if test="unseal_items!=null and unseal_items!='' ">
+			   ,unseal_items = #{unseal_items}
+		</if>
+			WHERE partial_id = #{partial_id}
+			
+	</update>
+
+	<select id="getDetailForEditById" resultType="ConsumableApplicationDetailEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT p.partial_id ,code ,name as partial_name,
+			apply_quantity, apply_method, pack_method,
+			type, available_inventory - coalesce(other_apply.cnt, 0) as available_inventory,
+			unit_name, content,
+			p.price,
+			cad.petitioner_id
+		FROM consumable_application_detail cad
+		join partial p
+			on cad.partial_id= p.partial_id
+		join consumable_manage cm
+			on cad.partial_id= cm.partial_id
+		left join consumable_measurement_unit cmu
+			on cad.partial_id= cmu.partial_id
+			and pack_method = 0
+		left join (
+			select partial_id,
+			sum(case when apply_quantity > supply_quantity then apply_quantity - supply_quantity else 0 end) cnt
+			from consumable_application_detail apd
+			join consumable_application ap
+				on ap.consumable_application_key = apd.consumable_application_key
+			where all_supplied = 0
+				and (apd.consumable_application_key <> #{consumable_application_key}
+		]]>
+		<if test="operator_id!=null and operator_id!='00000000000' ">
+		<![CDATA[ 
+				or apd.petitioner_id <> #{operator_id}
+		]]>
+		</if>
+		<![CDATA[ 
+				)
+			group by apd.partial_id
+		) other_apply
+		on cad.partial_id = other_apply.partial_id
+		where consumable_application_key = #{consumable_application_key}
+		order by petitioner_id, code;
+		]]>
+	</select>
+
+	<select id="getDetailForEditByPartial" parameterType="ConsumableApplicationDetailEntity"
+			resultType="ConsumableApplicationDetailEntity" >
+		<![CDATA[ 
+		SELECT p.partial_id ,code ,name as partial_name, p.price,
+			type, available_inventory - coalesce(other_apply.cnt, 0) as available_inventory,
+			unit_name, content
+		FROM partial p
+		join consumable_manage cm
+			on p.partial_id= cm.partial_id
+		left join consumable_measurement_unit cmu
+			on p.partial_id= cmu.partial_id
+		left join (
+			select partial_id,
+			sum(case when apply_quantity > supply_quantity then apply_quantity - supply_quantity else 0 end) cnt
+			from consumable_application_detail apd
+			join consumable_application ap
+				on ap.consumable_application_key = apd.consumable_application_key
+			where all_supplied = 0
+		]]>
+		<if test="partial_id!=null and partial_id!='' ">
+			and apd.partial_id = #{partial_id}
+		</if>
+		<![CDATA[ 
+			group by apd.partial_id
+		) other_apply
+		on p.partial_id = other_apply.partial_id
+		]]>
+		<if test="partial_id!=null and partial_id!='' ">
+			where p.partial_id = #{partial_id}
+		</if>
+		<if test="code!=null and code!='' ">
+		<![CDATA[ 
+			where p.code like concat(#{code}, '%');
+		]]>
+		</if>
+	</select>
+
+	<insert id="insertDetail" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			INSERT INTO `consumable_application_detail`
+			(`consumable_application_key`,
+			`partial_id`,
+			`apply_method`,
+			`petitioner_id`,
+			`apply_quantity`,
+			`pack_method`)
+			VALUES
+			(
+			#{consumable_application_key},
+			#{partial_id},
+			#{apply_method},
+			#{petitioner_id},
+			#{apply_quantity},
+			#{pack_method});
+		]]>
+	</insert>
+
+	<update id="editApplyQuantity" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			UPDATE
+				`consumable_application_detail`
+			SET
+				apply_quantity = #{apply_quantity}, 
+				apply_method = #{apply_method}
+			WHERE consumable_application_key = #{consumable_application_key}
+			AND partial_id = #{partial_id}
+			AND petitioner_id = #{petitioner_id}
+		]]>
+	</update>
+	<delete id="deleteDetail" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			DELETE FROM
+				`consumable_application_detail`
+			WHERE consumable_application_key = #{consumable_application_key}
+			AND partial_id = #{partial_id}
+			AND petitioner_id = #{petitioner_id}
+		]]>
+	</delete>
+ </mapper>

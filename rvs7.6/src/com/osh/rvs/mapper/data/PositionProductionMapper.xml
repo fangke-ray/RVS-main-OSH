@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.data.PositionProductionMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="getProductionFeatureByPosition" parameterType="PositionProductionEntity" resultType="PositionProductionEntity">
+		<![CDATA[
+			SELECT distinct
+				a.section_id,
+				c.name as section_name,
+				a.position_id,
+				e.action_date as action_time,
+				b.process_code,
+				b.name as position_name,
+				d.name as line_name,
+				e.operator_name as operator_name,
+				processing.processing_count,
+				waiting.waiting_count,
+				e.processed_count as processed_count
+			FROM position_of_section a
+			join position b
+			on a.position_id = b.position_id
+			join section c
+			on a.section_id = c.section_id
+			join line d
+			on b.line_id = d.line_id
+			left join (
+					select 
+					    section_id, position_id, count(material_id) as processing_count
+					from
+					    production_feature
+					where operate_result = 1
+					group by
+						section_id, position_id
+				) processing
+			ON a.section_id = processing.section_id AND a.position_id = processing.position_id
+			left join (
+					select 
+					    section_id, position_id, count(material_id) as waiting_count
+					from
+					    production_feature
+					where finish_time is null
+					and operate_result not in (1, 5)
+					group by
+						section_id, position_id
+				) waiting
+			ON a.section_id = waiting.section_id AND a.position_id = waiting.position_id
+			left join (
+				select group_concat(distinct o.name separator ' ') as operator_name, pf.position_id, 
+				pf.section_id, date(action_time) as action_date, count(material_id) as processed_count
+				from production_feature pf join operator o on o.operator_id = pf.operator_id
+				where operate_result = 2 
+				]]>
+				<if test="action_time_start !=null">
+					<![CDATA[
+					and pf.action_time >= #{action_time_start}
+					]]>
+				</if>
+				<if test="action_time_end !=null">
+					<![CDATA[
+					and date(pf.action_time) <= #{action_time_end}
+					]]>
+				</if>
+				<if test="operator_id != null and operator_id!= ''">
+					and pf.operator_id = #{operator_id}
+				</if>			
+				<if test="section_id != null and section_id!= ''">
+					and pf.section_id = #{section_id}
+				</if>
+				<if test="position_id != null and position_id!= ''">
+					and pf.position_id = #{position_id}
+				</if>
+				<![CDATA[
+				group by pf.position_id, pf.section_id, action_date
+			) e
+			on a.position_id = e.position_id and a.section_id = e.section_id
+		]]>
+		<where>
+				e.action_date is not null
+			<if test="action_time_start !=null">
+				<![CDATA[
+				and e.action_date >= #{action_time_start}
+				]]>
+			</if>
+			<if test="action_time_end !=null">
+				<![CDATA[
+				and date(e.action_date) <= #{action_time_end}
+				]]>
+			</if>
+			<if test="process_code != null and process_code!= ''">
+				and b.process_code = #{process_code}
+			</if>	
+			<if test="section_id != null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="position_id != null and position_id!= ''">
+				and a.position_id = #{position_id}
+			</if>
+			<if test="line_id != null and line_id!= ''">
+				and d.line_id = #{line_id}
+			</if>
+		</where>
+			<![CDATA[
+				-- order by (select count(name) from operator o join production_feature p on o.operator_id = p.operator_id where p.position_id = a.position_id and p.section_id = a.section_id and operate_result not in (5, 8) and date_format(p.action_time, '%Y-%m-%d') = date_format(e.action_time, '%Y-%m-%d')) desc
+			]]>
+	</select>
+	
+	<select id="getDetail" parameterType="PositionProductionEntity" resultType="PositionProductionEntity">
+		<![CDATA[
+select mado.section_name, mado.action_time, mado.process_code, mado.position_name, mado.line_name,
+(select count(material_id) from production_feature where position_id = mado.position_id and section_id = mado.section_id and action_time is null and finish_time is null) as waiting_count,
+(select count(material_id) from production_feature where position_id = mado.position_id and section_id = mado.section_id and operate_result = 2 and action_time between #{action_time} and DATE_ADD(#{action_time}, INTERVAL 1 DAY)) as processed_count,
+(select count(p.material_id) from operator o join production_feature p on o.operator_id = p.operator_id where p.position_id = mado.position_id and p.section_id = mado.section_id and p.operate_result = 2 and p.action_time between #{action_time} and DATE_ADD(#{action_time}, INTERVAL 1 DAY) 
+	and not exists(select role_id from privacy_of_role where privacy_id in('100','101','107','108','109') and role_id=o.role_id)) as oem_count,
+(select count(material_id) from production_feature where position_id = mado.position_id and section_id = mado.section_id and operate_result = 3 and finish_time between #{action_time} and DATE_ADD(#{action_time}, INTERVAL 1 DAY)) as stop_count
+from (
+	SELECT distinct
+		a.position_id,
+		a.section_id,
+		c.name as section_name,
+		date_format(e.action_time, '%Y-%m-%d') as action_time,
+		b.process_code,
+		b.name as position_name,
+		d.name as line_name
+	FROM position_of_section a
+		join position b
+		on a.position_id = b.position_id
+		join section c
+		on a.section_id = c.section_id
+		join line d 
+		on b.line_id = d.line_id
+		left join production_feature e
+		on a.position_id = e.position_id and a.section_id = e.section_id
+	where
+		e.action_time between #{action_time} and DATE_ADD(#{action_time}, INTERVAL 1 DAY)
+	and 
+		a.section_id = #{section_id}
+	and 
+		a.position_id = #{position_id}
+) mado
+		]]>
+	</select>
+	
+	<select id="getProductionFeatureByKey" parameterType="PositionProductionEntity" resultType="PositionProductionEntity">
+		<![CDATA[
+			SELECT 
+				a.action_time,
+				a.finish_time,
+				coalesce(b.omr_notifi_no, b.sorc_no) as sorc_no,
+				(select name from model where model_id = b.model_id) as model_name,
+				a.operator_id,
+				(select name from operator where operator_id = a.operator_id) as operator_name,
+				a.operate_result
+			FROM production_feature a, material b
+			WHERE
+				a.material_id = b.material_id
+			and
+				a.operate_result not in (5, 8) 
+			and
+				a.position_id = #{position_id}
+			and 
+				a.section_id = #{section_id}
+			and
+				a.action_time between #{action_time} and DATE_ADD(#{action_time}, INTERVAL 1 DAY)
+			]]>
+			<if test="operator_id != null and operator_id != ''">
+				and a.operator_id = #{operator_id}			
+			</if>
+		<![CDATA[
+			order by a.action_time asc
+		]]>
+	</select>
+</mapper>

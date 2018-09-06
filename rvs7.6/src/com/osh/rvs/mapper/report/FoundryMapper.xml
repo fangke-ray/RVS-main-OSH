@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.report.FoundryMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchFoundryOfPosition" resultType="FoundryEntity" parameterType="FoundryEntity">
+	<![CDATA[
+		SELECT
+			position_id,
+			process_code,
+			ROUND(SUM(oem * (UNIX_TIMESTAMP(finish_time) - UNIX_TIMESTAMP(action_time))) /60,0) AS foundryWork,
+			ROUND(SUM((NOT oem) * (UNIX_TIMESTAMP(finish_time) - UNIX_TIMESTAMP(action_time))) /60,0) AS mainWork
+		FROM(
+			SELECT
+				pf.position_id,
+				pos.process_code,
+				pf.action_time,
+				pf.finish_time,
+				operator.work_count_flg <> 1 OR pf.operate_result = 5 OR EXISTS(SELECT 1 FROM foundry_time WHERE pf.operator_id = operator_id AND pf.finish_time >= start_time AND (end_time IS NULL OR pf.finish_time <= end_time)) AS oem    
+			FROM
+				production_feature pf
+			JOIN
+				position pos
+			ON
+				pf.position_id = pos.position_id
+			JOIN
+				operator
+			ON
+				operator.operator_id = pf.operator_id
+			WHERE
+				pf.action_time IS NOT NULL
+			AND 
+				pf.finish_time IS NOT NULL
+			AND
+				pf.action_time >= #{finish_time_start} AND 	pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 DAY)
+			AND	
+				pf.section_id = #{section_id}
+			AND
+				pos.line_id	=	#{line_id}
+			) temp
+		GROUP BY 
+			position_id
+	]]>
+	</select>
+	
+	<select id="searchFoundryOfOperator" resultType="FoundryEntity" parameterType="FoundryEntity">
+	<![CDATA[
+		SELECT
+			operator_id,
+			operator_name,
+			ROUND(SUM(oem * (UNIX_TIMESTAMP(finish_time) - UNIX_TIMESTAMP(action_time))) /60,0) AS foundryWork,
+			ROUND(SUM((NOT oem) * (UNIX_TIMESTAMP(finish_time) - UNIX_TIMESTAMP(action_time))) /60,0) AS mainWork
+		FROM(
+			SELECT
+				pf.operator_id,
+				operator.name AS operator_name,
+				pf.action_time,
+				pf.finish_time,
+				pf.operate_result = 5 OR EXISTS(SELECT 1 FROM foundry_time WHERE pf.operator_id = operator_id AND pf.finish_time >= start_time AND (end_time IS NULL OR pf.finish_time <= end_time)) AS oem    
+			FROM
+				production_feature pf
+			JOIN
+				position pos
+			ON
+				pf.position_id = pos.position_id
+			JOIN
+				operator
+			ON
+				operator.operator_id = pf.operator_id
+			WHERE
+				operator.work_count_flg = 1
+			AND
+				operator.delete_flg <> 1
+			AND
+				pf.action_time IS NOT NULL
+			AND 
+				pf.finish_time IS NOT NULL
+			AND
+				pf.action_time >= #{finish_time_start} AND 	pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 DAY)
+			AND	
+				operator.section_id = #{section_id}
+			AND
+				operator.line_id = #{line_id}
+			) temp
+		GROUP BY 
+			operator_id
+	]]>
+	</select>
+
+	<select id="searchFoundryOfPositionAndOperator" resultType="FoundryEntity" parameterType="FoundryEntity">
+	<![CDATA[
+		SELECT
+			position_id,
+			process_code,
+			operator_id,
+			operator_name,
+			mainIncharge,
+			ROUND(SUM(oem * (UNIX_TIMESTAMP(finish_time) - UNIX_TIMESTAMP(action_time))) /60,0) AS foundryWork
+		FROM(
+			SELECT
+				pf.position_id,
+				pos.process_code,
+				pf.operator_id,
+				operator.name AS operator_name,
+				case
+					when operator.role_id <> 6 then '线长'
+					else
+						pos2.process_code
+				end AS mainIncharge,
+				pf.action_time,
+				pf.finish_time,
+				operator.work_count_flg <> 1 OR pf.operate_result = 5 OR EXISTS(SELECT 1 FROM foundry_time WHERE pf.operator_id = operator_id AND pf.finish_time >= start_time AND (end_time IS NULL OR pf.finish_time <= end_time)) AS oem    
+			FROM
+				production_feature pf
+			JOIN
+				position pos
+			ON
+				pf.position_id = pos.position_id
+			JOIN
+				operator
+			ON
+				operator.operator_id = pf.operator_id
+			JOIN
+				position pos2
+			ON
+				operator.position_id = pos2.position_id		
+			WHERE
+				pf.action_time IS NOT NULL
+			AND 
+				pf.finish_time IS NOT NULL
+			AND
+				pf.action_time >= #{finish_time_start} AND 	pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 DAY)
+			AND	
+				pf.section_id = #{section_id}
+			AND
+				pos.line_id	= #{line_id}
+			HAVING 
+				oem = 1
+			) temp
+		GROUP BY 
+			position_id,operator_id
+		ORDER BY
+			process_code
+	]]>
+	</select>
+
+	<select id="getStartTime" resultType="Date" parameterType="String">
+		<![CDATA[ 
+		SELECT start_time FROM foundry_time
+		WHERE operator_id = #{operator_id} AND end_time is null
+		]]>
+	</select>
+
+	<insert id="insert" parameterType="map">
+		<![CDATA[ 
+		INSERT INTO foundry_time (
+			operator_id,
+			start_time
+		) VALUES (
+			#{operator_id}, 
+			#{start_time}
+		);
+		]]>
+	</insert>
+
+	<update id="update" parameterType="map">
+		<![CDATA[ 
+		UPDATE foundry_time
+			SET end_time = current_timestamp
+		WHERE operator_id = #{operator_id}
+		AND start_time = #{start_time}
+		]]>
+	</update>
+
+	<delete id="delete" parameterType="map">
+		<![CDATA[ 
+		DELETE FROM
+			foundry_time
+		WHERE operator_id = #{operator_id}
+		AND start_time = #{start_time}
+		]]>
+	</delete>
+
+	<select id="searchFoundryOfLine" resultType="FoundryEntity" parameterType="FoundryEntity">
+	<![CDATA[
+		SELECT
+			operator.job_no AS job_no,
+			CASE 
+			WHEN ft.start_time < #{finish_time_start}
+			THEN 0
+			ELSE
+				(UNIX_TIMESTAMP(ft.start_time)-UNIX_TIMESTAMP(#{finish_time_start})) div 60
+			END as foundryWork,
+			CASE 
+			WHEN ft.end_time IS NULL
+			THEN 1440
+			ELSE
+				(UNIX_TIMESTAMP(ft.end_time)-UNIX_TIMESTAMP(#{finish_time_start})) div 60	
+			END as mainWork
+		FROM
+			foundry_time ft
+		JOIN
+			operator
+		ON
+			operator.operator_id = ft.operator_id
+		WHERE
+			operator.work_count_flg = 1
+		AND
+			ft.start_time <= date_add(#{finish_time_start}, interval 1 day)
+		AND
+			(ft.end_time >= #{finish_time_start} OR ft.end_time IS NULL)
+		AND	
+			operator.section_id = #{section_id}
+		AND
+			operator.line_id = #{line_id}
+	]]>
+	</select>
+
+</mapper>

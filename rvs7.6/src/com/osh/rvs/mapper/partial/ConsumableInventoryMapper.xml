@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableInventoryMapper">
+	<select id="searchInventoryList" parameterType="ConsumableInventoryEntity" resultType="ConsumableInventoryEntity">
+		<![CDATA[ 
+		SELECT
+			p.partial_id
+			,p.code
+			,p.name
+			,cm.type
+			,cj.adjust_inventory
+			,cj.adjust_time
+			,op.operator_id
+			,op.name as operator_name
+			,cj.reason
+		FROM 
+			consumable_adjust cj
+		JOIN 
+			partial p ON cj.partial_id = p.partial_id
+		JOIN 
+			operator op ON op.operator_id = cj.operator_id
+		JOIN 
+			consumable_manage cm ON cm.partial_id = p.partial_id
+		]]>
+		<where>
+			<if test="code != null and code != ''">
+		    	p.code like CONCAT('%',#{code},'%')
+			</if>
+			<if test="adjust_date_start != null and adjust_date_start != ''">
+				<![CDATA[
+				and cj.adjust_time >= #{adjust_date_start}
+				]]>
+			</if>
+			<if test="adjust_date_end != null and adjust_date_end != ''">
+				<![CDATA[ 
+		   		and cj.adjust_time <= #{adjust_date_end}
+		   		]]>
+			</if>
+			<if test="reason != null and reason != ''">
+		   		and cj.reason like CONCAT('%',#{reason},'%')
+			</if>
+		</where>
+		ORDER BY cj.adjust_time desc
+	</select>
+
+	<update id="updateInventoryDetail" parameterType="ConsumableInventoryEntity">
+		<![CDATA[
+			UPDATE consumable_adjust
+			SET
+				reason = #{reason}
+			WHERE
+				partial_id = #{partial_id}
+				and adjust_time = #{adjust_time}
+				and operator_id = #{operator_id}
+		]]>
+	</update>
+</mapper>

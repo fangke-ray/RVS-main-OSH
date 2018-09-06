@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.CheckResultFilingMapper">
+
+	<!-- 检索一览 -->
+	<select id="searchCheckResultFiling" parameterType="CheckResultFilingEntity" resultType="CheckResultFilingEntity">
+		<![CDATA[
+			SELECT
+				cfm.check_file_manage_id,
+				cfm.check_manage_code,
+				cfm.sheet_file_name,
+				cfm.devices_type_id,
+				cfm.access_place,
+				cfm.cycle_type,
+				cfm.updated_by,
+				cfm.updated_time,
+				dt.name,
+				op.name AS update_name
+			FROM
+				check_file_manage cfm
+			LEFT JOIN
+				devices_type dt
+			ON
+				cfm.devices_type_id=dt.devices_type_id
+			LEFT JOIN
+				operator op
+			ON
+				op.operator_id=cfm.updated_by
+		]]>
+		<where>
+			<![CDATA[
+				cfm.delete_flg <> 1
+			]]>
+			<if test="check_manage_code!=null and check_manage_code!=''">
+				<![CDATA[
+					AND	cfm.check_manage_code LIKE CONCAT('%',#{check_manage_code},'%')
+				]]>
+			</if>
+			<if test="sheet_file_name!=null and sheet_file_name!=''">
+				<![CDATA[
+					AND cfm.sheet_file_name LIKE CONCAT('%',#{sheet_file_name},'%')
+				]]>
+			</if>
+			<if test="devices_type_id!=null and devices_type_id!=''">
+				<![CDATA[
+					AND cfm.devices_type_id=#{devices_type_id}
+				]]>
+			</if>
+			<if test="access_place!=null and access_place!=''">
+				<![CDATA[
+					AND cfm.access_place=#{access_place}
+				]]>
+			</if>
+			<if test="cycle_type!=null and cycle_type!=''">
+				<![CDATA[
+					AND cfm.cycle_type=#{cycle_type}
+				]]>
+			</if>
+		</where>
+		ORDER BY
+			  cfm.sheet_file_name
+	</select>
+	
+	<select id="searchCheckedFileStorage" parameterType="CheckResultFilingEntity" resultType="CheckResultFilingEntity">
+		<![CDATA[
+			SELECT 
+			    cfs.check_file_manage_id,
+			    cfm.check_manage_code,
+				cfs.storage_file_name,
+				cfs.filing_date,
+				cfm.access_place,
+			    cfm.cycle_type,
+			    cfs.branch
+			FROM
+			    checked_file_storage cfs
+			   left join check_file_manage cfm on cfs.check_file_manage_id = cfm.check_file_manage_id
+		]]>
+		<where>
+			cfs.check_file_manage_id =#{check_file_manage_id}
+			<if test="devices_manage_id!=null and devices_manage_id!=''">
+				<![CDATA[
+					AND cfs.devices_manage_id = #{devices_manage_id}
+				]]>
+			</if>
+			<if test="branch!=null and branch!=''">
+				<![CDATA[
+					AND cfs.branch = #{branch}
+				]]>
+			</if>
+			<if test="filing_date_start!=null and filing_date_start!=''">
+				<![CDATA[
+					AND cfs.filing_date >= #{filing_date_start}
+				]]>
+			</if>
+			<if test="filing_date_end!=null and filing_date_end!=''">
+				<![CDATA[
+					AND cfs.filing_date <= #{filing_date_end}
+				]]>
+			</if>
+		</where>
+		group by storage_file_name
+		order by filing_date;
+	</select>
+	
+	<select id="searchCheckFileNames" resultType="CheckResultFilingEntity">
+		<![CDATA[
+			SELECT 
+			    cfm.check_file_manage_id, cfm.check_manage_code
+			FROM
+			    check_file_manage cfm
+				LEFT JOIN
+			    devices_type dt ON cfm.devices_type_id = dt.devices_type_id
+		]]>
+	</select>
+	
+	<select id="searchDeviceNames" resultType="CheckResultFilingEntity">
+		<![CDATA[
+		    SELECT 
+			    dm.devices_manage_id,coalesce(dm.device_name, dt.name) as name,dm.manage_code as sheet_file_name
+			FROM
+			    devices_manage dm
+				LEFT JOIN
+			    devices_type dt ON dm.devices_type_id = dt.devices_type_id
+		]]>
+	</select>
+	
+	<insert id="insertCheckedFileStorage" parameterType="CheckResultFilingEntity">
+		<![CDATA[
+		    REPLACE INTO
+			    checked_file_storage
+		    	(check_file_manage_id,
+				filing_date,
+				devices_manage_id,
+				branch,
+				start_record_date,
+				storage_file_name)
+			VALUES
+				(#{check_file_manage_id},
+				#{filing_date},
+				#{devices_manage_id},
+				2,
+				#{start_record_date},
+				#{storage_file_name})
+		]]>
+	</insert>
+</mapper>

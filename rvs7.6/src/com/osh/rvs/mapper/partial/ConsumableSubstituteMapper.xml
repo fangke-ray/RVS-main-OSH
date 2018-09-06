@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableSubstituteMapper">
+	
+	<insert id="insert" parameterType="ConsumableSubstituteEntity">
+		<![CDATA[ 
+			INSERT INTO `consumable_substitute`
+			(
+			`material_id`,
+			`occur_times`,
+			`partial_id`,
+			`operator_id`,
+			`position_id`,
+			`quantity`,
+			`substitute_time`,
+			`occasion_flg`)
+			VALUES
+			(
+			#{material_id},
+			#{occur_times},
+			#{partial_id},
+			#{operator_id},
+			#{position_id},
+			#{quantity},
+			current_timestamp,
+			#{occasion_flg});
+			;
+		]]>
+	</insert>
+	
+</mapper>

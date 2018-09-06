@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.AcceptanceMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="insertMaterial" parameterType="MaterialEntity">
+		<![CDATA[ 
+		INSERT INTO Material (
+				omr_notifi_no, 
+				esas_no,
+				model_id,
+				serial_no,
+				ocm,
+				ocm_rank,
+				bound_out_ocm,
+				customer_id,
+				ocm_deliver_date,
+				level,
+				package_no,
+				agreed_date,
+				storager,
+				direct_flg,
+				service_repair_flg,
+				fix_type,
+				reception_time,
+				selectable,
+				am_pm,
+				scheduled_expedited
+		) VALUES (
+			#{sorc_no}, 
+			#{esas_no}, 
+			#{model_id}, 
+			#{serial_no}, 
+			#{ocm}, 
+			#{ocm_rank}, 
+			#{bound_out_ocm},
+			#{customer_id}, 
+			#{ocm_deliver_date}, 
+			#{level}, 
+			#{package_no}, 
+			#{agreed_date}, 
+			#{storager}, 
+			#{direct_flg}, 
+			#{service_repair_flg}, 
+			#{fix_type},
+			Now(),
+			#{selectable},
+			#{am_pm},
+			coalesce(#{scheduled_expedited}, 0)
+		);
+		]]>
+	</insert>
+
+	<update id="updateMaterial" parameterType="MaterialEntity">
+		<![CDATA[ 
+		UPDATE Material SET 
+				omr_notifi_no = #{sorc_no},  
+				esas_no = #{esas_no}, 
+				model_id = #{model_id}, 
+				serial_no = #{serial_no}, 
+				ocm = #{ocm}, 
+				ocm_rank = #{ocm_rank},
+				customer_id = #{customer_id},
+				ocm_deliver_date = #{ocm_deliver_date},
+				level = #{level}, 
+				package_no = #{package_no}, 
+				storager = #{storager}, 
+				direct_flg = #{direct_flg}, 
+				bound_out_ocm = #{bound_out_ocm},
+				service_repair_flg = #{service_repair_flg}, 
+				selectable = #{selectable}, 
+				fix_type = #{fix_type},
+				scheduled_expedited = coalesce(#{scheduled_expedited}, 0)
+		WHERE material_id = #{material_id};
+		]]>
+		
+	</update>
+
+	<select id="checkSorcNo" resultType="String" parameterType="MaterialEntity">
+		<![CDATA[ 
+			SELECT material_id from Material where (sorc_no = #{sorc_no} OR omr_notifi_no =  #{sorc_no}) AND break_back_flg = 0 AND outline_time IS NULL;
+		]]>
+	</select>
+	<select id="checkEsasNo" resultType="String" parameterType="MaterialEntity">
+		<![CDATA[ 
+			SELECT material_id from Material where esas_no = #{esas_no} AND break_back_flg = 0 AND outline_time IS NULL;
+		]]>
+	</select>
+	<select id="checkModelSerialNo" resultType="String" parameterType="MaterialEntity">
+		<![CDATA[ 
+			SELECT material_id from Material where model_id = #{model_id} and serial_no = #{serial_no} AND break_back_flg = 0 AND outline_time IS NULL;
+		]]>
+	</select>
+
+	<select id="getTodayMaterialDetail" resultType="MaterialEntity">
+		<![CDATA[ 
+			SELECT
+				a.reception_time, a.esas_no, (select name from model where model_id = a.model_id) as model_name,
+				a.serial_no,a.ocm,a.package_no, (select name from operator where operator_id = b.operator_id) as operator_name
+				,a.storager,a.direct_flg,a.service_repair_flg,a.fix_type
+			FROM material a, production_feature b
+			where a.material_id = b.material_id
+			and b.position_id = 9
+			and a.break_back_flg = 0
+			and b.action_time > current_date
+			order by reception_time
+		]]>
+	</select>
+
+	<update id="updateFormalReception">
+		<![CDATA[ 
+			UPDATE material m
+			SET reception_time = (select finish_time from production_feature where material_id = m.material_id and position_id = 9)
+			WHERE m.material_id in
+ 		]]>
+		<foreach item="material_id" index="index" collection="array" open="(" separator="," close=")">
+			#{material_id}
+		</foreach>
+ 		;
+	</update>
+
+	<update id="updateOcmShippingBySorc" parameterType="MaterialEntity">
+		<![CDATA[ 
+			UPDATE Material SET
+			ocm_shipping_date = #{ocm_shipping_date}
+			where (sorc_no = #{sorc_no} OR omr_notifi_no =  #{sorc_no})
+			AND ocm_shipping_date IS NULL; --  AND break_back_flg = 0
+		]]>
+	</update>
+
+	<update id="updateOcmShippingByID" parameterType="MaterialEntity">
+		<![CDATA[ 
+			UPDATE Material SET
+			ocm_shipping_date = #{ocm_shipping_date}
+			where material_id = #{material_id}
+			AND ocm_shipping_date IS NULL; --  AND break_back_flg = 0
+		]]>
+	</update>
+
+	<select id="loadOgz" resultType="map">
+		<![CDATA[ 
+SELECT `record_date`,
+    `delivered`,
+    `shipped`,
+    `wip_count`,
+    `wip_overtime_count`,
+    `inlined`,
+    `approved`
+FROM `ogz_inline_status`
+WHERE `record_date` = current_date;
+ 		]]>
+	</select>
+
+	<update id="importOgz" parameterType="map">
+		<![CDATA[ 
+			Replace Into `ogz_inline_status`
+			(`record_date`,
+			`delivered`,
+			`shipped`,
+			`wip_count`,
+			`wip_overtime_count`,
+			`inlined`,
+			`approved`)
+			VALUES
+			(
+			current_date,
+			#{delivered},
+			#{shipped},
+			#{wip_count},
+			#{wip_overtime_count},
+			#{inlined},
+			#{approved}
+			);
+ 		]]>
+	</update>
+
+	<update id="updatePastOgzShipped" parameterType="map">
+		<![CDATA[ 
+			UPDATE `ogz_inline_status`
+			SET
+			`shipped` = #{shipped}
+			WHERE
+			`record_date` = #{record_date}
+			AND
+			`shipped` < #{shipped}
+			;
+ 		]]>
+	</update>
+
+</mapper>

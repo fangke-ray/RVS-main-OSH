@@ -1,0 +1,207 @@
+/**  
+* @Title: QuotationService.java
+* @Package com.osh.rvs.service
+* @Description: TODO
+* @author liuxb
+* @date 2017-3-9 下午2:08:28
+*/ 
+package com.osh.rvs.service.qf;
+
+import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
+
+import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.master.ModelEntity;
+import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsUtils;
+import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.mapper.inline.MaterialCommentMapper;
+import com.osh.rvs.mapper.qf.QuotationMapper;
+import com.osh.rvs.service.CustomerService;
+import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.ProcessAssignService;
+
+import framework.huiqing.common.util.CommonStringUtil;
+import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.CopyOptions;
+
+/**  
+ * @Title: QuotationService.java
+ * @Package com.osh.rvs.service
+ * @Description: TODO
+ * @author liuxb
+ * @date 2017-3-9 下午2:08:28
+ */
+public class QuotationService {
+	Logger _log = Logger.getLogger(getClass());
+	
+	/**
+	 * 更新维修对象信息
+	 * @param bean
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void updateMaterial(MaterialEntity entity, SqlSessionManager conn) throws Exception {
+		QuotationMapper dao = conn.getMapper(QuotationMapper.class);
+		if (!isEmpty(entity.getCustomer_name())) {
+			CustomerService cservice = new CustomerService();
+			entity.setCustomer_id(cservice.getCustomerStudiedId(entity.getCustomer_name(), entity.getOcm(), conn));
+		}
+
+		Date[] workDates = RvsUtils.getTimeLimit(entity.getAgreed_date(), entity.getLevel(), 
+				entity.getFix_type(), entity.getScheduled_expedited(), conn, false);
+		Date workDate = workDates[0];
+		entity.setScheduled_date(workDate);
+
+		dao.updateMaterial(entity);
+	}
+
+	public void getProccessingData(Map<String, Object> responseBean, String material_id, ProductionFeatureEntity pf,
+			LoginData user, SqlSession conn) throws Exception {
+		QuotationService service = new QuotationService();
+		// 取得维修对象信息。
+		MaterialForm mform = service.getMaterialInfo(material_id, user,conn);
+		responseBean.put("mform", mform);
+
+		// 判断是否CCD线更换对象，是的话可选择流程
+		if (RvsUtils.getCcdLineModels(conn).contains(mform.getModel_id())) {
+			Map<String, String> patState = new HashMap<String, String>();
+			patState.put("pat_id", mform.getPat_id());
+			patState.put("pat_name", mform.getSection_name());
+			responseBean.put("patState", patState);
+
+			ModelService mService = new ModelService();
+			ModelEntity mEntity = mService.getDetailEntity(mform.getModel_id(), conn);
+
+			if (mEntity != null && mEntity.getDefault_pat_id() != null) {
+				ProcessAssignService paService = new ProcessAssignService();
+				responseBean.put("dpResult", 
+						paService.getDerivePair(mEntity.getDefault_pat_id(), "3", conn));
+			}
+		}
+
+		// 取得维修对象的作业标准时间。
+		responseBean.put("leagal_overline", RvsUtils.getZeroOverLine(mform.getModel_name(), mform.getCategory_name(), user, null));
+	}
+
+	public MaterialForm getMaterialInfo(String material_id, LoginData user, SqlSession conn) {
+		MaterialForm materialForm = new MaterialForm();
+		QuotationMapper dao = conn.getMapper(QuotationMapper.class);
+		MaterialEntity materialEntity = dao.getMaterialDetail(material_id);
+		BeanUtil.copyToForm(materialEntity, materialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+		// 取得维修对象备注
+		MaterialCommentMapper mapper = conn.getMapper(MaterialCommentMapper.class);
+		String comment = mapper.getMyMaterialComment(material_id, user.getOperator_id());
+		materialForm.setComment(comment);
+
+		String otherComment = mapper.getMaterialComments(material_id, user.getOperator_id());
+		materialForm.setScheduled_manager_comment(otherComment);
+
+		return materialForm;
+	}
+
+	public void listRefresh(LoginData user, Map<String, Object> listResponse, SqlSession conn) {
+		String position_id = user.getPosition_id();
+		boolean join151And161 = "00000000013".equals(position_id) || "00000000014".equals(position_id);
+		String[] position_ids = null; 
+		if (join151And161) {
+			position_ids = new String[]{"00000000013", "00000000014"};
+		} else {
+			position_ids = new String[]{position_id};
+		}
+
+		QuotationMapper qDao = conn.getMapper(QuotationMapper.class);
+		// 取得待报价处理对象一览 151 or 161
+		List<MaterialEntity> waitings = qDao.getWaitings(position_ids);
+
+		// 取得暂停一览 151 or 161
+		List<MaterialEntity> paused = qDao.getPaused(position_ids);
+
+		// 取得今日已完成处理对象一览
+		List<MaterialEntity> finished = qDao.getFinished(position_ids);
+
+		List<MaterialForm> waitingsForm = new ArrayList<MaterialForm>();
+		List<MaterialForm> pausedForm = new ArrayList<MaterialForm>();
+		List<MaterialForm> finishedForm = new ArrayList<MaterialForm>();
+
+		BeanUtil.copyToFormList(waitings, waitingsForm, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
+
+		String process_code = "";
+
+		for (MaterialEntity pe : paused) {
+			MaterialForm pausedMaterialForm = new MaterialForm();
+			BeanUtil.copyToForm(pe, pausedMaterialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+			// 工位特殊暂停理由
+			// 优先 特殊暂停 》 暂停 》  其他暂停 》 未处理 》 中断
+			if (pe.getNow_pause_reason() != null)
+				if (pe.getNow_pause_reason() >= 70) {
+					process_code = "";
+					if ("00000000013".equals(pe.getProcessing_position())) process_code = "151";//TODO zhenggui
+					else if ("00000000014".equals(pe.getProcessing_position())) process_code = "161";
+
+					String sReason = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + pe.getNow_pause_reason());
+					pausedMaterialForm.setStatus("" + pe.getNow_pause_reason());
+					if (sReason == null) {
+						pausedMaterialForm.setOperate_result("");
+					} else {
+						pausedMaterialForm.setOperate_result(sReason);
+					}
+				} else if (pe.getNow_pause_reason() >= 40){
+					pausedMaterialForm.setOperate_result("暂停");
+					pausedMaterialForm.setStatus("30");
+				} else if (pe.getNow_pause_reason() < 20){
+					pausedMaterialForm.setOperate_result("中断");
+					pausedMaterialForm.setStatus("10");
+				} else {
+					pausedMaterialForm.setOperate_result("未处理");
+					pausedMaterialForm.setStatus("20");
+				}
+			else {
+				_log.warn(pausedMaterialForm.getMaterial_id() + "出现未分类的暂停:" + pe.getNow_pause_reason());
+				pausedMaterialForm.setOperate_result("其他暂停");
+				pausedMaterialForm.setStatus("30");
+			}
+			pausedForm.add(pausedMaterialForm);
+		}
+
+		BeanUtil.copyToFormList(finished, finishedForm, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
+
+		listResponse.put("waitings", waitingsForm);
+		listResponse.put("paused", pausedForm);
+		listResponse.put("finished", finishedForm);
+	}
+
+	public void updateComment(MaterialForm materialForm,LoginData user,SqlSessionManager conn){
+		MaterialCommentMapper mapper = conn.getMapper(MaterialCommentMapper.class);
+		
+		//画面上提交的备注内容为空时，进一步查询原来是否已经存在备注了
+		if(CommonStringUtil.isEmpty(materialForm.getComment())){
+			//查询维修对象备注是否存在
+			String dbComment = mapper.getMyMaterialComment(materialForm.getMaterial_id(), user.getOperator_id());
+			
+			//如果原来存在备注，则删除修对象备注
+			if(!CommonStringUtil.isEmpty(dbComment)){
+				mapper.deleteMaterialComment(materialForm.getMaterial_id(), user.getOperator_id());
+			}
+		}else{//画面上提交的备注内容不为空
+			// 更新维修对象备注
+			MaterialService materialService = new MaterialService();
+			materialService.updateMaterialComment(materialForm.getMaterial_id(), user.getOperator_id(), materialForm.getComment(),conn);
+		}
+	}
+
+
+}

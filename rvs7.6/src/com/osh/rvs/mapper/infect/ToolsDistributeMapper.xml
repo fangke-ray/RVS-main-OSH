@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.ToolsDistributeMapper">
+
+    <!-- 治具分布详细 -->
+    <select id="searchToolsDistribute" resultType="ToolsDistributeEntity" parameterType="ToolsDistributeEntity">
+		<![CDATA[ 
+		select 	       
+                tm.manage_code,
+                ot.name as operator,		
+		        l.name as line_name,
+                s.name as section_name,
+				p.process_code,
+			    tool_name as tools_name,	
+			    tm.provide_date,	
+			    op.name as updated_by,    
+			    tm.tools_manage_id,
+				tm.manage_code,
+				tm.tools_no,
+				tm.tools_type_id,
+				tm.manage_level,
+				tm.section_id,
+				tm.line_id,
+				tm.position_id,
+                tm.status,
+				tm.responsible_operator_id,
+				tm.comment
+		from
+		    tools_manage tm
+		left join 
+		    tools_type tt
+		on tt.tools_type_id =tm.tools_type_id
+	    left join
+			OPERATOR O ON tm.manager_operator_id = O.OPERATOR_ID
+		left join
+			OPERATOR op ON tm.updated_by = op.OPERATOR_ID
+		left join 
+            operator ot on tm.responsible_operator_id =ot.OPERATOR_ID
+        left join
+            position p on tm.position_id = p.position_id
+		left join 
+			section s  on tm.section_id = s.section_id
+        left join line l on tm.line_id = l.line_id
+		]]>
+		<where>		
+		   tm.delete_flg=0 and status in (1,4)
+		   <if test="manage_code!=null and manage_code!='' ">
+				<![CDATA[
+				and  tm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+			    ]]>
+			</if>     
+			<if test="tools_no!=null and tools_no!='' ">
+				<![CDATA[
+				    and tm.tools_no LIKE CONCAT('%',#{tools_no},'%')
+			    ]]>
+			</if>
+			<if test="tools_type_id!=null and tools_type_id!='' ">
+				<![CDATA[
+				    and tm.tools_type_id =#{tools_type_id}
+			    ]]>
+			</if>
+			<if test="section_id!=null and section_id!='' ">
+				<![CDATA[
+				    and tm.section_id =#{section_id}
+			    ]]>
+			</if>
+			<if test="line_id!=null and line_id!='' ">
+				<![CDATA[
+				    and tm.line_id =#{line_id}
+			    ]]>
+			</if>
+			<if test="position_id!=null and position_id!='' ">
+				<![CDATA[
+				    and tm.position_id =#{position_id}
+			    ]]>
+			</if>
+			<if test="responsible_operator_id!=null and responsible_operator_id!='' ">
+				<![CDATA[
+				    and tm.responsible_operator_id =#{responsible_operator_id}
+			    ]]>
+			</if>
+		</where>
+		 ORDER BY tm.updated_time DESC
+		 limit 1000;
+	</select>	
+
+</mapper>

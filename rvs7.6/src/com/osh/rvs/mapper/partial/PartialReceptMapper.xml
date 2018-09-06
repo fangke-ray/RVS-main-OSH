@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialReceptMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<!-- 零件一览 -->
+	<select id="secrchPartialRecept" resultType="MaterialPartialDetailEntity" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			SELECT 
+				mpd.material_partial_detail_key,
+				mpd.partial_id,
+			    CASE WHEN mpd.belongs = 2 THEN concat(pa.code , ' *') ELSE pa.code END as `code`,
+			    pa.name as partial_name,
+				(mpd.waiting_receive_quantity - mpd.waiting_quantity) as recept_quantity,
+				(mpd.quantity - mpd.waiting_receive_quantity) as cur_quantity,
+				mpd.waiting_receive_quantity,
+			    po.process_code,
+				(cm.partial_id is not null) as append,
+				(mpd.belongs = 1) as bom_quantity,
+				mp.arrival_plan_date,
+				mpd.status
+			FROM
+				material_partial_detail mpd
+			LEFT JOIN
+				position po
+			ON
+				po.position_id=mpd.position_id
+			JOIN
+				partial pa
+			ON
+				pa.partial_id=mpd.partial_id
+			JOIN 
+				material m
+			ON
+				mpd.material_id = m.material_id
+			JOIN
+				material_partial mp 
+			ON
+				mp.material_id=mpd.material_id and mp.occur_times=mpd.occur_times
+			left join
+				consumable_manage cm
+			on
+				pa.partial_id = cm.partial_id and cm.delete_flg = 0
+			WHERE
+				mpd.material_id=#{material_id}
+			AND
+				mpd.occur_times=#{occur_times}
+			AND 
+				mpd.status < 9
+			AND
+		]]>
+		<if test="line_id==12">
+			 (po.line_id in(12,14) or po.line_id is null) 
+		</if>
+		<if test="line_id!=12">
+			 (po.line_id = #{line_id} or po.line_id is null)
+		</if>
+		ORDER by bom_quantity asc, recept_quantity,waiting_receive_quantity desc
+	</select>
+	
+	
+	<update id="updatePartialRecept" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			update
+				material_partial_detail
+			set
+				waiting_receive_quantity=waiting_receive_quantity - #{recept_quantity},
+				r_operator_id = #{r_operator_id},
+				recent_receive_time=now()
+			where
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
+
+	<update id="updatePartialUnnessaray" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[
+			update
+				material_partial_detail
+			set
+				status = 9,
+				waiting_receive_quantity=0,
+				r_operator_id = #{r_operator_id},
+				recent_receive_time=now()
+			where
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
+
+	<select id="getPartialDetailByPosition" resultType="MaterialPartialDetailEntity" parameterType="String">
+		<![CDATA[
+			SELECT 
+				mpd.material_partial_detail_key,
+				mpd.partial_id,
+				CASE WHEN mpd.belongs = 2 THEN concat(pa.code , ' *') ELSE pa.code END as `code`,
+				pa.name as partial_name,
+				(mpd.waiting_receive_quantity - mpd.waiting_quantity) as recept_quantity,
+				(mpd.quantity - mpd.waiting_receive_quantity) as cur_quantity,
+				mpd.waiting_receive_quantity,
+				pa.consumable_flg as append,
+				mpd.arrival_plan_date,
+				(mpd.belongs = 1) as bom_quantity,
+				mpd.arrival_plan_date,
+				mpd.status
+			FROM
+				material_partial_detail mpd
+			JOIN
+				v_partial pa
+			ON
+				pa.partial_id=mpd.partial_id
+			WHERE
+				mpd.material_id=#{material_id}
+			AND
+				(mpd.position_id=#{position_id} OR mpd.position_id IS NULL)
+			ORDER by bom_quantity asc,waiting_receive_quantity desc, status = 3 
+		]]>
+	</select>
+
+	<select id="getPremakePartialAddition" resultType="String" parameterType="String">
+		<![CDATA[
+			SELECT 
+				partial_id
+			FROM
+				premake_partial
+			where partial_id = #{partial_id}
+			AND standard_flg = 0 
+			LIMIT 1
+		]]>
+	</select>
+
+</mapper>

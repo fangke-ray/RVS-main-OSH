@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.TorsionDeviceMapper">
+
+	<insert id="insertTorsionDevice" parameterType="TorsionDeviceEntity">
+		   <![CDATA[
+		    INSERT INTO 
+		    	torsion_device
+		    	(
+		    	manage_id,
+				seq,
+				regular_torque,
+				deviation,
+				usage_point,
+				hp_scale
+				)
+		   VALUES(
+			]]>
+			    #{manage_id},
+				#{seq},
+				#{regular_torque},
+				#{deviation},
+				#{usage_point},
+				#{hp_scale}
+				)
+	 </insert>
+	 
+	 <select id="searchManageCodes" resultType="TorsionDeviceEntity">
+	 	<![CDATA[
+	 	    SELECT 
+			    manage_code, devices_manage_id as manage_id
+			FROM
+				devices_manage dm JOIN
+				devices_type dt
+			ON
+				dm.devices_type_id = dt.devices_type_id
+	 	]]>
+	    <where>
+	    	status IN (1 , 4)
+			AND dt.specialized = 2
+		 	<if test="manage_id!= null and manage_id!= '' ">
+				<![CDATA[ 
+					and devices_manage_id <> #{manage_id}
+				]]>
+			</if>
+		</where>
+	 </select>
+	 
+	 <select id="searchManageCode" resultType="String" parameterType="TorsionDeviceEntity">
+	 	<![CDATA[
+	 	    SELECT 
+			    manage_id
+			FROM
+			    torsion_device
+			WHERE 
+			    manage_id = #{manage_id} AND seq=#{seq}
+	 	]]>
+	 </select>
+	
+
+	<!-- 检索一览 -->
+	<select id="searchTorsionDevice" parameterType="TorsionDeviceEntity" resultType="TorsionDeviceEntity">
+		<![CDATA[
+		SELECT                                                           
+		    dm.manage_code,                                              
+		    td.manage_id,                                                
+		    td.seq,                                                      
+		    td.regular_torque,                                           
+		    td.deviation,                                                
+		    td.usage_point,                                              
+		    td.hp_scale,                                                 
+		    (CASE hp_scale                                               
+		        WHEN '1' then round((ceil((regular_torque - deviation)*100))/100, 2)
+		        WHEN '2' then round((ceil((regular_torque - deviation)*1000))/1000, 3)
+		        ELSE '0'                                                 
+		    END) AS regular_torque_lower_limit,                          
+		    (CASE hp_scale                                               
+		        WHEN '1' then round((floor((regular_torque + deviation)*100))/100, 2)
+		        WHEN '2' then round((floor((regular_torque + deviation)*1000))/1000, 3)
+		        ELSE '0'                                                 
+		    END) AS regular_torque_upper_limit               
+		FROM
+		torsion_device td
+		    LEFT JOIN
+		devices_manage dm ON dm.devices_manage_id = td.manage_id    
+		]]>
+		<where>
+			dm.delete_flg = 0
+			<if test="manage_id!=null and manage_id!=''">
+				<![CDATA[
+					AND	td.manage_id =#{manage_id}
+				]]>
+			</if>
+			<if test="manage_code!=null and manage_code!=''">
+				<![CDATA[
+					AND	dm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+				]]>
+			</if>
+			<if test="seq!=null and seq!=''">
+				<![CDATA[
+					AND td.seq=#{seq}
+				]]>
+			</if>
+			<if test="usage_point!=null and usage_point!=''">
+				<![CDATA[
+					AND td.usage_point LIKE CONCAT('%',#{usage_point},'%')
+				]]>
+			</if>
+			<if test="hp_scale!=null and hp_scale!=''">
+				<![CDATA[
+					AND td.hp_scale=#{hp_scale}
+				]]>
+			</if>
+			<if test="section_id!=null and section_id!=''">
+				<![CDATA[
+					AND dm.section_id=#{section_id}
+				]]>
+			</if>
+			<if test="position_id!=null and position_id!=''">
+				<![CDATA[
+					AND dm.position_id=#{position_id}
+					AND dm.status = 1
+					AND dm.manage_level <= 2
+				]]>
+			</if>
+		</where>
+		ORDER BY dm.manage_code, td.seq
+	</select>
+	
+	<update id="updateTorsionDevice" parameterType="TorsionDeviceEntity">
+	   <![CDATA[
+	   UPDATE torsion_device SET 				
+				manage_id=#{manage_id},
+				seq=#{seq},
+				regular_torque=#{regular_torque},
+				deviation=#{deviation},
+				usage_point=#{usage_point},
+				hp_scale=#{hp_scale}
+		WHERE   manage_id=#{manage_id} and seq=#{seq}
+	   ]]>
+	</update>
+	
+	<delete id="deleteTorsionDevice" parameterType="TorsionDeviceEntity">
+		<![CDATA[
+		    DELETE FROM torsion_device
+		    WHERE manage_id=#{manage_id} and seq=#{seq}
+		]]>
+	</delete>
+
+	<!-- 点检人员身份全部相关表格  -->
+    <select id="searchTorsionDeviceOnLineByOperator" resultType="DevicesManageEntity" parameterType="CheckResultEntity">
+	   <![CDATA[
+SELECT dm.devices_manage_id,dt.name, dm.section_id, dm.position_id, pos.process_code FROM torsion_device td 
+	join devices_manage dm
+		on td.manage_id = dm.devices_manage_id
+	join devices_type dt
+		on dm.devices_type_id = dt.devices_type_id
+	left join section sec
+		on dm.section_id = sec.section_id
+	join position pos
+		on dm.position_id = pos.position_id
+where dm.delete_flg = 0 and dm.status = 1 and  manage_level <= 2 
+	and dm.section_id = #{section_id}
+	   ]]>
+		<if test="sheet_manage_no!=null and sheet_manage_no!=''">
+			and 'QR-B31002-17 力矩螺丝刀点检表' like concat('%', #{sheet_manage_no}, '%') 
+		</if>
+		<if test="manage_code!=null and manage_code!=''">
+			and dm.manage_code like concat('%', #{manage_code}, '%') 
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			and dm.model_name like concat('%', #{model_name}, '%') 
+		</if>
+		<if test="position_id!=null and position_id!=''">
+			and dm.position_id = #{position_id}
+		</if>
+	   <![CDATA[
+	and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+		where cur.manage_id = dm.devices_manage_id and cur.manage_id = 1
+		and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+	group by dm.section_id, dm.position_id
+			;
+	   ]]>
+	</select>
+
+    <select id="searchTorsionDeviceOnLineByManager" resultType="DevicesManageEntity" parameterType="CheckResultEntity">
+	   <![CDATA[
+SELECT dm.devices_manage_id,dt.name, dm.section_id, dm.position_id, concat(sec.name, '\n', pos.process_code) as process_code FROM torsion_device td 
+	join devices_manage dm
+		on td.manage_id = dm.devices_manage_id
+	join devices_type dt
+		on dm.devices_type_id = dt.devices_type_id
+	left join section sec
+		on dm.section_id = sec.section_id
+	join position pos
+		on dm.position_id = pos.position_id
+where dm.delete_flg = 0 and dm.status = 1 and  manage_level <= 2 
+	   ]]>
+		<if test="operator_id!=null and operator_id!=''">
+			and manager_operator_id = #{operator_id}
+		</if>
+		<if test="sheet_manage_no!=null and sheet_manage_no!=''">
+			and 'QR-B31002-17 力矩螺丝刀点检表' like concat('%', #{sheet_manage_no}, '%') 
+		</if>
+		<if test="manage_code!=null and manage_code!=''">
+			and dm.manage_code like concat('%', #{manage_code}, '%') 
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			and dm.model_name like concat('%', #{model_name}, '%') 
+		</if>
+		<if test="devices_type_id!=null and devices_type_id!=''">
+			and dm.devices_type_id = #{devices_type_id}
+		</if>
+		<if test="position_id!=null and position_id!=''">
+			and dm.position_id = #{position_id}
+		</if>
+group by dm.section_id, dm.position_id
+	;
+	</select>
+
+    <select id="getSeqItemsByTorsionSetting" resultType="String" parameterType="String">
+		SELECT seq FROM rvsdb.torsion_device where manage_id = #{manage_id};
+	</select>
+</mapper>

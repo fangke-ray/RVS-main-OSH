@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.CustomerMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getCustomerByID" resultType="CustomerEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT CUSTOMER_ID,
+			NAME,
+			OCM,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM CUSTOMER
+		WHERE DELETE_FLG = 0
+		AND CUSTOMER_ID = #{customer_id};
+		]]>
+	</select>
+
+	<select id="getAllCustomers" resultType="CustomerEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT CUSTOMER_ID,
+			NAME,
+			OCM,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM CUSTOMER
+		WHERE DELETE_FLG = 0;
+		]]>
+	</select>
+
+	<select id="getAllCustomer" resultType="CustomerEntity">
+		<![CDATA[ 
+		SELECT CUSTOMER_ID,
+			NAME,
+			INCUSTOMER_FLG,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_CUSTOMER
+		WHERE DELETE_FLG = 0
+		ORDER BY CUSTOMER_ID ASC;
+		]]>
+	</select>
+
+	<select id="searchCustomer" resultType="CustomerEntity">
+		<![CDATA[ 
+		SELECT CUSTOMER_ID,
+			NAME,
+			OCM,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM CUSTOMER
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="customer_id!= null and customer_id!= '' ">
+				AND CUSTOMER_ID = #{customer_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND NAME  = #{name}
+			</if>
+			<if test="ocm!=null and ocm!='' ">
+				AND OCM = #{ocm}
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<insert id="insertCustomer" parameterType="CustomerEntity">
+		<![CDATA[ 
+		INSERT INTO CUSTOMER 
+			(NAME, UPDATED_BY, OCM, UPDATED_TIME) 
+		VALUES 
+			(#{name}, #{updated_by}, #{ocm}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="updateCustomer" parameterType="CustomerEntity">
+		<![CDATA[ 
+		UPDATE CUSTOMER SET NAME = #{name},
+			UPDATED_BY = #{updated_by},
+			INCUSTOMER_FLG = #{inline_flg},
+			UPDATED_TIME = current_timestamp
+		WHERE CUSTOMER_ID = #{customer_id};
+		]]>
+	</update>
+
+	<update id="deleteCustomer" parameterType="CustomerEntity">
+		<![CDATA[ 
+		UPDATE CUSTOMER SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE CUSTOMER_ID = #{customer_id};
+		]]>
+	</update>
+	
+	<select id="search" resultType="CustomerEntity" parameterType="CustomerEntity">
+		<![CDATA[ 
+		SELECT 
+		    cus.CUSTOMER_ID,
+		    cus.NAME,
+		    cus.OCM,
+		    cus.UPDATED_TIME,
+		    cus.VIP,
+			op.name AS operation_name
+		FROM
+		    CUSTOMER cus
+		LEFT JOIN
+		    operator op ON op.operator_id = cus.UPDATED_BY
+		]]>
+		<where>
+			cus.DELETE_FLG = 0
+			<if test="name!=null and name!='' ">
+				AND cus.NAME LIKE CONCAT('%',#{name},'%')
+			</if>
+			<if test="ocm!=null and ocm!='' ">
+				AND cus.OCM = #{ocm}
+			</if>
+			<if test="vip==-1">
+				AND cus.VIP =0
+			</if>
+			<if test="vip==1">
+				AND cus.VIP =1
+			</if>
+		</where> 
+		<![CDATA[ 
+			    ORDER BY cus.UPDATED_TIME DESC
+		]]>
+	</select>
+	
+	<insert id="insert" parameterType="CustomerEntity">
+		<![CDATA[ 
+			INSERT INTO CUSTOMER 
+				(NAME,OCM,UPDATED_BY,UPDATED_TIME,VIP) 
+			VALUES 
+				(#{name},
+				#{ocm},
+				#{updated_by},
+				current_timestamp,
+		]]> 
+		<if test="vip==-1">
+				0
+		</if>
+		<if test="vip==1">
+				1
+		</if>
+		<![CDATA[ 
+				)
+		]]> 
+	</insert>
+	
+	<!-- 检查客户名称是否存在 -->
+	<select id="checkNameIsExist" parameterType="CustomerEntity" resultType="int">
+		<![CDATA[
+			select count(*) from customer where name=#{name} and delete_flg=0
+		]]> 
+	</select>
+	
+	<!-- 检查是否是当前ID -->
+	<select id="checkIdIsCurrent" parameterType="CustomerEntity" resultType="String">
+		<![CDATA[
+			select customer_id from customer where name=#{name} and delete_flg=0
+		]]> 
+	</select>
+	
+	<update id="update" parameterType="CustomerEntity">
+		<![CDATA[
+		UPDATE CUSTOMER SET 
+			NAME = #{name},
+			OCM = #{ocm},
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp,
+		]]> 
+		<if test="vip==-1">
+				VIP=0
+		</if>
+		<if test="vip==1">
+				VIP=1
+		</if>
+		<![CDATA[
+				WHERE CUSTOMER_ID = #{customer_id}
+		]]> 
+	</update>
+	
+	<!-- 查询归并目标 -->
+	<select id="searchMergeTarget" parameterType="CustomerEntity" resultType="CustomerEntity">
+	<![CDATA[
+		SELECT 
+		    CUSTOMER_ID,
+		    NAME,
+		    OCM,
+		    VIP
+		FROM
+		    CUSTOMER
+		WHERE
+			DELETE_FLG = 0 AND NAME LIKE CONCAT('%',#{name},'%') AND CUSTOMER_ID <> #{customer_id} 
+	]]> 
+	</select>
+	
+	<!-- 删除归并源 -->
+	<update id="deleteOriginal" parameterType="CustomerEntity">
+	<![CDATA[
+		UPDATE CUSTOMER SET 
+			DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE CUSTOMER_ID = #{original_customer_id}
+	]]> 
+	</update>
+	
+	<!-- 将归并目标变成VIP -->
+	<update id="updateTargetToVip" parameterType="CustomerEntity">
+		<![CDATA[
+			UPDATE CUSTOMER SET 
+				UPDATED_BY = #{updated_by},
+				UPDATED_TIME = current_timestamp,
+				VIP=1
+			WHERE CUSTOMER_ID = #{target_customer_id}
+		]]> 
+	</update>
+
+</mapper>

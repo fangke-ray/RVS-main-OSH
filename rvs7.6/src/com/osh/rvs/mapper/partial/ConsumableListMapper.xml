@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableListMapper">
+	<select id="searchConsumableList" parameterType="ConsumableListEntity" resultType="ConsumableListEntity">
+		<![CDATA[
+			select 
+				consumable_manage.partial_id
+			    ,partial.code
+			    ,partial.price
+			    ,partial.name as description
+			    ,consumable_manage.type
+			    ,consumable_manage.benchmark
+			    ,consumable_manage.safety_lever
+			    ,consumable_manage.available_inventory
+			    ,consumable_manage.on_passage
+			    ,supply_sum.supply_count_quantity
+			    ,cost_sum.used_count_quantity
+			    ,substitute_sum.substituted_count_quantity
+			    ,round(supply_sum.supply_count_quantity / dd.datediff * consumable_manage.supply_cycle / consumable_manage.benchmark * 100,1) as consumed_rate
+			    ,consumable_manage.stock_code
+			    ,consumable_manage.consumpt_quota
+			    ,consumable_manage.image_uploaded_flg
+			    ,CASE 
+			    WHEN consumable_manage.safety_lever > consumable_manage.available_inventory + consumable_manage.on_passage
+			    THEN '2'
+			    WHEN consumable_manage.safety_lever > consumable_manage.available_inventory
+			    THEN '1'
+				ELSE '0'
+				END as leak
+				,CASE 
+				WHEN #{consumed_rate_alarmline} = 0
+				THEN '0'
+				WHEN #{consumed_rate_alarmline} > supply_sum.supply_count_quantity / round(dd.datediff * consumable_manage.supply_cycle / consumable_manage.benchmark *100,1)
+				THEN '1'
+				ELSE '0'
+				END as consumed_rate_alarm
+			from 
+				consumable_manage
+			join
+				partial
+					on consumable_manage.partial_id = partial.partial_id
+			left join
+				(select partial_id, sum(quantity) as supply_count_quantity from partial_supply
+					where identification = 3	
+					and supply_date >= #{search_count_period_start}
+					and supply_date <= #{search_count_period_end}
+					group by partial_id	
+					) supply_sum
+					on consumable_manage.partial_id = supply_sum.partial_id	
+			left join
+				(select partial_id, sum(supply_quantity) as used_count_quantity
+					from consumable_application_detail
+					join consumable_application
+						on consumable_application_detail.consumable_application_key = consumable_application.consumable_application_key
+					where supply_time >= #{search_count_period_start}
+					and date(supply_time) <= #{search_count_period_end}
+					group by partial_id	
+					) cost_sum
+					on consumable_manage.partial_id = cost_sum.partial_id
+			left join
+				(SELECT partial_id, sum(quantity) as substituted_count_quantity FROM rvsdb.consumable_substitute
+					where occasion_flg = 1
+					and substitute_time >= #{search_count_period_start}
+					and date(substitute_time) <= #{search_count_period_end}
+					group by partial_id
+				) substitute_sum
+					on consumable_manage.partial_id = substitute_sum.partial_id
+			join (select f_getworkdays(#{search_count_period_start}, #{search_count_period_end}) as datediff
+			from dual
+			) dd
+			where consumable_manage.delete_flg = 0 ]]>
+		    <if test="code!=null">
+		    	<![CDATA[ and partial.code like CONCAT('%',#{code},'%')]]>
+		    </if>
+		    <if test="type!=null">
+				<![CDATA[ and consumable_manage.type = #{type}]]>
+		    </if>
+		    <if test="stock_code!=null">
+				<![CDATA[ and consumable_manage.stock_code like CONCAT(#{stock_code},'%')]]>
+		    </if>
+		    <if test="leak==1">
+				<![CDATA[ and (consumable_manage.safety_lever > consumable_manage.available_inventory + consumable_manage.on_passage)]]>
+		    </if>
+		    order by consumed_rate_alarm desc, leak desc, consumable_manage.type, partial.code
+ 	</select>
+ 	
+	<select id="getcost_rate_alram_belowline" resultType="String">
+		<![CDATA[
+			SELECT value FROM user_define_codes where code='COST_RATE_ALARM_BELOWLINE';
+		]]>
+	</select>
+  
+	<!-- 查询输入零件 -->
+   <select id="getAllPartial" resultType="ConsumableListEntity"  >
+		<![CDATA[ 
+			SELECT
+				PARTIAL_ID,CODE 
+			FROM 
+				PARTIAL	  
+			WHERE
+				code like CONCAT(#{code},'%')
+				ORDER BY CODE
+		]]>
+		
+	</select>
+	
+		<!-- 查询盘点数据 -->
+   <select id="getAdjustSearch" resultType="ConsumableListEntity"  >
+		<![CDATA[ 
+			SELECT
+				p.PARTIAL_ID,
+				p.CODE,
+				cm.available_inventory,
+				cm.on_passage
+			FROM 
+				PARTIAL as p
+			JOIN
+			consumable_manage as cm
+			ON cm.partial_id = p.partial_id
+			WHERE
+				code like CONCAT(#{code},'%')
+		]]>
+		
+	</select>
+	
+	<!-- 新建页面插入数据 -->
+	<insert id="insertConsumable" parameterType="ConsumableListEntity">
+		<![CDATA[ 
+		INSERT INTO 
+				`consumable_manage` 
+				(`partial_id`, 
+				 `type`,
+				  benchmark,
+				  safety_lever,
+				  available_inventory,
+				  on_passage,
+				  unseal_items,
+				  popular_item,
+				  image_uploaded_flg,
+				  supply_cycle,
+				  supply_day,
+				  stock_code,
+				  consumpt_quota,
+				  delete_flg ) 					
+        VALUES 
+	        	(#{partial_id},
+	        	 #{type},
+	        	 #{benchmark},
+	        	 #{safety_lever},
+	        	 0,
+	        	 0,
+	        	 0,
+	        	 #{popular_item},
+	        	 0,
+	        	 #{supply_cycle},
+	        	 #{supply_day},
+	        	 #{stock_code},
+	        	 #{consumpt_quota},
+	        	 0); 
+		]]>
+	</insert>
+	
+	<!-- 修改库存设置_查询 -->
+	<select id="getConsumableDetail" resultType="ConsumableListEntity" parameterType="int">
+		<![CDATA[ 
+			SELECT
+				p.code
+				,cm.partial_id
+				,cm.type
+				,cm.benchmark
+				,cm.available_inventory
+				,cm.safety_lever
+				,cm.supply_cycle
+				,cm.supply_day
+				,cm.popular_item
+				,cm.stock_code
+				,cm.consumpt_quota
+				,cm.delete_flg
+			FROM consumable_manage cm
+			JOIN partial p on p.partial_id=cm.partial_id
+			WHERE cm.partial_id = #{partial_id};
+		]]>
+	</select>
+	
+	<!-- 修改库存设置_更新 -->
+	<update id="updateConsumableManage" parameterType="ConsumableListEntity">
+		<![CDATA[ 
+			UPDATE consumable_manage 
+			SET 
+				type = #{type},
+				benchmark = #{benchmark},
+				safety_lever = #{safety_lever},
+				supply_cycle = #{supply_cycle},
+				supply_day = #{supply_day},
+				popular_item = #{popular_item},
+				stock_code = #{stock_code},
+				consumpt_quota = #{consumpt_quota},
+				delete_flg = 0
+			WHERE partial_id = #{partial_id}
+		]]>
+	</update>
+	
+		<!-- 消耗品修正数据_更新 -->
+	<update id="doAdjust" parameterType="ConsumableListEntity">
+		<![CDATA[ 
+			UPDATE consumable_manage 
+			SET 
+			available_inventory = available_inventory + #{available_inventory_temp},
+			on_passage = on_passage + #{on_passage_temp}	
+			WHERE partial_id = #{partial_id}
+		]]>
+	</update>
+		
+	<!-- 移出消耗品库存 -->
+	<update id="deleteConsumable" parameterType="ConsumableListEntity">
+		<![CDATA[ 
+			UPDATE consumable_manage 		
+			SET 		
+				delete_flg = 1 
+			WHERE 		
+				partial_id = #{partial_id}	
+		]]>
+	</update>
+	
+	<!-- 取得消耗品计量单位信息 -->
+	<select id="getMeasuringUnit" resultType="ConsumableListEntity">
+		<![CDATA[ 
+			SELECT
+				p.partial_id
+				,p.code
+				,cmu.unit_name
+				,cmu.content
+			FROM partial p
+			LEFT JOIN consumable_measurement_unit cmu on p.partial_id=cmu.partial_id
+			WHERE p.partial_id = #{partial_id};
+		]]>
+	</select>
+	
+	<!-- 取得消耗品计量单位信息 -->
+	<select id="getMeasuringUnitCnt" resultType="Integer">
+		<![CDATA[ 
+			SELECT
+				count(*)
+			FROM consumable_measurement_unit
+			WHERE partial_id = #{partial_id};
+		]]>
+	</select>
+	
+	<!-- 消耗品计量单位信息更新  -->
+	<update id="updateMeasurementUnit" parameterType="ConsumableListEntity">
+		<![CDATA[ 
+			UPDATE consumable_measurement_unit 
+			SET unit_name = #{unit_name}
+				,content = #{content}
+			WHERE partial_id = #{partial_id}
+		]]>
+	</update>
+	
+	<!-- 消耗品计量单位信息插入  -->
+	<update id="insertMeasurementUnit" parameterType="ConsumableListEntity">
+		<![CDATA[ 
+			INSERT INTO consumable_measurement_unit (
+					partial_id, 
+					unit_name,
+					content
+			) VALUES (
+				#{partial_id}, 
+				#{unit_name}, 
+				#{content}
+			);
+		]]>
+	</update>
+	
+		<!-- 消耗品修正数据_记录 -->
+	<insert id="doAdjustInsert" parameterType="ConsumableListEntity">
+		<![CDATA[ 
+		INSERT INTO 
+				`consumable_adjust` 
+				(`partial_id`, 
+				 `adjust_time`,
+				 `adjust_inventory`,
+				 `operator_id`,
+				 `reason`
+				 ) 					
+        VALUES 
+	        	(#{partial_id},
+	        	 current_timestamp,
+	        	#{available_inventory_temp},
+	        	#{operator_id},
+	        	#{adjust_reason}
+	        	); 
+		]]>
+	</insert>
+ 
+	<!-- 常用消耗品一览 -->
+ 	<select id="getPopularItems" resultType="ConsumableListEntity">
+		<![CDATA[ 
+		SELECT 
+			p.partial_id ,code ,name as description, type
+		from consumable_manage cm
+		join partial p
+			on cm.partial_id= p.partial_id
+		where cm.popular_item = 1
+			and cm.delete_flg = 0
+		order by type, code;
+		]]>
+	</select>
+
+ 	<select id="getStatistic" resultType="ConsumableListEntity">
+		<![CDATA[ 
+		SELECT 
+			code ,name as description, type, 
+			benchmark,
+			safety_lever,
+			available_inventory, stock_code
+		from consumable_manage cm
+		join partial p
+			on cm.partial_id= p.partial_id
+		where cm.delete_flg = 0
+		order by stock_code;
+		]]>
+	</select>
+
+	<update id="updateConsumptQuota" parameterType="ConsumableListEntity">
+	<![CDATA[
+		UPDATE 
+			consumable_manage
+		SET 
+			consumpt_quota = #{consumpt_quota} 
+		WHERE 
+			partial_id = #{partial_id}
+	]]> 
+	</update>
+ 
+ 	<select id="getAvailableInventories" resultType="ConsumableListEntity" parameterType="java.util.Set">
+	<![CDATA[ 
+		SELECT 
+			partial_id, available_inventory
+		from consumable_manage cm
+		where partial_id in 
+	]]> 
+	<foreach item="id" collection="set" open="(" separator="," close=")"> 
+		#{id}
+	</foreach> 
+	<![CDATA[ 
+		;
+	]]>
+	</select>
+ </mapper>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.MaterialProcessMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true">
+		</cache -->
+
+	<select id="loadMaterialProcess" resultType="MaterialProcessEntity" parameterType="java.lang.String">
+		<![CDATA[
+			SELECT
+				a.material_id,
+				(select scheduled_date from material_process where line_id=12 and  material_id = a.material_id) as dec_plan_date,
+				(select finish_date from material_process where line_id=12 and  material_id = a.material_id) as dec_finish_date,
+				(select scheduled_date from material_process where line_id=13 and  material_id = a.material_id) as ns_plan_date,
+				(select finish_date from material_process where line_id=13 and  material_id = a.material_id) as ns_finish_date,
+				(select scheduled_date from material_process where line_id=14 and  material_id = a.material_id) as com_plan_date,
+				(select finish_date from material_process where line_id=14 and  material_id = a.material_id) as com_finish_date
+			 from material_process a where a.material_id = #{id} limit 1
+		]]>
+	</select>
+
+	<select id="loadMaterialProcessOfLine" resultType="MaterialProcessEntity" parameterType="java.lang.String">
+		<![CDATA[
+			SELECT material_id, scheduled_date, scheduled_assign_date, finish_date, px
+				 from material_process mp where mp.material_id = #{material_id} and mp.line_id = #{line_id}
+		]]>
+	</select>
+
+	<update id="updateMaterialProcess" parameterType="MaterialProcessEntity">
+		<![CDATA[
+			UPDATE material_process SET
+		]]>
+		<if test="scheduled_date != null">
+			scheduled_date = #{scheduled_date},
+		</if>
+		<if test="scheduled_assign_date != null">
+			scheduled_assign_date = #{scheduled_assign_date},
+		</if>
+		<if test="finish_date != null">
+			finish_date = #{finish_date},
+		</if>
+		<if test="px != null">
+			px = #{px},
+		</if>
+		<![CDATA[
+			material_id = #{material_id}
+			WHERE
+			material_id = #{material_id} and line_id=#{line_id}
+		]]>
+	</update>
+
+	<update id="finishMaterialProcess" parameterType="MaterialProcessEntity">
+		<![CDATA[
+			UPDATE material_process SET finish_date = current_date where material_id = #{material_id} and line_id=#{line_id} AND finish_date IS NULL;
+		]]>
+	</update>
+
+	<insert id="insertMaterialProcess" parameterType="MaterialProcessEntity">
+		<![CDATA[
+			insert into material_process(material_id,scheduled_date,line_id,px) values (#{material_id},#{scheduled_date},#{line_id},#{px})
+		]]>
+	</insert>
+
+	<update id="undoLineComplete" parameterType="MaterialProcessEntity">
+		<![CDATA[
+			UPDATE material_process SET finish_date = null where material_id = #{material_id} and line_id=#{line_id};
+		]]>
+	</update>
+
+	<delete id="removeByBreak" parameterType="String">
+		<![CDATA[
+			DELETE from material_process WHERE material_id = #{material_id} AND finish_date IS NULL;
+		]]>
+	</delete>
+
+	<update id="updateReworkPositionId" parameterType="MaterialProcessEntity">
+		<![CDATA[
+			UPDATE material_process SET rework_trigger_position_id = #{rework_trigger_position_id}, line_expedited = 1
+			where material_id = #{material_id} and line_id=#{line_id};
+		]]>
+	</update>
+
+	<update id="updateSchedule" parameterType="MaterialProcessEntity">
+		<![CDATA[
+			UPDATE
+				MATERIAL_PROCESS
+			SET
+				SCHEDULED_ASSIGN_DATE = #{scheduled_assign_date}
+			WHERE
+				MATERIAL_ID = #{material_id} AND
+				LINE_ID = #{line_id}
+			;
+		]]>
+	</update>
+
+	<!-- 先设定AssignDate的建立法 -->
+	<insert id="insertMaterialProcessAssign" parameterType="MaterialProcessEntity">
+		<![CDATA[
+			insert into material_process(material_id,scheduled_assign_date,line_id) values (#{material_id},#{scheduled_assign_date},#{line_id})
+		]]>
+	</insert>
+
+	<!-- 切换平行线位 -->
+	<update id="updatePx" parameterType="String">
+		<![CDATA[
+			update material_process set px =
+			CASE
+			WHEN px = 0 THEN 1
+			WHEN px = 1 THEN 0
+			WHEN px = 2 THEN 2
+			WHEN px = 3 THEN 0
+			ELSE px
+			END
+			where material_id = #{material_id} and line_id = #{line_id}
+		]]>
+	</update>
+
+	<select id="loadMaterialProcessLines" resultType="MaterialProcessEntity" parameterType="java.lang.String">
+		<![CDATA[
+			SELECT material_id, line_id, scheduled_date, scheduled_assign_date, finish_date, px
+				 from material_process mp where mp.material_id = #{material_id}
+		]]>
+	</select>
+
+</mapper>

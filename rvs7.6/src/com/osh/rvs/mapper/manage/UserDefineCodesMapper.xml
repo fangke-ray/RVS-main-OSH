@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.UserDefineCodesMapper">
+
+<!-- 查询用户定义数值 -->
+<select id="searchUserDefineCodes" resultType="UserDefineCodesEntity">
+	<![CDATA[
+	  SELECT
+		CODE,
+		DESCRIPTION,
+		VALUE,
+		manual
+	  FROM
+	  	USER_DEFINE_CODES  
+	  ORDER BY DESCRIPTION;
+	 ]]>  
+</select>
+
+<!-- 查询用户定义表 value的值-->
+<select id="searchUserDefineCodesValueByCode" resultType="String" parameterType="String">
+	<![CDATA[
+	  SELECT
+		VALUE
+	  FROM
+	  	USER_DEFINE_CODES  
+	  where 
+	   code=#{code}
+	 ]]>  
+</select>
+
+<!-- 根据前台传递的code来更新设定值(value) -->
+ <update id="updateUserDefineCodes" parameterType="UserDefineCodesEntity">
+	  UPDATE 
+	  	user_define_codes
+	  SET
+		value =#{value}
+	  WHERE 
+	 	code=#{code}  
+</update>
+</mapper>

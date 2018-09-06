@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PartialMapper">
+
+    <!-- 双击获取修改信息 查询条件是ID -->
+    <select id="getPartialByID" resultType="PartialEntity" parameterType="String">
+		<![CDATA[ 
+	   SELECT 
+			p.order_flg,
+			(cm.PARTIAL_ID is not null) as consumable_flg,
+		    p.PARTIAL_ID,
+		    p.CODE,
+		    p.NAME,
+		    p.PRICE,
+		    p.UPDATED_BY,
+		    p.UPDATED_TIME,
+		    (SELECT price FROM material_partial_detail mpd
+			JOIN material_partial mp
+			ON
+			mp.material_id = mpd.material_id
+			and mp.occur_times = mpd.occur_times
+			where partial_id =#{partial_id}
+			and price > 0
+			order by mp.order_date desc
+			limit 1) as new_price
+		 FROM 
+		 	`v_partial` p 
+		 left join
+		 	consumable_manage cm
+		 on
+		 	p.PARTIAL_ID = cm.PARTIAL_ID and cm.delete_flg = 0
+		 WHERE p.PARTIAL_ID = #{partial_id}
+		]]>
+	</select>
+	
+	<select id="searchPartialModelNameProcessCodeActiveData" parameterType="PartialPositionEntity" resultType="PartialPositionEntity">
+		 SELECT 
+		    PA.PARTIAL_ID,
+		    M.NAME AS model_name,
+		    group_concat(PO.PROCESS_CODE) as process_code,
+		    PPB.HISTORY_LIMIT_DATE,
+		    M.MODEL_ID,
+		    PPB.POSITION_ID
+		FROM
+		    PARTIAL_POSITION_BELONG PPB
+	    JOIN
+		    MODEL M ON M.MODEL_ID = PPB.MODEL_ID
+		LEFT JOIN
+		    POSITION PO ON PO.POSITION_ID = PPB.POSITION_ID
+		LEFT JOIN
+		    PARTIAL PA ON PA.PARTIAL_ID = PPB.PARTIAL_ID
+		WHERE
+		    PA.PARTIAL_ID = #{partial_id}	 
+		GROUP BY M.NAME    
+	</select>
+	
+	<!-- 查询 功能(条件是code和name)-->
+    <select id="searchPartial" resultType="PartialEntity" parameterType="PartialEntity">
+		<![CDATA[ 
+		 SELECT
+			    P.PARTIAL_ID,
+				P.CODE,
+				P.NAME,
+				 p.price,
+				O.NAME AS UPDATED_BY,
+				P.UPDATED_TIME,
+				(exists (select 1 from partial_position_belong
+				 where partial_id = P.partial_id
+				and history_limit_date >= current_date)) as is_exists,
+				(cm.PARTIAL_ID is not null ) as consumable_flg
+		  FROM 
+		  		PARTIAL P
+		  LEFT JOIN
+				OPERATOR  O
+		  ON 
+		  		P.UPDATED_BY=O.OPERATOR_ID
+		  LEFT JOIN
+		  		consumable_manage cm
+		  ON
+		  		p.PARTIAL_ID = cm.PARTIAL_ID and cm.delete_flg = 0
+		]]>
+		<where>
+			p.delete_flg=0 
+		  <if test="partial_id!=null and partial_id!='' ">
+			<![CDATA[
+			and p.partial_id =#{partial_id}
+	      ]]>
+		</if>
+		<if test="name!=null and name!='' ">
+			<![CDATA[
+				AND p.name LIKE CONCAT('%',#{name},'%')
+			]]>
+		</if>
+		 <if test="code !=null and code!=''">
+		  <![CDATA[
+		      AND p.code LIKE CONCAT('%',#{code},'%')
+		      ]]>
+		  </if>		
+		 <if test="(name==null or name=='') and (code ==null or code=='')">
+			<![CDATA[
+				AND EXISTS (SELECT 1 FROM PARTIAL_POSITION_BELONG WHERE partial_id = P.partial_id)
+			]]>
+		</if>
+		<if test="consumable_flg!=null and consumable_flg==1">
+			<![CDATA[
+				AND cm.PARTIAL_ID is not null
+			]]>
+		</if>
+		<if test="consumable_flg!=null and consumable_flg==2">
+			<![CDATA[
+				AND cm.PARTIAL_ID is null
+			]]>
+		</if>
+		</where>
+		 ORDER BY updated_time DESC
+		 <!--if test="(name==null or name=='') and (code ==null or code=='')">
+			<![CDATA[
+				limit 2000
+			]]>
+		</if-->
+	</select>  
+	
+	<!-- 单独取出型号 -->
+	<select id="getModelOfPartialAvaliable" resultType="ModelEntity" parameterType="PartialEntity">
+		<![CDATA[ 
+		 SELECT 
+				m.model_id, M.NAME
+		 FROM 
+				PARTIAL_POSITION_BELONG PPB
+		 JOIN 
+				MODEL M
+		 ON 
+				M.MODEL_ID = PPB.MODEL_ID
+		 WHERE 
+				PPB.PARTIAL_ID=#{partial_id}
+		AND
+			PPB.history_limit_date >= current_date 
+		]]>
+	</select>
+	
+	 <!-- 根据code查询出partial_id -->
+    <select id="checkPartial" resultType="String" parameterType="PartialEntity">
+		<![CDATA[ 
+			SELECT partial_id
+			FROM `partial`
+			WHERE `code` = #{code}
+		]]>
+		<if test="partial_id!= null and partial_id!= '' ">
+			<![CDATA[ 
+				AND partial_id <> #{partial_id}
+			]]>
+		</if>
+	</select> 
+	
+    <select id="getPartialByCode" resultType="PartialEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT
+				p.order_flg,
+				p.consumable_flg,
+			    p.PARTIAL_ID,
+			    p.CODE,
+			    p.NAME,
+			    p.PRICE,
+			    p.UPDATED_BY,
+			    p.UPDATED_TIME
+			FROM `partial` p
+			WHERE `code` = #{code}
+		]]>
+	</select>
+	
+	<!-- 新建页面插入数据 -->
+	<insert id="insertPartial" parameterType="PartialEntity">
+		<![CDATA[ 
+		INSERT INTO 
+				`partial` 
+				(`code`, 
+				 `name`,
+				  price,
+				  order_flg,
+				  consumable_flg,
+				 updated_by,
+				 UPDATED_TIME) 					
+        VALUES 
+	        	(#{code},
+	        	 #{name},
+	        	 #{price},
+	        	 #{order_flg},
+	        	 #{consumable_flg},
+	        	 #{updated_by},
+	        	 current_timestamp); 
+		]]>
+	</insert>
+	<insert id="insertPartialPrice" parameterType="PartialEntity">
+	   <![CDATA[
+	    INSERT INTO partial_price (partial_id,value_currency,price)
+        VALUES(#{partial_id},#{value_currency},#{price})
+	   ]]>
+	</insert>
+	
+	<!-- 删除页面条数据 -->
+	<update id="deletePartial" parameterType="PartialEntity">
+	   <![CDATA[
+	     UPDATE partial SET 
+			updated_by =#{updated_by},
+			updated_time = current_timestamp,
+			delete_flg=1
+		 WHERE 
+		    partial_id=#{partial_id}
+	   ]]>
+	</update>
+	
+	<!-- 双击页面修改 -->
+	<update id="updatePartial" parameterType="PartialEntity">
+	   <![CDATA[
+	    UPDATE partial SET  
+			`code`=#{code},
+			`name`=#{name},
+			`price`=#{price},
+			updated_by =#{updated_by},
+			order_flg=#{order_flg},
+			updated_time = current_timestamp
+		WHERE 
+		    partial_id=#{partial_id}
+	   ]]>
+	</update>	
+	
+	<!--新建code和name  partial表-->
+	<update id="insertPartialCodeName" parameterType="PartialEntity">
+	   <![CDATA[
+	   	 INSERT INTO `partial` (`code`, `name`,updated_by,UPDATED_TIME) VALUES (#{code},#{name},#{updated_by},current_timestamp)
+        ]]>
+	</update>
+	
+	<!-- 零件BOM信息一览 -->
+	<select id="searchPartialBom" parameterType="PartialEntity" resultType="PartialEntity">
+		<![CDATA[
+			
+		]]>
+	</select>
+	
+	<!-- 查询所有的零件 -->
+	   <select id="getAllPartial" resultType="map" >
+		<![CDATA[ 
+		  SELECT
+		  	 PARTIAL_ID as value ,CODE as label
+		  FROM 
+		    PARTIAL	  
+		]]>
+		 <if test="code !=null and code!=''">
+		  <![CDATA[
+		      AND PARTIAL.CODE LIKE CONCAT(#{code},'%')
+		   ]]>
+		  </if>
+		  ORDER BY CODE
+	</select>
+	<!-- 选择多个型号selectbutton然后到后台更新history_limit_date -->
+	<update id="updatePartialPosition" parameterType="map">
+	   <![CDATA[
+	    UPDATE 
+	    	PARTIAL_POSITION_BELONG
+	    SET 
+	    	HISTORY_LIMIT_DATE=#{history_limit_date},
+	    	NEW_PARTIAL_ID=#{new_partial_id}
+	    WHERE 
+	    
+	    	MODEL_ID in
+		]]>
+     <foreach item="model_id" collection="model_id" index="index" open="(" separator="," close=")">
+            #{model_id} 
+    </foreach> 
+	    	 AND ( PARTIAL_ID=#{partial_id} OR NEW_PARTIAL_ID=#{partial_id}) AND POSITION_ID=#{position_id}
+ </update>
+	
+<update id="insertPartialWasteModifyHistory" parameterType="PartialPositionEntity">
+	   <![CDATA[
+	    INSERT INTO 
+	    	PARTIAL_WASTE_MODIFY_HISTORY
+	    	(MODEL_ID,
+	    	OLD_PARTIAL_ID,
+	    	NEW_PARTIAL_ID,
+	    	UPDATED_BY,
+	    	UPDATED_TIME,
+	    	ACTIVE_DATE)
+	   VALUES(
+		]]>
+            #{model_id},#{partial_id},#{new_partial_id},#{updated_by},current_timestamp,#{history_limit_date})
+ </update>
+ 
+ <insert id="insertPartialPosition" parameterType="PartialPositionEntity">
+  <![CDATA[
+   INSERT INTO PARTIAL_POSITION_BELONG (
+        MODEL_ID,                                                                
+		PARTIAL_ID,                                                                                                   
+		POSITION_ID,                                                                                                  
+		NEW_PARTIAL_ID, 		                                                                                            
+		PARENT_PARTIAL_ID,
+		HISTORY_LIMIT_DATE                                                                                             
+		)VALUES(
+	]]>
+    #{model_id},#{partial_id},#{position_id},#{new_partial_id},#{parent_partial_id},'9999/12/31')    
+ </insert>
+ 
+ <select id="searchAllPartial" resultType="PartialEntity">
+ <![CDATA[
+ 	SELECT partial_id,code,price FROM partial WHERE delete_flg = 0
+ ]]>
+ </select>
+ 
+ <update id="updatePrice" parameterType="PartialEntity">
+ <![CDATA[
+ 	UPDATE partial SET price = #{price} WHERE partial_id = #{partial_id}
+ ]]>
+ </update>
+</mapper>

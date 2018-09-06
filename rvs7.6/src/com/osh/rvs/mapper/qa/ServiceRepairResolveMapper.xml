@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qa.ServiceRepairResolveMapper">
+	<!--获取保期内返品+QIS分析表详细数据 -->
+	<select id="searchServiceRepairResolve" resultType="ServiceRepairResolveEntity"
+		parameterType="ServiceRepairResolveEntity">
+		<![CDATA[
+			SELECT 
+			    ma.reception_time,
+			    srm.qa_referee_time,
+			    srm.countermeasures,
+			    COALESCE(srm.sorc_no,ma.omr_notifi_no,ma.sorc_no) AS sorc_no,
+				srm.service_repair_flg,
+			    sra.rc_mailsend_date,
+			    sra.model_name,
+			    sra.serial_no,
+			    srr.solution_raiser,
+			    srr.solution_confirmer,
+			    srr.solution_date,
+			    srr.solution_content,
+			    srr.resolve_handler,
+			    srr.technical_analysts,
+			    srr.resolve_date,
+			    srr.resolve_content,
+			    srr.resolve_confirmer,
+			    sra.analysis_no,
+			    sra.liability_flg,
+			    sra.analysis_correspond_suggestion,
+			    case
+			        when sra.resolve_confirmer = null then '是'
+			        else '否'
+			    END minister_confirmer,
+				sra.customer_id,           
+				sra.customer_name,		      
+				sra.analysis_result, 
+				sra.fix_demand, 
+				sra.trouble_discribe, 
+				sra.trouble_cause,
+				sra.manufactory_flg,       
+				sra.append_component,      
+				sra.quantity,              
+				sra.loss_amount,           
+				sra.last_sorc_no,          
+				sra.last_shipping_date,    
+				sra.last_rank, 
+				sra.last_ocm_rank,            
+				sra.last_trouble_feature,  
+				sra.wash_feature,          
+				sra.disinfect_feature,     
+				sra.steriliza_feature,     
+				sra.usage_frequency 
+			FROM
+			     service_repair_analysis sra
+			        left join
+			    service_repair_resolve  srr ON srr.model_name = sra.model_name
+			        and srr.serial_no = sra.serial_no
+			        and srr.rc_mailsend_date = sra.rc_mailsend_date
+			        join
+			    service_repair_manage srm ON srm.model_name = sra.model_name
+			        and srm.serial_no = sra.serial_no
+			        and srm.rc_mailsend_date = sra.rc_mailsend_date
+			        left join
+			    material  ma ON ma.material_id = srm.material_id
+		]]>
+		<where>
+			<if test="model_name!=null and model_name!=''">
+			<![CDATA[
+				 sra.model_name  LIKE CONCAT('%',#{model_name},'%')
+			]]>
+			</if>
+			<if test="serial_no!=null and serial_no!=''">
+			<![CDATA[
+				AND sra.serial_no = #{serial_no}
+			]]>
+			</if>
+			<if test="sorc_no!=null and sorc_no!=''">
+			<![CDATA[
+				AND (ma.sorc_no LIKE CONCAT('%',#{sorc_no},'%') or ma.omr_notifi_no LIKE CONCAT('%',#{sorc_no},'%'))
+			]]>
+			</if>
+			<if test="liability_flg!=null and liability_flg!=''">
+			<![CDATA[
+				AND sra.liability_flg = #{liability_flg}
+			]]>
+			</if>
+			<if test="qa_referee_time_start!=null and qa_referee_time_start!='' ">
+			<![CDATA[
+				AND DATE(srm.qa_referee_time)>=#{qa_referee_time_start}
+			]]>
+			</if>
+			<if test="qa_referee_time_end!=null and qa_referee_time_end!='' ">
+				<![CDATA[
+					AND DATE(srm.qa_referee_time)<=DATE(#{qa_referee_time_end})
+				]]>
+			</if>
+			<if test="qa_reception_time_start!=null and qa_reception_time_start!='' ">
+			<![CDATA[
+				AND DATE(srm.qa_reception_time)>=#{qa_reception_time_start}
+			]]>
+			</if>
+			<if test="qa_reception_time_end!=null and qa_reception_time_end!='' ">
+				<![CDATA[
+					AND DATE(srm.qa_reception_time)<=DATE(#{qa_reception_time_end})
+				]]>
+			</if>
+
+			<if test="qa_referee_time!=null and qa_referee_time!='' ">
+				<![CDATA[
+					AND srm.qa_referee_time=#{qa_referee_time}
+				]]>
+			</if>
+			<if test="qa_reception_time!=null and qa_reception_time!='' ">
+			<![CDATA[
+				   AND srm.qa_reception_time=#{qa_reception_time}
+			]]>
+			</if>
+		</where>
+		order by liability_flg
+	</select>
+
+	<!-- 更新保内返品对策对应内容 -->
+	<insert id="updateSServiceRepairResolve" parameterType="ServiceRepairResolveEntity">
+		<![CDATA[
+			REPLACE INTO
+				service_repair_resolve
+			 (model_name,
+			 serial_no,
+			 rc_mailsend_date,
+			 solution_raiser,
+			 solution_confirmer,
+			 solution_date,
+			 solution_content,
+			 resolve_handler,
+			 resolve_confirmer,
+			 technical_analysts,
+			 resolve_date,
+			 resolve_content)
+		   VALUES
+	       (#{model_name},
+			#{serial_no},
+			#{rc_mailsend_date},
+			#{solution_raiser},
+			#{solution_confirmer},
+			#{solution_date},
+			#{solution_content},
+			#{resolve_handler},
+			#{resolve_confirmer},
+			#{technical_analysts},
+			#{resolve_date},
+			#{resolve_content})
+		]]>
+	</insert>
+
+	<!-- 查询担当人 -->
+	<select id="searchJobNo" resultType="String" parameterType="ServiceRepairResolveEntity">
+		<![CDATA[
+			SELECT 
+			    o.job_no
+			FROM
+			    service_repair_analysis sra
+			        left join
+			    SOLO_PRODUCTION_FEATURE spr ON spr.model_name = sra.model_name
+			        and spr.serial_no = sra.serial_no
+			        and spr.judge_date = sra.rc_mailsend_date
+			        left JOIN
+			    OPERATOR o ON spr.operator_id = o.operator_id
+			]]>
+			<where>
+				spr.operate_result =2
+			<if test="model_name!=null and model_name!=''">
+			<![CDATA[
+				and  sra.model_name = #{model_name}
+			]]>
+			</if>
+			<if test="serial_no!=null and serial_no!=''">
+			<![CDATA[
+				AND sra.serial_no = #{serial_no}
+			]]>
+			</if>
+			<if test="rc_mailsend_date!=null and rc_mailsend_date!=''">
+			<![CDATA[
+			   and sra.rc_mailsend_date=#{rc_mailsend_date}
+			   ]]>
+			</if>
+		</where>
+	</select>
+</mapper>

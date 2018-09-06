@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.data.PostMessageMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="createPostMessage" parameterType="PostMessageEntity">
+		<![CDATA[ 
+		INSERT INTO POST_MESSAGE (
+				LEVEL,
+				OCCUR_TIME,
+				REASON,
+				SENDER_ID,
+				ROOT_POST_MESSAGE_ID,
+				`CONTENT`
+		) VALUES (
+				#{level},
+				current_timestamp,
+				#{reason},
+				#{sender_id},
+				#{root_post_message_id},
+				#{content}
+		);
+		]]>
+	</insert>
+
+	<insert id="createPostMessageSendation" parameterType="PostMessageEntity">
+		<![CDATA[ 
+		INSERT INTO POST_MESSAGE_SENDATION (
+				post_message_id,
+				receiver_id
+		) VALUES (
+				#{post_message_id},
+				#{receiver_id}
+		);
+		]]>
+	</insert>
+
+	<update id="updatePostMessageSendation" parameterType="PostMessageEntity">
+		<![CDATA[ 
+		UPDATE POST_MESSAGE_SENDATION
+		SET 
+		]]>
+		<if test="answered_flg!= null and answered_flg!= '' ">
+		`answered_flg` = #{answered_flg},
+		</if>
+		<![CDATA[ 
+		`RED_FLG` = #{red_flg}
+		WHERE post_message_id = #{post_message_id}
+			AND receiver_id = #{receiver_id}
+		;
+		]]>
+	</update>
+
+	<select id="getPostMessageByKey" resultType="PostMessageEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT `am`.post_message_id, 
+				`am`.`LEVEL`, 
+				`am`.OCCUR_TIME, 
+				`am`.REASON, 
+				`am`.SENDER_ID, 
+				`o`.`name` as SENDER_NAME, 
+				`am`.root_post_message_id, 
+				`am`.`content`
+			FROM POST_MESSAGE am
+			LEFT JOIN `operator` o
+			  ON `am`.sender_id = `o`.operator_id
+			WHERE `am`.post_message_id = #{post_message_id}
+			;
+		]]>
+	</select>
+
+	<select id="countPostMessageOfSendation" resultType="int" parameterType="String">
+		<![CDATA[ 
+		SELECT count(pms.post_message_id)
+		FROM POST_MESSAGE_sendation pms
+		JOIN POST_MESSAGE pm
+		  	 ON pms.post_message_id = pm.post_message_id
+		WHERE pms.receiver_id = #{operator_id} 
+		AND pms.red_flg = 0
+		AND pm.`OCCUR_TIME` > current_date
+		;
+  		]]>
+	</select>
+
+	<select id="getPostMessageBySendation" resultType="PostMessageEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT pm.post_message_id, `pm`.OCCUR_TIME, pm.reason,
+			`pm`.sender_id, o.`name` as sender_name, pm.`content`
+		FROM POST_MESSAGE_sendation pms
+		JOIN POST_MESSAGE pm
+			ON pms.post_message_id = pm.post_message_id
+		LEFT JOIN operator o
+			ON `pm`.sender_id = o.operator_id
+		WHERE pms.receiver_id = #{operator_id} 
+		AND pms.red_flg = 0
+		AND pm.`OCCUR_TIME` > current_date
+		ORDER BY pm.`OCCUR_TIME` DESC
+		limit 8
+		]]>
+		;
+	</select>
+
+	<update id="updateLevel" parameterType="PostMessageEntity">
+		<![CDATA[ 
+		UPDATE POST_MESSAGE
+		SET `LEVEL` = #{level}
+		WHERE post_message_id = #{post_message_id}
+		;
+		]]>
+	</update>
+
+	<select id="searchPostMessages" resultType="PostMessageEntity">
+		<![CDATA[ 
+			SELECT am.post_message_id, am.level, am.reason, am.occur_time,
+			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  mdl.name as model_name, o.name as operator_name,
+			  s.name as section_name, l.name as line_name, p.process_code,
+			  snd.resolve_time, snd.resolver_name
+			FROM POST_MESSAGE am
+			LEFT JOIN material m ON am.material_id = m.material_id
+			LEFT JOIN model mdl ON m.model_id = mdl.model_id
+			LEFT JOIN operator o ON am.operator_id = o.operator_id
+			LEFT JOIN section s ON am.section_id = s.section_id
+			LEFT JOIN line l ON am.line_id = l.line_id
+			LEFT JOIN `position` p ON am.position_id = p.position_id
+			LEFT JOIN 
+				(select post_message_id, min(resolve_time) as resolve_time, group_concat(o.name order by resolve_time separator ' ') as resolver_name
+				from POST_MESSAGE_sendation ams
+				join operator o ON ams.receiver_id = o.operator_id
+				where red_flg = 1
+				group by post_message_id) snd
+				ON snd.post_message_id = am.post_message_id
+		]]>
+		<where>
+			1 = 1
+			<if test="level!= null and level!= '' ">
+				AND am.LEVEL = #{level}
+			</if>
+			<if test="occur_time_from!= null ">
+			<![CDATA[ 
+				AND am.OCCUR_TIME >= #{occur_time_from}
+			]]>
+			</if>
+			<if test="occur_time_to!= null ">
+			<![CDATA[ 
+				AND date_format(am.OCCUR_TIME, '%Y-%m-%d') <= date_format(#{occur_time_to}, '%Y-%m-%d')
+			]]>
+			</if>
+			<if test="reason!= null and reason!= '' ">
+				AND am.REASON = #{reason}
+			</if>
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				AND (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="model_id!= null and model_id!= '' ">
+				AND m.MODEL_ID = #{model_id}
+			</if>
+			<if test="serial_no!= null and serial_no!= '' ">
+				AND m.SERIAL_NO = #{serial_no}
+			</if>
+			<if test="section_id!= null and section_id!= '' ">
+				AND s.SECTION_ID = #{section_id}
+			</if>
+			<if test="line_id!= null and line_id!= '' ">
+				AND l.LINE_ID = #{line_id}
+			</if>
+			<if test="receiver_id!=null and receiver_id!='' ">
+				AND EXISTS (SELECT 1 FROM POST_MESSAGE_sendation where post_message_id = am.post_message_id and receiver_id = #{receiver_id})
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY occur_time DESC;
+		]]>
+	</select>
+
+	<select id="getPostMessageGroup" resultType="PostMessageEntity">
+SELECT occur_time,reason,op.name as operator_name,content FROM post_message pm
+join operator op on op.operator_id = pm.sender_id 
+where post_message_id = #{post_message_id} or root_post_message_id = #{post_message_id}
+order by occur_time;
+	</select>
+
+	<update id="closePostMessage">
+		<![CDATA[ 
+		UPDATE post_message_sendation set red_flg = 1
+		where post_message_id in
+		(
+		select post_message_id from post_message where root_post_message_id = #{entity.root_post_message_id}
+		and reason in 
+		]]>
+			<foreach item="reason" collection="reasons" open="(" separator="," close=")">
+				#{reason}
+ 			</foreach> 
+		<![CDATA[ 
+		)
+		]]>
+	</update>
+
+</mapper>

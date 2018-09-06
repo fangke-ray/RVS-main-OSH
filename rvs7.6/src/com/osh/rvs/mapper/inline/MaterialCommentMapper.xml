@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.MaterialCommentMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getMaterialComments" parameterType="String" resultType="String">
+	<![CDATA[ 
+		select coalesce(group_concat(`comment` order by create_datetime separator '\n')) as comment
+		from `material_comment`
+		where material_id = #{material_id}
+	]]>
+	<if test="operator_id != null and operator_id != ''">
+	<![CDATA[ 
+		and operator_id != #{operator_id}
+	]]>
+	</if>
+	</select>
+
+	<select id="getMyMaterialComment" parameterType="String" resultType="String">
+	<![CDATA[ 
+		select `comment` 
+		from `material_comment`
+		where material_id = #{material_id}
+		and operator_id = #{operator_id}
+	]]>
+	</select>
+
+	<insert id="inputMaterialComment" parameterType="map">
+	<![CDATA[ 
+		REPLACE INTO `material_comment` 
+			(`material_id`, `operator_id`, `comment`, `create_datetime`) 
+		VALUES (#{material_id}, #{operator_id}, #{comment}, #{create_datetime});
+	]]>
+	</insert>
+	
+	<delete id="deleteMaterialComment" parameterType="String">
+		<![CDATA[
+			delete from material_comment where material_id = #{material_id} and operator_id = #{operator_id}
+		]]>
+	</delete>
+
+</mapper>

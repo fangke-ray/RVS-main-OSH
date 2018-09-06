@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialStorageMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getPartialStorageByDate" parameterType="date" resultType="PartialStorageEntity">
+		<![CDATA[ 
+			SELECT
+				ps.`partial_id`,
+				ps.`storage_date`,
+				ps.`identification`,
+				ps.`quantity`,
+				p.`code`,
+				p.`name` as partial_name
+			FROM `partial_storage` ps
+				join partial p
+				on ps.`partial_id` = p.`partial_id`
+			WHERE ps.`storage_date` = #{storage_date};
+		]]>
+	</select>
+
+	<insert id="insert" parameterType="PartialStorageEntity">
+		<![CDATA[ 
+			INSERT INTO `partial_storage`
+			(`partial_id`,
+			`storage_date`,
+			`identification`,
+			`quantity`)
+			VALUES
+			(
+			#{partial_id},
+			#{storage_date},
+			#{identification},
+			#{quantity}
+			);
+		]]>
+	</insert>
+
+	<delete id="deleteByDateAndIdentification" parameterType="PartialStorageEntity">
+		<![CDATA[ 
+			DELETE
+			FROM `partial_storage`
+			WHERE `storage_date` = #{storage_date}
+				AND identification = #{identification}			
+		]]>
+	</delete>
+	<delete id="delete" parameterType="PartialStorageEntity">
+		<![CDATA[ 
+			DELETE
+			FROM `partial_storage`
+			WHERE `storage_date` = #{storage_date}
+				AND partial_id = #{partial_id}
+				AND identification = #{identification}
+			;
+		]]>
+	</delete>
+
+	<update id="updateQuantity">
+		<![CDATA[
+			UPDATE
+				partial_storage
+			SET
+				quantity=#{quantity}
+			WHERE
+				partial_id=#{partial_id}
+				AND storage_date=#{storage_date}
+				AND identification=#{identification}
+		]]>
+	</update>
+	
+	<select id="getPartialStorage" parameterType="PartialStorageEntity" resultType="PartialStorageEntity">
+		<![CDATA[
+			SELECT 
+				partial_id,
+				storage_date,
+				identification,
+				quantity
+			FROM partial_storage
+			WHERE partial_id = #{partial_id}
+				AND storage_date = #{storage_date}
+				AND identification = #{identification}
+		]]>
+	</select>
+</mapper>

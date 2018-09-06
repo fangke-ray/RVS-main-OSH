@@ -1,0 +1,331 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.DeviceRegularlyCheckResultMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="search" parameterType="DeviceRegularlyCheckResultEntity" resultType="DeviceRegularlyCheckResultEntity">
+		<![CDATA[
+				SELECT
+					ccc.manage_id,
+					ccc.manage_code,
+					ccc.name,
+					ccc.model_name,
+				    CASE
+				        WHEN ccc.broken > 0 THEN 2
+				        WHEN ccc.lost > 0 THEN 3
+				        WHEN ccc.stored > 0 THEN 4
+				        WHEN ccc.inuse > 0 THEN 1
+				        ELSE 0
+				    END AS checked_status
+				FROM
+					(SELECT 
+						bbb.manage_id,
+						bbb.manage_code,
+						bbb.model_name,
+						bbb.name,
+						SUM(bbb.checked_status = 1) inuse,
+						SUM(bbb.checked_status = 2) broken,
+						SUM(bbb.checked_status = 3) lost,
+						SUM(bbb.checked_status = 4) stored
+					 FROM
+						 (SELECT 
+							 cr.* ,
+							 aaa.manage_code,
+							 aaa.model_name,
+							 aaa.name
+						  FROM 
+							  device_check_result cr
+						  JOIN
+								(
+									SELECT
+										device_check_result.manage_id,
+										device_check_result.check_file_manage_id,
+										device_check_result.item_seq,
+										MAX(device_check_result.check_confirm_time) AS check_confirm_time,
+										dm.manage_code,
+										dm.model_name,
+										dt.name
+									FROM
+										device_check_result
+									LEFT JOIN
+										devices_manage dm
+									ON
+										dm.devices_manage_id=device_check_result.manage_id
+									JOIN
+										check_file_manage cfm
+									ON
+										cfm.check_file_manage_id=device_check_result.check_file_manage_id AND cfm.access_place=2 AND cfm.delete_flg!=1 AND cfm.cycle_type=#{cycle_type}
+									JOIN
+										devices_type dt
+									ON
+										dt.devices_type_id=cfm.devices_type_id
+									WHERE 
+										check_confirm_time>= #{date_start} AND  DATE(check_confirm_time) <  DATE_ADD(#{date_start},INTERVAL #{interval} MONTH) AND device_check_result.checked_status<>0
+										
+			]]>
+									<if test="manage_code!=null and manage_code!=''">
+										<![CDATA[
+											AND	dm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+										]]>
+									</if>
+									<if test="devices_type_id!=null and devices_type_id!=''">
+										<![CDATA[
+											AND dt.devices_type_id=#{devices_type_id}
+										]]>
+									</if>
+									<if test="model_name!=null and model_name!=''">
+										<![CDATA[
+											AND dm.model_name LIKE CONCAT('%',#{model_name},'%')
+										]]>
+									</if>
+									<if test="section_id!=null and section_id!='' ">
+										<![CDATA[
+											AND dm.section_id=#{section_id}
+										]]>
+									</if>
+									<if test="responsible_line_id!=null and responsible_line_id!=''">
+										<![CDATA[
+											AND dm.line_id=#{responsible_line_id}
+										]]>
+									</if>
+									<if test="responsible_position_id!=null and responsible_position_id!=''">
+										<![CDATA[
+											AND dm.position_id=#{responsible_position_id}
+										]]>
+									</if>
+									<if test="responsible_operator_id!=null and responsible_operator_id!=''">
+										<![CDATA[
+											AND dm.responsible_operator_id=#{responsible_operator_id}
+										]]>
+									</if>
+			<![CDATA[
+									GROUP BY
+										manage_id,check_file_manage_id,item_seq ,check_confirm_time
+								) aaa
+						   ON 
+								cr.manage_id  = aaa.manage_id
+								AND cr.check_file_manage_id  = aaa.check_file_manage_id
+								AND cr.item_seq  = aaa.item_seq
+								AND cr.check_confirm_time  = aaa.check_confirm_time
+						 ) bbb 
+						 GROUP BY 
+							 bbb.manage_id
+				) ccc  
+				
+			]]>
+	</select>
+	
+	
+	<select id="searchByWeek" parameterType="DeviceRegularlyCheckResultEntity" resultType="DeviceRegularlyCheckResultEntity">
+		<![CDATA[
+				SELECT
+					ccc.manage_id,
+					ccc.manage_code,
+					ccc.name,
+					ccc.model_name,
+				    CASE
+				        WHEN ccc.broken > 0 THEN 2
+				        WHEN ccc.lost > 0 THEN 3
+				        WHEN ccc.stored > 0 THEN 4
+				        WHEN ccc.inuse > 0 THEN 1
+				        ELSE 0
+				    END AS checked_status
+				FROM
+					(SELECT 
+						bbb.manage_id,
+						bbb.manage_code,
+						bbb.model_name,
+						bbb.name,
+						SUM(bbb.checked_status = 1) inuse,
+						SUM(bbb.checked_status = 2) broken,
+						SUM(bbb.checked_status = 3) lost,
+						SUM(bbb.checked_status = 4) stored
+					 FROM
+						 (SELECT 
+							 cr.* ,
+							 aaa.manage_code,
+							 aaa.model_name,
+							 aaa.name
+						  FROM 
+							  device_check_result cr
+						  JOIN
+								(
+									SELECT
+										device_check_result.manage_id,
+										device_check_result.check_file_manage_id,
+										device_check_result.item_seq,
+										MAX(device_check_result.check_confirm_time) AS check_confirm_time,
+										dm.manage_code,
+										dm.model_name,
+										dt.name
+									FROM
+										device_check_result
+									LEFT JOIN
+										devices_manage dm
+									ON
+										dm.devices_manage_id=device_check_result.manage_id
+									JOIN
+										check_file_manage cfm
+									ON
+										cfm.check_file_manage_id=device_check_result.check_file_manage_id AND cfm.access_place=2 AND cfm.delete_flg!=1 AND cfm.cycle_type=#{cycle_type}
+									JOIN
+										devices_type dt
+									ON
+										dt.devices_type_id=cfm.devices_type_id
+									WHERE 
+										check_confirm_time>= #{date_start} AND  DATE(check_confirm_time) <= #{date_end} AND device_check_result.checked_status<>0
+										
+			]]>
+									<if test="manage_code!=null and manage_code!=''">
+										<![CDATA[
+											AND	dm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+										]]>
+									</if>
+									<if test="devices_type_id!=null and devices_type_id!=''">
+										<![CDATA[
+											AND dt.devices_type_id=#{devices_type_id}
+										]]>
+									</if>
+									<if test="model_name!=null and model_name!=''">
+										<![CDATA[
+											AND dm.model_name LIKE CONCAT('%',#{model_name},'%')
+										]]>
+									</if>
+									<if test="section_id!=null and section_id!='' ">
+										<![CDATA[
+											AND dm.section_id=#{section_id}
+										]]>
+									</if>
+									<if test="responsible_line_id!=null and responsible_line_id!=''">
+										<![CDATA[
+											AND dm.line_id=#{responsible_line_id}
+										]]>
+									</if>
+									<if test="responsible_position_id!=null and responsible_position_id!=''">
+										<![CDATA[
+											AND dm.position_id=#{responsible_position_id}
+										]]>
+									</if>
+									<if test="responsible_operator_id!=null and responsible_operator_id!=''">
+										<![CDATA[
+											AND dm.responsible_operator_id=#{responsible_operator_id}
+										]]>
+									</if>
+			<![CDATA[
+									GROUP BY
+										manage_id,check_file_manage_id,item_seq ,check_confirm_time
+								) aaa
+						   ON 
+								cr.manage_id  = aaa.manage_id
+								AND cr.check_file_manage_id  = aaa.check_file_manage_id
+								AND cr.item_seq  = aaa.item_seq
+								AND cr.check_confirm_time  = aaa.check_confirm_time
+						 ) bbb 
+						 GROUP BY 
+							 bbb.manage_id
+				) ccc  
+				
+			]]>
+	</select>
+	
+	
+	<select id="searchDetail" parameterType="DeviceRegularlyCheckResultEntity" resultType="DeviceRegularlyCheckResultEntity">
+		<![CDATA[
+			SELECT 
+				ccc.manage_code,
+				ccc.name,
+				ccc.model_name,
+				ccc.responsible_operator_name,
+				ccc.section_name,
+				ccc.responsible_line_name,
+				ccc.responsible_position_name,
+				DATE(ccc.check_confirm_time) AS check_confirm_time,
+				CASE
+					WHEN ccc.broken > 0 THEN 2
+					WHEN ccc.lost > 0 THEN 3
+					WHEN ccc.stored > 0 THEN 4
+					WHEN ccc.inuse > 0 THEN 1
+					ELSE 0
+				END AS checked_status
+			FROM(
+			
+			SELECT 
+				bbb.manage_code,
+				bbb.name,
+				bbb.model_name,
+				bbb.responsible_operator_name,
+				bbb.section_name,
+				bbb.responsible_line_name,
+				bbb.responsible_position_name,
+				bbb.check_confirm_time,
+				SUM(bbb.checked_status = 1) inuse,
+				SUM(bbb.checked_status = 2) broken,
+				SUM(bbb.checked_status = 3) lost,
+				SUM(bbb.checked_status = 4) stored
+			FROM
+				(SELECT 
+					cr.check_confirm_time,
+					dm.manage_code,
+				    dm.model_name,
+					dt.name,
+					op.name AS responsible_operator_name,
+					sect.name AS section_name,
+					line.name AS responsible_line_name,
+					position.name AS responsible_position_name,
+					cr.checked_status
+				FROM
+					device_check_result  cr
+				JOIN(
+						SELECT 
+							manage_id,
+							check_file_manage_id,
+							operator_id,
+							MAX(check_confirm_time) AS check_confirm_time
+						FROM
+							device_check_result
+						WHERE 
+							check_confirm_time>=#{date_start} AND DATE(check_confirm_time)<#{date_end}  AND manage_id=#{manage_id}
+						GROUP BY 
+							manage_id,check_file_manage_id,operator_id,DATE(check_confirm_time)
+					) aaa
+				ON
+					aaa.manage_id =cr.manage_id AND aaa.check_file_manage_id=cr.check_file_manage_id AND aaa.operator_id=cr.operator_id AND aaa.check_confirm_time=cr.check_confirm_time AND cr.checked_status<>0
+				LEFT JOIN
+					check_file_manage cfm
+				ON
+					cfm.check_file_manage_id=cr.check_file_manage_id AND cfm.access_place=2 AND cfm.cycle_type=2 AND cfm.delete_flg!=1
+				LEFT JOIN
+					devices_manage dm
+				ON
+					dm.devices_manage_id=cr.manage_id
+				LEFT JOIN
+					devices_type dt
+				ON
+					dt.devices_type_id=dm.devices_type_id
+				LEFT JOIN
+					operator op
+				ON
+					op.operator_id=cr.operator_id
+				LEFT JOIN
+					section sect
+				ON
+					sect.section_id=dm.section_id
+				LEFT JOIN
+					line 
+				ON
+					line.line_id=dm.line_id
+				LEFT JOIN
+					position 
+				ON
+					position.position_id=dm.position_id
+				) bbb  GROUP BY 
+					bbb.check_confirm_time
+				ORDER BY
+					bbb.check_confirm_time DESC
+			) ccc 
+
+		]]>
+	</select>
+</mapper>

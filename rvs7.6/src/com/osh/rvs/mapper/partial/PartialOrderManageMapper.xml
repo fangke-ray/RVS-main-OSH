@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialOrderManageMapper">
+	
+<select id="searchMaterial" parameterType="PartialOrderManageEntity" resultType="PartialOrderManageEntity">
+	<![CDATA[ 
+		SELECT 
+		    a.material_id,
+		    b.bo_flg,
+		    b.order_date,
+		    b.arrival_date,
+		    b.arrival_plan_date,
+		    b.occur_times,
+		    coalesce(omr_notifi_no, sorc_no) as sorc_no,
+		    a.model_id,
+			mdl.name as model_name,
+		    a.level,
+		    a.serial_no,
+		    a.scheduled_expedited,
+		    a.scheduled_date
+		from
+		    material a
+		JOIN
+		    material_partial b
+		ON
+			a.material_id = b.material_id
+		JOIN
+			model mdl
+		ON 
+			a.model_id = mdl.model_id
+	]]>
+
+		<where>
+			<!-- AND a.outline_time is NULL -->
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="model_id!= null and model_id != ''">
+				and a.model_id = #{model_id}
+			</if>
+			<if test="section_id!= null and section_id != ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="serial_no!= null and serial_no != ''">
+				and a.serial_no = #{serial_no}
+			</if>
+			<if test="level!= null">
+				and a.level = #{level}
+			</if>
+			<if test="bo_flg!= null and bo_flg == 9">
+				and b.bo_flg in (0, 9)
+			</if>
+			<if test="bo_flg!= null and bo_flg == 1">
+				and b.bo_flg in (1, 2)
+			</if>
+			<if test="order_date_start!= null and order_date_start!= '' ">
+				<![CDATA[ 
+					and b.order_date >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!= null and order_date_end!= '' ">
+				<![CDATA[ 
+					and b.order_date <= #{order_date_end}
+				]]>
+			</if>
+			<if test="arrival_date_start!= null and arrival_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_date >= #{arrival_date_start}
+				]]>
+			</if>
+			<if test="arrival_date_end!= null and arrival_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_date <= #{arrival_date_end}
+				]]>
+			</if>
+			<if test="arrival_plan_date_start!= null and arrival_plan_date_start!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!= null and arrival_plan_date_end!= '' ">
+				<![CDATA[ 
+					and b.arrival_plan_date <= #{arrival_plan_date_end}
+				]]>
+			</if>
+			<choose>
+				<when test="occur_times==1">
+					<![CDATA[ 
+						and b.occur_times = 1
+					]]> 
+				</when>
+				<when test="occur_times==2">
+					<![CDATA[ 
+						and b.occur_times > 1
+					]]> 
+				</when>
+			</choose>
+			<choose>
+				<when test="range==1">
+					<![CDATA[ 
+						and (a.outline_time is null OR a.outline_time >= current_date)
+					]]> 
+				</when>
+				<when test="range==2">
+					<![CDATA[ 
+						and a.outline_time < current_date
+					]]> 
+				</when>
+			</choose>
+			<if test="outline_date_start!= null and outline_date_start!= '' ">
+				<![CDATA[ 
+					and a.outline_time >= #{outline_date_start}
+				]]>
+			</if>
+			<if test="outline_date_end!= null and outline_date_end!= '' ">
+				<![CDATA[ 
+					and date(a.outline_time) <= #{outline_date_end}
+				]]>
+			</if>
+			and EXISTS (SELECT 1 FROM material_partial_detail WHERE material_id = b.material_id and occur_times = b.occur_times)
+		</where>
+		order by b.order_date asc
+	</select>
+	
+	<!-- 查询零件订购信息 -->
+  <select id="searchPartialOrder" parameterType="PartialOrderManageEntity" resultType="PartialOrderManageEntity">
+     SELECT
+        MPD.MATERIAL_PARTIAL_DETAIL_KEY,
+        P.CODE ,
+        P.PARTIAL_ID,
+		P.NAME AS PARTIAL_NAME,
+		MPD.QUANTITY,
+		MPD.waiting_quantity,
+		MPD.PRICE,
+		MPD.waiting_receive_quantity,
+		PO.PROCESS_CODE,
+		MPD.OCCUR_TIMES,
+		MPD.belongs
+	  FROM 
+	     MATERIAL_PARTIAL_DETAIL  MPD
+	  JOIN
+	  	 PARTIAL P
+	  ON 
+		MPD.PARTIAL_ID = P.PARTIAL_ID 
+	  LEFT JOIN 
+		POSITION PO
+	  ON   
+	  	MPD.POSITION_ID= PO.POSITION_ID
+	<where> 
+ 	<if test="material_id!=null and material_id!=''">
+		 AND MPD.MATERIAL_ID=#{material_id}
+	</if>
+	<if test="occur_times!=null and occur_times!=''">
+		 AND MPD.OCCUR_TIMES=#{occur_times}
+	</if>
+  	<if test="partial_id!=null and partial_id!=''">
+		 AND MPD.PARTIAL_ID=#{partial_id}
+	</if>
+	</where> 
+	;
+  </select>
+  
+  <select id="searchMaterialPartialDetailByKey"  resultType="PartialOrderManageEntity" parameterType="String">
+      <![CDATA[
+	  SELECT 	
+	  		MPD.MATERIAL_PARTIAL_DETAIL_KEY,
+		    P.CODE, MPD.QUANTITY,PO.PROCESS_CODE,
+		    MPD.MATERIAL_ID,
+		    MPD.PARTIAL_ID,
+		    MPD.OCCUR_TIMES,    
+		    MPD.PRICE,
+		    MPD.BELONGS,
+		    MPD.POSITION_ID,
+		    MPD.WAITING_QUANTITY,
+		    MPD.waiting_receive_quantity,
+		    MPD.RECENT_SIGNIN_TIME,
+		    MPD.STATUS
+		FROM
+		    MATERIAL_PARTIAL_DETAIL MPD
+		JOIN PARTIAL P
+		ON MPD.PARTIAL_ID = P.PARTIAL_ID
+		LEFT JOIN POSITION PO
+		ON MPD.POSITION_ID = PO.POSITION_ID
+	  where 
+          material_partial_detail_key =#{material_partial_detail_key}
+		]]>
+   </select>
+   
+    <!--更新到material_partial_detail status=1（导入订购后）-->
+   <update id="setOverBom" parameterType="PartialOrderManageEntity">
+     UPDATE 
+     	material_partial_detail
+	 SET
+	 	position_id = #{position_id},
+		quantity = #{quantity},
+		waiting_quantity =#{waiting_quantity},
+		waiting_receive_quantity=#{waiting_receive_quantity},
+		belongs=#{belongs}
+		where 
+		    material_partial_detail_key=#{material_partial_detail_key};
+   </update>
+   
+   <!-- 插入到零件订购信息 -->
+   <insert id="insertMaterialPartialDetail" parameterType="PartialOrderManageEntity">
+	   INSERT INTO MATERIAL_PARTIAL_DETAIL
+					(MATERIAL_ID,
+					PARTIAL_ID,
+					OCCUR_TIMES,
+					QUANTITY,
+					PRICE,
+					BELONGS,
+					POSITION_ID,
+					WAITING_QUANTITY,
+					WAITING_RECEIVE_QUANTITY,
+					RECENT_SIGNIN_TIME,
+					STATUS)
+	   VALUES
+				  ( #{material_id},
+					#{partial_id},
+					#{occur_times},
+					#{quantity},
+					#{price},
+					#{belongs},
+					#{position_id},
+					#{quantity},
+					#{quantity},
+					#{recent_signin_time},
+					#{status});
+   </insert>
+   
+   <insert id="insertDividedDetail" parameterType="PartialOrderManageEntity">
+	   INSERT INTO MATERIAL_PARTIAL_DETAIL
+					(MATERIAL_ID,
+					SMO_ITEM_NO,
+					PARTIAL_ID,
+					OCCUR_TIMES,
+					QUANTITY,
+					PRICE,
+					BELONGS,
+					POSITION_ID,
+					WAITING_QUANTITY,
+					WAITING_RECEIVE_QUANTITY,
+					RECENT_SIGNIN_TIME,
+					STATUS,
+					r_operator_id,
+					recent_receive_time,
+					arrival_plan_date)
+		SELECT
+			MATERIAL_ID,
+			SMO_ITEM_NO,
+			PARTIAL_ID,
+			OCCUR_TIMES,
+			#{quantity},
+			PRICE,
+			#{belongs},
+			#{position_id},
+			#{waiting_quantity},
+			#{waiting_receive_quantity},
+			RECENT_SIGNIN_TIME,
+			STATUS,
+			r_operator_id,
+			recent_receive_time,
+			arrival_plan_date
+		FROM MATERIAL_PARTIAL_DETAIL org
+		where 
+		    org.material_partial_detail_key=#{material_partial_detail_key};
+   </insert>
+  
+  <!--删除选中的零件-->
+  <delete id="deletePartial" parameterType="PartialOrderManageEntity">
+  	delete FROM material_partial_detail where material_partial_detail_key =#{material_partial_detail_key};
+  </delete>
+  
+  <!--根据material_id和occur_times删除material_partial_detail维修对象-->
+  <delete id="deleteMaterialPartialDetail" parameterType="PartialOrderManageEntity">
+  	delete FROM material_partial_detail where material_id =#{material_id} 
+ 	<if test="occur_times!=null and occur_times!=''">
+		and occur_times=#{occur_times};
+	</if>
+  </delete>
+  
+  <!--根据material_id和occur_times删除material_partial维修对象-->
+  <delete id="deleteMaterialPartial" parameterType="PartialOrderManageEntity">
+  	delete FROM material_partial where material_id =#{material_id} 
+ 	<if test="occur_times!=null and occur_times!=''">
+		and occur_times=#{occur_times};
+	</if>
+  </delete>
+  
+  <!--更新零件发放时间和待发放数量-->
+  <update id ="updateMaterialPartialDetail" parameterType="PartialOrderManageEntity">
+  	  UPDATE 
+     	material_partial_detail
+	 SET
+	 	waiting_quantity = #{quantity},
+		status = 3,
+	 	arrival_plan_date = '9999/12/31',
+		recent_signin_time =null,
+		waiting_receive_quantity = #{quantity},
+		recent_receive_time =null
+		where 
+		    material_partial_detail_key=#{material_partial_detail_key};
+  </update>
+  
+  <!-- 更新零件订购对象bo_flg -->
+  <update id="updateMaterialPartialBoflg" parameterType="PartialOrderManageEntity">
+  	update material_partial set bo_flg = 0 where material_id = #{material_id} and occur_times = #{occur_times}
+  </update>
+  
+  <!--更新零件订购签收明细状态-->
+  <update id ="updateMaterialPartialDetailStatus" parameterType="PartialOrderManageEntity">
+  	  UPDATE material_partial_detail SET status = 2	where status = 4 and material_id = #{material_id} and occur_times = #{occur_times}
+  </update>
+  
+  
+</mapper>

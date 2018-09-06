@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.LightFixMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchLightFix" resultType="LightFixEntity">
+		<![CDATA[ 
+		SELECT
+			lf.light_fix_id,
+			lf.activity_code,
+			lf.description,
+			lf.rank,
+			lf.updated_by,
+			lf.updated_time
+		FROM light_fix lf
+		]]>
+		<if test="kind != null">
+			JOIN light_fix_for_kind lfk ON lfk.light_fix_id = lf.light_fix_id
+		</if>
+		<if test="position_id != null and position_id != '' ">
+			JOIN position_of_light_fix lfp ON lfp.light_fix_id = lf.light_fix_id
+		</if>
+		<where>
+			lf.delete_flg = 0
+		<if test="light_fix_id != null and light_fix_id != '' ">
+			AND lf.light_fix_id = #{light_fix_id}
+		</if>
+		<if test="activity_code != null and activity_code != '' ">
+			AND lf.activity_code = #{activity_code}
+		</if>
+		<if test="description != null and description != '' ">
+			AND lf.description LIKE CONCAT('%', #{description}, '%')
+		</if>
+		<if test="rank != null and rank != '' ">
+			AND lf.rank = #{rank}
+		</if>
+		<if test="kind != null">
+			AND lfk.kind = #{kind}
+		</if>
+		<if test="position_id != null and position_id != '' ">
+			AND lfp.position_id = #{position_id}
+		</if>
+		</where>
+	</select>
+
+	<select id="getLightFix" resultType="LightFixEntity">
+		<![CDATA[ 
+		SELECT
+			light_fix_id,
+			activity_code,
+			description,
+			rank,
+			(select name from operator where operator_id = light_fix.updated_by) as updated_by,
+			updated_time
+		FROM light_fix
+		WHERE light_fix_id = #{light_fix_id}
+		  and delete_flg = 0
+		]]>
+	</select>
+
+	<select id="checkCodeIsExist" resultType="Integer">
+		<![CDATA[ 
+		SELECT
+			count(light_fix_id)
+		FROM light_fix
+		WHERE activity_code = #{activity_code}
+		  and delete_flg = 0
+		]]>
+		<if test="light_fix_id!= null and light_fix_id!= '' ">
+			AND light_fix_id != #{light_fix_id}
+		</if>
+	</select>
+
+	<insert id="insertLightFix" parameterType="LightFixEntity">
+		<![CDATA[ 
+		INSERT INTO light_fix 
+			(activity_code, description, rank, delete_flg, updated_by, updated_time) 
+		VALUES 
+			(#{activity_code}, #{description}, #{rank}, 0, #{updated_by}, current_timestamp)
+		]]>
+	</insert>
+
+	<update id="updateLightFix" parameterType="LightFixEntity">
+		<![CDATA[ 
+		UPDATE light_fix SET
+			activity_code = #{activity_code},
+			description = #{description},
+			rank = #{rank},
+			updated_by = #{updated_by},
+			updated_time = current_timestamp
+		WHERE light_fix_id = #{light_fix_id}
+		  and delete_flg = 0
+		]]>
+	</update>
+
+	<update id="deleteLightFix" parameterType="String">
+		<![CDATA[ 
+		UPDATE light_fix SET
+			delete_flg = 1,
+			updated_by = #{updated_by},
+			updated_time = current_timestamp
+		WHERE light_fix_id = #{light_fix_id}
+		  and delete_flg = 0
+		]]>
+	</update>
+
+	<select id="getKinds" resultType="String">
+		<![CDATA[ 
+		SELECT kind FROM light_fix_for_kind WHERE light_fix_id = #{light_fix_id}
+		]]>
+	</select>
+
+	<insert id="insertKind" parameterType="LightFixEntity">
+		<![CDATA[ 
+		INSERT INTO light_fix_for_kind (light_fix_id, kind) VALUES (#{light_fix_id}, #{kind})
+		]]>
+	</insert>
+
+	<update id="deleteKind" parameterType="String">
+		<![CDATA[ 
+		DELETE from light_fix_for_kind WHERE light_fix_id = #{light_fix_id}
+		]]>
+	</update>
+
+	<select id="getPositions" resultType="String">
+		<![CDATA[ 
+		SELECT position_id FROM position_of_light_fix WHERE light_fix_id = #{light_fix_id}
+		]]>
+	</select>
+
+	<insert id="insertPosition" parameterType="LightFixEntity">
+		<![CDATA[ 
+		INSERT INTO position_of_light_fix (light_fix_id, position_id) VALUES (#{light_fix_id}, #{position_id})
+		]]>
+	</insert>
+
+	<update id="deletePosition" parameterType="String">
+		<![CDATA[ 
+		DELETE from position_of_light_fix WHERE light_fix_id = #{light_fix_id}
+		]]>
+	</update>
+	
+	<select id="getLightFixByMaterialId" parameterType="LightFixEntity" resultType="LightFixEntity">
+		<![CDATA[ 
+			SELECT 
+			    material.material_id,
+				light_fix.light_fix_id,
+				v_category.kind,
+				light_fix.activity_code,
+				light_fix.description,
+				position_of_light_fix.position_id
+			FROM
+			    material
+			         JOIN
+			    model ON material.model_id = model.model_id
+			         JOIN
+			    v_category ON v_category.category_id = model.category_id 
+					 JOIN
+				light_fix_for_kind ON light_fix_for_kind.kind = v_category.kind
+				     JOIN
+				light_fix ON light_fix.light_fix_id = light_fix_for_kind.light_fix_id
+					LEFT JOIN
+				position_of_light_fix ON position_of_light_fix.light_fix_id = light_fix.light_fix_id
+			WHERE 
+				material.material_id = #{material_id}
+			order by
+				light_fix.activity_code asc
+		]]>
+	</select>
+	
+	<select id="checkCodeAndCategoryIsExist" resultType="LightFixEntity">
+	<![CDATA[ 
+		SELECT
+			lf.light_fix_id,
+		    lf.activity_code, 
+			lfk.kind
+		FROM
+		    light_fix lf
+		JOIN
+		    light_fix_for_kind lfk 
+		ON 
+			lf.light_fix_id = lfk.light_fix_id
+		WHERE
+			lf.delete_flg = 0
+		AND
+			lf.activity_code = #{activity_code}
+	]]>
+	</select>
+</mapper>

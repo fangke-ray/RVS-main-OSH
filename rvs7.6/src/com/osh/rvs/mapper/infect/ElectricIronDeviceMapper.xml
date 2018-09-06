@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.ElectricIronDeviceMapper">
+   
+   <select id="searchElectricIronDevice" parameterType="ElectricIronDeviceEntity" resultType="ElectricIronDeviceEntity">
+   	<![CDATA[
+   	    SELECT 
+		    eid.manage_id,
+		    eid.seq,
+		    eid.kind,
+		    eid.temperature_lower_limit,
+		    eid.temperature_upper_limit,
+		    dm.devices_manage_id,
+		    dm.manage_code,
+		    dm.devices_type_id,
+		    dy.name as device_name,
+		    dm.section_id,
+		    s.name as section_name,
+		    dm.position_id,
+		    p.process_code as position_name
+		FROM
+		    electric_iron_device eid
+		        LEFT JOIN
+		    devices_manage dm ON eid.manage_id = dm.devices_manage_id
+				LEFT JOIN 
+			devices_type dy on dy.devices_type_id = dm.devices_type_id
+		        LEFT JOIN
+		    section s ON dm.section_id = s.section_id
+		        LEFT JOIN
+		    position p ON dm.position_id = p.position_id
+   	]]>
+   	<where>
+   		1 = 1
+   		<if test="manage_id!=null and manage_id!=''">
+				<![CDATA[
+					AND	eid.manage_id =#{manage_id}
+				]]>
+		</if>
+		<if test="devices_type_id!=null and devices_type_id!=''">
+				<![CDATA[
+					AND	dy.devices_type_id =#{devices_type_id}
+				]]>
+		</if>
+		<if test="seq!=null and seq!=''">
+				<![CDATA[
+					AND	eid.seq =#{seq}
+				]]>
+		</if>
+		<if test="kind!=null and kind!=''">
+				<![CDATA[
+					AND	eid.kind =#{kind}
+				]]>
+		</if>
+		<if test="section_id!=null and section_id!=''">
+				<![CDATA[
+					AND	dm.section_id =#{section_id}
+				]]>
+		</if>
+		<if test="position_id!=null and position_id!=''">
+				<![CDATA[
+					AND	dm.position_id =#{position_id}
+				]]>
+		</if>
+   	</where>
+   	order by eid.manage_id, eid.seq
+   </select>
+   
+   <select id="ElectricIronDeviceisExist" parameterType="ElectricIronDeviceEntity" resultType="ElectricIronDeviceEntity">
+   	<![CDATA[
+   	    SELECT 
+		    manage_id,
+		    seq,
+		    kind,
+		    temperature_lower_limit,
+		    temperature_upper_limit
+		FROM
+		    electric_iron_device 
+   	]]>
+   	<where>
+   		<![CDATA[
+   		  manage_id =#{manage_id} AND seq=#{seq}
+   		]]>
+   	</where>
+   </select>
+   
+   <select id="searchManageCodes" resultType="ElectricIronDeviceEntity">
+   <![CDATA[
+   	 SELECT                                                                  
+	   manage_code,devices_manage_id,device_name,dm.devices_type_id            
+	FROM                                                                    
+		devices_manage dm JOIN
+		devices_type dt
+	ON
+		dm.devices_type_id = dt.devices_type_id
+	WHERE
+	    dt.specialized = 1
+	ORDER BY manage_code ASC ;  
+   ]]>	
+   </select>
+   
+   <select id="searchDeviceNames" resultType="ElectricIronDeviceEntity">
+   	<![CDATA[
+   	   SELECT 
+   	     devices_type_id,
+   	     name as device_name
+	   FROM 
+		 devices_type
+	   WHERE 
+	     delete_flg=0
+   	]]>
+   </select>
+   
+   <insert id="insertElectricIronDevice" parameterType="ElectricIronDeviceEntity">
+   	<![CDATA[
+   	  INSERT INTO 
+		  electric_iron_device
+		  (manage_id,
+		   seq,
+		   kind,
+		   temperature_lower_limit,
+		   temperature_upper_limit)
+		VALUES(#{manage_id},#{seq},#{kind},#{temperature_lower_limit},#{temperature_upper_limit})
+   	]]>
+   </insert>
+   
+   <update id="updateElectricIronDevice" parameterType="ElectricIronDeviceEntity">
+ 	<![CDATA[
+ 	  UPDATE 
+ 	  		electric_iron_device 
+ 	  SET 				
+			manage_id=#{manage_id},
+			seq=#{seq},
+			kind=#{kind},
+			temperature_lower_limit=#{temperature_lower_limit},
+			temperature_upper_limit=#{temperature_upper_limit}
+	  WHERE   
+	  		manage_id=#{manage_id} and seq=#{seq}
+ 	]]>
+   </update>
+   
+   <delete id="deleteElectricIronDevice" parameterType="ElectricIronDeviceEntity">
+   	<![CDATA[
+   		DELETE FROM 
+   			electric_iron_device
+		WHERE manage_id=#{manage_id} and seq=#{seq}
+   	]]>
+   </delete>
+
+	<!-- 点检人员身份全部相关表格  -->
+    <select id="searchElectricIronDeviceOnLineByOperator" resultType="DevicesManageEntity" parameterType="CheckResultEntity">
+	   <![CDATA[
+SELECT dm.devices_manage_id,dt.name, dm.section_id, dm.position_id, pos.process_code as process_code FROM electric_iron_device td 
+	join devices_manage dm
+		on td.manage_id = dm.devices_manage_id
+	join devices_type dt
+		on dm.devices_type_id = dt.devices_type_id
+	left join section sec
+		on dm.section_id = sec.section_id
+	join position pos
+		on dm.position_id = pos.position_id
+where dm.delete_flg = 0 and dm.status = 1 and manage_level <= 2 
+	and dm.section_id = #{section_id}
+	   ]]>
+		<if test="sheet_manage_no!=null and sheet_manage_no!=''">
+			and 'QR-B31002-15 电烙铁日常点检表' like concat('%', #{sheet_manage_no}, '%') 
+		</if>
+		<if test="manage_code!=null and manage_code!=''">
+			and dm.manage_code like concat('%', #{manage_code}, '%') 
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			and dm.model_name like concat('%', #{model_name}, '%') 
+		</if>
+		<if test="position_id!=null and position_id!=''">
+			and dm.position_id = #{position_id}
+		</if>
+group by dm.section_id, dm.position_id
+		;
+	</select>
+
+    <select id="getNeedRegularEICheck" resultType="CheckResultEntity" parameterType="CheckResultEntity">
+		<![CDATA[ 
+	SELECT 
+	    dcr.`manage_id`,
+	    dcr.`check_file_manage_id`,
+	    dcr.`item_seq`,
+	    `operator_id`,
+	    dcr.`check_confirm_time`,
+	    `digit`,
+	    `checked_status`
+	FROM
+	    `device_check_result` dcr
+	JOIN (
+	SELECT 
+	    `manage_id`,
+	    `check_file_manage_id`,
+	    `item_seq`,
+	    max(`check_confirm_time`) as `check_confirm_time`
+	FROM
+	    `device_check_result`
+	WHERE manage_id = #{manage_id}
+		AND check_file_manage_id = #{check_file_manage_id}
+		and `item_seq` >= 50
+		AND date(`check_confirm_time`) between #{check_confirm_time_start} and #{check_confirm_time_end}
+	group by 
+	    `manage_id`,
+	    `check_file_manage_id`,
+	    `item_seq`
+	) mcct
+	ON dcr.manage_id = mcct.manage_id
+	AND dcr.check_file_manage_id = mcct.check_file_manage_id
+	AND dcr.item_seq = mcct.item_seq
+	AND dcr.check_confirm_time = mcct.check_confirm_time
+	;
+	   ]]>
+	</select>
+
+    <select id="searchElectricIronDeviceOnLineByManager" resultType="DevicesManageEntity" parameterType="CheckResultEntity">
+	   <![CDATA[
+SELECT dm.devices_manage_id,dt.name, dm.section_id, dm.position_id, concat(sec.name, '\n',pos.process_code) as process_code FROM electric_iron_device td 
+	join devices_manage dm
+		on td.manage_id = dm.devices_manage_id
+	join devices_type dt
+		on dm.devices_type_id = dt.devices_type_id
+	left join section sec
+		on dm.section_id = sec.section_id
+	join position pos
+		on dm.position_id = pos.position_id
+where dm.delete_flg = 0 and dm.status = 1 and manage_level <= 2 
+	   ]]>
+		<if test="operator_id!=null and operator_id!=''">
+			and manager_operator_id = #{operator_id}
+		</if>
+		<if test="sheet_manage_no!=null and sheet_manage_no!=''">
+			and 'QR-B31002-15 电烙铁日常点检表' like concat('%', #{sheet_manage_no}, '%') 
+		</if>
+		<if test="manage_code!=null and manage_code!=''">
+			and dm.manage_code like concat('%', #{manage_code}, '%') 
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			and dm.model_name like concat('%', #{model_name}, '%') 
+		</if>
+		<if test="devices_type_id!=null and devices_type_id!=''">
+			and dm.devices_type_id = #{devices_type_id}
+		</if>
+		<if test="position_id!=null and position_id!=''">
+			and dm.position_id = #{position_id}
+		</if>
+group by dm.section_id, dm.position_id
+	;
+	</select>
+</mapper>

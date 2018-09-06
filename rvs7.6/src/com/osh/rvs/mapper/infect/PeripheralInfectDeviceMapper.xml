@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.PeripheralInfectDeviceMapper">
+
+    <!-- 治具分布详细 -->
+    <select id="search" resultType="PeripheralInfectDeviceEntity" parameterType="PeripheralInfectDeviceEntity">
+		<![CDATA[ 
+		SELECT
+			pid.model_id,
+            pid.seq,
+            m.category_name,
+            m.name as model_type_name,
+            dt.devices_type_id as device_type_id,
+            dt.name as device_type_name,
+		    pid.model_name,
+		    cg.group
+		FROM
+		    peripheral_infect_device pid
+		JOIN
+			devices_type dt on dt.devices_type_id = pid.device_type_id
+		JOIN
+			v_model m on m.model_id = pid.model_id
+		JOIN
+			(SELECT model_id, count(distinct seq) as `group` FROM peripheral_infect_device
+group by model_id) cg ON pid.model_id = cg.model_id
+		]]>
+		<where>
+		   <if test="model_id!=null and model_id!='' ">
+				<![CDATA[
+					and pid.model_id = #{model_id}
+			    ]]>
+			</if>     
+			<if test="device_type_id!=null and device_type_id!='' ">
+				<![CDATA[
+				    and pid.device_type_id = #{device_type_id}
+			    ]]>
+			</if>
+			<if test="model_name!=null and model_name!='' ">
+				<![CDATA[
+				    and pid.model_name LIKE CONCAT('%',#{model_name},'%')
+			    ]]>
+			</if>
+		</where>
+		ORDER BY pid.model_id, pid.seq, pid.model_name
+	</select>	
+
+	<select id="getMaxSeq" resultType="String" parameterType="PeripheralInfectDeviceEntity">
+		<![CDATA[
+		    SELECT 
+				MAX(seq)
+		    FROM 
+				peripheral_infect_device	
+		    WHERE 
+				model_id = #{model_id}
+		]]>
+	</select>
+
+	<insert id="insert" parameterType="PeripheralInfectDeviceEntity">
+		<![CDATA[ 
+		INSERT INTO peripheral_infect_device (
+	        model_id,                                                                
+			seq,                                                                                                   
+			device_type_id,                                                                                                  
+			model_name, 		                                                                                            
+			updated_by,
+			updated_time                                                                                             
+		)VALUES(
+			#{model_id},
+			#{seq},
+			#{device_type_id},
+			#{model_name},
+			#{updated_by},
+			current_timestamp)
+		]]>
+	</insert>
+	
+	<delete id="delete" parameterType="PeripheralInfectDeviceEntity">
+		<![CDATA[ 
+		 DELETE 
+		 FROM
+			 peripheral_infect_device
+		 WHERE
+		 	model_id = #{model_id}
+		]]>
+			<if test="seq!=null and seq!='' ">
+		<![CDATA[ 
+		 AND
+		 	seq = #{seq}
+		 AND
+		 	device_type_id = #{device_type_id}
+		 AND
+		 	model_name = #{model_name}
+		]]>
+			</if>
+	</delete>
+ 
+ 	<select id="getPeripheralDataByMaterialId" resultType="PeripheralInfectDeviceEntity" parameterType="PeripheralInfectDeviceEntity">
+		<![CDATA[
+			SELECT 
+			    pid.model_id,
+			    pid.device_type_id,
+			    pid.seq,
+			    dt.name as device_type_name,
+			    pid.model_name,
+			    cjm.check_file_manage_id,
+			    cjm.check_manage_code,
+				pidom.device_manage_id
+			FROM
+			    peripheral_infect_device pid
+			        JOIN
+			    material m ON pid.model_id = m.model_id
+			        JOIN
+			    check_file_manage cjm ON cjm.devices_type_id = pid.device_type_id
+			        and (cjm.specified_model_name is null OR cjm.specified_model_name = ''
+			        OR cjm.specified_model_name LIKE CONCAT('%', pid.model_name, '%'))
+			        and cjm.access_place = 9
+			        and cjm.delete_flg = 0
+			        LEFT JOIN
+			    devices_type dt ON dt.devices_type_id = pid.device_type_id
+			        LEFT JOIN
+			    peripheral_infect_device_of_material pidom ON pidom.seq = pid.seq
+			        and pidom.material_id = #{material_id}
+			        and pidom.position_id = #{position_id}
+			        and pidom.rework = #{rework}
+		    WHERE 
+				m.material_id = #{material_id}
+			ORDER BY pid.seq asc,pid.model_name
+		]]>
+	</select>
+
+ 	<select id="getGroupedInfectMessage" resultType="String" parameterType="PeripheralInfectDeviceEntity">
+		<![CDATA[
+			select group_concat(process_code, ' 工位点检使用：', devices separator '\n') from
+			(SELECT pos.process_code, group_concat(dt.name, coalesce(dm.model_name, ''), ':',dm.manage_code order by seq, dm.model_name) as devices
+			FROM peripheral_infect_device_of_material pidom
+			join position pos on pidom.position_id = pos.position_id
+			join devices_manage dm on pidom.device_manage_id = dm.devices_manage_id
+			join devices_type dt on dm.devices_type_id = dt.devices_type_id
+			where material_id = #{material_id}
+		]]>
+			<if test="position_id!=null and position_id!='' ">
+				<![CDATA[
+					and pos.process_code != #{position_id}
+				]]>
+			</if>     
+		<![CDATA[
+			group by pos.position_id) byPos
+			;
+		]]>
+	</select>
+
+	<insert id="insertFinishedData" parameterType="PeripheralInfectDeviceEntity">
+		<![CDATA[ 
+		Replace Into peripheral_infect_device_of_material (
+	        material_id,                                                                
+			position_id,                                                                                                   
+			rework,                                                                                                  
+			seq, 		                                                                                            
+			device_manage_id                                                                                           
+		)VALUES(
+			#{material_id},
+			#{position_id},
+			#{rework},
+			#{seq},
+			#{device_manage_id})
+		]]>
+	</insert>
+</mapper>

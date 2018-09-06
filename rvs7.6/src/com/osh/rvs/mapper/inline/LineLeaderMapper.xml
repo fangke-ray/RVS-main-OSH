@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.LineLeaderMapper">
+
+	<!-- `ppf1` 是重点问题 --> 
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="getWorkingOfPositions" resultType="map">
+		<![CDATA[
+			SELECT 
+			    CAST(`p`.POSITION_ID as char) as POSITION_ID,
+			    `p`.NAME,
+			    `p`.PROCESS_CODE,
+				CASE WHEN pos.SECTION_ID = 1
+					THEN CAST(`p`.LIGHT_DIVISION_FLG as char)
+				ELSE '0'
+				end as LIGHT_DIVISION_FLG,
+			    cast(coalesce(`pf`.material_count, 0) as char) as material_count,
+			    cast(coalesce(`pf2`.material_count, 0) as char) as light_fix_count,
+			    qf.px
+			FROM
+			    `position` p
+			JOIN
+				(Select 0 as px from dual union Select 1 as px from dual
+				 union Select 2 as px from dual) qf
+			LEFT JOIN
+			    (SELECT 
+			        count(p.material_id) as material_count, p.position_id, 
+			        (mp.px % 3) AS mpx 
+			    FROM
+			        production_feature p
+			    join material m ON m.material_id = p.material_id
+				join position pos ON p.position_id = pos.position_id
+				join material_process mp ON m.material_id = mp.material_id and mp.line_id = pos.line_id
+			    WHERE
+			        p.finish_time IS NULL
+			            AND p.operate_result <> 5
+			            AND p.SECTION_ID = #{section_id}
+			            and m.level in (9 , 91, 92, 93, 96, 97, 98, 99)
+					    AND pos.line_id = #{line_id}
+			    GROUP BY p.position_id, mpx) pf2
+			    ON `p`.position_id = pf2.position_id
+			    AND qf.px = pf2.mpx
+	        LEFT JOIN
+			    (SELECT 
+			        count(p.material_id) as material_count, p.position_id,
+			        (mp.px % 3) AS mpx 
+			    FROM
+			        production_feature p
+			    join material m ON m.material_id = p.material_id
+				join position pos ON p.position_id = pos.position_id
+				join material_process mp ON m.material_id = mp.material_id and mp.line_id = pos.line_id
+			    WHERE
+			        p.finish_time IS NULL
+			            AND p.operate_result <> 5
+			            AND p.SECTION_ID = #{section_id}
+			            and m.level not in (9 , 91, 92, 93, 96, 97, 98)
+					    AND pos.line_id = #{line_id}
+			    GROUP BY p.position_id, mpx) pf
+			    ON `p`.position_id = pf.position_id
+			    AND qf.px = pf.mpx
+			        JOIN
+			    position_of_section pos ON p.position_id = pos.position_id
+			        AND pos.SECTION_ID = #{section_id}
+			WHERE
+			    LINE_ID = #{line_id}
+			    AND DELETE_FLG = 0
+			ORDER BY `p`.PROCESS_CODE, px;
+		]]>
+	</select>
+
+	<select id="getWorkingMaterials" resultType="LineLeaderEntity">
+		<![CDATA[
+			SELECT `m`.agreed_date, (`m`.scheduled_expedited * 10 + `mp`.line_expedited) as expedited,
+				coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, `m`.esas_no, `m`.direct_flg, `m`.ocm, 
+				min(`matp`.order_date) as partical_order_date,
+				CASE
+					WHEN max(`matp`.bo_flg in (8, 9)) = 1
+					THEN 9
+					WHEN max(`matp`.bo_flg = 1) = 1
+					THEN 1
+					WHEN max(`matp`.bo_flg = 2) = 1
+					THEN 2
+					ELSE 0
+				END as partical_bo,
+				max(`matp`.arrival_plan_date) as arrival_plan_date, 
+				CASE
+					WHEN `ppf1`.light_division_flg = 0 THEN -1
+					ELSE `mp`.px 
+				END as px,
+				'' as symbol, `m`.material_id,
+				`m`.`level`, `m`.serial_no, `c`.name as category_name, `mdl`.name as model_name, `m`.ns_partial_order,
+				`mp`.scheduled_date ,
+				`ppf1`.operate_result, `ppf1`.process_code, `ppf1`.position_id
+ 			  ,(select process_code from position where position_id =(select position_id from production_feature where material_id = m.material_id and position_id not in (select position_id from position where line_id = #{line_id}) and operate_result not in (5, 8) order by (1-ISNULL(action_time)), action_time desc, operate_result desc limit 1)) as otherline_process_code,
+ 			  (`mp`.`rework_trigger_position_id` IS NOT NULL) as is_reworking, (`mp`.`scheduled_assign_date` = current_date) as is_today,
+ 			  infsa.in_pa,mrt.expected_finish_time,
+ 			  CASE
+ 			  	WHEN ppt.plan_end_time IS NOT NULL AND CURRENT_TIMESTAMP <= ppt.plan_end_time THEN 0
+ 			  	WHEN ppt.plan_end_time IS NOT NULL AND CURRENT_TIMESTAMP > ppt.plan_end_time THEN 1
+ 			  END AS overtime
+			FROM material m
+			JOIN material_process mp
+			  ON `m`.material_id = `mp`.material_id AND `mp`.line_id = #{line_id}
+			LEFT JOIN material_partial matp 
+			  ON `m`.material_id = matp.material_id
+			JOIN model mdl
+			  ON `m`.model_id = `mdl`.model_id
+			JOIN category c
+			  ON `mdl`.category_id = `c`.category_id
+			JOIN (SELECT `pfp`.material_id, `pfp`.position_id, `pfp`.process_code, `pfp`.operate_result, `pfp`.light_division_flg FROM (
+					SELECT `pf`.material_id, `pf`.position_id, `p`.process_code, `pf`.operate_result, p.light_division_flg
+					FROM production_feature pf
+					JOIN `position` p
+					ON `pf`.position_id = `p`.position_id
+					  AND `p`.line_id = #{line_id}
+				 	JOIN material pma
+						ON pf.material_id = pma.material_id
+				    WHERE
+				        pma.outline_time IS NULL
+				        AND pma.break_back_flg = 0
+				        AND operate_result not in (5 , 8)
+					  AND `pf`.section_id = #{section_id}
+					ORDER BY (1-ISNULL(`pf`.action_time)) ,
+					`pf`.action_time DESC, (`pf`.operate_result = 3) DESC, `pf`.operate_result DESC
+				) pfp
+				GROUP BY `pfp`.material_id) ppf1
+				ON `m`.material_id = `ppf1`.material_id
+			LEFT JOIN 
+				(SELECT
+				    fsa.`material_id`,
+				    count(1) as in_pa
+				FROM `for_solution_area` fsa
+				WHERE			
+				fsa.`solved_time` IS NULL
+				GROUP BY material_id)
+				infsa
+				ON infsa.material_id = m.material_id
+			LEFT JOIN material_remain_time mrt
+			  ON mrt.material_id = m.material_id and mrt.line_id = #{line_id}
+			LEFT JOIN
+				position_plan_time ppt
+			ON
+				ppt.material_id = m.material_id AND ppt.line_id = #{line_id} AND ppt.position_id = ppf1.position_id
+			WHERE `m`.section_id = #{section_id}
+			AND `m`.outline_time IS NULL
+			AND (`mp`.`finish_date` IS NULL OR (`mp`.`rework_trigger_position_id` IS NOT NULL AND `ppf1`.operate_result != 2))
+		]]>
+		<if test="position_id!= null and position_id!= '' ">
+		<![CDATA[
+			AND (ppf1.position_id = #{position_id} 
+				OR EXISTS (SELECT operate_result, process_code, position_id FROM production_feature WHERE material_id = `m`.material_id 
+				AND position_id = #{position_id} AND finish_time IS NULL))
+		]]>
+		</if>
+		<if test="today!= null and today!= '' ">
+		<![CDATA[
+			AND mp.`scheduled_assign_date` = curdate()
+		]]>
+		</if>
+		<![CDATA[
+			GROUP BY `m`.material_id
+			ORDER BY mrt.expected_finish_time is not null desc, `m`.agreed_date, `ppf1`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getBeforePerformanceList" resultType="MaterialEntity" parameterType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id, `m`.agreed_date, `m`.quotation_first, `m`.model_id,
+				coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, `m`.esas_no, `pf111`.finish_time as reception_time, `pf151`.finish_time as quotation_time,
+				'' as symbol, `m`.material_id, `m`.direct_flg, `m`.service_repair_flg, `m`.fix_type,
+				`m`.`level`, `m`.serial_no, `m`.selectable, `mdl`.name as model_name,
+				`c`.`name` as customer_name, `m`.`ocm`, `m`.`ocm_rank`, `m`.`ocm_deliver_date`,
+				`srm`.countermeasures as storager,
+				case when `m`.wip_location IS NULL THEN `ppf1`.operate_result ELSE '-1' END as operate_result,
+				case when `m`.wip_location IS NULL THEN `ppf1`.name ELSE concat('WIP:', `m`.wip_location) END as processing_position,
+				(CASE 
+					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
+						THEN 7
+					WHEN mdl.category_id = 00000000013 OR `m`.fix_type = 2
+						THEN 4
+					WHEN mdl.category_id = 00000000016
+						THEN 5
+					WHEN mdl.kind = 03
+						THEN 6 
+					WHEN mdl.kind = 07
+						THEN 3 
+					WHEN `m`.level = 1
+						THEN 8
+					ELSE 14
+				END + (coalesce(`m`.service_repair_flg, 0) = 2)) as ticket_flg,
+				`m`.scheduled_expedited,
+				`ppf1`.position_id as category_id,
+				`m`.bound_out_ocm,
+				coalesce(`m`.pat_id, mdl.default_pat_id) as pat_id,
+				pat.name as section_name
+			FROM material m
+			JOIN v_model mdl
+				ON `m`.model_id = `mdl`.model_id
+			LEFT JOIN production_feature pf111
+				ON `pf111`.material_id = `m`.material_id AND `pf111`.position_id = 9 AND `pf111`.operate_result = 2
+			LEFT JOIN production_feature pf151
+				ON `pf151`.material_id = `m`.material_id AND `pf151`.position_id IN (13,14,64) AND `pf151`.operate_result = 2
+			JOIN (SELECT `pfp`.material_id, `pfp`.position_id, `pfp`.name, `pfp`.process_code, `pfp`.operate_result FROM (
+					SELECT `pf`.material_id, `pf`.position_id, `p`.name, `p`.process_code, `pf`.operate_result
+					FROM production_feature pf
+					JOIN `position` p
+					ON `pf`.position_id = `p`.position_id
+					  AND `p`.line_id = 11
+				 	JOIN material pma
+						ON pf.material_id = pma.material_id
+				    WHERE
+						pma.inline_time is null
+				        AND pma.outline_time IS NULL
+				        AND pma.break_back_flg = 0
+				        AND operate_result not in (5 , 8)
+					ORDER BY (1-ISNULL(`pf`.action_time)) ,
+					`pf`.action_time DESC, `pf`.operate_result DESC
+				) pfp
+				GROUP BY `pfp`.material_id) ppf1
+				ON `m`.material_id = `ppf1`.material_id
+			LEFT JOIN (select cast(material_id as unsigned) material_id, countermeasures 
+				from service_repair_manage where material_id like '0%') `srm`
+				ON `m`.material_id = `srm`.material_id
+			LEFT JOIN customer `c`
+				ON `m`.customer_id = `c`.customer_id
+			 LEFT JOIN process_assign_template pat
+			 	ON coalesce(`m`.pat_id, mdl.default_pat_id) = pat.process_assign_template_id 
+			WHERE `m`.inline_time IS NULL AND outline_time IS NULL
+			AND break_back_flg = 0
+		]]>
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				AND (`m`.sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or `m`.omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="model_id!= null and model_id!= '' ">
+				AND `m`.model_id = #{model_id}
+			</if>
+			<if test="serial_no!= null and serial_no!= '' ">
+				AND `m`.serial_no IN (${serial_no})
+			</if>
+			<if test="level!= null and level!= '' ">
+				AND `m`.level = #{level}
+			</if>
+			<if test="ticket_flg!= null and ticket_flg == 0 ">
+				AND `m`.agreed_date IS NULL
+			</if>
+			<if test="ticket_flg!= null and ticket_flg == 1 ">
+				AND `m`.agreed_date IS NOT NULL
+			</if>
+			<if test="wip_location!= null and wip_location!= '' ">
+				AND `m`.wip_location LIKE CONCAT('%', #{wip_location}, '%')
+			</if>
+		<![CDATA[
+			ORDER BY reception_time, `ppf1`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<update id="switchLeaderExpedite" parameterType="String">
+		<![CDATA[
+		update material_process set line_expedited = not line_expedited where material_id = #{material_id} and line_id = #{line_id} 
+		]]>
+	</update>
+
+	<update id="switchQuotationFirst" parameterType="String">
+		<![CDATA[
+		update material set quotation_first = not quotation_first where material_id = #{material_id}
+		]]>
+	</update>
+
+	<select id="getOverTimePosition" resultType="String" parameterType="String">
+		<![CDATA[
+			select distinct
+			    CAST(p.position_id as char) as position_id
+			from
+			    production_feature p
+			        join
+			    position_plan_time ppt ON ppt.material_id = p.material_id
+			        and p.position_id = ppt.position_id
+			        and ppt.line_id = #{line_id}
+			        join
+			    material_process mp ON mp.material_id = p.material_id
+			        and mp.line_id = #{line_id} and mp.rework_trigger_position_id is null
+			where
+			    p.finish_time IS NULL
+			    	AND p.operate_result <> 5
+			        AND p.SECTION_ID = #{section_id}
+			        AND ppt.plan_end_time < current_timestamp
+		]]>
+	</select>
+</mapper>

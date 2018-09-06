@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.EchelonAllocateMapper">
+
+<!-- 梯队设定历史 -->
+  <select id="searchEchelonAllocate" resultType="EchelonAllocateEntity">
+	 <![CDATA[
+		SELECT 
+			ECHELON_HISTORY_KEY,
+			START_DATE,
+			END_DATE,
+			O.NAME AS UPDATED_BY,
+			EH.UPDATED_TIME	
+		FROM ECHELON_HISTORY EH
+		LEFT JOIN
+					OPERATOR  O
+		ON  EH.UPDATED_BY = O.OPERATOR_ID 
+		ORDER BY END_DATE DESC
+	]]>
+  </select>
+  
+  <!-- 根据echelon_history_key 查询echelon_history_set表 -->
+  <select id="searchEchelonHistorySet" parameterType="EchelonAllocateEntity" resultType="EchelonAllocateEntity">
+  <![CDATA[
+			SELECT 
+		    ECHELON_HISTORY_KEY,
+		    EHS.MODEL_ID,
+			EHS.LEVEL,
+		    EHS.AGREED_COUNT,
+		    EHS.ECHELON,
+		    M.NAME AS model_name,
+			CASE WHEN EHS.AGREED_COUNT - EHS_LAST.agreed_count > 0   THEN '↑'
+			WHEN EHS.AGREED_COUNT - EHS_LAST.agreed_count < 0  THEN '↓'
+			ELSE '-'
+			END as fluctuate
+		FROM
+		    ECHELON_HISTORY_SET EHS
+		        JOIN
+		    MODEL M ON M.MODEL_ID = EHS.MODEL_ID
+		LEFT JOIN 
+		   (SELECT 
+		          model_id, level, EHS.agreed_count
+			FROM
+				ECHELON_HISTORY EH
+					LEFT join
+				ECHELON_HISTORY_SET EHS ON EH.echelon_history_key = EHS.echelon_history_key
+			WHERE
+				END_DATE = (
+		SELECT 
+						coalesce(MAX(END_DATE), '1900-1-1')
+					FROM
+						ECHELON_HISTORY EH
+					WHERE
+						END_DATE < (select 
+								end_date
+							from
+								echelon_history
+							where
+								echelon_history_key = #{echelon_history_key})
+		)
+					
+		) EHS_LAST
+		ON
+		EHS.model_id=EHS_LAST.model_id and EHS.level=EHS_LAST.level
+		where 
+		 EHS.echelon_history_key =#{echelon_history_key}            
+  ]]>
+ ORDER BY AGREED_COUNT DESC
+  </select>
+  
+  <!-- 查询model_level_set表的model和level -->
+  <select id="searchModelLevelSet" resultType="EchelonAllocateEntity" parameterType="EchelonAllocateEntity">
+   <![CDATA[
+		SELECT 
+		    M.MODEL_ID,
+		    M.LEVEL,
+		    COUNT(1) AS AGREED_COUNT,
+		    ML.NAME AS MODEL_NAME,
+		    CASE
+		        WHEN  COUNT(1) - M_LAST.AGREED_COUNT > 0 THEN '↑'
+		        WHEN  COUNT(1) - M_LAST.AGREED_COUNT < 0 THEN '↓'
+		        ELSE '-'
+		    END as fluctuate
+		FROM
+		    MATERIAL M
+		    	JOIN
+			MODEL_LEVEL_SET mls
+				ON M.model_id = mls.model_id
+		        and M.level = mls.level
+		        JOIN
+		    MODEL ML ON ML.MODEL_ID = M.MODEL_ID
+		        LEFT JOIN
+		    (SELECT 
+		        model_id, level, COUNT(1) AS AGREED_COUNT
+		    FROM
+		        MATERIAL m
+		    WHERE
+		        agreed_date = (SELECT 
+		                coalesce(MAX(agreed_date), '1900-1-1')
+		            FROM
+		                material m
+		            WHERE
+		                agreed_date<#{start_date})) M_LAST ON M.model_id = M_LAST.model_id
+		        and M.level = M_LAST.level
+	  	where
+    		M.AGREED_DATE <= #{end_date}
+	]]>    
+			and M.BREAK_BACK_FLG = 0     
+	   <if test="end_date !=null and end_date!=''">
+	     	AND M.AGREED_DATE >= #{start_date}  
+	   </if>
+	   		GROUP BY M.MODEL_ID , M.LEVEL  
+	   	ORDER BY AGREED_COUNT DESC
+  </select>
+  
+  <!-- 更新梯队（） -->
+  <update id="updateEchelonHistorySet" parameterType="Date">
+	  UPDATE 
+	  	ECHELON_HISTORY_SET                      
+	  SET                                             
+		ECHELON = #{echelon},
+		AGREED_COUNT=#{agreed_count}                           
+	  WHERE                                                
+	    MODEL_ID=#{model_id}                        
+		AND LEVEL=#{level}                              
+  </update>
+  
+  <!-- 查询最后时间 -->
+  <select id="searchEndDate" resultType="Date">
+  	  <![CDATA[
+  	  SELECT 
+  	  	MAX(END_DATE) 
+  	  FROM 
+  	  	ECHELON_HISTORY
+  	  WHERE
+  	  	END_DATE <> '9999-12-31'
+  	  	]]>
+  </select>
+  
+  <!-- 查询离本次最后时间最近的end_date -->
+  <select id="searchLastEndDate" resultType="Date" parameterType="String">
+  	  <![CDATA[
+	  	   SELECT 
+            echelon_history_key,
+	  	  	MAX(END_DATE) 
+	  	  FROM 
+	  	  	ECHELON_HISTORY
+	  	  WHERE
+	  	  	END_DATE<#{end_date}
+  	  	]]>
+  </select>
+</mapper>

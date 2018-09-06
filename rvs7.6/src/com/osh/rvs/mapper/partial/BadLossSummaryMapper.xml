@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.BadLossSummaryMapper">
+
+  <!-- 查询损金总计详细数据 -->
+  <select id="searchLossSummaryFrom" resultType="BadLossSummaryEntity">
+    <![CDATA[
+     SELECT 
+		work_period,
+		year,
+		month,
+		e_u_settlement,
+		ocm_check,
+		qa_check,
+		endoeye,
+		ccd_valid_length,
+		financy_budget,
+		comment
+ 	 FROM loss_summary
+ 	 where work_period = #{work_period}
+ 	 order by year, month
+ 	 ;
+ 	 ]]>
+  </select>
+  
+  <!-- 查询损金总计详细数据根据年份查询 -->
+  <select id="searchLossSummaryFromOfYear" parameterType="BadLossSummaryEntity" resultType="BadLossSummaryEntity">
+    <![CDATA[
+     SELECT 
+        ocm_check+
+		qa_check+
+		endoeye+
+		ccd_valid_length as loss_price,
+		work_period,
+		year,
+		month,
+		e_u_settlement,
+		ocm_check,
+		qa_check,
+		endoeye,
+		ccd_valid_length,
+		financy_budget,
+		comment
+ 	 FROM loss_summary
+ 	 where work_period = #{work_period} and month=#{month}
+ 	 order by year, month
+ 	 ;
+ 	 ]]>
+  </select>
+
+   <!-- 查询月损金总计详细数据 -->
+  <select id="searchLossSummaryOfMonth" resultType="BadLossSummaryEntity" parameterType="BadLossSummaryEntity">
+    <![CDATA[
+    SELECT 
+		work_period,
+		year,
+		month,
+		e_u_settlement,
+		ocm_check,
+		qa_check,
+		endoeye,
+		ccd_valid_length,
+		financy_budget,
+		comment
+ 	 FROM loss_summary
+ 	 ]]>
+ 	 <where>
+ 	 	<if test="work_period  !=null and work_period !='' and  month !=null and month !=''">
+ 	 	    work_period =#{work_period}
+ 	 	    and month=#{month}
+ 	 	</if>
+ 	 </where>
+  </select>
+
+  <!-- 查询出其他不良损金数据 -->
+  <select id="searchLossSummaryOfBelongs" parameterType="String" resultType="BadLossSummaryEntity">
+  <![CDATA[
+	select
+	belongs, sum(price * quantity * 
+	     case when vm.kind='06' then ls.e_u_settlement
+	     else 1 end
+	    ) as loss_price
+	from
+	(
+	select 
+		cast(m.material_id as char) as material_id,
+		m.model_id,
+		m.ocm_shipping_date,
+	    belongs,
+	    mpd.price,
+		mpd.quantity
+	from
+	    material_partial_detail mpd
+	        join
+	    material m ON m.material_id = mpd.material_id
+	]]>
+	<where>
+	    belongs >= 3
+	    <if test="ocm_shipping_month!=null and ocm_shipping_month!='' ">
+			<![CDATA[
+	        and m.ocm_shipping_date >=#{ocm_shipping_month}
+	        and (m.ocm_shipping_date <= last_day(#{ocm_shipping_month}))
+	        ]]>
+	    </if>
+	</where>   
+  	<![CDATA[
+	) rb
+	left join
+	    (select material_id,service_repair_flg,service_free_flg
+			from    service_repair_manage where material_id like '0%'
+		)	     srm ON rb.material_id = srm.material_id 
+	join
+	    v_model vm ON vm.model_id = rb.model_id
+	left join
+	    loss_summary ls
+			 ON year(ocm_shipping_date) = ls.`year` AND month(ocm_shipping_date) = ls.`month`
+	where
+		(srm.service_repair_flg not in (1,2) or srm.service_repair_flg is null or 
+			(srm.service_repair_flg = 1 and srm.service_free_flg = 1))
+ 	]]>
+	group by belongs	 
+  </select>
+  
+  <!-- 查询出其他不良损金数据总计 -->
+  <select id="searchTotalSummary" parameterType="String" resultType="BadLossSummaryEntity">
+  <![CDATA[
+	select 
+	     sum(mpd.price * mpd.quantity * 
+	     case when vm.kind='06' then ls.e_u_settlement
+	     else 1 end
+	    ) as loss_price
+	from
+	    material_partial_detail mpd
+	        join
+	    material m ON m.material_id = mpd.material_id
+	    	join
+	    v_model vm on vm.model_id = m.model_id
+	    	LEFT JOIN
+	    loss_summary ls
+			 ON year(m.ocm_shipping_date) = ls.`year` AND month(m.ocm_shipping_date) = ls.`month`
+		 left join 
+		(select * from service_repair_manage where material_id like '0%') srm
+		ON cast(m.material_id as char)  = srm.material_id
+	]]>
+	<where>
+	    belongs >= 3
+	    <if test="ocm_shipping_month!=null and ocm_shipping_month!='' ">
+			<![CDATA[
+	        and m.ocm_shipping_date >=#{ocm_shipping_month}
+	        and (m.ocm_shipping_date <= last_day(#{ocm_shipping_month}))
+	        ]]>
+	    </if>
+	    and 
+			(srm.service_repair_flg not in (1,2) or srm.service_repair_flg is null or 
+			(srm.service_repair_flg = 1 and srm.service_free_flg = 1))
+	</where>   
+  </select>
+
+ <!-- 查询出保修期内不良损金数据 -->
+  <select id="searchLossSummaryOfRepair" parameterType="String" resultType="BadLossSummaryEntity">
+  <![CDATA[
+	select  sum(tt.price) as loss_price
+	from (select 
+		    sum(mpd.quantity * mpd.price) - coalesce(qp.charge_amount, 0) as price
+		from
+		    loss_detail ld
+		        right join
+		    material_partial_detail mpd ON ld.material_partial_detail_key = mpd.material_partial_detail_key
+		        join
+		    material_partial mp ON mpd.material_id = mp.material_id
+		        and mpd.occur_times = mp.occur_times
+		        join
+		    material m ON m.material_id = mp.material_id
+		        JOIN
+		    v_model mdl ON m.model_id = mdl.model_id
+		        JOIN
+		    partial p ON mpd.partial_id = p.partial_id
+		        join
+		    (select material_id, service_repair_flg, service_free_flg,model_name,serial_no,rc_mailsend_date
+				from    service_repair_manage
+				where material_id like '0%'
+			)	 srm ON cast(`m`.material_id as char) = srm.material_id
+		        left join
+		    service_repair_analysis sra ON sra.model_name = srm.model_name
+		        and sra.serial_no = srm.serial_no
+		        and sra.rc_mailsend_date = srm.rc_mailsend_date
+		        left join
+		    qis_payout qp ON qp.model_name = srm.model_name
+		        and qp.serial_no = srm.serial_no
+		        and qp.rc_mailsend_date = srm.rc_mailsend_date
+		
+	]]>
+	<where>
+		srm.service_repair_flg = 1
+		and srm.service_free_flg in (2 , 3)
+		<if test="ocm_shipping_month!=null and ocm_shipping_month!='' ">
+	  	<![CDATA[
+		 AND m.ocm_shipping_date>=#{ocm_shipping_month} and (m.ocm_shipping_date <= last_day(#{ocm_shipping_month}))
+     	 ]]>
+		</if>
+	</where>   
+  <![CDATA[
+ 	)  tt 
+	]]>
+  </select>
+  <!-- 更新损金详细数据 -->
+	<update id="updateLossSummary" parameterType="BadLossSummaryEntity">
+		<![CDATA[
+		    UPDATE
+		          loss_summary
+		    SET
+		    	ocm_check=#{ocm_check},
+				qa_check=#{qa_check},
+				endoeye=#{endoeye},
+				ccd_valid_length=#{ccd_valid_length},
+				financy_budget=#{financy_budget},
+				work_period=#{work_period},
+				month=#{month},
+				year=#{year}
+			where work_period=#{work_period} and month=#{month}
+		]]>
+	</update>
+
+	<!-- 插入损金详细数据 -->
+	<select id="insertLossSummary" parameterType="BadLossSummaryEntity">
+	     <![CDATA[
+		    INSERT INTO 
+		    	loss_summary 
+		    	(ocm_check,
+		    	e_u_settlement,
+				qa_check,
+				endoeye,
+				ccd_valid_length,
+				financy_budget,
+				work_period,
+				month,
+				year)
+		    VALUES(
+			]]>
+	       #{ocm_check},#{e_u_settlement},#{qa_check},#{endoeye},#{ccd_valid_length},#{financy_budget},#{work_period},#{month},#{year})
+	</select>
+	
+	<!-- 更新备注 -->	
+	<update id="updateLossSummaryOfComment" parameterType="BadLossSummaryEntity">
+		<![CDATA[
+			UPDATE
+				loss_summary
+			SET
+				comment=#{comment}
+			where work_period=#{work_period} and month=#{month}
+		]]>
+	</update>
+	
+	<!-- 更新备注 -->	
+	<update id="updateLossSummaryOfSettlement" parameterType="BadLossSummaryEntity">
+		<![CDATA[
+			UPDATE
+				loss_summary
+			SET
+				e_u_settlement=#{e_u_settlement}
+			where work_period=#{work_period} and month=#{month}
+		]]>
+	</update>
+	
+	<!-- 获取所有SORC财年 -->
+	<select id="getAllWorkPeriods" resultType="String">
+		<![CDATA[
+			select work_period from loss_summary group by work_period
+		]]>
+	</select>
+</mapper>

@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qa.QualityAssuranceMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="getWaitings" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id,
+			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
+			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.scheduled_expedited,
+			  `mp`.finish_date as finish_time,m.qa_check_time
+			FROM material m
+			JOIN model mdl ON `m`.model_id = `mdl`.model_id
+			JOIN production_feature pf
+			  ON `m`.material_id = `pf`.material_id
+			  AND `pf`.position_id = #{position_id}
+			  AND `pf`.action_time is null
+			  AND  pf.finish_time is null
+			LEFT JOIN material_process mp
+				ON mp.material_id = m.material_id
+				AND mp.line_id = 14
+			ORDER BY operate_result DESC, reception_time
+		]]>
+	</select>
+
+	<select id="getFinished" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id,
+			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
+			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `m`.inline_time, pf.finish_time as quotation_time,
+			  `mp`.finish_date as finish_time
+			FROM material m
+			JOIN model mdl ON `m`.model_id = `mdl`.model_id
+			JOIN production_feature pf
+			  ON `m`.material_id = `pf`.material_id
+			  AND `pf`.position_id = #{position_id}
+			  AND `pf`.operate_result = 2
+			  AND `pf`.finish_time > current_date
+			LEFT JOIN material_process mp
+				ON mp.material_id = m.material_id
+				AND mp.line_id = 14
+			ORDER BY quotation_time DESC
+		]]>
+	</select>
+
+	<select id="getMaterialDetail" resultType="MaterialEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT 
+			`m`.material_id,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			`m`.esas_no,
+			`m`.model_id,
+			`mdl`.name as model_name,
+			`mdl`.category_id,
+			`m`.serial_no,
+			`m`.ocm,
+			`m`.bound_out_ocm,
+			`m`.level,
+			`m`.direct_flg,
+			`m`.fix_type,
+			`m`.service_repair_flg,
+			`m`.section_id,
+			`m`.pat_id,
+			`m`.reception_time,
+			`m`.qa_check_time,
+			`m`.agreed_date,
+			`mp`.finish_date as finish_time
+		 FROM material m 
+		 JOIN v_model mdl
+		 	ON `m`.model_id = `mdl`.model_id
+		LEFT JOIN material_process mp
+			ON mp.material_id = m.material_id
+			AND mp.line_id = 14
+		 WHERE `m`.material_id = #{material_id};
+	]]>
+	</select>
+
+	<update id="updateMaterial" parameterType="MaterialEntity">
+		<![CDATA[ 
+		UPDATE Material SET 
+		]]>
+			<if test="qa_check_time!= null">
+		<![CDATA[ 
+				qa_check_time = current_timestamp
+				, sorc_no = null
+		]]>
+			</if>
+			<if test="outline_time!= null">
+		<![CDATA[ 
+				outline_time = coalesce(outline_time, current_timestamp)
+		]]>
+			</if>
+			<if test="bound_out_ocm!= null">
+		<![CDATA[ 
+				, bound_out_ocm = #{bound_out_ocm}
+		]]>
+			</if>
+			<if test="package_no!= null">
+		<![CDATA[ 
+				, bound_out_package_no = #{package_no}
+		]]>
+			</if>
+			<if test="ocm_shipping_date!= null">
+		<![CDATA[ 
+				, ocm_shipping_date = current_date
+		]]>
+			</if>
+		<![CDATA[ 
+		WHERE material_id = #{material_id}
+		-- AND outline_time IS NULL
+		;
+		]]>
+	</update>
+
+	<update id="forbidMaterial" parameterType="String">
+		<![CDATA[ 
+		UPDATE Material SET 
+				qa_check_time = null
+		WHERE material_id = #{material_id};
+		]]>
+	</update>
+
+	<select id="getWaitingsFiling" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id,
+			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
+			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `m`.inline_time, pf.finish_time as quotation_time,
+			  `mp`.finish_date as finish_time
+			FROM material m
+			JOIN model mdl ON `m`.model_id = `mdl`.model_id
+			JOIN production_feature pf
+			  ON `m`.material_id = `pf`.material_id
+			  AND `pf`.position_id = #{position_id}
+			  AND `pf`.operate_result = 2
+			  AND `pf`.finish_time > current_date
+			LEFT JOIN material_process mp
+				ON mp.material_id = m.material_id
+				AND mp.line_id = 14
+			WHERE `m`.filing_time IS NULL
+			ORDER BY quotation_time DESC
+		]]>
+	</select>
+
+	<select id="getFinishedFiling" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id,
+			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
+			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `m`.inline_time, 
+			  -- `m`.filing_time as filing_time,
+			  `mp`.finish_date as finish_time
+			FROM material m
+			JOIN model mdl ON `m`.model_id = `mdl`.model_id
+			LEFT JOIN material_process mp
+				ON mp.material_id = m.material_id
+				AND mp.line_id = 14
+			-- WHERE `m`.filing_time > current_date
+			-- ORDER BY filing_time DESC
+		]]>
+	</select>
+
+	<update id="updateMaterialFiling" parameterType="String">
+		<![CDATA[ 
+		UPDATE Material SET 
+				filing_time = current_timestamp
+		WHERE material_id = #{material_id};
+		]]>
+	</update>
+
+	<select id="getQualityAssuranceDataForMonth" resultType="map" parameterType="String">
+		<![CDATA[
+			SELECT COALESCE(SUM(process_count),0) as process_count,
+				COALESCE(SUM(fail_count),0) as fail_count
+			FROM qa_work_count_for_scan qwcfs
+			WHERE qwcfs.`year_month` = #{year_month};
+		]]>
+	</select>
+
+	<select id="getQualityAssuranceDataForWeek" resultType="map" parameterType="String">
+		<![CDATA[
+			SELECT start_date,
+				end_date,
+				process_count,
+				fail_count
+			FROM qa_work_count_for_scan qwcfs
+			WHERE qwcfs.`year_month` = #{year_month}
+			ORDER BY week_of_month;
+		]]>
+	</select>
+
+	<update id="updateQualityAssuranceDataForWeek" parameterType="String">
+		<![CDATA[
+			REPLACE INTO qa_work_count_for_scan
+			(`YEAR_MONTH`, WEEK_OF_MONTH, PROCESS_COUNT, FAIL_COUNT, START_DATE, END_DATE)
+			VALUES 
+			(#{year_month}, #{week_of_month}, #{process_count}, #{fail_count},
+			#{start_date}, #{end_date});
+		]]>
+	</update>
+
+	<update id="addQaWorkCount" parameterType="String">
+		<![CDATA[
+			UPDATE qa_work_count_for_scan
+			SET process_count = process_count + #{proceed},
+			fail_count = fail_count + #{forbid}
+			WHERE `year_month` = #{year_month}
+			AND start_date <= #{date}
+			AND end_date >= #{date}
+			;
+		]]>
+	</update>
+</mapper>

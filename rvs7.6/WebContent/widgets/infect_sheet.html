@@ -1,0 +1,56 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style>
+.gtitle > td{background-color:lightgray;}
+.sign_v {
+/*transform: rotate(90deg);*/
+}
+
+.tcs_content > td{border:1px solid black;text-align:center;}
+.tcs_content > td.HL{text-align:left;}
+.tcs_content > td:first-child{border-left:2px solid black;}
+.tcs_content > td:last-child{border-right:2px solid black;}
+
+#check_sheet table {
+	min-width:1280px;
+}
+#check_sheet.tcs_sheet input[type="text"] {
+	background:transparent;
+	border: 0;
+	border-bottom: 1px solid;
+	width:3em;
+}
+td.tcs_input {
+background-color : #93C3CD;
+}
+
+#check_sheet tr[stat=change] td.tcs_input[status="2"] {
+background-color : #FF5555;
+}
+#check_sheet tr[stat=change] td.tcs_input[status="-1"] {
+background-color : #FF55FF;
+}
+#check_sheet tr[stat=change] td.tcs_input {
+background-color : #FFFFBB;
+}
+#check_sheet .useEnd[expire="1"] {
+background-color : #FF5555;
+}
+#check_sheet .useEnd[expire="0"] {
+background-color : #FFFFBB;
+}
+.tcs_sheet .ui-button-text-only .ui-button-text {
+	padding: 0.1em 0.1em
+}
+#coz textarea {
+	resize:none;
+	height:3em;
+	width:20em;
+}
+	
+</style>
+<div id="check_sheet" class="tcs_sheet" style=""></div>
+<div id="confirmmessage"></div>
+<div id="c_comment"></div>
+<div id="manage_replace_panel" style="display:none;">
+替换新品管理编号: <input type="text" /><input type="button" class="ui-button" value="替换" onclick="doExchange()"/>

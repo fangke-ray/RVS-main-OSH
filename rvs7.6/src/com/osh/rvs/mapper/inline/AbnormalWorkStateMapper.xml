@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.AbnormalWorkStateMapper">
+
+	<select id="getAbnormalWorkStateByOperator" parameterType="java.util.Date" resultType="map">
+		SELECT `operator_id`,
+		    `abnormal_type`,
+		    `occur_date`
+		FROM `abnormal_work_state`
+		WHERE `operator_id` = #{operator_id}
+		AND abnormal_type in (1);
+	</select>
+
+</mapper>

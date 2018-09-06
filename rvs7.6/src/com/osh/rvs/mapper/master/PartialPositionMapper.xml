@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PartialPositionMapper">
+ <select id="searchPartialPosition" parameterType="PartialPositionEntity" resultType="PartialPositionEntity">
+	SELECT 
+		PA.CODE,
+		PA.NAME,
+		PPB.new_partial_id,
+		PO.PROCESS_CODE AS PROCESS_CODE,
+		PPB.HISTORY_LIMIT_DATE,
+	    COALESCE(O.NAME,O_NEW.NAME) AS UPDATED_BY,
+	    COALESCE(PWMH.UPDATED_TIME,PWMH_NEW.UPDATED_TIME) AS UPDATED_TIME,
+		PWMH_NEW.ACTIVE_DATE,
+		PPB.MODEL_ID,
+		PPB.PARTIAL_ID,
+		PA_P.CODE AS parent_partial_CODE,
+		PPB.POSITION_ID,
+		M.NAME AS MODEL_NAME
+	 <if test="level!=null and level!='' ">		
+		,PBS.PARTIAL_ID IS NOT NULL AS BOM,
+		 p_use.p_rate as userate
+	</if>  
+	  FROM 
+	     PARTIAL_POSITION_BELONG PPB
+	  JOIN
+		 MODEL M 
+	  ON 
+	     PPB.MODEL_ID =M.MODEL_ID
+	  JOIN 
+		 PARTIAL PA
+	  ON 
+		 PPB.PARTIAL_ID = PA.PARTIAL_ID
+	  LEFT JOIN 
+		 PARTIAL PA_P
+	  ON 
+		 PPB.parent_partial_id = PA_P.PARTIAL_ID
+	  LEFT JOIN 
+		 POSITION PO
+	  ON 
+		 PPB.POSITION_ID = PO.POSITION_ID
+	  LEFT JOIN 
+	     PARTIAL_WASTE_MODIFY_HISTORY PWMH
+	  ON
+	     PWMH.MODEL_ID = PPB.MODEL_ID
+	  AND 
+	     PWMH.OLD_PARTIAL_ID = PPB.PARTIAL_ID
+	  LEFT JOIN 
+	     PARTIAL_WASTE_MODIFY_HISTORY PWMH_NEW
+	  ON
+	     PWMH_NEW.MODEL_ID = PPB.MODEL_ID
+	  AND 
+	     PWMH_NEW.NEW_PARTIAL_ID = PPB.PARTIAL_ID
+	<if test="level!=null and level!='' ">
+	  LEFT JOIN 
+		PARTIAL_BOM_SET PBS 
+		ON PPB.MODEL_ID = PBS.MODEL_ID
+		AND  PBS.level = LEFT(#{level},1)
+	  AND  PPB.PARTIAL_ID = PBS.PARTIAL_ID 
+	  	  
+	  left join
+	   (
+		select partial_id,
+		count(1) / g_m.total * 100 as p_rate from (
+		select m.material_id,partial_id from material_partial_detail mpd
+		join material m
+		on mpd.material_id = m.material_id
+		WHERE m.model_id = #{model_id} and m.level = #{level}
+		group by m.material_id,partial_id
+		) g_mp
+		join
+		(
+		select count(distinct m.material_id) as total from
+		material_partial_detail mpd
+		join material m
+		on mpd.material_id = m.material_id
+		WHERE m.model_id = #{model_id} and m.level = #{level}
+		) g_m
+		group by partial_id
+		) p_use
+	   on p_use.partial_id =PPB.partial_id 	   
+	</if>  
+      LEFT JOIN 
+         OPERATOR O_NEW
+      ON PWMH_NEW.UPDATED_BY=O_NEW.OPERATOR_ID	
+      LEFT JOIN 
+         OPERATOR O
+      ON PWMH.UPDATED_BY=O.OPERATOR_ID	
+	<where>
+	<if test="history_limit_date!=null and history_limit_date!='' ">
+		<![CDATA[
+		  PPB.HISTORY_LIMIT_DATE>=CURRENT_TIMESTAMP
+		]]>
+	</if>	
+	<if test="code!=null and code!='' ">
+		<![CDATA[
+	     AND PA.CODE LIKE CONCAT(#{code},'%')
+		]]>
+	</if>
+	<if test="model_id!=null and model_id!='' ">
+		<![CDATA[
+	     AND PPB.MODEL_ID=#{model_id}
+		]]>
+	</if>
+	<if test="partial_id!=null and partial_id!='' ">
+		<![CDATA[
+		 AND  PPB.PARTIAL_ID=#{partial_id}
+		]]>
+	</if>
+	<if test="position_id!=null and position_id!='' ">
+		<![CDATA[
+		 AND  PPB.POSITION_ID=#{position_id}
+		]]>
+	</if>
+    </where>
+    ORDER BY
+      PA.UPDATED_TIME
+ </select>
+
+	<!-- 根据code查询出partial_id -->
+  <select id="checkPartialPosition" resultType="String" parameterType="PartialPositionEntity">
+   <![CDATA[ 
+			SELECT partial_id
+			FROM partial_position_belong
+			WHERE 
+			 model_id=#{model_id} and position_id =#{position_id}
+		]]>
+		<if test="partial_id!= null and partial_id!= '' ">
+			<![CDATA[ 
+				AND partial_id = #{partial_id}
+			]]>
+		</if>
+		 
+  </select>  
+ <insert id="insertPartialPosition" parameterType="PartialPositionEntity">
+   INSERT INTO PARTIAL_POSITION_BELONG (
+        MODEL_ID,                                                                
+		PARTIAL_ID,                                                                                                   
+		POSITION_ID,                                                                                                  
+		NEW_PARTIAL_ID, 		                                                                                            
+		PARENT_PARTIAL_ID,
+		HISTORY_LIMIT_DATE                                                                                             
+		)VALUES(#{model_id},#{partial_id},#{position_id},#{new_partial_id},#{parent_partial_id},'9999/12/31')    
+ </insert>
+
+ <delete id="clearPartialPositionOfModel" parameterType="PartialPositionEntity">
+		 DELETE 
+		 FROM
+			 PARTIAL_POSITION_BELONG
+		 WHERE
+		 	MODEL_ID=#{model_id}
+		 AND
+		 	partial_id = #{partial_id}
+ </delete>
+
+  <delete id="deletePartialPosition" parameterType="String">
+		 DELETE 
+		 FROM
+			 PARTIAL_POSITION_BELONG
+		 WHERE
+		 	MODEL_ID=#{model_id}
+ </delete>
+ 
+ <update id="updatePartialPosition" parameterType="PartialPositionEntity">
+	   <![CDATA[
+	    UPDATE 
+	    	PARTIAL_POSITION_BELONG
+	    SET 
+	    	HISTORY_LIMIT_DATE=#{history_limit_date},
+	    	NEW_PARTIAL_ID=#{new_partial_id}
+	    WHERE 
+	    	MODEL_ID=#{model_id} AND ( PARTIAL_ID=#{partial_id} OR NEW_PARTIAL_ID=#{partial_id}) AND POSITION_ID=#{position_id}
+	   ]]>
+ </update>
+ 
+ <update id="updatePartialPositionOldHistoryLimitDate" parameterType="PartialPositionEntity">
+ 	   <![CDATA[
+ 	    update 
+ 	    	partial_position_belong 
+		set 
+			history_limit_date=#{history_limit_date}
+ 	    where 
+ 	    	partial_id=#{old_partial_id} 
+ 	    	and model_id=#{model_id}
+ 	    	and position_id=#{position_id};
+ 	 ]]>
+ </update>
+ 
+  <update id="insertPartialWasteModifyHistory" parameterType="PartialPositionEntity">
+	   <![CDATA[
+	    INSERT INTO 
+	    	PARTIAL_WASTE_MODIFY_HISTORY(
+	    	MODEL_ID,
+	    	OLD_PARTIAL_ID,
+	    	NEW_PARTIAL_ID,
+	    	UPDATED_BY,
+	    	UPDATED_TIME,
+	    	ACTIVE_DATE)
+	   VALUES 
+	    	(#{model_id},#{partial_id},#{new_partial_id},#{updated_by},current_timestamp,#{history_limit_date})
+	   ]]>
+ </update>
+ 
+</mapper>

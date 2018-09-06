@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qa.ServiceRepairRefereeMapper">
+	<select id="searchServiceRepair" resultType="ServiceRepairManageEntity" parameterType="String">
+		<![CDATA[
+			SELECT
+				srm.material_id,
+				srm.model_name,
+				srm.serial_no,
+				srm.service_repair_flg,
+				COALESCE(srm.sorc_no,ma.omr_notifi_no,ma.sorc_no) AS sorc_no,
+				srm.rc_mailsend_date,
+				srm.rc_ship_assign_date,
+				COALESCE(ma.reception_time,srpm.reception_date) AS reception_date,
+				qp.quality_info_no
+			FROM
+				service_repair_manage srm			
+			LEFT JOIN 
+				service_repair_past_material srpm
+			ON 
+				srm.model_name=srpm.model_name
+			    AND srm.serial_no=srpm.serial_no 
+			    AND srm.rc_mailsend_date=srpm.rc_mailsend_date
+			LEFT JOIN 
+				qis_payout qp
+			on
+				srm.model_name=qp.model_name and srm.serial_no=qp.serial_no and srm.rc_mailsend_date=qp.rc_mailsend_date
+		    LEFT JOIN
+			    material ma
+			ON 
+				srm.material_id=ma.material_id
+			WHERE
+				srm.qa_reception_time is null AND srm.qa_referee_time is null
+		]]>
+		<if test="material_id!=null and material_id!='' ">
+			<![CDATA[
+				 AND srm.material_id=#{material_id}
+			]]>
+		</if>
+	</select>
+	
+	<select id="checkServiceRepairManageExist" resultType="ServiceRepairManageEntity" parameterType="String">
+		<![CDATA[
+		SELECT
+			srm.material_id,
+		    srm.model_name,
+			srm.serial_no,
+			COALESCE(srm.sorc_no,ma.omr_notifi_no,ma.sorc_no) AS sorc_no,
+			srm.rc_mailsend_date,
+			srm.rc_ship_assign_date,
+			srm.qa_reception_time,
+			srm.service_repair_flg,
+			srm.rank,
+			srm.service_free_flg,
+			srm.workshop,
+			srm.countermeasures,
+			srm.`comment`,
+			qp.quality_info_no,
+			qp.qis_invoice_no,
+			qp.qis_invoice_date,
+			qp.include_month,
+			qp.charge_amount,
+			srm.etq_no
+		FROM
+			service_repair_manage srm
+		LEFT JOIN
+			material ma
+		on 	srm.material_id=ma.material_id
+		left join
+			qis_payout qp
+		on
+			srm.model_name=qp.model_name and srm.serial_no=qp.serial_no and srm.rc_mailsend_date=qp.rc_mailsend_date
+		WHERE  
+			srm.material_id=#{material_id}
+		]]>
+	</select>
+	
+	<update id="updateQareceptionTime" parameterType="String">
+		<![CDATA[
+			update
+				service_repair_manage
+			set
+				qa_reception_time=current_timestamp()
+
+		]]>
+		<where>
+		<if test="material_id!=null and material_id!='' ">
+			<![CDATA[
+				 material_id=#{material_id}
+			]]>
+		</if>
+		</where>
+	</update>
+	
+	<!-- <select id="searchQisPayout" resultType="ServiceRepairManageEntity" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			select
+				quality_info_no,
+				qis_invoice_no,
+				qis_invoice_date,
+				include_month,
+				charge_amount
+			from
+				qis_payout
+		]]>
+		<where>
+			<if test="model_name!=null and model_name!='' ">
+				<![CDATA[
+					model_name=#{model_name}
+				]]>
+			</if>
+			<if test="serial_no!=null and serial_no!='' ">
+				<![CDATA[
+					AND serial_no=#{serial_no}
+				]]>
+			</if>
+			<if test="rc_mailsend_date!=null and rc_mailsend_date!='' ">
+				<![CDATA[
+					AND rc_mailsend_date=#{rc_mailsend_date}
+				]]>
+			</if>
+		</where>
+	</select> -->
+	
+	<update id="updateServiceRepair" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				service_repair_manage
+			SET
+				]]>
+			<if test="service_repair_flg!=null and service_repair_flg!='' ">
+				<![CDATA[
+				service_repair_flg=#{service_repair_flg},
+				]]>
+			</if>
+			<if test="rc_mailsend_date!=null and rc_mailsend_date!='' ">
+				<![CDATA[
+				rc_mailsend_date=#{rc_mailsend_date},
+				]]>
+			</if>
+				rc_ship_assign_date=#{rc_ship_assign_date},
+			<if test="qa_referee_time!=null and qa_referee_time!='' ">
+				<![CDATA[
+				  answer_in_deadline = (
+				  	case (round((f_getworkdays(QA_RECEPTION_TIME, current_timestamp) * 24) + (f_diffworktime(QA_RECEPTION_TIME, current_timestamp) * 8)) - 0.00000001) div 24
+				        when 0 then 2
+				        when 1 then 1
+				        ELSE 0
+				    end
+				  ),
+			      qa_referee_time = current_timestamp, 
+				]]>
+			</if>
+				<![CDATA[
+				kind = #{kind},
+				rank=#{rank},
+				service_free_flg=#{service_free_flg},
+				workshop=#{workshop},
+				countermeasures=#{countermeasures},
+				comment=#{comment},
+				etq_no = #{etq_no}
+			WHERE
+				 material_id=#{material_id}
+		]]>
+	</update>
+
+	<select id="findPausing" resultType="ServiceRepairManageEntity">
+		<![CDATA[
+			SELECT
+				srm.material_id,
+				srm.model_name,
+				srm.serial_no,
+				COALESCE(srm.sorc_no,ma.omr_notifi_no, ma.sorc_no) AS sorc_no,
+				srm.qa_reception_time,
+				srm.rc_mailsend_date,
+				srm.rc_ship_assign_date,
+				cast((f_getworkdays(srm.qa_reception_time, current_timestamp) * 8 
+					+ f_diffworktime(srm.qa_reception_time, current_timestamp)) as SIGNED) as answer_in_deadline
+			FROM
+				service_repair_manage srm	
+			LEFT JOIN
+				material ma
+			on 	srm.material_id=ma.material_id
+			WHERE
+				srm.qa_reception_time is NOT null AND srm.qa_referee_time is null
+			AND NOT exists (select 1 from solo_production_feature where serial_no = srm.serial_no and model_name = srm.model_name
+				and judge_date=srm.rc_mailsend_date and action_time is not null and finish_time is null)
+		]]>
+		<if test="material_id!=null and material_id!='' ">
+			<![CDATA[
+				 AND srm.material_id=#{material_id}
+			]]>
+		</if>
+			<![CDATA[
+			ORDER BY
+				srm.qa_reception_time
+			]]>
+	</select>
+	
+	<delete id="deleteQisPayout" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			DELETE
+			FROM
+				qis_payout
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</delete>
+	
+	<update id="updateQisPayout" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			update 
+				qis_payout
+			set
+				quality_info_no=#{quality_info_no}
+			where
+				model_name=#{model_name} AND serial_no=	#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</update>
+	
+</mapper>

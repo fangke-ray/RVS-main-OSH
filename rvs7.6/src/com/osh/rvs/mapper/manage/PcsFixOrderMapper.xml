@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.PcsFixOrderMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getPcsFixOrder" resultType="PcsFixOrderEntity" parameterType="PcsFixOrderEntity">
+		<![CDATA[ 
+		SELECT
+			`pfo`.`pcs_fix_order_key`,
+			`pfo`.`material_id`,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			`pfo`.`sender_id`,
+			osd.name as sender_name,
+			`pfo`.`comment`,
+			`pfo`.`status`,
+			`pfo`.`update_time`
+		FROM `pcs_fix_order` pfo
+		JOIN material m ON `pfo`.`material_id` = `m`.`material_id`
+		JOIN operator osd ON `pfo`.`sender_id` = `osd`.operator_id
+		WHERE `pfo`.`pcs_fix_order_key` = #{pcs_fix_order_key};
+		]]>
+	</select>
+
+	<select id="searchPcsFixOrders" resultType="PcsFixOrderEntity" parameterType="PcsFixOrderEntity">
+		<![CDATA[ 
+		SELECT
+			`pfo`.`pcs_fix_order_key`,
+			`pfo`.`material_id`,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			`pfo`.`sender_id`,
+			osd.name as sender_name,
+			osd.line_id,
+			`pfo`.`comment`,
+			`pfo`.`status`,
+			`pfo`.`update_time`
+		FROM `pcs_fix_order` pfo
+		JOIN material m ON `pfo`.`material_id` = `m`.`material_id`
+		JOIN operator osd ON `pfo`.`sender_id` = `osd`.operator_id
+		]]>
+		<where>
+			<if test="status!=null ">
+				AND `pfo`.`status` = #{status}
+			</if>
+			<if test="sender_id!= null and sender_id!= '' ">
+				AND `pfo`.`sender_id` = #{sender_id}
+			</if>
+			<if test="sorc_no!=null and sorc_no!='' ">
+				AND (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="comment!=null and comment!='' ">
+				AND `pfo`.`comment` LIKE CONCAT('%', #{comment}, '%')
+			</if>
+			<if test="update_time_start!=null and update_time_start!='' ">
+			<![CDATA[ 
+				AND `pfo`.`update_time` >= #{update_time_start}
+			]]>
+			</if>
+			<if test="update_time_end!=null and update_time_end!='' ">
+			<![CDATA[ 
+				AND date(`pfo`.`update_time`) <= #{update_time_end}
+			]]>
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY `pfo`.`update_time` DESC;
+		]]>
+	</select>
+
+	<insert id="createPcsFixOrder" parameterType="PcsFixOrderEntity">
+		<![CDATA[ 
+		INSERT INTO `pcs_fix_order` 
+			(`material_id`, `sender_id`, `comment`, `status`, `update_time`) 
+		VALUES 
+			(#{material_id}, #{sender_id}, #{comment}, #{status}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="resolvePcsFixOrder" parameterType="PcsFixOrderEntity">
+		<![CDATA[ 
+		UPDATE `pcs_fix_order` SET `status` = #{status},
+			`update_time` = current_timestamp
+		WHERE `pcs_fix_order_key` = #{pcs_fix_order_key};
+		]]>
+	</update>
+
+	<update id="updateInputs" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE `production_feature` SET `pcs_inputs` = #{pcs_inputs}
+		WHERE material_id = #{material_id}
+		AND position_id = #{position_id}
+		AND pace = #{pace}
+		AND rework = #{rework}
+		AND section_id = #{section_id}
+		]]>
+	</update>
+
+	<update id="updateInputsLeader" parameterType="String">
+		<![CDATA[ 
+		UPDATE `leader_pcs_input` SET `pcs_inputs` = #{pcs_inputs}
+		WHERE leader_pcs_key = #{leader_pcs_key};
+		]]>
+	</update>
+
+	<update id="updateComments" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE `production_feature` SET `pcs_comments` = #{pcs_comments}
+		WHERE material_id = #{material_id}
+		AND position_id = #{position_id}
+		AND pace = #{pace}
+		AND rework = #{rework}
+		AND section_id = #{section_id}
+		]]>
+	</update>
+
+	<update id="updateCommentsLeader" parameterType="String">
+		<![CDATA[ 
+		UPDATE `leader_pcs_input` SET `pcs_comments` = #{pcs_comments}
+		WHERE leader_pcs_key = #{leader_pcs_key};
+		]]>
+	</update>
+</mapper>

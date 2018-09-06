@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.DryingOvenDeviceMapper">
+
+	<!--一览结果 -->
+	<select id="search" resultType="DryingOvenDeviceEntity" parameterType="DryingOvenDeviceEntity">
+		<![CDATA[ 
+			SELECT
+				dod.device_manage_id,
+				dm.manage_code,
+				dm.model_name,
+				dod.setting_temperature,
+				dod.slot,
+				section.name as section_name,
+				po.process_code,
+				dt.name AS device_name
+			FROM 
+				drying_oven_device dod
+			join
+				devices_manage dm
+			on
+				dod.device_manage_id = dm.devices_manage_id
+			LEFT join
+				section
+			on
+				section.section_id = dm.section_id
+			LEFT JOIN
+		   		position po 
+		   	ON 
+		   		dm.position_id = po.position_id
+		   LEFT JOIN
+				devices_type dt
+			ON
+				dm.devices_type_id = dt.devices_type_id
+		]]>
+		<where>
+			<if test="device_manage_id!=null and device_manage_id!=''">
+			<![CDATA[
+				dod.device_manage_id = #{device_manage_id}
+			]]>
+			</if>
+			<if test="setting_temperature!=null and setting_temperature!=''">
+			<![CDATA[
+				AND dod.setting_temperature = #{setting_temperature}
+			]]>
+			</if>
+		</where>
+	</select>
+
+	<!-- 查询所有烘箱管理 -->
+	<select id="searchAllDryingOvenDevice" resultType="DryingOvenDeviceEntity">
+	   <![CDATA[
+	   SELECT 
+		    dm.devices_manage_id AS device_manage_id,
+		    dm.manage_code,
+		    dm.model_name,
+		    po.process_code,
+		    section.name AS section_name,
+		    dt.name AS device_name
+		FROM
+		    devices_manage dm
+		LEFT JOIN
+		    position po ON dm.position_id = po.position_id
+		LEFT JOIN
+			section
+		ON
+			section.section_id = dm.section_id
+		LEFT JOIN
+			devices_type dt
+		ON
+			dm.devices_type_id = dt.devices_type_id
+		WHERE
+		    dt.specialized = 5
+		ORDER BY dm.manage_code ASC
+	   ]]>
+	</select>
+
+	<!-- 判断烘箱管理是否存在 -->
+	<select id="checkIsExist" resultType="DryingOvenDeviceEntity" parameterType="DryingOvenDeviceEntity">
+   		<![CDATA[
+   			SELECT * from drying_oven_device where device_manage_id = #{device_manage_id}
+   		]]>
+	</select>
+
+	<!-- 新建烘箱管理 -->
+	<insert id="insert" parameterType="DryingOvenDeviceEntity">
+	   <![CDATA[
+	   		insert into drying_oven_device(device_manage_id,setting_temperature,slot) values(#{device_manage_id},#{setting_temperature},#{slot})
+	   ]]>
+	</insert>
+
+	<!-- 更新烘箱管理 -->
+	<update id="update" parameterType="DryingOvenDeviceEntity">
+	    <![CDATA[
+	    	update drying_oven_device set setting_temperature = #{setting_temperature},slot = #{slot} where device_manage_id = #{device_manage_id}
+	    ]]>
+	</update>
+
+	<!-- 删除烘箱管理 -->
+	<delete id="delete" parameterType="DryingOvenDeviceEntity">
+	   	<![CDATA[
+	   		delete from drying_oven_device where device_manage_id = #{device_manage_id}
+	   	]]>
+	</delete>
+</mapper>

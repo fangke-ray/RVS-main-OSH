@@ -1,0 +1,191 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.QuotationMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getWaitings" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id,
+			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
+			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.quotation_first
+			FROM material m
+			JOIN model mdl ON `m`.model_id = `mdl`.model_id
+			JOIN production_feature pf
+			  ON `m`.material_id = `pf`.material_id
+			  AND `pf`.position_id in 
+		]]>
+		<foreach item="position_id" index="index" collection="array" open="(" separator="," close=")">
+			#{position_id}
+		</foreach>
+		<![CDATA[
+			  AND `pf`.operate_result = 0
+			  AND `pf`.action_time is null
+			ORDER BY operate_result DESC, reception_time
+		]]>
+	</select>
+
+	<select id="getPaused" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id,
+			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
+			  `m`.`level`, `m`.direct_flg, 
+			  `m`.service_repair_flg + (qa_referee_time IS NOT NULL) * 10 as service_repair_flg, 
+			  `m`.reception_time, `m`.fix_type,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result as now_operate_result,
+			  `psf`.reason as now_pause_reason, `pf`.position_id as processing_position, 
+			  (current_timestamp - `wpf`.action_time) > 2000000 as quotation_first, `m`.scheduled_expedited
+			FROM material m
+			JOIN model mdl ON `m`.model_id = `mdl`.model_id
+			JOIN production_feature pf
+			  ON `m`.material_id = `pf`.material_id
+			  AND `pf`.position_id in 
+		]]>
+		<foreach item="position_id" index="index" collection="array" open="(" separator="," close=")">
+			#{position_id}
+		</foreach>
+		<![CDATA[
+			  AND `pf`.operate_result = 4
+			  AND `pf`.action_time is null
+		    JOIN production_feature wpf
+        		ON `pf`.material_id = `wpf`.material_id
+        		AND `wpf`.position_id = 9
+        		AND `pf`.rework = `wpf`.rework
+        		AND `wpf`.pace = 0
+			LEFT JOIN (select * from pause_feature
+				where PAUSE_FINISH_TIME IS NULL
+				) psf
+				ON `pf`.material_id = `psf`.material_id
+				AND `psf`.position_id = `pf`.position_id
+			LEFT JOIN (select cast(material_id as unsigned) material_id, qa_referee_time 
+				from service_repair_manage where material_id like '0%') `srm`
+				ON `m`.material_id = `srm`.material_id
+			ORDER BY now_pause_reason DESC, qa_referee_time IS NULL, quotation_first desc, scheduled_expedited desc, now_operate_result DESC, reception_time
+		]]>
+	</select>
+
+	<select id="getFinished" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT `m`.material_id, coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm, COALESCE(`m`.wip_location, '同意') as wip_location,
+			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
+				(CASE 
+					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
+						THEN 7
+					WHEN mdl.category_id = 00000000013 OR `m`.fix_type = 2
+						THEN 4
+					WHEN mdl.category_id = 00000000016
+						THEN 5
+					WHEN mdl.kind = 03
+						THEN 6 
+					WHEN mdl.kind = 07
+						THEN 3 
+					WHEN `m`.level = 1
+						THEN 8
+					ELSE 14
+				END + (coalesce(`m`.service_repair_flg, 0) = 2)) as ticket_flg,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `m`.inline_time, pf.finish_time as quotation_time
+			FROM material m
+			JOIN v_model mdl ON `m`.model_id = `mdl`.model_id
+			JOIN production_feature pf
+			  ON `m`.material_id = `pf`.material_id
+			  AND `pf`.position_id in 
+		]]>
+		<foreach item="position_id" index="index" collection="array" open="(" separator="," close=")">
+			#{position_id}
+		</foreach>
+		<![CDATA[
+			  AND `pf`.operate_result = 2
+			  AND `m`.break_back_flg = 0
+			  AND `m`.inline_time IS NULL
+			  AND `m`.outline_time IS NULL
+			  AND pf.finish_time > current_date
+			ORDER BY quotation_time DESC
+		]]>
+	</select>
+
+	<select id="getMaterialDetail" resultType="MaterialEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT 
+			`m`.material_id,
+			coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			`m`.esas_no,
+			`m`.model_id,
+			`mdl`.name as model_name,
+			`mdl`.category_name,
+			coalesce(`m`.pat_id, mdl.default_pat_id) as pat_id,
+			pat.name as section_name,
+			`m`.serial_no,
+			`m`.ocm,
+			`cstm`.name as customer_name,
+			`cstm`.vip as quotation_first,
+			`m`.ocm_rank,
+			`m`.ocm_deliver_date,
+			`m`.level,
+			`m`.direct_flg,
+			`m`.fix_type,
+			`m`.service_repair_flg,
+			`m`.section_id,
+			`m`.reception_time,
+			`m`.wip_location,
+			`m`.scheduled_manager_comment,
+			`m`.selectable,
+			`m`.agreed_date,
+			`m`.bound_out_ocm,
+			`m`.scheduled_expedited
+		 FROM material m 
+		 JOIN v_model mdl
+		 	ON `m`.model_id = `mdl`.model_id
+		 LEFT JOIN customer cstm
+		 	ON `m`.customer_id = `cstm`.customer_id
+		 LEFT JOIN process_assign_template pat
+		 	ON coalesce(`m`.pat_id, mdl.default_pat_id) = pat.process_assign_template_id 
+		 WHERE `m`.material_id = #{material_id};
+	]]>
+	</select>
+
+	<update id="updateMaterial" parameterType="MaterialEntity">
+		<![CDATA[ 
+		UPDATE Material SET 
+				omr_notifi_no = #{sorc_no},  
+				esas_no = #{esas_no}, 
+				ocm = #{ocm}, 
+				level = #{level}, 
+				fix_type = #{fix_type},
+				customer_id = #{customer_id},
+				ocm_rank = #{ocm_rank},
+				ocm_deliver_date = #{ocm_deliver_date},
+				bound_out_ocm = #{bound_out_ocm},
+		]]>
+			<if test="wip_location!= null and wip_location!= '' ">
+		<![CDATA[ 
+				wip_location = #{wip_location},
+				wip_date = current_date,
+		]]>
+			</if>
+			<if test="scheduled_expedited!= null and scheduled_expedited!= '' and scheduled_expedited neq -1 ">
+		<![CDATA[ 
+				scheduled_expedited = #{scheduled_expedited},
+		]]>
+			</if>
+			<if test="scheduled_expedited eq -1 ">
+		<![CDATA[ 
+				scheduled_expedited = 0,
+		]]>
+			</if>
+			<if test="pat_id!= null and pat_id!= '' ">
+		<![CDATA[ 
+				pat_id = #{pat_id},
+		]]>
+			</if>
+		<![CDATA[ 
+				selectable = #{selectable}
+		WHERE material_id = #{material_id};
+		]]>
+		
+	</update>
+</mapper>

@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.ToolsManageMapper">
+
+    <select id="getByKey" resultType="ToolsManageEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT `tools_manage_id`,
+		    `manage_code`,
+		    `tools_no`,
+		    `tools_type_id`,
+		    `tool_name`,
+		    `total_price`,
+		    `manage_level`,
+		    `manager_operator_id`,
+		    `section_id`,
+		    `line_id`,
+		    `position_id`,
+		    `location`,
+		    `import_date`,
+		    `provide_date`,
+		    `waste_date`,
+		    `delete_flg`,
+		    `updated_by`,
+		    `updated_time`,
+		    `status`,
+		    `responsible_operator_id`,
+		    `comment`,
+		    `classify`,
+		    `order_date`
+		FROM `tools_manage`
+		WHERE tools_manage_id = #{key};
+	    ]]>
+	</select>	
+
+    <!-- 治具管理详细 -->
+    <select id="searchToolsManage" resultType="ToolsManageEntity" parameterType="ToolsManageEntity">
+		<![CDATA[ 
+		select 	       
+                ot.name as responsible_operator,		
+		        l.name as line_name,
+                s.name as section_name,
+				p.process_code,
+			    tm.tool_name as tools_name,			    
+				o.name as manager_name,
+			    tm.tools_manage_id,
+				tm.manage_code,
+				tm.tools_no,
+				tm.tools_type_id,
+				tm.total_price,
+				tm.classify,
+				tm.manage_level,
+				tm.manager_operator_id,
+				tm.section_id,
+				tm.line_id,
+				tm.position_id,
+				tm.location,
+				tm.import_date,
+				tm.provide_date,
+				tm.waste_date,
+				tm.delete_flg,
+				op.name as updated_by,
+				tm.updated_time,
+				tm.status,
+				tm.responsible_operator_id,
+				tm.comment,
+				tm.order_date
+		from
+		    tools_manage tm
+		left join 
+		    tools_type tt
+		on tt.tools_type_id =tm.tools_type_id
+	    left join
+			OPERATOR O ON tm.manager_operator_id = O.OPERATOR_ID
+		left join
+			OPERATOR op ON tm.updated_by = op.OPERATOR_ID
+		left join 
+            operator ot on tm.responsible_operator_id =ot.OPERATOR_ID
+        left join
+            position p on tm.position_id = p.position_id
+		left join 
+			section s  on tm.section_id = s.section_id
+        left join line l on tm.line_id = l.line_id
+		]]>
+		<where>		
+		        tm.delete_flg=0
+		   <if test="status!=null and status!='' ">
+				<![CDATA[
+				and tm.status in(${status})
+			    ]]>
+		   </if>
+		       
+		   <if test="manage_code!=null and manage_code!='' ">
+				<![CDATA[
+				and  tm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+			    ]]>
+			</if>     
+			<if test="tools_no!=null and tools_no!='' ">
+				<![CDATA[
+				    and tm.tools_no LIKE CONCAT('%',#{tools_no},'%')
+			    ]]>
+			</if>
+			<if test="tools_name!=null and tools_name!='' ">
+				<![CDATA[
+				    and tm.tool_name LIKE CONCAT('%',#{tools_name},'%')
+			    ]]>
+			</if>
+			<if test="tools_type_id!=null and tools_type_id!='' ">
+				<![CDATA[
+				    and tm.tools_type_id =#{tools_type_id}
+			    ]]>
+			</if>
+			<if test="section_id!=null and section_id!='' ">
+				<![CDATA[
+				    and tm.section_id =#{section_id}
+			    ]]>
+			</if>
+			<if test="line_id!=null and line_id!='' ">
+				<![CDATA[
+				    and tm.line_id =#{line_id}
+			    ]]>
+			</if>
+			<if test="manage_level!=null and manage_level!='' ">
+				<![CDATA[
+				    and tm.manage_level = #{manage_level}
+			    ]]>
+			</if>
+			<if test="manager_operator_id!=null and manager_operator_id!='' ">
+				<![CDATA[
+				    and tm.manager_operator_id = #{manager_operator_id}
+			    ]]>
+			</if>
+			<if test="position_id!=null and position_id!='' ">
+				<![CDATA[
+				    and tm.position_id =#{position_id}
+			    ]]>
+			</if>
+			<if test="responsible_operator_id!=null and responsible_operator_id!='' ">
+				<![CDATA[
+				    and tm.responsible_operator_id =#{responsible_operator_id}
+			    ]]>
+			</if>
+			<if test="order_date_start!=null and order_date_start!=''">
+				<![CDATA[
+					and tm.order_date>=#{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end!=null and order_date_end!=''">
+				<![CDATA[
+					and tm.order_date<=#{order_date_end}
+				]]>
+			</if>
+			<if test="import_date_start!=null and import_date_start!=''">
+				<![CDATA[
+					and tm.import_date>=#{import_date_start}
+				]]>
+			</if>
+			<if test="import_date_end!=null and import_date_end!=''">
+				<![CDATA[
+					and tm.import_date<=#{import_date_end}
+				]]>
+			</if>
+			<if test="waste_date_start!=null and waste_date_start!=''">
+				<![CDATA[
+					and tm.waste_date>=#{waste_date_start}
+				]]>
+			</if>
+			<if test="waste_date_end!=null and waste_date_end!=''">
+				<![CDATA[
+					and tm.waste_date<=#{waste_date_end}
+				]]>
+			</if>
+		</where>
+		 ORDER BY status,updated_time DESC
+	</select>	
+
+	 <!-- 双击页面修改 -->
+	<update id="updateToolsManage" parameterType="ToolsManageEntity">
+	   <![CDATA[
+	   UPDATE tools_manage SET 				
+				tools_manage_id=#{tools_manage_id},
+				manage_code=#{manage_code},
+				tools_no=#{tools_no},
+				tools_type_id=#{tools_type_id},
+				tool_name=#{tools_name},
+				total_price=#{total_price},
+				manage_level=#{manage_level},
+				classify=#{classify},
+				section_id=#{section_id},
+				line_id=#{line_id},
+				position_id=#{position_id},
+				location=#{location},
+				import_date=#{import_date},
+				provide_date=#{provide_date},
+				waste_date=#{waste_date},
+				delete_flg=0,
+				updated_by=#{updated_by},
+				updated_time=#{updated_time},
+				status=#{status},
+				responsible_operator_id=#{responsible_operator_id},
+				comment=#{comment},
+				order_date=#{order_date},
+				manager_operator_id=#{manager_operator_id}
+		WHERE   tools_manage_id=#{tools_manage_id}
+	   ]]>
+	</update>
+	
+    <!--批量交付 -->
+	<update id="deliverToolsManage" parameterType="ToolsManageEntity">
+	   <![CDATA[
+	   UPDATE tools_manage SET 
+	   	]]>
+	       <if test="section_id!= null and section_id!= '' ">
+				<![CDATA[ 
+					 section_id = #{section_id},
+				]]>
+			</if>	
+			<if test="line_id!= null and line_id!= '' ">
+				<![CDATA[ 
+					 line_id = #{line_id},
+				]]>
+			</if>		
+			<if test="position_id!= null and position_id!= '' ">
+				<![CDATA[ 
+					 position_id = #{position_id},
+				]]>
+			</if>	
+			<if test="responsible_operator_id!= null and responsible_operator_id!= '' ">
+				<![CDATA[ 
+					 responsible_operator_id = #{responsible_operator_id},
+				]]>
+			</if>
+			<if test="manager_operator_id!= null and manager_operator_id!= '' ">
+				<![CDATA[ 
+					 manager_operator_id = #{manager_operator_id},
+				]]>
+			</if>
+		<![CDATA[	
+				updated_by=#{updated_by},
+				updated_time=current_timestamp,
+				delete_flg=0
+		    WHERE
+	   		    tools_manage_id=#{tools_manage_id}
+	     ]]>
+	</update>
+	
+	<!-- 查询管理编号 -->
+    <select id="searchManageCode" resultType="String" parameterType="ToolsManageEntity">
+     <![CDATA[ 
+			  SELECT manage_code FROM tools_manage
+			  WHERE manage_code= #{manage_code} and delete_flg = 0
+		]]>
+		<if test="tools_manage_id!= null and tools_manage_id!= '' ">
+			<![CDATA[ 
+				and tools_manage_id <> #{tools_manage_id}
+			]]>
+		</if>
+    </select>
+		
+	<!-- 新建治具管理数据 -->
+	<insert id="insertToolsManage" parameterType="ToolsManageEntity">
+		   <![CDATA[
+		    INSERT INTO 
+		    	tools_manage
+		    	(
+		    	tools_manage_id,
+				manage_code,
+				tools_no,
+				tools_type_id,
+				tool_name,
+				total_price,
+				classify,
+				manage_level,
+				manager_operator_id,
+				section_id,
+				line_id,
+				position_id,
+				location,
+				import_date,
+				provide_date,
+				waste_date,
+				delete_flg,
+				updated_by,
+				updated_time,
+				status,
+				responsible_operator_id,
+				comment,
+				order_date
+				)
+		   VALUES(
+			]]>
+			    #{tools_manage_id},
+				#{manage_code},
+				#{tools_no},
+				#{tools_type_id},
+				#{tools_name},
+				#{total_price},
+				#{classify},
+				#{manage_level},
+				#{manager_operator_id},
+				#{section_id},
+				#{line_id},
+				#{position_id},
+				#{location},
+				#{import_date},
+				#{provide_date},
+				#{waste_date},
+				0,
+				#{updated_by},
+				#{updated_time},
+				#{status},
+				#{responsible_operator_id},
+				#{comment},
+				#{order_date}
+				)
+	 </insert>
+	
+	<!-- 删除页面条数据 -->
+	<update id="deleteToolsManage" parameterType="ToolsManageEntity">
+	   <![CDATA[
+	     UPDATE tools_manage SET 
+			updated_by =#{updated_by},
+			updated_time = current_timestamp,
+			delete_flg=1
+		 WHERE 
+		    tools_manage_id=#{tools_manage_id}
+	   ]]>
+	</update>
+	
+	<!-- 查询最大管理编号 -->
+	<select id="searchMaxManageCode"  parameterType="ToolsManageEntity" resultType="String">
+		<![CDATA[
+			SELECT 
+				manage_code 
+			FROM 
+				tools_manage
+			WHERE
+				manage_code LIKE CONCAT('%',#{manage_code},'%')
+			ORDER BY 
+				LENGTH(manage_code) DESC,manage_code DESC;
+		]]>
+	</select>
+
+	<insert id="replace" parameterType="ToolsManageEntity">
+		<![CDATA[
+			    INSERT INTO 
+		    	tools_manage
+		    	(
+		    		manage_code,
+					tools_no,
+					tools_type_id,
+					tool_name,
+					total_price,
+					classify,
+					manage_level,
+					manager_operator_id,
+					section_id,
+					line_id,
+					position_id,
+					location,
+					import_date,
+					provide_date,
+					delete_flg,
+					updated_by,
+					updated_time,
+					status,
+					responsible_operator_id,
+					comment,
+					order_date
+		    	)
+		    	VALUES(
+			    	#{manage_code},
+					#{tools_no},
+					#{tools_type_id},
+					#{tools_name},
+					#{total_price},
+					#{classify},
+					#{manage_level},
+					#{manager_operator_id},
+					#{section_id},
+					#{line_id},
+					#{position_id},
+					#{location},
+					#{import_date},
+					#{provide_date},
+					0,
+					#{updated_by},
+					CURRENT_TIMESTAMP(),
+					#{status},
+					#{responsible_operator_id},
+					#{comment},
+					#{order_date}
+		    	 )
+		]]>
+	</insert>
+	
+	<select id="getResponsibleNameReferChooser" resultType="OperatorNamedEntity" parameterType="String">
+		<![CDATA[
+			select
+				operator.operator_id,
+				operator.name,
+				role.name as role_name,
+				coalesce(line.name,'') as line_name
+			from
+				operator 
+			left join
+				role 
+			on
+				operator.role_id=role.role_id
+			join
+				line 
+			on
+				operator.line_id=line.line_id
+			where
+				operator.section_id=#{section_id}
+		]]>
+	</select>
+	
+	<select id="getLineNameReferChooser" resultType="PositionEntity" parameterType="String">
+		<![CDATA[
+			select distinct
+				position.position_id,
+				position.process_code,
+				position.name
+			from
+				operator 
+			join
+				position 
+			on
+				position.position_id=operator.position_id
+			where
+				operator.section_id=#{section_id}
+		]]>
+	</select>
+
+
+	<select id="checkProvideInPeriod"  parameterType="Date" resultType="ToolsManageEntity">
+	 <![CDATA[
+		select provide_date from tools_manage dm 
+		WHERE tools_manage_id=#{tools_manage_id} dm.provide_date between #{provide_date_start} and #{provide_date_end};
+	]]>
+	</select>
+
+	<select id="checkWasteInPeriod"  parameterType="Date" resultType="ToolsManageEntity">
+	 <![CDATA[
+		select waste_date from tools_manage dm 
+		WHERE tools_manage_id=#{tools_manage_id} dm.waste_date between #{provide_date_start} and #{provide_date_end};
+	]]>
+	</select>
+	
+	 <!-- 简单废弃  -->
+	<update id="disband" parameterType="DevicesManageEntity">
+	   <![CDATA[
+		UPDATE tools_manage SET 				
+			waste_date=current_date,
+			updated_by=#{updated_by},
+			updated_time=current_timestamp,
+			status= 2,
+			comment = concat(comment, '\n使用者替换于', current_date)
+		WHERE tools_manage_id=#{tools_manage_id}
+	   ]]>
+	</update>
+</mapper>

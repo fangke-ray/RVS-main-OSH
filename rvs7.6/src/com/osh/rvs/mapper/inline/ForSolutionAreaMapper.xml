@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.ForSolutionAreaMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="getByKey" parameterType="String" resultType="ForSolutionAreaEntity">
+		<![CDATA[
+SELECT `for_solution_area_key`,
+    `material_id`,
+    `happen_time`,
+    `solved_time`,
+    `reason`,
+    `position_id`,
+    `comment`,
+    `resolver_id`
+FROM `for_solution_area`
+
+				WHERE for_solution_area_key = #{for_solution_area_key};
+		]]>
+	</select>
+
+	<select id="getEventByKey" parameterType="String" resultType="ForSolutionAreaEntity">
+		<![CDATA[
+				SELECT `for_solution_area_key`,
+		    		`reciever_id`,
+    				`event_type`,
+    				`red_flg`
+				FROM `for_solution_area_event`
+				WHERE for_solution_area_key = #{for_solution_area_key};
+		]]>
+	</select>
+
+	<select id="search" parameterType="ForSolutionAreaEntity" resultType="ForSolutionAreaEntity">
+		<![CDATA[
+				SELECT `for_solution_area_key`,
+				    fsa.`material_id`,
+				    fsa.`position_id`,
+				    coalesce(omr_notifi_no,sorc_no) as sorc_no,
+				    mdl.name as model_name,
+				    mdl.category_name,
+				    ma.serial_no,
+				    ma.inline_time,
+				    `happen_time`,
+				    `solved_time`,
+				    fsa.`reason`,
+				    pos.process_code,
+				    ma.level,
+				    pos.`line_id`,
+				    pos.line_name,
+				    s.name as section_name,
+				    ma.scheduled_date,
+				    ma.scheduled_manager_comment,
+				    ma.am_pm,
+				    ma.direct_flg, ma.scheduled_expedited,
+				    mps.scheduled_assign_date,
+				    fsa.`comment`,
+					solved_time is null and -- [Speed Up] 
+					EXISTS (SELECT * FROM production_feature p where material_id = ma.material_id and operate_result = 3 and action_time is null) as break_message,
+				    max(mp.bo_flg) as bo_flg,
+				    min(mp.order_date) as order_date,
+				    max(mp.arrival_plan_date) as arrival_plan_date,
+				    op.name as resolver_name
+				FROM `for_solution_area` fsa
+				JOIN material ma
+				ON fsa.material_id = ma.material_id
+				JOIN v_model mdl
+				ON ma.model_id = mdl.model_id
+				JOIN v_position pos
+				ON fsa.position_id = pos.position_id
+				LEFT JOIN material_partial mp
+				ON ma.material_id = mp.material_id
+				LEFT JOIN section s
+				ON s.section_id = ma.section_id
+				LEFT JOIN material_process mps
+				ON mps.material_id = ma.material_id
+				AND mps.line_id = 14
+				LEFT JOIN operator op
+				ON fsa.resolver_id = op.operator_id
+		]]>
+		<where>
+			<if test="material_id!= null and material_id!='' ">
+				and ma.material_id = #{material_id}
+			</if>
+			<if test="sorc_no!= null and sorc_no!='' ">
+				and (sorc_no like CONCAT('%', #{sorc_no}, '%') or omr_notifi_no like CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="serial_no!=null and serial_no!='' ">
+				 and ma.serial_no = #{serial_no}
+			</if>
+			<if test="model_id!=null and model_id!='' ">
+				<![CDATA[
+					and ma.model_id=#{model_id}
+				]]>
+			</if>
+			<if test="category_id!=null and category_id!='' ">
+				<![CDATA[
+					and mdl.category_id=#{category_id}
+				]]>
+			</if>
+			<if test="scheduled_date_start!= null">
+				<![CDATA[ 
+				and ma.scheduled_date >= #{scheduled_date_start}
+				]]>	
+			</if>
+			<if test="scheduled_date_end!= null">
+				<![CDATA[
+				and ma.scheduled_date <= #{scheduled_date_end}
+				]]>
+			</if>
+			<if test="section_id!=null and section_id!='' ">
+				and ma.section_id = #{section_id}
+			</if>
+			<if test="scheduled_expedited!=null">
+				and ma.scheduled_expedited = #{scheduled_expedited}
+			</if>
+			<if test="reason!=null">
+				<![CDATA[
+					and fsa.`reason` = #{reason}
+				]]>
+			</if>
+			<if test="resolved==-1">
+				<![CDATA[
+					and fsa.`solved_time` IS NULL
+				]]>
+			</if>
+			<if test="resolved==1">
+				<![CDATA[
+					and fsa.`solved_time` IS NOT NULL 
+				]]>
+			</if>
+			<if test="happen_time!= null">
+				<![CDATA[ 
+				and fsa.happen_time between #{happen_time} AND DATE_ADD(#{happen_time}, INTERVAL 1 DAY)
+				]]>	
+			</if>
+			<if test="line_id!=null and line_id!='' ">
+				and pos.line_id = #{line_id} 
+			</if>
+			<if test="position_id!=null and position_id!='' ">
+				and pos.position_id = #{position_id} 
+			</if>
+				<!--	and exists(select 1 from material_process where line_id = #{line_id} 
+					and material_id = ma.material_id and finish_date is null) -->
+		</where>
+		group by for_solution_area_key
+		<if test="bo_flg!=null or arrival_plan_date_start!=null or arrival_plan_date_end!=null">
+		HAVING 1=1
+			<if test="bo_flg!=null and bo_flg == 1">
+				and max(mp.bo_flg = 1) = 1
+			</if>
+			<if test="bo_flg!=null and bo_flg == 2">
+				and max(mp.bo_flg = 2) = 1
+				and coalesce(max(mp.bo_flg in (1,9,8)), 0) = 0
+			</if>
+			<if test="bo_flg!=null and bo_flg == 0">
+				and max(mp.bo_flg = 0) = 1
+				and coalesce(max(mp.bo_flg in (1,2,9,8)), 0) = 0
+			</if>
+			<if test="arrival_plan_date_start!=null and arrival_plan_date_start!='' ">
+				<![CDATA[
+					and max(mp.arrival_plan_date) >= #{arrival_plan_date_start}
+				]]>
+			</if>
+			<if test="arrival_plan_date_end!=null and arrival_plan_date_end!='' ">
+				<![CDATA[
+					and max(mp.arrival_plan_date) <= #{arrival_plan_date_end}
+				]]>
+			</if>
+		</if>
+		order by happen_time;
+	</select>
+
+	<!-- 更新推送 -->
+	<update id="updateToPushed" parameterType="ForSolutionAreaEntity">
+		<![CDATA[
+			update 
+				for_solution_area
+			set
+				reason = 3
+			where
+				for_solution_area_key = #{for_solution_area_key}
+		]]>
+	</update>
+
+	<!-- 更新推送 -->
+	<update id="updateToAppend" parameterType="ForSolutionAreaEntity">
+		<![CDATA[
+			update 
+				for_solution_area
+			set
+				reason = 4
+			where
+				for_solution_area_key = #{for_solution_area_key}
+		]]>
+	</update>
+
+	<update id="solve" parameterType="ForSolutionAreaEntity">
+		<![CDATA[
+			update 
+				for_solution_area
+			set
+				resolver_id = #{resolver_id},
+				solved_time = current_timestamp
+			where
+				for_solution_area_key = #{for_solution_area_key}
+		]]>
+	</update>
+
+	<update id="solveAsStop" parameterType="ForSolutionAreaEntity">
+		<![CDATA[
+			update 
+				for_solution_area
+			set
+				reason = 9,
+				resolver_id = #{resolver_id},
+				solved_time = current_timestamp
+			where
+				material_id = #{material_id}
+				AND solved_time IS NULL
+		]]>
+	</update>
+
+	<update id="remove" parameterType="ForSolutionAreaEntity">
+		<![CDATA[
+			delete from 
+				for_solution_area
+			where
+				for_solution_area_key = #{for_solution_area_key}
+		]]>
+	</update>
+
+	<select id="checkOffline" parameterType="String" resultType="ForSolutionAreaEntity">
+		<![CDATA[
+				SELECT `for_solution_area_key`,
+				    fsa.`material_id`,
+				    `position_id`,
+				    `happen_time`,
+				    `solved_time`,
+				    `reason`,
+				    `comment`
+				FROM `for_solution_area` fsa
+		]]>
+		<where>
+			`material_id` = #{material_id} 
+			<if test="line_id==null">
+			AND `position_id` = #{position_id}
+			</if>
+			<if test="line_id!=null and line_id eq '00000000012'">
+			AND (`position_id` = #{position_id} OR `position_id` = 21)
+			</if>
+			<if test="line_id!=null and line_id eq '00000000013'">
+			AND (`position_id` = #{position_id} OR `position_id` = 27)
+			</if>
+			<if test="line_id!=null and line_id eq '00000000014'">
+			AND (`position_id` = #{position_id} OR `position_id` = 32)
+			</if>
+			<if test="line_id!=null">
+			AND `position_id` = #{position_id} AND #{line_id} != '7654321'
+			</if>
+			AND `solved_time` IS NULL
+		</where>
+		order by happen_time;
+	</select>
+
+	<insert id="create" parameterType="ForSolutionAreaEntity">
+		<![CDATA[
+			insert into 
+				`for_solution_area`
+			(`material_id`, `reason`, `position_id`, `happen_time`, `comment`)
+			VALUES
+			(#{material_id}, #{reason}, #{position_id}, current_timestamp, #{comment})
+		]]>
+	</insert>
+
+	<insert id="createEvent" parameterType="ForSolutionAreaEventEntity">
+		<![CDATA[
+			REPLACE into 
+				`for_solution_area_event`
+			(`for_solution_area_key`, `event_type`, `red_flg`, `reciever_id`, `post_time`)
+			VALUES
+			(#{for_solution_area_key}, #{event_type}, #{red_flg}, #{reciever_id}, current_timestamp)
+		]]>
+	</insert>
+
+	<select id="getOfflineOfMaterial" parameterType="String" resultType="ForSolutionAreaEntity">
+		<![CDATA[
+				SELECT `for_solution_area_key`,
+				    fsa.`material_id`,
+				    fsa.`position_id`,
+				    `happen_time`,
+				    `solved_time`,
+				    `reason`,
+				    `comment`,
+				    pos.`line_id`
+				FROM `for_solution_area` fsa
+				JOIN v_position pos ON fsa.position_id = pos.position_id
+		]]>
+		<where>
+			`material_id` = #{material_id}
+			AND `solved_time` IS NULL
+		</where>
+		order by happen_time;
+	</select>
+
+	<select id="findByAlarmMesssage" parameterType="String" resultType="String">
+		<![CDATA[
+		SELECT fsa.for_solution_area_key FROM for_solution_area fsa
+		JOIN alarm_messsage am
+		ON fsa.material_id = am.material_id
+		AND fsa.position_id = am.position_id
+		AND am.reason in (1,5)
+		WHERE am.alarm_messsage_id = #{message_id}
+		AND fsa.solved_time IS null
+		order by fsa.happen_time desc
+		LIMIT 1
+		;
+		]]>
+	</select>
+
+	<select id="getLeadersByObject" parameterType="String" resultType="String">
+select op.operator_id from operator op
+join position pos
+on op.line_id = pos.line_id
+join material ma
+on op.section_id = ma.section_id
+where ma.material_id = #{material_id}
+and pos.position_id = #{position_id}
+and role_id = 00000000005 
+	</select>
+
+	<select id="getLeadersByKey" parameterType="String" resultType="String">
+select op.operator_id from operator op
+join position pos
+on op.line_id = pos.line_id
+join for_solution_area fsa
+on fsa.position_id = pos.position_id
+join material ma
+on ma.material_id = fsa.material_id
+and op.section_id = ma.section_id
+where for_solution_area_key = #{for_solution_area_key}
+and role_id = 00000000005 
+	</select>
+
+	<select id="getInlineManagers" parameterType="String" resultType="String">
+select op.* from operator op
+where role_id = 00000000009
+and section_id in (1,3);
+	</select>
+
+	<select id="getSolvedPositionByLine" parameterType="ForSolutionAreaEntity" resultType="String">
+		<![CDATA[
+			select 
+			    fsa.position_id
+			from
+			    for_solution_area fsa
+			        join
+			    position p ON fsa.position_id = p.position_id
+			        and p.line_id = #{line_id}
+			where
+			    fsa.material_id = #{material_id}
+			    AND fsa.solved_time IS NULL
+		]]>
+	</select>
+
+	<update id="finishSolve" parameterType="ForSolutionAreaEntity">
+		<![CDATA[
+			update 
+				for_solution_area
+			set
+				resolver_id = #{resolver_id},
+				solved_time = current_timestamp
+			where
+				material_id = #{material_id}
+				AND position_id = #{position_id}
+				AND solved_time IS NULL
+		]]>
+	</update>
+</mapper>

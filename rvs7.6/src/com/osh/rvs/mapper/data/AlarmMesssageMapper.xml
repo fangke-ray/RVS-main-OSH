@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.data.AlarmMesssageMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="createAlarmMessage" parameterType="AlarmMesssageEntity">
+		<![CDATA[ 
+		INSERT INTO ALARM_MESSSAGE (
+				LEVEL,
+				OCCUR_TIME,
+				MATERIAL_ID,
+				REASON,
+				SECTION_ID,
+				LINE_ID,
+				POSITION_ID,
+				OPERATOR_ID
+		) VALUES (
+				#{level},
+				current_timestamp,
+				#{material_id},
+				#{reason},
+				#{section_id},
+				coalesce(#{line_id}, 0),
+				#{position_id},
+				#{operator_id}
+		);
+		]]>
+	</insert>
+
+	<insert id="createAlarmMessageSendation" parameterType="AlarmMesssageSendationEntity">
+		<![CDATA[ 
+		INSERT INTO ALARM_MESSSAGE_SENDATION (
+				ALARM_MESSSAGE_ID,
+		]]>
+			<if test="red_flg!= null">
+		<![CDATA[ 
+				RED_FLG,  `COMMENT`,
+				RESOLVE_TIME,
+		]]>
+			</if>
+		<![CDATA[ 
+				SENDATION_ID
+		) VALUES (
+				#{alarm_messsage_id},
+		]]>
+			<if test="red_flg!= null">
+		<![CDATA[ 
+				#{red_flg}, #{comment},
+				current_timestamp,
+		]]>
+			</if>
+		<![CDATA[ 
+				#{sendation_id}
+		);
+		]]>
+	</insert>
+
+	<!-- red_flg不是读取flg是解决flg ，读取/备注是resolveTime -->
+	<update id="updateAlarmMessageSendation" parameterType="AlarmMesssageSendationEntity">
+		<![CDATA[ 
+		UPDATE ALARM_MESSSAGE_SENDATION
+		SET `RED_FLG` = #{red_flg},
+		`RESOLVE_TIME` = current_timestamp,
+		`COMMENT` = #{comment}
+		WHERE ALARM_MESSSAGE_ID = #{alarm_messsage_id}
+			AND SENDATION_ID = #{sendation_id}
+		;
+		]]>
+	</update>
+
+	<update id="updateLevel" parameterType="AlarmMesssageEntity">
+		<![CDATA[ 
+		UPDATE ALARM_MESSSAGE
+		SET `LEVEL` = #{level}
+		WHERE ALARM_MESSSAGE_ID = #{alarm_messsage_id}
+		;
+		]]>
+	</update>
+
+	<select id="countAlarmMessageSendation" resultType="int" parameterType="AlarmMesssageSendationEntity">
+		<![CDATA[ 
+		SELECT COUNT(alarm_messsage_id) FROM ALARM_MESSSAGE_SENDATION
+		WHERE ALARM_MESSSAGE_ID = #{alarm_messsage_id}
+			AND SENDATION_ID = #{sendation_id}
+		;
+		]]>
+	</select>
+
+	<select id="getBreakAlarmMessage" resultType="AlarmMesssageEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT `am`.alarm_messsage_id, `am`.`LEVEL`, `am`.OCCUR_TIME, `am`.REASON, coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, `mdl`.name as MODEL_NAME, `m`.SERIAL_NO,
+			  `l`.NAME as LINE_NAME, `p`.process_code, `p`.position_id, `am`.operator_id, `o`.name as OPERATOR_NAME
+			FROM alarm_messsage am
+			JOIN material m
+			  ON `am`.material_id = `m`.material_id
+			JOIN model mdl
+			  ON `m`.model_id = `mdl`.model_id
+			JOIN line l
+			  ON `am`.line_id = `l`.line_id
+			JOIN `position` p
+			  ON `am`.position_id = `p`.position_id
+			JOIN `operator` o
+			  ON `am`.operator_id = `o`.operator_id
+			WHERE `am`.material_id = #{material_id}
+			  AND `am`.position_id = #{position_id}
+			  AND NOT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = `am`.`alarm_messsage_id` AND `ams`.`red_flg` = 1)
+			;
+		]]>
+	</select>
+
+	<select id="getBreakAlarmMessageByKey" resultType="AlarmMesssageEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT `am`.material_id, `am`.alarm_messsage_id, `am`.`LEVEL`, `am`.OCCUR_TIME, `am`.REASON, 
+			coalesce(m.omr_notifi_no, m.sorc_no) as SORC_NO, 
+			`mdl`.name as MODEL_NAME, `m`.SERIAL_NO,
+			  `l`.NAME as LINE_NAME, `p`.process_code, `p`.position_id, `am`.operator_id, `o`.name as OPERATOR_NAME, `s`.name as section_name, `p`.name as position_name
+			FROM alarm_messsage am
+			LEFT JOIN material m
+			  ON `am`.material_id = `m`.material_id
+			LEFT JOIN model mdl
+			  ON `m`.model_id = `mdl`.model_id
+			LEFT JOIN line l
+			  ON `am`.line_id = `l`.line_id
+			LEFT JOIN `position` p
+			  ON `am`.position_id = `p`.position_id
+			LEFT JOIN section s
+			  ON `am`.section_id = `s`.section_id
+			LEFT JOIN `operator` o
+			  ON `am`.operator_id = `o`.operator_id
+			WHERE `am`.alarm_messsage_id = #{alarm_messsage_id}
+			;
+		]]>
+	</select>
+
+	<select id="getBreakAlarmMessages" resultType="AlarmMesssageEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT `am`.alarm_messsage_id, `am`.`LEVEL`, `am`.OCCUR_TIME, `am`.REASON,
+			  `p`.process_code, `am`.operator_id
+			FROM alarm_messsage am
+			JOIN `position` p
+			  ON `am`.position_id = `p`.position_id
+			WHERE `am`.material_id = #{material_id}
+		]]>
+			<if test="position_id!= null">
+		<![CDATA[ 
+			AND `am`.position_id = #{position_id}
+		]]>
+			</if>
+			<if test="position_id == null">
+		<![CDATA[ 
+			  AND NOT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = `am`.`alarm_messsage_id` AND `ams`.`red_flg` = 1)
+		]]>
+			</if>
+
+		<![CDATA[ 
+			;
+		]]>
+	</select>
+
+	<select id="getBreakAlarmMessageSendation" resultType="AlarmMesssageSendationEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT `COMMENT`, RESOLVE_TIME, SENDATION_ID, `o`.NAME as sendation_name FROM alarm_messsage_sendation ams
+			JOIN OPERATOR o
+			ON `ams`.SENDATION_ID = `o`.OPERATOR_ID
+			WHERE ALARM_MESSSAGE_ID = #{alarm_messsage_id}
+			ORDER BY RESOLVE_TIME
+			;
+		]]>
+	</select>
+
+	<select id="getBreakOperatorMessage" resultType="PauseFeatureEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT `pf`.REASON, `pf`.COMMENTS, `p`.process_code
+		FROM pause_feature pf
+		JOIN `position` p ON `pf`.position_id = `p`.position_id
+		WHERE `pf`.operator_id = #{operator_id}
+			AND `pf`.material_id = #{material_id}
+			AND `pf`.position_id = #{position_id}
+			AND `pf`.finisher_id is NULL
+		;
+ 		]]>
+	</select>
+
+	<select id="getBreakPushedAlarmMessage" resultType="AlarmMesssageEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT `am`.alarm_messsage_id, `am`.`LEVEL`, `am`.OCCUR_TIME, `am`.REASON, coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, `mdl`.name as MODEL_NAME, `m`.SERIAL_NO,
+			  `l`.NAME as LINE_NAME, `p`.process_code, `p`.position_id, `am`.operator_id, `o`.name as OPERATOR_NAME
+			FROM alarm_messsage am
+			JOIN material m
+			  ON `am`.material_id = `m`.material_id
+			JOIN model mdl
+			  ON `m`.model_id = `mdl`.model_id
+			JOIN line l
+			  ON `am`.line_id = `l`.line_id
+			JOIN `position` p
+			  ON `am`.position_id = `p`.position_id
+			JOIN `operator` o
+			  ON `am`.operator_id = `o`.operator_id
+			WHERE `am`.material_id = #{material_id}
+				AND `am`.level > 1
+			  AND NOT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = `am`.`alarm_messsage_id` AND `ams`.`red_flg` = 1)
+			LIMIT 1
+			;
+		]]>
+	</select>
+
+	<select id="countBreakUnPushedAlarmMessage" resultType="int" parameterType="String">
+		<![CDATA[ 
+			SELECT COUNT(alarm_messsage_id)
+			FROM alarm_messsage am
+			WHERE `am`.material_id = #{material_id}
+				AND `am`.level < 2
+				AND `am`.reason = 1
+				AND NOT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = `am`.`alarm_messsage_id` AND `ams`.`red_flg` = 1)
+			LIMIT 1
+			;
+		]]>
+	</select>
+
+	<select id="getBreakOperatorMessageByID" resultType="PauseFeatureEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT `pf`.REASON, `pf`.COMMENTS, `p`.process_code
+		FROM pause_feature pf
+		JOIN `position` p ON `pf`.position_id = `p`.position_id
+		WHERE `pf`.ALARM_MESSSAGE_ID = #{alarm_messsage_id}
+		;
+		]]>
+	</select>
+
+	<select id="countAlarmMessageOfSendation" resultType="int" parameterType="String">
+		<![CDATA[ 
+		SELECT count(ams.alarm_messsage_id)
+		  FROM alarm_messsage_sendation ams
+		WHERE ams.sendation_id = #{operator_id} AND `resolve_time` IS NULL
+		AND NOT EXISTS
+			(SELECT * FROM alarm_messsage_sendation
+			where alarm_messsage_id = ams.alarm_messsage_id
+			AND red_flg = 1 AND `resolve_time` < date_add(current_date, interval - 2 day));
+  		]]>
+	</select>
+
+	<select id="getAlarmMessageBySendation" resultType="AlarmMesssageEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT am.alarm_messsage_id, am.`level`, `am`.OCCUR_TIME, am.`material_id`, mdl.name as model_name, coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, am.reason,
+		am.line_id, l.name as line_name, am.position_id, p.process_code as process_code, p.name as position_name
+		  FROM alarm_messsage_sendation ams
+		JOIN alarm_messsage am
+		ON ams.alarm_messsage_id = am.alarm_messsage_id
+		LEFT JOIN material m
+		ON am.`material_id` = m.`material_id`
+		LEFT JOIN model mdl
+		ON m.model_id = mdl.model_id
+		LEFT JOIN line l
+		ON l.line_id = am.line_id
+		LEFT JOIN `position` p
+		ON p.position_id = am.position_id
+		WHERE ams.sendation_id = #{operator_id} AND ams.`resolve_time` IS NULL
+		AND NOT EXISTS
+			(SELECT * FROM alarm_messsage_sendation
+			where alarm_messsage_id = ams.alarm_messsage_id
+			AND red_flg = 1 AND `resolve_time` < date_add(current_date, interval - 2 day))
+		limit 6
+		]]>
+		;
+	</select>
+
+	<select id="getBreakLevelByMaterialId" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT `am`.LEVEL
+		FROM alarm_messsage am
+		WHERE `am`.MATERIAL_ID = #{material_id}
+		]]>
+		<if test="position_id!= null">
+			AND `am`.POSITION_ID = #{position_id}
+		</if>
+		<![CDATA[ 
+		AND `am`.REASON in (1,6,8)
+		AND NOT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = `am`.`alarm_messsage_id` AND `ams`.`red_flg` = 1)
+		LIMIT 1
+		;
+		]]>
+	</select>
+
+	<select id="searchAlarmMessagesByMaterialInline" resultType="AlarmMesssageEntity">
+		<![CDATA[ 
+			SELECT am.alarm_messsage_id, am.level, am.reason, am.occur_time
+			FROM alarm_messsage am
+			JOIN position pos ON am.position_id = pos.position_id
+			WHERE am.material_id = #{material_id}
+			AND pos.line_id = #{line_id}
+			AND reason in (1,8)
+			ORDER BY am.occur_time desc;
+		]]>
+	</select>
+
+	<select id="searchAlarmMessages" resultType="AlarmMesssageEntity" timeout="55">
+		<![CDATA[ 
+			SELECT am.alarm_messsage_id, am.level, am.reason, am.occur_time,
+			  coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, mdl.name as model_name, o.name as operator_name,
+			  s.name as section_name, l.name as line_name, p.process_code,
+			  min(ams.resolve_time) as resolve_time, group_concat(osd.name
+                order by resolve_time
+                separator ' ') as resolver_name
+			FROM alarm_messsage am
+			LEFT JOIN material m ON am.material_id = m.material_id
+			LEFT JOIN model mdl ON m.model_id = mdl.model_id
+			LEFT JOIN operator o ON am.operator_id = o.operator_id
+			LEFT JOIN section s ON am.section_id = s.section_id
+			LEFT JOIN line l ON am.line_id = l.line_id
+			LEFT JOIN `position` p ON am.position_id = p.position_id
+LEFT JOIN
+alarm_messsage_sendation ams
+ON ams.alarm_messsage_id = am.alarm_messsage_id
+AND ams.red_flg = 1
+LEFT join
+operator osd
+ON ams.sendation_id = osd.operator_id
+		]]>
+		<where>
+			1 = 1
+			<if test="level!= null and level!= '' ">
+				AND am.LEVEL = #{level}
+			</if>
+			<if test="occur_time_from!= null ">
+			<![CDATA[ 
+				AND am.OCCUR_TIME >= #{occur_time_from}
+			]]>
+			</if>
+			<if test="occur_time_to!= null ">
+			<![CDATA[ 
+				AND date_format(am.OCCUR_TIME, '%Y-%m-%d') <= date_format(#{occur_time_to}, '%Y-%m-%d')
+			]]>
+			</if>
+			<if test="reason!= null and reason!= '' ">
+				AND am.REASON = #{reason}
+			</if>
+			<if test="sorc_no!= null and sorc_no!= '' ">
+				AND (m.SORC_NO LIKE CONCAT('%', #{sorc_no}, '%') or m.omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
+			</if>
+			<if test="model_id!= null and model_id!= '' ">
+				AND m.MODEL_ID = #{model_id}
+			</if>
+			<if test="serial_no!= null and serial_no!= '' ">
+				AND m.SERIAL_NO = #{serial_no}
+			</if>
+			<if test="section_id!= null and section_id!= '' ">
+				AND s.SECTION_ID = #{section_id}
+			</if>
+			<if test="line_id!= null and line_id!= '' ">
+				AND l.LINE_ID = #{line_id}
+			</if>
+			<if test="reciever_id!=null and reciever_id!='' ">
+				AND EXISTS (SELECT 1 FROM alarm_messsage_sendation where alarm_messsage_id = am.alarm_messsage_id and sendation_id = #{reciever_id})
+			</if>
+		</where> 
+		<![CDATA[ 
+		group by am.alarm_messsage_id
+		ORDER BY occur_time DESC;
+		]]>
+	</select>
+
+	<select id="searchAlarmMessagesInfect" resultType="AlarmMesssageEntity">
+		<![CDATA[ 
+SELECT 
+    am.alarm_messsage_id, am.occur_time
+FROM
+    alarm_messsage am
+WHERE
+    am.REASON in (9,10)
+    AND am.SECTION_ID = #{section_id}
+    AND am.LINE_ID = #{line_id}
+    AND am.POSITION_ID = #{position_id}
+    AND NOT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = am.alarm_messsage_id AND `ams`.`red_flg` = 1)
+ORDER BY occur_time DESC; 
+		]]>
+	</select>
+
+	<select id="getBreakAlarmMessageBySendation" resultType="AlarmMesssageSendationEntity">
+		<![CDATA[ 
+			SELECT * FROM alarm_messsage_sendation WHERE alarm_messsage_id= #{alarm_messsage_id} AND sendation_id = #{sendation_id};
+		]]>
+	</select>
+
+	<select id="isFixed" resultType="boolean" parameterType="String">
+		<![CDATA[ 
+			SELECT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = #{alarm_messsage_id} AND `ams`.`red_flg` = 1) FROM dual;
+		]]>
+	</select>
+
+	<select id="getToolInfectByPosition" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT alarm_messsage_id
+		  FROM alarm_messsage am
+		WHERE am.section_id = #{section_id} AND am.position_id = #{position_id} and am.reason in (9,10)
+		AND NOT EXISTS
+			(SELECT * FROM alarm_messsage_sendation
+			where alarm_messsage_id = am.alarm_messsage_id
+			AND red_flg = 1);
+  		]]>
+	</select>
+
+	<select id="getOccursByMaterialIdOfPosition" resultType="int" parameterType="String">
+		<![CDATA[ 
+		SELECT coalesce(sum((unix_timestamp(solved_time) - unix_timestamp(fso.happen_time))), 0) div 60
+		FROM alarm_messsage am 
+		left join for_solution_area fso 
+		on am.material_id = fso.material_id
+		and am.position_id = fso.position_id
+		WHERE `am`.MATERIAL_ID = #{material_id}
+		AND `am`.POSITION_ID = #{position_id}
+		AND `am`.REASON in (1,6)
+		;
+		]]>
+	</select>
+
+	<select id="searchAlarmMessagesResolve" resultType="String" parameterType="String">
+		<![CDATA[ 
+			SELECT group_concat(concat(osd.name, ':', ams.comment)
+                		order by resolve_time
+                		separator '\n') AS resolve_comment
+				FROM alarm_messsage am
+				JOIN alarm_messsage_sendation ams
+				ON am.alarm_messsage_id = ams.alarm_messsage_id AND ams.comment is not null
+				JOIN operator osd
+				ON ams.sendation_id = osd.operator_id
+				WHERE am.material_id = #{material_id} AND am.position_id = #{position_id}
+		]]>
+	</select>
+
+</mapper>

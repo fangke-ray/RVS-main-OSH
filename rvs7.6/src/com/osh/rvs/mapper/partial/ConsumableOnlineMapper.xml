@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableOnlineMapper">
+	<select id="searchOnlineList" parameterType="ConsumableOnlineEntity" resultType="ConsumableOnlineEntity">
+	<!-- 消耗品在线一览查询 -->
+		<![CDATA[ 
+			SELECT DISTINCT
+				 partial.partial_id
+				,partial.code
+				,partial.name
+				,consumable_manage.type
+				,consumable_manage.available_inventory
+				,consumable_online_storage.quantity
+				,consumable_online_storage.quantity as quantity_modify
+				,consumable_online_storage.adjust_time
+			FROM 
+				consumable_online_storage
+			LEFT JOIN 
+				partial 
+			ON partial.partial_id=consumable_online_storage.partial_id
+			LEFT JOIN 
+				consumable_manage
+			ON consumable_manage.partial_id=consumable_online_storage.partial_id
+		]]>
+			WHERE
+			<if test="consumable != null and consumable != ''">
+				partial.code like CONCAT('%',#{consumable},'%')
+			AND
+			</if>
+			 	consumable_online_storage.section_id = #{course}
+			AND consumable_online_storage.line_id = #{project}
+			ORDER BY 
+				consumable_manage.type, 
+				partial.code
+	</select>
+	
+	
+	<!-- 消耗品在线一览清点 -->
+	<update id="updateOnlineList" parameterType="ConsumableOnlineEntity">
+		<![CDATA[ 
+			UPDATE consumable_online_storage 
+			SET 
+				quantity = #{quantity_modify}
+				,adjust_time = current_timestamp
+			WHERE partial_id = #{partial_id}
+			AND   section_id = #{course}
+			AND   line_id = #{project}
+		]]>
+	</update>
+	
+	<!-- 获取消耗品在线库存 -->	
+	<select id="getOnlineStorage" parameterType="ConsumableOnlineEntity" resultType="ConsumableOnlineEntity">
+		<![CDATA[ 
+			select * from  consumable_online_storage where partial_id = #{partial_id} AND section_id = #{course}	AND line_id = #{project}
+		]]>
+	</select>
+	
+	<insert id="insert" parameterType="ConsumableOnlineEntity">
+		<![CDATA[ 
+			insert consumable_online_storage (partial_id,section_id,line_id,quantity,adjust_time) values(#{partial_id},#{course},#{project},#{quantity},current_timestamp)
+		]]>
+	</insert>
+	
+</mapper>

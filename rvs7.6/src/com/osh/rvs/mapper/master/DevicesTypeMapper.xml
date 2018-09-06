@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.DevicesTypeMapper">
+
+    <!-- 设备工具品名详细 -->
+    <select id="searchDeviceType" resultType="DevicesTypeEntity" parameterType="DevicesTypeEntity">
+		<![CDATA[ 
+	   SELECT 
+		    dt.devices_type_id, dt.name, dt.delete_flg, dt.specialized, o.name as updated_by, dt.updated_time
+	   FROM
+		    devices_type dt
+	   LEFT JOIN
+		    OPERATOR O ON dt.UPDATED_BY = O.OPERATOR_ID
+		]]>
+		<where>
+		   dt.delete_flg =0 
+		   <if test="name!=null and name!='' ">
+			<![CDATA[
+			 and dt.name LIKE CONCAT('%',#{name},'%')
+		      ]]>
+			</if>
+			<if test="specialized!=null and specialized!='' ">
+			<![CDATA[
+			 and dt.specialized = #{specialized}
+		      ]]>
+			</if>
+		</where>
+		ORDER BY updated_time DESC
+	</select>	
+	
+	<!-- 新建设备工具品名 -->
+	<update id="insertDevicesType" parameterType="DevicesTypeEntity">
+		   <![CDATA[
+		    INSERT INTO 
+		    	devices_type
+		    	(name,
+		    	specialized,
+		    	UPDATED_BY,
+		    	UPDATED_TIME)
+		   VALUES(
+			]]>
+	       #{name},#{specialized},#{updated_by},current_timestamp)
+	 </update>
+	 
+	 <!-- 删除页面条数据 -->
+	<update id="deleteDevicesType" parameterType="DevicesTypeEntity">
+	   <![CDATA[
+	     UPDATE devices_type SET 
+			updated_by =#{updated_by},
+			updated_time = current_timestamp,
+			delete_flg=1
+		 WHERE 
+		    devices_type_id=#{devices_type_id}
+	   ]]>
+	</update>
+	
+	<!-- 双击页面修改 -->
+	<update id="updateDevicesType" parameterType="DevicesTypeEntity">
+	   <![CDATA[
+	    UPDATE devices_type SET  
+			name=#{name},
+			specialized=#{specialized},
+			updated_by =#{updated_by},
+			updated_time = current_timestamp
+		WHERE 
+		    devices_type_id=#{devices_type_id}
+	   ]]>
+	</update>
+	
+	<!-- 查询所有的设备工具品名 -->
+	 <select id="getAllDeviceName" resultType="DevicesTypeEntity">
+	  <![CDATA[
+	   SELECT devices_type_id,name FROM devices_type where delete_flg=0
+	  ]]>
+	 </select>	 
+</mapper>

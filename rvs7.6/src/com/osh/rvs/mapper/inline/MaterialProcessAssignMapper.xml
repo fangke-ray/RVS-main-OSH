@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.MaterialProcessAssignMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchMaterialLightFix" parameterType="MaterialProcessAssignEntity" resultType="MaterialProcessAssignEntity">
+		<![CDATA[
+			select material_id,light_fix_id from material_light_fix where material_id = #{material_id}
+		]]>
+	</select>
+	
+	<delete id="deleteMaterialLightFix" parameterType="String">
+		<![CDATA[
+			delete from material_light_fix where material_id = #{material_id}
+		]]>
+	</delete>
+	
+	<insert id="insertMaterialLightFix" parameterType="MaterialProcessAssignEntity">
+		<![CDATA[
+			insert material_light_fix(material_id,light_fix_id) values(#{material_id},#{light_fix_id})
+		]]>
+	</insert>
+	
+	<select id="getLightFixesByMaterial" parameterType="String" resultType="String">
+		<![CDATA[
+			select group_concat(description) from material_light_fix mlf
+			JOIN light_fix lf
+			ON mlf.light_fix_id = lf.light_fix_id
+			 where material_id = #{material_id}
+		]]>
+	</select>
+
+	<select id="searchMaterialProcessAssign" parameterType="MaterialProcessAssignEntity" resultType="MaterialProcessAssignEntity">
+		<![CDATA[
+			select
+				material_id,
+				line_id,
+				position_id,
+				sign_position_id,
+				prev_position_id,
+				next_position_id
+			from
+				material_process_assign
+			where
+				material_id = #{material_id}
+		]]>
+	</select>
+	
+	<delete id="deleteMaterialProcessAssign" parameterType="String">
+		<![CDATA[
+			delete from material_process_assign where material_id = #{material_id}
+		]]>
+	</delete>
+	
+	<insert id="insertMaterialProcessAssign" parameterType="MaterialProcessAssignEntity">
+		<![CDATA[
+			insert material_process_assign
+			(
+				material_id,
+				line_id,
+				position_id,
+				sign_position_id,
+				prev_position_id,
+				next_position_id
+			) values
+			(
+				#{material_id},
+				#{line_id},
+				#{position_id},
+				#{sign_position_id},
+				#{prev_position_id},
+				#{next_position_id}
+			)
+		]]>
+	</insert>
+
+	<select id="getProcessAssignByMaterialID" parameterType="String" resultType="ProcessAssignEntity">
+		<![CDATA[ 
+		SELECT 2 as REFER_TYPE, 
+			material_id, 
+			LINE_ID, 
+			POSITION_ID, 
+			SIGN_POSITION_ID, 
+			PREV_POSITION_ID, 
+			NEXT_POSITION_ID
+		FROM material_process_assign
+		WHERE material_id = #{material_id};
+		]]>
+	</select>
+
+	<select id="getFirstPosition" parameterType="String" resultType="ProcessAssignEntity">
+		<![CDATA[ 
+		SELECT 
+			mpa.POSITION_ID, mpa.NEXT_POSITION_ID, mpan.NEXT_POSITION_ID as SIGN_POSITION_ID
+		FROM material_process_assign mpa
+		
+		LEFT JOIN material_process_assign mpan
+			ON mpa.NEXT_POSITION_ID = mpan.POSITION_ID
+			AND mpan.material_id = #{material_id}
+
+		WHERE mpa.material_id = #{material_id}
+		AND mpa.prev_position_id = 0;
+		]]>
+	</select>
+
+	<select id="checkWorked" resultType="boolean">
+		<![CDATA[ 
+		SELECT COUNT(`pf`.operate_result) > 0
+		FROM material_process_assign pa
+		JOIN PRODUCTION_FEATURE pf
+		ON `pf`.POSITION_ID = `pa`.POSITION_ID
+		AND `pf`.material_id = `pa`.material_id
+		AND `pf`.operate_result = 2
+		WHERE `pa`.POSITION_ID = #{position_id}
+		AND `pf`.material_id = #{material_id}
+		;
+		]]>
+	</select>
+
+	<select id="getPrevPositions" resultType="PositionEntity">
+		<![CDATA[ 
+		SELECT `pa`.POSITION_ID as POSITION_ID,
+			`p`.PROCESS_CODE as PROCESS_CODE,
+			`pa`.line_id as line_id
+		FROM material_process_assign pa
+		LEFT JOIN POSITION p
+			ON `pa`.POSITION_ID = `p`.POSITION_ID
+		JOIN material_process_assign spa
+			ON `pa`.material_id = `spa`.material_id
+			AND `pa`.NEXT_POSITION_ID = `spa`.sign_position_id
+		WHERE `pa`.material_id = #{material_id}
+			AND `spa`.POSITION_ID = #{position_id}
+		ORDER BY `p`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getNextPositions" resultType="PositionEntity">
+		<![CDATA[ 
+		SELECT `pa`.POSITION_ID as POSITION_ID,
+			`p`.PROCESS_CODE as PROCESS_CODE,
+			`pa`.line_id as line_id,
+			`p`.light_division_flg
+		FROM material_process_assign pa
+		LEFT JOIN POSITION p
+			ON `pa`.POSITION_ID = `p`.POSITION_ID
+		JOIN material_process_assign spa
+			ON `pa`.material_id = `spa`.material_id
+			AND `pa`.PREV_POSITION_ID = `spa`.sign_position_id
+		WHERE `pa`.material_id = #{material_id}
+			AND `spa`.POSITION_ID = #{position_id}
+		ORDER BY `p`.PROCESS_CODE;
+		]]>
+	</select>
+
+	<select id="getProcessAssign" resultType="ProcessAssignEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT 2 AS REFER_TYPE, 
+			material_id as REFER_ID, 
+			LINE_ID, 
+			POSITION_ID, 
+			SIGN_POSITION_ID, 
+			PREV_POSITION_ID, 
+			NEXT_POSITION_ID
+		FROM material_process_assign
+		WHERE material_id = #{material_id}
+		AND POSITION_ID = #{position_id};
+		]]>
+	</select>
+
+	<select id="getPartStart" resultType="String">
+		<![CDATA[ 
+		SELECT position_id FROM material_process_assign p
+		WHERE material_id = #{material_id} AND line_id = #{line_id} AND prev_position_id = 0;
+		]]>
+	</select>
+
+	<select id="getPartAll" resultType="String">
+		<![CDATA[ 
+		SELECT position_id FROM material_process_assign p
+		WHERE material_id = #{material_id} AND line_id = #{line_id};
+		]]>
+	</select>
+
+	<select id="getWorkedLines" parameterType="String" resultType="LineEntity">
+		<![CDATA[
+			select mpa.material_id, pos.line_id, 
+			count(mpa.position_id) = count(pf.position_id) as inline_flg,
+			mp.finish_date as name
+			from material_process_assign mpa
+			join position pos
+			on mpa.position_id = pos.position_id
+			left join production_feature pf
+			on mpa.material_id = pf.material_id
+			and mpa.position_id = pf.position_id
+			and pf.operate_result = 2
+			left join material_process mp
+			on mpa.material_id = mp.material_id
+			and pos.line_id = mp.line_id
+			where mpa.material_id = #{material_id}
+			group by pos.line_id
+			;
+		]]>
+	</select>
+
+</mapper>

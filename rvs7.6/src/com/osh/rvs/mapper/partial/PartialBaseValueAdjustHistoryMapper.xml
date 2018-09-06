@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialBaseValueAdjustHistoryMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="searchPartialBaseValueAdjustHistory" parameterType="PartialBaseValueAdjustHistoryEntity" resultType="PartialBaseValueAdjustHistoryEntity">
+		<![CDATA[
+			SELECT 
+			    pa.code AS partial_code,
+			    pa.name AS partial_name,
+			    pph.identification,
+			    pph.foreboard_count,
+			    pph.start_date,
+			    pph.end_date,
+			    DATE(pph.updated_time) AS updated_time,
+			    op.name AS update_name,
+				COALESCE(partial_order.order_num,0) AS order_num,
+				COALESCE(bb.bo_num,0) AS bo_num
+			FROM
+			    partial_prepair_history pph
+			LEFT JOIN
+			    partial pa ON pph.partial_id = pa.partial_id
+			LEFT JOIN
+			    operator op ON op.operator_id = pph.updated_by
+			LEFT JOIN
+				(SELECT  
+					mpd.partial_id AS partial_id,
+					mp.order_date AS order_date,
+					COUNT(1) AS order_num
+				FROM  
+					material_partial_detail mpd 
+				JOIN 
+					material_partial mp 
+				ON 
+					mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times 
+				GROUP BY
+					partial_id
+				) AS partial_order
+			ON
+				partial_order.partial_id=pph.partial_id AND (partial_order.order_date >= pph.start_date AND partial_order.order_date < pph.end_date)
+			LEFT JOIN
+				(SELECT
+					mpd.partial_id AS partial_id,
+					mp.order_date AS order_date,
+					SUM(bo_flg) AS bo_num
+				FROM  
+					material_partial_detail mpd 
+				JOIN 
+					material_partial mp 
+				ON 
+					mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times 
+				WHERE 
+					mpd.status IN(3,4)
+				GROUP BY
+					partial_id
+				) AS bb
+			ON
+				bb.partial_id=pph.partial_id AND (bb.order_date >= pph.start_date AND bb.order_date < pph.end_date)
+		]]>
+		<where>
+			1=1
+			<if test="partial_code!=null and partial_code!='' ">
+				AND pa.code LIKE CONCAT('%',#{partial_code},'%')
+			</if>
+			<if test="partial_name!=null and partial_name!='' ">
+				AND pa.name LIKE CONCAT('%',#{partial_name},'%')
+			</if>
+			<if test="updated_by!=null and updated_by!='' ">
+				AND pph.updated_by = #{updated_by}
+			</if>
+			<if test="identification!=null and identification!='' ">
+				AND pph.identification = #{identification}
+			</if>
+			<if test="start_date_start!=null and start_date_start!='' ">
+				<![CDATA[
+					AND pph.start_date>= #{start_date_start}
+				]]>
+			</if>
+			<if test="start_date_end!=null and start_date_end!='' ">
+				<![CDATA[
+					AND pph.start_date <= #{start_date_end}
+				]]>
+			</if>
+			<if test="update_time_start!=null and update_time_start!='' ">
+				<![CDATA[
+					AND pph.updated_time >= #{update_time_start}
+				]]>
+			</if>
+			<if test="update_time_end!=null and update_time_end!='' ">
+				<![CDATA[
+					AND DATE(pph.updated_time) <= #{update_time_end}
+				]]>
+			</if>
+		</where>
+		<![CDATA[
+			order by
+				updated_time desc
+		]]>
+	</select>
+</mapper>

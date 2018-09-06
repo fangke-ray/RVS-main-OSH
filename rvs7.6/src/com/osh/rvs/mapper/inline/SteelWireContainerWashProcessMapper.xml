@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.SteelWireContainerWashProcessMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="search" parameterType="SteelWireContainerWashProcessEntity" resultType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		SELECT
+			sw.partial_id,
+			partial.code,
+		    sw.lot_no,
+		    sw.quantity,
+		    sw.process_time,
+		    operator.name AS operator_name
+		FROM
+			steel_wire_container_wash_process sw
+		JOIN
+			partial
+		ON
+			sw.partial_id = partial.partial_id
+		JOIN
+			operator
+		ON
+			sw.operator_id = operator.operator_id
+	]]>
+	<where>
+	<if test="code!=null and code!='' ">
+	<![CDATA[
+		partial.code LIKE CONCAT(#{code}, '%')
+	]]>
+	</if>
+	<if test="lot_no!=null and lot_no!='' ">
+	<![CDATA[
+		AND sw.lot_no = #{lot_no}
+	]]>
+	</if>
+	<if test="process_time_start!=null and process_time_start!='' ">
+	<![CDATA[
+		AND sw.process_time >= #{process_time_start}
+	]]>
+	</if>
+	<if test="process_time_end!=null and process_time_end!='' ">
+	<![CDATA[
+		AND sw.process_time < DATE_ADD(#{process_time_end}, interval 1 day)
+	]]>
+	</if>
+	<if test="operator_id!=null and operator_id!='' ">
+	<![CDATA[
+		AND sw.operator_id = #{operator_id}
+	]]>
+	</if>
+	</where>
+	ORDER BY
+		sw.process_time ASC
+	</select>
+	
+	<insert id="insert" parameterType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		INSERT INTO steel_wire_container_wash_process
+		(
+		partial_id,
+		lot_no,
+		process_time,
+		quantity,
+		operator_id
+		)
+		VALUES
+		(
+		#{partial_id},
+		#{lot_no},
+		#{process_time},
+		#{quantity},
+		#{operator_id}
+		)
+	]]>
+	</insert>
+
+	<update id="update" parameterType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		UPDATE 
+			steel_wire_container_wash_process 
+		SET 
+			quantity = #{quantity},
+			lot_no = #{lot_no}
+		WHERE
+			partial_id = #{partial_id}
+		AND
+			process_time = #{process_time}
+	]]>
+	</update>
+
+</mapper>

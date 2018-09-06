@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.LineMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getLineByID" resultType="LineEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT LINE_ID,
+			NAME,
+			INLINE_FLG,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_LINE
+		WHERE DELETE_FLG = 0
+		AND LINE_ID = #{line_id};
+		]]>
+	</select>
+
+	<select id="getAllLine" resultType="LineEntity">
+		<![CDATA[ 
+		SELECT LINE_ID,
+			NAME,
+			INLINE_FLG,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_LINE
+		WHERE DELETE_FLG = 0
+		ORDER BY LINE_ID ASC;
+		]]>
+	</select>
+
+	<select id="searchLine" resultType="LineEntity">
+		<![CDATA[ 
+		SELECT LINE_ID,
+			NAME,
+			INLINE_FLG,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_LINE
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="line_id!= null and line_id!= '' ">
+				AND LINE_ID = #{line_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="inline_flg!=null and inline_flg!='' ">
+				AND INLINE_FLG = #{inline_flg}
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<insert id="insertLine" parameterType="LineEntity">
+		<![CDATA[ 
+		INSERT INTO LINE 
+			(NAME, UPDATED_BY, INLINE_FLG, UPDATED_TIME) 
+		VALUES 
+			(#{name}, #{updated_by}, #{inline_flg}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="updateLine" parameterType="LineEntity">
+		<![CDATA[ 
+		UPDATE LINE SET NAME = #{name},
+			UPDATED_BY = #{updated_by},
+			INLINE_FLG = #{inline_flg},
+			UPDATED_TIME = current_timestamp
+		WHERE LINE_ID = #{line_id};
+		]]>
+	</update>
+
+	<update id="deleteLine" parameterType="LineEntity">
+		<![CDATA[ 
+		UPDATE LINE SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE LINE_ID = #{line_id};
+		]]>
+	</update>
+
+</mapper>

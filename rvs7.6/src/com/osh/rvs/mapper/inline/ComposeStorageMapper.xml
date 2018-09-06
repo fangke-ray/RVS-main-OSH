@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.ComposeStorageMapper">
+	<select id="searchComposeStroage" resultType="ComposeStorageEntity" parameterType="ComposeStorageEntity">
+		<![CDATA[
+			SELECT 
+			    ma.material_id,
+			    coalesce(omr_notifi_no, sorc_no) as sorc_no,
+			    ma.serial_no,
+			    ma.scheduled_date,
+			    ma.section_id,
+			    mp3.scheduled_date AS com_scheduled_date,
+			    mp1.finish_date AS dec_finish_date,
+			    mp2.finish_date AS ns_finish_date,
+			    se.name AS section_name,
+			    ca.name AS category_name,
+			    matp.arrival_plan_date,
+			    matp.bo_flg,
+				(select group_concat(ptl.code SEPARATOR ' ') from partial ptl join material_partial_detail mpd on ptl.partial_id = mpd.partial_id 
+					where mpd.material_id = ma.material_id and mpd.status in (3,4)) as bo_contents,
+			    cs.case_code,
+			    cs.goods_id,
+			    cs.shelf_name,
+			    current_timestamp() as action_time
+			FROM
+			    material ma
+			        LEFT JOIN
+			    material_process mp1 ON mp1.material_id = ma.material_id
+			        AND mp1.line_id = 12
+			        LEFT JOIN
+			    material_process mp2 ON mp2.material_id = ma.material_id
+			        AND mp2.line_id = 13
+			        LEFT JOIN
+			    material_process mp3 ON mp3.material_id = ma.material_id
+			        AND mp3.line_id = 14
+			        JOIN
+			    section se ON ma.section_id = se.section_id
+			        JOIN
+			    model mo ON mo.model_id = ma.model_id
+			        JOIN
+			    category ca ON ca.category_id = mo.category_id
+			        LEFT JOIN
+				(SELECT
+					mpd.material_id,
+					CASE
+						WHEN max(mpd.bo_flg in (8, 9)) = 1
+						THEN 9
+						WHEN max(mpd.bo_flg = 1) = 1
+						THEN 1
+						WHEN max(mpd.bo_flg = 2) = 1
+						THEN 2
+						ELSE 0
+					END bo_flg,
+					max(mpd.arrival_plan_date) as arrival_plan_date
+					from material_partial mpd
+					group by mpd.material_id) matp ON ma.material_id = matp.material_id
+			        LEFT JOIN
+			    compose_storage cs ON ma.material_id = cs.goods_id
+			WHERE
+			    ma.break_back_flg = 0
+			    AND ma.inline_time IS NOT NULL
+			    AND ma.outline_time is null
+		]]>
+		<if test="category_id!=null and category_id!='' ">
+			<![CDATA[
+				AND ca.category_id=#{category_id}
+			]]>
+		</if>
+		<if test="sorc_no!=null and sorc_no!='' ">
+		<![CDATA[
+				AND (sorc_no LIKE CONCAT('%', #{sorc_no},'%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no},'%'))
+		]]>
+		</if>
+		<if test="serial_no!=null and serial_no!='' ">
+		<![CDATA[
+				AND ma.serial_no=#{serial_no}
+		]]>
+		</if>
+		<if test="section_id!=null and section_id!='' ">
+		<![CDATA[
+				AND ma.section_id=#{section_id}
+		]]>
+		</if>
+		<if test="scheduled_date_start!=null and scheduled_date_start!='' ">
+		<![CDATA[
+				AND ma.scheduled_date>=#{scheduled_date_start}
+		]]>
+		</if>
+		<if test="scheduled_date_end!=null and scheduled_date_end!='' ">
+		<![CDATA[
+				AND ma.scheduled_date<=#{scheduled_date_end}
+		]]>
+		</if>
+		<if test="arrival_plan_date_start!=null and arrival_plan_date_start!='' ">
+		<![CDATA[
+				AND matp.arrival_plan_date>=#{arrival_plan_date_start}
+		]]>
+		</if>
+		<if test="arrival_plan_date_end!=null and arrival_plan_date_end!='' ">
+		<![CDATA[
+				AND matp.arrival_plan_date<=#{arrival_plan_date_end}
+		]]>
+		</if>
+		<if test="bo_flg !=null and bo_flg ==-1 ">
+		<![CDATA[
+				AND matp.bo_flg<>1
+		]]>
+		</if>
+		<if test="bo_flg !=null and bo_flg ==1 ">
+		<![CDATA[
+				AND matp.bo_flg=1
+		]]>
+		</if>
+		<if test="com_scheduled_date_start!=null and com_scheduled_date_start!='' ">
+		<![CDATA[
+				AND mp3.scheduled_date>=#{com_scheduled_date_start}
+		]]>
+		</if>
+		<if test="com_scheduled_date_end!=null and com_scheduled_date_end!='' ">
+		<![CDATA[
+				AND mp3.scheduled_date<=#{com_scheduled_date_end}
+		]]>
+		</if>
+		<![CDATA[
+		    AND EXISTS( SELECT 
+		            *
+		        FROM
+		            material_process mp
+		        WHERE
+		            mp.finish_date IS NOT NULL
+		            AND mp.line_id IN (12 , 13)
+		            AND ma.material_id = mp.material_id
+		       )
+		    AND NOT EXISTS( SELECT 
+			  *
+			FROM
+			    production_feature pf
+			WHERE
+			    pf.position_id in (
+			    00000000033,00000000042,00000000048,00000000050
+			)
+			AND pf.operate_result > 0
+			AND pf.material_id = ma.material_id
+			AND pf.rework = (
+				SELECT 
+					max(rework)
+				FROM
+					production_feature pf
+				WHERE
+					pf.position_id in (
+					00000000033,00000000042,00000000048,00000000050
+					)
+				AND pf.material_id = ma.material_id
+			)
+		)
+
+	    ORDER BY com_scheduled_date DESC,cs.refresh_time ASC
+		]]>
+	</select>
+	
+	<select id="getComposEmpty" resultType="ComposeStorageEntity" >
+		<![CDATA[
+				SELECT 
+					case_code,
+					shelf_name,
+					scan_code
+				FROM 
+					compose_storage 
+				WHERE 
+					goods_id IS NOT NULL
+		]]>
+	</select>
+	
+	<select id="checkMaterialExist" resultType="ComposeStorageEntity" parameterType="String">
+		<![CDATA[
+				SELECT 
+			    ma.material_id,
+			    ma.section_id,
+			    cs.case_code,
+			    cs.goods_id,
+			    cs.shelf_name,
+			    cs.scan_code
+			FROM
+			    material ma
+			        LEFT JOIN
+			    compose_storage cs ON ma.material_id = cs.goods_id
+			WHERE
+			    EXISTS( SELECT 
+			            *
+			        FROM
+			            material_process mp
+			        WHERE
+			            mp.finish_date IS NOT NULL
+			                AND mp.line_id IN (12 , 13)
+			                AND ma.material_id = mp.material_id
+					)
+				AND NOT EXISTS ( SELECT 
+		                    *
+		                FROM
+		                    production_feature pf
+		                WHERE
+		                    pf.position_id in (
+		                    00000000033,00000000042,00000000048,00000000050
+							)
+							AND pf.operate_result > 0
+							AND pf.material_id = ma.material_id
+							AND pf.rework = (
+								SELECT 
+									max(rework)
+								FROM
+									production_feature pf
+								WHERE
+									pf.position_id in (
+									00000000033,00000000042,00000000048,00000000050
+									)
+								AND pf.material_id = ma.material_id
+							)
+						)
+				AND ma.break_back_flg = 0
+				AND ma.inline_time IS NOT NULL
+				AND ma.outline_time is null
+		]]>
+		<if test="material_id!=null and material_id!='' ">
+			AND ma.material_id=#{material_id}
+		</if>
+	</select>
+	
+	<update id="updateLocation" parameterType="String">
+		<![CDATA[
+			UPDATE
+				compose_storage
+			SET
+				goods_id=null,
+				refresh_time=null
+			WHERE
+				scan_code = #{scan_code} 
+		]]>
+	</update>
+	
+	<update id="changeLocation" parameterType="String">
+		<![CDATA[ 
+		UPDATE 
+			compose_storage
+		SET 
+			goods_id = #{goods_id},
+			refresh_time=current_timestamp()
+		WHERE 
+			scan_code = #{scan_code}
+		]]>
+	</update>
+	
+	<insert id="insertCom" parameterType="String">
+		<![CDATA[ 
+			UPDATE
+				compose_storage
+			SET
+				goods_id=#{material_id},
+				refresh_time=current_timestamp()
+			WHERE 
+				scan_code= #{scan_code} 
+		]]>
+	</insert>
+
+	<update id="stockRemoval" parameterType="String">
+		<![CDATA[ 
+		UPDATE 
+			compose_storage
+		SET 
+			goods_id = null
+		WHERE 
+			goods_id = #{goods_id}
+		]]>
+	</update>
+
+	<select id="searchShelfNameExits" resultType="ComposeStorageEntity" parameterType="String">
+		SELECT scan_code
+		FROM 
+			compose_storage
+		WHERE
+			scan_code=#{scan_code}
+	</select>
+	
+	
+	<select id="searchGoodsExits" resultType="ComposeStorageEntity" parameterType="String">
+		SELECT goods_id
+		FROM 
+			compose_storage
+		WHERE
+			scan_code=#{scan_code}
+	</select>
+</mapper>

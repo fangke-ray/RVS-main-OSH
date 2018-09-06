@@ -1,0 +1,160 @@
+@font-face {
+	font-family: 'icomoon';
+	src:url('fonts/icomoon.eot');
+	src:url('fonts/icomoon.eot?#iefix') format('embedded-opentype'),
+		url('fonts/icomoon.svg#icomoon') format('svg'),
+		url('fonts/icomoon.woff') format('woff'),
+		url('fonts/icomoon.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+
+/* Use the following CSS code if you want to use data attributes for inserting your icons */
+[data-icon]:before {
+	font-family: 'icomoon';
+	content: attr(data-icon);
+	speak: none;
+	font-weight: normal;
+	-webkit-font-smoothing: antialiased;
+}
+
+/* Use the following CSS code if you want to have a class per icon */
+[class^="icon-"]:before, [class*=" icon-"]:before {
+	font-family: 'icomoon';
+	font-style: normal;
+	speak: none;
+	font-weight: normal;
+	-webkit-font-smoothing: antialiased;
+}
+.icon-home:before {
+	content: "\21";
+}
+.icon-cloud-upload:before {
+	content: "\22";
+}
+.icon-mic:before {
+	content: "\23";
+}
+.icon-cog:before {
+	content: "\24";
+}
+.icon-star:before {
+	content: "\25";
+}
+.icon-heart:before {
+	content: "\26";
+}
+.icon-box-add:before {
+	content: "\27";
+}
+.icon-box-remove:before {
+	content: "\28";
+}
+.icon-comments:before {
+	content: "\29";
+}
+.icon-comments-2:before {
+	content: "\2a";
+}
+.icon-plus:before {
+	content: "\2b";
+}
+.icon-remove:before {
+	content: "\2c";
+}
+.icon-minus:before {
+	content: "\2d";
+}
+.icon-thumbs-up:before {
+	content: "\2e";
+}
+.icon-thumbs-down:before {
+	content: "\2f";
+}
+.icon-cancel:before {
+	content: "\30";
+}
+.icon-checkmark:before {
+	content: "\31";
+}
+.icon-arrow-right:before {
+	content: "\32";
+}
+.icon-enter:before {
+	content: "\33";
+}
+.icon-feed:before {
+	content: "\34";
+}
+.icon-safari:before {
+	content: "\35";
+}
+.icon-IE:before {
+	content: "\36";
+}
+.icon-warning:before {
+	content: "\37";
+}
+.icon-help:before {
+	content: "\38";
+}
+.icon-printer:before {
+	content: "\39";
+}
+.icon-bell:before {
+	content: "\3a";
+}
+.icon-coffee:before {
+	content: "\3b";
+}
+.icon-tag-stroke:before {
+	content: "\3d";
+}
+.icon-tag-fill:before {
+	content: "\3e";
+}
+.icon-file-excel:before {
+	content: "\3f";
+}
+.icon-file-pdf:before {
+	content: "\40";
+}
+.icon-chart:before {
+	content: "\41";
+}
+.icon-calendar:before {
+	content: "\42";
+}
+.icon-clock:before {
+	content: "\43";
+}
+.icon-switch:before {
+	content: "\44";
+}
+.icon-enter-2:before {
+	content: "\45";
+}
+.icon-exit:before {
+	content: "\46";
+}
+.icon-calendar-2:before {
+	content: "\47";
+}
+.icon-bars:before {
+	content: "\48";
+}
+.icon-stats-up:before {
+	content: "\49";
+}
+.icon-upload:before {
+	content: "\4a";
+}
+.icon-list:before {
+	content: "\4b";
+}
+.icon-share:before {
+	content: "\4c";
+}
+.icon-cart:before {
+	content: "\3c";
+}

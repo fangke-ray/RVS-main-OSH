@@ -1,0 +1,82 @@
+.select2Buttons strong {
+	display: block;
+	clear: left;
+	padding-top: 5px;
+}
+
+.select2Buttons ul, .select2Groups ul {
+	list-style-type: none;
+	clear: left;
+	padding: 0;
+	margin-top: -12px; // 11/23 add
+}
+
+.select2Buttons li,.select2Buttons a,.select2Groups li,.select2Groups a {
+	float: left;
+	min-width: 37px;
+	background: #93c3cd url(images/ui-bg_diagonals-small_50_93c3cd_40x40.png) 50% 50% repeat;
+	color: #333333;
+}
+
+.select2Buttons li {
+	margin: 2px;
+}
+
+.select2Buttons li a,.select2Buttons .limited a,.select2Buttons .disabled,.select2Groups li a,.select2Groups .limited a
+	{
+	margin-left: -1px;
+}
+
+
+.select2Buttons li:last-child {
+	margin-right: 0;
+}
+
+.select2Buttons a,.select2Groups a {
+	padding: 2px 4px 2px 4px;
+	text-align: center;
+	text-decoration: none;
+	font-size: 14px;
+}
+
+.select2Buttons .disabled span {
+	padding: 1px 4px 0;
+	display: block;
+	font-size: 15px;
+	min-width: 37px;
+}
+
+.select2Buttons a:hover {
+	background: #ffffff url(images/ui-bg_flat_75_ffffff_40x100.png)
+		50% 50% repeat-x;
+	color: #381f00;
+	box-shadow: 1px 1px 0px #93c3cd inset, -1px -1px 0px #93c3cd inset;
+	/** border: 0.25px solid #93c3cd;
+	padding: 1px 4px 1px 2px; **/
+}
+.select2Groups .picked,
+.select2Buttons .picked {
+	background: #db4865 url(images/ui-bg_diagonals-small_40_db4865_40x40.png) 50% 50% repeat;
+	font-weight: bold;
+	color: #ffffff;
+}
+
+.select2Buttons .limited a,.select2Buttons .disabled {
+	text-align: center;
+}
+
+.select2Buttons .disabled {
+	border: 1px solid #d1d1d1;
+	color: #999;
+}
+
+.select2Buttons .disabled .picked {
+	background: #ffdd57 url(images/ui-bg_gloss-wave_70_ffdd57_500x100.png)
+		50% 50% repeat-x;
+	font-weight: bold;
+	color: #381f00;
+}
+select[disabled] + .select2Buttons li {
+	opacity: .35; filter:Alpha(Opacity=35); background-image: none;
+	pointer-events: none;
+}

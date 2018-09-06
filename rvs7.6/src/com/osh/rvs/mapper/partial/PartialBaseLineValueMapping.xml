@@ -1,0 +1,1092 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialBaseLineValueMapping">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchPartialBaseLineValue" parameterType="PartialBaseLineValueEntity" resultType="PartialBaseLineValueEntity">
+		<![CDATA[
+			select 
+				pa.partial_id,
+				pa.code as partial_code,
+				pa.name as partial_name,
+				coalesce(sel01.quantityOfHalfYear,0) as quantityOfHalfYear,
+				coalesce(sel02.quantityOfThreeMonthAge,0) as quantityOfThreeMonthAge,
+				coalesce(sel03.quantityOfOneMonthAge,0) as quantityOfOneMonthAge,
+				coalesce(vpp.osh_foreboard_count, 0) as osh_foreboard_count
+			from
+				partial pa
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfHalfYear
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH) ,
+										  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)) / 8 as interv from dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				and mpd.status != 9
+				group by	
+					mpd.partial_id
+				) as sel01 
+			on
+				pa.partial_id=sel01.partial_id
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfThreeMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH) ,
+										  DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE()) DAY)) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				and mpd.status != 9
+				group by	
+					mpd.partial_id
+				) as sel02
+			on
+				pa.partial_id=sel02.partial_id
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfOneMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(CURDATE(),interval -DAY(CURDATE())+1 DAY),CURRENT_DATE) / 8 as interv from dual) i
+				where
+					mp.order_date>=DATE_ADD(CURDATE(),interval -DAY(CURDATE())+1 DAY) and mp.order_date<=CURRENT_DATE
+					and mpd.status != 9
+				group by	
+					mpd.partial_id
+				) as sel03
+			on
+				pa.partial_id=sel03.partial_id
+			left join	
+				v_partial_prepair_osh vpp
+			on
+				pa.partial_id=vpp.partial_id
+		]]>
+		<where>
+			1=1
+			<if test="partial_code!=null and partial_code!='' ">
+				<![CDATA[
+					and	pa.code like CONCAT('%',#{partial_code},'%')
+				]]>
+			</if>
+			<if test="partial_name!=null and partial_name!='' ">
+				<![CDATA[
+					and pa.name like CONCAT('%',#{partial_name},'%')
+				]]>
+			</if>
+				<![CDATA[
+			AND (
+					osh_foreboard_count > 0 OR
+					EXISTS (SELECT 1 FROM PARTIAL_POSITION_BELONG WHERE partial_id = pa.partial_id AND history_limit_date >= current_date)
+				)
+				]]>
+		</where>
+		order by sel01.quantityOfHalfYear desc, osh_foreboard_count desc
+	</select>
+
+	<select id="searchPartialBaseLineValueByfactor" parameterType="PartialBaseLineValueEntity" resultType="PartialBaseLineValueEntity">
+		<![CDATA[
+			select 
+				pa.partial_id,
+				pa.code as partial_code,
+				pa.name as partial_name,
+				coalesce(sel01.quantityOfHalfYear,0) as quantityOfHalfYear,
+				coalesce(sel02.quantityOfThreeMonthAge,0) as quantityOfThreeMonthAge,
+				coalesce(sel03.quantityOfOneMonthAge,0) as quantityOfOneMonthAge,
+				coalesce(vpp.osh_foreboard_count, 0) as osh_foreboard_count
+			from
+				partial pa
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfHalfYear
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY),INTERVAL - 6 MONTH) ,
+										  				   DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE()) DAY)) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and mpd.status != 9
+				group by	
+					mpd.partial_id
+				) as sel01 
+			on
+				pa.partial_id=sel01.partial_id
+			left join
+				
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfThreeMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY),INTERVAL - 3 MONTH) ,
+										  				   DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE()) DAY)) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and mpd.status != 9
+				group by	
+					mpd.partial_id
+				) as sel02
+			on
+				pa.partial_id=sel02.partial_id
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfOneMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY),CURRENT_DATE) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY) and mp.order_date<=CURRENT_DATE
+					and mpd.status != 9
+				group by	
+					mpd.partial_id
+				) as sel03
+			on
+				pa.partial_id=sel03.partial_id
+			left join 	
+				v_partial_prepair_osh vpp
+			on
+				pa.partial_id=vpp.partial_id
+		]]>
+		<where>
+			1=1
+			<if test="partial_code!=null and partial_code!='' ">
+				<![CDATA[
+					and	pa.code like CONCAT('%',#{partial_code},'%')
+				]]>
+			</if>
+			<if test="partial_name!=null and partial_name!='' ">
+				<![CDATA[
+					and pa.name like CONCAT('%',#{partial_name},'%')
+				]]>
+			</if>
+		</where>
+	</select>
+
+	<update id="updateOshForeboardCount" parameterType="PartialBaseLineValueEntity">
+		<![CDATA[
+			update 
+				partial_prepair
+			set
+				osh_foreboard_count=#{osh_foreboard_count}
+			where 
+				partial_id=#{partial_id}
+		]]>
+	</update>
+
+	<!-- 周期平均使用量非标准 -->
+	<select id="getAverageQuantityOfNonStandardCycle" parameterType="PartialBaseLineValueEntity" resultType="java.math.BigDecimal">
+		<![CDATA[
+			select 
+			    coalesce(sum(mpd.quantity) / i.interv,0)
+			from
+			    material_partial_detail mpd
+			        join
+			    material_partial mp ON mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+			        join
+			    material ma ON mpd.material_id = ma.material_id
+			        join
+			    (select f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - #{flg} MONTH), 
+			    						 DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY))/ 8 as interv from dual) i
+			where
+			    mp.order_date >= DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - #{flg} MONTH)
+				and mp.order_date <=  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+				and mpd.partial_id=#{partial_id}
+				and mpd.status != 9
+		]]>
+	</select>
+
+	<!--周期平均使用量合计 -->
+	<select id="getTotalQuantityOfCycle" parameterType="PartialBaseLineValueEntity" resultType="PartialBaseLineValueEntity">
+		<![CDATA[
+			select 
+				coalesce(sum(mpd.quantity) / i.interv ,0) as echelonOfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 1)) / i.interv ,0) as echelon1OfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 2)) / i.interv ,0) as echelon2OfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 3)) / i.interv ,0) as echelon3OfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 4)) / i.interv ,0) as echelon4OfAverage
+			from 
+				material_partial_detail mpd 
+			join 
+				material_partial mp 
+			on	
+				mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+			join
+				material ma
+			on
+				ma.material_id=mp.material_id
+			join
+				model_level_set mls
+			on
+				mls.model_id=ma.model_id and mls.level=ma.level 
+			join 
+				(select f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - #{flg} MONTH) ,
+									  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)) / 8 as interv from dual) i
+			where
+				mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - #{flg} MONTH)  and mp.order_date<= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				and mpd.status != 9
+			group by
+				mpd.partial_id
+			having 
+				mpd.partial_id=#{partial_id};
+		]]>
+	</select>
+
+	<!-- 当月平均使用量非标准 -->
+	<select id="getAverageQuantityOfNonStandardCycleOfCurMonth" parameterType="PartialBaseLineValueEntity" resultType="java.math.BigDecimal">
+		<![CDATA[
+			select 
+			    coalesce(sum(mpd.quantity) / i.interv, 0)
+			from
+			    material_partial_detail mpd
+			        join
+			    material_partial mp ON mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+			        join
+			    material ma ON mpd.material_id = ma.material_id
+			        join
+			    (select f_getworkdays(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY), 
+			    						CURRENT_DATE) / 8 as interv from dual) i
+			where
+			    mp.order_date >= DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY)
+				and mp.order_date <= CURRENT_DATE
+				and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+				and mpd.partial_id=#{partial_id}
+				and mpd.status != 9
+		]]>
+	</select>
+
+	<!--当月平均使用量合计 -->
+	<select id="getTotalQuantityOfCycleOFCurMonth" parameterType="PartialBaseLineValueEntity" resultType="PartialBaseLineValueEntity">
+		<![CDATA[
+			select 
+				coalesce(sum(mpd.quantity) / i.interv ,0) as echelonOfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 1)) / i.interv ,0) as echelon1OfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 2)) / i.interv ,0) as echelon2OfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 3)) / i.interv ,0) as echelon3OfAverage,
+				coalesce(sum(mpd.quantity * (mls.echelon = 4)) / i.interv ,0) as echelon4OfAverage
+			from 
+				material_partial_detail mpd 
+			join 
+				material_partial mp 
+			on	
+				mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+			join
+				material ma
+			on
+				ma.material_id=mp.material_id
+			join
+				model_level_set mls
+			on
+				mls.model_id=ma.model_id and mls.level=ma.level
+			join 
+				(select f_getworkdays(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY),CURRENT_DATE) / 8 AS interv FROM dual) i
+			where
+				mp.order_date>=DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY)  and mp.order_date<=CURRENT_DATE
+				and mpd.status != 9
+			group by
+				mpd.partial_id
+			having 
+				mpd.partial_id=#{partial_id};
+		]]>
+	</select>
+
+	<!-- 设定非标使用量 -->
+	<select id="getNonBomSaftyCount" parameterType="PartialBaseLineValueEntity" resultType="int">
+		<![CDATA[
+			select
+				non_bom_safty_count
+			from
+				partial_prepair
+			where
+				partial_id=#{partial_id}
+		]]>
+	</select>
+
+	<!--按照拉动台数计算标准使用量 -->
+	<select id="searchForecastSettingAndCountOfSnandard" parameterType="PartialBaseLineValueEntity" resultType="PartialBaseLineValueEntity">
+		<![CDATA[
+			select 
+			    mo.name as modelName,
+			    pbs.level,
+			    coalesce(mls.echelon,4) as echelon,
+			    coalesce(mls.forecast_setting,0) as forecast_setting,
+			    pbs.quantity as countOfStandardPartial,
+				coalesce(ord.quantity,0) as orderCountOfAverage
+			from
+			    model mo
+			join
+			    partial_bom_set pbs 
+			ON 
+				pbs.model_id = mo.model_id
+			left join
+			    model_level_set mls 
+			ON 
+				mls.model_id = pbs.model_id and LEFT(mls.level,1) = pbs.level and mls.forecast_setting > 0
+			left join
+					(select 
+						ma.model_id as model_id,
+						ma.level as level,
+						ceil(sum(mpd.quantity) / i.interv) as quantity
+					FROM 
+						material_partial_detail mpd
+					join 
+						material_partial mp
+					on
+						mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+					join 
+						material ma
+					ON
+						ma.material_id=mp.material_id
+					join 
+						(select f_getworkdays(#{supply_date_start},#{supply_date_end}) / 8 AS interv FROM dual) i
+					WHERE 
+						mpd.partial_id=#{partial_id} and mp.order_date >= #{supply_date_start} AND mp.order_date<=#{supply_date_end}
+						and mpd.status != 9
+					group by 
+						ma.model_id,ma.level) ord
+			on
+				ord.model_id=mls.model_id and ord.level=mls.level
+			where
+			    pbs.partial_id = #{partial_id} and (ord.quantity > 0 or mls.forecast_setting> 0);
+		]]>
+	</select>
+
+	<!-- 平均订购量 -->
+	<select id="getOrderCountOfAverage" parameterType="PartialBaseLineValueEntity" resultType="double">
+		<![CDATA[
+			select 
+				coalesce(sum(mpd.quantity) / i.interv, 0)
+			from 
+				material_partial_detail mpd 
+			join 
+				material_partial mp 
+			on	
+				mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+			join 
+				(select f_getworkdays(#{start_date} ,#{end_date}) / 8 as interv from dual) i
+			where
+				mp.order_date>=#{start_date}  and mp.order_date<=#{end_date}
+				and mpd.partial_id=#{partial_id}
+				and mpd.status != 9
+		]]>
+	</select>
+
+	<!-- 标准零件使用数 -->
+	<select id="getTotalForeboardCount" parameterType="PartialBaseLineValueEntity" resultType="int">
+		<![CDATA[
+			select
+				coalesce(sum(foreboard_count),0)
+			from
+				partial_prepair_history
+			where
+				identification in (1,4)
+				and start_date<#{end_date} and end_date>=#{end_date}
+				and partial_id=#{partial_id}
+		]]>
+	</select>
+
+	<!-- 拉动台数合计使用量 -->
+	<select id="getTotalOFForecastSetting" parameterType="PartialBaseLineValueEntity" resultType="int">
+		<![CDATA[
+			select
+				coalesce(sum(mls.forecast_setting),0)
+			from
+				partial_bom_set pbs
+			join
+				model mo
+			on	
+				pbs.model_id=mo.model_id
+			join
+				model_level_set mls
+			on
+				mls.model_id=pbs.model_id and LEFT(mls.level,1)=pbs.level
+			where
+				pbs.partial_id=#{partial_id};
+		]]>
+	</select>
+
+	<!-- 基准量当前设置 -->
+	<select id="getCurSetOFForeboardCount" parameterType="PartialBaseLineValueEntity" resultType="int">
+		<![CDATA[
+			select 
+				osh_foreboard_count
+			from
+				partial_prepair
+			where
+				partial_id=#{partial_id}
+		]]>
+	</select>
+	
+	<!-- 更新整备信息零件基准值 -->
+	<update id="updateForeboardCount" parameterType="PartialBaseLineValueEntity">
+		<![CDATA[
+			update 
+				partial_prepair
+			set
+		]]>
+		<if test="identification==1">
+			sorcwh_foreboard_count=#{sorcwh_foreboard_count}
+		</if>
+		<if test="identification==4">
+			wh2p_foreboard_count=#{wh2p_foreboard_count}
+		</if>
+		<if test="identification==3">
+			consumable_foreboard_count=#{consumable_foreboard_count}
+		</if>
+		<if test="identification==2">
+			ogz_foreboard_count=#{ogz_foreboard_count}
+		</if>
+		<![CDATA[
+			where
+				partial_id=#{partial_id}
+		]]>
+	</update>
+	
+	<!-- 更新零件整备设定历史有效区间终了日期 -->
+	<update id="updatePartialPrepairHistroyEndDate" parameterType="PartialBaseLineValueEntity">
+		<![CDATA[
+			UPDATE 
+				partial_prepair_history 
+			SET 
+		]]>
+		<if test="identification==1">
+			end_date = #{sorcwh_end_date},
+		</if>
+		<if test="identification==4">
+			end_date = #{wh2p_end_date},
+		</if>
+		<if test="identification==3">
+			end_date = #{consumble_end_date},
+		</if>
+		<if test="identification==2">
+			end_date = #{ogz_end_date},
+		</if>
+		<![CDATA[
+				updated_by=#{updated_by},
+				updated_time=CURRENT_TIMESTAMP()
+			WHERE
+				partial_id=#{partial_id} 
+			and identification=#{identification} 
+			and end_date = (SELECT end_date FROM (SELECT MAX(end_date) end_date FROM partial_prepair_history WHERE partial_id=#{partial_id} and identification=#{identification}) aa )
+		]]>
+	</update>
+	
+	<!-- 插入零件整备设定历史 -->
+	<insert id="insertPartialPrepairHistroy" parameterType="PartialBaseLineValueEntity">
+		<![CDATA[
+			INSERT INTO
+				partial_prepair_history(partial_id,identification,start_date,end_date,updated_by,updated_time,foreboard_count)
+			VALUES(#{partial_id},
+					#{identification},
+					case 
+						when #{identification}=1 then #{sorcwh_end_date}
+						when #{identification}=4 then #{wh2p_end_date}
+						when #{identification}=3 then #{consumble_end_date}
+						when #{identification}=2 then #{ogz_end_date}
+					end ,
+					'9999-12-31',
+					#{updated_by},
+					CURRENT_TIMESTAMP(),
+					case 
+						when #{identification}=1 then #{sorcwh_foreboard_count}
+						when #{identification}=4 then #{wh2p_foreboard_count}
+						when #{identification}=3 then #{consumable_foreboard_count}
+						when #{identification}=2 then #{ogz_foreboard_count}
+					end 
+					)
+		]]>
+	</insert>
+	
+	<!-- 查询当前零件整备设定最近一次有效区间的开始日期 -->
+	<select id="searchLastStartDate" parameterType="PartialBaseLineValueEntity" resultType="Date">
+		<![CDATA[
+			select 
+				MAX(start_date) AS start_date 
+			from
+				partial_prepair_history
+			where
+				partial_id=#{partial_id} 
+			and identification=#{identification}  
+			and end_date = (select end_date from (SELECT max(end_date) end_date FROM partial_prepair_history where partial_id=#{partial_id} and identification=#{identification}) aa);
+		]]>
+	</select>
+	
+	<!-- 查询零件基准值 -->
+	<select id="searchPartialBaseValue" resultType="PartialBaseLineValueEntity" parameterType="PartialBaseLineValueEntity">
+		<![CDATA[
+			SELECT 
+			    sorcwh_foreboard_count,
+			    wh2p_foreboard_count,
+			    consumable_foreboard_count,
+			    ogz_foreboard_count
+			FROM
+			    partial_prepair
+			WHERE
+			    partial_id = #{partial_id}
+		]]>
+	</select>
+	
+	<!-- 获取采样日期 -->
+	<select id="getSampleDate" resultType="java.util.Date" parameterType="int">
+		<![CDATA[ 
+			SELECT F_ADDWORKDAYS(CURDATE(), -#{flg}) FROM DUAL;
+		]]>
+	</select>
+	
+	<!-- 采样周期内 补充量合计 -->
+	<select id="searchSupplyQuantityOfCycle" parameterType="PartialBaseLineValueEntity" resultType="int">
+		<![CDATA[
+			SELECT 
+			    COALESCE(SUM(quantity),0)
+			FROM
+			    partial_supply
+			WHERE
+			    identification IN (1 , 4) AND partial_id = #{partial_id} AND supply_date >= #{supply_date_start} AND supply_date <= #{supply_date_end}
+		]]>
+	</select>
+	
+	<!-- 基准值下载 -->
+	<select id="dowloadPartialBaseLineValue" parameterType="PartialBaseLineValueEntity" resultType="PartialBaseLineValueEntity">
+		<![CDATA[
+			select 
+				pa.partial_id,
+				pa.code as partial_code,
+				pa.name as partial_name,
+				coalesce(sel01.quantityOfHalfYear,0) as quantityOfHalfYear,
+				coalesce(sel02.quantityOfThreeMonthAge,0) as quantityOfThreeMonthAge,
+				coalesce(sel09.quantityOfBeforeOneMonthAge, 0) as quantityOfBeforeOneMonthAge,
+				coalesce(sel03.quantityOfOneMonthAge,0) as quantityOfOneMonthAge,
+				coalesce(vpp.osh_foreboard_count, 0) as osh_foreboard_count,
+				coalesce(sel04.countOfNotStandardOfHalfYear,0) as countOfNotStandardOfHalfYear,
+				coalesce(sel05.countOfNotStandardOfThreeMonth,0) as countOfNotStandardOfThreeMonth,
+				coalesce(sel06.countOfNotStandardOfOneMonth,0) as countOfNotStandardOfOneMonth,
+				coalesce(sel07.countOfNotStandardOfCurMonth,0) as countOfNotStandardOfCurMonth,
+				coalesce(sel08.totalOFForecastSetting,0) as totalOFForecastSetting,
+				coalesce(pp.non_bom_safty_count,0) as non_bom_safty_count,
+				coalesce(pp.sorcwh_foreboard_count,0) as sorcwh_foreboard_count,
+				coalesce(pp.wh2p_foreboard_count,0) as wh2p_foreboard_count,
+				coalesce(pp.ogz_foreboard_count,0) as ogz_foreboard_count
+			from
+				partial pa
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfHalfYear
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH) ,
+										  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)) / 8 as interv from dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				group by	
+					mpd.partial_id
+				) as sel01 
+			on
+				pa.partial_id=sel01.partial_id
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfThreeMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH) ,
+										  DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE()) DAY)) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				group by	
+					mpd.partial_id
+				) as sel02
+			on
+				pa.partial_id=sel02.partial_id
+			left join
+			    (select 
+			        mpd.partial_id,
+					sum(mpd.quantity) / i.interv as quantityOfBeforeOneMonthAge
+			    from
+			        material_partial_detail mpd
+			    join 
+					material_partial mp 
+				ON 
+					mpd.material_id = mp.material_id and mpd.occur_times = mp.occur_times
+			    join (
+					select 
+						f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(), INTERVAL - DAY(curdate()) + 1 day), INTERVAL - 1 MONTH), DATE_ADD(CURDATE(), INTERVAL - DAY(CURDATE()) DAY)) / 8 AS interv FROM dual
+					) i
+				where
+					mp.order_date >= DATE_ADD(DATE_ADD(curdate(), INTERVAL - DAY(curdate()) + 1 day), INTERVAL - 1 MONTH) and mp.order_date <= DATE_ADD(curdate(), INTERVAL - DAY(curdate()) DAY)
+				group by 
+					mpd.partial_id
+				) as sel09
+			ON 
+				pa.partial_id = sel09.partial_id
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfOneMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(CURDATE(),interval -DAY(CURDATE())+1 DAY),CURRENT_DATE) / 8 as interv from dual) i
+				where
+					mp.order_date>=DATE_ADD(CURDATE(),interval -DAY(CURDATE())+1 DAY) and mp.order_date<=CURRENT_DATE
+				group by	
+					mpd.partial_id
+				) as sel03
+			on
+				pa.partial_id=sel03.partial_id
+			left join	
+				v_partial_prepair_osh vpp
+			on
+				pa.partial_id=vpp.partial_id
+			left join
+				(select 
+					mpd.partial_id as partial_id,
+					coalesce(sum(mpd.quantity) / i.interv,0) as countOfNotStandardOfHalfYear
+				from
+					material_partial_detail mpd
+				join
+					material_partial mp ON mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+				join
+					material ma ON mpd.material_id = ma.material_id
+				join
+					(select 
+						f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH), DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY))/ 8 as interv from dual
+					) i
+				where
+					mp.order_date >= DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH) and mp.order_date <=  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+					group by 
+						mpd.partial_id
+				) as sel04
+			on
+				sel04.partial_id=pa.partial_id
+			left join
+				(select 
+					mpd.partial_id as partial_id,
+					coalesce(sum(mpd.quantity) / i.interv,0) as countOfNotStandardOfThreeMonth
+				 from
+					material_partial_detail mpd
+				 join
+					material_partial mp ON mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+				 join
+					material ma ON mpd.material_id = ma.material_id
+				join
+					(select 
+						f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH), DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY))/ 8 as interv from dual
+					) i
+				where
+					mp.order_date >= DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH) and mp.order_date <=  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+					group by 
+						mpd.partial_id
+				) as sel05
+		 on
+			sel05.partial_id=pa.partial_id
+		left join
+				(select 
+						mpd.partial_id as partial_id,
+					    coalesce(sum(mpd.quantity) / i.interv,0) as countOfNotStandardOfOneMonth
+				from
+					    material_partial_detail mpd
+				join
+					    material_partial mp 
+				ON 
+						mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+				join
+					    material ma 
+				ON 
+						mpd.material_id = ma.material_id
+				join
+					   (select 
+							f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 1 MONTH),  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY))/ 8 as interv from dual) i
+				where
+					 mp.order_date >= DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 1 MONTH)
+					and mp.order_date <=  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+					group by 
+							mpd.partial_id
+				) as sel06
+		on
+			sel06.partial_id=pa.partial_id
+		left join
+			(select 
+				mpd.partial_id as partial_id,
+				coalesce(sum(mpd.quantity) / i.interv, 0) as countOfNotStandardOfCurMonth
+			 from
+				material_partial_detail mpd
+			 join
+				material_partial mp 
+			 ON 
+				mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+			 join
+				material ma ON mpd.material_id = ma.material_id
+			 join
+				(select 
+					f_getworkdays(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY), CURRENT_DATE) / 8 as interv from dual
+				) i
+			where
+				mp.order_date >= DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY) and mp.order_date <= CURRENT_DATE
+				and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+				group by 
+					mpd.partial_id
+			) as sel07
+		on
+			sel07.partial_id=pa.partial_id
+			left join
+				(select
+					pbs.partial_id as partial_id,
+					coalesce(sum(mls.forecast_setting),0) as totalOFForecastSetting
+				 from
+				    partial_bom_set pbs
+			     join
+				    model mo
+				on	
+					pbs.model_id=mo.model_id
+				join
+					model_level_set mls
+				on
+					mls.model_id=pbs.model_id and LEFT(mls.level,1)=pbs.level
+				group by 
+					pbs.partial_id
+				) as sel08
+		on
+			sel08.partial_id=pa.partial_id
+		left join
+			partial_prepair as pp
+		on
+			pp.partial_id=pa.partial_id
+		]]>
+		<where>
+			1=1
+			<if test="partial_code!=null and partial_code!='' ">
+				<![CDATA[
+					and	pa.code like CONCAT('%',#{partial_code},'%')
+				]]>
+			</if>
+			<if test="partial_name!=null and partial_name!='' ">
+				<![CDATA[
+					and pa.name like CONCAT('%',#{partial_name},'%')
+				]]>
+			</if>
+			AND EXISTS (SELECT 1 FROM PARTIAL_POSITION_BELONG WHERE partial_id = pa.partial_id AND history_limit_date >= current_date)
+		</where>
+		order by sel01.quantityOfHalfYear desc, osh_foreboard_count desc
+	</select>
+	
+	<!-- 基准值下载 -->
+	<select id="dowloadPartialBaseLineValueByfactor" parameterType="PartialBaseLineValueEntity" resultType="PartialBaseLineValueEntity">
+		<![CDATA[
+			select 
+				pa.partial_id,
+				pa.code as partial_code,
+				pa.name as partial_name,
+				coalesce(sel01.quantityOfHalfYear,0) as quantityOfHalfYear,
+				coalesce(sel02.quantityOfThreeMonthAge,0) as quantityOfThreeMonthAge,
+				coalesce(sel09.quantityOfBeforeOneMonthAge, 0) as quantityOfBeforeOneMonthAge,
+				coalesce(sel03.quantityOfOneMonthAge,0) as quantityOfOneMonthAge,
+				coalesce(vpp.osh_foreboard_count, 0) as osh_foreboard_count,
+				coalesce(sel04.countOfNotStandardOfHalfYear,0) as countOfNotStandardOfHalfYear,
+				coalesce(sel05.countOfNotStandardOfThreeMonth,0) as countOfNotStandardOfThreeMonth,
+				coalesce(sel06.countOfNotStandardOfOneMonth,0) as countOfNotStandardOfOneMonth,
+				coalesce(sel07.countOfNotStandardOfCurMonth,0) as countOfNotStandardOfCurMonth,
+				coalesce(sel08.totalOFForecastSetting,0) as totalOFForecastSetting,
+				coalesce(pp.non_bom_safty_count,0) as non_bom_safty_count,
+				coalesce(pp.sorcwh_foreboard_count,0) as sorcwh_foreboard_count,
+				coalesce(pp.wh2p_foreboard_count,0) as wh2p_foreboard_count,
+				coalesce(pp.ogz_foreboard_count,0) as ogz_foreboard_count
+			from
+				partial pa
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfHalfYear
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY),INTERVAL - 6 MONTH) ,
+										  				   DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE()) DAY)) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				group by	
+					mpd.partial_id
+				) as sel01 
+			on
+				pa.partial_id=sel01.partial_id
+			left join
+				
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfThreeMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY),INTERVAL - 3 MONTH) ,
+										  				   DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE()) DAY)) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH)  and mp.order_date <= DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+				group by	
+					mpd.partial_id
+				) as sel02
+			on
+				pa.partial_id=sel02.partial_id
+			left join
+			    (select 
+			        mpd.partial_id,
+					sum(mpd.quantity) / i.interv as quantityOfBeforeOneMonthAge
+			    from
+			        material_partial_detail mpd
+			    join 
+					material_partial mp 
+				ON 
+					mpd.material_id = mp.material_id and mpd.occur_times = mp.occur_times
+			    join (
+					select 
+						f_getworkdays(DATE_ADD(DATE_ADD(CURDATE(), INTERVAL - DAY(curdate()) + 1 day), INTERVAL - 1 MONTH), DATE_ADD(CURDATE(), INTERVAL - DAY(CURDATE()) DAY)) / 8 AS interv FROM dual
+					) i
+				where
+					mp.order_date >= DATE_ADD(DATE_ADD(curdate(), INTERVAL - DAY(curdate()) + 1 day), INTERVAL - 1 MONTH) and mp.order_date <= DATE_ADD(curdate(), INTERVAL - DAY(curdate()) DAY)
+				group by 
+					mpd.partial_id
+				) as sel09
+			ON 
+				pa.partial_id = sel09.partial_id
+			left join
+				(select 
+					mpd.partial_id, 
+					sum(mpd.quantity) / i.interv as quantityOfOneMonthAge
+				from 
+					material_partial_detail mpd 
+				join 
+					material_partial mp 
+				on	
+					mpd.material_id=mp.material_id and mpd.occur_times=mp.occur_times
+				join 
+					(select f_getworkdays(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY),CURRENT_DATE) / 8 AS interv FROM dual) i
+				where
+					mp.order_date>=DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY) and mp.order_date<=CURRENT_DATE
+				group by	
+					mpd.partial_id
+				) as sel03
+			on
+				pa.partial_id=sel03.partial_id
+			left join 	
+				v_partial_prepair_osh vpp
+			on
+				pa.partial_id=vpp.partial_id
+			left join
+				(select 
+					mpd.partial_id as partial_id,
+					coalesce(sum(mpd.quantity) / i.interv,0) as countOfNotStandardOfHalfYear
+				from
+					material_partial_detail mpd
+				join
+					material_partial mp ON mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+				join
+					material ma ON mpd.material_id = ma.material_id
+				join
+					(select 
+						f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH), DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY))/ 8 as interv from dual
+					) i
+				where
+					mp.order_date >= DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 6 MONTH) and mp.order_date <=  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+					group by 
+						mpd.partial_id
+				) as sel04
+			on
+				sel04.partial_id=pa.partial_id
+			left join
+				(select 
+					mpd.partial_id as partial_id,
+					coalesce(sum(mpd.quantity) / i.interv,0) as countOfNotStandardOfThreeMonth
+				 from
+					material_partial_detail mpd
+				 join
+					material_partial mp ON mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+				 join
+					material ma ON mpd.material_id = ma.material_id
+				join
+					(select 
+						f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH), DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY))/ 8 as interv from dual
+					) i
+				where
+					mp.order_date >= DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 3 MONTH) and mp.order_date <=  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+					group by 
+						mpd.partial_id
+				) as sel05
+		 on
+			sel05.partial_id=pa.partial_id
+		left join
+				(select 
+						mpd.partial_id as partial_id,
+					    coalesce(sum(mpd.quantity) / i.interv,0) as countOfNotStandardOfOneMonth
+				from
+					    material_partial_detail mpd
+				join
+					    material_partial mp 
+				ON 
+						mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+				join
+					    material ma 
+				ON 
+						mpd.material_id = ma.material_id
+				join
+					   (select 
+							f_getworkdays(DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 1 MONTH),  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY))/ 8 as interv from dual) i
+				where
+					 mp.order_date >= DATE_ADD(DATE_ADD(curdate(),INTERVAL -DAY(curdate())+1 day),INTERVAL - 1 MONTH)
+					and mp.order_date <=  DATE_ADD(curdate(),INTERVAL -DAY(curdate()) DAY)
+					and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+					group by 
+							mpd.partial_id
+				) as sel06
+		on
+			sel06.partial_id=pa.partial_id
+		left join
+			(select 
+				mpd.partial_id as partial_id,
+				coalesce(sum(mpd.quantity) / i.interv, 0) as countOfNotStandardOfCurMonth
+			 from
+				material_partial_detail mpd
+			 join
+				material_partial mp 
+			 ON 
+				mpd.material_id = mp.material_id and mpd.occur_times=mp.occur_times
+			 join
+				material ma ON mpd.material_id = ma.material_id
+			 join
+				(select 
+					f_getworkdays(DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY), CURRENT_DATE) / 8 as interv from dual
+				) i
+			where
+				mp.order_date >= DATE_ADD(CURDATE(),INTERVAL -DAY(CURDATE())+1 DAY) and mp.order_date <= CURRENT_DATE
+				and not exists( select 1 from partial_bom_set where model_id = ma.model_id and level = LEFT(ma.level,1) and partial_id = mpd.partial_id)
+				group by 
+					mpd.partial_id
+			) as sel07
+		on
+			sel07.partial_id=pa.partial_id
+			left join
+				(select
+					pbs.partial_id as partial_id,
+					coalesce(sum(mls.forecast_setting),0) as totalOFForecastSetting
+				 from
+				    partial_bom_set pbs
+			     join
+				    model mo
+				on	
+					pbs.model_id=mo.model_id
+				join
+					model_level_set mls
+				on
+					mls.model_id=pbs.model_id and LEFT(mls.level,1)=pbs.level
+				group by 
+					pbs.partial_id
+				) as sel08
+		on
+			sel08.partial_id=pa.partial_id
+		left join
+			partial_prepair as pp
+		on
+			pp.partial_id=pa.partial_id
+		]]>
+		<where>
+			1=1
+			<if test="partial_code!=null and partial_code!='' ">
+				<![CDATA[
+					and	pa.code like CONCAT('%',#{partial_code},'%')
+				]]>
+			</if>
+			<if test="partial_name!=null and partial_name!='' ">
+				<![CDATA[
+					and pa.name like CONCAT('%',#{partial_name},'%')
+				]]>
+			</if>
+		</where>
+	</select>
+
+	<!-- 查询当前零件整备有效的开始日期(OSH) -->
+	<select id="getNewestDateOfOsh" parameterType="String" resultType="Date">
+		<![CDATA[
+			SELECT max(start_date) start_date 
+			FROM partial_prepair_history 
+			where partial_id=#{partial_id}
+			and identification in (1,4)
+			and start_date <= current_date;
+		]]>
+	</select>
+	
+	<select id="checkExist" parameterType="PartialBaseLineValueEntity" resultType="int">
+		<![CDATA[
+			select count(1) from partial_prepair where partial_id=#{partial_id}
+		]]>
+	</select>
+	
+	<insert id="insertPartialPrepair" parameterType="PartialBaseLineValueEntity">
+		<![CDATA[
+			insert into partial_prepair(partial_id) values(#{partial_id});
+		]]>
+	</insert>
+</mapper>

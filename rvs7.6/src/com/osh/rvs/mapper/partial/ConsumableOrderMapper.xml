@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ConsumableOrderMapper">
+	<select id="searchOrderList" parameterType="ConsumableOrderEntity" resultType="ConsumableOrderEntity">
+		<![CDATA[ 
+		SELECT
+			co.consumable_order_key
+			,co.order_no
+			,sum(cod.order_quantity) sum_order_quantity
+			,co.create_time
+			,co.sent
+		FROM 
+			consumable_order co
+		JOIN 
+			consumable_order_detail cod ON co.consumable_order_key = cod.consumable_order_key
+		]]>
+		<if test="code != null and code != ''">
+		JOIN 
+			partial p on cod.partial_id = p.partial_id
+		</if>
+		<where>
+			<if test="consumable_order_key != null and consumable_order_key != ''">
+		   		co.consumable_order_key = #{consumable_order_key}
+			</if>
+			<if test="code != null and code != ''">
+		    	and p.code like CONCAT('%',#{code},'%')
+			</if>
+			<if test="order_no != null and order_no != ''">
+		   		and co.order_no = #{order_no}
+			</if>
+			<if test="order_date_start != null and order_date_start != ''">
+				<![CDATA[
+				and co.create_time >= #{order_date_start}
+				]]>
+			</if>
+			<if test="order_date_end != null and order_date_end != ''">
+				<![CDATA[ 
+		   		and co.create_time <= #{order_date_end}
+		   		]]>
+			</if>
+		</where>
+		GROUP BY co.consumable_order_key
+		ORDER BY co.sent, co.create_time desc
+	</select>
+
+	<select id="searchOrderDetail" parameterType="ConsumableOrderEntity" resultType="ConsumableOrderEntity">
+		<![CDATA[ 
+		SELECT
+			"1" as db_flg
+			,co.order_no
+			,p.partial_id
+			,p.code
+			,p.name as description
+			,cod.order_quantity
+		]]>
+		<if test="sent == 0">
+			,cm.benchmark
+			,cm.safety_lever
+			,cm.available_inventory
+			,cm.on_passage
+		</if>
+		FROM 
+			consumable_order co
+		JOIN 
+			consumable_order_detail cod ON co.consumable_order_key = cod.consumable_order_key
+		JOIN 
+			partial p ON cod.partial_id = p.partial_id
+		<if test="sent == 0">
+		JOIN
+			consumable_manage cm ON p.partial_id = cm.partial_id
+		</if>
+		<![CDATA[ 
+		WHERE
+			co.consumable_order_key = #{consumable_order_key}
+		ORDER BY p.code
+		]]>
+	</select>
+
+	<select id="searchConsumableOrderDetailById" parameterType="ConsumableOrderEntity" resultType="ConsumableOrderEntity">
+		<![CDATA[ 
+			select partial_id,order_quantity from consumable_order_detail where consumable_order_key = #{consumable_order_key}
+		]]>
+	</select>
+
+	<!-- 查询输入零件 -->
+   <select id="getPartialByCode" parameterType="String" resultType="ConsumableOrderEntity" >
+		<![CDATA[ 
+		SELECT
+			p.partial_id
+			,p.name as description
+			,cm.partial_id as cm_partial_id
+			,cm.benchmark
+			,cm.safety_lever
+			,cm.available_inventory
+			,cm.on_passage
+		FROM
+			partial p
+		LEFT JOIN
+			consumable_manage cm ON p.partial_id = cm.partial_id
+		WHERE
+			p.code like CONCAT(#{code},'%')
+		ORDER BY p.code
+		]]>
+	</select>
+
+	<!-- 修改订购单 -->
+	<update id="updateOrderDetail" parameterType="ConsumableOrderEntity">
+		<![CDATA[
+			UPDATE consumable_order_detail
+			SET
+				order_quantity = #{order_quantity}
+			WHERE
+				consumable_order_key = #{consumable_order_key}
+				and partial_id = #{partial_id}
+		]]>
+	</update>
+
+	<update id="updateOrder" parameterType="ConsumableOrderEntity">
+		<![CDATA[
+			UPDATE consumable_order
+			SET
+				create_time = curdate()
+				,sent = 1
+			WHERE
+				consumable_order_key = #{consumable_order_key}
+		]]>
+	</update>
+
+	<!-- 增加订购单 -->
+	<insert id="insertOrderDetail" parameterType="ConsumableOrderEntity">
+		<![CDATA[ 
+			INSERT INTO consumable_order_detail (
+				consumable_order_key, 
+				partial_id,
+				order_quantity
+				) 					
+	        VALUES (
+	        	#{consumable_order_key},
+				#{partial_id},
+				#{order_quantity}
+				);
+		]]>
+	</insert>
+
+	<!-- 删除订购单 -->
+	<delete id="deleteOrder" parameterType="ConsumableOrderEntity">
+		<![CDATA[ 
+			DELETE FROM consumable_order
+			WHERE consumable_order_key = #{consumable_order_key}
+		]]>
+	</delete>
+	<delete id="deleteOrderDetail" parameterType="ConsumableOrderEntity">
+		<![CDATA[ 
+			DELETE FROM consumable_order_detail
+			WHERE consumable_order_key = #{consumable_order_key}
+		]]>
+	</delete>
+	<delete id="deleteOrderDetailById" parameterType="ConsumableOrderEntity">
+		<![CDATA[ 
+			DELETE FROM consumable_order_detail
+			WHERE consumable_order_key = #{consumable_order_key}
+				and partial_id = #{partial_id}
+		]]>
+	</delete>
+
+	<!-- 消耗品修正数据_更新 -->
+	<update id="updateConsumableManage" parameterType="ConsumableOrderEntity">
+		<![CDATA[ 
+			UPDATE consumable_manage 
+			SET on_passage = on_passage + #{order_quantity}
+			WHERE partial_id = #{partial_id}
+		]]>
+	</update>
+</mapper>

@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.TurnoverCaseMapper">
+
+	<select id="searchTurnoverCase" resultType="TurnoverCaseEntity"
+		parameterType="TurnoverCaseEntity">
+		<![CDATA[
+		SELECT 
+		ma.material_id,
+		ma.omr_notifi_no,
+		ma.model_id,
+		mdl.name as model_name,
+		ma.serial_no,
+		ma.level,
+		coalesce(ma.bound_out_ocm, ma.ocm) as bound_out_ocm,
+		tcs.storage_time,
+		CASE
+		WHEN tcs.material_id IS NOT NULL AND tcs.`execute` = 0 THEN 1
+		WHEN tcs.material_id IS NOT NULL AND (ma.outline_time IS NOT NULL OR ma.break_back_flg = 1) THEN 2
+		ELSE 0
+		END as `layer`,
+		tcs.`execute`,
+		ma.direct_flg,
+		ma.break_back_flg,
+		tcs.location
+		FROM turnover_case_storage tcs
+		LEFT JOIN material ma ON tcs.material_id = ma.material_id
+		LEFT JOIN model mdl on ma.model_id = mdl.model_id
+		]]>
+		<where>
+			<if test="model_id!=null and model_id!=''">
+			<![CDATA[
+				AND ma.model_id = #{model_id}
+			]]>
+			</if>
+			<if test="serial_no!=null and serial_no!=''">
+			<![CDATA[
+				AND ma.serial_no = #{serial_no}
+			]]>
+			</if>
+			<if test="omr_notifi_no!=null and omr_notifi_no!=''">
+			<![CDATA[
+				AND ma.omr_notifi_no LIKE CONCAT('%',#{omr_notifi_no},'%')
+			]]>
+			</if>
+			<if test="location!=null and location!=''">
+			<![CDATA[
+				AND tcs.location LIKE CONCAT('%',#{location},'%')
+			]]>
+			</if>
+			<if test="storage_time_start!=null and storage_time_start!='' ">
+			<![CDATA[
+				AND DATE(tcs.storage_time)>=#{storage_time_start}
+			]]>
+			</if>
+			<if test="storage_time_end!=null and storage_time_end!='' ">
+			<![CDATA[
+				AND DATE(tcs.storage_time)<=DATE(#{storage_time_end})
+			]]>
+			</if>
+			<if test="direct_flg == 1">
+			<![CDATA[
+				AND ma.direct_flg = 1
+			]]>
+			</if>
+			<if test="direct_flg == 0">
+			<![CDATA[
+				AND ma.direct_flg = 0
+			]]>
+			</if>
+			<if test="bound_out_ocm!=null and bound_out_ocm!=''">
+			<![CDATA[
+				AND (ma.bound_out_ocm = #{bound_out_ocm} OR ma.ocm = #{bound_out_ocm} )
+			]]>
+			</if>
+			<if test="material_id!=null and material_id!=''">
+			<![CDATA[
+				AND tcs.material_id = #{material_id}
+			]]>
+			</if>
+		</where>
+		ORDER BY tcs.key
+		;
+	</select>
+
+	<select id="getStorageHeaped" resultType="String">
+		<![CDATA[ 
+			SELECT
+				location
+			 FROM turnover_case_storage
+			 WHERE material_id IS NOT NULL
+		]]>
+	</select>
+
+	<select id="getEntityByLocationForStorage" resultType="TurnoverCaseEntity">
+		<![CDATA[ 
+			SELECT
+				shelf, location, `execute`, material_id
+			FROM turnover_case_storage
+			WHERE location = #{location}
+			AND material_id IS NOT NULL
+			AND `execute` = 0
+		]]>
+	</select>
+
+	<select id="getEntityByLocationForShipping" resultType="TurnoverCaseEntity">
+		<![CDATA[ 
+			SELECT
+				shelf, location, `execute`
+			FROM turnover_case_storage tcs
+			JOIN production_feature pf ON tcs.material_id = pf.material_id and position_id = 47 and operate_result = 0
+			WHERE location = #{location}
+		]]>
+	</select>
+
+	<select id="getWarehousingPlan" resultType="TurnoverCaseEntity">
+select tcs.location, ma.material_id, mdl.name as model_name, ma.serial_no, 
+		tcs.shelf,
+coalesce(ma.bound_out_ocm, ma.ocm) as bound_out_ocm, break_back_flg as `execute`
+from material ma 
+JOIN production_feature pf ON  ma.material_id = pf.material_id and position_id = 47 and operate_result = 0
+JOIN turnover_case_storage tcs ON ma.material_id = tcs.material_id
+JOIN model mdl ON ma.model_id = mdl.model_id
+where outline_time is not null OR ma.break_back_flg = 1
+order by tcs.key;
+	</select>
+
+	<select id="getStoragePlan" resultType="TurnoverCaseEntity">
+select tcs.location, ma.material_id, mdl.name as model_name, ma.serial_no, 
+		tcs.shelf,
+coalesce(ma.bound_out_ocm, ma.ocm) as bound_out_ocm
+from material ma 
+JOIN turnover_case_storage tcs ON ma.material_id = tcs.material_id
+JOIN model mdl ON ma.model_id = mdl.model_id
+where tcs.`execute` = 0
+order by tcs.key;
+	</select>
+
+	<select id="getListOnShelf" resultType="TurnoverCaseEntity">
+		SELECT location, layer, storage_time ,`execute`, lever_date.overdue as storage_time_start
+		FROM turnover_case_storage
+		JOIN (select date_sub(current_date, INTERVAL 2 MONTH) as overdue from dual) lever_date 
+		WHERE shelf = #{shelf}
+		order by `key`
+		;
+	</select>
+
+	<update id="checkStorage" parameterType="String">
+		<![CDATA[ 
+		UPDATE turnover_case_storage
+		SET 
+		storage_time = current_timestamp,
+		execute = 1
+		WHERE location = #{location};
+		]]>
+	</update>
+
+	<update id="putin" parameterType="TurnoverCaseEntity">
+		<![CDATA[ 
+		UPDATE turnover_case_storage
+		SET 
+		material_id = #{material_id},
+		storage_time = #{storage_time},
+		execute = #{execute}
+		WHERE location = #{location};
+		]]>
+	</update>
+
+	<update id="warehousing" parameterType="String">
+		<![CDATA[ 
+		UPDATE turnover_case_storage
+		SET 
+		material_id = null,
+		storage_time = null,
+		execute = null
+		WHERE location = #{location};
+		]]>
+	</update>
+
+	<select id="getNextEmptyLocation" resultType="String" parameterType="String">
+select tcs.location
+from turnover_case_storage tcs
+where tcs.location > #{location}
+AND material_id IS NULL
+order by tcs.key
+LIMIT 1;
+	</select>
+
+	<select id="getIdleMaterialList" resultType="TurnoverCaseEntity">
+	select ma.material_id, ma.omr_notifi_no, mdl.name as model_name, ma.serial_no,
+		coalesce(ma.bound_out_ocm, ma.ocm) as bound_out_ocm
+	from material ma
+	JOIN model mdl ON ma.model_id = mdl.model_id
+	WHERE ma.outline_time is null
+		and break_back_flg = 0
+		and exists (select 1 from production_feature where material_id = ma.material_id)
+		and not exists
+		(
+		select 1 from turnover_case_storage where material_id = ma.material_id
+		)
+	order by ma.reception_time;
+	</select>
+
+	<select id="checkEmpty" resultType="TurnoverCaseEntity">
+		<![CDATA[ 
+			SELECT
+				shelf, location, `execute`
+			FROM turnover_case_storage
+			WHERE location = #{location}
+			AND material_id IS NULL
+		]]>
+	</select>
+</mapper>

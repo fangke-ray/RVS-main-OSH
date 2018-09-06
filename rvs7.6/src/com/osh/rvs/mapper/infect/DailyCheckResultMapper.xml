@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.infect.DailyCheckResultMapper">
+
+    <!-- 日常点检结果 -->
+    <select id="searchDailyCheckResult" resultType="DailyCheckResultEntity" parameterType="DailyCheckResultEntity">
+		<![CDATA[ 
+		    select 
+			    s_cr.*,
+				dm.manage_code,
+				dt.name,
+			    dm.model_name,			
+				dm.section_id,
+				dm.line_id,
+				dm.position_id,
+				dm.manager_operator_id
+			 from
+			(select
+			 ccc.manage_id,
+			 ccc.operator_id,
+			    CASE
+			        WHEN ccc.broken > 0 THEN 2
+			        WHEN ccc.lost > 0 THEN 3
+			        WHEN ccc.stored > 0 THEN 4
+			        WHEN ccc.inuse > 0 THEN 1
+			        ELSE 0
+			    END as checked_status
+			from
+			 (select 
+			  dd.manage_id,
+			  dd.operator_id,
+			  sum(dd.checked_status = 1) inuse,
+			  sum(dd.checked_status = 2) broken,
+			  sum(dd.checked_status = 3) lost,
+			  sum(dd.checked_status = 4) stored
+			 from
+			   (select 
+			     cr.* 
+			    from 
+			     device_check_result cr
+			    join
+			   (
+			    select
+			     cr.manage_id,
+			     cr.operator_id,
+			     cr.check_file_manage_id,
+			     cr.item_seq,
+			     max(cr.check_confirm_time) as check_confirm_time
+			    from
+			     device_check_result cr
+                 left join check_file_manage cfm
+                  on cfm.check_file_manage_id = cr.check_file_manage_id
+			    where 
+			      date(check_confirm_time)=#{check_confirm_time} and cfm.access_place='1'
+			    group by
+			     manage_id,check_file_manage_id,item_seq
+			   ) aaa
+			     on 
+			    cr.manage_id  = aaa.manage_id
+			    and cr.check_file_manage_id  = aaa.check_file_manage_id
+			    and cr.item_seq  = aaa.item_seq
+			    and cr.check_confirm_time  = aaa.check_confirm_time
+			   ) dd 
+			   group by 
+			    dd.manage_id
+			 ) ccc  ) s_cr
+			   left join devices_manage dm on dm.devices_manage_id=s_cr.manage_id
+			   left join
+			    devices_type dt ON dt.devices_type_id = dm.devices_type_id
+		]]>
+		<where>
+		         dm.delete_flg=0
+		    <if test="manage_code !='' and manage_code !=null">
+		         and dm.manage_code  LIKE CONCAT('%',#{manage_code},'%')
+		    </if>
+		     <if test="devices_type_id !='' and devices_type_id !=null">
+		         and dm.devices_type_id = #{devices_type_id}
+		    </if>
+		     <if test="model_name!='' and model_name !=null">
+		         and dm.model_name  LIKE CONCAT('%',#{model_name},'%')
+		    </if>
+		     <if test="section_id !='' and section_id !=null">
+		         and dm.section_id  =#{section_id}
+		    </if>
+		     <if test="line_id !='' and line_id !=null">
+		         and dm.line_id =#{line_id}
+		    </if>
+		     <if test="position_id !='' and position_id !=null">
+		         and dm.position_id  =#{position_id}
+		    </if>
+		     <if test="manager_operator_id !='' and manager_operator_id !=null">
+		         and dm.manager_operator_id  =#{manager_operator_id}
+		    </if>
+		</where>
+	</select>	
+	
+	<select id="searchSectionLinePosition" resultType="DailyCheckResultEntity" parameterType="DailyCheckResultEntity">
+		<![CDATA[ 
+		    SELECT 
+		    	dm.devices_manage_id,
+				s.name as section_name,
+			    l.name as line_name,
+			    p.process_code,
+			    p.name as position_name
+			FROM
+			    devices_manage dm
+			    left join section s 
+				on dm.section_id = s.section_id
+				left join line l
+				on dm.line_id = l.line_id
+				left join position p
+					on dm.position_id = p.position_id
+			where
+			    dm.devices_manage_id =#{manage_id}
+		]]>
+	</select>	
+
+   <select id="searchCheckResult" resultType="DailyCheckResultEntity" parameterType="DailyCheckResultEntity">
+      <![CDATA[
+      SELECT 
+		    date(n_cr.check_confirm_time) as check_confirm_time,
+		    op.name as operator ,
+		    CASE
+		        WHEN n_cr.broken > 0 THEN 2
+		        WHEN n_cr.lost > 0 THEN 3
+		        WHEN n_cr.stored > 0 THEN 4
+		        WHEN n_cr.inuse > 0 THEN 1
+		        ELSE 0
+		    END AS checked_status
+		FROM
+		    (SELECT 
+		            check_confirm_time,
+		            cr.operator_id,
+		            sum(checked_status = 1) inuse,
+		            sum(checked_status = 2) broken,
+		            sum(checked_status = 3) lost,
+		            sum(checked_status = 4) stored
+		    FROM
+		        device_check_result cr
+		    WHERE
+		        cr.check_confirm_time >=#{firstDate}
+		            and DATE(cr.check_confirm_time) <#{lastDate}
+		            and cr.manage_id = #{manage_id}
+		            and checked_status != 0
+		    GROUP BY cr.manage_id , cr.operator_id , DATE(cr.check_confirm_time)) n_cr
+		left join operator op on op.operator_id =n_cr.operator_id
+		ORDER BY n_cr.check_confirm_time DESC
+      ]]>
+   </select>
+</mapper>

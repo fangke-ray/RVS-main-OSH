@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.report.ProductivityMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchList" resultType="ProductivityEntity" parameterType="ProductivityEntity">
+		<![CDATA[ 
+			select 
+			    q.outline_date, q.outline_quantity, d.avalible_productive
+			from
+			    (select 
+			        m.outline_date, count(1) as outline_quantity
+			    from
+			        (select 
+			        	DATE_FORMAT(outline_time, '%Y%m') as outline_date
+				    from material
+				    where break_back_flg = 0) as m
+			    where
+		            m.outline_date >= #{start_date}
+		            and m.outline_date <= #{end_date}
+			    group by m.outline_date) q
+			        left join
+			    (select 
+			        rp.count_date, rp.avalible_productive
+			    from
+			        (select 
+			        	CONCAT(plan_year, plan_month) as count_date,
+			            avalible_productive
+				    from repair_plan) as rp
+			    where
+			        rp.count_date >= #{start_date}
+		            and rp.count_date <= #{end_date}) d ON q.outline_date = d.count_date
+			order by q.outline_date
+		]]>
+	</select>
+
+	<select id="checkMonthData" resultType="Integer" parameterType="string">
+		<![CDATA[ 
+			select 
+			    count(1)
+			from
+			    repair_plan
+			where
+			    plan_year = #{outline_year} and plan_month = #{outline_month}
+		]]>
+	</select>
+
+	<insert id="insertMonthData" parameterType="ProductivityEntity">
+		<![CDATA[ 
+			INSERT INTO repair_plan (
+				plan_year, 
+				plan_month,
+				shipment,
+				avalible_productive,
+				delete_flg,
+				updated_by,
+				updated_time
+			) VALUES (
+				#{outline_year},
+				#{outline_month}, 
+				'000',
+				#{avalible_productive},
+				0,
+				#{updated_by}, 
+				current_timestamp
+			);
+		]]>
+	</insert>
+
+	<update id="updateMonthData" parameterType="ProductivityEntity">
+		<![CDATA[ 
+			UPDATE repair_plan 
+			SET 
+				avalible_productive = #{avalible_productive},
+				updated_by = #{updated_by}, 
+				updated_time = current_timestamp
+			WHERE plan_year = #{outline_year} and plan_month = #{outline_month}
+		]]>
+	</update>
+
+	<select id="getworkdays" parameterType="ProductivityEntity" resultType="int">
+		<![CDATA[
+			SELECT f_getworkdays(#{start_date}, #{end_date}) FROM DUAL;
+		]]>
+	</select>
+</mapper>

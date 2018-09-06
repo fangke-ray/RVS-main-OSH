@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.LeaderPcsInputMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="searchLeaderPcsInput" resultType="ProductionFeatureEntity" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT
+				lpi.`operator_id`,
+				lpi.`material_id`,
+				lpi.`line_id`,
+				lpi.`pcs_inputs`,
+				lpi.`pcs_comments`,
+				lpi.`rework`,
+				lpi.`update_date` as finish_time,
+				lpi.`snout_serial_no` as serial_no,
+				lpi.`leader_pcs_key` as jam_code,
+				o.`name` as operator_name,
+				o.`job_no`
+			 FROM LEADER_PCS_INPUT lpi
+			 JOIN OPERATOR o ON lpi.`operator_id` = o.`operator_id`
+		]]>
+		<where>
+			<if test="rework!= null">
+		<![CDATA[ 
+			 AND `rework` = #{rework}
+		]]>
+			</if>
+			<if test="material_id!= null">
+		<![CDATA[ 
+			AND lpi.`material_id` = #{material_id}
+		]]>
+			</if>
+			<if test="serial_no!= null">
+		<![CDATA[ 
+			AND lpi.`snout_serial_no` = #{serial_no}
+		]]>
+			</if>
+		</where>
+		<![CDATA[ 
+			 ;
+		]]>
+	</select>
+
+	<select id="checkCcdConfirm" resultType="String" parameterType="String">
+		select 'get' from LEADER_PCS_INPUT where material_id = #{material_id} and (pcs_inputs like '%"LN00001":"1"%' or pcs_inputs like '%"LN00001":"-1"%');
+	</select>
+	<select id="checkSnoutConfirm" resultType="String" parameterType="String">
+		select 'get' from LEADER_PCS_INPUT where snout_serial_no = #{serial_no} and pcs_inputs like '%"LN00011":"1"%';
+	</select>
+
+	<select id="getLeaderPcsInputByKey" resultType="ProductionFeatureEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT
+				lpi.`operator_id`,
+				lpi.`material_id`,
+				lpi.`line_id`,
+				lpi.`pcs_inputs`,
+				lpi.`pcs_comments`,
+				lpi.`rework`,
+				lpi.`update_date` as finish_time,
+				lpi.`snout_serial_no` as serial_no,
+				lpi.`leader_pcs_key` as jam_code,
+				o.`name` as operator_name,
+				o.`job_no`
+			 FROM LEADER_PCS_INPUT lpi
+			 JOIN OPERATOR o ON lpi.`operator_id` = o.`operator_id`
+			WHERE lpi.`leader_pcs_key` = #{leader_pcs_key}
+		]]>
+	</select>
+
+	<insert id="insert" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+			INSERT INTO `leader_pcs_input`
+			(
+				`operator_id`,
+				`material_id`,
+				`line_id`,
+				`pcs_inputs`,
+				`pcs_comments`,
+				`rework`,
+				`snout_serial_no`,
+				`update_date`
+			) 
+			VALUES
+			(
+				#{operator_id},
+				#{material_id},
+				#{line_id},
+				#{pcs_inputs},
+				#{pcs_comments},
+				#{rework},
+				#{serial_no},
+				current_date
+			);
+		]]>
+	</insert>
+</mapper>

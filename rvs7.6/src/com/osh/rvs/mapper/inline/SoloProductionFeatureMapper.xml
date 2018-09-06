@@ -1,0 +1,632 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.SoloProductionFeatureMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	
+	<select id="searchSoloProductionFeature" resultType="SoloProductionFeatureEntity" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+			SELECT
+				spr.position_id,
+				spr.serial_no,
+				spr.model_id,
+				COALESCE(spr.model_name, m.name) as model_name,
+				o.job_no,
+				spr.pace,
+				spr.judge_date,
+				spr.operator_id,
+				spr.operate_result,
+				spr.action_time,
+				spr.finish_time,
+				spr.pcs_inputs,
+				spr.pcs_comments,
+				spr.used
+			 FROM SOLO_PRODUCTION_FEATURE spr
+			 LEFT JOIN `MODEL` m
+			 	ON spr.model_id = m.model_id
+			 JOIN `OPERATOR` o
+			 	ON spr.operator_id = o.operator_id
+		]]>
+		<where>
+			<if test="used!= null and used!= ''">
+				and spr.used = #{used}
+			</if>
+			<if test="model_id!= null and model_id!= ''">
+				and spr.model_id = #{model_id}
+			</if>
+			<if test="serial_no!=null and serial_no!='' ">
+				and spr.serial_no = #{serial_no}
+			</if>
+			<if test="position_id!= null and position_id!='' ">
+				and spr.position_id = #{position_id}
+			</if>
+			<if test="operator_id!= null and operator_id!='' ">
+				and spr.operator_id = #{operator_id}
+			</if>
+			<if test="operate_result!= null and operate_result!= ''">
+				and spr.operate_result = #{operate_result}
+			</if>
+			<if test="action_time_null!= null">
+				<if test="action_time_null == 0">
+					and spr.action_time IS NOT NULL
+					and spr.operate_result != 3
+				</if>
+				<if test="action_time_null == 1">
+					and spr.action_time IS NULL
+				</if>
+			</if>
+			<if test="finish_time_null!= null">
+				<if test="finish_time_null == 0">
+					and spr.finish_time IS NOT NULL
+				</if>
+				<if test="finish_time_null == 1">
+					and spr.finish_time IS NULL
+				</if>
+			</if>
+		</where>
+	</select>
+
+	<select id="getSnoutsByModel" resultType="SoloProductionFeatureEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT s.model_id, s.serial_no, mdl.name as model_name,
+			ma.material_id as operator_id, ma.omr_notifi_no as operator_name
+			FROM SOLO_PRODUCTION_FEATURE s
+			JOIN model mdl on s.model_id = mdl.model_id
+			JOIN (select snout_serial_no from leader_pcs_input where pcs_inputs like '%"LN00011":"1"%' group by snout_serial_no) lpi
+			ON lpi.snout_serial_no = s.serial_no
+			LEFT JOIN snout_origin so
+			ON so.manage_serial_no = s.serial_no
+			LEFT JOIN material ma
+			ON so.material_id = ma.material_id
+			WHERE s.operate_result = 2
+			AND s.used = 0
+			AND mdl.model_id = #{model_id}
+			ORDER BY finish_time;
+		]]>
+		<!-- ORDER BY mdl.model_id = #{model_id} desc, model_name, finish_time; -->
+	</select>
+
+	<select id="findUsedSnoutsByMaterial" resultType="ProductionFeatureEntity" parameterType="String">
+		<![CDATA[ 
+			select spf.serial_no, pf.rework
+			from production_feature pf
+			join solo_production_feature spf
+			  on spf.action_time = pf.action_time
+			  and spf.finish_time = pf.finish_time
+			  and spf.position_id = pf.position_id
+			  and spf.used = 1
+			where pf.material_id = #{material_id} and pf.operate_result = 2 and pf.position_id = 24;
+		]]>
+	</select>
+
+	<select id="findUsedSnoutsBySnouts" resultType="String" parameterType="String">
+		<![CDATA[ 
+			select pf.material_id
+			from production_feature pf
+			join solo_production_feature spf
+			  on spf.action_time = pf.action_time
+			  and spf.finish_time = pf.finish_time
+			  and spf.position_id = pf.position_id
+			  and spf.used = 1
+			where spf.serial_no = #{serial_no} and pf.operate_result = 2 and pf.position_id = 24 limit 1;
+		]]>
+	</select>
+
+	<insert id="insert" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+		INSERT INTO SOLO_PRODUCTION_FEATURE (
+			position_id,
+			model_id,
+			model_name,
+			judge_date,
+			serial_no,
+			pace,
+			operator_id,
+			operate_result,
+			action_time,
+			used
+		) VALUES (
+			#{position_id}, 
+			#{model_id}, 
+			#{model_name}, 
+			#{judge_date}, 
+			#{serial_no}, 
+			#{pace}, 
+			#{operator_id}, 
+			#{operate_result}, 
+			current_timestamp, 
+			0
+		);
+		]]>
+	</insert>
+
+	<update id="breakWork" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE SOLO_PRODUCTION_FEATURE
+		SET operate_result = 3,
+			pcs_inputs = #{pcs_inputs},
+			pcs_comments = #{pcs_comments},
+			finish_time = current_timestamp
+		WHERE serial_no = #{serial_no}
+		AND pace = #{pace};
+		]]>
+	</update>
+
+	<update id="finish" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE SOLO_PRODUCTION_FEATURE
+		SET operate_result = coalesce(#{operate_result}, 2),
+			pcs_inputs = #{pcs_inputs},
+			pcs_comments = #{pcs_comments},
+			finish_time = current_timestamp
+		WHERE serial_no = #{serial_no}
+		AND pace = #{pace};
+		]]>
+	</update>
+
+	<update id="finishOnOperator" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE SOLO_PRODUCTION_FEATURE
+		SET operate_result = #{operate_result},
+			pcs_inputs = #{pcs_inputs},
+			pcs_comments = #{pcs_comments},
+			finish_time = current_timestamp
+		WHERE operator_id = #{operator_id}
+		AND finish_time is null;
+		]]>
+	</update>
+
+	<update id="use" parameterType="String">
+		<![CDATA[ 
+		UPDATE SOLO_PRODUCTION_FEATURE
+		SET used = 1
+		WHERE serial_no = #{serial_no}
+		AND position_id = 24;
+		]]>
+	</update>
+
+	<update id="unuse" parameterType="String">
+		<![CDATA[ 
+		UPDATE SOLO_PRODUCTION_FEATURE
+		SET used = 0
+		WHERE serial_no = #{serial_no}
+		AND position_id = 24;
+		]]>
+	</update>
+
+	<insert id="useto" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		INSERT INTO PRODUCTION_FEATURE (
+			`material_id`,
+			`position_id`,
+			`pace`,
+			`rework`,
+			`section_id`,
+			`operator_id`,
+			`operate_result`,
+			`action_time`,
+			`finish_time`,
+			`pcs_inputs`,
+			`pcs_comments`,
+			`use_seconds`
+		)
+		SELECT
+			#{material_id},
+			spr.position_id,
+			spr.pace,
+			#{rework},
+			#{section_id},
+			spr.operator_id,
+			spr.operate_result,
+			spr.action_time,
+			spr.finish_time,
+			spr.pcs_inputs,
+			spr.pcs_comments,
+			CASE WHEN spr.operate_result = 2 THEN #{use_seconds} ELSE null END
+ 		FROM SOLO_PRODUCTION_FEATURE spr
+ 		WHERE serial_no = #{serial_no}
+ 		AND position_id = 24
+ 		;
+		]]>
+	</insert>
+
+	<delete id="unuseto" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM PRODUCTION_FEATURE
+ 		WHERE material_id = #{material_id}
+ 		AND rework = #{rework}
+ 		AND position_id = 24
+ 		;
+		]]>
+	</delete>
+
+	<update id="leaderuseto" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE LEADER_PCS_INPUT
+			SET material_id = #{material_id}
+ 		WHERE snout_serial_no = #{serial_no};
+		]]>
+	</update>
+
+	<select id="getTotalTime" resultType="int" parameterType="SoloProductionFeatureEntity">
+	<![CDATA[ 
+		SELECT COALESCE(sum(unix_timestamp(COALESCE(finish_time, current_timestamp)) - unix_timestamp(action_time)), 0) FROM solo_production_feature
+		WHERE position_id = #{position_id}
+		and serial_no = #{serial_no}
+		and not (operate_result = 4 and finish_time is null);
+	]]>
+	</select>
+
+	<select id="getFirstStartTime" resultType="Date" parameterType="SoloProductionFeatureEntity">
+	<![CDATA[ 
+		SELECT action_time FROM solo_production_feature
+		WHERE position_id = #{position_id}
+		and serial_no = #{serial_no}
+		and pace = 0;
+	]]>
+	</select>
+
+	<select id="getPausing" resultType="SoloProductionFeatureEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT pf.model_id, serial_no, p.position_id, pf.section_id, pace, operator_id, operate_result,
+			action_time, finish_time, pcs_inputs, pcs_comments, pf.section_id,
+			(unix_timestamp(current_timestamp) - unix_timestamp(action_time)) as use_seconds,
+			p.process_code, p.name as position_name, s.name as section_name, `l`.line_id as line_id, `l`.name as line_name
+		FROM solo_production_feature pf
+    	JOIN `position` p
+    	ON pf.position_id = p.position_id
+    	JOIN `line` l
+    	ON p.line_id = l.line_id
+    	LEFT JOIN `section` s
+    	ON pf.section_id = s.section_id
+		WHERE operate_result = 4
+		AND action_time IS NOT NULL AND finish_time IS NULL
+		AND operator_id = #{operator_id};
+	]]>
+	</select>
+
+	<select id="getMaxPace" resultType="Integer" parameterType="SoloProductionFeatureEntity">
+	<![CDATA[ 
+		SELECT COALESCE(MAX(pace), -1) FROM solo_production_feature
+		WHERE position_id = #{position_id}
+		and serial_no = #{serial_no}
+	]]>
+		<if test="model_name != null and model_name != ''">
+		and model_name = #{model_name}
+		and judge_date = #{judge_date}
+		</if>
+	<![CDATA[ 
+		;
+	]]>
+	</select>
+
+	<select id="updateToResume" resultType="Integer" parameterType="SoloProductionFeatureEntity">
+	<![CDATA[ 
+		UPDATE solo_production_feature SET
+		action_time = current_timestamp,
+		operator_id = #{operator_id},
+		operate_result = 1
+		WHERE position_id = #{position_id}
+		and serial_no = #{serial_no}
+		and pace = #{pace}
+	]]>
+		<if test="model_id != null and model_id != ''">
+		and model_id = #{model_id}
+		</if>
+		<if test="model_name != null and model_name != ''">
+		and model_name = #{model_name}
+		and judge_date = #{judge_date}
+		</if>
+	<![CDATA[ 
+		;
+	]]>
+	</select>
+
+	<select id="getSnoutsMaker" resultType="OperatorNamedEntity">
+		<![CDATA[ 
+		SELECT o.OPERATOR_ID,
+			o.NAME,
+			o.ROLE_NAME
+		FROM V_OPERATOR_NAMED o
+		JOIN solo_production_feature spf
+		ON o.operator_id = spf.operator_id
+		WHERE o.DELETE_FLG = 0
+		AND o.OPERATOR_ID <> 1
+		GROUP BY OPERATOR_ID
+		;
+		]]>
+	</select>
+
+	<select id="searchSnouts" resultType="SnoutEntity" parameterType="SnoutEntity">
+		<![CDATA[ 
+SELECT 
+    spfo.model_id,
+    spfo.model_name,
+    spfo.serial_no,
+    spfo.finish_time,
+    spfo.operator_name,
+    coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no,
+    lpii.confirm_time,
+    lpii.operator_name as confirmer_name,
+    spfo.used as status,
+    som.omr_notifi_no as origin_omr_notifi_no
+FROM
+    (select 
+    spf.model_id,
+    mdl.name as model_name,
+    spf.serial_no,
+	max(spf.action_time) as action_time,
+	max(spf.finish_time) as finish_time,
+    opt1.name as operator_name,
+	spf.position_id,
+	spf.used,
+	CASE when sum(spf.operate_result = 2) > 0 THEN 2 ELSE 1 end AS operate_result
+	FROM
+		solo_production_feature spf
+        JOIN
+    `model` mdl ON spf.model_id = mdl.model_id
+        JOIN
+    operator opt1 ON spf.operator_id = opt1.operator_id
+		]]>
+		<where>
+			<if test="model_id!= null and model_id!= ''">
+				and spf.model_id = #{model_id}
+			</if>
+			<if test="serial_no!= null and serial_no!= ''">
+				and spf.serial_no LIKE CONCAT(#{serial_no}, '%')
+			</if>
+			<if test="operator_id!= null and operator_id!= ''">
+				and spf.operator_id = #{operator_id}
+			</if>
+			<if test="finish_time_from!= null and finish_time_from!= ''">
+		<![CDATA[ 
+				and spf.finish_time >= #{finish_time_from}
+				and spf.operat_result = 2
+		]]>
+			</if>
+			<if test="finish_time_to!= null and finish_time_to!= ''">
+		<![CDATA[ 
+				and date(spf.finish_time) <= #{finish_time_to}
+				and spf.operat_result = 2
+		]]>
+			</if>
+		</where>
+		<![CDATA[ 
+	group by spf.serial_no
+	) spfo
+LEFT JOIN
+    (SELECT 
+        snout_serial_no,
+            opt2.name as operator_name,
+            MAX(lpi.update_date) as confirm_time
+    FROM
+        leader_pcs_input lpi
+    JOIN operator opt2 ON lpi.operator_id = opt2.operator_id
+    GROUP BY snout_serial_no , operator_name) lpii ON spfo.serial_no = lpii.snout_serial_no
+LEFT JOIN
+    production_feature pf ON spfo.used = 1
+        and spfo.finish_time = pf.finish_time
+        and spfo.position_id = pf.position_id
+        and spfo.action_time = pf.action_time
+LEFT JOIN
+    material m ON m.material_id = pf.material_id
+LEFT JOIN
+	snout_origin so
+		ON so.manage_serial_no = spfo.serial_no
+LEFT JOIN
+	material som
+		ON so.material_id = som.material_id
+		]]>
+		<where>
+			<if test="status!= null and status == 0">
+		<![CDATA[ 
+				and spfo.operate_result = 1
+		]]>
+			</if>
+			<if test="status == 1">
+		<![CDATA[ 
+				and spfo.operate_result = 2
+				AND spfo.used = 0
+				and lpii.confirm_time IS NULL
+		]]>
+			</if>
+			<if test="status == 2">
+		<![CDATA[ 
+				and spfo.operate_result = 2
+				AND spfo.used = 0
+				and lpii.confirm_time IS NOT NULL
+		]]>
+			</if>
+			<if test="status == 3">
+		<![CDATA[ 
+				AND spfo.used = 1
+				AND m.material_id IS NOT NULL
+		]]>
+			</if>
+			<if test="status == 4">
+		<![CDATA[ 
+				and spfo.operate_result = 2
+				AND spfo.used = 0
+		]]>
+			</if>
+		</where>
+		<![CDATA[ 
+ORDER BY spfo.finish_time DESC; 
+		]]>
+	</select>
+
+	<delete id="deleteSnouts" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM solo_production_feature
+ 		WHERE model_id = #{model_id}
+ 		AND serial_no = #{serial_no}
+ 		AND position_id = 24
+ 		;
+		]]>
+	</delete>
+
+	<select id="checkWorkingByModelName" resultType="String" parameterType="ServiceRepairManageEntity">
+		<![CDATA[ 
+			SELECT * FROM solo_production_feature
+			where model_name = #{model_name}
+			and serial_no = #{serial_no}
+			and judge_date = #{rc_mailsend_date}
+			and finish_time is null 
+		;
+		]]>
+	</select>
+
+	<delete id="undoWorkingByModelName" parameterType="ServiceRepairManageEntity">
+		<![CDATA[ 
+			DELETE FROM solo_production_feature
+			where model_name = #{model_name}
+			and serial_no = #{serial_no}
+			and judge_date = #{rc_mailsend_date}
+		;
+		]]>
+	</delete>
+
+	<update id="pauseWaitProductionFeature" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE solo_production_feature
+			SET OPERATE_RESULT = #{operate_result},
+				ACTION_TIME = current_timestamp
+		WHERE model_id = #{model_id}
+		AND serial_no = #{serial_no}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace};
+		]]>
+	</update>
+
+	<select id="getWaitingMaterial" resultType="WaitingEntity">
+		<![CDATA[ 
+SELECT 
+	ma.omr_notifi_no as sorc_no,
+    `spf`.model_id,
+    `spf`.model_name,
+    `spf`.serial_no,
+    `spf`.operate_result as waitingat,
+    so.material_id,
+    coalesce(`psf`.reason, 20) as pause_reason
+FROM
+    solo_production_feature spf
+        LEFT JOIN
+    pause_feature psf ON `spf`.serial_no = `psf`.snout_serial_no
+        AND `psf`.SECTION_ID = `spf`.section_id
+        AND `psf`.POSITION_ID = `spf`.position_id
+        AND `psf`.PAUSE_FINISH_TIME IS NULL
+		LEFT join
+	snout_origin so
+		ON so.manage_serial_no = spf.serial_no
+		LEFT join
+	material ma
+		ON so.material_id = ma.material_id
+WHERE
+    `spf`.position_id = #{position_id}
+        AND `spf`.section_id = #{section_id}
+        AND `spf`.finish_time is null
+        AND `spf`.operate_result not in (5 , 8)
+        AND `spf`.operate_result not in (1)
+ORDER BY pause_reason DESC , operate_result DESC;
+		]]>
+	</select>
+
+	<select id="checkSnoutOrigin" resultType="MaterialEntity">
+		<![CDATA[ 
+select so.material_id, ma.model_id, so.manage_serial_no as serial_no, ma.omr_notifi_no as sorc_no
+from snout_origin so
+join material ma
+on so.material_id = ma.material_id
+		]]>
+<where>
+			<if test="material_id!=null and material_id!=''">
+		<![CDATA[ 
+				AND so.material_id = #{material_id} 
+		]]>
+			</if>
+			<if test="manage_serial_no!=null and manage_serial_no!=''">
+		<![CDATA[ 
+				AND so.manage_serial_no = #{manage_serial_no} 
+		]]>
+			</if>
+</where>
+		<![CDATA[ 
+;
+		]]>
+	</select>
+
+	<select id="getSnoutOriginOnMonth" resultType="MaterialEntity">
+		<![CDATA[ 
+select so.material_id, ma.omr_notifi_no, ma.model_id, mdl.name as model_name, so.manage_serial_no as serial_no 
+from snout_origin so
+join material ma
+on so.material_id = ma.material_id
+join model mdl
+on ma.model_id = mdl.model_id
+where so.manage_serial_no like concat(#{month}, '%')
+order by so.manage_serial_no
+;
+		]]>
+	</select>
+
+	<insert id="registSnoutOrigin" parameterType="String">
+		<![CDATA[ 
+		insert into snout_origin 
+			(material_id, manage_serial_no) 
+		values
+			(#{material_id}, #{manage_serial_no})
+		;
+		]]>
+	</insert>
+
+	<delete id="removeSnoutOrigin" parameterType="String">
+		<![CDATA[ 
+		delete from snout_origin 
+		where
+		manage_serial_no = #{manage_serial_no}
+		;
+		]]>
+	</delete>
+
+	<select id="searchSnoutsOnMonth" resultType="SnoutEntity" parameterType="date">
+		<![CDATA[ 
+select 
+    spf.finish_time,
+    model.name as model_name,
+    ma.serial_no as new_serial_no,
+    ma.omr_notifi_no as origin_omr_notifi_no,
+    spf.serial_no,
+    material.omr_notifi_no as sorc_no
+from
+    snout_origin so
+        join
+    material ma ON ma.material_id = so.material_id
+        join
+    model ON model.model_id = ma.model_id
+        join
+    solo_production_feature spf ON so.manage_serial_no = spf.serial_no
+        and spf.operate_result = 2
+        left join
+    leader_pcs_input lpi ON lpi.snout_serial_no = spf.serial_no
+        and lpi.pcs_inputs like '%"LN00011":"1"%'
+        left join
+    material ON material.material_id = lpi.material_id
+where
+    spf.finish_time between #{start_date} and #{end_date}
+order by manage_serial_no
+		]]>
+	</select>
+
+	<update id="forbid" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE PRODUCTION_FEATURE
+		SET operate_result = 6
+		WHERE material_id = #{material_id}
+		AND position_id = #{position_id}
+		AND operate_result = 2;
+		]]>
+	</update>
+
+</mapper>

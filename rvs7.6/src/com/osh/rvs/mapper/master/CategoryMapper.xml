@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.CategoryMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getCategoryByID" resultType="CategoryEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT CATEGORY_ID,
+			NAME,
+			KIND,
+			default_pat_id,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_CATEGORY
+		WHERE DELETE_FLG = 0
+		AND CATEGORY_ID = #{category_id};
+		]]>
+	</select>
+
+	<select id="getAllCategory" resultType="CategoryEntity">
+		<![CDATA[ 
+		SELECT CATEGORY_ID,
+			NAME,
+			KIND,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_CATEGORY
+		WHERE DELETE_FLG = 0
+		ORDER BY KIND, CATEGORY_ID;
+		]]>
+	</select>
+
+	<select id="searchCategory" resultType="CategoryEntity">
+		<![CDATA[ 
+		SELECT CATEGORY_ID,
+			NAME,
+			KIND,
+			UPDATED_BY,
+			UPDATED_TIME
+		FROM V_CATEGORY
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="category_id!= null and category_id!= '' ">
+				AND CATEGORY_ID = #{category_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND NAME LIKE CONCAT('%', #{name}, '%')
+			</if>
+			<if test="kind!= null and kind!= '' ">
+				AND KIND = #{kind}
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY KIND, UPDATED_TIME DESC;
+		]]>
+	</select>
+
+	<insert id="insertCategory" parameterType="CategoryEntity">
+		<![CDATA[ 
+		INSERT INTO CATEGORY 
+			(NAME, KIND, default_pat_id, UPDATED_BY, UPDATED_TIME) 
+		VALUES 
+			(#{name}, #{kind}, #{default_pat_id}, #{updated_by}, current_timestamp);
+		]]>
+	</insert>
+
+	<update id="updateCategory" parameterType="CategoryEntity">
+		<![CDATA[ 
+		UPDATE CATEGORY SET NAME = #{name},
+			KIND = #{kind},
+			default_pat_id = #{default_pat_id},
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE CATEGORY_ID = #{category_id};
+		]]>
+	</update>
+
+	<update id="deleteCategory" parameterType="CategoryEntity">
+		<![CDATA[ 
+		UPDATE CATEGORY SET DELETE_FLG = 1,
+			UPDATED_BY = #{updated_by},
+			UPDATED_TIME = current_timestamp
+		WHERE CATEGORY_ID = #{category_id};
+		]]>
+	</update>
+
+</mapper>

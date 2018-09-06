@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PrivacyMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getPrivacyByID" resultType="PrivacyEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT PRIVACY_ID,
+			NAME,
+			COMMENTS
+		FROM PRIVACY
+		WHERE DELETE_FLG = 0
+		AND PRIVACY_ID = #{privacy_id};
+		]]>
+	</select>
+
+	<select id="getAllPrivacy" resultType="PrivacyEntity">
+		<![CDATA[ 
+		SELECT PRIVACY_ID,
+			NAME,
+			COMMENTS
+		FROM PRIVACY
+		WHERE DELETE_FLG = 0
+		AND PRIVACY_ID <> 0
+		ORDER BY PRIVACY_ID;
+		]]>
+	</select>
+
+	<select id="searchPrivacy" resultType="PrivacyEntity">
+		<![CDATA[ 
+		SELECT PRIVACY_ID,
+			NAME,
+			COMMENTS
+		FROM PRIVACY
+		]]>
+		<where>
+			DELETE_FLG = 0
+			<if test="privacy_id!= null and privacy_id!= '' ">
+				AND PRIVACY_ID = #{privacy_id}
+			</if>
+			<if test="name!=null and name!='' ">
+				AND (NAME LIKE CONCAT('%', #{name}, '%') OR COMMENTS LIKE CONCAT('%', #{name}, '%'))
+			</if>
+			<![CDATA[AND PRIVACY_ID <> 0]]>
+		</where> 
+		<![CDATA[ 
+		ORDER BY PRIVACY_ID;
+		]]>
+	</select>
+
+	<insert id="insertPrivacy" parameterType="PrivacyEntity">
+		<![CDATA[ 
+		INSERT INTO PRIVACY 
+			(NAME, COMMENTS) 
+		VALUES 
+			(#{name}, #{comments});
+		]]>
+	</insert>
+
+	<update id="updatePrivacy" parameterType="PrivacyEntity">
+		<![CDATA[ 
+		UPDATE PRIVACY SET NAME = #{name},
+			COMMENTS = #{comments}
+		WHERE PRIVACY_ID = #{privacy_id};
+		]]>
+	</update>
+
+	<update id="deletePrivacy" parameterType="PrivacyEntity">
+		<![CDATA[ 
+		UPDATE PRIVACY SET DELETE_FLG = 1
+		WHERE PRIVACY_ID = #{privacy_id};
+		]]>
+	</update>
+
+	<select id="searchPrivacyGroup" resultType="PrivacyGroupEntity">
+		<![CDATA[ 
+			SELECT 
+			    p.system_module,
+				p1.privacy_id as privacy_id1, p1.name as p_name1, p1.comments as p_comments1,
+				p2.privacy_id as privacy_id2, p2.name as p_name2, p2.comments as p_comments2,
+				p3.privacy_id as privacy_id3, p3.name as p_name3, p3.comments as p_comments3
+			FROM
+				(select distinct system_module from privacy
+					WHERE system_module <> 0) p
+			LEFT JOIN
+			    privacy p1
+			ON p.system_module = p1.system_module
+			AND
+			    p1.access_level = 1
+AND
+	p1.delete_flg = 0
+			LEFT JOIN
+			    privacy p2
+			ON p.system_module = p2.system_module
+			AND
+			    p2.access_level = 2
+AND
+	p2.delete_flg = 0
+			LEFT JOIN
+			    privacy p3
+			ON p.system_module = p3.system_module
+			AND
+			    p3.access_level = 3
+AND
+	p3.delete_flg = 0;
+		]]>
+	</select>
+
+</mapper>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.PositionPlanTimeMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="search" parameterType="PositionPlanTimeEntity" resultType="PositionPlanTimeEntity">
+		<![CDATA[
+			SELECT
+				ppt.material_id,
+				ppt.line_id,
+				ppt.position_id,
+				ppt.seq,
+				position.process_code,
+				ppt.plan_start_time,
+				ppt.plan_end_time
+			FROM 
+				position_plan_time ppt
+			JOIN
+				position
+			ON
+				ppt.position_id = position.position_id
+			WHERE
+				ppt.material_id = #{material_id} AND ppt.line_id = #{line_id}
+			ORDER BY
+				ppt.seq
+		]]>
+	</select>
+
+	<select id="checkPositionUnreach" parameterType="PositionPlanTimeEntity" resultType="PositionPlanTimeEntity">
+		<![CDATA[
+			SELECT
+				ppt.plan_end_time, cu.comment
+			FROM 
+				position_plan_time ppt
+			LEFT JOIN 
+				countdown_unreach cu
+			ON 
+				cu.material_id = ppt.material_id AND cu.line_id = ppt.line_id
+			WHERE
+				ppt.material_id = #{material_id} AND ppt.line_id = #{line_id} AND ppt.position_id = #{position_id}
+			AND ppt.plan_end_time < current_timestamp
+			AND main_cause IS null
+		]]>
+	</select>
+
+	<select id="checkLineUnreach" parameterType="PositionPlanTimeEntity" resultType="PositionPlanTimeEntity">
+		<![CDATA[
+			SELECT
+				mrt.material_id, cu.contrast_time, cu.main_cause, cu.comment
+			FROM 
+				material_remain_time mrt
+			LEFT JOIN 
+				countdown_unreach cu
+			ON 
+				cu.material_id = mrt.material_id AND cu.line_id = mrt.line_id
+			WHERE
+				mrt.material_id = #{material_id} AND mrt.line_id = #{line_id}
+		]]>
+	</select>
+
+	<insert id="requestCountdownUnreach" parameterType="PositionPlanTimeEntity">
+		<![CDATA[
+			INSERT INTO `countdown_unreach`
+			(`material_id`,
+			`line_id`,
+			`position_id`,
+			`contrast_time`, `comment`)
+			VALUES
+			(#{material_id},
+			#{line_id},
+			#{position_id},
+			current_timestamp, #{comment});
+		]]>
+	</insert>
+
+	<update id="setCountdownUnreach" parameterType="PositionPlanTimeEntity">
+		<![CDATA[
+			UPDATE `countdown_unreach`
+			SET
+		]]>
+		<if test="operator_id != null and operator_id != ''">			
+			operator_id = #{operator_id},
+		</if>
+		<if test="main_cause != null and main_cause != ''">			
+			main_cause = #{main_cause},
+		</if>
+		<![CDATA[
+			`comment` = #{comment}
+			WHERE `material_id` = #{material_id} AND line_id = #{line_id}
+		]]>
+	</update>
+
+	<select id="checkCausedByPartial" parameterType="String" resultType="String">
+		<![CDATA[
+		select recent_signin_time, p.code from material_partial_detail mpd 
+		join partial p
+		on mpd.partial_id = p.partial_id
+		join position pos
+		on mpd.position_id = pos.position_id
+		where material_id = #{material_id} and status in (3,4)
+		and line_id = #{line_id}
+		and recent_signin_time > 
+		(select min(plan_start_time) from position_plan_time pf
+		join position pp on pf.position_id = pp.position_id
+		where material_id = mpd.material_id and pp.line_id = pos.line_id
+		)
+		;
+		]]>
+	</select>
+
+	<select id="checkCausedByHeap" parameterType="String" resultType="int">
+		<![CDATA[
+select count(distinct pf.material_id) from production_feature pf
+join material_process mp
+on pf.material_id = mp.material_id
+and mp.line_id = #{line_id}
+where position_id = #{position_id}
+and section_id = #{section_id}
+-- 'and px in (0,2)'
+and action_time between 
+(select max(finish_time) from production_feature pf_s
+ join position p_s on pf_s.position_id = p_s.position_id and p_s.line_id = #{line_id}
+ where material_id = #{material_id} and pf_s.position_id <> #{position_id})
+and 
+(select min(action_time) from production_feature where material_id = #{material_id} and position_id = #{position_id})
+;
+		]]>
+	</select>
+
+	<select id="searchCountdownUnreach" parameterType="PositionPlanTimeEntity" resultType="PositionPlanTimeEntity">
+		<![CDATA[
+			SELECT
+				ma.omr_notifi_no, pos.process_code, cu.contrast_time, op.name as operator_name, cu.main_cause, cu.comment,
+				cu.material_id, cu.line_id
+			FROM 
+				countdown_unreach cu
+			JOIN material ma
+			ON cu.material_id = ma.material_id
+			JOIN position pos
+			ON cu.position_id = pos.position_id
+			JOIN operator op
+			ON cu.operator_id = op.operator_id
+		]]>
+		<where>
+			<if test="omr_notifi_no!= null and omr_notifi_no!= '' ">
+				AND omr_notifi_no LIKE CONCAT('%', #{omr_notifi_no}, '%')
+			</if>
+			<if test="contrast_time_start!= null and contrast_time_start!= '' ">
+				AND contrast_time >= #{contrast_time_start}
+			</if>
+			<if test="contrast_time_end!= null and contrast_time_end!= '' ">
+				<![CDATA[ AND contrast_time < date_add(#{contrast_time_end}, interval 1 day) ]]>
+			</if>
+			<if test="position_id!= null and position_id!= '' ">
+				AND cu.position_id = #{position_id}
+			</if>
+			<if test="main_cause!= null and main_cause!= '' ">
+				AND cu.main_cause = #{main_cause}
+			</if>
+		</where> 
+		<![CDATA[ 
+		ORDER BY contrast_time;
+		]]>
+	</select>
+
+	<select id="getUnreachDetail" parameterType="PositionPlanTimeEntity" resultType="PositionPlanTimeEntity">
+		<![CDATA[
+			SELECT
+				ma.omr_notifi_no, pos.process_code, op.name as operator_name, cu.contrast_time, cu.main_cause, cu.comment,
+				ppt.plan_end_time, mdl.name as model_name
+			FROM 
+				countdown_unreach cu
+			LEFT JOIN 
+				position_plan_time ppt
+			ON 
+				cu.material_id = ppt.material_id AND cu.position_id = ppt.position_id
+			JOIN material ma
+			ON cu.material_id = ma.material_id
+			JOIN model mdl
+			ON ma.model_id = mdl.model_id
+			JOIN position pos
+			ON cu.position_id = pos.position_id
+			JOIN operator op
+			ON cu.operator_id = op.operator_id
+			WHERE
+				cu.material_id = #{material_id} AND cu.line_id = #{line_id}
+		]]>
+	</select>
+
+</mapper>
