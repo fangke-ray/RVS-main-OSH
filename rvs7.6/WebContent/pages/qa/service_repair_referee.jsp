@@ -263,6 +263,18 @@ display:none;
 					</td>
 				</tr>
 				<tr>
+					<td class="ui-state-default td-title">质量判定</td>
+				    <td class="td-content">
+						<select id="add_quality_judgment" >${sQuality_judgment}</select>
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">发行QIS</td>
+				    <td class="td-content">
+						<select id="add_qis_isuse" >${sQis_isuse}</select>
+					</td>
+				</tr>
+				<tr>
 					<td class="ui-state-default td-title">备注</td>
 				    <td class="td-content">
 					<textarea  name="comment"  alt="备注" id="add_comment"  cols=35 rows=2 class="ui-widget-content"></textarea>

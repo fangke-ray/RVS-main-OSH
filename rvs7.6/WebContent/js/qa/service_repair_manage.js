@@ -60,7 +60,7 @@ $(function() {
 		}else{
 			$("#list").jqGrid('hideCol',tname);
 		}
-		$("#list").jqGrid('setGridWidth', '1248');		
+		$("#list").jqGrid('setGridWidth', '1248');
 	});
 	/* radio转换成按钮 */
 	$("#answer_in_deadline_id,#unfix_back_flg_id,#search_entity_send_flg").buttonset();
@@ -117,7 +117,7 @@ $(function() {
 	$("#resetbutton").click(clearCondition);
 	/* 检索 */
 	$("#searchbutton").addClass("ui-button-primary");
-	$("#searchbutton").click(function() {	
+	$("#searchbutton").click(function() {
 		$("#search_model_name").data("post",$("#search_model_name").val());
 		$("#search_serial_no").data("post",$("#search_serial_no").val());
 		$("#search_sorc_no").data("post",$("#search_sorc_no").val());
@@ -1131,7 +1131,7 @@ var showedit_aditComplete = function(xhrobj,textStatus) {// 点击受理按钮�
 				$("#add_serial_no").text(resInfo.returnForm.serial_no);
 				$("#add_sorc_no").text(resInfo.returnForm.sorc_no);
 				$("#add_service_repair_flg").bind("change", function() {
-					if (this.value == 2 || this.value == 9 || this.value == 8) {
+					if (this.value == 2 || this.value == 9 || this.value == 8 || this.value == 4) {
 						$("#add_rank").removeAttr("readonly").removeAttr("disabled").removeAttr("style");
 					} else {
 						$("#add_rank").attr("readonly", true).attr("style", "border:0;");

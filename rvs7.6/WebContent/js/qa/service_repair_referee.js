@@ -10,7 +10,7 @@ $(function(){
 		dateFormat : "yy/mm/dd",
 		currentText : "今天"
 	});
-	$("#add_service_repair_flg,#add_search_service_free_flg,#add_workshop,#add_kind").select2Buttons();
+	$("#add_service_repair_flg,#add_search_service_free_flg,#add_workshop,#add_kind,#add_quality_judgment,#add_qis_isuse").select2Buttons();
 	$("input.ui-button").button();
 	$("a.areacloser").hover(
 		function (){$(this).addClass("ui-state-hover");},
@@ -46,7 +46,7 @@ $(function(){
 	});		
 	/*选择QIS不良品发生的事件*/
 	$("#add_service_repair_flg").change(function(){
-		if($(this).val()=='2' || $(this).val() == '9' || $(this).val() == '8'){
+		if($(this).val()=='2' || $(this).val() == '9' || $(this).val() == '8' || $(this).val() == '4'){
 			$("tr.qis_payout").show();
 			$("#add_rank").removeAttr("readonly").removeAttr("style");
 		}else{
@@ -190,6 +190,8 @@ $(function(){
 				"quality_info_no" : $("#add_quality_info_no:visible").val(),
 				"qa_referee_time": '1999/07/31 00:00:00',
 				"kind":$("#add_kind").val(),
+				"quality_judgment":$("#add_quality_judgment").val(),
+				"qis_isuse":$("#add_qis_isuse").val(),
 				"etq_no":$("#add_etq_no").val()
 			}
 			updatedata.pcs_comments = getStepIntoPcsComment();
@@ -251,6 +253,8 @@ $(function(){
 			"qis_invoice_date":$("#add_qis_invoice_date").val(),
 			"quality_info_no" : $("#add_quality_info_no:visible").val(),
 			"kind":$("#add_kind").val(),
+			"quality_judgment":$("#add_quality_judgment").val(),
+			"qis_isuse":$("#add_qis_isuse").val(),
 			"etq_no":$("#add_etq_no").val()
 		}
 
@@ -300,7 +304,7 @@ var show_analysis_Complete = function(xhrobj, textStatus) {// 点击分析button
 
     $("#show_Accept").hide();   
     $("#show_Accept").load(linkna,function(responseText, textStatus, XMLHttpRequest){
-    	
+
     	//上传图片
         $("#import_pic").click(function(){
 			
@@ -321,7 +325,7 @@ var show_analysis_Complete = function(xhrobj, textStatus) {// 点击分析button
 				img_container = $(".img_container").next().append(view_container);
 			}
 									
-			//点击上传图片button 将图片加载到编辑画面					
+			//点击上传图片button 将图片加载到编辑画面
 			$("#append_images").append(img_container);
 		
 			photo_editor_functions.editImgFor($hiddenInput,function(){
@@ -859,30 +863,33 @@ var data_list = function(resultdata){
     } else {
       $("tr .charge_amount").hide();
     }
-    $("#add_service_repair_flg").change(function(){
-        
-        if($(this).val()=='1'){
-           $("#add_search_service_free_flg").change(function(){
-              if($(this).val()=="3"){
-                  $(".charge_amount").show();
-              }
-           });
-        }
-    });
-    
-	 $("#add_search_service_free_flg").change(function(){
-	        if($(this).val()=="3"){
-	           $("#add_service_repair_flg").change(function(){
-	              if($(this).val()=="1"){
-	                  $(".charge_amount").show();
-	              }
-	           });
-	        }
-	  });
+//    $("#add_service_repair_flg").change(function(){ TODO 哪里的逻辑？
+//
+//        if($(this).val()=='1'){
+//           $("#add_search_service_free_flg").change(function(){
+//              if($(this).val()=="3"){
+//                  $(".charge_amount").show();
+//              }
+//           });
+//        }
+//    });
+//    
+//	 $("#add_search_service_free_flg").change(function(){
+//	        if($(this).val()=="3"){
+//	           $("#add_service_repair_flg").change(function(){
+//	              if($(this).val()=="1"){
+//	                  $(".charge_amount").show();
+//	              }
+//	           });
+//	        }
+//	  });
 	$("#add_workshop").val(resultdata.workshop).trigger("change");
 	$("#add_countermeasures").val(resultdata.countermeasures);
 	$("#add_comment").val(resultdata.comment);
 	$("#mention").html(resultdata.mention || "");
+	$("#add_kind").val(resultdata.kind).trigger("change");
+	$("#add_quality_judgment").val(resultdata.quality_judgment).trigger("change");
+	$("#add_qis_isuse").val(resultdata.qis_isuse).trigger("change");
 	$("#add_etq_no").val(resultdata.etq_no);
 }
 

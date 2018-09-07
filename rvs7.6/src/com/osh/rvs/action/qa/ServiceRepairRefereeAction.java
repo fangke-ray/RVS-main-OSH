@@ -81,6 +81,12 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		request.setAttribute("sWorkshop", CodeListUtils.getSelectOptions("workshop_new", null, ""));
 		request.setAttribute("goQaMaterialServiceRepair",CodeListUtils.getGridOptions("qa_material_service_repair"));
 
+		//质量判定
+		request.setAttribute("sQuality_judgment", CodeListUtils.getSelectOptions("quality_judgment", null, ""));
+		
+		//发行QIS
+		request.setAttribute("sQis_isuse", CodeListUtils.getSelectOptions("qis_isuse", null, ""));
+
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
@@ -305,7 +311,7 @@ public class ServiceRepairRefereeAction extends BaseAction{
 			info.setErrcode("validator.required");
 			msgInfos.add(info);
 		}
-		
+
 		if(msgInfos.size()==0){
 			service.updateServiceRepair(form,conn);
 			ServiceRepairManageForm tempForm=(ServiceRepairManageForm)form;

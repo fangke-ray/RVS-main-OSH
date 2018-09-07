@@ -60,7 +60,10 @@
 			qp.qis_invoice_date,
 			qp.include_month,
 			qp.charge_amount,
-			srm.etq_no
+			srm.etq_no,
+			srm.kind,
+			srm.quality_judgment,
+			srm.qis_isuse
 		FROM
 			service_repair_manage srm
 		LEFT JOIN
@@ -158,6 +161,8 @@
 				workshop=#{workshop},
 				countermeasures=#{countermeasures},
 				comment=#{comment},
+				quality_judgment=#{quality_judgment},
+				qis_isuse=#{qis_isuse},
 				etq_no = #{etq_no}
 			WHERE
 				 material_id=#{material_id}
