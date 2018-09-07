@@ -172,21 +172,8 @@ var deliver_update_Complete = function(xhrobj, textStatus){
             // 共通出错信息框
             treatBackMessages("#searcharea", resInfo.errors);
         } else {
-            $("#dialog_confrim").text("交付已经完成。");
-            $("#dialog_confrim").dialog({
-               width : 320,
-               height : 'auto',
-               resizable : false,
-               show : "blind",
-               modal : true,
-               title : "交付",
-               buttons : {
-                   "关闭" : function() {                                 
-                       $(this).dialog("close");
-                       deliver_findit();
-                   }
-               }
-           });          
+			infoPop("交付已经完成。", null, "交付");
+			deliver_findit();
         }
     }catch (e) {};
 }
@@ -908,20 +895,7 @@ var insert_handleComplete = function(xhrobj, textStatus) {
             // 共通出错信息框
             treatBackMessages("#editarea", resInfo.errors);
         } else {
-             $("#dialog_confrim").text("新建已经完成。");
-             $("#dialog_confrim").dialog({
-                width : 320,
-                height : 'auto',
-                resizable : false,
-                show : "blind",
-                modal : true,
-                title : "新建",
-                buttons : {
-                    "关闭" : function() {                                 
-                        $(this).dialog("close");
-                    }
-                }
-            });             
+        	infoPop("新建已经完成。", null, "新建");
             // 重新查询
             findit();
             // 切回一览画面
@@ -1066,61 +1040,48 @@ var showEdit = function(){
 	$("#updatebutton").click(function(){
 	  if ($("#update_form").valid()) {
         $("#dialog_confrim").html("");
-		$("#dialog_confrim").html("是否修改管理编号为"+$("#update_manage_code").val()+",品名为"+$("#update_name").val()+"的设备工具？");
-		$("#dialog_confrim").dialog({
-			position : 'center',
-			title : "修改确认",
-			width :350,
-			height : 150,
-			resizable : false,
-			modal : true,
-			buttons : {
-				"确定":function(){
-	                   $(this).dialog("close");
-	                   var data={
-                            "compare_status":rowData.status==$("#update_status").val(),
-					        "devices_manage_id": $("#hidden_devices_manage_id ").val(), 
-					        "manage_code": $("#update_manage_code").val(),
-					        "devices_type_id": $("#hidden_update_name").val(), 
-					        "model_name":$("#update_model_name ").val(),
-					        "manager_operator_id":$("#hidden_update_manager_operator_id").val(),
-					        "manage_level":$("#update_manage_level").val(),
-					        "manage_content":$("#update_manage_content").val(), 
-					        "products_code": $("#update_products_code").val(),
-					        "brand": $("#update_brand ").val(), 
-					        "section_id":$("#update_section_id ").val(),
-					        "line_id": $("#update_line_id ").val(), 
-					        "position_id": $("#hidden_update_position_id").val(),
-					        "responsible_operator_id":$("#hidden_update_responsible_operator_id").val(),
-					        "import_date":$("#update_import_date").val(),
-					        "provide_date":$("#update_provide_date ").text(),
-					        "waste_date":$("#update_waste_date ").val(),
-					        "delete_flg":$("#update_delete_flg ").val(),
-					        "updated_by":$("#update_updated_by ").val(),
-					        "status":$("#update_status").val(), 
-					        "comment": $("#update_comment").val()  
-					    }
-	                   
-                     // Ajax提交
-				     $.ajax({
-				        beforeSend : ajaxRequestType,
-				        async : true,
-				        url : servicePath + '?method=doupdate',
-				        cache : false,
-				        data :data,
-				        type : "post",
-				        dataType : "json",
-				        success : ajaxSuccessCheck,
-				        error : ajaxError,
-				        complete : update_handleComplete
-				     });
-				},
-				"取消":function(){
-						$("#dialog_confrim").html("");
-						$("#dialog_confrim").dialog('close');
-				}
+		warningConfirm("是否修改管理编号为"+$("#update_manage_code").val()+",品名为"+$("#update_name").val()+"的设备工具？", 
+		function(){
+			var data={
+				"compare_status":rowData.status==$("#update_status").val(),
+				"devices_manage_id": $("#hidden_devices_manage_id ").val(), 
+				"manage_code": $("#update_manage_code").val(),
+				"devices_type_id": $("#hidden_update_name").val(), 
+				"model_name":$("#update_model_name ").val(),
+				"manager_operator_id":$("#hidden_update_manager_operator_id").val(),
+				"manage_level":$("#update_manage_level").val(),
+				"manage_content":$("#update_manage_content").val(), 
+				"products_code": $("#update_products_code").val(),
+				"brand": $("#update_brand ").val(), 
+				"section_id":$("#update_section_id ").val(),
+				"line_id": $("#update_line_id ").val(), 
+				"position_id": $("#hidden_update_position_id").val(),
+				"responsible_operator_id":$("#hidden_update_responsible_operator_id").val(),
+				"import_date":$("#update_import_date").val(),
+				"provide_date":$("#update_provide_date ").text(),
+				"waste_date":$("#update_waste_date ").val(),
+				"delete_flg":$("#update_delete_flg ").val(),
+				"updated_by":$("#update_updated_by ").val(),
+				"status":$("#update_status").val(), 
+				"comment": $("#update_comment").val()  
 			}
-		});
+           
+            // Ajax提交
+		    $.ajax({
+		        beforeSend : ajaxRequestType,
+		        async : true,
+		        url : servicePath + '?method=doupdate',
+		        cache : false,
+		        data :data,
+		        type : "post",
+		        dataType : "json",
+		        success : ajaxSuccessCheck,
+		        error : ajaxError,
+		        complete : update_handleComplete
+		    });
+		}, 
+        null, 
+  		"修改确认");
       }
 	});	
 
@@ -1173,25 +1134,11 @@ var delete_handleComplete = function(xhrobj, textStatus) {
             // 共通出错信息框
             treatBackMessages("#editarea", resInfo.errors);
         } else {
-             $("#dialog_confrim").text("删除已经完成。");
-             $("#dialog_confrim").dialog({
-                width : 320,
-                height : 'auto',
-                resizable : false,
-                show : "blind",
-                modal : true,
-                title : "删除",
-                buttons : {
-                    "关闭" : function() {                                 
-                        $(this).dialog("close");
-                        // 重新查询
-                        findit(); 
-                        // 切回一览画面
-                        showList();
-                    }
-                }
-            });     
-          
+			infoPop("删除已经完成。", null, "删除");
+			// 重新查询
+			findit(); 
+			// 切回一览画面
+			showList();
         }
     } catch (e) {
         alert("name: " + e.name + " message: " + e.message + " lineNumber: "
@@ -1208,25 +1155,11 @@ var update_handleComplete = function(xhrobj, textStatus) {
             // 共通出错信息框
             treatBackMessages("#editarea", resInfo.errors);
         } else {
-             $("#dialog_confrim").text("修改已经完成。");
-	         $("#dialog_confrim").dialog({
-	            width : 320,
-	            height : 'auto',
-	            resizable : false,
-	            show : "blind",
-	            modal : true,
-	            title : "修改",
-	            buttons : {
-	                "关闭" : function() {   
-	                    $(this).dialog("close");
-                            // 重新查询
-                            findit(); 
-                            // 切回一览画面
-                            showList();
-	                }
-	            }
-	         });     
-          
+			infoPop("修改已经完成。", null, "修改");
+			// 重新查询
+			findit(); 
+			// 切回一览画面
+			showList();
         }
     } catch (e) {
         alert("name: " + e.name + " message: " + e.message + " lineNumber: "

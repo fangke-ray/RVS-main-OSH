@@ -187,15 +187,15 @@ public class DevicesManageService {
 					errors.add(error);		
 			} 		
 		}
-		//如果状态是保管中，只能选择技术课
-		if("4".equals(devicesManageEntity.getStatus()) && !("00000000010".equals(devicesManageEntity.getSection_id()))){
-			MsgInfo error = new MsgInfo();
-			error.setComponentid("devices_manage_id");
-			error.setErrcode("info.devices.chooseSection");
-			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.devices.chooseSection", "",
-					devicesManageEntity.getLine_id(), ""));
-			errors.add(error);	
-		}
+//		//如果状态是保管中，只能选择技术课
+//		if("4".equals(devicesManageEntity.getStatus()) && !("00000000010".equals(devicesManageEntity.getSection_id()))){
+//			MsgInfo error = new MsgInfo();
+//			error.setComponentid("devices_manage_id");
+//			error.setErrcode("info.devices.chooseSection");
+//			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.devices.chooseSection", "",
+//					devicesManageEntity.getLine_id(), ""));
+//			errors.add(error);	
+//		}
 	}
 	
 	/**
