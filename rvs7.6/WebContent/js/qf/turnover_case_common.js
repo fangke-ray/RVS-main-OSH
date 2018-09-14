@@ -207,7 +207,7 @@ var showStoragePlan = function(){
 				modal : true,
 				minHeight : 200,
 				buttons : {
-					"确认" : function(){
+					"确认入库" : function(){
 						var rowids = $("#tc_storage_list").jqGrid("getGridParam", "selarrrow");
 						if (rowids.length == 0) {
 							$this_dialog.dialog("close");

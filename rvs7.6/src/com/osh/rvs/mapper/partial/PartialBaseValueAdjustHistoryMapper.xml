@@ -15,53 +15,49 @@
 			    pph.end_date,
 			    DATE(pph.updated_time) AS updated_time,
 			    op.name AS update_name,
-				COALESCE(partial_order.order_num,0) AS order_num,
-				COALESCE(bb.bo_num,0) AS bo_num
+				COALESCE(SUM(partial_order.order_num),0) AS order_num,
+				COALESCE(SUM(partial_order.bo_num),0) AS bo_num
 			FROM
 			    partial_prepair_history pph
-			LEFT JOIN
+			JOIN
 			    partial pa ON pph.partial_id = pa.partial_id
 			LEFT JOIN
 			    operator op ON op.operator_id = pph.updated_by
 			LEFT JOIN
-				(SELECT  
-					mpd.partial_id AS partial_id,
-					mp.order_date AS order_date,
-					COUNT(1) AS order_num
-				FROM  
-					material_partial_detail mpd 
-				JOIN 
-					material_partial mp 
-				ON 
-					mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times 
-				GROUP BY
-					partial_id
-				) AS partial_order
+			(SELECT 
+				mpd.partial_id AS partial_id,
+				mp.order_date AS order_date,
+				SUM(quantity) AS order_num,
+				SUM(quantity * mpd.status IN (3 , 4)) AS bo_num
+			FROM
+				material_partial_detail mpd
+			JOIN material_partial mp ON mpd.material_id = mp.material_id
+				AND mpd.occur_times = mp.occur_times
+		]]>
+			<if test="(partial_code!=null and partial_code!='') or (partial_name!=null and partial_name!='') ">
+			JOIN partial ptl ON mpd.partial_id = ptl.partial_id
+			</if>
+		<where>
+			<if test="partial_code!=null and partial_code!='' ">
+				AND ptl.code LIKE CONCAT(#{partial_code},'%')
+			</if>
+			<if test="partial_name!=null and partial_name!='' ">
+				AND ptl.name LIKE CONCAT('%',#{partial_name},'%')
+			</if>
+			<if test="start_date_start!=null and start_date_start!='' ">
+				<![CDATA[
+					AND mp.order_date>= #{start_date_start}
+				]]>
+			</if>
+		</where>
+		<![CDATA[
+			GROUP BY mpd.partial_id, mp.order_date order by null) AS partial_order
 			ON
 				partial_order.partial_id=pph.partial_id AND (partial_order.order_date >= pph.start_date AND partial_order.order_date < pph.end_date)
-			LEFT JOIN
-				(SELECT
-					mpd.partial_id AS partial_id,
-					mp.order_date AS order_date,
-					SUM(bo_flg) AS bo_num
-				FROM  
-					material_partial_detail mpd 
-				JOIN 
-					material_partial mp 
-				ON 
-					mpd.material_id = mp.material_id AND mpd.occur_times = mp.occur_times 
-				WHERE 
-					mpd.status IN(3,4)
-				GROUP BY
-					partial_id
-				) AS bb
-			ON
-				bb.partial_id=pph.partial_id AND (bb.order_date >= pph.start_date AND bb.order_date < pph.end_date)
 		]]>
 		<where>
-			1=1
 			<if test="partial_code!=null and partial_code!='' ">
-				AND pa.code LIKE CONCAT('%',#{partial_code},'%')
+				AND pa.code LIKE CONCAT(#{partial_code},'%')
 			</if>
 			<if test="partial_name!=null and partial_name!='' ">
 				AND pa.name LIKE CONCAT('%',#{partial_name},'%')
@@ -94,6 +90,7 @@
 			</if>
 		</where>
 		<![CDATA[
+			GROUP BY pph.`partial_id`,pph.`start_date`,pph.`end_date`,pph.`identification`
 			order by
 				updated_time desc
 		]]>

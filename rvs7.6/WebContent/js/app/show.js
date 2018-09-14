@@ -55,5 +55,5 @@ function initialiseStateFromURL() {
 		return;
 	}
 
-	$("#body-mdl").attr("src", anchor.replace("#", scanPath + "/") + ".scan");
+	$("#body-mdl").attr("src", anchor.replace("#", scanPath + "/") + ".scan?from=show");
 }

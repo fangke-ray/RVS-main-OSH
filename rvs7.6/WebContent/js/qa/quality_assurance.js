@@ -114,6 +114,7 @@ var doForbid = function(type) {
 					$("#scanner_inputer").attr("value", "");
 					$("#material_details").hide();
 					$("#scanner_container").show();
+					$("#devicearea").hide();
 					$("#pcsarea").hide();
 					doInit();
 				}
@@ -560,7 +561,8 @@ var treatStart = function(resInfo) {
 		$("#pcscombutton").show();
 		// if ($("#pcs_pages input").length > 0) $("#pcscombutton").disable(); // V2 disable
 		$("#forbidbutton").hide();
-		$("#passbutton,#stepbutton").hide();
+		$("#passbutton").hide();
+		$("#stepbutton").show();
 		$("#pausebutton").show();
 		$("#continuebutton").hide();
 	} else if (resInfo.workstauts == 1.5) {
@@ -854,6 +856,7 @@ var makeStepDialog = function(jBreakDialog) {
 											$("#scanner_inputer").attr("value", "");
 											$("#material_details").hide();
 											$("#scanner_container").show();
+											$("#devicearea").hide();
 											$("#pcsarea").hide();
 											doInit();
 											jBreakDialog.dialog("close");
@@ -883,6 +886,7 @@ var makeStepDialog = function(jBreakDialog) {
 								$("#scanner_inputer").attr("value", "");
 								$("#material_details").hide();
 								$("#scanner_container").show();
+								$("#devicearea").hide();
 								$("#pcsarea").hide();
 								doInit();
 								jBreakDialog.dialog("close");

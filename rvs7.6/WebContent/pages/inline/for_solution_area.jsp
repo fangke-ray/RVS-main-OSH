@@ -52,10 +52,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 								<tr>
 									<td class="ui-state-default td-title">修理单号</td>
 									<td class="td-content"><input type="text" id="search_sorc_no" maxlength="15" class="ui-widget-content"></td>
-									<td class="ui-state-default td-title">维修对象机种</td>
-									<td class="td-content">
+									<td class="ui-state-default td-title" rowspan="2">维修对象机种</td>
+									<td class="td-content" rowspan="2" colspan="3">
 										<select name="category_id" id="search_category_id" class="ui-widget-content">${cOptions}</select>	
 									</td>
+								</tr>
+								<tr>
 									<td class="ui-state-default td-title">机身号</td>
 									<td class="td-content"><input type="text" id="search_serial_no" maxlength="12" class="ui-widget-content"></td>
 								</tr>
