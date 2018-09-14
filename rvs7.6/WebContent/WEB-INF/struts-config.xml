@@ -31,10 +31,10 @@
 		<form-bean name="operatorForm" type="com.osh.rvs.form.master.OperatorForm" />
 		<form-bean name="processAssignTemplateForm" type="com.osh.rvs.form.master.ProcessAssignTemplateForm" />
 		<form-bean name="materialForm" type="com.osh.rvs.form.data.MaterialForm" />
-		<form-bean name="partialBoForm" type="com.osh.rvs.form.partial.MaterialPartialForm" />
+		<form-bean name="materialPartialForm" type="com.osh.rvs.form.partial.MaterialPartialForm" />
 		<form-bean name="materialProcessForm" type="com.osh.rvs.form.inline.MaterialProcessForm" />
 		<form-bean name="scheduleForm" type="com.osh.rvs.form.inline.ScheduleForm" />
-		<form-bean name="materFactForm" type="com.osh.rvs.form.qf.MaterialFactForm" />
+		<form-bean name="materialFactForm" type="com.osh.rvs.form.qf.MaterialFactForm" />
 		<form-bean name="productionFeatureForm" type="com.osh.rvs.form.data.ProductionFeatureForm" />
 		<form-bean name="positionProductionForm" type="com.osh.rvs.form.data.PositionProductionForm" />
 		<form-bean name="operatorProductionForm" type="com.osh.rvs.form.data.OperatorProductionForm" />
@@ -60,7 +60,6 @@
 		<form-bean name="partialOrderManageForm" type="com.osh.rvs.form.partial.PartialOrderManageForm"></form-bean>
 		<form-bean name="partialBaseValueAdjustHistoryForm" type="com.osh.rvs.form.partial.PartialBaseValueAdjustHistoryForm"></form-bean>
 		<form-bean name="modelLevelSetHistoryForm" type="com.osh.rvs.form.manage.ModelLevelSetHistoryForm"></form-bean>
-		<form-bean name="customerForm" type="com.osh.rvs.form.master.CustomerForm" />
 		<form-bean name="sorcLossForm" type="com.osh.rvs.form.partial.SorcLossForm"></form-bean>
 		<form-bean name="badLossSummaryForm" type="com.osh.rvs.form.partial.BadLossSummaryForm"></form-bean>
 		<form-bean name="devicesTypeForm" type="com.osh.rvs.form.master.DevicesTypeForm"></form-bean>
@@ -582,11 +581,11 @@
 
 		<!-- report 工作记录表 -->
 		<action path="/daily_work_sheet" 
-				type="com.osh.rvs.action.qa.DailyWorkSheetAction"
+				type="com.osh.rvs.action.report.DailyWorkSheetAction"
 				parameter="method"
 				scope="request"
 				validate="false">
-				<forward name="init" path="/pages/qa/daily_work_sheet.jsp" />
+				<forward name="init" path="/pages/report/daily_work_sheet.jsp" />
 		</action>
 
 		<!-- data 工程检查票模板 -->
@@ -719,12 +718,12 @@
 
 		<!-- partial 零件发放 NEW -->
 		<action path="/partial_distrubute" 
-				type="com.osh.rvs.action.app.PartialReleaseAction"
+				type="com.osh.rvs.action.partial.PartialReleaseAction"
 				parameter="method"
 				scope="request"
 				name="materialPartialDetailForm"
 				validate="false">
-				<forward name="init" path="/pages/app/partial_release.jsp" />
+				<forward name="init" path="/pages/partial/partial_release.jsp" />
 		</action>
 
 		<!-- partial 零件补充 -->
@@ -796,7 +795,7 @@
 			<forward name="init" path="/pages/partial/sorc_loss.jsp"></forward>		
 		</action>
 
-		<action path="/pcsManage" type="org.apache.struts.actions.ForwardAction" parameter="/pages/app/pcsfix-page.jsp" validate="false">
+		<action path="/pcsManage" type="org.apache.struts.actions.ForwardAction" parameter="/pages/manage/pcsfix-page.jsp" validate="false">
 		</action>
 
 		<!-- 损金汇总 -->

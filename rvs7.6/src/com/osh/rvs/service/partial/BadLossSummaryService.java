@@ -83,7 +83,8 @@ public class BadLossSummaryService {
 				insertLossSummary.setYear(curYear);
 				insertLossSummary.setWork_period(workPeriod);
 				insertLossSummary.setMonth(months[i]);
-				
+
+				// TODO 死锁BUG
 				dao.insertLossSummary(insertLossSummary);				
 			}
 			if(curMonth==months[i])
@@ -443,10 +444,8 @@ public class BadLossSummaryService {
 	 * @param parameterMap
 	 * @param conn
 	 */
-	@SuppressWarnings("unchecked")
 	public void setMonthData(String choose_month,Map<String, String[]> parameterMap, SqlSessionManager conn,List<MsgInfo> errors) {
 		BadLossSummaryEntity badLossSummaryEntity = new BadLossSummaryEntity();
-		@SuppressWarnings("rawtypes")
 		List<BadLossSummaryForm> badLossSummaryForms = new AutofillArrayList<BadLossSummaryForm>(BadLossSummaryForm.class);
 		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
 
@@ -503,7 +502,6 @@ public class BadLossSummaryService {
 
 			//查询当前选择损金修改月中是否存在该条数据(如果存在则进行数据的更新--如果不存在则插入新数据)
 			BadLossSummaryEntity lossSummaryEntity = dao.searchLossSummaryOfMonth(badLossSummaryEntity);
-			badLossSummaryEntity.setYear(lossSummaryEntity.getYear());
 			
 			if(infos.size()>0){
 				for(int i=0;i<infos.size();i++){
@@ -516,6 +514,7 @@ public class BadLossSummaryService {
 				if(lossSummaryEntity==null){
 					dao.insertLossSummary(badLossSummaryEntity);
 				}else{
+					badLossSummaryEntity.setYear(lossSummaryEntity.getYear());
 					dao.updateLossSummary(badLossSummaryEntity);
 				}
 			}

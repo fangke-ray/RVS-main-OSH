@@ -173,7 +173,8 @@ public class PartialOrderRecordAction extends BaseAction {
 		log.info("PartialOrderRecordAction.searchEchelon start");
 		// Ajax回馈对象	
 		Map<String, Object> listResponse = new HashMap<String, Object>();
-		
+
+		// TODO BUg
 		String neo = req.getParameter("neo");
 		Date[] period = {new Date(), new Date()};
 		Integer periodDays = null;

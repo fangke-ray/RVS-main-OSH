@@ -382,13 +382,13 @@ FROM
 			<if test="finish_time_from!= null and finish_time_from!= ''">
 		<![CDATA[ 
 				and spf.finish_time >= #{finish_time_from}
-				and spf.operat_result = 2
+				and spf.operate_result = 2
 		]]>
 			</if>
 			<if test="finish_time_to!= null and finish_time_to!= ''">
 		<![CDATA[ 
 				and date(spf.finish_time) <= #{finish_time_to}
-				and spf.operat_result = 2
+				and spf.operate_result = 2
 		]]>
 			</if>
 		</where>

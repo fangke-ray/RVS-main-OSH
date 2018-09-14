@@ -18,8 +18,8 @@ import com.osh.rvs.bean.data.AlarmMesssageSendationEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.RvsConsts;
-import com.osh.rvs.form.master.PartialForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
+import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.mapper.data.AlarmMesssageMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.mapper.partial.PartialReceptMapper;
@@ -43,7 +43,7 @@ public class PartialReceptService {
 	 * @param conn
 	 * @return 如果有数据返回responseList 没有返回null
 	 */
-	public List<PartialForm> secrchMaterialPartial(ActionForm form, String lineID, String sectionId, SqlSession conn) {
+	public List<MaterialPartialForm> secrchMaterialPartial(ActionForm form, String lineID, String sectionId, SqlSession conn) {
 		MaterialPartialMapper dao = conn.getMapper(MaterialPartialMapper.class);
 
 		MaterialPartialDetailForm detailForm = (MaterialPartialDetailForm) form;
@@ -56,9 +56,9 @@ public class PartialReceptService {
 
 		List<MaterialPartialEntity> responseEntityList = dao.searchMaterialPartialRecept(entity);
 
-		List<PartialForm> responseList = new ArrayList<PartialForm>();
+		List<MaterialPartialForm> responseList = new ArrayList<MaterialPartialForm>();
 		// 复制数据到表单对象
-		BeanUtil.copyToFormList(responseEntityList, responseList, null, PartialForm.class);
+		BeanUtil.copyToFormList(responseEntityList, responseList, null, MaterialPartialForm.class);
 
 		if (responseList.size() > 0) {
 			return responseList;

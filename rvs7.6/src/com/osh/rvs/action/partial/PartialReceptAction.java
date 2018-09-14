@@ -18,8 +18,8 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.form.master.PartialForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
+import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.partial.PartialAssignService;
@@ -77,7 +77,7 @@ public class PartialReceptAction extends BaseAction{
 		String sectionID = loginData.getSection_id();// 工程 ID
 
 		// 课室 ID
-		List<PartialForm> responseFormList=service.secrchMaterialPartial(form, lineID, sectionID, conn);
+		List<MaterialPartialForm> responseFormList=service.secrchMaterialPartial(form, lineID, sectionID, conn);
 		
 		listResponse.put("responseFormList", responseFormList);
 		listResponse.put("errors", errors);

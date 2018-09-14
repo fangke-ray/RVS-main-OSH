@@ -29,7 +29,6 @@ import com.osh.rvs.common.ReportMetaData;
 import com.osh.rvs.common.ReportUtils;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
-import com.osh.rvs.form.master.PartialForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.service.MaterialPartialService;
@@ -177,7 +176,7 @@ public class MaterialPartialAction extends BaseAction {
 		if (errors.size() == 0) {
 			//取BO率
 //			String[] rate = getBORate(form, lResultForm);
-			PartialForm f = (PartialForm) form;
+			MaterialPartialForm f = (MaterialPartialForm) form;
 
 			Date from = null;
 			Date to = null;
