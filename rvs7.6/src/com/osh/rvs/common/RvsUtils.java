@@ -1114,13 +1114,13 @@ public class RvsUtils {
 		if (agreedDate == null || level == null || agreedDate.getTime() > 32503564800000l) return new Date[]{null};
 
 		boolean lightFix = isLightFix(level);
-		boolean peripheral = (level == 56 || level == 57 || level == 58);
+		boolean peripheral = (level == 56 || level == 57 || level == 58 || level == 59);
 		lightFix = lightFix && (fixType == 1);
 
 		// 纳期限定
 		Integer timeLimit = RvsConsts.TIME_LIMIT;
 		// 直送快速
-		if (2 == scheduledExpedite) {
+		if (scheduledExpedite != null && 2 == scheduledExpedite) {
 			if (1 == level) {
 				// S1同意日期+2个工作日
 				timeLimit = +2;

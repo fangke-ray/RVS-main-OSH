@@ -656,6 +656,8 @@ public class QuotationAction extends BaseAction {
 		String materialId = null;
 		String pcs_inputs = req.getParameter("pcs_inputs");
 
+		MaterialEntity meOrg = null;
+
 		if (!"true".equals(confirmed)) {
 			if (workingPf == null) {
 				MsgInfo error = new MsgInfo();
@@ -674,8 +676,8 @@ public class QuotationAction extends BaseAction {
 				mservice.checkRepeatNo(materialId, materialForm, conn, errors);
 				materialForm.setMaterial_id(materialId);
 
-				MaterialEntity me = mservice.loadSimpleMaterialDetailEntity(conn, materialId);
-				Date orginAgreedDate = me.getAgreed_date();
+				meOrg = mservice.loadSimpleMaterialDetailEntity(conn, materialId);
+				Date orginAgreedDate = meOrg.getAgreed_date();
 				if (isEmpty(materialForm.getWip_location())) {
 					// 完成报价
 					if (orginAgreedDate == null) {
@@ -751,6 +753,12 @@ public class QuotationAction extends BaseAction {
 			if (!isEmpty(bean.getCustomer_name())) {
 				CustomerService cservice = new CustomerService();
 				bean.setCustomer_id(cservice.getCustomerStudiedId(bean.getCustomer_name(), bean.getOcm(), conn));
+			}
+			if (bean.getScheduled_expedited() == null) {
+				if (meOrg == null) {
+					meOrg = mservice.loadSimpleMaterialDetailEntity(conn, materialId);
+				}
+				bean.setScheduled_expedited(meOrg.getScheduled_expedited());
 			}
 			qService.updateMaterial(bean, conn);
 
