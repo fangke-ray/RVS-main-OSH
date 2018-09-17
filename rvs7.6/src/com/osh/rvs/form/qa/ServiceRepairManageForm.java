@@ -249,8 +249,11 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	@BeanField(title = "对策(工厂)", name = "m_solutions", type = FieldType.String, length = 32)
 	private String m_solutions;
 
-	@BeanField(title = " ETQ单号", name = "etq_no", type = FieldType.String, length = 9)
+	@BeanField(title = "ETQ 单号", name = "etq_no", type = FieldType.String, length = 9)
 	private String etq_no;
+
+	@BeanField(title = "PAE 编号", name = "pae_no", type = FieldType.String, length = 20)
+	private String pae_no;
 
 	@BeanField(title = "购买/安装日期", name = "setup_date", type = FieldType.Date)
 	private String setup_date;
@@ -892,6 +895,14 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 
 	public void setUse_elapse(String use_elapse) {
 		this.use_elapse = use_elapse;
+	}
+
+	public String getPae_no() {
+		return pae_no;
+	}
+
+	public void setPae_no(String pae_no) {
+		this.pae_no = pae_no;
 	}
 
 }

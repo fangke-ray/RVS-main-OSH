@@ -199,6 +199,7 @@
 				sra.m_correspond_method,
 				sra.m_solutions,
 				srm.etq_no,
+				srm.pae_no,
 				sra.setup_date,
 				sra.trouble_happen_date,
 				sra.use_count,
@@ -484,6 +485,7 @@ and rc_mailsend_date=#{rc_mailsend_date};
 		</if>
 		<![CDATA[
 				etq_no = #{etq_no},
+				pae_no = #{pae_no},
 				countermeasures=#{countermeasures},
 				comment=#{comment},
 				quality_judgment=#{quality_judgment},

@@ -50,7 +50,7 @@ $(function() {
 		}else if("colchooser_qis"===tid){
 			tname =['quality_info_no','qis_invoice_no','qis_invoice_date','include_month','charge_amount','quality_judgment','qis_isuse'];
 		}else if("colchooser_etq"===tid){
-			tname =['etq_no'];
+			tname =['etq_no','pae_no'];
 		}else{
 			return;
 		}
@@ -1193,6 +1193,7 @@ var showedit_aditComplete = function(xhrobj,textStatus) {// 点击受理按钮�
 				$("#add_include_month").val(resInfo.returnForm.include_month);
 				$("#add_charge_amount").val(resInfo.returnForm.charge_amount);
 				$("#add_etq_no").val(resInfo.returnForm.etq_no);
+				$("#add_pae_no").val(resInfo.returnForm.pae_no);
 
 				$("#add_service_repair_flg").change(function(){
 					var thisval = $(this).val();
@@ -1312,7 +1313,8 @@ var showedit_aditComplete = function(xhrobj,textStatus) {// 点击受理按钮�
 							"include_month":$("#add_include_month:visible").val(),
 							"charge_amount":$("#add_charge_amount:visible").val(),
 							"kind":$("#add_kind").val(),
-							"etq_no":$("#add_etq_no").val()
+							"etq_no":$("#add_etq_no").val(),
+							"pae_no":$("#add_pae_no").val()
 						};			
 						$.ajax({
 							beforeSend : ajaxRequestType,
@@ -1436,7 +1438,7 @@ function service_repair_list(listdata) {
 			rowheight : 23,
 			shrinkToFit:true,
 			datatype : "local",  
-			colNames : ['责任<br>区分','ETQ单号','使用频率','再修理方案(处理对策)','', '型号', '机身号', '修理单号','产品分类' ,'不良分类', 'RC邮件<br>发送日','隐藏的RC邮件发送日',
+			colNames : ['责任<br>区分','ETQ单号','PAE编号','使用频率','再修理方案(处理对策)','', '型号', '机身号', '修理单号','产品分类' ,'不良分类', 'RC邮件<br>发送日','隐藏的RC邮件发送日',
 					'实物<br>收到日', 'SORC<br>受理日','SORC受理日','QA<br>受理日',
 					'QA<br>判定日', '答复<br>时限', 'QA二次<br>判定日', '等级',
 					'有无偿', '处理对策', '维修站', 'SORC<br>报价日', '修理<br>同意日',
@@ -1456,7 +1458,12 @@ function service_repair_list(listdata) {
                 index : 'etq_no',
                 width : 60,
                 hidden : true
-            },{
+			},{
+                name : 'pae_no',
+                index : 'pae_no',
+                width : 60,
+                hidden : true
+			},{
                 name : 'usage_frequency',
                 index : 'usage_frequency',
                 hidden : true,

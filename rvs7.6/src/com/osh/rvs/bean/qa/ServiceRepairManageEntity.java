@@ -130,6 +130,8 @@ public class ServiceRepairManageEntity implements Serializable {
 
 	private String etq_no;// ETQ单号
 
+	private String pae_no;// PAE编号
+
 	private Date setup_date;// 购买/安装日期
 
 	private Date trouble_happen_date;// 故障发生日期
@@ -773,6 +775,14 @@ public class ServiceRepairManageEntity implements Serializable {
 
 	public void setUse_elapse(String use_elapse) {
 		this.use_elapse = use_elapse;
+	}
+
+	public String getPae_no() {
+		return pae_no;
+	}
+
+	public void setPae_no(String pae_no) {
+		this.pae_no = pae_no;
 	}
 
 }

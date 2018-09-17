@@ -235,16 +235,18 @@ public class ServiceRepairManageService {
 				  ServiceRepairManageForm form=list.get(i);
 				  index++;
 				  HSSFRow row=sheet.createRow(index);//从第二行开始创建
-				  
-				  HSSFCell indexCell = row.createCell(0);
+
+				  int yPos = 0;
+
+				  HSSFCell indexCell = row.createCell(yPos++);
 				  indexCell.setCellValue(index);
 				  indexCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell modelnameCell =  row.createCell(1);
+				  HSSFCell modelnameCell =  row.createCell(yPos++);
 				  modelnameCell.setCellValue(form.getModel_name());
 				  modelnameCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell serialnoCell =  row.createCell(2);
+				  HSSFCell serialnoCell =  row.createCell(yPos++);
 				  serialnoCell.setCellStyle(styleAlignLeft);
 				  try {
 					  int iSerial_no = Integer.parseInt(form.getSerial_no());
@@ -254,31 +256,27 @@ public class ServiceRepairManageService {
 					  serialnoCell.setCellValue(form.getSerial_no());
 				  }
 				  
-				  HSSFCell sorcnoCell =  row.createCell(3);
+				  HSSFCell sorcnoCell =  row.createCell(yPos++);
 				  sorcnoCell.setCellValue(form.getSorc_no());
 				  sorcnoCell.setCellStyle(styleAlignLeft);
-				  
-				  HSSFCell etq_noCell =  row.createCell(4);
-				  etq_noCell.setCellValue(form.getEtq_no());
-				  etq_noCell.setCellStyle(styleAlignLeft);
-				  
-				  HSSFCell kindCell =  row.createCell(5);
+
+				  HSSFCell kindCell =  row.createCell(yPos++);
 				  kindCell.setCellValue(CodeListUtils.getValue("qa_category_kind", form.getKind()));
 				  kindCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell qamaterialservicerepairCell =  row.createCell(6);
+				  HSSFCell qamaterialservicerepairCell =  row.createCell(yPos++);
 				  qamaterialservicerepairCell.setCellValue(CodeListUtils.getValue("qa_material_service_repair", form.getService_repair_flg()));
 				  qamaterialservicerepairCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell rcmailsenddateCell =  row.createCell(7);
+				  HSSFCell rcmailsenddateCell =  row.createCell(yPos++);
 				  rcmailsenddateCell.setCellValue(form.getRc_mailsend_date());
 				  rcmailsenddateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell rcshipassigndateCell =  row.createCell(8);
+				  HSSFCell rcshipassigndateCell =  row.createCell(yPos++);
 				  rcshipassigndateCell.setCellValue(form.getRc_ship_assign_date());
 				  rcshipassigndateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell receptiondateCell =  row.createCell(9);
+				  HSSFCell receptiondateCell =  row.createCell(yPos++);
 				  receptiondateCell.setCellValue(form.getReception_date());
 				  receptiondateCell.setCellStyle(styleAlignCenter);
 				  
@@ -291,14 +289,14 @@ public class ServiceRepairManageService {
 				  if(form.getQa_referee_time()!=null){
 					  qa_referee_time= format.format(new Date(form.getQa_referee_time()));
 				  }
-				  HSSFCell qareceptiontimeCell =  row.createCell(10);
+				  HSSFCell qareceptiontimeCell =  row.createCell(yPos++);
 				  qareceptiontimeCell.setCellValue(qa_reception_time);
 				  qareceptiontimeCell.setCellStyle(styleAlignCenter);
-				  HSSFCell qarefereetimeCell =  row.createCell(11);
+				  HSSFCell qarefereetimeCell =  row.createCell(yPos++);
 				  qarefereetimeCell.setCellStyle(styleAlignCenter);
 				  qarefereetimeCell.setCellValue(qa_referee_time);
 				  
-				  HSSFCell answerindeadlineCell =  row.createCell(12);
+				  HSSFCell answerindeadlineCell =  row.createCell(yPos++);
 				  if(form.getQa_referee_time()!=null){
 					  if(form.getAnswer_in_deadline()!=null){
 						  switch(form.getAnswer_in_deadline()){
@@ -323,43 +321,43 @@ public class ServiceRepairManageService {
 					  answerindeadlineCell.setCellStyle(styleAlignCenter);
 				  }
 				  
-				  HSSFCell qasecondaryrefereedateCell =  row.createCell(13);
+				  HSSFCell qasecondaryrefereedateCell =  row.createCell(yPos++);
 				  qasecondaryrefereedateCell.setCellValue(form.getQa_secondary_referee_date());
 				  qasecondaryrefereedateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell rankCell =  row.createCell(14);
+				  HSSFCell rankCell =  row.createCell(yPos++);
 				  rankCell.setCellValue(form.getRank());
 				  rankCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell servicefreeflgCell =  row.createCell(15);
+				  HSSFCell servicefreeflgCell =  row.createCell(yPos++);
 				  servicefreeflgCell.setCellValue(CodeListUtils.getValue("service_free_flg", form.getService_free_flg()));
 				  servicefreeflgCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell countermeasuresCell =  row.createCell(16);
+				  HSSFCell countermeasuresCell =  row.createCell(yPos++);
 				  countermeasuresCell.setCellValue(form.getCountermeasures());
 				  countermeasuresCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell workshopCell =  row.createCell(17);
+				  HSSFCell workshopCell =  row.createCell(yPos++);
 				  workshopCell.setCellValue(CodeListUtils.getValue("workshop", form.getWorkshop())); 
 				  workshopCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell quotationdateCell =  row.createCell(18);
+				  HSSFCell quotationdateCell =  row.createCell(yPos++);
 				  quotationdateCell.setCellValue(form.getQuotation_date());
 				  quotationdateCell.setCellStyle(styleAlignLeft);
-				  
-				  HSSFCell agreeddateCell =  row.createCell(19);
+
+				  HSSFCell agreeddateCell =  row.createCell(yPos++);
 				  agreeddateCell.setCellValue(form.getAgreed_date()); 
 				  agreeddateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell inlinedateCell =  row.createCell(20);
+				  HSSFCell inlinedateCell =  row.createCell(yPos++);
 				  inlinedateCell.setCellValue(form.getInline_date());
 				  inlinedateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell outlinedateCell =  row.createCell(21);
+				  HSSFCell outlinedateCell =  row.createCell(yPos++);
 				  outlinedateCell.setCellValue(form.getOutline_date());
 				  outlinedateCell.setCellStyle(styleAlignCenter);
-				  
-				  HSSFCell unfixbackflgCell =  row.createCell(22);
+
+				  HSSFCell unfixbackflgCell =  row.createCell(yPos++);
 				  if(form.getUnfix_back_flg()!=null){
 					  switch(form.getUnfix_back_flg()){
 					  	case "1":
@@ -374,69 +372,77 @@ public class ServiceRepairManageService {
 				  }
 				  unfixbackflgCell.setCellStyle(styleAlignCenter);
 
-				  HSSFCell qualityJudgmentCell =  row.createCell(23);
+				  HSSFCell qualityJudgmentCell =  row.createCell(yPos++);
 				  qualityJudgmentCell.setCellValue(CodeListUtils.getValue("quality_judgment", form.getQuality_judgment()));
 				  qualityJudgmentCell.setCellStyle(styleAlignLeft);
 
-				  HSSFCell quality_info_noCell =  row.createCell(24);
+				  HSSFCell quality_info_noCell =  row.createCell(yPos++);
 				  quality_info_noCell.setCellValue(form.getQuality_info_no());
 				  quality_info_noCell.setCellStyle(styleAlignLeft);
 
-				  HSSFCell qisIsusetCell =  row.createCell(25);
+				  HSSFCell qisIsusetCell =  row.createCell(yPos++);
 				  qisIsusetCell.setCellValue(CodeListUtils.getValue("qis_isuse", form.getQis_isuse()));
 				  qisIsusetCell.setCellStyle(styleAlignLeft);
 
-				  HSSFCell qis_invoice_noCell =  row.createCell(26);
+				  HSSFCell qis_invoice_noCell =  row.createCell(yPos++);
 				  qis_invoice_noCell.setCellValue(form.getQis_invoice_no());
 				  qis_invoice_noCell.setCellStyle(styleAlignLeft);
 
-				  HSSFCell qis_invoice_dateCell =  row.createCell(27);
+				  HSSFCell qis_invoice_dateCell =  row.createCell(yPos++);
 				  qis_invoice_dateCell.setCellValue(form.getQis_invoice_date());
 				  qis_invoice_dateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell include_monthCell =  row.createCell(28);
+				  HSSFCell include_monthCell =  row.createCell(yPos++);
 				  include_monthCell.setCellValue(form.getInclude_month());
 				  include_monthCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell charge_mountCell =  row.createCell(29);
+				  HSSFCell charge_mountCell =  row.createCell(yPos++);
 				  charge_mountCell.setCellValue(form.getCharge_amount());
 				  charge_mountCell.setCellStyle(styleAlignLeft);
-				  
-				  HSSFCell commentCell =  row.createCell(30);
+
+				  HSSFCell commentCell =  row.createCell(yPos++);
 				  commentCell.setCellValue(form.getComment());
 				  commentCell.setCellStyle(styleAlignLeft);
+
+				  HSSFCell etq_noCell =  row.createCell(yPos++);
+				  etq_noCell.setCellValue(form.getEtq_no());
+				  etq_noCell.setCellStyle(styleAlignLeft);
 				  
+				  HSSFCell pae_noCell =  row.createCell(yPos++);
+				  pae_noCell.setCellValue(form.getPae_no());
+				  pae_noCell.setCellStyle(styleAlignLeft);
+
 				  /*保内QIS分析表详细数据*/
-				  HSSFCell analysis_noCell =  row.createCell(31);
+				  HSSFCell analysis_noCell =  row.createCell(yPos++);
 				  analysis_noCell.setCellValue(form.getAnalysis_no());
 				  analysis_noCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell customer_nameCell =  row.createCell(32);
+				  HSSFCell customer_nameCell =  row.createCell(yPos++);
 				  customer_nameCell.setCellValue(form.getCustomer_name());
 				  customer_nameCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell fix_demandCell =  row.createCell(33);
+				  HSSFCell fix_demandCell =  row.createCell(yPos++);
 				  fix_demandCell.setCellValue(form.getFix_demand());
 				  fix_demandCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell trouble_discribeCell =  row.createCell(34);
+				  HSSFCell trouble_discribeCell =  row.createCell(yPos++);
 				  trouble_discribeCell.setCellValue(form.getTrouble_discribe());
 				  trouble_discribeCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell trouble_causeCell =  row.createCell(35);
+				  HSSFCell trouble_causeCell =  row.createCell(yPos++);
 				  trouble_causeCell.setCellValue(form.getTrouble_cause());
 				  trouble_causeCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell analysis_resultCell =  row.createCell(36);
+				  HSSFCell analysis_resultCell =  row.createCell(yPos++);
 				  analysis_resultCell.setCellValue(CodeListUtils.getValue("analysis_result", form.getAnalysis_result()));
 				  analysis_resultCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell liability_flgCell =  row.createCell(37);
+				  HSSFCell liability_flgCell =  row.createCell(yPos++);
 				  liability_flgCell.setCellValue(CodeListUtils.getValue("liability_flg", form.getLiability_flg()));
 				  liability_flgCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell OGZCommentCell =  row.createCell(38);
-				  
+				  HSSFCell OGZCommentCell =  row.createCell(yPos++);
+
 				  //判断OGZ修理备注--如果service_repair_analysis-维修场所标记值是1时，则显示OGZ，否则为空
 				  String OGZCommentCellValue = "";
 				  String OGZComment = form.getManufactory_flg();
@@ -448,27 +454,27 @@ public class ServiceRepairManageService {
 				  OGZCommentCell.setCellValue(OGZCommentCellValue);
 				  OGZCommentCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell append_componentCell =  row.createCell(39);
+				  HSSFCell append_componentCell =  row.createCell(yPos++);
 				  append_componentCell.setCellValue(form.getAppend_component());
 				  append_componentCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell quantityCell =  row.createCell(40);
+				  HSSFCell quantityCell =  row.createCell(yPos++);
 				  quantityCell.setCellValue(form.getQuantity());
 				  quantityCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell loss_amountCell =  row.createCell(41);
+				  HSSFCell loss_amountCell =  row.createCell(yPos++);
 				  loss_amountCell.setCellValue(form.getLoss_amount());
 				  loss_amountCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell last_sorc_noCell =  row.createCell(42);
+				  HSSFCell last_sorc_noCell =  row.createCell(yPos++);
 				  last_sorc_noCell.setCellValue(form.getLast_sorc_no());
 				  last_sorc_noCell.setCellStyle(styleAlignLeft);
-				  
-				  HSSFCell last_shipping_dateCell =  row.createCell(43);
+
+				  HSSFCell last_shipping_dateCell =  row.createCell(yPos++);
 				  last_shipping_dateCell.setCellValue(form.getLast_shipping_date());
 				  last_shipping_dateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell last_rankCell =  row.createCell(44);
+				  HSSFCell last_rankCell =  row.createCell(yPos++);
 				  String last_rank =  form.getLast_rank();
 				  String last_rankCellValue ="";
 				  if(last_rank!=null && !"".equals(last_rank)){
@@ -477,27 +483,27 @@ public class ServiceRepairManageService {
 				  last_rankCell.setCellValue(last_rankCellValue);
 				  last_rankCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell last_trouble_featureCell =  row.createCell(45);
+				  HSSFCell last_trouble_featureCell =  row.createCell(yPos++);
 				  last_trouble_featureCell.setCellValue(form.getLast_trouble_feature());
 				  last_trouble_featureCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell wash_featureCell =  row.createCell(46);
+				  HSSFCell wash_featureCell =  row.createCell(yPos++);
 				  wash_featureCell.setCellValue(form.getWash_feature());
 				  wash_featureCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell disinfect_featureCell =  row.createCell(47);
+				  HSSFCell disinfect_featureCell =  row.createCell(yPos++);
 				  disinfect_featureCell.setCellValue(form.getDisinfect_feature());
 				  disinfect_featureCell.setCellStyle(styleAlignLeft);
-				  
-				  HSSFCell steriliza_featureCell =  row.createCell(48);
+
+				  HSSFCell steriliza_featureCell =  row.createCell(yPos++);
 				  steriliza_featureCell.setCellValue(form.getSteriliza_feature());
 				  steriliza_featureCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell usage_frequencyCell =  row.createCell(49);
+				  HSSFCell usage_frequencyCell =  row.createCell(yPos++);
 				  usage_frequencyCell.setCellValue(form.getUsage_frequency());
 				  usage_frequencyCell.setCellStyle(styleAlignLeft);
 				  
-				  HSSFCell corresponse_flgCell =  row.createCell(50);//处理方式
+				  HSSFCell corresponse_flgCell =  row.createCell(yPos++);//处理方式
 				  String corresponse_flg =  form.getCorresponse_flg();
 				  String corresponse_flgCellValue = "";
 				  if(!CommonStringUtil.isEmpty(corresponse_flg)){
@@ -506,7 +512,7 @@ public class ServiceRepairManageService {
 				  corresponse_flgCell.setCellValue(corresponse_flgCellValue);
 				  corresponse_flgCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell entity_send_flgCell =  row.createCell(51);//实物处理
+				  HSSFCell entity_send_flgCell =  row.createCell(yPos++);//实物处理
 				  String entity_send_flg =  form.getEntity_send_flg();
 				  String entity_send_flgCellValue = "";
 				  if(!CommonStringUtil.isEmpty(entity_send_flg)){
@@ -516,23 +522,23 @@ public class ServiceRepairManageService {
 				  entity_send_flgCell.setCellStyle(styleAlignCenter);
 
 				  if("21".equals(entity_send_flg) || "22".equals(entity_send_flg) || "23".equals(entity_send_flg)){
-					  HSSFCell trouble_item_reception_dateCell =  row.createCell(52);//故障品接收
+					  HSSFCell trouble_item_reception_dateCell =  row.createCell(yPos++);//故障品接收
 					  trouble_item_reception_dateCell.setCellValue("-");
 					  trouble_item_reception_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell trouble_item_in_bussiness_dateCell =  row.createCell(53);//故障品提交给业务
+					  HSSFCell trouble_item_in_bussiness_dateCell =  row.createCell(yPos++);//故障品提交给业务
 					  trouble_item_in_bussiness_dateCell.setCellValue("-");
 					  trouble_item_in_bussiness_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell trouble_item_out_bussiness_dateCell =  row.createCell(54);//故障品发送（业务）
+					  HSSFCell trouble_item_out_bussiness_dateCell =  row.createCell(yPos++);//故障品发送（业务）
 					  trouble_item_out_bussiness_dateCell.setCellValue("-");
 					  trouble_item_out_bussiness_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell qis2_dateCell =  row.createCell(55);//QIS2
+					  HSSFCell qis2_dateCell =  row.createCell(yPos++);//QIS2
 					  qis2_dateCell.setCellValue("-");
 					  qis2_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell qis3_dateCell =  row.createCell(56);//QIS3
+					  HSSFCell qis3_dateCell =  row.createCell(yPos++);//QIS3
 					  if("22".equals(entity_send_flg)){
 						  qis3_dateCell.setCellValue("-");
 					  } else {
@@ -540,68 +546,68 @@ public class ServiceRepairManageService {
 					  }
 					  qis3_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell waste_certificated_dateCell =  row.createCell(57);//废弃证明
+					  HSSFCell waste_certificated_dateCell =  row.createCell(yPos++);//废弃证明
 					  waste_certificated_dateCell.setCellValue("-");
 					  waste_certificated_dateCell.setCellStyle(styleAlignCenter);
 				  }else{
-					  HSSFCell trouble_item_reception_dateCell =  row.createCell(52);//故障品接收
+					  HSSFCell trouble_item_reception_dateCell =  row.createCell(yPos++);//故障品接收
 					  trouble_item_reception_dateCell.setCellValue(form.getTrouble_item_reception_date());
 					  trouble_item_reception_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell trouble_item_in_bussiness_dateCell =  row.createCell(53);//故障品提交给业务
+					  HSSFCell trouble_item_in_bussiness_dateCell =  row.createCell(yPos++);//故障品提交给业务
 					  trouble_item_in_bussiness_dateCell.setCellValue(form.getTrouble_item_in_bussiness_date());
 					  trouble_item_in_bussiness_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell trouble_item_out_bussiness_dateCell =  row.createCell(54);//故障品发送（业务）
+					  HSSFCell trouble_item_out_bussiness_dateCell =  row.createCell(yPos++);//故障品发送（业务）
 					  trouble_item_out_bussiness_dateCell.setCellValue(form.getTrouble_item_out_bussiness_date());
 					  trouble_item_out_bussiness_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell qis2_dateCell =  row.createCell(55);//QIS2
+					  HSSFCell qis2_dateCell =  row.createCell(yPos++);//QIS2
 					  qis2_dateCell.setCellValue(form.getQis2_date());
 					  qis2_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell qis3_dateCell =  row.createCell(56);//QIS3
+					  HSSFCell qis3_dateCell =  row.createCell(yPos++);//QIS3
 					  qis3_dateCell.setCellValue(form.getQis3_date());
 					  qis3_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell waste_certificated_dateCell =  row.createCell(57);//废弃证明
+					  HSSFCell waste_certificated_dateCell =  row.createCell(yPos++);//废弃证明
 					  waste_certificated_dateCell.setCellValue(form.getWaste_certificated_date());
 					  waste_certificated_dateCell.setCellStyle(styleAlignCenter);
 				  }
 				  
-				  HSSFCell m_trouble_phenomenon_confirmCell = row.createCell(58);//故障现象确认(工厂)
+				  HSSFCell m_trouble_phenomenon_confirmCell = row.createCell(yPos++);//故障现象确认(工厂)
 				  m_trouble_phenomenon_confirmCell.setCellValue(form.getM_trouble_phenomenon_confirm());
 				  m_trouble_phenomenon_confirmCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell m_judgment_resultCell = row.createCell(59);//判定结果(工厂)
+				  HSSFCell m_judgment_resultCell = row.createCell(yPos++);//判定结果(工厂)
 				  m_judgment_resultCell.setCellValue(form.getM_judgment_result());
 				  m_judgment_resultCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell m_analysis_result_briefCell = row.createCell(60);//分析结果简述(工厂)
+				  HSSFCell m_analysis_result_briefCell = row.createCell(yPos++);//分析结果简述(工厂)
 				  m_analysis_result_briefCell.setCellValue(form.getM_analysis_result_brief());
 				  m_analysis_result_briefCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell m_correspond_methodCell = row.createCell(61);//对应方法(工厂)
+				  HSSFCell m_correspond_methodCell = row.createCell(yPos++);//对应方法(工厂)
 				  m_correspond_methodCell.setCellValue(form.getM_correspond_method());
 				  m_correspond_methodCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell m_solutionsCell = row.createCell(62);//对策(工厂)
+				  HSSFCell m_solutionsCell = row.createCell(yPos++);//对策(工厂)
 				  m_solutionsCell.setCellValue(form.getM_solutions());
 				  m_solutionsCell.setCellStyle(styleAlignCenter);
-				  
-				  HSSFCell setup_dateCell = row.createCell(63);//购买/安装日期
+
+				  HSSFCell setup_dateCell = row.createCell(yPos++);//购买/安装日期
 				  setup_dateCell.setCellValue(form.getSetup_date());
 				  setup_dateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell trouble_happen_dateCell = row.createCell(64);//故障发生日期
+				  HSSFCell trouble_happen_dateCell = row.createCell(yPos++);//故障发生日期
 				  trouble_happen_dateCell.setCellValue(form.getTrouble_happen_date());
 				  trouble_happen_dateCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell use_countCell = row.createCell(65);//使用累计次数
+				  HSSFCell use_countCell = row.createCell(yPos++);//使用累计次数
 				  use_countCell.setCellValue(form.getUse_count());
 				  use_countCell.setCellStyle(styleAlignCenter);
-				  
-				  HSSFCell use_elapseCell = row.createCell(66);//使用累计时间
+
+				  HSSFCell use_elapseCell = row.createCell(yPos++);//使用累计时间
 				  use_elapseCell.setCellValue(form.getUse_elapse());
 				  use_elapseCell.setCellStyle(styleAlignCenter);
 				  

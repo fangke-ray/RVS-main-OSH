@@ -195,7 +195,7 @@ width: 1248px;
 		<div id="colchooser">
 			 <input type="checkbox" id="colchooser_repair"></input><label for="colchooser_repair">维修对象信息</label>
 		     <input type="checkbox" id="colchooser_qis"></input><label for="colchooser_qis">QIS管理信息</label>
-		     <input type="checkbox" id="colchooser_etq"></input><label for="colchooser_etq">ETQ信息</label>
+		     <input type="checkbox" id="colchooser_etq"></input><label for="colchooser_etq">ETQ / PAE信息</label>
 	     </div>
 	</div>
 	<table id="list" ></table>

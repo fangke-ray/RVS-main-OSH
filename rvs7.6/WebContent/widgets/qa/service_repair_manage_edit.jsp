@@ -99,7 +99,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<textarea id="add_comment" name="comment"  alt="备注"  cols=35 rows=2 class="ui-widget-content"></textarea>
 					</td>
 				</tr>
-				<tr>				    
+				<tr>
 				    <td class="ui-state-default td-title">QIS发送单号</td>
 				    <td class="td-content">
 						<input id="add_qis_invoice_no" type="text" name="qis_invoice_no" class="ui-widget-content"/>
@@ -129,6 +129,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="ui-state-default td-title">ETQ单号</td>
 				    <td class="td-content">
 						<input id="add_etq_no" type="text" class="ui-widget-content"/>
+					</td>
+					<td class="ui-state-default td-title">PAE编号</td>
+				    <td class="td-content">
+						<input id="add_pae_no" type="text" class="ui-widget-content"/>
 					</td>
 				</tr>
 			</tbody>
