@@ -399,10 +399,19 @@ public class QualityAssuranceAction extends BaseAction {
 			} else
 			// 如果等待中信息是暂停中，则结束掉暂停记录(有可能已经被结束)
 			if (waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_PAUSE) {
-				bfService.finishPauseFeature(material_id, section_id, user.getPosition_id(), user.getOperator_id(), conn);
+				bfService.finishPauseFeature(material_id, null, user.getPosition_id(), user.getOperator_id(), conn);
 
-				// 确认处理
-				listResponse.put("workstauts", WORK_STATUS_DECIDE);
+				if (waitingPf.getAction_time() == null) {
+					if (qa_checked) {
+						// 确认处理
+						listResponse.put("workstauts", WORK_STATUS_DECIDE);
+					} else {
+						listResponse.put("workstauts", WORK_STATUS_WORKING);
+					}
+				} else {
+					// 确认处理
+					listResponse.put("workstauts", WORK_STATUS_DECIDE);
+				}
 			} else {
 				boolean infectFinishFlag = true;
 				// 判断是否有特殊页面效果
@@ -899,6 +908,10 @@ public class QualityAssuranceAction extends BaseAction {
 			errors.add(msgInfo);
 		}
 
+		// 备注信息
+		String comments = req.getParameter("comments");
+		bfService.checkPauseForm(comments, errors);
+
 		// 取得当前作业中作业信息
 		ProductionFeatureEntity workingPf = positionPanelService.getWorkingPf(user, conn);
 
@@ -946,8 +959,13 @@ public class QualityAssuranceAction extends BaseAction {
 				// 作业信息状态改为，中断
 				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_BREAK);
 				workingPf.setUse_seconds(null);
-//				workingPf.setPcs_inputs(req.getParameter("pcs_inputs"));
-//				workingPf.setPcs_comments(req.getParameter("pcs_comments"));
+				boolean qa_checked = service.getProccessingData(listResponse, workingPf.getMaterial_id(), 
+						workingPf, user, conn);
+				if (!qa_checked) {
+					workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_PAUSE);
+					workingPf.setPcs_inputs(req.getParameter("pcs_inputs"));
+					workingPf.setPcs_comments(req.getParameter("pcs_comments"));
+				}
 
 				pfService.finishProductionFeature(workingPf, conn);
 
