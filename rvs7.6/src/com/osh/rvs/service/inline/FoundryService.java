@@ -9,10 +9,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -26,9 +28,11 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.struts.action.ActionForm;
 
+import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.report.FoundryEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
+import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.report.FoundryMapper;
 
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -257,5 +261,49 @@ public class FoundryService {
 		cell.setCellValue(itemValue);
 		cell.setCellStyle(cellStyle);
 	}
-	
+
+	public void checkWorkCountFlgAndFoundry(String operator_id, HttpServletRequest req, SqlSession conn) {
+		OperatorMapper operatorMapper = conn.getMapper(OperatorMapper.class);
+		OperatorEntity operatorEntity = operatorMapper.getOperatorByID(operator_id);
+		int work_count_flg = operatorEntity.getWork_count_flg();
+		if (work_count_flg == 1) {
+			// 判断是否代工中
+			FoundryMapper foundryMapper = conn.getMapper(FoundryMapper.class);
+			Date foundry_start_time = foundryMapper.getStartTime(operator_id);
+			if (foundry_start_time != null) {
+				req.setAttribute("foundry_start_time", DateUtil.toString(foundry_start_time, DateUtil.DATE_TIME_PATTERN));
+			}
+		}
+		req.setAttribute("work_count_flg", work_count_flg);
+	}
+
+	public void changeFoundry(String operator_id,
+			HttpServletRequest req, Map<String, Object> callbackResponse,
+			SqlSession conn) throws Exception {
+		FoundryMapper mapper = conn.getMapper(FoundryMapper.class);
+		Map<String, String> map = new HashMap<String, String>();
+		 
+		String user_working_status = req.getParameter("user_working_status");
+		if ("1".equals(user_working_status)) {
+			// 判断是否存在没有结束的代工时间
+			Date foundry_start_time = mapper.getStartTime(operator_id);
+			if (foundry_start_time != null) {
+				map.put("operator_id", operator_id);
+				map.put("start_time", DateUtil.toString(foundry_start_time, DateUtil.DATE_TIME_PATTERN));
+				mapper.delete(map);
+			}
+			// 代工时间开始
+			map.put("operator_id", operator_id);
+			String nowDate = DateUtil.toString(new Date(), DateUtil.DATE_TIME_PATTERN);
+			map.put("start_time", nowDate);
+			mapper.insert(map);
+
+			callbackResponse.put("foundry_start_time", nowDate);
+		} else if ("2".equals(user_working_status)) {
+			// 代工时间结束
+			map.put("operator_id", operator_id);
+			map.put("start_time", req.getParameter("foundry_start_time"));
+			mapper.update(map);
+		}
+	}
 }

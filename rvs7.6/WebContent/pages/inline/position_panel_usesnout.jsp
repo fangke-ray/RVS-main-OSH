@@ -162,7 +162,7 @@ if (work_count_flg == 1) {
 								<td class="ui-state-default td-title">工程名</td>
 								<td class="td-content-text">${userdata.line_name}</td>
 								<td class="ui-state-default td-title">工位<input type="hidden" id="g_pos_id" value="${userdata.section_id}#${userdata.position_id}"/><input type="hidden" id="skip_position" value="${skip_position}"/><input type="hidden" id="g_process_code" value="${userdata.process_code}"/></td>
-								<td class="td-content-text">${userdata.process_code} ${userdata.position_name}</td>
+								<td class="td-content-text">${position_name}</td>
 								<td class="ui-state-default td-title">操作人员</td>
 								<td class="td-content-text" id="td_of_operator" work_count_flg="${userdata.work_count_flg}">${userdata.name}</td>
 							</tr>

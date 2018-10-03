@@ -36,6 +36,7 @@ import com.osh.rvs.bean.inline.ForSolutionAreaEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.DevicesManageEntity;
+import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsUtils;
@@ -53,6 +54,7 @@ import com.osh.rvs.mapper.master.DevicesManageMapper;
 import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
+import com.osh.rvs.service.PositionService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -76,45 +78,67 @@ public class PositionPanelService {
 	 * @param conn
 	 * @return
 	 */
-	public Map<String, Integer> getPositionMap(String section_id, String position_id, String level, SqlSession conn) {
+	public Map<String, Integer> getPositionMap(String section_id, String position_id, String px, SqlSession conn) {
+		List<String> position_ids = new ArrayList<String>();
+		position_ids.add(position_id);
+		return getPositionMap(section_id, position_ids, px, conn);
+	}
+	public Map<String, Integer> getPositionMap(String section_id, List<String> position_ids, String level, SqlSession conn) {
 		Map<String, Integer> retMap = new HashMap<String, Integer>();
 
 		/// 从数据库中查询记录
 		PositionPanelMapper dao = conn.getMapper(PositionPanelMapper.class);
 
-		// 取得今日作业时间
-		retMap.put("run_cost", dao.checkPositionStartedWorkTime(section_id, position_id, level) / 60);
+		int runCost = 0;
+		int operatorCost = 0;
+		int finishCount = 0;
+		int supportCount = 0;
 
-		// 取得今日操作时间
-		retMap.put("operator_cost", dao.checkTodayWorkCost(section_id, position_id, level) / 60);
-
-		// 取得处理件数
-		retMap.put("finish_count", dao.getFinishCount(section_id, position_id, level));
-
-		// 取得代工件数</td>
-		retMap.put("support_count", dao.getLeaderSupportFinishCount(section_id, position_id, level));
-
-		// 取得暂停次数
-		// 取得中断次数
 		int countPause = 0;
 		int countBreak = 0;
 
-		List<Map<String, Number>> breakcounts = dao.getTodayBreak(section_id, position_id, level);
-		if (breakcounts != null) {
-			for (Map<String, Number> breakcount : breakcounts) {
-				int reasonCode = breakcount.get("reason").intValue();
-				if ((reasonCode >= 49 && reasonCode < 70) || reasonCode >= 100) // 暂停
-					countPause += breakcount.get("count_reason").intValue();
-				else if (reasonCode < 20) // 中断
-					countBreak += breakcount.get("count_reason").intValue();
-				// 作业流程不算
+		for (String position_id : position_ids) {
+			// 取得今日作业时间
+			runCost += dao.checkPositionStartedWorkTime(section_id, position_id, level) / 60;
+
+			// 取得今日操作时间
+			operatorCost += dao.checkTodayWorkCost(section_id, position_id, level) / 60;
+
+			// 取得处理件数
+			finishCount += dao.getFinishCount(section_id, position_id, level);
+
+			// 取得代工件数</td>
+			supportCount += dao.getLeaderSupportFinishCount(section_id, position_id, level);
+
+			// 取得暂停次数
+			// 取得中断次数
+			List<Map<String, Number>> breakcounts = dao.getTodayBreak(section_id, position_id, level);
+			if (breakcounts != null) {
+				for (Map<String, Number> breakcount : breakcounts) {
+					int reasonCode = breakcount.get("reason").intValue();
+					if ((reasonCode >= 49 && reasonCode < 70) || reasonCode >= 100) // 暂停
+						countPause += breakcount.get("count_reason").intValue();
+					else if (reasonCode < 20) // 中断
+						countBreak += breakcount.get("count_reason").intValue();
+					// 作业流程不算
+				}
 			}
 		}
 
+		retMap.put("run_cost", runCost);
+
+		// 取得今日操作时间
+		retMap.put("operator_cost", operatorCost);
+
+		// 取得处理件数
+		retMap.put("finish_count", finishCount);
+
+		// 取得代工件数</td>
+		retMap.put("support_count", supportCount);
 		retMap.put("pause_count", countPause);
 		retMap.put("break_count", countBreak);
 
-		retMap.put("waiting_count", getWaiting(section_id, position_id, level, conn).size());
+//		retMap.put("waiting_count", getWaiting(section_id, position_id, level, conn).size());
 		return retMap;
 	}
 
@@ -136,16 +160,17 @@ public class PositionPanelService {
 
 	/**
 	 * 判断是否所在工位的等待区中维修对象，如是则返回等待作业
+	 * @param userPositionId 
 	 * @param material_id
 	 * @param session
 	 * @param errors
 	 */
-	public List<WaitingEntity> checkWaitingMaterial(LoginData user, SqlSession conn) {
+	public List<WaitingEntity> checkWaitingMaterial(LoginData user, String userPositionId, SqlSession conn) {
 
 		PositionPanelMapper dao = conn.getMapper(PositionPanelMapper.class);
 
 		List<WaitingEntity> ret = dao.getWaitingMaterial(user.getLine_id(), user.getSection_id(),
-				user.getPosition_id(), user.getOperator_id(), user.getPx(), "true");
+				userPositionId, null, user.getOperator_id(), user.getPx(), "true");
 
 		return ret;
 	}
@@ -176,6 +201,9 @@ public class PositionPanelService {
 	 * @return
 	 */
 	public ProductionFeatureEntity checkMaterialId(String material_id, String confirmed, LoginData user, List<MsgInfo> errors, SqlSession conn) {
+		return checkMaterialId(material_id, confirmed, user, null, errors, conn);
+	}
+	public ProductionFeatureEntity checkMaterialId(String material_id, String confirmed, LoginData user, String resPositionId, List<MsgInfo> errors, SqlSession conn) {
 		ProductionFeatureEntity retWaiting = null;
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
@@ -205,12 +233,17 @@ public class PositionPanelService {
 			errors.add(msgInfo);
 		}
 
+		String userPositionId = user.getPosition_id();
+		if (resPositionId != null) {
+			userPositionId = resPositionId;
+		}
+
 		MsgInfo msgInfo;
 		if (errors.size() == 0) {
 			// 存在于等待区check
 
 			// 在工位上等待的维修对象
-			List<WaitingEntity> waitings = checkWaitingMaterial(user, conn);
+			List<WaitingEntity> waitings = checkWaitingMaterial(user, userPositionId, conn);
 			int count = waitings.size();
 			if (count == 0) {
 				// 等待区内没有维修对象
@@ -233,7 +266,7 @@ public class PositionPanelService {
 						scan = waiting;
 						// 在工位上等待的维修对象
 						List<ProductionFeatureEntity> productionFeature = isWaitingMaterial(material_id,
-								user.getSection_id(), user.getPosition_id(), user.getPx(), conn);
+								user.getSection_id(), userPositionId, user.getPx(), conn);
 						count = productionFeature.size();
 						if (count == 0) {
 							// 维修对象不在用户所在等待区
@@ -248,7 +281,7 @@ public class PositionPanelService {
 
 							if (errors.size() == 0) {
 								ForSolutionAreaService fsaService = new ForSolutionAreaService();
-								List<ForSolutionAreaEntity> blocks = fsaService.checkBlock(material_id, user.getPosition_id(), user.getLine_id(), conn);
+								List<ForSolutionAreaEntity> blocks = fsaService.checkBlock(material_id, userPositionId, user.getLine_id(), conn);
 								if (blocks != null && blocks.size() > 0) {
 									ForSolutionAreaEntity block = blocks.get(0);
 									String blockReason = CodeListUtils.getValue("offline_reason", ""+block.getReason());
@@ -334,7 +367,7 @@ public class PositionPanelService {
 		// 烘干信息
 		if (errors.size()==0 && !"true".equals(confirmed) && retWaiting.getOperate_result() != 0) {
 			DryingProcessService dpSevice = new DryingProcessService();
-			DryingProcessEntity dpInfo = dpSevice.getDryingProcessByMaterialInPositionEntity(material_id ,user.getPosition_id() ,conn);
+			DryingProcessEntity dpInfo = dpSevice.getDryingProcessByMaterialInPositionEntity(material_id, userPositionId ,conn);
 			if (dpInfo != null) {
 				Date startTime = dpInfo.getStart_time();
 
@@ -475,13 +508,34 @@ public class PositionPanelService {
 	 */
 	public List<WaitingEntity> getWaitingMaterial(String section_id, String position_id, String line_id,
 			String operator_id, String pxLevel, String process_code, SqlSession conn) {
-		PositionPanelMapper dao = conn.getMapper(PositionPanelMapper.class);
+		PositionPanelMapper mapper = conn.getMapper(PositionPanelMapper.class);
 
-		boolean isDivision = (!"0".equals(pxLevel));
+		List<WaitingEntity> ret = mapper.getWaitingMaterial(line_id, section_id, position_id, null, operator_id, pxLevel, null);
 
-		List<WaitingEntity> ret = dao.getWaitingMaterial(line_id, section_id, position_id, operator_id, pxLevel, null);
+		signWaitingEntity(ret, position_id, process_code, conn);
 
+		return ret;
+	}
+	public  List<WaitingEntity> getGroupWaitingMaterial(String section_id,
+			String group_position_id, String line_id, String operator_id,
+			String pxLevel, SqlSession conn) {
+		PositionPanelMapper mapper = conn.getMapper(PositionPanelMapper.class);
+
+		List<WaitingEntity> ret = mapper.getWaitingMaterial(line_id, section_id, null, group_position_id, operator_id, pxLevel, null);
+
+		signWaitingEntity(ret, null, null, conn);
+
+		return ret;
+	}
+	private void signWaitingEntity(List<WaitingEntity> ret, String singlePositionId, String singleProcessCode,
+			SqlSession conn) {
 		for (WaitingEntity we : ret) {
+			String position_id = singlePositionId;
+			if (position_id == null) position_id = we.getPosition_id();
+
+			String process_code = singlePositionId;
+			if (process_code == null) process_code = we.getProcess_code();
+
 			if ("0".equals(we.getWaitingat())) we.setWaitingat("未处理");
 			else if ("4".equals(we.getWaitingat())) { // 暂停
 				// 工位特殊暂停理由
@@ -505,15 +559,14 @@ public class PositionPanelService {
 				}
 			}
 			else if ("3".equals(we.getWaitingat())) we.setWaitingat("中断等待再开");
-
-//			if (we.getExpedited() == null || we.getExpedited() == 0) 
-//				we.setExpedited(2);
-//			if ((we.getToday() == null || we.getToday() != 1))
-//				we.setExpedited(-we.getExpedited());
-//			if (!("00000000001".equals(section_id) && "00000000014".equals(line_id))) { // 1课进入总组的时候显示B标志
-//				we.setImbalance(0);
-//			}
 		}
+	}
+
+	public List<WaitingEntity> getGroupCompleteMaterial(String section_id,
+			String group_position_id, String px, SqlSession conn) {
+		PositionPanelMapper mapper = conn.getMapper(PositionPanelMapper.class);
+		List<WaitingEntity> ret = mapper.getGroupCompleteMaterial(section_id, group_position_id, px);
+
 		return ret;
 	}
 
@@ -810,7 +863,7 @@ public class PositionPanelService {
 
 		// 取得维修对象的作业标准时间。
 		String leagal_overline = RvsUtils.getLevelOverLine(mform.getModel_name(), mform.getCategory_name(), mform.getLevel(), user, null);
-		String process_code = user.getProcess_code();
+		String process_code = pf.getProcess_code();
 		Map<String, String> snoutModels = RvsUtils.getSnoutModels(conn);
 		Set<String> snoutSaveTime341Models = RvsUtils.getSnoutSavetime341Models(conn);
 		// 新的算法331一律55分钟，341对应机型减40分钟
@@ -1201,7 +1254,7 @@ public class PositionPanelService {
 		// 取得可点检项目
 		List<PeripheralInfectDeviceEntity> resultEntities = dao.getPeripheralDataByMaterialId(condEntity);
 		// 各组的内容
-		Map<Integer, PeripheralInfectDeviceEntity> resultEntityOfSeq = new HashMap<Integer, PeripheralInfectDeviceEntity>();
+		// Map<Integer, PeripheralInfectDeviceEntity> resultEntityOfSeq = new HashMap<Integer, PeripheralInfectDeviceEntity>();
 
 		DevicesManageMapper devicesManageDao = conn.getMapper(DevicesManageMapper.class);
 		int seqTag = -1, seqCursor = -1, seqCount = 0;
@@ -1324,5 +1377,80 @@ public class PositionPanelService {
 		} else {
 			return "";
 		}
+	}
+
+	/**
+	 * 取得虚拟组工位名显示
+	 * @param process_code
+	 * @param user
+	 * @param subPositions
+	 * @param conn
+	 * @return
+	 */
+	public String getGroupShowPositionName(String process_code, LoginData user,
+			List<String> subPositions, SqlSession conn) {
+		PositionService pService = new PositionService();
+
+		String showPositionName = process_code;
+		if (process_code == null) { // 会话当前非虚拟组工位
+			PositionEntity pEntity = pService.getPositionEntityByKey(user.getGroup_position_id(), conn);
+			showPositionName = pEntity.getProcess_code();
+		}
+
+		showPositionName += "(";
+		for (String subPositionId : subPositions) {
+			PositionEntity pEntity = pService.getPositionEntityByKey(subPositionId, conn);
+			if (pEntity != null) {
+				showPositionName += pEntity.getProcess_code() + ",";
+			}
+		}
+		showPositionName = showPositionName.substring(0, showPositionName.length() - 1) + ") " + user.getPosition_name();
+		return showPositionName;
+	}
+
+	/**
+	 * 取得工位的正常中断选项
+	 * @param process_code
+	 * @return
+	 */
+	public String getStepOptions(String process_code) {
+		String stepOptions = "";
+		// 设定正常中断选项
+		String steps = PathConsts.POSITION_SETTINGS.getProperty("steps." + process_code);
+		if (steps != null) {
+			String[] steparray = steps.split(",");
+			for (String step : steparray) {
+				step = step.trim();
+				String stepname = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + step);
+				stepOptions += "<option value=\"" + step + "\">" + stepname + "</option>";
+			}
+		}
+		return stepOptions;
+	}
+	/**
+	 * 取得工位的异常中断选项
+	 * @param process_code
+	 * @return
+	 */
+	public String getBreakOptions(String process_code) {
+		String breakOptions = "";
+		if ("121".equals(process_code) || "131".equals(process_code)
+				|| "171".equals(process_code) || "251".equals(process_code)
+				|| "252".equals(process_code)) { // TODO 正规化，不会中断的
+		} else {
+			// 设定异常中断选项
+			String steps = PathConsts.POSITION_SETTINGS.getProperty("break." + process_code);
+			if (steps != null) {
+				String[] steparray = steps.split(",");
+				for (String step : steparray) {
+					step = step.trim();
+					String stepname = PathConsts.POSITION_SETTINGS.getProperty("break." + process_code + "." + step);
+					breakOptions += "<option value=\"" + step + "\">" + stepname + "</option>";
+				}
+			}
+			// 设定一般中断选项
+			breakOptions += CodeListUtils.getSelectOptions("break_reason", null);
+		}
+		return breakOptions;
 	}
 }

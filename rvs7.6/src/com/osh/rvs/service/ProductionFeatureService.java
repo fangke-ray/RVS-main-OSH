@@ -978,6 +978,12 @@ public class ProductionFeatureService {
 		dao.startProductionFeature(waitingPf);
 	}
 
+	public void startBatchProductionFeature(ProductionFeatureEntity waitingPf, SqlSessionManager conn) throws Exception {
+		// 作业信息状态改为，批量作业/存放中
+		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
+		dao.startBatchProductionFeature(waitingPf);
+	}
+
 	public void changeWaitProductionFeature(ProductionFeatureEntity workwaitingPf,
 			SqlSessionManager conn) throws Exception {
 		// 作业信息状态改为，作业中

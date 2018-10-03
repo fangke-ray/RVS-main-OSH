@@ -64,6 +64,20 @@ $(function() {
 
 	$("select").select2Buttons();
 
+	$("#set_group_button").click(function() {
+		if (this.value=="设定") {
+			$("#group_content").show();
+			this.value="取消";
+		} else {
+			$("#group_content").hide()
+				.find("tbody > tr").remove();
+			$("#label_set_group").text("未设定");
+			this.value="设定";
+		}
+	});
+	$("#group_content .group_content_add").click(addGroupContentInput);
+	$("#group_content").on("click", ".group_content_remove", removeGroupContentInput);
+
 	findit();
 });
 
@@ -208,7 +222,7 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			$("#detailarea tr:has(#label_detail_updated_time)").hide();
 			$(".errorarea-single").removeClass("errorarea-single");
 			// 默认画面变化 e
-		
+
 			// 详细数据
 			$("#label_edit_id").text(resInfo.positionForm.id);
 			$("#input_name").val(resInfo.positionForm.name);
@@ -239,51 +253,121 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 				}
 			});
 
+			// 虚拟工位组
+			if (resInfo.positionGroup) {
+				$("#group_content").show()
+					.find("tbody > tr").remove();
+				for (var iPg in resInfo.positionGroup) {
+					var subPosition = resInfo.positionGroup[iPg];
+					var subPositionId = subPosition.sub_position_id;
+					var nextPositionId = subPosition.next_position_id || "";
+					var hit = false;
+					var subPositionCode = $("#pReferChooser").find(".referId").filter(function(){
+						if (!hit) {
+							if (this.innerText == subPositionId) {
+								hit = true;
+								return true;
+							}
+						}
+					}).next().text();
+					hit = false;
+					var nextPositionCode = "";
+					if (nextPositionId) {
+						nextPositionCode = $("#pReferChooser").find(".referId").filter(function(){
+							if (!hit) {
+								if (this.innerText == nextPositionId) {
+									hit = true;
+									return true;
+								}
+							}
+						}).next().text();
+					}
+					var line = "<tr><td><input type='text' readonly value='" + subPositionCode 
+						+ "'><input type='hidden' class='group_content_sub_position_id' value='" + subPositionId; 
+
+						if (nextPositionId) {
+							line += "'></td><td><input type='text' readonly value='" + nextPositionCode 
+							+ "'><input type='hidden' class='group_content_next_position_id' value='" + nextPositionId + "'";
+						} else {
+							line += "'></td><td><input type='text' readonly><input type='hidden' class='group_content_next_position_id'";
+						}
+
+						if (subPosition.control_trigger != undefined) {
+							line += "></td><td><input type='number' class='group_content_control_trigger' value='" + subPosition.control_trigger + "'";
+						} else {
+							line += "></td><td><input type='number' class='group_content_control_trigger'";
+						}
+						line += "></td><td><input type='button' class='ui-button group_content_remove' value='-'></td></tr>";
+					var $line = $(line);
+					$line.find("input:button").button();
+					setReferChooser($line.find(".group_content_sub_position_id"), $("#pReferChooser"));
+					setReferChooser($line.find(".group_content_next_position_id"), $("#pReferChooser"));
+					$("#group_content > tbody").append($line);
+				}
+				$("#label_set_group").text("已设定");
+				$("#set_group_button").val("取消");
+			} else {
+				$("#group_content").hide()
+					.find("tbody > tr").remove();
+				$("#label_set_group").text("未设定");
+				$("#set_group_button").val("设定");
+			}
+
 			// 切换按钮效果
 			$("#editbutton").unbind("click");
 			$("#editbutton").click(function() {
 				// 前台Validate
 				if ($("#editform").valid()) {
+
 					// 通过Validate,切到修改确认画面
 					$("#editbutton").disable();
 
-					$("#confirmmessage").text("确认要修改记录吗？");
-				 	$("#confirmmessage").dialog({
-						resizable : false,
-						modal : true,
-						title : "修改确认",
-						close: function() {
-							$("#editbutton").enable();
-						},
-						buttons : {
-							"确认" : function() {
-								var data = {
-									"id" : $("#label_edit_id").text(),
-									"line_id" : $("#input_line_id").val(),
-									"name" : $("#input_name").val(),
-									"light_worktime_rate":$("#input_light_worktime_rate").val(),
-									"light_division_flg":$("#input_light_division_flg input[type='radio']:checked").val()
-								}
-								$(this).dialog("close");
-								// Ajax提交
-								$.ajax({
-									beforeSend : ajaxRequestType,
-									async : true,
-									url : servicePath + '?method=doupdate',
-									cache : false,
-									data : data,
-									type : "post",
-									dataType : "json",
-									success : ajaxSuccessCheck,
-									error : ajaxError,
-									complete : update_handleComplete
-								});
-							},
-							"取消" : function() {
-								$(this).dialog("close");
-							}
+					warningConfirm("确认要修改[" + encodeText(resInfo.positionForm.name) + "]的记录吗？", function() {
+						var data = {
+							"id" : $("#label_edit_id").text(),
+							"line_id" : $("#input_line_id").val(),
+							"name" : $("#input_name").val(),
+							"light_worktime_rate" : $("#input_light_worktime_rate").val(),
+							"light_division_flg" : $("#input_light_division_flg input[type='radio']:checked").val()
 						}
-					});
+
+						var i = 0;
+
+						$("#group_content > tbody > tr").each(function(idx, item) {
+							var $tr = $(item);
+							var sub_position_id = $tr.find(".group_content_sub_position_id").val();
+							if (sub_position_id) {
+								data["group.sub_position_id[" + i + "]"] = sub_position_id;
+								var next_position_id = $tr.find(".group_content_next_position_id").val();
+								if (next_position_id) {
+									data["group.next_position_id[" + i + "]"] = next_position_id;
+									var control_trigger = $tr.find(".group_content_control_trigger").val();
+									if (control_trigger) {
+										data["group.control_trigger[" + i + "]"] = control_trigger;
+									}
+								}
+								i++;
+							}
+						});
+
+						// Ajax提交
+						$.ajax({
+							beforeSend : ajaxRequestType,
+							async : true,
+							url : servicePath + '?method=doupdate',
+							cache : false,
+							data : data,
+							type : "post",
+							dataType : "json",
+							success : ajaxSuccessCheck,
+							error : ajaxError,
+							complete : update_handleComplete
+						});
+
+					}, function(){
+						$("#editbutton").enable();
+					}, "修改确认");
+					
 				};
 			});
 		}
@@ -359,6 +443,8 @@ var showAdd = function() {
 	$("#input_light_division_flg").buttonset();
 	$("#light_division_flg_all").attr("checked","checked").trigger("change");
 
+	$("#label_set_group").text("未设定");
+
 	// 前台Validate设定
 	$("#editform").validate({
 		rules : {
@@ -366,8 +452,9 @@ var showAdd = function() {
 				required : true
 			},
 			process_code : {
-				required : true,
-				number : true
+				required : true
+//				,
+//				number : true
 			},
 			light_worktime_rate:{
 				digits:true,
@@ -391,8 +478,23 @@ var showAdd = function() {
 				"light_division_flg":$("#input_light_division_flg input[type='radio']:checked").val()
 			}
 
-			$("#editarea .subform tr.ui-state-active").each(function(i,item){
-				data["positions[" + i + "]"] = $(item).find(".referId").html();
+			var i = 0;
+
+			$("#group_content > tbody > tr").each(function(idx,item){
+				var $tr = $(item);
+				var sub_position_id = $tr.find(".group_content_sub_position_id").val();
+				if (sub_position_id) {
+					data["group.sub_position_id[" + i + "]"] = sub_position_id;
+					var next_position_id = $tr.find(".group_content_next_position_id").val();
+					if (next_position_id) {
+						data["group.next_position_id[" + i + "]"] = next_position_id;
+						var control_trigger = $tr.find(".group_content_control_trigger").val();
+						if (control_trigger) {
+							data["group.control_trigger[" + i + "]"] = control_trigger;
+						}
+					}
+					i++;
+				}
 			});
 
 			// Ajax提交
@@ -466,3 +568,18 @@ var showDelete = function(rid) {
 		}, null, "删除确认"
 	);
 };
+
+var addGroupContentInput = function() {
+	var $line = $("<tr><td><input type='text' readonly><input type='hidden' class='group_content_sub_position_id'></td><td><input type='text' readonly><input type='hidden' class='group_content_next_position_id'></td><td><input type='number' class='group_content_control_trigger'></td><td><input type='button' class='ui-button group_content_remove' value='-'></td></tr>");
+	$line.find("input:button").button();
+	setReferChooser($line.find(".group_content_sub_position_id"), $("#pReferChooser"));
+	setReferChooser($line.find(".group_content_next_position_id"), $("#pReferChooser"));
+	$("#group_content > tbody").append($line);
+	$("#label_set_group").text("设定中");
+};
+var removeGroupContentInput = function() {
+	$(this).closest("tr").remove();
+	if ($("#group_content > tbody > tr").length == 0) {
+		$("#label_set_group").text("未设定");
+	}
+}

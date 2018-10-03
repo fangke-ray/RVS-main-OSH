@@ -12,6 +12,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
+<style>
+#group_content input[type=text],
+#group_content input[type=number] {
+	width : 60px;
+}
+</style>
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
@@ -116,9 +122,26 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-content" id="input_light_division_flg"></td>
 				</tr>
 				<tr>
+					<td class="ui-state-default td-title">虚拟组工位</td>
+					<td class="td-content">
+						<label id="label_set_group" style="margin-left:1em;">未设定</label>
+						<input id="set_group_button" class="ui-button" type="button" value="设定" style="margin-left:1em;">
+					</td>
+				</tr>
+				<tr>
 					<td class="ui-state-default td-title">最后更新时间</td>
 					<td class="td-content"><label id="label_edit_updated_time"></label></td>
 				</tr>
+			</table>
+			<table id="group_content" class="condform" style="display:none;">
+				<thead>
+				<tr>
+					<td class="ui-state-default td-title">所属实际工位</td><td class="ui-state-default td-title">后序检测工位</td><td class="ui-state-default td-title">仕挂监测数量</td>
+					<td class="ui-state-default"><input type="button" class="ui-button group_content_add" value="+"></td>
+				</tr>
+				</thead>
+				<tbody>
+				</tbody>
 			</table>
 			<div style="height:44px">
 				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="editbutton" value="新建" role="button" aria-disabled="false" style="float:left;left:4px;">
@@ -127,6 +150,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		</form>
 	</div>
 	<div class="ui-state-default ui-corner-bottom areaencloser dwidth-middleright"></div>
+</div>
+<div class="referchooser ui-widget-content" id="pReferChooser" tabindex="-1">
+	<table>
+		<tr>
+			<td width="50%">过滤字:<input type="text"/></td>	
+			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
+		</tr>
+	</table>
+	
+	<table class="subform">${pReferChooser}</table>
 </div>
 <div id="confirmmessage"></div>
 </body>

@@ -17,6 +17,7 @@
 		<typeAlias alias="SectionEntity" type="com.osh.rvs.bean.master.SectionEntity" />
 		<typeAlias alias="LineEntity" type="com.osh.rvs.bean.master.LineEntity" />
 		<typeAlias alias="PositionEntity" type="com.osh.rvs.bean.master.PositionEntity" />
+		<typeAlias alias="PositionGroupEntity" type="com.osh.rvs.bean.master.PositionGroupEntity" />
 		<typeAlias alias="OperatorEntity" type="com.osh.rvs.bean.master.OperatorEntity" />
 		<typeAlias alias="OperatorNamedEntity" type="com.osh.rvs.bean.master.OperatorNamedEntity" />
 		<typeAlias alias="PrivacyEntity" type="com.osh.rvs.bean.master.PrivacyEntity" />

@@ -173,7 +173,7 @@ public class PositionEntity implements Serializable {
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(this.position_id).append(", ");
-		buffer.append(this.name).append(", ");
+		buffer.append(this.process_code).append(", ");
 		buffer.append(this.line_id).append(". ");
 		return buffer.toString();
 	}

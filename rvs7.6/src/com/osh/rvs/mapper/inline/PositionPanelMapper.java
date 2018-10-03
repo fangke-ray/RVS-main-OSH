@@ -63,12 +63,15 @@ public interface PositionPanelMapper {
 	public int getWaitingCount(@Param("section_id") String section_id, @Param("position_id") String position_id);
 
 	public List<WaitingEntity> getWaitingMaterial(@Param("line_id") String line_id,
-			@Param("section_id") String section_id, @Param("position_id") String position_id,
+			@Param("section_id") String section_id, @Param("position_id") String position_id, @Param("group_position_id") String group_position_id,
 			@Param("operator_id") String operator_id, @Param("level") String level, @Param("division") String division);
 
 	public List<ProductionFeatureEntity> getWaiting(@Param("material_id") String material_id,
 			@Param("section_id") String section_id, @Param("position_id") String position_id,
 			@Param("level") String level);
+
+	public List<WaitingEntity> getGroupCompleteMaterial(@Param("section_id") String section_id,
+			@Param("group_position_id") String group_position_id, @Param("level") String level);
 
 	public MaterialEntity getMaterialDetail(String material_id);
 

@@ -17,7 +17,7 @@ public class PositionForm extends ActionForm {
 	@BeanField(title = "工位名称", name = "name", notNull = true, length = 15)
 	private String name;
 	/** 工程 ID */
-	@BeanField(title = "工程 ID", name = "line_id", notNull = true)
+	@BeanField(title = "所属工程", name = "line_id", notNull = true)
 	private String line_id;
 	/** 工程名称 */
 	@BeanField(title = "工程名称", name = "line_name")

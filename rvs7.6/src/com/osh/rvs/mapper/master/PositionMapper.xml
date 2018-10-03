@@ -119,4 +119,53 @@
 		]]>
 	</select>
 
+	<select id="getGroupPositions" resultType="String" parameterType="String">
+		<![CDATA[ 
+		SELECT `group_position_id`
+		FROM `position_group`
+		GROUP BY `group_position_id`;
+		]]>
+	</select>
+
+	<select id="getGroupPositionById" resultType="PositionGroupEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT `sub_position_id`,
+				`next_position_id`,
+			    `control_trigger`
+			FROM `position_group`
+			WHERE `group_position_id` = #{group_position_id};
+		]]>
+	</select>
+
+	<select id="getAllGroupPositions" resultType="PositionGroupEntity">
+		<![CDATA[ 
+			SELECT `group_position_id`,
+				`sub_position_id`,
+				`next_position_id`,
+			    `control_trigger`
+			FROM `position_group` pg 
+			JOIN POSITION p1 on pg.`group_position_id` = p1.position_id
+			JOIN POSITION p2 on pg.`sub_position_id` = p2.position_id
+			WHERE p1.delete_flg = 0 AND p2.delete_flg = 0;
+		]]>
+	</select>
+
+	<insert id="insertPositionGroup" parameterType="PositionGroupEntity">
+		INSERT INTO `position_group`
+		(`group_position_id`,
+		`sub_position_id`,
+		`next_position_id`,
+		`control_trigger`)
+		VALUES
+		(#{group_position_id},
+		#{sub_position_id},
+		#{next_position_id},
+		#{control_trigger});
+	</insert>
+
+	<insert id="removePositionGroup" parameterType="String">
+		DELETE FROM `position_group`
+		WHERE group_position_id = #{group_position_id};
+	</insert>
+
 </mapper>

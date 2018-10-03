@@ -480,7 +480,21 @@ float:right;
 margin-right:-55px;
 margin-top:-3px
 }
-
+.tube-liquid > .processCode
+{
+position: absolute;
+right: -8em;
+top: 0;
+background-color: rgb(255, 215, 79);
+border: 1px solid #99B6E0;
+background-color: #CEDCF0;
+padding : 0 .4em;
+}
+.tube-liquid > .processCode[noPrivacy]
+{
+background-color: lightgray;
+color:white;
+}
 .leader_grid .sorc_no
 {
 	float:left;

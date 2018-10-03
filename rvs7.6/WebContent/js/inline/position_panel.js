@@ -921,6 +921,9 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			if (resInfo.waitings) {
 				showWaitings(resInfo.waitings);
 			}
+			if (resInfo.completes) {
+				showCompletes(resInfo.completes);
+			}
 
 			// 计算当前用时
 			var p_operator_cost = $("#p_operator_cost").text();
@@ -1543,6 +1546,10 @@ var doStart=function(){
 	var data = {
 		material_id : $("#scanner_inputer").val()
 	}
+	var posi = $("#w_" + data.material_id).find(".processCode");
+	if (posi.length > 0) {
+		data.position_id = posi.attr("p_id")
+	}
 	$("#scanner_inputer").attr("value", "");
 
 	// 作业等待时间
@@ -1840,12 +1847,15 @@ var getWaitingHtml = function(waitings, other) {
 								getBlock(waiting.block_status) +
 								// getInPlaceTime(waiting.in_place_time) +   
 								getDryingTime(waiting.drying_process) +   
+								getProcessCode(waiting.position_id, waiting.process_code) +   
 							'</div>' +
 						'</div>';
 		if (other && !waiting.imbalance) {
 			other.push(waiting);
 		}
 	}
+
+	$("#p_waiting_count").text(waitings.length + "台");
 	return waiting_html;
 }
 
@@ -1900,6 +1910,9 @@ var showWaitings = function(waitings){
 	refreshTargetTimeLeft(1);
 };
 
+var showCompletes = function(completes) {
+	$("#completes").html(getWaitingHtml(completes));
+}
 var getInPlaceTime = function(inPlaceTime) {
 	var time_html = "";
 	if (inPlaceTime) {
@@ -1921,6 +1934,18 @@ var getDryingTime = function(dryingProcess) {
 	return time_html;
 }
 
+var getProcessCode = function(positionId, processCode) {
+	if (processCode) {
+		var hasPrivacy = true;
+		if (positionId < 0) {
+			positionId = positionId.substring(1);
+			hasPrivacy = false;
+		}
+		return "<div class='processCode' p_id='" + positionId + "'" + (hasPrivacy ? "" : " noPrivacy") + ">" + processCode + "</div>";
+	} else {
+		return "";
+	}
+}
 var getWaitings = function() {
 	$.ajax({
 		data: null,

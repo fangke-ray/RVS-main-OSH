@@ -1,10 +1,15 @@
 package com.osh.rvs.service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
@@ -13,11 +18,14 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.master.PositionGroupEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.PositionForm;
+import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
@@ -26,6 +34,9 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class PositionService {
 
 	private static Set<String> dividePositions = null;
+	private static Set<String> groupPositions = null;
+	private static Map<String, String> groupSubPositions = null;
+	private static Map<String, List<String>> groupPositionSubs = null;
 	private static String inlineOptions = null;
 
 	/**
@@ -101,14 +112,25 @@ public class PositionService {
 		// 表单复制到数据对象
 		PositionEntity conditionBean = new PositionEntity();
 		BeanUtil.copyToBean(positionForm, conditionBean, (new CopyOptions()).include("id", "process_code"));
-		List<PositionEntity> resultBean = dao.searchPosition(conditionBean);
-		if (resultBean != null && resultBean.size() > 0 && !resultBean.get(0).getPosition_id().equals(conditionBean.getPosition_id())) {
-			MsgInfo error = new MsgInfo();
-			error.setComponentid("process_code");
-			error.setErrcode("dbaccess.columnNotUnique");
-			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "进度代码",
-					conditionBean.getProcess_code(), "工位"));
-			errors.add(error);
+
+		if (conditionBean.getProcess_code() != null) {
+			if (!conditionBean.getProcess_code().matches("[0-9][0-9A-Z][0-9A-Z]")) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("process_code");
+				error.setErrcode("validator.invalidParam.invalidCode");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidCode", "进度代码"));
+				errors.add(error);
+			} else {
+				List<PositionEntity> resultBean = dao.searchPosition(conditionBean);
+				if (resultBean != null && resultBean.size() > 0 && !resultBean.get(0).getPosition_id().equals(conditionBean.getPosition_id())) {
+					MsgInfo error = new MsgInfo();
+					error.setComponentid("process_code");
+					error.setErrcode("dbaccess.columnNotUnique");
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "进度代码",
+							conditionBean.getProcess_code(), "工位"));
+					errors.add(error);
+				}
+			}
 		}
 	}
 
@@ -137,6 +159,9 @@ public class PositionService {
 		dao.insertPosition(insertBean);
 
 		dividePositions = null;
+		groupPositions = null;
+		groupSubPositions = null;
+		groupPositionSubs = null;
 		inlineOptions = null;
 	}
 
@@ -165,6 +190,9 @@ public class PositionService {
 		dao.updatePosition(updateBean);
 
 		dividePositions = null;
+		groupPositions = null;
+		groupSubPositions = null;
+		groupPositionSubs = null;
 		inlineOptions = null;
 	}
 
@@ -188,6 +216,9 @@ public class PositionService {
 		PositionMapper dao = conn.getMapper(PositionMapper.class);
 		dao.deletePosition(deleteBean);
 		dividePositions = null;
+		groupPositions = null;
+		groupSubPositions = null;
+		groupPositionSubs = null;
 		inlineOptions = null;
 	}
 
@@ -210,6 +241,9 @@ public class PositionService {
 	 * @return
 	 */
 	public String getOptions(SqlSession conn) {
+		return getOptions(conn, false);
+	}
+	public String getOptions(SqlSession conn, boolean showProcessCode) {
 		List<String[]> lst = new ArrayList<String[]>();
 		
 		List<PositionEntity> allPosition = this.getAllPosition(conn);
@@ -217,8 +251,13 @@ public class PositionService {
 		for (PositionEntity position: allPosition) {
 			String[] p = new String[3];
 			p[0] = position.getPosition_id();
-			p[1] = position.getName();
-			p[2] = position.getProcess_code();
+			if (showProcessCode) {
+				p[1] = position.getProcess_code();
+				p[2] = position.getName();
+			} else {
+				p[1] = position.getName();
+				p[2] = position.getProcess_code();
+			}
 			lst.add(p);
 		}
 		
@@ -270,6 +309,57 @@ public class PositionService {
 	}
 
 	/**
+	 * 取得分平行线工位
+	 * @param conn
+	 * @return
+	 */
+	public static Set<String> getGroupPositions(SqlSession conn) {
+		if (groupPositions == null) {
+			groupPositions = new HashSet<String>();
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<String> l = mapper.getGroupPositions();
+			for (String pos_id : l) {
+				groupPositions.add(pos_id);
+			}
+		}
+		return groupPositions;
+	}
+
+	public static Map<String, String> getGroupSubPositions(SqlSession conn) {
+		if (groupSubPositions == null) {
+			groupSubPositions = new HashMap<String, String>();
+			groupPositionSubs = new HashMap<String, List<String>>();
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
+			for (PositionGroupEntity posGroup : l) {
+				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
+				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
+					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<String> ());
+				}
+				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup.getSub_position_id());
+			}
+		}
+		return groupSubPositions;
+	}
+
+	public static Map<String, List<String>> getGroupPositionSubs(SqlSession conn) {
+		if (groupPositionSubs == null) {
+			groupSubPositions = new HashMap<String, String>();
+			groupPositionSubs = new HashMap<String, List<String>>();
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
+			for (PositionGroupEntity posGroup : l) {
+				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
+				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
+					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<String> ());
+				}
+				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup.getSub_position_id());
+			}
+		}
+		return groupPositionSubs;
+	}
+
+	/**
 	 * 取得在线工位可选择项
 	 * @param conn
 	 * @return
@@ -288,5 +378,122 @@ public class PositionService {
 		}
 
 		return inlineOptions;
+	}
+
+
+	/**
+	 * 取得工位组
+	 * @param req
+	 * @param conn
+	 * @param errors
+	 * @return
+	 */
+	public List<PositionGroupEntity> checkPositionGroup(HttpServletRequest req,
+			SqlSession conn, List<MsgInfo> errors) {
+		List<PositionGroupEntity> pgList = new AutofillArrayList<PositionGroupEntity>(PositionGroupEntity.class);//零件
+		Map<String,String[]> map=(Map<String,String[]>)req.getParameterMap();
+		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
+		// 整理提交数据
+		for (String parameterKey : map.keySet()) {
+			Matcher m = p.matcher(parameterKey);
+			if (m.find()) {
+				String table = m.group(1);
+				groupPositions = getGroupPositions(conn);
+
+				if ("group".equals(table)) {
+					String column = m.group(2);
+					int icounts = Integer.parseInt(m.group(3));
+					String[] value = map.get(parameterKey);
+					if ("sub_position_id".equals(column)) {
+						pgList.get(icounts).setSub_position_id(value[0]);
+						if (groupPositions.contains(value[0])) {
+							MsgInfo info = new MsgInfo();
+							info.setComponentid("sub_position_id");
+							info.setErrmsg("请选取一个实际工位（不是虚拟工位组）作为所属工位。");
+							errors.add(info);
+							break;
+						}
+					} else if ("next_position_id".equals(column)) {
+						pgList.get(icounts).setNext_position_id(value[0]);
+						if (groupPositions.contains(value[0])) {
+							MsgInfo info = new MsgInfo();
+							info.setComponentid("sub_position_id");
+							info.setErrmsg("请选取一个实际工位（不是虚拟工位组）作为后序检测工位。");
+							errors.add(info);
+							break;
+						}
+					} else if ("control_trigger".equals(column)) {
+						String sControlTrigger = value[0];
+						if (!"".equals(sControlTrigger)) {
+							try {
+								Integer iControlTrigger = Integer.parseInt(sControlTrigger);
+
+								if (iControlTrigger < 0) {
+									MsgInfo info = new MsgInfo();
+									info.setComponentid("control_trigger");
+									info.setErrcode("validator.invalidParam.invalidMoreThanZero");
+									info.setErrmsg(ApplicationMessage.WARNING_MESSAGES
+											.getMessage("validator.invalidParam.invalidMoreThanZero", "仕挂监测数量"));
+									errors.add(info);
+									break;
+								} else {
+									pgList.get(icounts).setControl_trigger(iControlTrigger);
+								}
+							} catch (NumberFormatException e) {
+								MsgInfo info = new MsgInfo();
+								info.setComponentid("control_trigger");
+								info.setErrcode("validator.invalidParam.invalidIntegerValue");
+								info.setErrmsg(ApplicationMessage.WARNING_MESSAGES
+										.getMessage("validator.invalidParam.invalidIntegerValue", "仕挂监测数量"));
+								errors.add(info);
+								break;
+							}
+						}
+					}
+				}
+			 }
+		}
+		return pgList;
+	}
+
+	/**
+	 * 建立/修改虚拟工位组
+	 * @param postionId
+	 * @param positionGroupList
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void createPositionGroup(String postionId,
+			List<PositionGroupEntity> positionGroupList, SqlSessionManager conn) throws Exception {
+		PositionMapper pMapper = conn.getMapper(PositionMapper.class);
+
+		if (postionId == null) {
+			if (positionGroupList.size() == 0) {
+				return;
+			}
+
+			// 取到信息主键
+			CommonMapper cDao = conn.getMapper(CommonMapper.class);
+			postionId = cDao.getLastInsertID();
+		} else {
+			Set<String> gPositions = getGroupPositions(conn);
+
+			// 删除现有配置
+			if (gPositions.contains(postionId)) {
+				pMapper.removePositionGroup(postionId);
+			}
+		}
+
+		// 插入虚拟工位组
+		for (PositionGroupEntity positionGroup : positionGroupList) {
+			positionGroup.setGroup_position_id(postionId);
+			pMapper.insertPositionGroup(positionGroup);
+		}
+	}
+
+	public List<PositionGroupEntity> getGroupPositionById(String postionId,
+			SqlSession conn) {
+		PositionMapper pMapper = conn.getMapper(PositionMapper.class);
+		return pMapper.getGroupPositionById(postionId);
 	}
 }

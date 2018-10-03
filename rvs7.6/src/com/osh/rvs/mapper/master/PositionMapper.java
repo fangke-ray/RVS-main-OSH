@@ -3,6 +3,7 @@ package com.osh.rvs.mapper.master;
 import java.util.List;
 
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.master.PositionGroupEntity;
 
 public interface PositionMapper {
 
@@ -25,4 +26,14 @@ public interface PositionMapper {
 	public List<PositionEntity> getPositionByInlineFlg();
 
 	public List<String> getDividePositions();
+
+	public int insertPositionGroup(PositionGroupEntity entity) throws Exception;
+
+	public int removePositionGroup(String group_position_id) throws Exception;
+
+	public List<String> getGroupPositions();
+
+	public List<PositionGroupEntity> getGroupPositionById(String group_position_id);
+
+	public List<PositionGroupEntity> getAllGroupPositions();
 }

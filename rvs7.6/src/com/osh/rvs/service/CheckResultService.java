@@ -9,6 +9,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -80,8 +82,6 @@ import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.mapper.master.SectionMapper;
 import com.osh.rvs.mapper.master.ToolsManageMapper;
-import com.osh.rvs.service.AlarmMesssageService;
-import com.osh.rvs.service.PostMessageService;
 
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
@@ -97,6 +97,7 @@ public class CheckResultService {
 	private static final Integer TYPE_MONTH_OF_YEAR = 3;
 	private static final Integer TYPE_HALF_MONTH_OF_YEAR = 5;
 	private static final Integer TYPE_PERIOD_OF_YEAR = 4;
+	private static String DEVICE_TYPE_ID_OF_ENDOSCOPE = "00000000223"; // TODO
 
 	// 按照日期的所在点检周期信息
 	private static Map<String, PeriodsEntity> periodsOfDate = new HashMap<String, PeriodsEntity>();
@@ -4110,6 +4111,47 @@ public class CheckResultService {
 		}
 	}
 
+	/**
+	 * 工位检测未点检设备/治具
+	 * @throws Exception 
+	 * @throws NullPointerException 
+	 */
+	public void checkForPosition(String section_id, String position_id, String line_id, SqlSession conn) throws NullPointerException, Exception {
+		CheckResultMapper crMapper = conn.getMapper(CheckResultMapper.class);
+		CheckResultEntity condEntity = new CheckResultEntity();
+		PeriodsEntity periodsEntity = getPeriodsOfDate(DateUtil.toString(new Date(), DateUtil.ISO_DATE_PATTERN), conn);
+		try {
+			getDevices(null, section_id, null, position_id, null, line_id, condEntity, periodsEntity, conn, crMapper, -1);
+
+			getTorsionDevices(null, section_id, null, position_id, null, condEntity, periodsEntity, conn, crMapper, -1);
+			getElectricIronDevices(null, section_id, null, position_id, null, condEntity, periodsEntity, conn, crMapper, -1);
+
+		} catch(Exception tex) {
+			_logger.error("dmmm:" + tex.getMessage(), tex);
+		}
+	}
+
+	public String getPeripheralIsUseCheck(String manage_id, String device_type_id, SqlSession conn) throws ParseException {
+		CheckResultMapper crMapper = conn.getMapper(CheckResultMapper.class);
+		CheckResultEntity condEntity = new CheckResultEntity();
+		condEntity.setManage_id(manage_id);
+		//获取当前时间
+		SimpleDateFormat df = new SimpleDateFormat(DateUtil.ISO_DATE_PATTERN);
+		Calendar cal = Calendar.getInstance();
+		if (DEVICE_TYPE_ID_OF_ENDOSCOPE.equals(device_type_id)) {
+			//周边设备（内镜）
+			cal.add(Calendar.DATE, -7);
+		}
+		condEntity.setCheck_confirm_time_start(df.parse(df.format(cal.getTime())));
+		int result_cnt = crMapper.getWeekCheck(condEntity);
+		if (result_cnt > 0) {
+			return "OK";
+		} else {
+			return "NG";
+		}
+	}
+
+
 	private String getFileStatusD(String status, BigDecimal digit) {
 
 		if (digit != null) {
@@ -4143,5 +4185,4 @@ public class CheckResultService {
 		private int shiftY = 1;
 		private String content = "";
 	}
-
 }
