@@ -1132,8 +1132,8 @@ public class RvsUtils {
 		if (lightFix) {
 			timeLimit = +2;
 		}
-		if (peripheral) { // 周边8个工作日
-			timeLimit = +8;
+		if (peripheral) { // 周边8个工作日 -> (151PB) 4个工作日
+			timeLimit = +4;
 		}
 
 		Date workDate = RvsUtils.switchWorkDate(agreedDate, timeLimit);
