@@ -1641,6 +1641,8 @@ var getFlags = function(over_time, expedited, direct_flg, light_fix, f_service_r
 				sta = "返";
 			} else if (service_repair_flg == 2) {
 				sta = "Ｑ";
+			} else if (service_repair_flg == 3) {
+				sta = "备";
 			}
 			retDiv += "<div class='service_repair_flg" + (f ? " refee" : "") + "'>" + sta + "</div>";
 		}
