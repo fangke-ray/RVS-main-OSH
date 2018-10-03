@@ -34,6 +34,8 @@ public class LoginData extends BaseUserBean {
 	// 流水线修理方式 全部=0 A线=1 B线=2 C线=3
 	private String px = "0";
 
+	private String group_position_id;
+
 	public String getLine_id() {
 		return line_id;
 	}
@@ -133,5 +135,11 @@ public class LoginData extends BaseUserBean {
 	}
 	public void setWork_count_flg(String work_count_flg) {
 		this.work_count_flg = work_count_flg;
+	}
+	public String getGroup_position_id() {
+		return group_position_id;
+	}
+	public void setGroup_position_id(String group_position_id) {
+		this.group_position_id = group_position_id;
 	}
 }

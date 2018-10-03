@@ -9,10 +9,7 @@ package com.osh.rvs.action.inline;
 
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,10 +34,8 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.AlarmMesssageEntity;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
-import com.osh.rvs.bean.infect.CheckResultEntity;
-import com.osh.rvs.bean.infect.PeriodsEntity;
 import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
-import com.osh.rvs.bean.master.OperatorEntity;
+import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.ReverseResolution;
@@ -50,10 +45,6 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.inline.DryingProcessForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
-import com.osh.rvs.mapper.infect.CheckResultMapper;
-import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
-import com.osh.rvs.mapper.master.OperatorMapper;
-import com.osh.rvs.mapper.report.FoundryMapper;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.MaterialPartialService;
@@ -63,9 +54,11 @@ import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.OperatorProductionService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionPlanTimeService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
+import com.osh.rvs.service.inline.FoundryService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.partial.PartialReceptService;
@@ -90,8 +83,6 @@ public class PositionPanelAction extends BaseAction {
 	private static String WORK_STATUS_CHECK_PARTIAL_THEN_FINISH = "3.9";
 	private static String WORK_STATUS_PERIPHERAL_WORKING = "4";
 	private static String WORK_STATUS_PERIPHERAL_PAUSING = "5";
-
-	private static String DEVICE_TYPE_ID_OF_ENDOSCOPE = "00000000223"; // TODO
 
 	private Logger log = Logger.getLogger(getClass());
 
@@ -161,61 +152,81 @@ public class PositionPanelAction extends BaseAction {
 		if ("4".equals(pxLevel)) pxLevel = "0"; // 超级员工不分线
 		String process_code = user.getProcess_code();
 
-//		if ("121".equals(process_code) || "131".equals(process_code) || "141".equals(process_code)
-//				|| "171".equals(process_code) || "302".equals(process_code)) { // 现品管理科
-//			section_id = "3"; // 全部暂定3课
-//		}
-
-		// 取得工位信息
-		req.setAttribute("position", service.getPositionMap(section_id, position_id, pxLevel, conn));
 		req.setAttribute("px", pxLevel);
 		req.setAttribute("otherPx", service.getOtherPx(pxLevel, process_code));
 
-		OperatorMapper operatorMapper = conn.getMapper(OperatorMapper.class);
-		OperatorEntity operatorEntity = operatorMapper.getOperatorByID(user.getOperator_id());
-		int work_count_flg = operatorEntity.getWork_count_flg();
-		if (work_count_flg == 1) {
-			// 判断是否代工中
-			FoundryMapper foundryMapper = conn.getMapper(FoundryMapper.class);
-			Date foundry_start_time = foundryMapper.getStartTime(user.getOperator_id());
-			if (foundry_start_time != null) {
-				req.setAttribute("foundry_start_time", DateUtil.toString(foundry_start_time, DateUtil.DATE_TIME_PATTERN));
-			}
-		}
-		req.setAttribute("work_count_flg", work_count_flg);
+		// 取得代工状态
+		FoundryService fService = new FoundryService();
+		fService.checkWorkCountFlgAndFoundry(user.getOperator_id(), req, conn);
 
-		String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
+		Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
+		Map<String, List<String>> groupPositionSubs = PositionService.getGroupPositionSubs(conn);
+		if (groupSubPositions.containsKey(position_id)) {
+			user.setGroup_position_id(groupSubPositions.get(position_id));
 
-		if (special_forward == null) {
-			// 迁移到页面
-			actionForward = mapping.findForward(FW_INIT);
+			// 取得虚拟组工位信息
+			List<String> subPositions = groupPositionSubs.get(groupSubPositions.get(position_id));
+
+			// 取得工位信息
+			req.setAttribute("position", service.getPositionMap(section_id, subPositions, pxLevel, conn));
+
+			req.setAttribute("position_name", service.getGroupShowPositionName(null, user, subPositions, conn));
+
+			actionForward = mapping.findForward("group");
+		} else if (groupPositionSubs.containsKey(position_id)) {
+			user.setGroup_position_id(position_id);
+
+			// 取得虚拟组工位信息
+			List<String> subPositions = groupPositionSubs.get(position_id);
+
+			// 取得工位信息
+			req.setAttribute("position", service.getPositionMap(section_id, subPositions, pxLevel, conn));
+
+			req.setAttribute("position_name", service.getGroupShowPositionName(process_code, user, subPositions, conn));
+
+			actionForward = mapping.findForward("group");
 		} else {
-			if (special_forward.indexOf("peripheral") >= 0) {
-				req.setAttribute("peripheral", true);
-			}
+			// 取得工位信息
+			req.setAttribute("position", service.getPositionMap(section_id, position_id, pxLevel, conn));
 
-			if ("result".equals(special_forward)) {
-				actionForward = mapping.findForward("result");
-				req.setAttribute("oManageNo", service.getManageNo(position_id,conn));
-			} else if ("simple".equals(special_forward)) {
-				actionForward = mapping.findForward("simple");
-			} else if ("snout".equals(special_forward)) {
-				actionForward = mapping.findForward("snout");
-			} else if (special_forward.indexOf("use_snout") >= 0) {
-				special_forward = special_forward.replaceAll(".*decom\\[(.*)\\].*", "$1");
-				String skipPosition = ReverseResolution.getPositionByProcessCode(special_forward, conn);
-				req.setAttribute("skip_position", skipPosition);
-				actionForward = mapping.findForward("usesnout");
-			} else if (special_forward.indexOf("decom") >= 0) {
-				special_forward = special_forward.replaceAll(".*decom\\[(.*)\\].*", "$1");
-				String skipPosition = ReverseResolution.getPositionByProcessCode(special_forward, conn);
-				req.setAttribute("skip_position", skipPosition);
-				actionForward = mapping.findForward("decom");
-			} else {
+			user.setGroup_position_id(null);
+
+			String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
+
+			if (special_forward == null) {
 				// 迁移到页面
 				actionForward = mapping.findForward(FW_INIT);
+			} else {
+				if (special_forward.indexOf("peripheral") >= 0) {
+					req.setAttribute("peripheral", true);
+				}
+
+				if ("result".equals(special_forward)) {
+					actionForward = mapping.findForward("result");
+					req.setAttribute("oManageNo", service.getManageNo(position_id,conn));
+				} else if ("simple".equals(special_forward)) {
+					actionForward = mapping.findForward("simple");
+				} else if ("snout".equals(special_forward)) {
+					actionForward = mapping.findForward("snout");
+				} else if (special_forward.indexOf("use_snout") >= 0) {
+					special_forward = special_forward.replaceAll(".*decom\\[(.*)\\].*", "$1");
+					String skipPosition = ReverseResolution.getPositionByProcessCode(special_forward, conn);
+					req.setAttribute("skip_position", skipPosition);
+					actionForward = mapping.findForward("usesnout");
+				} else if (special_forward.indexOf("decom") >= 0) {
+					special_forward = special_forward.replaceAll(".*decom\\[(.*)\\].*", "$1");
+					String skipPosition = ReverseResolution.getPositionByProcessCode(special_forward, conn);
+					req.setAttribute("skip_position", skipPosition);
+					actionForward = mapping.findForward("decom");
+				} else {
+					// 迁移到页面
+					actionForward = mapping.findForward(FW_INIT);
+				}
 			}
+
+			req.setAttribute("position_name", process_code + " " + user.getPosition_name());
 		}
+		session.setAttribute(RvsConsts.SESSION_USER, user);
 
 		log.info("PositionPanelAction.init end");
 	}
@@ -250,83 +261,58 @@ public class PositionPanelAction extends BaseAction {
 		String pxLevel = user.getPx();
 		if ("4".equals(pxLevel)) pxLevel = "0"; // 超级员工不分线
 
-		// 设定待点检信息
-		CheckResultService crService = new CheckResultService();
-		CheckResultMapper crMapper = conn.getMapper(CheckResultMapper.class);
-		CheckResultEntity condEntity = new CheckResultEntity();
-		PeriodsEntity periodsEntity = CheckResultService.getPeriodsOfDate(DateUtil.toString(new Date(), DateUtil.ISO_DATE_PATTERN), conn);
-		try {
-			crService.getDevices(null, section_id, null, position_id, null, line_id, condEntity, periodsEntity, conn, crMapper, -1);
+		// 是否虚拟组工位
+		String sGroupPositionId = user.getGroup_position_id();
+		String infectString = "";
 
-			crService.getTorsionDevices(null, section_id, null, position_id, null, condEntity, periodsEntity, conn, crMapper, -1);
-			crService.getElectricIronDevices(null, section_id, null, position_id, null, condEntity, periodsEntity, conn, crMapper, -1);
+		// 虚拟组不在加载时判断待点检
+		if (sGroupPositionId == null) {
+			// 设定待点检信息
+			CheckResultService crService = new CheckResultService();
+			crService.checkForPosition(section_id, position_id, line_id, conn);
 
-		} catch(Exception tex) {
-			log.error("dmmm:" + tex.getMessage(), tex);
+			// 取得待点检信息
+			infectString = service.getInfectMessageByPosition(section_id,
+					position_id, line_id, conn);
 		}
-
-		// 取得待点检信息
-		String infectString = service.getInfectMessageByPosition(section_id,
-				position_id, line_id, conn);
+		// 判断操作者异常作业状态
 		infectString += service.getAbnormalWorkStateByOperator(user.getOperator_id(), conn);
 
 		listResponse.put("infectString", infectString);
+
 		if (infectString.indexOf("限制工作") >= 0) {
 			listResponse.put("workstauts", WORK_STATUS_FORBIDDEN);
 		} else {
 
 			// 判断是否有特殊页面效果
-			String special_forward = PathConsts.POSITION_SETTINGS
-					.getProperty("page." + process_code);
+			String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
 
 			if (!"snout".equals(special_forward)) { // 非先端预制，取得等待区
 
-				// 取得等待区一览
-				listResponse.put("waitings", service.getWaitingMaterial(section_id, user.getPosition_id(), user.getLine_id(),
-								user.getOperator_id(), pxLevel, process_code, conn));
+				if (sGroupPositionId == null) { // 非虚拟组
+
+					// 取得等待区一览
+					listResponse.put("waitings", service.getWaitingMaterial(section_id, user.getPosition_id(), user.getLine_id(),
+									user.getOperator_id(), pxLevel, process_code, conn));
+				} else { // 虚拟组 TODO
+
+					// 取得等待区一览
+					listResponse.put("waitings", service.getGroupWaitingMaterial(section_id, user.getGroup_position_id(), user.getLine_id(),
+									user.getOperator_id(), pxLevel, conn));
+					// 取得完成区一览
+					listResponse.put("completes", service.getGroupCompleteMaterial(user.getSection_id(), user.getGroup_position_id(), 
+							user.getPx(), conn));
+				}
 
 				// 取得工程工位待处理容许时间（分钟）
 				listResponse.put("permitMinutes", RvsUtils.getUnproceedPermit(user.getSection_name(), user.getLine_name()));
 			}
 
-			String stepOptions = "";
 			// 设定正常中断选项
-			String steps = PathConsts.POSITION_SETTINGS.getProperty("steps."
-					+ process_code);
-			if (steps != null) {
-				String[] steparray = steps.split(",");
-				for (String step : steparray) {
-					step = step.trim();
-					String stepname = PathConsts.POSITION_SETTINGS
-							.getProperty("step." + process_code + "." + step);
-					stepOptions += "<option value=\"" + step + "\">" + stepname
-							+ "</option>";
-				}
-			}
-			listResponse.put("stepOptions", stepOptions);
+			listResponse.put("stepOptions", service.getStepOptions(process_code));
 
-			String breakOptions = "";
-			if ("121".equals(process_code) || "131".equals(process_code)
-					|| "171".equals(process_code) || "251".equals(process_code)
-					|| "252".equals(process_code)) { // TODO 正规化，不会中断的
-			} else {
-				// 设定异常中断选项
-				steps = PathConsts.POSITION_SETTINGS.getProperty("break." + process_code);
-				if (steps != null) {
-					String[] steparray = steps.split(",");
-					for (String step : steparray) {
-						step = step.trim();
-						String stepname = PathConsts.POSITION_SETTINGS
-								.getProperty("break." + process_code + "." + step);
-						breakOptions += "<option value=\"" + step + "\">"
-								+ stepname + "</option>";
-					}
-				}
-				// 设定一般中断选项
-				breakOptions += CodeListUtils.getSelectOptions("break_reason",
-						null);
-			}
-			listResponse.put("breakOptions", breakOptions);
+			// 设定异常中断选项
+			listResponse.put("breakOptions", service.getBreakOptions(process_code));
 
 			// 设定暂停选项
 			String pauseOptions = "";
@@ -337,8 +323,8 @@ public class PositionPanelAction extends BaseAction {
 
 			String triggerMaterial_id = "";
 			// 判断是否有在进行中的维修对象
-			ProductionFeatureEntity workingPf = service
-					.getWorkingOrSupportingPf(user, conn);
+			ProductionFeatureEntity workingPf = service.getWorkingOrSupportingPf(user, conn);
+
 			// 进行中的话
 			if (workingPf != null) {
 				triggerMaterial_id = workingPf.getMaterial_id();
@@ -352,8 +338,25 @@ public class PositionPanelAction extends BaseAction {
 					infoes.add(msginfo);
 					listResponse.put("redirect", "support.do");
 				} else {
+					// 移动操作者所在工位
+					if (sGroupPositionId != null) {
+						if (!position_id.equals(workingPf.getPosition_id())) {
+							user.setPosition_id(workingPf.getPosition_id());
+							user.setProcess_code(workingPf.getProcess_code());
+							user.setPosition_name(workingPf.getPosition_name());
+
+							// 设定正常中断选项
+							listResponse.put("stepOptions", service.getStepOptions(workingPf.getProcess_code()));
+
+							// 设定异常中断选项
+							listResponse.put("breakOptions", service.getBreakOptions(workingPf.getProcess_code()));
+							session.setAttribute(RvsConsts.SESSION_USER, user);
+						}
+					}
+
 					PartialReceptService prService = new PartialReceptService();
 
+					// 工位上的未签收零件
 					List<MaterialPartialDetailEntity> wentities = prService.getPartialsForPosition(
 							workingPf.getMaterial_id(), workingPf.getPosition_id(), conn);
 					if (wentities == null || wentities.size() == 0) {
@@ -418,21 +421,34 @@ public class PositionPanelAction extends BaseAction {
 			} else {
 				// 暂停中的话
 				// 判断是否有在进行中的维修对象
-				ProductionFeatureEntity pauseingPf = service.getPausingPf(user,
-						conn);
+				ProductionFeatureEntity pauseingPf = service.getPausingPf(user, conn);
 				if (pauseingPf != null) {
+					// 移动操作者所在工位
+					if (sGroupPositionId != null) {
+						if (!position_id.equals(pauseingPf.getPosition_id())) {
+							user.setPosition_id(pauseingPf.getPosition_id());
+							user.setProcess_code(pauseingPf.getProcess_code());
+							user.setPosition_name(pauseingPf.getPosition_name());
+
+							// 设定正常中断选项
+							listResponse.put("stepOptions", service.getStepOptions(pauseingPf.getProcess_code()));
+
+							// 设定异常中断选项
+							listResponse.put("breakOptions", service.getBreakOptions(pauseingPf.getProcess_code()));
+							session.setAttribute(RvsConsts.SESSION_USER, user);
+						}
+					}
+
 					triggerMaterial_id = pauseingPf.getMaterial_id();
 
 					// 取得作业信息
-					service.getProccessingData(listResponse,
-							pauseingPf.getMaterial_id(), pauseingPf, user, conn);
+					service.getProccessingData(listResponse, pauseingPf.getMaterial_id(), pauseingPf, user, conn);
 
 					// spent_mins
 					// listResponse.put("spent_mins", (Integer)
 					// listResponse.get("spent_mins") +
 					// pauseingPf.getUse_seconds() / 60);
-					listResponse.put("action_time", DateUtil.toString(
-							pauseingPf.getAction_time(), "HH:mm:ss"));
+					listResponse.put("action_time", DateUtil.toString(pauseingPf.getAction_time(), "HH:mm:ss"));
 
 					boolean infectFinishFlag = true;
 					if ("peripheral".equals(special_forward)) {
@@ -537,16 +553,54 @@ public class PositionPanelAction extends BaseAction {
 		// 取得用户信息
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
-		String process_code = user.getProcess_code();
 
 		String dryingConfirmed = req.getParameter("confirmed");
 
 		// 判断维修对象在等待区，并返回这一条作业信息
-		ProductionFeatureEntity waitingPf = service.checkMaterialId(material_id, dryingConfirmed, user, errors, conn);
+		String reqPositionId = req.getParameter("position_id");
+		ProductionFeatureEntity waitingPf = service.checkMaterialId(material_id, dryingConfirmed, user, 
+				reqPositionId, errors, conn);
 
-		// 停止之前的暂停
-		bfService.finishPauseFeature(null, null, null, user.getOperator_id(), conn);
+		// 是否虚拟组工位
+		String sGroupPositionId = user.getGroup_position_id();
 
+		if (sGroupPositionId != null) {
+			// 判断操作者有权限
+			if (!user.getPosition_id().equals(reqPositionId)) {
+				boolean hasPrivay = false;
+				for (PositionEntity pos : user.getPositions()) {
+					if (pos.getPosition_id().equals(reqPositionId)) {
+						hasPrivay = true;
+						user.setPosition_id(pos.getPosition_id());
+						user.setProcess_code(pos.getProcess_code());
+						user.setPosition_name(pos.getName());
+						session.setAttribute(RvsConsts.SESSION_USER, user);
+
+						// 设定正常中断选项
+						listResponse.put("stepOptions", service.getStepOptions(pos.getProcess_code()));
+
+						// 设定异常中断选项
+						listResponse.put("breakOptions", service.getBreakOptions(pos.getProcess_code()));
+						break;
+					}
+				}
+				if (!hasPrivay) {
+					MsgInfo msgInfo = new MsgInfo();
+					msgInfo.setComponentid("position_id");
+					msgInfo.setErrcode("privacy.objectOutOfDomain");
+					msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "维修对象"));
+					errors.add(msgInfo);
+				}
+			}
+		}
+
+		String process_code = user.getProcess_code();
+
+		if (errors.size() == 0) {
+			// 停止之前的暂停
+			bfService.finishPauseFeature(null, null, null, user.getOperator_id(), conn);
+		}
+	
 		if (errors.size() == 0) {
 
 			// 开始作业
@@ -1189,9 +1243,8 @@ public class PositionPanelAction extends BaseAction {
 			service.getProccessingData(listResponse, material_id, waitingPf, user, conn);
 
 			// 作业信息状态改为，批量作业中
-			ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 			waitingPf.setOperator_id(user.getOperator_id());
-			dao.startBatchProductionFeature(waitingPf);
+			pfService.startBatchProductionFeature(waitingPf, conn);
 
 			// 如果等待中信息是暂停中，则结束掉暂停记录(有可能已经被结束)
 			// 只要开始做，就结束掉本人所有的暂停信息。
@@ -1328,14 +1381,14 @@ public class PositionPanelAction extends BaseAction {
 						sRework = "" + workingPf.getRework();
 					}
 
-					ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
+					ProductionFeatureService service = new ProductionFeatureService();
 
 					// 本次返工中已交给目标工位
-					if (!dao.checkPositionDid(materialId, positionId, null, sRework)) {
+					if (!service.checkPositionDid(materialId, positionId, null, sRework, conn)) {
 						listResponse.put("position_exist", "1");
 						if (workingPf.getRework() > 0) {
 							// 目标工位已经完成
-							if (dao.checkPositionDid(materialId, positionId, "" + RvsConsts.OPERATE_RESULT_FINISH, null)) {
+							if (service.checkPositionDid(materialId, positionId, "" + RvsConsts.OPERATE_RESULT_FINISH, null, conn)) {
 								listResponse.put("position_exist", "0");
 							}
 						}
@@ -1739,9 +1792,22 @@ public class PositionPanelAction extends BaseAction {
 		String pxLevel = user.getPx();
 		if ("4".equals(pxLevel)) pxLevel = "0"; // 超级员工不分线
 
-		callbackResponse.put("waitings",
-				service.getWaitingMaterial(user.getSection_id(), user.getPosition_id(), user.getLine_id(),
-						user.getOperator_id(), pxLevel, user.getProcess_code(), conn));
+		if (user.getGroup_position_id() == null) { // 非虚拟组
+
+			// 取得等待区一览
+			callbackResponse.put("waitings", service.getWaitingMaterial(user.getSection_id(), user.getPosition_id(), user.getLine_id(),
+							user.getOperator_id(), user.getPx(), user.getProcess_code(), conn));
+		} else { // 虚拟组 TODO
+
+			// 取得等待区一览
+			callbackResponse.put("waitings", service.getGroupWaitingMaterial(user.getSection_id(), user.getGroup_position_id(), user.getLine_id(),
+							user.getOperator_id(), user.getPx(), conn));
+
+			// 取得完成区一览
+			callbackResponse.put("completes", service.getGroupCompleteMaterial(user.getSection_id(), user.getGroup_position_id(), 
+					user.getPx(), conn));
+		}
+
 		// 取得工程工位待处理容许时间（分钟）
 		callbackResponse.put("permitMinutes", RvsUtils.getUnproceedPermit(user.getSection_name(), user.getLine_name()));
 
@@ -1789,24 +1855,11 @@ public class PositionPanelAction extends BaseAction {
 		Map<String, Object> listResponse = new HashMap<String, Object>();
 		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
 
-		CheckResultMapper crMapper = conn.getMapper(CheckResultMapper.class);
-		CheckResultEntity condEntity = new CheckResultEntity();
-		condEntity.setManage_id((String) req.getParameter("manage_id"));
-		//获取当前时间
-		SimpleDateFormat df = new SimpleDateFormat(DateUtil.ISO_DATE_PATTERN);
-		Calendar cal = Calendar.getInstance();
-		if (DEVICE_TYPE_ID_OF_ENDOSCOPE.equals((String) req.getParameter("device_type_id"))) {
-			//周边设备（内镜）
-			cal.add(Calendar.DATE, -7);
-		}
-		condEntity.setCheck_confirm_time_start(df.parse(df.format(cal.getTime())));
-		int result_cnt = crMapper.getWeekCheck(condEntity);
-		if (result_cnt > 0) {
-			listResponse.put("deviceCheck", "OK");
-		} else {
-			listResponse.put("deviceCheck", "NG");
-		}
+		CheckResultService crService =new CheckResultService();
+		String deviceCheck = crService.getPeripheralIsUseCheck(req.getParameter("manage_id"), 
+				req.getParameter("device_type_id"), conn);
 		
+		listResponse.put("deviceCheck", deviceCheck);
 		listResponse.put("errors", infoes);
 
 		returnJsonResponse(res, listResponse);
@@ -1872,31 +1925,8 @@ public class PositionPanelAction extends BaseAction {
 		// 取得用户信息
 		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 
-		FoundryMapper mapper = conn.getMapper(FoundryMapper.class);
-		Map<String,String> map = new HashMap<String,String>();
-
-		String user_working_status = req.getParameter("user_working_status");
-		if ("1".equals(user_working_status)) {
-			// 判断是否存在没有结束的代工时间
-			Date foundry_start_time = mapper.getStartTime(user.getOperator_id());
-			if (foundry_start_time != null) {
-				map.put("operator_id", user.getOperator_id());
-				map.put("start_time", DateUtil.toString(foundry_start_time, DateUtil.DATE_TIME_PATTERN));
-				mapper.delete(map);
-			}
-			// 代工时间开始
-			map.put("operator_id", user.getOperator_id());
-			String nowDate = DateUtil.toString(new Date(), DateUtil.DATE_TIME_PATTERN);
-			map.put("start_time", nowDate);
-			mapper.insert(map);
-
-			callbackResponse.put("foundry_start_time", nowDate);
-		} else if ("2".equals(user_working_status)) {
-			// 代工时间结束
-			map.put("operator_id", user.getOperator_id());
-			map.put("start_time", req.getParameter("foundry_start_time"));
-			mapper.update(map);
-		}
+		FoundryService fService = new FoundryService();
+		fService.changeFoundry(user.getOperator_id(), req, callbackResponse, conn);
 
 		callbackResponse.put("errors", infoes);
 

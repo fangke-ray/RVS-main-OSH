@@ -320,21 +320,8 @@ public class QualityAssuranceAction extends BaseAction {
 			callbackResponse.put("pauseOptions", pauseOptions);
 			callbackResponse.put("pauseComments", PauseFeatureService.getPauseReasonSelectComments());
 
-			String stepOptions = "";
 			// 设定正常中断选项
-			String steps = PathConsts.POSITION_SETTINGS.getProperty("steps."
-					+ process_code);
-			if (steps != null) {
-				String[] steparray = steps.split(",");
-				for (String step : steparray) {
-					step = step.trim();
-					String stepname = PathConsts.POSITION_SETTINGS
-							.getProperty("step." + process_code + "." + step);
-					stepOptions += "<option value=\"" + step + "\">" + stepname
-							+ "</option>";
-				}
-			}
-			callbackResponse.put("stepOptions", stepOptions);
+			callbackResponse.put("stepOptions", ppService.getStepOptions(process_code));
 		}
 
 		user.setSection_id(section_id); // TODO
@@ -832,7 +819,6 @@ public class QualityAssuranceAction extends BaseAction {
 		// 取得用户信息
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
-		String section_id = user.getSection_id();
 
 		// 得到暂停的维修对象，返回这一条作业信息
 		ProductionFeatureEntity workwaitingPf = ppService.checkPausingMaterialId(material_id, user, errors, conn);

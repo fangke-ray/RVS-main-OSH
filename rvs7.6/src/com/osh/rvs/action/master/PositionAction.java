@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.master.PositionGroupEntity;
 import com.osh.rvs.form.master.PositionForm;
 import com.osh.rvs.service.LineService;
 import com.osh.rvs.service.PositionService;
@@ -57,6 +58,8 @@ public class PositionAction extends BaseAction {
 		// 取得下拉框信息
 		String lOptions = lservice.getOptions(conn);
 		req.setAttribute("lOptions", lOptions);
+
+		req.setAttribute("pReferChooser", service.getOptions(conn, true));
 
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
@@ -125,8 +128,14 @@ public class PositionAction extends BaseAction {
 			// 查询记录
 			PositionForm resultForm = service.getDetail(form, conn, errors);
 
-			// 查询结果放入Ajax响应对象
-			listResponse.put("positionForm", resultForm);
+			if (resultForm != null) {
+				List<PositionGroupEntity> positionGroup = service.getGroupPositionById(req.getParameter("id"), conn);
+				if (positionGroup.size() > 0) {
+					listResponse.put("positionGroup", positionGroup);
+				}
+				// 查询结果放入Ajax响应对象
+				listResponse.put("positionForm", resultForm);
+			}
 		}
 
 		// 检查发生错误时报告错误信息
@@ -163,9 +172,13 @@ public class PositionAction extends BaseAction {
 		// 其他合法性检查
 		service.customValidate(positionForm, conn, errors);
 
+		List<PositionGroupEntity> positionGroupList = service.checkPositionGroup(req, conn, errors);
+
 		if (errors.size() == 0) {
 			// 执行插入
 			service.insert(positionForm, req.getSession(), conn, errors);
+
+			service.createPositionGroup(null, positionGroupList, conn);
 		}
 
 		// 检查发生错误时报告错误信息
@@ -201,9 +214,13 @@ public class PositionAction extends BaseAction {
 		// 其他合法性检查
 		service.customValidate(positionForm, conn, errors);
 
+		List<PositionGroupEntity> positionGroupList = service.checkPositionGroup(req, conn, errors);
+
 		if (errors.size() == 0) {
 			// 执行更新
 			service.update(positionForm, req.getSession(), conn, errors);
+
+			service.createPositionGroup(positionForm.getId(), positionGroupList, conn);
 		}
 
 		// 检查发生错误时报告错误信息

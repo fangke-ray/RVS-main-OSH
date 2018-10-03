@@ -174,21 +174,12 @@ public class QuotationAction extends BaseAction {
 			callbackResponse.put("bOptions", CodeListUtils.getGridOptions("material_direct_area"));
 
 			// 设定暂停选项
-			String stepOptions = "";
-			String steps = null;
 			if (join151And161) {
 				process_code = "151";
 			}
 
-			steps = PathConsts.POSITION_SETTINGS.getProperty("steps." + process_code);
-			if (steps != null) {
-				String[] steparray = steps.split(",");
-				for (String step : steparray) {
-					 String stepname = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + step.trim());
-					 stepOptions += "<option value=\"" + step + "\">" + stepname + "</option>";
-				}
-			}
-			callbackResponse.put("stepOptions", stepOptions);
+			// 设定正常中断选项
+			callbackResponse.put("stepOptions", ppService.getStepOptions(process_code));
 			callbackResponse.put("pauseOptions", PauseFeatureService.getPauseReasonSelectOptions());
 			callbackResponse.put("pauseComments", PauseFeatureService.getPauseReasonSelectComments());
 

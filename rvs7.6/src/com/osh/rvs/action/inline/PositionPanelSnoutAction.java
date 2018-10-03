@@ -158,35 +158,11 @@ public class PositionPanelSnoutAction extends BaseAction {
 		String section_id = user.getSection_id();
 		String process_code = user.getProcess_code();
 
-		String stepOptions = "";
 		// 设定正常中断选项
-		String steps = PathConsts.POSITION_SETTINGS.getProperty("steps."+process_code);
-		if (steps != null) {
-			String[] steparray = steps.split(",");
-			for (String step : steparray) {
-				step = step.trim();
-				String stepname = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + step);
-				stepOptions += "<option value=\"" + step + "\">" + stepname + "</option>";
-			}
-		}
-		listResponse.put("stepOptions", stepOptions);
-
-		String breakOptions = "";
+		listResponse.put("stepOptions", service.getStepOptions(process_code));
 
 		// 设定异常中断选项
-		steps = PathConsts.POSITION_SETTINGS.getProperty("break."+process_code);
-		if (steps != null) {
-			String[] steparray = steps.split(",");
-			for (String step : steparray) {
-				step = step.trim();
-				String stepname = PathConsts.POSITION_SETTINGS.getProperty("break." + process_code + "." + step);
-				breakOptions += "<option value=\"" + step + "\">" + stepname + "</option>";
-			}
-		}
-		// 设定一般中断选项
-		breakOptions += CodeListUtils.getSelectOptions("break_reason", null);
-
-		listResponse.put("breakOptions", breakOptions);
+		listResponse.put("breakOptions", service.getBreakOptions(process_code));
 
 		// 设定暂停选项
 		String pauseOptions = "";

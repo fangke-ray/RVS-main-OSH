@@ -31,6 +31,9 @@ public class WaitingEntity implements Serializable {
 	private Integer imbalance;
 	private String scheduled_monthday;
 
+	private String position_id;
+	private String process_code;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -156,5 +159,17 @@ public class WaitingEntity implements Serializable {
 	}
 	public void setScheduled_monthday(String scheduled_monthday) {
 		this.scheduled_monthday = scheduled_monthday;
+	}
+	public String getPosition_id() {
+		return position_id;
+	}
+	public void setPosition_id(String position_id) {
+		this.position_id = position_id;
+	}
+	public String getProcess_code() {
+		return process_code;
+	}
+	public void setProcess_code(String process_code) {
+		this.process_code = process_code;
 	}
 }
