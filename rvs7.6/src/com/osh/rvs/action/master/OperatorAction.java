@@ -21,12 +21,11 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
-import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.form.master.OperatorForm;
 import com.osh.rvs.form.master.PositionForm;
-import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.service.LineService;
 import com.osh.rvs.service.OperatorService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.RoleService;
 import com.osh.rvs.service.SectionService;
 
@@ -90,25 +89,8 @@ public class OperatorAction extends BaseAction {
 		String atOptions = CodeListUtils.getSelectOptions("account_type", null, "", false);
 		req.setAttribute("atOptions", atOptions);
 
-		PositionMapper dao = conn.getMapper(PositionMapper.class);
-		List<PositionEntity> lpb = dao.getAllPosition();
-
-		if (lpb != null && lpb.size() > 0) {
-			// 数据对象复制到表单
-			BeanUtil.copyToFormList(lpb, lpf, null, PositionForm.class);
-			for(PositionForm pf : lpf) {
-				String[] pline = new String[3];
-				pline[0] = pf.getId();
-				pline[1] = pf.getName();
-				pline[2] = pf.getProcess_code();
-				pList.add(pline);
-			}
-	
-			String pReferChooser = CodeListUtils.getReferChooser(pList);
-			req.setAttribute("pReferChooser", pReferChooser);
-		} else {
-			req.setAttribute("pReferChooser", "");
-		}
+		PositionService pService = new PositionService();
+		req.setAttribute("pReferChooser", pService.getOptions(conn));
 
 		// 分线
 		req.setAttribute("pxOptions", CodeListUtils.getSelectOptions("operator_px", "0", "0::(全部)", false));

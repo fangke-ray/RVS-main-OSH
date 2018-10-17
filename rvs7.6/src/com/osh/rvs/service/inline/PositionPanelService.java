@@ -37,6 +37,7 @@ import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.DevicesManageEntity;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.master.PositionGroupEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsUtils;
@@ -512,23 +513,35 @@ public class PositionPanelService {
 
 		List<WaitingEntity> ret = mapper.getWaitingMaterial(line_id, section_id, position_id, null, operator_id, pxLevel, null);
 
-		signWaitingEntity(ret, position_id, process_code, conn);
+		signWaitingEntity(ret, position_id, process_code, null, null, conn);
 
 		return ret;
 	}
-	public  List<WaitingEntity> getGroupWaitingMaterial(String section_id,
+	public List<WaitingEntity> getGroupWaitingMaterial(String section_id,
 			String group_position_id, String line_id, String operator_id,
-			String pxLevel, SqlSession conn) {
+			String pxLevel, List<WaitingEntity> completes, SqlSession conn) {
 		PositionPanelMapper mapper = conn.getMapper(PositionPanelMapper.class);
 
 		List<WaitingEntity> ret = mapper.getWaitingMaterial(line_id, section_id, null, group_position_id, operator_id, pxLevel, null);
 
-		signWaitingEntity(ret, null, null, conn);
+		signWaitingEntity(ret, null, null, group_position_id, completes, conn);
 
-		return ret;
+		// 组仕挂量提前
+		List<WaitingEntity> retUp = new ArrayList<WaitingEntity>();
+		List<WaitingEntity> retDown = new ArrayList<WaitingEntity>();
+		for(WaitingEntity waiting : ret) {
+			if (waiting.getImbalance() != null && waiting.getImbalance() == 2) {
+				retUp.add(waiting);
+			} else {
+				retDown.add(waiting);
+			}
+		}
+		retUp.addAll(retDown);
+
+		return retUp;
 	}
-	private void signWaitingEntity(List<WaitingEntity> ret, String singlePositionId, String singleProcessCode,
-			SqlSession conn) {
+	private void signWaitingEntity(List<WaitingEntity> ret, String singlePositionId, String singleProcessCode, String groupPositionId,
+			List<WaitingEntity> completes, SqlSession conn) {
 		for (WaitingEntity we : ret) {
 			String position_id = singlePositionId;
 			if (position_id == null) position_id = we.getPosition_id();
@@ -559,6 +572,38 @@ public class PositionPanelService {
 				}
 			}
 			else if ("3".equals(we.getWaitingat())) we.setWaitingat("中断等待再开");
+			else if ("7".equals(we.getWaitingat())) we.setWaitingat("待投入");
+		}
+
+		// 根据后工程的仕挂量数提升优先度
+		if (groupPositionId != null) {
+			List<PositionGroupEntity> subs = PositionService.getGroupPositionSubs(conn).get(groupPositionId);
+			Map<String, Integer> nextCounts = new HashMap<String, Integer>();
+			Map<String, String> prevSiblings = new HashMap<String, String>();
+			for (PositionGroupEntity sub : subs) {
+				if (sub.getControl_trigger() != null) {
+					nextCounts.put(sub.getNext_position_id(), sub.getControl_trigger());
+					prevSiblings.put(sub.getSub_position_id(), sub.getNext_position_id());
+				}
+			}
+			for (WaitingEntity complete : completes) {
+				String nextPositionId = complete.getPosition_id();
+				if (nextCounts.containsKey(nextPositionId)) {
+					nextCounts.put(nextPositionId, nextCounts.get(nextPositionId) - 1);
+				}
+			}
+			for (WaitingEntity we : ret) {
+				String prevPositionId = we.getPosition_id();
+				if (prevSiblings.containsKey(prevPositionId)) {
+					String nextPositionId = prevSiblings.get(prevPositionId);
+					if (nextCounts.containsKey(nextPositionId)) {
+						if (nextCounts.get(nextPositionId) > 0) {
+							we.setImbalance(2);
+							nextCounts.put(nextPositionId, nextCounts.get(nextPositionId) - 1);
+						}
+					}
+				}
+			}
 		}
 	}
 

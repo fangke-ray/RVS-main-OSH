@@ -8,8 +8,10 @@
 package com.osh.rvs.action;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,6 +25,7 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.service.PositionService;
 
 import framework.huiqing.action.BaseAction;
 
@@ -82,7 +85,7 @@ public class AppMenuAction extends BaseAction {
 		// 受理报价全工位
 		menuLinks.put("acceptance", false);
 		{
-			String links = getLinksByPositions(userPositions, LINE_ACCEPT_QUOTATE, section_id, px);
+			String links = getLinksByPositions(userPositions, LINE_ACCEPT_QUOTATE, section_id, px, conn);
 			if (links.length() > 0) {
 				menuLinks.put("acceptance", true);
 				req.setAttribute("beforePosition", links);
@@ -181,7 +184,7 @@ public class AppMenuAction extends BaseAction {
 				menuLinks.put("在线作业", true);
 			} 
 			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px);
+				String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px, conn);
 				inlinePosition += links;
 			}
 		}
@@ -195,7 +198,7 @@ public class AppMenuAction extends BaseAction {
 				menuLinks.put("在线作业", true);
 			} 
 			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_NS, section_id, px);
+				String links = getLinksByPositions(userPositions, LINE_NS, section_id, px, conn);
 				inlinePosition += links;
 			}
 		}
@@ -211,7 +214,7 @@ public class AppMenuAction extends BaseAction {
 				// 总组库位
 			} 
 			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_COM, section_id, px);
+				String links = getLinksByPositions(userPositions, LINE_COM, section_id, px, conn);
 				inlinePosition += links;
 			}
 			if ("00000000001".equals(section_id)) {
@@ -229,7 +232,7 @@ public class AppMenuAction extends BaseAction {
 		menuLinks.put("shipping", false);
 
 		if (privacies.contains(RvsConsts.PRIVACY_RECEPT_FACT)) {
-			String links = getLinksByPositions(userPositions, LINE_SHIP, section_id, px);
+			String links = getLinksByPositions(userPositions, LINE_SHIP, section_id, px, conn);
 			if (links.length() > 0) {
 				menuLinks.put("shipping", true);
 				menuLinks.put("在线作业", true);
@@ -264,7 +267,7 @@ public class AppMenuAction extends BaseAction {
 			menuLinks.put("qa_view", false);
 		}
 
-		String links = getLinksByPositions(userPositions, LINE_QA, section_id, px);
+		String links = getLinksByPositions(userPositions, LINE_QA, section_id, px, conn);
 		if (privacies.contains(RvsConsts.PRIVACY_QUALITY_ASSURANCE) || links.length() > 0) {
 //			links = links.replaceAll("javascript:getPositionWork\\('00000000046'\\);", "qualityAssurance.do")
 //					.replaceAll("javascript:getPositionWork\\('00000000051'\\);", "service_repair_referee.do")
@@ -344,14 +347,20 @@ public class AppMenuAction extends BaseAction {
 	 * @param positions
 	 * @param line_id
 	 * @param px 
+	 * @param conn 
 	 * @return
 	 */
-	private String getLinksByPositions(List<PositionEntity> positions, String line_id, String section_id, String px) {
+	private String getLinksByPositions(List<PositionEntity> positions, String line_id, String section_id, String px, 
+			SqlSession conn) {
 		StringBuffer ret = new StringBuffer("");
+		Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
+		Set<String> groupPositions = new HashSet<String>();
+
 		for (PositionEntity position : positions) {
 			if (position.getPosition_id() == null) {
 				continue;
 			}
+
 			if (line_id.equals(position.getLine_id())) {
 				if ("00000000001".equals(section_id) && position.getLight_division_flg() != null 
 						&& position.getLight_division_flg() == 1 && !"4".equals(px)) {
@@ -414,14 +423,31 @@ public class AppMenuAction extends BaseAction {
 									" B线</a></px><br>");
 						}
 					}
-				} else {
-					ret.append("<a href=\"javascript:getPositionWork('" 
-							+ position.getPosition_id() + "');\">" +
-							position.getProcess_code() + " " + position.getName() + 
-							"</a><br>");
+				} else { // 无分线
+					if (groupSubPositions.containsKey(position.getPosition_id())) { // 虚拟组工位
+						groupPositions.add(groupSubPositions.get(position.getPosition_id()));
+					} else if (groupPositions.contains(position.getPosition_id())) {
+					} else {
+						ret.append("<a href=\"javascript:getPositionWork('" 
+								+ position.getPosition_id() + "');\">" +
+								position.getProcess_code() + " " + position.getName() + 
+								"</a><br>");
+					}
 				}
 			}
 		}
+
+		if (!groupPositions.isEmpty()) {
+			PositionService pService = new PositionService();
+			for (String groupPositionId : groupPositions) {
+				PositionEntity groupPositionEntity = pService.getPositionEntityByKey(groupPositionId, conn);
+				ret.append("<a href=\"javascript:getPositionWork('" 
+						+ groupPositionEntity.getPosition_id() + "');\">+ " +
+						groupPositionEntity.getProcess_code() + " " + groupPositionEntity.getName() + 
+						"</a><br>");
+			}
+		}
+
 		return ret.toString();
 	}
 

@@ -679,6 +679,14 @@ var treatStart = function(resInfo) {
 	clearInterval(wtInterval);
 	if ($pause_clock != null) $pause_clock.text("");
 
+	if (resInfo.breakOptions) breakOptions = resInfo.breakOptions;
+	if (resInfo.stepOptions) stepOptions = resInfo.stepOptions;
+	if (!stepOptions && !dryProcesses) {
+		$("#stepbutton").hide();
+	} else {
+		$("#stepbutton").show();
+	}
+
 	$("#material_details td:eq(0) input:hidden").val(resInfo.mform.material_id); // $("#pauseo_material_id").
 	$("#material_details td:eq(1)").text(resInfo.mform.sorc_no);
 	$("#material_details td:eq(3)").text(resInfo.mform.model_name);
@@ -1071,7 +1079,8 @@ var getJustWorkingFingers = function(material_id) {
 	});
 }
 
-var expeditedColor = function(expedited, today) {
+var expeditedColor = function(expedited, today, reason) {
+	if (reason == "待投入" || reason == "保留中") return '';
 	if (today == 1) return ' tube-green'; // 当日
 //	if (expedited >= 10) return ' tube-yellow'; // 加急
 //	if (expedited == 1) return ' tube-blue'; // 加急
@@ -1079,7 +1088,7 @@ var expeditedColor = function(expedited, today) {
 }
 
 var getFlags = function(expedited, direct_flg, light_fix,reworked, imbalance) {
-	if (expedited || direct_flg || light_fix || reworked) {
+	if (expedited || direct_flg || light_fix || reworked || imbalance) {
 		var retDiv = "<div class='material_flags'>";
 		if (expedited >= 20) retDiv += "<div class='rapid_direct_flg'><span>直送快速</span></div>";
 		else {
@@ -1093,9 +1102,9 @@ var getFlags = function(expedited, direct_flg, light_fix,reworked, imbalance) {
 		if (reworked == 1) {
 			retDiv += "<div class='service_repair_flg'>返</div>";
 		}
-//		if (imbalance == 1) {
-//			retDiv += "<div class='b_flg'>B</div>";
-//		}
+		if (imbalance == 2) {
+			retDiv += "<div class='b_flg group_up'>▲</div>"; // ↑
+		}
 		retDiv += "</div>";
 		return retDiv;
 	} else {
@@ -1258,6 +1267,9 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus, postData){
 						complete : doStart_ajaxSuccess
 					});
 				});
+			} else if (resInfo.infectString) {
+				showBreakOfInfect(resInfo.infectString);
+				return;
 			} else {
 				// 共通出错信息框
 				treatBackMessages(null, resInfo.errors);
@@ -1841,7 +1853,7 @@ var getWaitingHtml = function(waitings, other) {
 		}
 		waiting_html += '<div class="waiting tube' + (waiting.imbalance ? "" : " other_px") + '"' +
 							' id="w_' + waiting.material_id + '">' +
-							'<div class="tube-liquid' + expeditedColor(waiting.expedited, waiting.today)  + '">'
+							'<div class="tube-liquid' + expeditedColor(waiting.expedited, waiting.today, reason)  + '">'
 								+ getTubeBody(waiting) 
 								+ getFlags(waiting.expedited, waiting.direct_flg, waiting.light_fix, waiting.reworked, waiting.imbalance) +
 								getBlock(waiting.block_status) +
@@ -1911,7 +1923,8 @@ var showWaitings = function(waitings){
 };
 
 var showCompletes = function(completes) {
-	$("#completes").html(getWaitingHtml(completes));
+	var $completes = $(getWaitingHtml(completes));
+	$("#completes").html($completes.filter(":not(.w_group)"));
 }
 var getInPlaceTime = function(inPlaceTime) {
 	var time_html = "";
@@ -1960,6 +1973,9 @@ var getWaitings = function() {
 	    	try {
 	    		resInfo = $.parseJSON(xhrobj.responseText);
 				showWaitings(resInfo.waitings);
+				if (resInfo.completes) {
+					showCompletes(resInfo.completes);
+				}
 	    	} catch(e) {
 	    	}
 		}

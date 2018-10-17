@@ -388,6 +388,7 @@ public class OperatorService {
 	public List<PositionEntity> getUserPositions(String operator_id, SqlSession conn) {
 		OperatorMapper dao = conn.getMapper(OperatorMapper.class);
 		List<PositionEntity> pResultBeans = dao.getPositionsOfOperatorNamed(operator_id);
+		pResultBeans.addAll(dao.getGroupPositionsOfOperatorNamed(operator_id));
 
 		return pResultBeans;
 	}

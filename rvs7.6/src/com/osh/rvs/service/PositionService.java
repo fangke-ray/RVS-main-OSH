@@ -35,9 +35,11 @@ public class PositionService {
 
 	private static Set<String> dividePositions = null;
 	private static Set<String> groupPositions = null;
+	private static Map<String, String> groupNextPositions = new HashMap<String, String>();
 	private static Map<String, String> groupSubPositions = null;
-	private static Map<String, List<String>> groupPositionSubs = null;
+	private static Map<String, List<PositionGroupEntity>> groupPositionSubs = null;
 	private static String inlineOptions = null;
+	private static Map<String, PositionEntity> positionEntityCache = new HashMap<String, PositionEntity>();
 
 	/**
 	 * 检索记录列表
@@ -160,9 +162,11 @@ public class PositionService {
 
 		dividePositions = null;
 		groupPositions = null;
+		groupNextPositions = null;
 		groupSubPositions = null;
 		groupPositionSubs = null;
 		inlineOptions = null;
+		positionEntityCache.clear();
 	}
 
 	/**
@@ -191,9 +195,11 @@ public class PositionService {
 
 		dividePositions = null;
 		groupPositions = null;
+		groupNextPositions = null;
 		groupSubPositions = null;
 		groupPositionSubs = null;
 		inlineOptions = null;
+		positionEntityCache.clear();
 	}
 
 	/**
@@ -217,9 +223,11 @@ public class PositionService {
 		dao.deletePosition(deleteBean);
 		dividePositions = null;
 		groupPositions = null;
+		groupNextPositions = null;
 		groupSubPositions = null;
 		groupPositionSubs = null;
 		inlineOptions = null;
+		positionEntityCache.clear();
 	}
 
 	/**
@@ -247,8 +255,11 @@ public class PositionService {
 		List<String[]> lst = new ArrayList<String[]>();
 		
 		List<PositionEntity> allPosition = this.getAllPosition(conn);
-		
+
 		for (PositionEntity position: allPosition) {
+			if (getGroupPositions(conn).contains(position.getPosition_id())) {
+				continue;
+			}
 			String[] p = new String[3];
 			p[0] = position.getPosition_id();
 			if (showProcessCode) {
@@ -274,8 +285,12 @@ public class PositionService {
 	 */
 	public PositionEntity getPositionEntityByKey(String position_id, SqlSession conn) {
 		// 从数据库中查询记录
+		if (positionEntityCache.containsKey(position_id)) {
+			return positionEntityCache.get(position_id);
+		}
 		PositionMapper dao = conn.getMapper(PositionMapper.class);
 		PositionEntity resultBean = dao.getPositionByID(position_id);
+		positionEntityCache.put(position_id, resultBean);
 		return resultBean;
 	}
 
@@ -328,35 +343,67 @@ public class PositionService {
 	public static Map<String, String> getGroupSubPositions(SqlSession conn) {
 		if (groupSubPositions == null) {
 			groupSubPositions = new HashMap<String, String>();
-			groupPositionSubs = new HashMap<String, List<String>>();
+			groupNextPositions = new HashMap<String, String>();
+			groupPositionSubs = new HashMap<String, List<PositionGroupEntity>>();
 			PositionMapper mapper = conn.getMapper(PositionMapper.class);
 			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
 			for (PositionGroupEntity posGroup : l) {
 				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
 				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
-					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<String> ());
+					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<PositionGroupEntity> ());
 				}
-				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup.getSub_position_id());
+				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup);
+
+				if (posGroup.getNext_position_id() != null) {
+					groupNextPositions.put(posGroup.getNext_position_id(), posGroup.getSub_position_id());
+				}
 			}
 		}
 		return groupSubPositions;
 	}
 
-	public static Map<String, List<String>> getGroupPositionSubs(SqlSession conn) {
+	public static Map<String, List<PositionGroupEntity>> getGroupPositionSubs(SqlSession conn) {
 		if (groupPositionSubs == null) {
 			groupSubPositions = new HashMap<String, String>();
-			groupPositionSubs = new HashMap<String, List<String>>();
+			groupNextPositions = new HashMap<String, String>();
+			groupPositionSubs = new HashMap<String, List<PositionGroupEntity>>();
 			PositionMapper mapper = conn.getMapper(PositionMapper.class);
 			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
 			for (PositionGroupEntity posGroup : l) {
 				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
 				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
-					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<String> ());
+					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<PositionGroupEntity> ());
 				}
-				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup.getSub_position_id());
+				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup);
+
+				if (posGroup.getNext_position_id() != null) {
+					groupNextPositions.put(posGroup.getNext_position_id(), posGroup.getSub_position_id());
+				}
 			}
 		}
 		return groupPositionSubs;
+	}
+
+	public static Map<String, String> getGroupNextPositions(SqlSession conn) {
+		if (groupNextPositions == null) {
+			groupSubPositions = new HashMap<String, String>();
+			groupNextPositions = new HashMap<String, String>();
+			groupPositionSubs = new HashMap<String, List<PositionGroupEntity>>();
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
+			for (PositionGroupEntity posGroup : l) {
+				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
+				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
+					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<PositionGroupEntity> ());
+				}
+				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup);
+
+				if (posGroup.getNext_position_id() != null) {
+					groupNextPositions.put(posGroup.getNext_position_id(), posGroup.getSub_position_id());
+				}
+			}
+		}
+		return groupNextPositions;
 	}
 
 	/**

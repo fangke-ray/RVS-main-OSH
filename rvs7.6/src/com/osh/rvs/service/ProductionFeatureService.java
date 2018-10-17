@@ -197,17 +197,17 @@ public class ProductionFeatureService {
 	 * @throws Exception 
 	 * @return 是否发动
 	 */
-	public void fingerPosition(MaterialEntity mEntity, boolean fixed,
+	public void fingerPosition(String fromPositionId, MaterialEntity mEntity, boolean fixed,
 			ProductionFeatureEntity workingPf, SqlSessionManager conn, ProductionFeatureMapper pfDao, ProcessAssignProxy paProxy, List<String> retList, List<String> triggerList) throws Exception {
-		fingerPosition(mEntity, fixed, workingPf, conn, pfDao, paProxy, retList, triggerList, true);
+		fingerPosition(fromPositionId, mEntity, fixed, workingPf, conn, pfDao, paProxy, retList, triggerList, true);
 	}
-	public void fingerPosition(MaterialEntity mEntity, boolean fixed,
+	public void fingerPosition(String fromPositionId, MaterialEntity mEntity, boolean fixed,
 			ProductionFeatureEntity workingPf, SqlSessionManager conn, ProductionFeatureMapper pfDao, ProcessAssignProxy paProxy, List<String> retList, List<String> triggerList, boolean isFact) throws Exception {
 
 		if (retList == null) retList = new ArrayList<String> ();
 
 		String material_id = mEntity.getMaterial_id();
-		String position_id = workingPf.getPosition_id();
+		String fingerPositionId = workingPf.getPosition_id();
 		// 维修对象的课室
 		String section_id = paProxy.getMaterial_section_id();
 		if (section_id == null) { // (投线前) 
@@ -228,39 +228,39 @@ public class ProductionFeatureService {
 			// 固定工位生成等待区信息
 			ProductionFeatureEntity entity = new ProductionFeatureEntity();
 			entity.setMaterial_id(material_id);
-			entity.setPosition_id(position_id);
+			entity.setPosition_id(fingerPositionId);
 			entity.setPace(0);
 			entity.setSection_id(section_id);
-			entity.setOperate_result(0);
+			entity.setOperate_result(getPutinOperateResult(fromPositionId, fingerPositionId, conn));
 			entity.setRework(workingPf.getRework());
 			pfDao.insertProductionFeature(entity);
 
 			if (isFact && triggerList!=null) {
 				// 通知
-				triggerList.add("http://localhost:8080/rvspush/trigger/in/" + position_id + "/"
+				triggerList.add("http://localhost:8080/rvspush/trigger/in/" + fingerPositionId + "/"
 		            		+ section_id + "/" + material_id + "/" + (paProxy.isLightFix ? "1" : "0"));
 
 				// 小修理不判断
 				if (!paProxy.isLightFix) {
-					checkFso(material_id, position_id, triggerList, conn);
+					checkFso(material_id, fingerPositionId, triggerList, conn);
 				}
 			}
-			retList.add(position_id);
+			retList.add(fingerPositionId);
 
 		} else {
 			// 判断得到的工程是否有完成
 
 // logger.error(position_id + "<EEE>" + paDao.checkWorking(material_id, position_id));
 			// 有完成，并且其先决也已完成，则由这个工位继续触发
-			if (paProxy.checkWorked(position_id)) {
+			if (paProxy.checkWorked(fingerPositionId)) {
 				// 取得先决
 				List<String> prevPositions = new ArrayList<String>();
 
-				getPrev(paProxy, material_id, mEntity.getPat_id(), position_id, mEntity.getLevel(), prevPositions);
+				getPrev(paProxy, material_id, mEntity.getPat_id(), fingerPositionId, mEntity.getLevel(), prevPositions);
 
 				if (prevPositions.size() == 0 || !isFact 
 						|| paProxy.getFinishedCountByPositions(prevPositions) == prevPositions.size()) {
-					workingPf.setPosition_id(position_id);
+					workingPf.setPosition_id(fingerPositionId);
 					List<String> x = fingerNextPosition(material_id, workingPf, conn, triggerList);
 					if (x!=null) {
 						retList.addAll(x);
@@ -268,18 +268,18 @@ public class ProductionFeatureService {
 				}
 			}
 			// 判断得到的工程是否有未完成。
-			else if (paProxy.checkWorking(position_id) > 0) {
+			else if (paProxy.checkWorking(fingerPositionId) > 0) {
 				// 有的话则不影响原有工作
-				logger.info(position_id+"工位进行中。");
+				logger.info(fingerPositionId+"工位进行中。");
 			}
 			// 没有完成则判断先决的工位是否都已经结束。
 			else {
 				// 取得先决
 				List<String> prevPositions = new ArrayList<String>();
 
-				getPrev(paProxy, material_id, mEntity.getPat_id(), position_id, mEntity.getLevel(), prevPositions);
+				getPrev(paProxy, material_id, mEntity.getPat_id(), fingerPositionId, mEntity.getLevel(), prevPositions);
 
-				logger.info(position_id+"工位de先决："+prevPositions.size());
+				logger.info(fingerPositionId+"工位de先决："+prevPositions.size());
 
 				Map<String, Object> params = new HashMap<String, Object>();
 				params.put("material_id", material_id);
@@ -288,13 +288,13 @@ public class ProductionFeatureService {
 				if (prevPositions.size() == 0 || !isFact
 						|| paProxy.getFinishedCountByPositions(prevPositions) == prevPositions.size()) {
 					// 都已经结束生成等待区信息
-					logger.info("维修对象"+material_id+"进行至"+position_id+"工位。( " + isFact + ")");
+					logger.info("维修对象"+material_id+"进行至"+fingerPositionId+"工位。( " + isFact + ")");
 					ProductionFeatureEntity entity = new ProductionFeatureEntity();
 					entity.setMaterial_id(material_id);
-					entity.setPosition_id(position_id);
+					entity.setPosition_id(fingerPositionId);
 					entity.setPace(0);
 					entity.setSection_id(section_id);
-					entity.setOperate_result(0);
+					entity.setOperate_result(getPutinOperateResult(fromPositionId, fingerPositionId, conn));
 
 					Integer neoRework = workingPf.getRework();
 
@@ -307,13 +307,13 @@ public class ProductionFeatureService {
 
 					if (isFact) {
 						// 通知
-						triggerList.add("http://localhost:8080/rvspush/trigger/in/" + position_id + "/" 
+						triggerList.add("http://localhost:8080/rvspush/trigger/in/" + fingerPositionId + "/" 
 				            		+ section_id + "/" + material_id + "/" + (paProxy.isLightFix ? "1" : "0"));
-						checkFso(material_id, position_id, triggerList, conn);
+						checkFso(material_id, fingerPositionId, triggerList, conn);
 					}
 
 					logger.info("tranover");
-					retList.add(position_id);
+					retList.add(fingerPositionId);
 				}
 			}
 		}
@@ -351,6 +351,19 @@ public class ProductionFeatureService {
 //				triggerList.add("http://localhost:8080/rvspush/trigger/delete_finish_time/"
 //						+ material_id + "/" + "00000000014");
 //			}
+		}
+	}
+
+	private Integer getPutinOperateResult(String prePositionId, String nextPositionId, SqlSession conn) {
+		// 虚拟组工位后续工位
+		prePositionId = CommonStringUtil.fillChar(prePositionId, '0', 11, true);
+		nextPositionId = CommonStringUtil.fillChar(nextPositionId, '0', 11, true);
+		Map<String, String> groupNextPositions = PositionService.getGroupNextPositions(conn);
+		if (groupNextPositions.containsKey(nextPositionId)
+				&& groupNextPositions.get(nextPositionId).equals(prePositionId)) {
+			return RvsConsts.OPERATE_RESULT_BATCHWORKING;
+		} else {
+			return RvsConsts.OPERATE_RESULT_NOWORK_WAITING;
 		}
 	}
 
@@ -655,7 +668,7 @@ public class ProductionFeatureService {
 				if (ns_partial_order != null && 1 != ns_partial_order) continue; 
 			}
 			nPf.setPosition_id(nextPosition_id);
-			fingerPosition(mEntity, fixed, nPf, conn, pfDao, paProxy, ret, triggerList, isFact);
+			fingerPosition(workingPf.getPosition_id(), mEntity, fixed, nPf, conn, pfDao, paProxy, ret, triggerList, isFact);
 		}
 
 		PositionMapper ps = conn.getMapper(PositionMapper.class);
@@ -764,7 +777,7 @@ public class ProductionFeatureService {
 
 		ProcessAssignProxy paProxy = new ProcessAssignProxy(material_id, mEntity.getPat_id(), mEntity.getSection_id(), isLightFix, conn);
 
-		fingerPosition(mEntity, fixed, workingPf, conn, pfDao, paProxy, null, triggerList);
+		fingerPosition(workingPf.getPosition_id(), mEntity, fixed, workingPf, conn, pfDao, paProxy, null, triggerList);
 	}
 
 	public void getNext(ProcessAssignProxy paProxy, String material_id, String pat_id, String position_id, Integer level, List<String> nextPositions) {
@@ -949,7 +962,7 @@ public class ProductionFeatureService {
 
 		for (String startPosition : startPositions) {
 			workingPf.setPosition_id(startPosition);
-			fingerPosition(mEntity, false, workingPf, conn, ppDao, paProxy, null, triggerList);
+			fingerPosition(workingPf.getPosition_id(), mEntity, false, workingPf, conn, ppDao, paProxy, null, triggerList);
 		}
 	}
 

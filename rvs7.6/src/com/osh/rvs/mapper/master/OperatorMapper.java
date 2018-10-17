@@ -65,6 +65,7 @@ public interface OperatorMapper {
 	public List<String> getPositionsOfOperator(@Param("operator_id") String operator_id, @Param("chief") String chief);
 
 	public List<PositionEntity> getPositionsOfOperatorNamed(String operator_id);
+	public List<PositionEntity>	 getGroupPositionsOfOperatorNamed(String operator_id);
 
 	/** 插入某用户的技能 */
 	public void insertPositionOfOperator(
@@ -94,4 +95,5 @@ public interface OperatorMapper {
 
 	//查询所有治具点检者
 	public List<OperatorNamedEntity> searchToolsOperator(OperatorEntity operator);
+
 }

@@ -306,7 +306,7 @@
 		</if>
 	</if>
 	<![CDATA[
-		ORDER BY pause_reason DESC, operate_result DESC,
+		ORDER BY pause_reason DESC, operate_result = 7, operate_result DESC,
 		scheduled_date_inline = current_date DESC, scheduled_date_inline < current_date DESC, 
 		(`m`.scheduled_expedited = 1) DESC, `m`.scheduled_date,
 		today DESC, light_fix DESC, (`m`.scheduled_expedited = 2) DESC, (`m`.service_repair_flg = 2) DESC, (`m`.service_repair_flg = 1) DESC,
@@ -338,7 +338,7 @@
 		JOIN material_process mp
 			ON `mp`.line_id = pos.line_id
 				AND `mp`.material_id = `m`.material_id
-		JOIN position_group pg ON pos.position_id = pg.sub_position_id
+		JOIN position_group pg ON pos.position_id = pg.next_position_id
 		WHERE `pg`.group_position_id = #{group_position_id}
 			AND `pf`.section_id = #{section_id}
 			AND `pf`.action_time is null
@@ -346,6 +346,7 @@
 			AND `pf`.operate_result = 7
 	]]>
 	<![CDATA[
+		GROUP BY `m`.material_id
 		ORDER BY
 		scheduled_date_inline = current_date DESC, scheduled_date_inline < current_date DESC, 
 		(`m`.scheduled_expedited = 1) DESC, `m`.scheduled_date,

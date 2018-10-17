@@ -306,7 +306,22 @@
 		JOIN V_POSITION `p`
 			ON `oa`.POSITION_ID = `p`.POSITION_ID
 		WHERE oa.OPERATOR_ID = #{operator_id}
-		AND p.DELETE_FLG = 0;
+		AND p.DELETE_FLG = 0
+		;
+		]]>
+	</select>
+	<select id="getGroupPositionsOfOperatorNamed" resultType="PositionEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT DISTINCT `p`.POSITION_ID, `p`.NAME, `p`.PROCESS_CODE, `p`.LINE_ID , `p`.LINE_NAME
+		, `p`.light_division_flg
+		FROM OPERATOR_ABILITIES `oa`
+		JOIN position_group `pg`
+			ON `pg`.SUB_POSITION_ID = `oa`.POSITION_ID
+		JOIN V_POSITION `p`
+			ON `pg`.GROUP_POSITION_ID = `p`.POSITION_ID
+		WHERE oa.OPERATOR_ID = #{operator_id}
+		AND p.DELETE_FLG = 0
+		;
 		]]>
 	</select>
 

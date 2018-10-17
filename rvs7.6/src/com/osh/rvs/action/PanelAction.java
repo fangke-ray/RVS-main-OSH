@@ -166,11 +166,16 @@ public class PanelAction extends BaseAction {
 		PositionPanelService service = new PositionPanelService();
 		ProductionFeatureEntity workingPf = service.getProcessingPf(user, conn);
 		if (workingPf != null) {
-			MsgInfo msgInfo = new MsgInfo();
-			msgInfo.setErrcode("info.linework.workingRemain");
-			msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingRemain",
-					(workingPf.getSection_name() == null ? "" : workingPf.getSection_name()) + workingPf.getProcess_code() + workingPf.getPosition_name()));
-			errors.add(msgInfo);
+			Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
+			if (groupSubPositions.containsKey(workingPf.getPosition_id())
+					&& groupSubPositions.get(workingPf.getPosition_id()).equals(new_position_id)) {
+			} else {
+				MsgInfo msgInfo = new MsgInfo();
+				msgInfo.setErrcode("info.linework.workingRemain");
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingRemain",
+						(workingPf.getSection_name() == null ? "" : workingPf.getSection_name()) + workingPf.getProcess_code() + workingPf.getPosition_name()));
+				errors.add(msgInfo);
+			}
 		}
 
 		// 会话更新
@@ -286,7 +291,7 @@ public class PanelAction extends BaseAction {
 			return 0;
 		}
 
-		return null;
+		return 0;
 	}
 
 	private String getLink(String new_position_id) {

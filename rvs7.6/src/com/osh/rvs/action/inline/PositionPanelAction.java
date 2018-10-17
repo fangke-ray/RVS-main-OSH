@@ -35,7 +35,9 @@ import com.osh.rvs.bean.data.AlarmMesssageEntity;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
+import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.master.PositionGroupEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.ReverseResolution;
@@ -160,29 +162,39 @@ public class PositionPanelAction extends BaseAction {
 		fService.checkWorkCountFlgAndFoundry(user.getOperator_id(), req, conn);
 
 		Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
-		Map<String, List<String>> groupPositionSubs = PositionService.getGroupPositionSubs(conn);
+		Map<String, List<PositionGroupEntity>> groupPositionSubs = PositionService.getGroupPositionSubs(conn);
 		if (groupSubPositions.containsKey(position_id)) {
 			user.setGroup_position_id(groupSubPositions.get(position_id));
 
 			// 取得虚拟组工位信息
-			List<String> subPositions = groupPositionSubs.get(groupSubPositions.get(position_id));
+			List<PositionGroupEntity> subPositions = groupPositionSubs.get(groupSubPositions.get(position_id));
+			List<String> subPositionIds = new ArrayList<String>();
+			for (PositionGroupEntity subPosition : subPositions) {
+				subPositionIds.add(subPosition.getSub_position_id());
+			}
 
 			// 取得工位信息
-			req.setAttribute("position", service.getPositionMap(section_id, subPositions, pxLevel, conn));
+			req.setAttribute("position", service.getPositionMap(section_id, subPositionIds, pxLevel, conn));
 
-			req.setAttribute("position_name", service.getGroupShowPositionName(null, user, subPositions, conn));
+			req.setAttribute("position_name", service.getGroupShowPositionName(null, user, subPositionIds, conn));
+			req.setAttribute("userPositionId", user.getGroup_position_id());
 
 			actionForward = mapping.findForward("group");
 		} else if (groupPositionSubs.containsKey(position_id)) {
 			user.setGroup_position_id(position_id);
 
 			// 取得虚拟组工位信息
-			List<String> subPositions = groupPositionSubs.get(position_id);
+			List<PositionGroupEntity> subPositions = groupPositionSubs.get(position_id);
+			List<String> subPositionIds = new ArrayList<String>();
+			for (PositionGroupEntity subPosition : subPositions) {
+				subPositionIds.add(subPosition.getSub_position_id());
+			}
 
 			// 取得工位信息
-			req.setAttribute("position", service.getPositionMap(section_id, subPositions, pxLevel, conn));
+			req.setAttribute("position", service.getPositionMap(section_id, subPositionIds, pxLevel, conn));
 
-			req.setAttribute("position_name", service.getGroupShowPositionName(process_code, user, subPositions, conn));
+			req.setAttribute("position_name", service.getGroupShowPositionName(process_code, user, subPositionIds, conn));
+			req.setAttribute("userPositionId", position_id);
 
 			actionForward = mapping.findForward("group");
 		} else {
@@ -224,6 +236,7 @@ public class PositionPanelAction extends BaseAction {
 				}
 			}
 
+			req.setAttribute("userPositionId", user.getPosition_id());
 			req.setAttribute("position_name", process_code + " " + user.getPosition_name());
 		}
 		session.setAttribute(RvsConsts.SESSION_USER, user);
@@ -296,12 +309,13 @@ public class PositionPanelAction extends BaseAction {
 									user.getOperator_id(), pxLevel, process_code, conn));
 				} else { // 虚拟组 TODO
 
+					// 取得完成区一览
+					List<WaitingEntity> completes = service.getGroupCompleteMaterial(user.getSection_id(), user.getGroup_position_id(), 
+							user.getPx(), conn);
 					// 取得等待区一览
 					listResponse.put("waitings", service.getGroupWaitingMaterial(section_id, user.getGroup_position_id(), user.getLine_id(),
-									user.getOperator_id(), pxLevel, conn));
-					// 取得完成区一览
-					listResponse.put("completes", service.getGroupCompleteMaterial(user.getSection_id(), user.getGroup_position_id(), 
-							user.getPx(), conn));
+									user.getOperator_id(), pxLevel, completes, conn));
+					listResponse.put("completes", completes);
 				}
 
 				// 取得工程工位待处理容许时间（分钟）
@@ -574,7 +588,6 @@ public class PositionPanelAction extends BaseAction {
 						user.setPosition_id(pos.getPosition_id());
 						user.setProcess_code(pos.getProcess_code());
 						user.setPosition_name(pos.getName());
-						session.setAttribute(RvsConsts.SESSION_USER, user);
 
 						// 设定正常中断选项
 						listResponse.put("stepOptions", service.getStepOptions(pos.getProcess_code()));
@@ -590,7 +603,31 @@ public class PositionPanelAction extends BaseAction {
 					msgInfo.setErrcode("privacy.objectOutOfDomain");
 					msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "维修对象"));
 					errors.add(msgInfo);
+				} else {
+					// 虚拟组在新宫卫士判断待点检
+					// 设定待点检信息
+					CheckResultService crService = new CheckResultService();
+					crService.checkForPosition(user.getSection_id(), reqPositionId, user.getLine_id(), conn);
+
+					// 取得待点检信息
+					String infectString = service.getInfectMessageByPosition(user.getSection_id(),
+							reqPositionId, user.getLine_id(), conn);
+
+					listResponse.put("infectString", infectString);
+
+					if (infectString.indexOf("限制工作") >= 0) {
+						listResponse.put("workstauts", WORK_STATUS_FORBIDDEN);
+						MsgInfo msgInfo = new MsgInfo();
+						msgInfo.setComponentid("position_id");
+						msgInfo.setErrcode("privacy.objectOutOfDomain");
+						msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "工位"));
+						errors.add(msgInfo);
+					}
 				}
+				if(errors.size() == 0) {
+					// 没有问题, 切换作业工位
+					session.setAttribute(RvsConsts.SESSION_USER, user);
+				}	
 			}
 		}
 
@@ -1799,13 +1836,14 @@ public class PositionPanelAction extends BaseAction {
 							user.getOperator_id(), user.getPx(), user.getProcess_code(), conn));
 		} else { // 虚拟组 TODO
 
+			// 取得完成区一览
+			List<WaitingEntity> completes = service.getGroupCompleteMaterial(user.getSection_id(), user.getGroup_position_id(), 
+					user.getPx(), conn);
 			// 取得等待区一览
 			callbackResponse.put("waitings", service.getGroupWaitingMaterial(user.getSection_id(), user.getGroup_position_id(), user.getLine_id(),
-							user.getOperator_id(), user.getPx(), conn));
+							user.getOperator_id(), user.getPx(), completes, conn));
+			callbackResponse.put("completes", completes);
 
-			// 取得完成区一览
-			callbackResponse.put("completes", service.getGroupCompleteMaterial(user.getSection_id(), user.getGroup_position_id(), 
-					user.getPx(), conn));
 		}
 
 		// 取得工程工位待处理容许时间（分钟）
