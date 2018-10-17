@@ -59,6 +59,10 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class PositionPanelSnoutAction extends BaseAction {
 
+	private static final String SNOUT_MODEL_EXCLUDED = "0";
+	private static final String SNOUT_MODEL_INCLUDED = "1";
+	private static final String SNOUT_MODEL_INCLUDED_AND_REWORKED = "2";
+
 	private Logger log = Logger.getLogger(getClass());
 
 	private PositionPanelService service = new PositionPanelService();
@@ -401,8 +405,12 @@ public class PositionPanelSnoutAction extends BaseAction {
 			List<MaterialEntity> snoutsByMonth = new ArrayList<MaterialEntity>();
 
 			// 取得本月先端管理列表
-			String manage_serial_no = sservice.loadSnoutsByMonth(snoutsByMonth, conn);
-			mForm.setSerial_no(manage_serial_no);
+			if (mForm.getSerial_no() == null) {
+				String manage_serial_no = sservice.loadSnoutsByMonth(snoutsByMonth, conn);
+				mForm.setSerial_no(manage_serial_no);
+			} else {
+				listResponse.put("Continue", true);
+			}
 
 			// 返回
 			listResponse.put("snoutsByMonth", snoutsByMonth);
@@ -795,7 +803,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 				}
 			}
 
-			listResponse.put("snout_model", "1");
+			listResponse.put("snout_model", SNOUT_MODEL_INCLUDED);
 			SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
 			// 寻找维修对象已使用先端头
 			List<ProductionFeatureEntity> used_snouts = dao.findUsedSnoutsByMaterial(material_id);
@@ -814,12 +822,12 @@ public class PositionPanelSnoutAction extends BaseAction {
 				// 得到refer
 				String refer = sservice.getRefers(model_id, conn);
 				listResponse.put("sReferChooser", refer);
-				listResponse.put("snout_model", "2");
+				listResponse.put("snout_model", SNOUT_MODEL_INCLUDED_AND_REWORKED);
 			}
 			listResponse.put("used_snout", sUsedSnout);
 
 		} else {
-			listResponse.put("snout_model", "0");
+			listResponse.put("snout_model", SNOUT_MODEL_EXCLUDED);
 		}
 
 		// 返回Json格式响应信息
@@ -919,7 +927,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 			BeanUtil.copyToForm(mbean, mform, CopyOptions.COPYOPTIONS_NOEMPTY);
 			listResponse.put("mform", mform);
 			PositionPanelService.getPcses(listResponse, workingPf, user.getLine_id(), conn);
-			listResponse.put("snout_model" , "1");
+			listResponse.put("snout_model" , SNOUT_MODEL_INCLUDED);
 			List<ProductionFeatureEntity> used_snouts = dao.findUsedSnoutsByMaterial(material_id);
 
 			List<String> serialNos = new ArrayList<String>();
@@ -935,7 +943,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 			listResponse.put("leagal_overline", leagal_overline);
 
 		} else {
-			listResponse.put("snout_model" , "1");
+			listResponse.put("snout_model" , SNOUT_MODEL_INCLUDED);
 			listResponse.put("used_snout" , "");
 		}
 
@@ -1004,7 +1012,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 			listResponse.put("mform", mform);
 			PositionPanelService.getPcses(listResponse, workingPf, user.getLine_id(), conn);
-			listResponse.put("snout_model" , "1");
+			listResponse.put("snout_model" , SNOUT_MODEL_INCLUDED);
 			listResponse.put("used_snout" , "");
 	
 			// 得到refer

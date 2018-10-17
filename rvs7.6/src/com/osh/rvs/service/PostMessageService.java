@@ -15,11 +15,18 @@ public class PostMessageService {
 	public static final Integer PARTIAL_RELATIVE_LOST = 4;
 	public static final Integer ARRIVAL_PLAN_DATE_CHANGED = 7;
 	public static final Integer INFECT_ERROR_CONFIRMED = 9;
+	public static final Integer AGREE_DATE_CHANGE = 10;
+	public static final Integer SET_PARTIAL_POSITION = 12;
+	public static final Integer SORC_TO_OGZ = 18;
+	public static final Integer SORC_TO_OSH = 19;
+	public static final Integer INLINE_LATE = 20;
 	public static final Integer CONSUMABLE_ORDER_CONFIRM = 42;
 	public static final Integer CONSUMABLE_ORDER_DIRECT = 44;
 	public static final Integer CONSUMABLE_APPLY_COMPLETE = 45;
 	public static final Integer CONSUMABLE_APPLY_IMCOMPLETE = 46;
 	public static final Integer SNOUT_LEAK_BY_MODEL = 50;
+	public static final Integer SIKAKE_OVERTIME = 51;
+	public static final Integer LINE_PLAN_OVERTIME = 52;
 	public static final Integer COUNTDOWN_UNREACH = 60;
 
 	/**

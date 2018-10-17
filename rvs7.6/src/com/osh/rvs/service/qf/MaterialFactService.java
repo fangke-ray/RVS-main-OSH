@@ -373,26 +373,11 @@ public class MaterialFactService {
 		lightFix = lightFix && (entity.getFix_type() == 1);
 
 		Date agreedDate = entity.getAgreed_date();
-		// 纳期限定
-		Integer timeLimit = RvsConsts.TIME_LIMIT;
-		// 直送快速
-		if (2 == entity.getScheduled_expedited()) {
-			if (1 == level) {
-				// S1同意日期+2个工作日
-				timeLimit = +2;
-			} else {
-				// S2/S3同意日期+4个工作日
-				timeLimit = +4;
-			}
-		}
-		if (lightFix) {
-			timeLimit = +2;
-		}
-		if (peripheral) { // 周边8个工作日
-			timeLimit = +8;
-		}
 
-		Date workDate = RvsUtils.switchWorkDate(agreedDate, timeLimit);
+		Date[] workDates = RvsUtils.getTimeLimit(agreedDate, entity.getLevel(), 
+				entity.getFix_type(), entity.getScheduled_expedited(), conn, true);
+
+		Date workDate = workDates[0];
 		entity.setScheduled_date(workDate);
 
 		// 更新维修对象的投线信息
@@ -436,22 +421,7 @@ public class MaterialFactService {
 			MaterialProcessEntity insertBean = new MaterialProcessEntity();
 			insertBean.setMaterial_id(materialId);
 
-			/** 设定产出安排时间为 同意日5个工作日后 */
-			timeLimit = RvsConsts.TIME_LIMIT - 1;
-			// 直送快速
-			if (2 == entity.getScheduled_expedited()) {
-				if (1 == level) {
-					// S1
-					timeLimit = +1;
-				} else {
-					// S2/S3
-					timeLimit = +3;
-				}
-			}
-			if (lightFix) {
-				timeLimit = +1;
-			}
-			Date workDate4PreCom = RvsUtils.switchWorkDate(agreedDate, timeLimit);
+			Date workDate4PreCom = workDates[1];
 
 			int px = 0;
 			if (lightFix) {
