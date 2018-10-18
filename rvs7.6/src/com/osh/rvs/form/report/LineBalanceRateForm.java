@@ -40,6 +40,9 @@ public class LineBalanceRateForm extends ActionForm implements Serializable {
 	@BeanField(title = "是否包含返工", name = "rework", type = FieldType.Integer, length = 1)
 	private String rework;
 
+	@BeanField(title = "包含单元化工位", name = "cell", type = FieldType.Integer, length = 1)
+	private String cell;
+
 	@BeanField(title = "作业开始时间", name = "finish_time_start", type = FieldType.Date)
 	private String finish_time_start;
 
@@ -181,6 +184,14 @@ public class LineBalanceRateForm extends ActionForm implements Serializable {
 
 	public void setProcess_codes(String process_codes) {
 		this.process_codes = process_codes;
+	}
+
+	public String getCell() {
+		return cell;
+	}
+
+	public void setCell(String cell) {
+		this.cell = cell;
 	}
 
 }

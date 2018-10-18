@@ -5,6 +5,7 @@ var receivePos = "252";
 var position_counts = {};
 var selectedMaterial = {};
 var checked_position_id = "";
+var checked_group = false;
 var today_assigned = "";
 var chart2 = null;
 
@@ -701,7 +702,7 @@ function Merger(gridName, CellName) {
 			pill.find("tr#" + mya[i] + " td").css("background-color", "gray");
 		}
 
-		if (status == "0" || status == "4") {
+		if (status == "0" || status == "4" || status == "7") {
 			pill.find("tr#" + mya[i] + " td[aria\\-describedby='" + gridName + "_process_code']").css("color", "#0080FF");
 		} else if (status == "1") {
 			pill.find("tr#" + mya[i] + " td[aria\\-describedby='" + gridName + "_process_code']").css("color", "#58b848");
@@ -759,10 +760,11 @@ function Merger(gridName, CellName) {
 	}
 }
 
-var positionFilter = function(position_id) {
+var positionFilter = function(position_id, checkGroup) {
 	if (checked_position_id == position_id) return;
 
 	checked_position_id = position_id;
+	checked_group = checkGroup;
 
 	refreshList();
 }
@@ -774,7 +776,7 @@ var refreshList = function() {
 		async : true,
 		url : servicePath + '?method=refreshList',
 		cache : false,
-		data : {position_id : checked_position_id, today: today_assigned},
+		data : {position_id : checked_position_id, today: today_assigned, checked_group : checked_group},
 		type : "post",
 		dataType : "json",
 		success : ajaxSuccessCheck,

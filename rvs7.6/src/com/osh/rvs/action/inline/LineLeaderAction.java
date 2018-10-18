@@ -97,7 +97,7 @@ public class LineLeaderAction extends BaseAction {
 		}
 
 		// 取得今日计划暨作业对象一览
-		listResponse.put("performance", service.getPerformanceList(section_id, line_id, null, null, conn));
+		listResponse.put("performance", service.getPerformanceList(section_id, line_id, null, null, null, conn));
 
 		service.getChartContent(user, conn, listResponse);
 
@@ -152,11 +152,12 @@ public class LineLeaderAction extends BaseAction {
 
 		String position_id = req.getParameter("position_id");
 		String today = req.getParameter("today");
+		String checked_group = req.getParameter("checked_group");
 		String section_id = user.getSection_id();
 		String line_id = user.getLine_id();
 
 		// 取得今日计划暨作业对象一览
-		listResponse.put("performance", service.getPerformanceList(section_id, line_id, position_id, today, conn));
+		listResponse.put("performance", service.getPerformanceList(section_id, line_id, position_id, checked_group, today, conn));
 
 		// service.getChartContent(section_id, line_id, conn, listResponse);
 

@@ -2,6 +2,7 @@ package com.osh.rvs.service.inline;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -55,16 +56,17 @@ public class LineLeaderService {
 	 * 取得当前课室+工程下处理中的全部维修对象信息
 	 * @param section_id
 	 * @param line_id
+	 * @param checkGroup 
 	 * @param today 
 	 * @param conn
 	 * @return
 	 */
-	public List<LineLeaderForm> getPerformanceList(String section_id, String line_id, String position_id, String today, SqlSession conn) {
+	public List<LineLeaderForm> getPerformanceList(String section_id, String line_id, String position_id, String checkGroup, String today, SqlSession conn) {
 		List<LineLeaderForm> ret = new ArrayList<LineLeaderForm>();
 
 		LineLeaderMapper dao = conn.getMapper(LineLeaderMapper.class);
 		if ("".equals(position_id)) position_id = null;
-		List<LineLeaderEntity> listEntities = dao.getWorkingMaterials(section_id, line_id, position_id, today);
+		List<LineLeaderEntity> listEntities = dao.getWorkingMaterials(section_id, line_id, position_id, checkGroup, today);
 
 		CopyOptions cos = new CopyOptions();
 		cos.excludeEmptyString();
@@ -212,10 +214,114 @@ public class LineLeaderService {
 			}
 		}
 
+		// 组工位
+		List<Map<String, Object>> groupedPositions = dao.getGroupedPositions(section_id, line_id);
+		if (groupedPositions != null && groupedPositions.size() > 0) {
+			String cursor = null;
+			String categoryP = null; boolean orange = false;
+			Set<String> countP = new HashSet<String>(), light_fix_countP = new HashSet<String>();
+			Set<String> countF = new HashSet<String>(), light_fix_countF = new HashSet<String>();
+
+			for (Map<String, Object> groupedPosition : groupedPositions) {
+				String group_position_id = getAsString(groupedPosition.get("group_position_id"));
+				if (!group_position_id.equals(cursor)) {
+					if (cursor != null) {
+						if (orange) {
+							categoryP = categoryP.replaceAll("groupTag", "style=\"fill:orange;\"");
+						}
+						positions.add(categoryP.replace("</a>", " 进行</a>"));
+						positions.add(categoryP.replace("</a>", " 完成</a>"));
+						counts.add(countP.size());
+						counts.add(countF.size());
+						if (light_fix_countP.size() > 0) {
+							light_fix_counts.add(light_fix_countP.size());
+						} else {
+							light_fix_counts.add(null);
+						}
+						if (light_fix_countF.size() > 0) {
+							light_fix_counts.add(light_fix_countF.size());
+						} else {
+							light_fix_counts.add(null);
+						}
+					}
+
+					cursor = group_position_id;
+					categoryP = null; orange = false;
+					countP = new HashSet<String>(); light_fix_countP = new HashSet<String>();
+					countF = new HashSet<String>(); light_fix_countF = new HashSet<String>();
+				}
+
+				String sub_position_id = getAsString(groupedPosition.get("sub_position_id"));
+//				String next_position_id = getAsString(groupedPosition.get("next_position_id"));
+//				Integer control_trigger = getAsInteger(groupedPosition.get("control_trigger"));
+				String process_code = getAsString(groupedPosition.get("process_code"));
+				String name = getAsString(groupedPosition.get("name"));
+				String working_material_id = getAsString(groupedPosition.get("working_material_id")); 
+				Integer working_light_fix = getAsInteger(groupedPosition.get("working_light_fix"));
+				String finish_material_id = getAsString(groupedPosition.get("finish_material_id"));
+				Integer finish_light_fix = getAsInteger(groupedPosition.get("finish_light_fix"));
+
+				if (categoryP == null) {
+					categoryP = "<a href=\"javaScript:positionFilter('"+group_position_id+"', true)\" groupTag>";
+					categoryP = categoryP + process_code + " " + name;
+					categoryP = categoryP + "</a>";
+				}
+				if (position_list.contains(sub_position_id)) {
+					orange = true;
+				}
+				if (working_material_id != null) {
+					if (working_light_fix == 1) {
+						light_fix_countP.add(working_material_id);
+					} else {
+						countP.add(working_material_id);
+					}
+				}
+				if (finish_material_id != null) {
+					if (finish_light_fix == 1) {
+						light_fix_countF.add(finish_material_id);
+					} else {
+						countF.add(finish_material_id);
+					}
+				}
+			}
+
+			if (cursor != null) {
+				if (orange) {
+					categoryP = categoryP.replaceAll("groupTag", "style=\"fill:orange;\"");
+				}
+				positions.add(categoryP.replace("</a>", " 进行</a>"));
+				positions.add(categoryP.replace("</a>", " 完成</a>"));
+				counts.add(countP.size());
+				counts.add(countF.size());
+				if (light_fix_countP.size() > 0) {
+					light_fix_counts.add(light_fix_countP.size());
+				} else {
+					light_fix_counts.add(null);
+				}
+				if (light_fix_countF.size() > 0) {
+					light_fix_counts.add(light_fix_countF.size());
+				} else {
+					light_fix_counts.add(null);
+				}
+			}
+		}
+
 		listResponse.put("categories", positions);
 		listResponse.put("counts", counts);
 		listResponse.put("light_fix_counts", light_fix_counts);
 		return;
+	}
+
+	private Integer getAsInteger(Object object) {
+		if (object == null) return null;
+		if (object instanceof Long) return ((Long) object).intValue();
+		if (object instanceof Integer) return (Integer) object;
+		return null;
+	}
+
+	private String getAsString(Object object) {
+		if (object == null) return null;
+		return object.toString();
 	}
 
 	/**

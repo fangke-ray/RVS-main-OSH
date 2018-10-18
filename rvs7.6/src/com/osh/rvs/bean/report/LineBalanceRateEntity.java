@@ -44,6 +44,8 @@ public class LineBalanceRateEntity implements Serializable {
 	/** 是否包含返工 **/
 	private Integer rework;
 
+	private Integer cell;
+
 	/** 作业开始时间 **/
 	private Date finish_time_start;
 
@@ -160,6 +162,14 @@ public class LineBalanceRateEntity implements Serializable {
 
 	public void setPosition_name(String position_name) {
 		this.position_name = position_name;
+	}
+
+	public Integer getCell() {
+		return cell;
+	}
+
+	public void setCell(Integer cell) {
+		this.cell = cell;
 	}
 
 }

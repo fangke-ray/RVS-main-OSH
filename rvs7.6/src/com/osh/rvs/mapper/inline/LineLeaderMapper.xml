@@ -36,7 +36,7 @@
 				join material_process mp ON m.material_id = mp.material_id and mp.line_id = pos.line_id
 			    WHERE
 			        p.finish_time IS NULL
-			            AND p.operate_result <> 5
+			            AND p.operate_result not in (5, 7)
 			            AND p.SECTION_ID = #{section_id}
 			            and m.level in (9 , 91, 92, 93, 96, 97, 98, 99)
 					    AND pos.line_id = #{line_id}
@@ -54,7 +54,7 @@
 				join material_process mp ON m.material_id = mp.material_id and mp.line_id = pos.line_id
 			    WHERE
 			        p.finish_time IS NULL
-			            AND p.operate_result <> 5
+			            AND p.operate_result not in (5, 7)
 			            AND p.SECTION_ID = #{section_id}
 			            and m.level not in (9 , 91, 92, 93, 96, 97, 98)
 					    AND pos.line_id = #{line_id}
@@ -67,6 +67,7 @@
 			WHERE
 			    LINE_ID = #{line_id}
 			    AND DELETE_FLG = 0
+			    AND p.position_id NOT IN (select sub_position_id from position_group)
 			ORDER BY `p`.PROCESS_CODE, px;
 		]]>
 	</select>
@@ -149,11 +150,25 @@
 			AND (`mp`.`finish_date` IS NULL OR (`mp`.`rework_trigger_position_id` IS NOT NULL AND `ppf1`.operate_result != 2))
 		]]>
 		<if test="position_id!= null and position_id!= '' ">
-		<![CDATA[
-			AND (ppf1.position_id = #{position_id} 
-				OR EXISTS (SELECT operate_result, process_code, position_id FROM production_feature WHERE material_id = `m`.material_id 
-				AND position_id = #{position_id} AND finish_time IS NULL))
-		]]>
+			<if test="checked_group eq 'true' ">
+			<![CDATA[
+				AND EXISTS (SELECT 1 FROM production_feature WHERE material_id = `m`.material_id
+					AND finish_time IS NULL
+					AND (
+						position_id IN (SELECT sub_position_id FROM position_group WHERE group_position_id = #{position_id}) OR
+						position_id IN (SELECT next_position_id FROM position_group WHERE group_position_id = #{position_id} AND operate_result = 7)
+					)
+				)
+			]]>
+			</if>
+			<if test="checked_group neq 'true' ">
+			<![CDATA[
+				AND (ppf1.position_id = #{position_id} 
+					OR EXISTS (SELECT operate_result, process_code, position_id FROM production_feature WHERE material_id = `m`.material_id 
+					AND position_id = #{position_id} AND finish_time IS NULL))
+				AND `ppf1`.operate_result <> 7
+			]]>
+			</if>
 		</if>
 		<if test="today!= null and today!= '' ">
 		<![CDATA[
@@ -289,4 +304,33 @@
 			        AND ppt.plan_end_time < current_timestamp
 		]]>
 	</select>
+
+	<select id="getGroupedPositions" resultType="map" parameterType="String">
+		<![CDATA[
+		select CAST(group_position_id as char) as group_position_id, CAST(sub_position_id as char) as sub_position_id, next_position_id, control_trigger,
+			po.process_code, po.name,
+			pf1.material_id as working_material_id, m1.level in (9 , 91, 92, 93, 96, 97, 98, 99) as working_light_fix,
+			pf2.material_id as finish_material_id, m2.level in (9 , 91, 92, 93, 96, 97, 98, 99) as finish_light_fix
+		from position_group pg
+		join position po on pg.group_position_id = po.position_id
+		join position_of_section pos
+			on pos.section_id = #{section_id} and pos.position_id = pg.sub_position_id
+		left join production_feature pf1
+			on pf1.position_id = pg.sub_position_id
+			and pf1.finish_time is null
+		left join material m1
+			on pf1.material_id = m1.material_id
+		left join production_feature pf2
+			on pf2.position_id = pg.next_position_id
+			and pf2.finish_time is null
+			and pf2.operate_result = 7
+		left join material m2
+			on pf2.material_id = m2.material_id
+		where po.line_id = #{line_id}
+		and po.delete_flg = 0
+		order by group_position_id
+		;
+		]]>
+	</select>
+
 </mapper>

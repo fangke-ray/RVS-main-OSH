@@ -89,15 +89,25 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									</td>
 								</tr>
 								<tr>
-									<td class="ui-state-default td-title">作业时间</td>
-									<td class="td-content">
-										<input type="text" id="search_finish_time_start" class="ui-widget-content">起<br/>
-										<input type="text" id="search_finish_time_end" class="ui-widget-content">止
+									<td class="ui-state-default td-title">包含单元化工位</td>
+									<td class="td-content" id="search_cell">
+										<input type="radio" name="cell" id="cell_y" class="ui-widget-content" value="1"><label for="cell_y">包含</label>
+										<input type="radio" name="cell" id="cell_n" class="ui-widget-content" value="2"><label for="cell_n">不包含</label>
 									</td>
 									<td class="ui-state-default td-title">维修流程制定工位</td>
 									<td class="td-content" colspan="3">
 										<input type="button" id="selectflowbutton" value="选择流程">
 										<span id="selected_processes"></span>
+									</td>
+								</tr>
+								<tr>
+									<td class="ui-state-default td-title">作业时间</td>
+									<td class="td-content">
+										<input type="text" id="search_finish_time_start" class="ui-widget-content">起<br/>
+										<input type="text" id="search_finish_time_end" class="ui-widget-content">止
+									</td>
+									<td class="ui-state-default td-title"></td>
+									<td class="td-content" colspan="3">
 									</td>
 								</tr>
 							</tbody>

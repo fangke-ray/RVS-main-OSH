@@ -17,7 +17,7 @@ $(function(){
 	$("#search_category_id,#search_level,#search_section_id,#search_line_id,#search_px,#paChooser").select2Buttons();
 	setReferChooser($("#hidden_model_id"),$("#search_model_referchooser"));
 	
-	$("#search_rework").buttonset();
+	$("#search_rework, #search_cell").buttonset();
 
     $("#search_finish_time_start,#search_finish_time_end").datepicker({
 		showButtonPanel : true,
@@ -123,6 +123,7 @@ var reset = function(){
 	$("#searchform input[type='hidden']").val("");
 	$("#searchform select").val("").trigger("change");
 	$("#rework_y").attr("checked","checked").trigger("change");
+	$("#cell_n").attr("checked","checked").trigger("change");
 	$("#paChooser").val("").trigger("change");
 };
 
@@ -151,6 +152,7 @@ var findit = function(){
 		"line_id":$("#search_line_id").val(),
 		"px":$("#search_px").val(),
 		"rework":$("#search_rework").find("input[type='radio']:checked").val(),
+		"cell":$("#search_cell").find("input[type='radio']:checked").val(),
 		"finish_time_start":$("#search_finish_time_start").val(),
 		"finish_time_end":$("#search_finish_time_end").val(),
 		"process_codes":$("#selected_processes").text()
@@ -203,6 +205,7 @@ var search_handleComplete = function(xhrObj){
 				"line_name":$("#search_line_id option:selected").text().trim(),
 				"px":$("#search_px option:selected").text().trim(),
 				"rework":$("#search_rework").find("input[type='radio']:checked").val(),
+				"cell":$("#search_cell").find("input[type='radio']:checked").val(),
 				"finish_time_start":$("#search_finish_time_start").val(),
 				"finish_time_end":$("#search_finish_time_end").val(),
 				"balance_rate":$("#label_balance_rate").text(),

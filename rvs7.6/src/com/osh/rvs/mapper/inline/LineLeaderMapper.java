@@ -14,7 +14,8 @@ public interface LineLeaderMapper {
 	public List<Map<String, String>> getWorkingOfPositions(@Param("section_id") String section_id, @Param("line_id") String line_id);
 
 	// 取得工程内全部
-	public List<LineLeaderEntity> getWorkingMaterials(@Param("section_id") String section_id, @Param("line_id") String line_id, @Param("position_id") String position_id, @Param("today") String today);
+	public List<LineLeaderEntity> getWorkingMaterials(@Param("section_id") String section_id, @Param("line_id") String line_id, @Param("position_id") String position_id, 
+			@Param("checked_group") String checked_group, @Param("today") String today);
 
 	// 切换线内加急
 	public void switchLeaderExpedite(@Param("material_id") String material_id, @Param("line_id") String line_id) throws Exception;
@@ -24,4 +25,6 @@ public interface LineLeaderMapper {
 	public void switchQuotationFirst(String material_id);
 
 	public List<String> getOverTimePosition(@Param("section_id") String section_id, @Param("line_id") String line_id);
+	
+	public List<Map<String, Object>> getGroupedPositions(@Param("section_id") String section_id, @Param("line_id") String line_id);
 }

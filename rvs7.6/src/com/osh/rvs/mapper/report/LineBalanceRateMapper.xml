@@ -111,6 +111,11 @@
 		AND mp.px = 7
 	]]>
 	</if>
+	<if test="cell==2">
+	<![CDATA[
+		AND p.position_id NOT IN (select sub_position_id from position_group)
+	]]>
+	</if>
 	<if test="rework==2">
 	<![CDATA[
 		GROUP BY pf.material_id, pf.position_id
