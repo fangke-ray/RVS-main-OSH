@@ -49,6 +49,7 @@ public class PauseFeatureService {
 		// 工位ID
 		entity.setPosition_id(productionFeature.getPosition_id());
 		// 注释
+		if (comments.length() > 100) comments = comments.substring(0, 100);
 		entity.setComments(comments);
 		// 警报信息ID
 		entity.setAlarm_messsage_id(alarm_messsage_id);

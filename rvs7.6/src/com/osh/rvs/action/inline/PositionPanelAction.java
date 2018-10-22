@@ -510,6 +510,10 @@ public class PositionPanelAction extends BaseAction {
 
 					OperatorProductionService opService = new OperatorProductionService();
 					opService.getOperatorLastPause(user.getOperator_id(), listResponse, conn);
+
+					// 重置工位选择
+					if (user.getGroup_position_id() != null)
+						user.setPosition_id(user.getGroup_position_id());
 				}
 			}
 
@@ -579,6 +583,15 @@ public class PositionPanelAction extends BaseAction {
 		String sGroupPositionId = user.getGroup_position_id();
 
 		if (sGroupPositionId != null) {
+			Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
+			if (groupSubPositions.get(reqPositionId) == null 
+					|| !groupSubPositions.get(reqPositionId).equals(sGroupPositionId)) {
+				MsgInfo msgInfo = new MsgInfo();
+				msgInfo.setComponentid("position_id");
+				msgInfo.setErrcode("privacy.objectOutOfDomain");
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "维修对象"));
+				errors.add(msgInfo);
+			} else 
 			// 判断操作者有权限
 			if (!user.getPosition_id().equals(reqPositionId)) {
 				boolean hasPrivay = false;

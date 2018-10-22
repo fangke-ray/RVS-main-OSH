@@ -1080,8 +1080,8 @@ var getJustWorkingFingers = function(material_id) {
 }
 
 var expeditedColor = function(expedited, today, reason) {
-	if (reason == "待投入" || reason == "保留中") return '';
 	if (today == 1) return ' tube-green'; // 当日
+	if (reason == "待投入" || reason == "保留中") return '';
 //	if (expedited >= 10) return ' tube-yellow'; // 加急
 //	if (expedited == 1) return ' tube-blue'; // 加急
 	return ' tube-gray'; // 普通 
@@ -1845,6 +1845,7 @@ var getTubeBody = function(waiting) {
 var getWaitingHtml = function(waitings, other) {
 	var reason = "";
 	var waiting_html = "";
+	var waitingsLength = 0;
 	for (var iwaiting = 0; iwaiting < waitings.length; iwaiting++) {
 		var waiting = waitings[iwaiting];
 		if (reason != waiting.waitingat) {
@@ -1865,9 +1866,12 @@ var getWaitingHtml = function(waitings, other) {
 		if (other && !waiting.imbalance) {
 			other.push(waiting);
 		}
+		if (reason != "待投入") {
+			waitingsLength++;
+		}
 	}
 
-	$("#p_waiting_count").text(waitings.length + "台");
+	$("#p_waiting_count").text(waitingsLength + "台");
 	return waiting_html;
 }
 

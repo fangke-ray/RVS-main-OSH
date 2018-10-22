@@ -35,7 +35,7 @@ public class PositionService {
 
 	private static Set<String> dividePositions = null;
 	private static Set<String> groupPositions = null;
-	private static Map<String, String> groupNextPositions = new HashMap<String, String>();
+	private static Map<String, String> groupNextPositions = null;
 	private static Map<String, String> groupSubPositions = null;
 	private static Map<String, List<PositionGroupEntity>> groupPositionSubs = null;
 	private static String inlineOptions = null;
