@@ -125,6 +125,9 @@ public class ConsumableApplicationForm extends ActionForm {
 	@BeanField(title = "申请人", name = "operator_name")
 	private String operator_name;
 
+	@BeanField(title = "剪裁长度", name = "cut_length", type = FieldType.Integer)
+	private String cut_length;
+
 	public String getConsumable_application_key() {
 		return consumable_application_key;
 	}
@@ -427,6 +430,14 @@ public class ConsumableApplicationForm extends ActionForm {
 
 	public void setOperator_name(String operator_name) {
 		this.operator_name = operator_name;
+	}
+
+	public String getCut_length() {
+		return cut_length;
+	}
+
+	public void setCut_length(String cut_length) {
+		this.cut_length = cut_length;
 	}
 
 	

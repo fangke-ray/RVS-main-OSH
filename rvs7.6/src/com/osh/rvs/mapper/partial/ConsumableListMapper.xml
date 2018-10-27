@@ -346,4 +346,30 @@
 		;
 	]]>
 	</select>
+
+ 	<select id="getHeatshrinkableLengthString" resultType="String" parameterType="String">
+		<![CDATA[ 
+			SELECT group_concat(`cut_length` order by `cut_length` Separator ';' ) as content
+			FROM `heatshrinkable_tube`
+			WHERE `partial_id` = #{partial_id};
+		]]>
+	</select>
+
+	<insert id="clearHeatshrinkableLength" parameterType="String">
+		<![CDATA[ 
+			DELETE FROM `heatshrinkable_tube`
+			WHERE `partial_id` = #{partial_id};
+		]]>
+	</insert>
+	<insert id="setHeatshrinkableLength" parameterType="String">
+		<![CDATA[ 
+			INSERT INTO `heatshrinkable_tube`
+				(`partial_id`,
+				`cut_length`)
+			VALUES
+				(#{partial_id},
+				#{cut_length});
+		]]>
+	</insert>
+
  </mapper>

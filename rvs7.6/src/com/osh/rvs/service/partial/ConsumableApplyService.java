@@ -504,12 +504,23 @@ public class ConsumableApplyService {
 			SqlSession conn) {
 		if (isEmpty(consumable_application_key)) return;
 		ConsumableApplicationDetailMapper mapper = conn.getMapper(ConsumableApplicationDetailMapper.class);
+		ConsumableListMapper clMapper = conn.getMapper(ConsumableListMapper.class);
 		List<ConsumableApplicationDetailEntity> applicationDetail = mapper.getDetailForEditById(consumable_application_key, operator_id);
 		// 分别自己和别人填写的申请品
 		if (!"00000000000".equals(operator_id)) {
 			for (ConsumableApplicationDetailEntity entity : applicationDetail) {
 				if (!operator_id.equals(entity.getPetitioner_id())) {
 					entity.setPetitioner_id(null);
+				} else {
+					if (entity.getCut_length() != null) { // 取得剪裁长度选项
+						entity.setCut_length_options(clMapper.getHeatshrinkableLengthString(entity.getPartial_id()));
+					}
+				}
+			}
+		} else {
+			for (ConsumableApplicationDetailEntity entity : applicationDetail) {
+				if (entity.getCut_length() != null) { // 取得剪裁长度选项
+					entity.setCut_length_options(clMapper.getHeatshrinkableLengthString(entity.getPartial_id()));
 				}
 			}
 		}
@@ -529,7 +540,13 @@ public class ConsumableApplyService {
 
 		List<ConsumableApplicationDetailEntity> partials = mapper.getDetailForEditByPartial(condition);
 		if (partials.size() == 1) {
-			result.put("applicationDetail", partials.get(0));
+			ConsumableApplicationDetailEntity applicationDetail = partials.get(0);
+			result.put("applicationDetail", applicationDetail);
+			if (applicationDetail.getType() == 6) { // 热缩管
+				ConsumableListMapper clMapper = conn.getMapper(ConsumableListMapper.class);
+				String chooses = clMapper.getHeatshrinkableLengthString(applicationDetail.getPartial_id());
+				result.put("lengths", chooses);
+			}
 		}
 	}
 
@@ -638,19 +655,40 @@ public class ConsumableApplyService {
 		for (ConsumableApplicationForm detail : formList) {
 			ConsumableApplicationDetailEntity cadEntity = new ConsumableApplicationDetailEntity();
 			CopyOptions cop = new CopyOptions();
-			cop.include("partial_id", "apply_method", "apply_quantity", "pack_method");
+			cop.include("partial_id", "apply_method", "apply_quantity", "pack_method", "cut_length");
 			BeanUtil.copyToBean(detail, cadEntity, cop);
-			detail.setConsumable_application_key(consumableApplicationForm.getConsumable_application_key());
+			cadEntity.setConsumable_application_key(consumableApplicationForm.getConsumable_application_key());
 			if ("me".equals(detail.getPetitioner_id())) {
-				detail.setPetitioner_id(operator_id);
+				cadEntity.setPetitioner_id(operator_id);
+			} else {
+				cadEntity.setPetitioner_id(detail.getPetitioner_id());
 			}
 
 			if ("new".equals(detail.getFlg())) {
-				cadMapper.insertDetail(detail);
+				cadMapper.insertDetail(cadEntity);
 			} else if ("edit".equals(detail.getFlg())) {
-				cadMapper.editApplyQuantity(detail);
+				cadMapper.editApplyQuantity(cadEntity);
 			} else if ("delete".equals(detail.getFlg())) {
-				cadMapper.deleteDetail(detail);
+				cadMapper.deleteDetail(cadEntity);
+
+				ConsumableApplicationDetailEntity org = cadMapper.checkConsumableApplicationParticular(cadEntity);
+				if (org != null) {
+					cadEntity.setCut_length(null);
+					cadMapper.deleteParticular(cadEntity);
+				}
+			}
+
+			// 处理附加信息（热缩管裁剪长度）
+			if (cadEntity.getCut_length() != null) {
+				ConsumableApplicationDetailEntity org = cadMapper.checkConsumableApplicationParticular(cadEntity);
+
+				if (org == null) {
+					cadMapper.insertParticular(cadEntity);
+				} else {
+					if (org.getCut_length() != cadEntity.getCut_length()) {
+						cadMapper.updateParticular(cadEntity);
+					}
+				}
 			}
 		}
 

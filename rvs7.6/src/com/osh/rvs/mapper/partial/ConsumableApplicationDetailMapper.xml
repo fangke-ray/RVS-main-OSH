@@ -78,7 +78,7 @@
 			type, available_inventory - coalesce(other_apply.cnt, 0) as available_inventory,
 			unit_name, content,
 			p.price,
-			cad.petitioner_id
+			cad.petitioner_id, cap.cut_length
 		FROM consumable_application_detail cad
 		join partial p
 			on cad.partial_id= p.partial_id
@@ -87,6 +87,10 @@
 		left join consumable_measurement_unit cmu
 			on cad.partial_id= cmu.partial_id
 			and pack_method = 0
+		left join consumable_application_particular cap
+			on cad.consumable_application_key = cap.consumable_application_key
+			and cad.partial_id = cap.partial_id
+			and cad.petitioner_id = cap.petitioner_id
 		left join (
 			select partial_id,
 			sum(case when apply_quantity > supply_quantity then apply_quantity - supply_quantity else 0 end) cnt
@@ -106,8 +110,8 @@
 			group by apd.partial_id
 		) other_apply
 		on cad.partial_id = other_apply.partial_id
-		where consumable_application_key = #{consumable_application_key}
-		order by petitioner_id, code;
+		where cad.consumable_application_key = #{consumable_application_key}
+		order by cad.petitioner_id, code;
 		]]>
 	</select>
 
@@ -189,4 +193,57 @@
 			AND petitioner_id = #{petitioner_id}
 		]]>
 	</delete>
+
+	<select id="checkConsumableApplicationParticular" parameterType="ConsumableApplicationDetailEntity"
+			resultType="ConsumableApplicationDetailEntity" >
+		<![CDATA[ 
+		SELECT `consumable_application_key`,
+		    `partial_id`,
+		    `petitioner_id`,
+		    `cut_length`
+		FROM `consumable_application_particular`
+		WHERE `consumable_application_key` = #{consumable_application_key}
+		AND `partial_id` = #{partial_id}
+		AND `petitioner_id` = #{petitioner_id}
+		]]>
+	</select>
+
+	<insert id="insertParticular" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			INSERT INTO `consumable_application_particular`
+			(`consumable_application_key`,
+			`partial_id`,
+			`petitioner_id`,
+			`cut_length`)
+			VALUES
+			(
+			#{consumable_application_key},
+			#{partial_id},
+			#{petitioner_id},
+			#{cut_length});
+		]]>
+	</insert>
+
+	<update id="updateParticular" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			UPDATE
+				`consumable_application_particular`
+			SET
+				cut_length = #{cut_length}
+			WHERE consumable_application_key = #{consumable_application_key}
+			AND partial_id = #{partial_id}
+			AND petitioner_id = #{petitioner_id}
+		]]>
+	</update>
+
+	<delete id="deleteParticular" parameterType="ConsumableApplicationDetailEntity">
+		<![CDATA[
+			DELETE FROM
+				`consumable_application_particular`
+			WHERE consumable_application_key = #{consumable_application_key}
+			AND partial_id = #{partial_id}
+			AND petitioner_id = #{petitioner_id}
+		]]>
+	</delete>
+
  </mapper>

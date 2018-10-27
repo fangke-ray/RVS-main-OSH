@@ -260,6 +260,12 @@
 						<label id="ca_add_unit_price"></label><label id="ca_add_total_price"></label>
 					</td>
 				</tr>
+				<tr id="ca_heatshrink">
+					<td class="ui-state-default td-title">热缩管剪裁长度</td>
+					<td class="td-content">
+						<select id="ca_add_cut_length"></select>
+					</td>
+				</tr>
 			</tbody>
 		</table>
 		</div>

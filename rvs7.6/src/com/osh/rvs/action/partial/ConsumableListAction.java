@@ -528,4 +528,53 @@ public class ConsumableListAction extends BaseAction{
 		returnJsonResponse(response, listResponse);
 		log.info("ConsumableListAction.searchDownload end");
 	}
+
+	/**
+	 * 剪裁长度设置
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void getHeatshrinkableLength(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response,
+			SqlSession conn) throws Exception {
+		log.info("ConsumableListAction.getHeatshrinkableLength start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		ConsumableListEntity consumableListEntity = new ConsumableListEntity();
+		/* 表单复制到Bean */
+		BeanUtil.copyToBean(form, consumableListEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		String partialId = "" + consumableListEntity.getPartial_id();
+		/* 查询 */
+		String content = service.searchHeatshrinkableLength(partialId , conn);
+		ConsumableListForm returnForm = new ConsumableListForm();
+		returnForm.setPartial_id(partialId);
+		returnForm.setContent(content);
+		listResponse.put("returnForm", returnForm);
+
+		listResponse.put("errors", errors);
+
+		returnJsonResponse(response, listResponse);
+		log.info("ConsumableListAction.getHeatshrinkableLength end");
+	}
+	public void doSetHeatshrinkableLength(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response,
+			SqlSessionManager conn) throws Exception {
+		log.info("ConsumableListAction.setHeatshrinkableLength start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		service.setHeatshrinkableLength(request , conn, errors);
+
+		listResponse.put("errors", errors);
+
+		returnJsonResponse(response, listResponse);
+		log.info("ConsumableListAction.setHeatshrinkableLength end");
+	}
 }

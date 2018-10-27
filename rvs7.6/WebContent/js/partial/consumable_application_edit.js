@@ -117,7 +117,8 @@ var ca_evts = {
 		$("#application_sheet_content").css("pointer-events", "none")
 			.next().css("pointer-events", "none")
 			.find("input:button").disable();
-
+		$("#ca_heatshrink").hide();
+		$("#ca_add_cut_length").val(-1);
 	},
 	closeChooser : function () {
 		$("#chosser_4_application_sheet").hide();
@@ -210,12 +211,24 @@ var ca_evts = {
 							$add_target = $screw_sheet;
 						}
 						var petitioner_id = partialApply.petitioner_id;
+						var description = partialApply.partial_name;
+
+						var cut_length = partialApply.cut_length;
+						if (cut_length) {
+							if (petitioner_id == null) {
+								description = "裁剪：( " + cut_length + " MM) " + description;
+							} else {
+								description = "裁剪：( <select class='edit_a_cut_length'>" + ca_evts.getLengthOptions(partialApply.cut_length_options)
+ 									+ "</select>" + ") " + description;
+							}
+						}
+
 						var $tdString = $("<tr partial_id='" + partialApply.partial_id + 
 									(petitioner_id == null ? "" : "' petitioner_id='" + petitioner_id) + "'>" +
 									"<td class='td-content'>" +
 										(petitioner_id == null ? "他人" : "<input type='button' class='ca_remove_button ui-button' value='-'></input>") +
 									"</td><td class='td-content'><label>" + partialApply.code + 
-									"</label></td><td class='td-content'><label>" + partialApply.partial_name + 
+									"</label></td><td class='td-content'><label>" + description + 
 									"</label></td><td class='td-content'>" +
 									(petitioner_id == null ? ca_evts.getQuantityLabel(partialApply.apply_quantity, partialApply.pack_method, partialApply.unit_name, partialApply.content, partialApply.available_inventory)
 									 : ca_evts.getQuantityOfData(partialApply.apply_quantity, partialApply.pack_method, partialApply.unit_name, partialApply.content, partialApply.available_inventory)
@@ -232,6 +245,9 @@ var ca_evts = {
 					.end().find(".edit_a_apply_quantiy").bind("change", function(){
 						$(this).parents("tr").attr("state", "edit");
 						ca_evts.sumPrice.apply(this);
+					})
+					.end().find(".edit_a_cut_length").val(cut_length).bind("change", function(){
+						$(this).parents("tr").attr("state", "edit");
 					});
 					}
 					if (resInfo.supplyOrderPrivacy) {
@@ -297,10 +313,32 @@ var ca_evts = {
 							$("#ca_add_order_quantity_inpack").hide();
 							$("#ca_add_order_content").val(1);
 						}
+						var lengths = resInfo.lengths;
+						if (lengths) {
+							var options = ca_evts.getLengthOptions(lengths, true);
+							$("#ca_add_cut_length").html(options).val(-1)
+								.attr("lengths", lengths)
+								.next().remove();
+							$("#ca_heatshrink").show();
+						} else {
+							$("#ca_add_cut_length").html("").val(-1)
+								.removeAttr("lengths")
+								.next().remove();
+							$("#ca_heatshrink").hide();
+						}
 					}
 				}
 			}
 		});
+	},
+	getLengthOptions : function (optionsString, includeUnsual) {
+		var lengthArr = optionsString.split(";");
+		var options = "";
+		if (includeUnsual) options = "<option value=-1>不剪裁</option>";
+		for (var iL in lengthArr) {
+			options += "<option value=" + lengthArr[iL] + ">" + lengthArr[iL] + " MM</option>"
+		}
+		return options;
 	},
 	addItem : function(){
 		var partial_id = $("#ca_add_item_id").val();
@@ -379,10 +417,19 @@ var ca_evts = {
 		} else {
 			$add_target = $("#e_screw_sheet");
 		}
+		var description = $("#ca_add_item_decription").text();
+		var sel_cut_length = -1;
+		if ($("#ca_heatshrink").is(":visible")) {
+			var $ca_add_cut_length = $("#ca_add_cut_length");
+			sel_cut_length = $ca_add_cut_length.val();
+			if (sel_cut_length != -1) {
+				description = "裁剪：( <select class='edit_a_cut_length'>" + $("#ca_add_cut_length").html() + "</select>" + ") " + description;
+			}
+		}
 		var $tdString = $("<tr state='new' partial_id='" + partial_id + "' petitioner_id='me'>" +
 					"<td class='td-content'><input type='button' class='ca_remove_button ui-button' value='-'></input></td>" +
 					"<td class='td-content'><label>" + $("#ca_add_item_code").val() + 
-					"</label></td><td class='td-content'><label>" + $("#ca_add_item_decription").text() + 
+					"</label></td><td class='td-content'><label>" + description + 
 					"</label></td><td class='td-content'>" +
 					ca_evts.getQuantity(quantity_input, available_inventory) + 
 					"</td><td class='td-content' unit_price='" + $("#ca_add_unit_price").text()
@@ -395,6 +442,7 @@ var ca_evts = {
 			.change(ca_evts.sumPrice);
 		$add_target.append($tdString);
 		$tdString.find(".edit_a_apply_quantiy").trigger("change");
+		$tdString.find(".edit_a_cut_length").val(sel_cut_length).find("option:eq(0)").remove();
 		ca_evts.closeChooser();
 	},
 	getQuantity : function(quantity, available_inventory) {
@@ -529,6 +577,9 @@ var ca_evts = {
 			postData["consumable_application.apply_quantity["+ iPdetail +"]"] = apply_quantity;
 			postData["consumable_application.pack_method["+ iPdetail +"]"] = pack_method;
 			postData["consumable_application.flg["+ iPdetail +"]"] = state;
+			if ($tr.find(".edit_a_cut_length").length > 0) {
+				postData["consumable_application.cut_length["+ iPdetail +"]"] = $tr.find(".edit_a_cut_length").val();
+			}
 
 			iPdetail++;
 		});

@@ -60,6 +60,7 @@ $(function() {
 	$("#measuring_set_button").click(showSet);
 	$("#post_clipboard_button").bind("click", postClipboard);
 	$("#download_button").bind("click", download);
+	$("#heatshrinkable_tube_button").hide().bind("click", getHeatshrinkableLength);
 });
 
 /*判断修改库存设置，移出消耗品库存按钮enable、disable(当选择了消耗品之后enable；否则是disable)*/
@@ -71,10 +72,18 @@ var enableButton = function() {
 		$("#edit_button").enable();
 		$("#remove_button").enable();
 		$("#measuring_set_button").enable();
+		var rowdata = $("#consumable_list").getRowData(row);
+
+		if (rowdata['type'] == "6") {
+			$("#heatshrinkable_tube_button").show();
+		} else {
+			$("#heatshrinkable_tube_button").hide();
+		}
 	} else {
 		$("#edit_button").disable();
 		$("#remove_button").disable();
 		$("#measuring_set_button").disable();
+		$("#heatshrinkable_tube_button").hide();
 	}
 };
 
@@ -320,7 +329,7 @@ var showSet_Complete = function(xhrobj,textStatus){
 						}
 					},
 					"取消" : function() {
-						$(this).dialog("close");
+						$pop_window.dialog("close");
 					}
 				}
 			});
@@ -1103,3 +1112,81 @@ var download = function() {
 		}
 	});
 };
+
+/*剪裁长度设置button事件*/
+var getHeatshrinkableLength = function(){
+
+	var row = $("#consumable_list").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#consumable_list").getRowData(row);
+	var data = {
+		"partial_id" : rowData.partial_id
+	};
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=getHeatshrinkableLength',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhjObj){
+			getHeatshrinkableLength_Complete(xhjObj, rowData.code, rowData.description);
+		}
+	});
+};
+var getHeatshrinkableLength_Complete = function(xhjObj, code, description) {
+	var $pop_window = $("#pop_heatshrink_length");
+	// 以Object形式读取JSON
+	var resInfo = $.parseJSON(xhjObj.responseText);
+	if (resInfo.errors.length > 0) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+	} else {
+		// 修改库存设置弹出框初期化
+		$("#hshl_partial_id").val(resInfo.returnForm.partial_id);
+		$("#label_hshl_code").text(code);
+		$("#label_hshl_description").text(description);
+		$("#hshl_cut_lengths").val(resInfo.returnForm.content || "");
+		
+		$pop_window.dialog({
+		    resizable : false,
+			modal : true,
+			title : "计量单位设置",
+			width : '640px',
+			buttons : {
+				"确认" : function() {
+					setHeatshrinkableLength(resInfo.returnForm.partial_id);
+				},
+				"取消" : function() {
+					$pop_window.dialog("close");
+				}
+			}
+		});
+	}
+
+}
+var setHeatshrinkableLength = function(partail_id){
+	var postData = {"partail_id" : partail_id, "content": $("#hshl_cut_lengths").val()};
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=doSetHeatshrinkableLength',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhjObj){
+			var resInfo = $.parseJSON(xhjObj.responseText);
+			if (resInfo.errors.length > 0) {
+				// 共通出错信息框
+				treatBackMessages(null, resInfo.errors);
+			} else {
+				$("#pop_heatshrink_length").dialog("close");
+			}
+		}
+	});
+}

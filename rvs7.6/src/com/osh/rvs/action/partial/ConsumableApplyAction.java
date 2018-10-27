@@ -253,6 +253,15 @@ public class ConsumableApplyAction extends BaseAction {
 		log.info("ConsumableApplyAction.edit end");
 	}
 
+	/**
+	 * 消耗品申请单读入
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
 	public void editInit(ActionMapping mapping, ActionForm form,HttpServletRequest req, HttpServletResponse res,SqlSession conn)throws Exception{
 		log.info("ConsumableApplyAction.editInit start");
 
@@ -360,6 +369,8 @@ public class ConsumableApplyAction extends BaseAction {
 							 formList.get(icounts).setPack_method(value[0]);
 						 }else if("flg".equals(column)){ // 处理标记
 							 formList.get(icounts).setFlg(value[0]);
+						 }else if("cut_length".equals(column)){
+							 formList.get(icounts).setCut_length(value[0]);
 						 }
 					 }
 				 }

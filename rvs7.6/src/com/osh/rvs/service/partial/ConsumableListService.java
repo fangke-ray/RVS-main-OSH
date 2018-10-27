@@ -9,16 +9,18 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.validator.routines.IntegerValidator;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -46,6 +48,7 @@ import framework.huiqing.common.util.copy.Converter;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.copy.IntegerConverter;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class ConsumableListService {
 	public List<ConsumableListForm> searchConsumableList(ConsumableListEntity consumableListEntity, SqlSession conn) {
@@ -550,5 +553,41 @@ public class ConsumableListService {
 
 		return cacheName;
 
+	}
+	public String searchHeatshrinkableLength(
+			String partialId, SqlSession conn) {
+		ConsumableListMapper consumableListMapper = conn.getMapper(ConsumableListMapper.class);
+		return consumableListMapper.getHeatshrinkableLengthString(partialId);
+	}
+	public void setHeatshrinkableLength(HttpServletRequest request,
+			SqlSessionManager conn, List<MsgInfo> errors) {
+		String partialId = request.getParameter("partail_id");
+		String cutLengths = request.getParameter("content");
+
+		Set<String> cutLengthSet = new HashSet<String>();
+		if (!isEmpty(cutLengths)) {
+			String[] cutLengthArray = cutLengths.split(";");
+			for (String cutLength : cutLengthArray) {
+				if (IntegerValidator.getInstance().isValid(cutLength)) {
+					cutLengthSet.add(cutLength);
+				} else {
+					MsgInfo error = new MsgInfo();
+					error.setComponentid("content");
+					error.setErrcode("validator.invalidParam.invalidIntegerValue");
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidIntegerValue", "剪裁长度可选项"));
+					errors.add(error);
+					break;
+				}
+			}
+		}
+
+		if (errors.size() == 0) {
+			ConsumableListMapper consumableListMapper = conn.getMapper(ConsumableListMapper.class);
+			consumableListMapper.clearHeatshrinkableLength(partialId);
+
+			for (String cutLength : cutLengthSet) {
+				consumableListMapper.setHeatshrinkableLength(partialId, cutLength);
+			}
+		}
 	}
 }

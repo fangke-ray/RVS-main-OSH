@@ -155,6 +155,7 @@
 				<!--input id="image_load_button" class="ui-button" value="消耗品照片上传" role="button" type="button"-->
 				<input id="adjust_button" class="ui-button" value="盘点" role="button" type="button">
 				<input id="measuring_set_button" class="ui-button" value="消耗品计量单位设置" role="button" type="button">
+				<input id="heatshrinkable_tube_button" class="ui-button" value="剪裁长度设置" role="button" type="button">
 				<input id="post_clipboard_button" class="ui-button" value="报表导出到剪贴板" role="button" type="button" style="float:right;">
 				<input id="download_button" class="ui-button" value="导出" role="button" type="button" style="float:right;">
 				<% } %>
@@ -364,6 +365,39 @@
 							<td class="td-content">
 								<input type='text' alt="内容量" name="content" id="set_content" ></input>
 								<input type="checkbox" id="packing"></input><label>分装</label>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				</form>
+			</div>
+
+			<div id="pop_heatshrink_length" style="display: none">
+				<form id="heatshrink_length">
+				<table class="condform">
+					<tbody>
+						<tr>
+							<td class="ui-state-default td-title">消耗品代码</td>
+							<td class="td-content">
+								<label name="code" id="label_hshl_code"></label>
+								<input type="hidden" id="hshl_partial_id"/>
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">说明</td>
+							<td class="td-content">
+								<label name="description" id="label_hshl_description"></label>
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title" rowspan="2">剪裁长度可选项</td>
+							<td class="td-content">
+								用分号(;)分割此热缩管剪裁长度<br>(整数，单位MM)。
+							</td>
+						</tr>
+						<tr>
+							<td class="td-content">
+								<input type="text" alt="剪裁长度" name="cut_lengths" id="hshl_cut_lengths"></input>
 							</td>
 						</tr>
 					</tbody>

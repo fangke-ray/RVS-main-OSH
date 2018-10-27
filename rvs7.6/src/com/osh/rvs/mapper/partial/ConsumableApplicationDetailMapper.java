@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.osh.rvs.bean.partial.ConsumableApplicationDetailEntity;
-import com.osh.rvs.form.partial.ConsumableApplicationForm;
 
 public interface ConsumableApplicationDetailMapper {
 	public List<ConsumableApplicationDetailEntity> serach(String consumable_application_key);
@@ -25,9 +24,17 @@ public interface ConsumableApplicationDetailMapper {
 
 	public List<ConsumableApplicationDetailEntity> getDetailForEditByPartial(ConsumableApplicationDetailEntity entity);
 
-	public void insertDetail(ConsumableApplicationForm detail) throws Exception;
+	public void insertDetail(ConsumableApplicationDetailEntity detail) throws Exception;
 
-	public void editApplyQuantity(ConsumableApplicationForm detail) throws Exception;
+	public void editApplyQuantity(ConsumableApplicationDetailEntity detail) throws Exception;
 
-	public void deleteDetail(ConsumableApplicationForm detail) throws Exception;
+	public void deleteDetail(ConsumableApplicationDetailEntity detail) throws Exception;
+
+	public ConsumableApplicationDetailEntity checkConsumableApplicationParticular(ConsumableApplicationDetailEntity cadEntity);
+
+	public void insertParticular(ConsumableApplicationDetailEntity cadEntity);
+
+	public void updateParticular(ConsumableApplicationDetailEntity cadEntity);
+
+	public void deleteParticular(ConsumableApplicationDetailEntity cadEntity);
 }

@@ -81,6 +81,10 @@ public class ConsumableApplicationDetailEntity implements Serializable {
 	/**价格**/
 	private BigDecimal price;
 
+	/**剪裁长度**/
+	private Integer cut_length;
+	private String cut_length_options;
+
 	public String getConsumable_application_key() {
 		return consumable_application_key;
 	}
@@ -239,6 +243,22 @@ public class ConsumableApplicationDetailEntity implements Serializable {
 
 	public void setPrice(BigDecimal price) {
 		this.price = price;
+	}
+
+	public Integer getCut_length() {
+		return cut_length;
+	}
+
+	public void setCut_length(Integer cut_length) {
+		this.cut_length = cut_length;
+	}
+
+	public String getCut_length_options() {
+		return cut_length_options;
+	}
+
+	public void setCut_length_options(String cut_length_options) {
+		this.cut_length_options = cut_length_options;
 	}
 
 }
