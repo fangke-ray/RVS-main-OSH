@@ -126,6 +126,14 @@ String errors = (String) request.getAttribute("errors");
 							<td class="td-title">类型</td>
 							<td><logic:notEmpty name="pdaApplyElementForm"><bean:write name="pdaApplyElementForm" property="type_name"/></logic:notEmpty></td>
 						</tr>
+						<logic:notEmpty name="pdaApplyElementForm">
+						<logic:notEmpty name="pdaApplyElementForm" property="cut_length">
+						<tr>
+							<td class="td-title">剪裁需求</td>
+							<td class="qty"><span class="label_cut_length"><bean:write name="pdaApplyElementForm" property="cut_length"/> MM</span></td>
+						</tr>
+						</logic:notEmpty>
+						</logic:notEmpty>
 						<tr>
 							<td class="td-title">有效数量</td>
 							<td class="qty"><logic:notEmpty name="pdaApplyElementForm"><bean:write name="pdaApplyElementForm" property="available_inventory"/></logic:notEmpty></td>

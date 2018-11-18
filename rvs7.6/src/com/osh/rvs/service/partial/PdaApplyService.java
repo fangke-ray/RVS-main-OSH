@@ -82,61 +82,64 @@ public class PdaApplyService {
 			PdaApplyElementForm elementForm = lResultForm.get(i);
 			elementForm.setType_name(CodeListUtils.getValue("consumable_type", elementForm.getType(), ""));
 
-			String partialId = elementForm.getPartial_id();
+			String partialKey = elementForm.getPartial_id();
 
-			if (!partialId.equals(currentPartialId)) {
-				if (currentPartialId != null) {
-					if (partialCountMap.get(currentPartialId) > 1) { // 多人申请
-						int hit = 0;
-						PdaApplyElementForm gForm = new PdaApplyElementForm(); // 集体显示的Form
-						gForm.setPartial_id(currentPartialId);
-						if (groupWaittingQuantity == 0) {
-							gForm.setDisp_flg(DISP_FLG_HIDDEN_GROUP);
-						} else {
-							gForm.setDisp_flg(DISP_FLG_SHOW_GROUP);
-						}
-						gForm.setSupply_quantity("" + groupSupplyQuantity);
-						gForm.setDisp_supply_quantity("" + groupSupplyQuantity); // TODO V
-						gForm.setDb_supply_quantity("" + (groupApplyQuantity - groupWaittingQuantity));
-						gForm.setApply_quantity("" + groupApplyQuantity);
-						gForm.setWaitting_quantity("" + groupWaittingQuantity);
+			if (!"6".equals(elementForm.getType())) {
+				if (!partialKey.equals(currentPartialId)) {
+					if (currentPartialId != null) {
+						if (partialCountMap.get(currentPartialId) > 1) { // 多人申请
+							int hit = 0;
+							PdaApplyElementForm gForm = new PdaApplyElementForm(); // 集体显示的Form
+							gForm.setPartial_id(currentPartialId);
+							if (groupWaittingQuantity == 0) {
+								gForm.setDisp_flg(DISP_FLG_HIDDEN_GROUP);
+							} else {
+								gForm.setDisp_flg(DISP_FLG_SHOW_GROUP);
+							}
+							gForm.setSupply_quantity("" + groupSupplyQuantity);
+							gForm.setDisp_supply_quantity("" + groupSupplyQuantity); // TODO V
+							gForm.setDb_supply_quantity("" + (groupApplyQuantity - groupWaittingQuantity));
+							gForm.setApply_quantity("" + groupApplyQuantity);
+							gForm.setWaitting_quantity("" + groupWaittingQuantity);
 
-						for (int ii = 0; ii < lResultForm.size(); ii++) {
-							PdaApplyElementForm elementFormIn = lResultForm.get(ii);
-							if (elementFormIn.getPartial_id().equals(currentPartialId)) {
-								if (hit == 0) {
-									gForm.setConsumable_application_key(elementFormIn.getConsumable_application_key());
-									gForm.setCode(elementFormIn.getCode());
-									gForm.setType(elementFormIn.getType());
-									gForm.setType_name(elementFormIn.getType_name());
-									gForm.setName(elementFormIn.getName());
-									gForm.setStock_code(elementFormIn.getStock_code());
-									gForm.setAvailable_inventory(elementFormIn.getAvailable_inventory());
-									if ("1".equals(elementFormIn.getContent())) {
-										gForm.setSupply_quantity("1");
-										gForm.setDisp_supply_quantity("1"); // TODO V
-										if (groupApplyQuantity == 0) {
-											gForm.setWaitting_quantity("1");
-										} else {
-											gForm.setApply_quantity("1");
-											gForm.setWaitting_quantity("0");
+							for (int ii = 0; ii < lResultForm.size(); ii++) {
+								PdaApplyElementForm elementFormIn = lResultForm.get(ii);
+								if (elementFormIn.getPartial_id().equals(currentPartialId)) {
+									if (hit == 0) {
+										gForm.setConsumable_application_key(elementFormIn.getConsumable_application_key());
+										gForm.setCode(elementFormIn.getCode());
+										gForm.setType(elementFormIn.getType());
+										gForm.setType_name(elementFormIn.getType_name());
+										gForm.setCut_length(elementFormIn.getCut_length());
+										gForm.setName(elementFormIn.getName());
+										gForm.setStock_code(elementFormIn.getStock_code());
+										gForm.setAvailable_inventory(elementFormIn.getAvailable_inventory());
+										if ("1".equals(elementFormIn.getContent())) {
+											gForm.setSupply_quantity("1");
+											gForm.setDisp_supply_quantity("1"); // TODO V
+											if (groupApplyQuantity == 0) {
+												gForm.setWaitting_quantity("1");
+											} else {
+												gForm.setApply_quantity("1");
+												gForm.setWaitting_quantity("0");
+											}
 										}
 									}
+									if (hit > partialCountMap.get(currentPartialId)) break;
+									elementFormIn.setDisp_flg(DISP_FLG_HIDDEN_ELEM);
+									hit++;
 								}
-								if (hit > partialCountMap.get(currentPartialId)) break;
-								elementFormIn.setDisp_flg(DISP_FLG_HIDDEN_ELEM);
-								hit++;
 							}
+							groupFormMap.put(i, gForm);
 						}
-						groupFormMap.put(i, gForm);
 					}
-				}
 
-				groupSupplyQuantity = 0; groupApplyQuantity = 0; groupWaittingQuantity = 0;
-				partialCountMap.put(partialId, 0);
-				currentPartialId = partialId;
+					groupSupplyQuantity = 0; groupApplyQuantity = 0; groupWaittingQuantity = 0;
+					partialCountMap.put(partialKey, 0);
+					currentPartialId = partialKey;
+				}
+				partialCountMap.put(partialKey, partialCountMap.get(partialKey) + 1);
 			}
-			partialCountMap.put(partialId, partialCountMap.get(partialId) + 1);
 
 			int supply_quantity = Integer.parseInt(elementForm.getDb_supply_quantity());
 			int apply_quantity = Integer.parseInt(elementForm.getApply_quantity());
@@ -221,6 +224,7 @@ public class PdaApplyService {
 							gForm.setCode(elementFormIn.getCode());
 							gForm.setType(elementFormIn.getType());
 							gForm.setType_name(elementFormIn.getType_name());
+							gForm.setCut_length(elementFormIn.getCut_length());
 							gForm.setName(elementFormIn.getName());
 							gForm.setStock_code(elementFormIn.getStock_code());
 							gForm.setAvailable_inventory(elementFormIn.getAvailable_inventory());
@@ -295,13 +299,19 @@ public class PdaApplyService {
 		entity.setPartial_id(ReverseResolution.getPartialByCode(entity.getCode(), conn));
 
 		PdaApplyMapper pdaApplyMapper = conn.getMapper(PdaApplyMapper.class);
-		PdaApplyElementEntity pdaApplyElementEntity  = pdaApplyMapper.getApplyElementDetail(entity);
+		PdaApplyElementEntity pdaApplyElementEntity = null; 
+		if (req.getAttribute("petitioner_id") == null) {
+			pdaApplyElementEntity  = pdaApplyMapper.getApplyElementDetail(entity);
+		} else {
+			entity.setPetitioner_id("" + req.getAttribute("petitioner_id"));
+			pdaApplyElementEntity  = pdaApplyMapper.getApplyPetitionerElementDetail(entity);
+		}
 
 		PdaApplyElementForm pdaApplyElementForm = new PdaApplyElementForm();
 
 		if(pdaApplyElementEntity!=null){
 			BeanUtil.copyToForm(pdaApplyElementEntity, pdaApplyElementForm, CopyOptions.COPYOPTIONS_NOEMPTY);
-			
+
 			String type = pdaApplyElementForm.getType();
 			pdaApplyElementForm.setType_name(CodeListUtils.getValue("consumable_type", type, ""));
 		}
@@ -325,6 +335,8 @@ public class PdaApplyService {
 		String content = elementForm.getContent();//内容量
 //		String pack_method = elementForm.getPack_method();//包装
 		String supply_quantity = elementForm.getSupply_quantity();
+		Integer iSupplyQuantity = null;
+		if (supply_quantity != null) iSupplyQuantity = Integer.parseInt(supply_quantity);
 		boolean firstHitForOpenPack = false;
 		String open_flg = elementForm.getOpen_flg();
 		
@@ -360,7 +372,6 @@ public class PdaApplyService {
 //				}else if("0".equals(pack_method)){
 //					pdaApplyElementForm.setSupply_quantity(supply_quantity + "");
 				}else{
-					Integer iSupplyQuantity = Integer.parseInt(supply_quantity);
 					if (isGroup) {
 						pdaApplyElementForm.setSupply_quantity(supply_quantity + "");
 						pdaApplyElementForm.setDisp_supply_quantity(supply_quantity + ""); // TODO ?
@@ -369,12 +380,21 @@ public class PdaApplyService {
 						// 申请数量
 						int iNeedQuantity = Integer.parseInt(pdaApplyElementForm.getApply_quantity());
 
-						if (iSupplyQuantity < iNeedQuantity) {
-							pdaApplyElementForm.setSupply_quantity(iSupplyQuantity + "");
-							iSupplyQuantity = 0;
-						} else {
-							pdaApplyElementForm.setSupply_quantity(iNeedQuantity + "");
-							iSupplyQuantity -= iNeedQuantity;
+						boolean passHs = false;
+						if (pdaApplyElementForm.getType().equals("6")) {
+							if (pdaApplyElementForm.getSupply_quantity().equals(pdaApplyElementForm.getApply_quantity())) {
+								passHs = true;
+							}
+						}
+
+						if (!passHs) {
+							if (iSupplyQuantity < iNeedQuantity) {
+								pdaApplyElementForm.setSupply_quantity(iSupplyQuantity + "");
+								iSupplyQuantity = 0;
+							} else {
+								pdaApplyElementForm.setSupply_quantity(iNeedQuantity + "");
+								iSupplyQuantity -= iNeedQuantity;
+							}
 						}
 					}
 				}

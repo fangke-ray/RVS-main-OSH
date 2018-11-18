@@ -280,8 +280,7 @@ var page_apply = {
 			$(".treason").remove();
 		}
 		$(".application_sheet" + " tr:nth-child(n+3)").remove();		
-		
-		
+
 		var consumableApplicationForm = resInfo.consumableApplicationForm;
 
 		$("#consumable_application_key").val(consumableApplicationForm.consumable_application_key);
@@ -420,36 +419,39 @@ var page_apply = {
 		var partialMap = {};
 		var partialIndex = [];
 
-		// 按照零件归并
+		// 按照零件+附加归并
 		for(var i=0;i<array.length;i++){
 			var form = array[i];
 			
-			var partial_id = form.partial_id;
+			var partialKey = form.partial_id;
+			if (form.cut_length) {
+				partialKey += "_" + form.cut_length;
+			}
 			var petitioner_id = form.petitioner_id;//申请人
 
-			if (!partialMap[partial_id]) {
-				partialMap[partial_id] = {data: [form]};
-				partialIndex.push(partial_id);
+			if (!partialMap[partialKey]) {
+				partialMap[partialKey] = {data: [form]};
+				partialIndex.push(partialKey);
 			} else {
-				partialMap[partial_id].data.push(form);
+				partialMap[partialKey].data.push(form);
 			}
 		}
 
 		for(var i=0;i<partialIndex.length;i++){
-			var partial_id = partialIndex[i];
+			var partialKey = partialIndex[i];
 
 			var form = null;
-			if (partialMap[partial_id].data.length == 1) {
-				form = partialMap[partial_id].data[0];
+			if (partialMap[partialKey].data.length == 1) {
+				form = partialMap[partialKey].data[0];
 			} else {
 				var t_apply_quantity = 0;
 				var t_waitting_quantity = 0;
 				var t_supply_quantity = 0;
 				var t_pack_method = 0;
 				// 合计
-				for (var iP=0;iP < partialMap[partial_id].data.length; iP ++) {
-					form = partialMap[partial_id].data[iP];
-					var apply_label = page_apply.check_pack_method(partialMap[partial_id].data[iP]);
+				for (var iP=0;iP < partialMap[partialKey].data.length; iP ++) {
+					form = partialMap[partialKey].data[iP];
+					var apply_label = page_apply.check_pack_method(partialMap[partialKey].data[iP]);
 
 					var content = form.content;  //内容量
 					var pack_method = form.pack_method;//包装
@@ -472,7 +474,7 @@ var page_apply = {
 						input = "<input type='number' value='" + form.waitting_quantity + "' class='edit_a_supply_quantiy' min='0' data-flg='E'></input>";
 					}
 
-					htmlContent = htmlContent + "<tr style='display:none;' partial_id='" + partial_id + "' petitioner_id='" + form.petitioner_id + "' type='"+ form.type + "'>" 
+					htmlContent = htmlContent + "<tr style='display:none;' partial_id='" + form.partial_id + "' petitioner_id='" + form.petitioner_id + "' type='"+ form.type + "'>" 
 							+ "<td>" + form.code + "</td><td></td><td></td>" // code partial_name stock_code
 							+ "<td class='td-content'>" + apply_label + "</td>"
 							+ "<td class='td-content'>" + input + "</td>" // input
@@ -521,10 +523,15 @@ var page_apply = {
 			}else{//单品
 				input = "<input type='number' value='" + form.waitting_quantity + "' class='edit_a_supply_quantiy" + (form.petitioner_id == null ? " grouper" : "") + "' min='0' data-flg='E'></input>";
 			}
-			
-			htmlContent = htmlContent + "<tr partial_id='" + partial_id + "' petitioner_id='" + petitioner_id +"' type='"+ form.type + "' " + (content!=null && pack_method == 0 ? " content='" + content+ "'" :"") +	">"
+
+			var description = form.partial_name || "";
+			if (form.cut_length) {
+				description = "<span class='label_cut_length'>裁剪：(" + form.cut_length + " MM)</span><br>" + description;
+			}
+
+			htmlContent = htmlContent + "<tr partial_id='" + form.partial_id + "' petitioner_id='" + petitioner_id +"' type='"+ form.type + "' " + (content!=null && pack_method == 0 ? " content='" + content+ "'" :"") +	">"
 											+ 	"<td class='td-content'>" + form.code + "</td>"
-											+ 	"<td class='td-content'>" + form.partial_name + "</td>"
+											+ 	"<td class='td-content'>" + description + "</td>"
 											+ 	"<td class='td-content'>" + (form.stock_code || "-") + "</td>"
 											+ 	"<td class='td-content'>" + apply_label + "</td>"
 											+ 	"<td class='td-content'>"

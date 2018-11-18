@@ -85,6 +85,13 @@ public class PdaApplyDetailAction extends PdaBaseAction {
 		List<PdaApplyElementForm> detailList = detailForm.getDetail_list();
 		for (PdaApplyElementForm elementForm : detailList) {
 			if (code.equalsIgnoreCase(elementForm.getCode())) {
+				if (elementForm.getType().equals("6")) {
+					if (elementForm.getSupply_quantity().equals(elementForm.getApply_quantity())) {
+						continue;
+					} else {
+						req.setAttribute("petitioner_id", elementForm.getPetitioner_id());
+					}
+				}
 				isExist = true;
 				break;
 			}

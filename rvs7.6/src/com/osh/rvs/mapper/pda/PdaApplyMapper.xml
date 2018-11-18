@@ -55,6 +55,7 @@
 			,cmu.content
 			,cm.available_inventory
 			,coalesce(omr_notifi_no, sorc_no) as omr_notifi_no
+			,cap.cut_length
 		FROM
 			consumable_application ca
 		JOIN
@@ -77,12 +78,17 @@
 			material m
 		ON 
 			ca.material_id = m.material_id
+		LEFT JOIN 
+			consumable_application_particular cap
+		ON cad.consumable_application_key = cap.consumable_application_key
+			and cad.partial_id = cap.partial_id
+			and cad.petitioner_id = cap.petitioner_id
 		WHERE
 			ca.consumable_application_key = #{consumable_application_key}
 		AND
 			cad.supply_quantity < cad.apply_quantity
 		ORDER BY
-			cad.apply_method, cm.type, cm.stock_code, cad.partial_id
+			cad.apply_method, cm.type, cm.stock_code, cad.partial_id, cap.cut_length
 		]]>
 	</select>
 	
@@ -111,7 +117,8 @@
 			END as pack_method,
 			cmu.content,
 			cmu.unit_name,
-			p.price
+			p.price,
+			cap.cut_length
 		FROM
 			consumable_application_detail cad
 		JOIN
@@ -130,10 +137,70 @@
 			consumable_application ca
 		on
 			ca.consumable_application_key  = cad.consumable_application_key
+		LEFT JOIN 
+			consumable_application_particular cap
+		ON cad.consumable_application_key = cap.consumable_application_key
+			and cad.partial_id = cap.partial_id
+			and cad.petitioner_id = cap.petitioner_id
 		WHERE
 			cad.consumable_application_key = #{consumable_application_key} and cad.partial_id = #{partial_id}
 		GROUP BY
 			cad.partial_id
 		) k
 	</select>
+
+	<select id="getApplyPetitionerElementDetail" parameterType="PdaApplyElementEntity" resultType="PdaApplyElementEntity">
+		SELECT *,
+ 			(price * apply_quantity) as total_price
+		FROM (
+		SELECT
+			cad.consumable_application_key,
+			cad.partial_id,
+			cad.petitioner_id,
+			p.code,
+			ca.application_no,
+			cm.type,
+			cm.available_inventory,
+			cm.on_passage,
+			cm.stock_code,
+			CASE WHEN cmu.content = 1
+			THEN 1
+			ELSE 
+				cad.apply_quantity
+			END as apply_quantity,
+			cad.pack_method,
+			cmu.content,
+			cmu.unit_name,
+			p.price,
+			cap.cut_length
+		FROM
+			consumable_application_detail cad
+		JOIN
+			partial p
+		ON
+			cad.partial_id = p.partial_id
+		JOIN
+			consumable_manage cm
+		ON
+			cad.partial_id = cm.partial_id
+		LEFT JOIN
+			consumable_measurement_unit cmu
+		ON
+			cad.partial_id = cmu.partial_id
+		JOIN
+			consumable_application ca
+		on
+			ca.consumable_application_key  = cad.consumable_application_key
+		LEFT JOIN 
+			consumable_application_particular cap
+		ON cad.consumable_application_key = cap.consumable_application_key
+			and cad.partial_id = cap.partial_id
+			and cad.petitioner_id = cap.petitioner_id
+		WHERE
+			cad.consumable_application_key = #{consumable_application_key} and cad.partial_id = #{partial_id} and cad.petitioner_id = #{petitioner_id}
+		GROUP BY
+			cad.partial_id
+		) k
+	</select>
+
 </mapper>

@@ -86,6 +86,9 @@ public class PdaApplyEntity implements Serializable {
 	/** 总价 **/
 	private BigDecimal total_price;
 
+	/**剪裁长度**/
+	private Integer cut_length;
+
 	public String getConsumable_application_key() {
 		return consumable_application_key;
 	}
@@ -260,5 +263,13 @@ public class PdaApplyEntity implements Serializable {
 
 	public void setContent(Integer content) {
 		this.content = content;
+	}
+
+	public Integer getCut_length() {
+		return cut_length;
+	}
+
+	public void setCut_length(Integer cut_length) {
+		this.cut_length = cut_length;
 	}
 }

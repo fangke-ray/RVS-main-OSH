@@ -23,7 +23,8 @@
 			cmu.content,
 			cmu.unit_name,
 			cm.stock_code,
-			ptl.price
+			ptl.price, 
+			cap.cut_length
 		FROM
 			consumable_application_detail cad
 		JOIN
@@ -38,6 +39,11 @@
 			consumable_measurement_unit cmu
 		ON
 			cad.partial_id = cmu.partial_id
+		LEFT JOIN 
+			consumable_application_particular cap
+		ON cad.consumable_application_key = cap.consumable_application_key
+			and cad.partial_id = cap.partial_id
+			and cad.petitioner_id = cap.petitioner_id
 		WHERE
 			cad.consumable_application_key = #{consumable_application_key}
 		ORDER BY

@@ -211,14 +211,14 @@ var ca_evts = {
 							$add_target = $screw_sheet;
 						}
 						var petitioner_id = partialApply.petitioner_id;
-						var description = partialApply.partial_name;
+						var description = partialApply.partial_name || "";
 
 						var cut_length = partialApply.cut_length;
 						if (cut_length) {
 							if (petitioner_id == null) {
-								description = "裁剪：( " + cut_length + " MM) " + description;
+								description = "裁剪：(" + cut_length + " MM) " + description;
 							} else {
-								description = "裁剪：( <select class='edit_a_cut_length'>" + ca_evts.getLengthOptions(partialApply.cut_length_options)
+								description = "裁剪：(<select class='edit_a_cut_length'>" + ca_evts.getLengthOptions(partialApply.cut_length_options)
  									+ "</select>" + ") " + description;
 							}
 						}
@@ -235,6 +235,7 @@ var ca_evts = {
 									) +
 									"</td><td class='td-content' unit_price='" + partialApply.price + "'>" +
 									"</td></tr>");
+						$tdString.find(".edit_a_cut_length").val(cut_length);
 						$add_target.append($tdString);
 					}
 
@@ -246,7 +247,7 @@ var ca_evts = {
 						$(this).parents("tr").attr("state", "edit");
 						ca_evts.sumPrice.apply(this);
 					})
-					.end().find(".edit_a_cut_length").val(cut_length).bind("change", function(){
+					.end().find(".edit_a_cut_length").bind("change", function(){
 						$(this).parents("tr").attr("state", "edit");
 					});
 					}
@@ -423,7 +424,7 @@ var ca_evts = {
 			var $ca_add_cut_length = $("#ca_add_cut_length");
 			sel_cut_length = $ca_add_cut_length.val();
 			if (sel_cut_length != -1) {
-				description = "裁剪：( <select class='edit_a_cut_length'>" + $("#ca_add_cut_length").html() + "</select>" + ") " + description;
+				description = "裁剪：(<select class='edit_a_cut_length'>" + $("#ca_add_cut_length").html() + "</select>" + ") " + description;
 			}
 		}
 		var $tdString = $("<tr state='new' partial_id='" + partial_id + "' petitioner_id='me'>" +

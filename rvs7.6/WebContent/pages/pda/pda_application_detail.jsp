@@ -196,7 +196,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<logic:notEqual name="element" property="disp_flg" value="H1">
 					<tr class="cnt-1">
 						<logic:notEqual name="element" property="type" value="9">
-							<td class="con-up"><bean:write name="element" property="type_name"/></td>
+							<td class="con-up">
+								<logic:notEmpty name="element" property="cut_length">
+									<span class="label_cut_length"><bean:write name="element" property="cut_length"/> MM</span> /
+								</logic:notEmpty>
+								<bean:write name="element" property="type_name"/>
+							</td>
 							<td class="con-up"><bean:write name="element" property="code"/></td>
 						</logic:notEqual>
 						<logic:equal name="element" property="type" value="9">

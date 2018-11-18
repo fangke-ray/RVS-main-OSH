@@ -34,6 +34,9 @@
 	#pop_window_apply_edit .application_sheet tr:nth-child(n+2) td:nth-last-child(3){
 		display: none;
 	}
+	.label_cut_length {
+		color : royalblue;
+	}
 </style>
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>

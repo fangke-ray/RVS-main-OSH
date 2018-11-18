@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">7.9.3261.411</p>
+								<p id="nee">7.9.3263.412</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2018年10月18日</p>
+								<p>2018年10月29日</p>
 							</div>
 						</div>
 <%
@@ -186,6 +186,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 %>
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
+								<p>--------------------------------------</p>
+								<p>18/10/18 7.9.3263.412 更新</p>
+								<p>消耗品: 热缩管剪裁请求功能。</p>
+								<p>文档: 工作月报明细不显示加班预定时间。</p>
 								<p>--------------------------------------</p>
 								<p>18/10/18 7.9.3261.411 更新</p>
 								<p>--------------------------------------</p>

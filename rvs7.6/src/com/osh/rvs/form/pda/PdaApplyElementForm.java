@@ -21,7 +21,7 @@ public class PdaApplyElementForm extends ActionForm {
 	 * 
 	 */
 	private static final long serialVersionUID = 5699255038848703034L;
-	
+
 	private String header_flg;
 
 	/** 消耗品申请单Key **/
@@ -129,6 +129,10 @@ public class PdaApplyElementForm extends ActionForm {
 
 	@BeanField(title = "申请总价", name = "total_price", type = FieldType.Double)
 	private String total_price;
+
+	/**剪裁长度**/
+	@BeanField(title = "剪裁长度", name = "cut_length", type = FieldType.Integer)
+	private String cut_length;
 
 	public String getHeader_flg() {
 		return header_flg;
@@ -376,5 +380,13 @@ public class PdaApplyElementForm extends ActionForm {
 
 	public void setTotal_price(String total_price) {
 		this.total_price = total_price;
+	}
+
+	public String getCut_length() {
+		return cut_length;
+	}
+
+	public void setCut_length(String cut_length) {
+		this.cut_length = cut_length;
 	}
 }

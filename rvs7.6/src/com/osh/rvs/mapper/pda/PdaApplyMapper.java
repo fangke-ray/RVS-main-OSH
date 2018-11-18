@@ -14,4 +14,6 @@ public interface PdaApplyMapper {
 	public List<PdaApplyEntity> searchApplyDetailList(String consumable_application_key);
 	
 	public PdaApplyElementEntity getApplyElementDetail(PdaApplyElementEntity entity);
+
+	public PdaApplyElementEntity getApplyPetitionerElementDetail(PdaApplyElementEntity entity);
 }

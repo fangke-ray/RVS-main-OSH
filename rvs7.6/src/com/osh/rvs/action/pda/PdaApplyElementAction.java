@@ -34,7 +34,7 @@ public class PdaApplyElementAction extends PdaBaseAction {
 			consumable_application_key = detailForm.getConsumable_application_key();
 			code = detailForm.getCode();
 		}
-		
+
 		elementForm.setConsumable_application_key(consumable_application_key);
 		elementForm.setCode(code);
 

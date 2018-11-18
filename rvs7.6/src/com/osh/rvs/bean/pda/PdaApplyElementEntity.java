@@ -40,6 +40,11 @@ public class PdaApplyElementEntity implements Serializable {
 
 	private BigDecimal total_price;
 
+	private String petitioner_id;
+
+	/**剪裁长度**/
+	private Integer cut_length;
+
 	public String getConsumable_application_key() {
 		return consumable_application_key;
 	}
@@ -158,6 +163,22 @@ public class PdaApplyElementEntity implements Serializable {
 
 	public void setTotal_price(BigDecimal total_price) {
 		this.total_price = total_price;
+	}
+
+	public Integer getCut_length() {
+		return cut_length;
+	}
+
+	public void setCut_length(Integer cut_length) {
+		this.cut_length = cut_length;
+	}
+
+	public String getPetitioner_id() {
+		return petitioner_id;
+	}
+
+	public void setPetitioner_id(String petitioner_id) {
+		this.petitioner_id = petitioner_id;
 	}
 
 }
