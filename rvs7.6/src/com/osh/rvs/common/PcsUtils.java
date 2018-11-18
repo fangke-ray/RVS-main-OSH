@@ -61,7 +61,7 @@ public class PcsUtils {
 	private static final String QUALIFIED = "合格";
 	private static final String UNQUALIFIED = "不合格";
 
-	private static final String COMMENT_451_461 = "剥线长度\n总组CCD线长度";
+	private static final String COMMENT_451_461 = "总组CCD线长度";
 	private static final String COMMENT_341 = "CCD有效长度"; 
 
 	/** init */
