@@ -205,7 +205,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										</table>
 										<div style="height: 44px">
 											<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="wipconfirmbutton" value="放入WIP" role="button" aria-disabled="false" style="float: right; right: 2px">
+<%
+Boolean iise = (Boolean) request.getAttribute("160");
+if (iise!=null && !iise) {
+%>
 											<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="confirmbutton" value="修理同意" role="button" aria-disabled="false" style="float: right; right: 2px">
+<%
+}
+%>
 											<!--input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="breakbutton" value="异常中断" role="button" aria-disabled="false" style="float: right; right: 2px"-->
 											<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="stepbutton" value="正常中断" role="button" aria-disabled="false" style="float: right; right: 2px">
 											<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="pausebutton" value="暂停" role="button" aria-disabled="false" style="float: right; right: 2px">

@@ -90,6 +90,12 @@ public class QuotationAction extends BaseAction {
 			req.setAttribute("peripheral", true);
 		}
 
+		if ("160".equals(process_code)) {
+			req.setAttribute("160", true);
+		} else {
+			req.setAttribute("160", false);
+		}
+
 		req.setAttribute("edit_ocm", CodeListUtils.getSelectOptions("material_ocm", null, null, false));
 		if (isPeripheral) {
 			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_peripheral", null, null, false));
@@ -712,33 +718,8 @@ public class QuotationAction extends BaseAction {
 			MaterialEntity bean = new MaterialEntity();
 			BeanUtil.copyToBean(form, bean, CopyOptions.COPYOPTIONS_NOEMPTY);
 
-			// SAP 上线后保留同意日 2015.11.23
-//			if (!isEmpty(bean.getWip_location())) {
-//				// 如果放入WIP，同意日设成空
-//				bean.setAgreed_date(null);
-//			}
-
-//			// 如果是单元不放WIP的话，送到711。
-//			if (bean.getFix_type() == 2 && bean.getWip_location() == null) {
-//				String model_id = mservice.loadMaterialDetailBean(conn, materialId).getModel_id();
-//				ModelService mdlService = new ModelService();
-//				ModelForm modelForm = mdlService.getDetail(model_id, conn);
-//				// EndoEye除外
-//				if (modelForm != null && !"06".equals(modelForm.getKind())) {
-//					ProductionFeatureEntity nextWorkingPf = new ProductionFeatureEntity();
-//					nextWorkingPf.setPosition_id("00000000047");
-//					nextWorkingPf.setSection_id(workingPf.getSection_id());
-//					nextWorkingPf.setRework(workingPf.getRework());
-//					pfService.fingerSpecifyPosition(materialId, true, nextWorkingPf, conn);
-//				}
-//			}
-//
 			// 进行中的维修对象
 			bean.setMaterial_id(materialId);
-			// 加急标记取消
-			// fixed by Gonglm 2014/2/27 start
-			// bean.setScheduled_expedited(0);
-			// fixed by Gonglm 2014/2/27 end
 
 			// 更新维修对象。
 			if (!isEmpty(bean.getCustomer_name())) {
@@ -758,56 +739,6 @@ public class QuotationAction extends BaseAction {
 			//小修理流水线
 			boolean isLightFix = "9".equals(level.substring(0, 1)) && "1".equals(fix_type); 
 
-//			if (isLightFix) {
-//				MaterialProcessAssignService mpas = new MaterialProcessAssignService();
-//				String firstPositionID = mpas.getBeforeInlinePositions(materialId, conn);
-//
-//				// CCD工位等待作业开始
-//				if ("CCD".equals(firstPositionID)) {
-//					ProductionFeatureService productionFeatureService = new ProductionFeatureService();
-//					// 插入作业
-//					ProductionFeatureEntity entity = new ProductionFeatureEntity();
-//					entity.setMaterial_id(materialId);
-//					entity.setPosition_id("00000000025");
-//					entity.setSection_id("00000000003"); // 固定为新2课
-//					entity.setPace(0);
-//					entity.setOperate_result(0);
-//					entity.setRework(0);
-//					productionFeatureService.insert(entity, conn);
-//				} else if ("LG".equals(firstPositionID)) {
-//					ProductionFeatureService productionFeatureService = new ProductionFeatureService();
-//					// 插入作业
-//					ProductionFeatureEntity entity = new ProductionFeatureEntity();
-//					entity.setMaterial_id(materialId);
-//					entity.setPosition_id("00000000060");
-//					entity.setSection_id("00000000003"); // 固定为新2课
-//					entity.setPace(0);
-//					entity.setOperate_result(0);
-//					entity.setRework(0);
-//					productionFeatureService.insert(entity, conn);
-//				} else if ("LG+CCD".equals(firstPositionID)) {
-//					ProductionFeatureService productionFeatureService = new ProductionFeatureService();
-//					// 插入作业
-//					ProductionFeatureEntity entity = new ProductionFeatureEntity();
-//					entity.setMaterial_id(materialId);
-//					entity.setPosition_id("00000000060");
-//					entity.setSection_id("00000000003"); // 固定为新2课
-//					entity.setPace(0);
-//					entity.setOperate_result(0);
-//					entity.setRework(0);
-//					productionFeatureService.insert(entity, conn);
-//
-//					entity.setPosition_id("00000000025");
-//					productionFeatureService.insert(entity, conn);
-//				}
-//			}
-
-			// 计算一下总工时：
-//			/// 取得本次工时
-//			Integer use_seconds = workingPf.getUse_seconds();
-//
-//			/// 加上本次返工内本工位所用全部时间
-//			use_seconds += ppService.getTotalTimeByRework(workingPf, conn);
 			/// 取得本次工时
 			Integer use_seconds = ppService.getTotalTimeByRework(workingPf, conn);
 
@@ -822,17 +753,22 @@ public class QuotationAction extends BaseAction {
 			pfdao.finishProductionFeature(workingPf);
 
 			// 启动下个工位 报价不启动
-			// ppService.fingerNextPosition(materialId, workingPf, conn);
+			pfService.fingerNextPosition(materialId, workingPf, conn, null);
 
 			if(!isLightFix){
 				MaterialProcessAssignEntity entity = new MaterialProcessAssignEntity();
 				BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 				MaterialProcessAssignMapper materialProcessAssignMapper = conn.getMapper(MaterialProcessAssignMapper.class);
 				
-				//删除维修对象选用小修理
-				materialProcessAssignMapper.deleteMaterialLightFix(entity.getMaterial_id());
-				//删除维修对象独有修理流程
-				materialProcessAssignMapper.deleteMaterialProcessAssign(entity.getMaterial_id());
+				String lightFixes = materialProcessAssignMapper.getLightFixesByMaterial(entity.getMaterial_id());
+				if (!isEmpty(lightFixes)) {
+					//删除维修对象选用小修理
+					materialProcessAssignMapper.deleteMaterialLightFix(entity.getMaterial_id());
+					//删除维修对象独有修理流程
+					materialProcessAssignMapper.deleteMaterialProcessAssign(entity.getMaterial_id());
+					// 删除小修理流程说明
+					mservice.removeComment(entity.getMaterial_id(), "00000000001", conn);
+				}
 			}
 
 			// 通知 TODO

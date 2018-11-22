@@ -422,6 +422,11 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			pauseComments = $.parseJSON(resInfo.pauseComments);
 
 			stepOptions = resInfo.stepOptions;
+			if (!stepOptions) {
+				$("#stepbutton").hide();
+			} else {
+				$("#stepbutton").show();
+			}
 			load_list(resInfo.waitings);
 			paused_list(resInfo.paused);
 			acceptted_list(resInfo.finished);

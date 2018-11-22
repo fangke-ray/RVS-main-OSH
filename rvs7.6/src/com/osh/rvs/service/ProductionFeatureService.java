@@ -440,11 +440,15 @@ public class ProductionFeatureService {
 		} else if ("00000000012".equals(position_id)) { // 测漏
 			if ((mEntity.getDirect_flg()!=null && 1 == mEntity.getDirect_flg())
 					|| (mEntity.getService_repair_flg()!=null && (mEntity.getService_repair_flg() == 1 || mEntity.getService_repair_flg() == 2))) {
-				nextPositions.add("00000000014"); // 直送报价
+				nextPositions.add("00000000101"); // IISE确认
+//				nextPositions.add("00000000014"); // 直送报价
 			} else {
 				nextPositions.add("00000000013"); // 报价
 			}
-		} else if ("00000000046".equals(position_id) || "00000000052".equals(position_id) || RvsConsts.POSITION_QA_P_613.equals(position_id)) { // 品保
+		} else if ("00000000101".equals(position_id)) { // IISE
+			nextPositions.add("00000000014"); // 直送报价
+		} else if ("00000000046".equals(position_id) || "00000000052".equals(position_id) 
+				|| RvsConsts.POSITION_QA_P_613.equals(position_id) || RvsConsts.POSITION_QA_P_614.equals(position_id)) { // 品保
 			nextPositions.add("00000000047");
 		} else if ("00000000015".equals(position_id)) { // 图像检查
 			if (mEntity.getBreak_back_flg() != null && mEntity.getBreak_back_flg() == 2) { // 未修理返还
@@ -606,10 +610,11 @@ public class ProductionFeatureService {
 			}
 
 			 // 维修流程参照
-			 getNext(paProxy, material_id, pat_id, position_id, mEntity.getLevel(), nextPositions);
+			 getNext(paProxy, material_id, mEntity, pat_id, position_id, mEntity.getLevel(), nextPositions);
 			 if (nextPositions.size() == 1 && "00000000046".equals(nextPositions.get(0))) fixed = true;
 			 else if (nextPositions.size() == 1 && "00000000052".equals(nextPositions.get(0))) fixed = true;
 			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_QA_P_613.equals(nextPositions.get(0))) fixed = true;
+			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_QA_P_614.equals(nextPositions.get(0))) fixed = true;
 			 else fixed = false;
 
 			// 没投线无流程 TODO 小修理报价中先做CCD盖玻璃更换
@@ -780,7 +785,7 @@ public class ProductionFeatureService {
 		fingerPosition(workingPf.getPosition_id(), mEntity, fixed, workingPf, conn, pfDao, paProxy, null, triggerList);
 	}
 
-	public void getNext(ProcessAssignProxy paProxy, String material_id, String pat_id, String position_id, Integer level, List<String> nextPositions) {
+	public void getNext(ProcessAssignProxy paProxy, String material_id, MaterialEntity mEntity, String pat_id, String position_id, Integer level, List<String> nextPositions) {
 		// 得到下一个工位
 		List<PositionEntity> nextPositionsByPat = paProxy.getNextPositions(position_id);
 
@@ -800,6 +805,8 @@ public class ProductionFeatureService {
 //				if (paProxy.getFinishedByLine(line_id)) { TODO 其实要这个的 像OGZ有最后一个工位并行的就会两次611。总之目前省下一次查询
 				if (level == 56 || level == 57 || level == 58 || level == 59) {
 					nextPositions.add(RvsConsts.POSITION_QA_P_613);
+				} else if ("00000000055".equals(mEntity.getCategory_id())) { // 光学视管
+					nextPositions.add(RvsConsts.POSITION_QA_P_614);
 				} else if (paProxy.isLightFix) {
 					// 并且是主流程时，612工位
 					nextPositions.add(RvsConsts.POSITION_QA_LIGHT);
@@ -814,7 +821,7 @@ public class ProductionFeatureService {
 				// 所在流程判断是否全部完成
 				if (paProxy.getFinishedByLine(line_id)) {
 					// 如果所在流程全部完成，触发流程的下一个工位
-					getNext(paProxy, material_id, pat_id, line_id, level, nextPositions);
+					getNext(paProxy, material_id, mEntity, pat_id, line_id, level, nextPositions);
 				}
 			}
 		} else {
