@@ -569,12 +569,15 @@ public class MaterialFactService {
 				String qa_position = "00000000046";
 				Integer serviceRepairFlg = mEntity.getService_repair_flg();
 				if (serviceRepairFlg == null) serviceRepairFlg = 0;
-				if (level == 9 && 
+				if (lightFix && 
 						(serviceRepairFlg != 1 && serviceRepairFlg != 2)) { // D小修 非保内返修 非QIS 单元自己出检612 单元小修理自检
 					qa_position = "00000000052";
 				}
 				if (level == 56 || level == 57 || level == 58 || level==59) {
 					qa_position = RvsConsts.POSITION_QA_P_613;
+				}
+				if ("00000000055".equals(mEntity.getCategory_id())) {
+					qa_position = RvsConsts.POSITION_QA_P_614;
 				}
 
 				ProductionFeatureEntity nextWorkingPf = new ProductionFeatureEntity();
@@ -597,8 +600,7 @@ public class MaterialFactService {
 			String lightFixStr = mpas.getLightFixesByMaterial(materialId, conn);
 
 			String lightFlowStr = mpas.getLightFixFlowByMaterial(materialId, null, conn);
-			String comment = (lightFixStr == null ? "" : "小修理内容为：" + lightFixStr + "\n")
-					+ "小修理的工位流程为：" + lightFlowStr;
+			String comment = mpas.getLightStr(lightFixStr, lightFlowStr);
 			materialService.updateMaterialComment(materialId, operator_id, comment, conn);
 		}
 	}

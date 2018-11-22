@@ -1047,7 +1047,7 @@ public class PositionPanelService {
 			List<DevicesManageEntity> list = dao.searchDeviceManage(entity);
 
 			for(DevicesManageEntity devicesManageEntity:list){
-				map.put(devicesManageEntity.getDevices_manage_id(), devicesManageEntity.getManage_code());
+				map.put(devicesManageEntity.getDevices_manage_id(), devicesManageEntity.getName() + " " + devicesManageEntity.getManage_code());
 			}
 			map.put("00000000000", "(手动)");
 

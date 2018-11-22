@@ -88,6 +88,7 @@ public class RvsConsts extends BaseConst {
 	// 周边维修工位
 	public static final String POSITION_QUOTATION_P_181 = "00000000064";
 	public static final String POSITION_QA_P_613 = "00000000065";
+	public static final String POSITION_QA_P_614 = "00000000103";
 	public static final String POSITION_811 = "00000000063";
 	public static final String POSITION_470 = "00000000074";
 	public static final String POSITION_461 = "00000000038";

@@ -98,7 +98,7 @@ public class QualityAssuranceAction extends BaseAction {
 		if (qs_position_id == null) {
 			qs_position_id = req.getParameter("position_id");
 			if (qs_position_id == null) {
-				qs_position_id = "00000000046";
+				qs_position_id = RvsConsts.POSITION_QA;
 			}
 			PositionService pservice = new PositionService();
 

@@ -272,11 +272,13 @@ public class LoginAction extends BaseAction {
 						loginData.setWorking_role_id(RvsConsts.ROLE_ACCEPTOR);
 					} else if (RvsConsts.POSITION_QUOTATION_N.equals(now_position_id)
 								|| RvsConsts.POSITION_QUOTATION_D.equals(now_position_id)
-								|| RvsConsts.POSITION_QUOTATION_P_181.equals(now_position_id)) { // 报价
+								|| RvsConsts.POSITION_QUOTATION_P_181.equals(now_position_id)
+								|| "00000000101".equals(now_position_id)) { // 报价
 						loginData.setWorking_role_id(RvsConsts.ROLE_QUOTATOR);
 					} else if (RvsConsts.POSITION_QA.equals(now_position_id)
 							|| RvsConsts.POSITION_QA_LIGHT.equals(now_position_id)
-							|| RvsConsts.POSITION_QA_P_613.equals(now_position_id)) { // 出检
+							|| RvsConsts.POSITION_QA_P_613.equals(now_position_id)
+							|| RvsConsts.POSITION_QA_P_614.equals(now_position_id)) { // 出检
 						loginData.setWorking_role_id(RvsConsts.ROLE_QAER);
 					} else if (RvsConsts.POSITION_SHIPPING.equals(now_position_id)) { // 出货
 						loginData.setWorking_role_id(RvsConsts.ROLE_SHIPPPER);

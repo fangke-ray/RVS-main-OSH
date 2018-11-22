@@ -138,7 +138,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<span class="areatitle">处理中维修对象</span><span class="areatitle" id="s_t"></span>
 				</div>
 				<div class="ui-widget-content dwidth-full" style="overflow-x: hidden;">
-					<div id="workings" style="min-height: 215px; max-height: 430px; overflow-y: auto; margin: 20px;">
+					<div id="workings" style="min-height: 215px; max-height: 430px; overflow-y: auto; overflow-x: hidden; margin: 20px;">
 					</div>
 					<div style="height: 44px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="finishbutton" value="一同完成" role="button" aria-disabled="false" style="float: right; margin-right: 6px;">

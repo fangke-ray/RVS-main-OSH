@@ -115,6 +115,12 @@ public class PanelAction extends BaseAction {
 					}
 				}
 			}
+			if (user.getPosition_id().equals("00000000046")
+					|| user.getPosition_id().equals("00000000052")
+					|| user.getPosition_id().equals(RvsConsts.POSITION_QA_P_613)
+					|| user.getPosition_id().equals(RvsConsts.POSITION_QA_P_614)) {
+				actionForward = mapping.findForward("qualityAssurance");
+			}
 		} else if (RvsConsts.ROLE_QAER.equals(roleId) || RvsConsts.ROLE_QA_MANAGER.equals(roleId)) {
 			actionForward = mapping.findForward("qualityAssurance");
 		} else if (RvsConsts.ROLE_SHIPPPER.equals(roleId)) {
@@ -298,12 +304,14 @@ public class PanelAction extends BaseAction {
 		if ("00000000009".equals(new_position_id)) { // TODO
 			return "acceptance.do";
 		} else if ("00000000013".equals(new_position_id) || "00000000014".equals(new_position_id) 
-				|| RvsConsts.POSITION_QUOTATION_P_181.equals(new_position_id)) {
+				|| RvsConsts.POSITION_QUOTATION_P_181.equals(new_position_id)
+				|| "00000000101".equals(new_position_id)) {
 			return "quotation.do";
 		} else if ("00000000016".equals(new_position_id) || "00000000032".equals(new_position_id)) {
 			return "position_panel.do";
 		} else if ("00000000046".equals(new_position_id) || "00000000052".equals(new_position_id)
-				|| RvsConsts.POSITION_QA_P_613.equals(new_position_id)) {
+				|| RvsConsts.POSITION_QA_P_613.equals(new_position_id)
+				|| RvsConsts.POSITION_QA_P_614.equals(new_position_id)) {
 			return "qualityAssurance.do";
 		} else if (RvsConsts.POSITION_QA_601.equals(new_position_id)) {
 			return "service_repair_referee.do";

@@ -116,7 +116,11 @@
 			</if>
 		</where>
 		group by devices_manage_id
-		ORDER BY updated_time DESC
+		ORDER BY 
+			<if test="specialized!=null and specialized!='' ">
+		dm.manage_code,
+			</if>
+		updated_time DESC
 	</select>	
 
 	<!-- 查询管理编号 -->
