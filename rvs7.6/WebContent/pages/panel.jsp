@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">7.9.3263.412</p>
+								<p id="nee">7.9.3268.412</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2018年10月29日</p>
+								<p>2018年11月27日</p>
 							</div>
 						</div>
 <%

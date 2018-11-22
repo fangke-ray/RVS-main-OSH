@@ -56,7 +56,7 @@
 			        p.finish_time IS NULL
 			            AND p.operate_result not in (5, 7)
 			            AND p.SECTION_ID = #{section_id}
-			            and m.level not in (9 , 91, 92, 93, 96, 97, 98)
+			            and m.level not in (9 , 91, 92, 93, 96, 97, 98, 99)
 					    AND pos.line_id = #{line_id}
 			    GROUP BY p.position_id, mpx) pf
 			    ON `p`.position_id = pf.position_id

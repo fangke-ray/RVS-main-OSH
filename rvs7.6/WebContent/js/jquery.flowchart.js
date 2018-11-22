@@ -72,7 +72,7 @@ var drawer = {
 
 	_removePos: function (ep, inserter) {
 		var just = ep.parent();
-		if (just.find(".pos").length == 1) {
+		if (just.children(".pos").length == 1) {
 			// 上下步骤连接
 			var prevNode = $(".edgeposition .pos[nextcode="+ep.attr("code")+"]");
 			var nextNode = $(".edgeposition .pos[prevcode="+ep.attr("code")+"]");
@@ -127,7 +127,7 @@ var drawer = {
 			this._closeOptions(this.thisid);
 
 			// 只剩一个并行项目的时候，删除并行框
-			if (just.find(".pos").length == 1) {
+			if (just.children(".pos").length == 1) {
 				just.removeClass("just-multi");
 			};
 		};
@@ -235,6 +235,7 @@ var flowchart_methods = {
 						nextcode = nextstep.attr("code");
 						nextposid = nextstep.attr("posid");
 						var nextname = nextstep.text();
+						if (nextname.length > 16) nextname = nextname.substring(0, 16) + "等岗位";
 						insertButtons_html += "<input type='button' id='insert_before_" + nextcode +"' value='插入到" + nextname + "之前' />";
 						if (nextstep.attr("end") == null)
 							insertButtons_html += "<input type='button' id='insert_with_" + nextcode +"' value='与" + nextname + "并行' />";
@@ -253,10 +254,10 @@ var flowchart_methods = {
 							inserter.find("select:last").append(inserter.find("select:first option:selected").remove());
 							inserter.find("select:first").select2Buttons();
 
-							ep.parent().find(".pos").each(function(i,item){
+							ep.parent().children(".pos").each(function(i,item){
 								drawer._changeNext($(item), pos);
 							});
-							ep.parent().parent().next(".edgeposition").next(".edgeposition").find(".pos").each(function(i,item){
+							ep.parent().parent().next(".edgeposition").next(".edgeposition").children().children(".pos").each(function(i,item){
 								drawer._changePrev($(item), pos);
 							});
 							drawer._closeOptions(thisid);
@@ -295,10 +296,10 @@ var flowchart_methods = {
 								"</div></div>";
 						nextNode.before(newStep);
 						// 上下步骤连接
-						ep.parent().find(".pos").each(function(i,item){
+						ep.parent().children(".pos").each(function(i,item){
 							drawer._changeNext($(item), (drawer._subchartcode + 1));
 						});
-						ep.parent().parent().next(".edgeposition").next(".edgeposition").find(".pos").each(function(i,item){
+						ep.parent().parent().next(".edgeposition").next(".edgeposition").children().children(".pos").each(function(i,item){
 							drawer._changePrev($(item), (drawer._subchartcode + 1));
 						});
 						// 关闭工具框
@@ -311,22 +312,49 @@ var flowchart_methods = {
 
 				$("#" + thisid + "_buttons input[value=×删除]").click(function() {
 					if (ep.hasClass("chartarea")) {
-						// 上下步骤连接
-						var prevNode = $(".edgeposition .pos[nextcode="+ep.attr("code")+"]");
-						var nextNode = $(".edgeposition .pos[prevcode="+ep.attr("code")+"]");
-
-						prevNode.attr("nextcode", nextNode.attr("code"));
-						nextNode.attr("prevcode", prevNode.attr("code"));
-
+//						drawer._removePos(ep, inserter);
 						var just = ep.parent();
-						just.find(".chartarea").each(function(isub,itemsub) {
-							var subchar = $(itemsub);
-							subchar.find(".pos").each(function(i,itempos) {
-								drawer._removePos($(itempos), inserter);
+						var chartareas = just.find(".chartarea");
+
+						if (chartareas.length == 2) {
+							var prevNode = $(".edgeposition .pos[nextcode="+ep.attr("posid")+"]");
+							var nextNode = $(".edgeposition .pos[prevcode="+ep.attr("posid")+"]");
+
+							chartareas.not(ep).each(function(i,itempos) {
+								var $content = $(itempos).children().detach()
+									.slice(1, -1);
+
+								var chartareaFirst = $content.eq(0);
+								var chartareaLast = $content.eq(-1);
+
+								prevNode.attr("nextcode", chartareaFirst.find(".pos:eq(0)").attr("posid"));
+								nextNode.attr("prevcode", chartareaLast.find(".pos:eq(0)").attr("posid"));
+								chartareaFirst.find(".pos").attr("prevcode", prevNode.eq(0).attr("code"));
+								chartareaLast.find(".pos").attr("nextcode", nextNode.eq(0).attr("code"));
+								prevNode.parent().parent().next().after($content);
 							});
-							subchar.remove();
-						});
-						just.parent().remove();
+
+							drawer._removePos(ep, inserter);
+							just.parent().remove();
+						} else if (chartareas.length == 1) {
+							// 上下步骤连接
+							var prevNode = $(".edgeposition .pos[nextcode="+ep.attr("code")+"]");
+							var nextNode = $(".edgeposition .pos[prevcode="+ep.attr("code")+"]");
+	
+							prevNode.attr("nextcode", nextNode.attr("code"));
+							nextNode.attr("prevcode", prevNode.attr("code"));
+
+//							var subchar = chartareas.eq(0);
+//							subchar.find(".pos").each(function(i,itempos) {
+//								drawer._removePos($(itempos), inserter);
+//							});
+//							subchar.remove();
+							drawer._removePos(ep, inserter);
+//							
+						} else {
+							drawer._removePos(ep, inserter);
+						}
+
 					} else {
 						drawer._removePos(ep, inserter);
 					}

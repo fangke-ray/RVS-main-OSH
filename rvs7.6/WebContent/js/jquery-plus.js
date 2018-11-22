@@ -539,7 +539,7 @@ var treatBackMessages = function(range, msgInfos) {
 	var firstErrorComponent = null;
 	for (var ierror in msgInfos){
 		var msgInfo = msgInfos[ierror];
-		sErrormsg += decodeText(msgInfo.errmsg) + "<br>";
+		sErrormsg += (msgInfo.lineno ? "[" + msgInfo.lineno + "]" : "") + decodeText(msgInfo.errmsg) + "<br>";
 		if (range != null) {
 			// 指定项目范围的时候，范围内对应项目标示错误
 			var componentid = msgInfo.componentid;

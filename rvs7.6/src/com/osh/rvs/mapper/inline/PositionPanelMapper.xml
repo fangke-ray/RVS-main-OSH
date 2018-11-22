@@ -451,7 +451,8 @@
     	ON p.line_id = l.line_id
     	LEFT JOIN `section` s
     	ON pf.section_id = s.section_id
-		WHERE operate_result = 1
+		WHERE action_time IS NOT NULL AND finish_time IS NULL
+		AND operate_result = 1
 		AND operator_id = #{operator_id};
 	]]>
 	</select>

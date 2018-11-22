@@ -307,6 +307,7 @@
 			ON `oa`.POSITION_ID = `p`.POSITION_ID
 		WHERE oa.OPERATOR_ID = #{operator_id}
 		AND p.DELETE_FLG = 0
+		ORDER BY PROCESS_CODE
 		;
 		]]>
 	</select>
