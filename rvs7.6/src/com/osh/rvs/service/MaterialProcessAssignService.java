@@ -345,12 +345,22 @@ public class MaterialProcessAssignService {
 			String lightFixStr = mpas.getLightFixesByMaterial(material_id, conn);
 
 			String lightFlowStr = mpas.getLightFixFlowByMaterial(material_id, null, conn);
-			String comment = (lightFixStr == null ? "" : "小修理内容为：" + lightFixStr + "\n")
-					+ "小修理的工位流程为：" + lightFlowStr;
+			String comment = getLightStr(lightFixStr, lightFlowStr);
 			materialService.updateMaterialComment(material_id, operator_id, comment, conn);
 		}
 	}
 
+	public String getLightStr(String lightFixStr, String lightFlowStr) {
+		String comment = (lightFixStr == null ? "" : "小修理内容为：" + lightFixStr + "\n")
+				+ "小修理的工位流程为：" + lightFlowStr;
+		if (comment.length() > 250) {
+			lightFixStr = lightFixStr.substring(0, 250 - "小修理内容为：\n小修理的工位流程为：".length()
+					- lightFlowStr.length() - 2) + "…";
+			comment = (lightFixStr == null ? "" : "小修理内容为：" + lightFixStr + "\n")
+					+ "小修理的工位流程为：" + lightFlowStr;
+		}
+		return comment;
+	}
 	/**
 	 * 查询流程包含工程
 	 * @param material_id
