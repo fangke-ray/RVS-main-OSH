@@ -67,6 +67,7 @@ import com.osh.rvs.mapper.qf.AcceptanceMapper;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.FileUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
@@ -1171,6 +1172,18 @@ public class MaterialService {
 		});
 		
 		return monthFilesDownloadForms;
+	}
+
+	public void removeComment(String material_id, String operator_id, SqlSessionManager conn){
+		MaterialCommentMapper mapper = conn.getMapper(MaterialCommentMapper.class);
+
+		//查询维修对象备注是否存在
+		String dbComment = mapper.getMyMaterialComment(material_id, operator_id);
+		
+		//如果原来存在备注，则删除修对象备注
+		if(!CommonStringUtil.isEmpty(dbComment)){
+			mapper.deleteMaterialComment(material_id, operator_id);
+		}
 	}
 
 	public void updateMaterialComment(String material_id, String operator_id,
