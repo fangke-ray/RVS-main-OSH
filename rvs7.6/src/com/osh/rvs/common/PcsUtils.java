@@ -1597,7 +1597,8 @@ public class PcsUtils {
 	private static String staticContent(String currentProcessCode) {
 		String comment = null;
 		if ("441".equals(currentProcessCode) || "440".equals(currentProcessCode)
-				|| "442".equals(currentProcessCode) 
+				|| "442".equals(currentProcessCode)
+				|| "443".equals(currentProcessCode)
 				|| "481".equals(currentProcessCode)) comment = COMMENT_451_461;
 		if ("450".equals(currentProcessCode)) comment = COMMENT_451_461;
 		if ("341".equals(currentProcessCode)) comment = COMMENT_341;
