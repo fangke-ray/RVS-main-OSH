@@ -1,5 +1,7 @@
 package com.osh.rvs.service.inline;
 
+import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -41,6 +43,7 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.service.CustomerService;
+import com.osh.rvs.service.MaterialService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
@@ -486,11 +489,18 @@ public class LineLeaderService {
 			MaterialProcessAssignEntity materialProcessAssignEntity = new MaterialProcessAssignEntity();
 			BeanUtil.copyToBean(form, materialProcessAssignEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 			MaterialProcessAssignMapper materialProcessAssignMapper = conn.getMapper(MaterialProcessAssignMapper.class);
-			
-			//删除维修对象选用小修理
-			materialProcessAssignMapper.deleteMaterialLightFix(materialProcessAssignEntity.getMaterial_id());
-			//删除维修对象独有修理流程
-			materialProcessAssignMapper.deleteMaterialProcessAssign(materialProcessAssignEntity.getMaterial_id());
+
+			String lightFixes = materialProcessAssignMapper.getLightFixesByMaterial(entity.getMaterial_id());
+			if (!isEmpty(lightFixes)) {
+				//删除维修对象选用小修理
+				materialProcessAssignMapper.deleteMaterialLightFix(materialProcessAssignEntity.getMaterial_id());
+				//删除维修对象独有修理流程
+				materialProcessAssignMapper.deleteMaterialProcessAssign(materialProcessAssignEntity.getMaterial_id());
+
+				MaterialService mService = new MaterialService();
+				// 删除小修理流程说明
+				mService.removeComment(entity.getMaterial_id(), "00000000001", conn);
+			}
 		}
 		
 		// FSE 数据同步

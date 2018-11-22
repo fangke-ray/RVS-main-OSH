@@ -185,23 +185,14 @@ public class QuotationService {
 	}
 
 	public void updateComment(MaterialForm materialForm,LoginData user,SqlSessionManager conn){
-		MaterialCommentMapper mapper = conn.getMapper(MaterialCommentMapper.class);
-		
 		//画面上提交的备注内容为空时，进一步查询原来是否已经存在备注了
 		if(CommonStringUtil.isEmpty(materialForm.getComment())){
-			//查询维修对象备注是否存在
-			String dbComment = mapper.getMyMaterialComment(materialForm.getMaterial_id(), user.getOperator_id());
-			
-			//如果原来存在备注，则删除修对象备注
-			if(!CommonStringUtil.isEmpty(dbComment)){
-				mapper.deleteMaterialComment(materialForm.getMaterial_id(), user.getOperator_id());
-			}
+			MaterialService materialService = new MaterialService();
+			materialService.removeComment(materialForm.getMaterial_id(), user.getOperator_id(), conn);
 		}else{//画面上提交的备注内容不为空
 			// 更新维修对象备注
 			MaterialService materialService = new MaterialService();
 			materialService.updateMaterialComment(materialForm.getMaterial_id(), user.getOperator_id(), materialForm.getComment(),conn);
 		}
 	}
-
-
 }
