@@ -178,8 +178,14 @@ var makeBreakDialog = function(jBreakDialog) {
 			pcsO.valuePcs(b_request, true);
 		}
 
+		if (!$("#light_pat_button").is(":visible")) {
+			b_request.pat_id = "00000000000";
+		}
+
 		if ($("#major_pat").is(":visible")) {
-			b_request.pat_id = $("#major_pat").attr("value");
+			if ($("#major_pat").attr("value") == $("#major_pat").attr("derive_id")) {
+				b_request.pat_id = $("#major_pat").attr("value");
+			}
 		}
 
 		// Ajax提交
@@ -742,11 +748,15 @@ var doFinish=function(){
 			material_id :$("#hide_material_id").val()
 		}
 
+		if (!$("#light_pat_button").is(":visible")) {
+			data.pat_id = "00000000000";
+		}
 		if ($("#major_pat").is(":visible")) {
-			data.pat_id = $("#major_pat").attr("value");
 			// 选择的不是派生时,需要确认
 			if (data.pat_id == $("#major_pat").attr("base_id")) {
 				confirmMessages = "请确认此维修品是否要进行CCD线更换。";
+			} else {
+				data.pat_id = $("#major_pat").attr("value");
 			}
 		}
 

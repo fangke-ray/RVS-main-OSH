@@ -352,6 +352,7 @@ public class WipAction extends BaseAction {
 			ProductionFeatureEntity entity = new ProductionFeatureEntity();
 			entity.setMaterial_id(material_id);
 			entity.setPosition_id("15");
+			entity.setSection_id("00000000009");
 			entity.setPace(0);
 			entity.setOperate_result(0);
 			entity.setRework(rework + 1); // 一个维修对象可能在这里做图像检查工位多次

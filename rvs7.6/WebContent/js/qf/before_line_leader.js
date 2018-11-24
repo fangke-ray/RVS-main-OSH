@@ -1181,8 +1181,13 @@ var showDetail=function(rid) {
 					// 地区
 					data.bound_out_ocm = $("#edit_bound_out_ocm").val();
 
+					if (!$("#light_pat_button").is(":visible")) {
+						data.pat_id = "00000000000";
+					}
 					if ($("#major_pat").is(":visible")) {
-						data.pat_id = $("#major_pat").attr("value");
+						if ($("#major_pat").attr("value") == $("#major_pat").attr("derive_id")) {
+							data.pat_id = $("#major_pat").attr("value");
+						}
 					}
 					$.ajax({
 						beforeSend : ajaxRequestType,

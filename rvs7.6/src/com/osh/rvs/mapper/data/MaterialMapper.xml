@@ -747,8 +747,11 @@
 			<!--if test="outline_time!= null">
 			,outline_time = #{outline_time}
 			</if-->
-			<if test="pat_id!= null and pat_id!=''">
+			<if test="pat_id!= null and pat_id!= '' and pat_id!= '00000000000'">
 			,pat_id = #{pat_id}
+			</if>
+			<if test="pat_id!= null and pat_id== '00000000000' ">
+			,pat_id = null
 			</if>
 			<if test="scheduled_manager_comment!= null">
 			,scheduled_manager_comment = #{scheduled_manager_comment}
@@ -758,9 +761,6 @@
 			</if>
 			<if test="am_pm!= null">
 			,am_pm = #{am_pm}
-			</if>
-			<if test="pat_id!= null and pat_id!= ''">
-			,pat_id = #{pat_id}
 			</if>
 		<![CDATA[ 
 			where material_id = #{material_id}
