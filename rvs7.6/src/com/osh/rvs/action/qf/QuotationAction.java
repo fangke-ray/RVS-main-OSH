@@ -90,12 +90,6 @@ public class QuotationAction extends BaseAction {
 			req.setAttribute("peripheral", true);
 		}
 
-		if ("160".equals(process_code)) {
-			req.setAttribute("160", true);
-		} else {
-			req.setAttribute("160", false);
-		}
-
 		req.setAttribute("edit_ocm", CodeListUtils.getSelectOptions("material_ocm", null, null, false));
 		if (isPeripheral) {
 			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_peripheral", null, null, false));
@@ -667,8 +661,9 @@ public class QuotationAction extends BaseAction {
 			if (pcs_inputs != null) 
 				ppService.checkPcsEmpty(pcs_inputs, errors);
 
-			if (errors.size() == 0) {
-				materialId = workingPf.getMaterial_id();
+			// 同意日与WIP存放check
+			materialId = workingPf.getMaterial_id();
+			if (errors.size() == 0 && !"160".equals(user.getProcess_code())) {
 	
 				mservice.checkRepeatNo(materialId, materialForm, conn, errors);
 				materialForm.setMaterial_id(materialId);

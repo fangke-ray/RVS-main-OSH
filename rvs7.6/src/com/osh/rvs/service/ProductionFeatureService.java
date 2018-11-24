@@ -440,8 +440,11 @@ public class ProductionFeatureService {
 		} else if ("00000000012".equals(position_id)) { // 测漏
 			if ((mEntity.getDirect_flg()!=null && 1 == mEntity.getDirect_flg())
 					|| (mEntity.getService_repair_flg()!=null && (mEntity.getService_repair_flg() == 1 || mEntity.getService_repair_flg() == 2))) {
-				nextPositions.add("00000000101"); // IISE确认
-//				nextPositions.add("00000000014"); // 直送报价
+				if (mEntity.getDirect_flg()!=null && 1 == mEntity.getDirect_flg()) {
+					nextPositions.add("00000000101"); // IISE确认
+				} else {
+					nextPositions.add("00000000014"); // 直送报价
+				}
 			} else {
 				nextPositions.add("00000000013"); // 报价
 			}
