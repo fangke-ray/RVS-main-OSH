@@ -382,18 +382,24 @@ public class ScheduleService {
 
 	public void updateSchedulePeriod(HttpServletRequest req, SqlSessionManager conn, List<MsgInfo> errors)
 			throws Exception {
-		String material_id = req.getParameter("material_id");
+		// String material_id = req.getParameter("material_id");
+
 		ScheduleHistoryMapper shMapper = conn.getMapper(ScheduleHistoryMapper.class);
+
+		String ids = req.getParameter("ids");
+
+		String[] material_ids = ids.split(",");
 
 		ScheduleHistoryEntity entity = new ScheduleHistoryEntity();
 		Converter<Date> dc = DateConverter.getInstance(DateUtil.DATE_PATTERN);
 		Converter<Integer> ic = IntegerConverter.getInstance();
 
-		entity.setMaterial_id(material_id);
-		entity.setScheduled_date(dc.getAsObject(req.getParameter("scheduled_date")));
-		entity.setPlan_day_period(ic.getAsObject(req.getParameter("plan_day_period")));
-		shMapper.updatePeriod(entity);
-
+		for (int i=0; i < material_ids.length; i++) {
+			entity.setMaterial_id(material_ids[i]);
+			entity.setScheduled_date(dc.getAsObject(req.getParameter("scheduled_date")));
+			entity.setPlan_day_period(ic.getAsObject(req.getParameter("plan_day_period")));
+			shMapper.updatePeriod(entity);
+		}
 	}
 
 	public void deleteSchedule(ActionForm form, HttpSession session, SqlSessionManager conn, List<MsgInfo> errors)

@@ -133,9 +133,16 @@
 			<if test="position_id2!=null and position_id2!='' ">
 				<choose>
 					<when test="position_eval2 == 0">
+						<if test="position_id2=='00000000046' ">
+						<![CDATA[
+						and not exists(select material_id from production_feature d2 where d2.material_id = a.material_id and d2.position_id in (select position_id from position where line_id = 15) and d2.operate_result NOT IN (5,8))
+						]]>				
+						</if>
+						<if test="position_id2!='00000000046' ">
 						<![CDATA[
 						and not exists(select material_id from production_feature d2 where d2.material_id = a.material_id and d2.position_id = #{position_id2} and d2.operate_result NOT IN (5,8))
 						]]>				
+						</if>
 					</when>
 					<when test="position_eval2 == 1">
 						<![CDATA[

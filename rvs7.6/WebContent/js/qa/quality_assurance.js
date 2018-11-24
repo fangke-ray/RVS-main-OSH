@@ -11,6 +11,7 @@ var oOptions = {};
 var pauseOptions = "";
 var stepOptions = "";
 var pauseComments = {};
+var allowScan = false;
 
 var downPdf = function(sorc_no) {
 	if ($("iframe").length > 0) {
@@ -285,11 +286,13 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			lOptions = resInfo.lOptions;
 			oOptions = resInfo.oOptions;
 
-			loadJs(
-			"js/data/operator-detail.js",
-			function(){
-				opd_load($("#exd_listarea .ui-jqgrid-titlebar"));
-			});
+			if (typeof(opd_load) !== "function") {
+				loadJs(
+				"js/data/operator-detail.js",
+				function(){
+					opd_load($("#exd_listarea .ui-jqgrid-titlebar"));
+				});
+			}
 
 			if (resInfo.workstauts == -1) {
 				showBreakOfInfect(resInfo.infectString);
@@ -309,6 +312,10 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 				treatStart(resInfo);
 			} else {
 				$("#uld_listarea").addClass("waitForStart");
+				allowScan = true;
+				if ($("#scanner_inputer").val()) {
+					doStart();
+				}
 			}
 		}
 
@@ -629,6 +636,7 @@ var doStart_ajaxSuccess=function(xhrobj){
 };
 
 var doStart=function(material_id){
+	if (!allowScan) return;
 	var data = {
 		material_id : material_id || $("#scanner_inputer").val()
 	}

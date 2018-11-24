@@ -203,6 +203,8 @@ $(function() {
 
 	$("#reportbutton").click(exportReport);
 	$("#todayreportbutton").click(exportSchedule);
+
+	$("#sel_period").bind("change", doResetSchedulePeriod);
 	initGrid();
 	
 	$("#support_date").datepicker({
@@ -1068,16 +1070,13 @@ var enablebuttons2 = function() {
 	var rowids = $("#planned_list").jqGrid("getGridParam", "selarrrow");
 	if (rowids.length === 0) {
 		$("#removefromplanbutton,#resetPeriodButton").disable();
-	} else if (rowids.length === 1) {
+	} else if (rowids.length >= 1) {
 		$("#removefromplanbutton").enable();
+
 		var date = $("#pick_date").val();
 		if (date && new Date(date).getDate() == new Date().getDate()) {
 			$("#resetPeriodButton").enable();
 		}
-
-	} else {
-		$("#removefromplanbutton").enable();
-		$("#resetPeriodButton").disable();
 	}
 };
 
@@ -1468,32 +1467,42 @@ var resetSchedulePeriod = function() {
 	// 读取变更行
 	var selectedId = $("#planned_list").jqGrid("getGridParam","selrow");
 	var rowData = $("#planned_list").getRowData(selectedId);
-	$("#sel_period").unbind("change");
+
+	$("#sel_period").attr("change", "false");
 	if(rowData.schedule_period) {
 		$("#sel_period").val(rowData.schedule_period).trigger("change");
 	} else {$("#sel_period").val("").trigger("change");}
-	$("#sel_period").bind("change",function(){
-		var data = {
-			material_id : rowData.material_id,
-			scheduled_date : $("#pick_date").val(),
-			scheduled_assign_date : $("#pick_date").val(),
-			plan_day_period : this.value
-		};
+	$("#sel_period").attr("change", "true");
+}
 
-		// Ajax提交
-		$.ajax({
-			beforeSend: ajaxRequestType, 
-			async: false, 
-			url: servicePath + '?method=doUpdateSchedulePeriod', 
-			cache: false, 
-			data: data, 
-			type: "post", 
-			dataType: "json", 
-			success: ajaxSuccessCheck, 
-			error: ajaxError, 
-			complete: planned_list_handleComplete
-		});
+var doResetSchedulePeriod = function(){
+	if ($(this).attr("change") == "false") return;
+	var selectedIds = $("#planned_list").jqGrid("getGridParam","selarrrow");
+	var ids = [];
+	for (var i = 0; i < selectedIds.length; i++) {
+		var rowData = $("#planned_list").getRowData(selectedIds[i]);
+		ids[ids.length] = rowData.material_id;
+	}
 
+	var data = {
+		ids:ids.join(","),
+		scheduled_date : $("#pick_date").val(),
+		scheduled_assign_date : $("#pick_date").val(),
+		plan_day_period : this.value
+	};
+
+	// Ajax提交
+	$.ajax({
+		beforeSend: ajaxRequestType, 
+		async: false, 
+		url: servicePath + '?method=doUpdateSchedulePeriod', 
+		cache: false, 
+		data: data, 
+		type: "post", 
+		dataType: "json", 
+		success: ajaxSuccessCheck, 
+		error: ajaxError, 
+		complete: planned_list_handleComplete
 	});
 }
 
