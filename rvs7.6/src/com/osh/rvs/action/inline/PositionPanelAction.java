@@ -150,6 +150,13 @@ public class PositionPanelAction extends BaseAction {
 
 		String section_id = user.getSection_id();
 		String position_id = user.getPosition_id();
+
+		if (position_id == null) {
+			actionForward = mapping.findForward("exit");
+			log.info("PositionPanelAction.init break");
+			return;
+		}
+
 		String pxLevel = user.getPx();
 		if ("4".equals(pxLevel)) pxLevel = "0"; // 超级员工不分线
 		String process_code = user.getProcess_code();
@@ -1101,7 +1108,7 @@ public class PositionPanelAction extends BaseAction {
 			boolean use_snout = (special_forward != null && special_forward.indexOf("use_snout") >= 0);
 	
 			if (!isLightFix && ("331".equals(process_code) 
-					|| "242".equals(process_code)
+					|| "242".equals(process_code) || "304".equals(process_code)
 					|| ("252".equals(process_code) && "EndoEye".equals(mEntity.getCategory_id())) // TODO
 					)) {
 	
@@ -1675,7 +1682,8 @@ public class PositionPanelAction extends BaseAction {
 
 		String process_code = user.getProcess_code();
 		if (isLightFix &&
-				(!"331".equals(process_code) && !"242".equals(process_code))) {
+				(!"331".equals(process_code) && !"242".equals(process_code))
+				&& !"304".equals(process_code)) {
 			List<MaterialPartialDetailEntity> wentities = prService
 					.getPartialsForPosition(workingPf.getMaterial_id(), workingPf.getPosition_id(), conn);
 

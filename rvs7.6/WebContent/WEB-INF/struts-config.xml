@@ -239,6 +239,7 @@
 			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
 			<forward name="group" path="/pages/inline/position_panel_group.jsp" />
 			<forward name="success" path="/pages/inline/position_panel.jsp" />
+			<forward name="exit" path="/panel.do" />
 		</action>
 		<action path="/position_panel1" type="com.osh.rvs.action.inline.prototype.PositionPanel1Action" parameter="method" validate="false">
 			<forward name="init" path="/pages/inline/position_panel.jsp" />
@@ -250,6 +251,7 @@
 			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
 			<forward name="group" path="/pages/inline/position_panel_group.jsp" />
 			<forward name="success" path="/pages/inline/position_panel.jsp" />
+			<forward name="exit" path="/panel.do" />
 		</action>
 		<action path="/position_panel2" type="com.osh.rvs.action.inline.prototype.PositionPanel2Action" parameter="method" validate="false">
 			<forward name="init" path="/pages/inline/position_panel.jsp" />
@@ -261,6 +263,7 @@
 			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
 			<forward name="group" path="/pages/inline/position_panel_group.jsp" />
 			<forward name="success" path="/pages/inline/position_panel.jsp" />
+			<forward name="exit" path="/panel.do" />
 		</action>
 		<action path="/position_panel3" type="com.osh.rvs.action.inline.prototype.PositionPanel3Action" parameter="method" validate="false">
 			<forward name="init" path="/pages/inline/position_panel.jsp" />
@@ -272,6 +275,7 @@
 			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
 			<forward name="group" path="/pages/inline/position_panel_group.jsp" />
 			<forward name="success" path="/pages/inline/position_panel.jsp" />
+			<forward name="exit" path="/panel.do" />
 		</action>
 		<action path="/position_panel4" type="com.osh.rvs.action.inline.prototype.PositionPanel4Action" parameter="method" validate="false">
 			<forward name="init" path="/pages/inline/position_panel.jsp" />
@@ -283,6 +287,7 @@
 			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
 			<forward name="group" path="/pages/inline/position_panel_group.jsp" />
 			<forward name="success" path="/pages/inline/position_panel.jsp" />
+			<forward name="exit" path="/panel.do" />
 		</action>
 		<action path="/position_panel5" type="com.osh.rvs.action.inline.prototype.PositionPanel5Action" parameter="method" validate="false">
 			<forward name="init" path="/pages/inline/position_panel.jsp" />
@@ -294,6 +299,7 @@
 			<forward name="decom" path="/pages/inline/position_panel_decom.jsp" />
 			<forward name="group" path="/pages/inline/position_panel_group.jsp" />
 			<forward name="success" path="/pages/inline/position_panel.jsp" />
+			<forward name="exit" path="/panel.do" />
 		</action>
 
 		<!-- inline 先端预制 -->
