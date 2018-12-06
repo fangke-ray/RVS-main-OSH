@@ -17,6 +17,7 @@ public class PostMessageService {
 	public static final Integer INFECT_ERROR_CONFIRMED = 9;
 	public static final Integer AGREE_DATE_CHANGE = 10;
 	public static final Integer SET_PARTIAL_POSITION = 12;
+	public static final Integer UNDO_ACCEPTANCE = 17;
 	public static final Integer SORC_TO_OGZ = 18;
 	public static final Integer SORC_TO_OSH = 19;
 	public static final Integer INLINE_LATE = 20;
