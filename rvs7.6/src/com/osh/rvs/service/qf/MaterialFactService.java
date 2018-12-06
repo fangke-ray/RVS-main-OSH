@@ -390,12 +390,13 @@ public class MaterialFactService {
 		}
 		entity.setQuotation_first(0);
 
+		int lineScheduledExpedited = 0;
 		// 根据流程选择加急(CCD线更换)
-		if (!lightFix && (2 != entity.getScheduled_expedited())) {
+		if (!lightFix) {
 			ProcessAssignMapper paMapper = conn.getMapper(ProcessAssignMapper.class);
 			ProcessAssignTemplateEntity paEntity = paMapper.getProcessAssignTemplateByID(entity.getPat_id());
 			if (paEntity != null && paEntity.getDerive_kind() != null && paEntity.getDerive_kind() == 3) {
-				entity.setScheduled_expedited(1);
+				lineScheduledExpedited = 1;
 			}
 		}
 
@@ -420,6 +421,7 @@ public class MaterialFactService {
 			MaterialProcessMapper mapper = conn.getMapper(MaterialProcessMapper.class);
 			MaterialProcessEntity insertBean = new MaterialProcessEntity();
 			insertBean.setMaterial_id(materialId);
+			insertBean.setLine_expedited(lineScheduledExpedited);
 
 			Date workDate4PreCom = workDates[1];
 
@@ -472,6 +474,7 @@ public class MaterialFactService {
 				}
 			}
 			/** 设定产出安排时间为 同意日7个工作日后 */
+			insertBean.setLine_expedited(0);
 			insertBean.setScheduled_date(workDate);
 			insertBean.setLine_id("00000000014");
 			px = mpService.evalPx(mEntity.getModel_id(), "00000000014", lightFix, conn);

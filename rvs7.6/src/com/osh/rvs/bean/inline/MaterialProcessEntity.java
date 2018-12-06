@@ -24,6 +24,7 @@ public class MaterialProcessEntity  implements Serializable {
 	private Date finish_date;
 	private Date scheduled_date;
 	private Date scheduled_assign_date;
+	private int line_expedited = 0;
 
 	private Date dec_plan_date;
 	private Date dec_finish_date;
@@ -112,5 +113,11 @@ public class MaterialProcessEntity  implements Serializable {
 	}
 	public void setPx(Integer px) {
 		this.px = px;
+	}
+	public int getLine_expedited() {
+		return line_expedited;
+	}
+	public void setLine_expedited(int line_expedited) {
+		this.line_expedited = line_expedited;
 	}
 }

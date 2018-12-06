@@ -36,6 +36,9 @@
 		<if test="scheduled_assign_date != null">
 			scheduled_assign_date = #{scheduled_assign_date},
 		</if>
+		<if test="line_expedited != null">
+			line_expedited = #{line_expedited},
+		</if>
 		<if test="finish_date != null">
 			finish_date = #{finish_date},
 		</if>
@@ -57,7 +60,8 @@
 
 	<insert id="insertMaterialProcess" parameterType="MaterialProcessEntity">
 		<![CDATA[
-			insert into material_process(material_id,scheduled_date,line_id,px) values (#{material_id},#{scheduled_date},#{line_id},#{px})
+			insert into material_process(material_id,scheduled_date,line_expedited,line_id,px) 
+			values (#{material_id},#{scheduled_date},#{line_expedited},#{line_id},#{px})
 		]]>
 	</insert>
 
