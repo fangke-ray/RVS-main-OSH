@@ -151,6 +151,7 @@ public class QuotationService {
 					process_code = "";
 					if ("00000000013".equals(pe.getProcessing_position())) process_code = "151";//TODO zhenggui
 					else if ("00000000014".equals(pe.getProcessing_position())) process_code = "161";
+					else if ("00000000101".equals(pe.getProcessing_position())) process_code = "160";
 
 					String sReason = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + pe.getNow_pause_reason());
 					pausedMaterialForm.setStatus("" + pe.getNow_pause_reason());
