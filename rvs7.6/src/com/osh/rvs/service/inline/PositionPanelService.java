@@ -713,8 +713,9 @@ public class PositionPanelService {
 			showLines[0] = "检查卡";
 		} else {
 			if ("00000000012".equals(sline_id)) {
-				showLines = new String[1];
+				showLines = new String[2];
 				showLines[0] = "分解工程";
+				showLines[1] = "总组工程"; // TODO 判断有无总组返工
 			} else if ("00000000013".equals(sline_id)) {
 				showLines = new String[1];
 				showLines[0] = "NS 工程";
