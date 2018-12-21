@@ -1,6 +1,7 @@
 package com.osh.rvs.action.data;
 
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

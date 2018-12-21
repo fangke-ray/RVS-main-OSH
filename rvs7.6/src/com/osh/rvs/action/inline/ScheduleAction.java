@@ -449,7 +449,7 @@ public class ScheduleAction extends BaseAction {
 		// 删除未完成的工程进度
 		MaterialProcessService pocessService = new MaterialProcessService();
 		pocessService.removeByBreak(id, conn);
-		// 删除未完成的烘干作业
+		// 删除未完成的烘干作业 TODO
 
 		WipService wService = new WipService();
 		wService.stop(conn, id);

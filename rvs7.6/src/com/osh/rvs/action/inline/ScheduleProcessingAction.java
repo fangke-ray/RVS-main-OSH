@@ -552,8 +552,7 @@ public class ScheduleProcessingAction extends BaseAction {
 //		//产能所需课室 
 //		List<ScheduleForm> resultSectionNames = capacityService.searchSectionName(conn);
 //		callbackResponse.put("resultSectionNames", resultSectionNames);
-				
-		
+
 		List<ScheduleForm> resultBeans = capacityService.searchCapacitySetting(conn);
 		callbackResponse.put("resultBeans",resultBeans);
 		

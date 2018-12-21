@@ -330,7 +330,7 @@ ON ams.sendation_id = osd.operator_id
 			</if>
 			<if test="occur_time_to!= null ">
 			<![CDATA[ 
-				AND date_format(am.OCCUR_TIME, '%Y-%m-%d') <= date_format(#{occur_time_to}, '%Y-%m-%d')
+				AND am.OCCUR_TIME < date_add(#{occur_time_to}, interval 1 day)
 			]]>
 			</if>
 			<if test="reason!= null and reason!= '' ">

@@ -104,7 +104,7 @@ public class CheckUnqualifiedRecordAction extends BaseAction {
 		
 		CheckUnqualifiedRecordService service=new CheckUnqualifiedRecordService();
 		List<CheckUnqualifiedRecordForm> finished=service.search(form, conn);
-		
+
 		listResponse.put("errors", errors);
 		listResponse.put("finished", finished);
 		

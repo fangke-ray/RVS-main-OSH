@@ -157,7 +157,7 @@
 		<value code="4">暂停</value>
 		<value code="5">辅助终了</value>
 		<value code="6">不通过</value>
-		<value code="7">保留中</value><!-- 消毒/灭菌 -->
+		<value code="7">放置中</value><!-- 消毒/灭菌 进行中 -->
 		<value code="8">发生返工</value>
 	</codelist>
 
