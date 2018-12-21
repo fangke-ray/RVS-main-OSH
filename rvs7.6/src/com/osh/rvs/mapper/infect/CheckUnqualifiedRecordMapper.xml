@@ -54,12 +54,12 @@
 		<where>
 			<if test="manage_code!=null and manage_code!=''">
 				<![CDATA[
-					dm.manage_code LIKE CONCAT('%',#{manage_code},'%') OR tm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+					AND (dm.manage_code LIKE CONCAT('%',#{manage_code},'%') OR tm.manage_code LIKE CONCAT('%',#{manage_code},'%'))
 				]]>
 			</if>
 			<if test="name!=null and name!=''">
 				<![CDATA[
-					AND dt.name LIKE CONCAT('%',#{name},'%') OR tm.tool_name LIKE CONCAT('%',#{name},'%')
+					AND (dt.name LIKE CONCAT('%',#{name},'%') OR tm.tool_name LIKE CONCAT('%',#{name},'%'))
 				]]>
 			</if>
 			<if test="check_item!=null and check_item!=''">

@@ -753,7 +753,7 @@ var doFinish=function(){
 		}
 		if ($("#major_pat").is(":visible")) {
 			// 选择的不是派生时,需要确认
-			if (data.pat_id == $("#major_pat").attr("base_id")) {
+			if ($("#major_pat").attr("value") == $("#major_pat").attr("base_id")) {
 				confirmMessages = "请确认此维修品是否要进行CCD线更换。";
 			} else {
 				data.pat_id = $("#major_pat").attr("value");

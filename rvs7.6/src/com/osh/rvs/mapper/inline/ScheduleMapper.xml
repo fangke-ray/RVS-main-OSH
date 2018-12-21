@@ -407,7 +407,7 @@
 				(mrt.remain_before_com_minutes + mrt.remain_minutes) as remain_minutes,
 				mrt.expected_finish_time,
 				sh.plan_day_period as schedule_period,
-				DATE_FORMAT(vcf.finish_time, '%H:%i') as ns_processing_position,
+				DATE_FORMAT((select vcf.finish_time from v_com_finish vcf WHERE a.material_id = vcf.material_id), '%H:%i') as ns_processing_position,
 				b.px
 				FROM material a
 				JOIN material_process b ON a.material_id = b.material_id
@@ -420,8 +420,6 @@
 					ON a.material_id = mrt.material_id and mrt.line_id = 14
 				LEFT JOIN schedule_history sh
 					ON a.material_id = sh.material_id AND sh.scheduled_date = #{scheduled_assign_date}
-				LEFT JOIN v_com_finish vcf
-					ON a.material_id = vcf.material_id
 				WHERE b.line_id IS NOT NULL
 		]]>
 		<if test="line_id != null and line_id != ''">			
