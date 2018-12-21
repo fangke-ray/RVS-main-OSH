@@ -41,6 +41,7 @@ public class MaterialFactEntity implements Serializable {
 	private String pat_id;
 
 	private Integer category_kind;
+	private String category_name;
 	private Integer unrepair_flg;
 	private Integer scheduled_expedited;
 	private Integer service_repair_flg;
@@ -244,6 +245,12 @@ public class MaterialFactEntity implements Serializable {
 	}
 	public void setService_repair_flg(Integer service_repair_flg) {
 		this.service_repair_flg = service_repair_flg;
+	}
+	public String getCategory_name() {
+		return category_name;
+	}
+	public void setCategory_name(String category_name) {
+		this.category_name = category_name;
 	}
 	
 	

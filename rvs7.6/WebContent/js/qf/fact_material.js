@@ -343,9 +343,41 @@ var process_set = function(rowdata) {
 			$("#pa_main").html("");
 
 			if (level < 4) {// TODO 大修
-				$("#search_section_id").val("00000000001").trigger("change");
+				if(rowdata["category_kind"] == 6) {
+					$("#search_section_id").val("00000000012").trigger("change");
+				} else {
+					$("#search_section_id").val("00000000001").trigger("change");
+				}
 				$("#ref_template").val(fillZero(category_kind, 11)).trigger("change");
-				process_dialog($process_dialog, rowdata);
+				if (rowdata["category_name"] == "光学视管") {// 光学视管
+					$("#search_section_id").val("00000000012").trigger("change");
+					$("#ref_template").val(fillZero(category_kind, 11)).trigger("change");
+	
+					if (checkPart(material_id)) {
+						if ($('div#errstring').length == 0) {
+							$("body").append("<div id='errstring'/>");
+						}
+						$('div#errstring').show();
+						$('div#errstring').dialog({
+							dialogClass : 'ui-warn-dialog', modal : false, width : 450, title : "提示信息", 
+							buttons : {
+								"此次光学视管修理不需要零件订购" : function() { 
+									process_dialog($process_dialog, rowdata);
+									$(this).dialog("close"); 
+								}, 
+								"去订购零件" : function() {
+									$(this).dialog("close"); 
+								}
+							}
+						});
+						$('div#errstring').html("<span class='errorarea'>光学视管修理应当在投线前订购零件，请确认！</span>");
+					}
+					else {
+						process_dialog($process_dialog, rowdata);
+					}
+				} else {
+					process_dialog($process_dialog, rowdata);
+				}
 			} else if (level > 50 && level < 60) {// 周边
 				$("#search_section_id").val("00000000012").trigger("change");
 				$("#ref_template").val(fillZero(category_kind, 11)).trigger("change");
@@ -1012,7 +1044,7 @@ function initGrid() {
 			width: 1248,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机身号', '返还要求', '加急','level','等级', '报价日期', '客户同意日','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
+			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机种', '机身号', '返还要求', '加急','level','等级', '报价日期', '客户同意日','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
 			,'CCD盖玻璃<br>/零件订购'
 			,'维护对象ID'],
 			colModel:[
@@ -1020,7 +1052,8 @@ function initGrid() {
 				{name:'sorc_no',index:'sorc_no', width:75},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_name', width:125},
-				{name:'category_kind',index:'category_kind', width:60, formatter:'select', editoptions:{value:$("#kOptions").val()}},
+				{name:'category_kind',index:'category_kind', width:60, hidden : true, formatter:'select', editoptions:{value:$("#kOptions").val()}},
+				{name:'category_name',index:'category_name', width:60},
 				{name:'serial_no',index:'serial_no', width:50},
 				{name:'unrepair_flg',index:'unrepair_flg', align:'center', width:50, formatter:'select', editoptions:{value:"1:Unrepair;0:"}},
 				{name:'scheduled_expedited',index:'scheduled_expedited', align:'center', width:30, formatter:'select', editoptions:{value:"2:直送快速;1:加急;0:"}},

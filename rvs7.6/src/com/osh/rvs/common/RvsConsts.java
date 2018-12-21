@@ -95,6 +95,7 @@ public class RvsConsts extends BaseConst {
 	public static final String POSITION_481 = "00000000040";
 	public static final String POSITION_492 = "00000000089";
 	public static final String POSITION_462 = "00000000097";
+	public static final String POSITION_572 = "00000000102";
 
 	public static final String TEXT_PLAN_HOLD = "另行通知";
 	public static final String SEARCH_RESULT = "SEARCH_RESULT";

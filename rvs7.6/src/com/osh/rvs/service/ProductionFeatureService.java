@@ -502,7 +502,7 @@ public class ProductionFeatureService {
 					|| "00000000049".equals(position_id) || "00000000050".equals(position_id) 
 					|| RvsConsts.POSITION_811.equals(position_id) || RvsConsts.POSITION_470.equals(position_id)
 					|| RvsConsts.POSITION_461.equals(position_id) || RvsConsts.POSITION_481.equals(position_id)
-					|| RvsConsts.POSITION_462.equals(position_id)
+					|| RvsConsts.POSITION_462.equals(position_id) || RvsConsts.POSITION_572.equals(position_id)
 					)
 				) { // 总组Over TODO
 				if (isFact) {

@@ -65,6 +65,8 @@ public class MaterialFactForm extends ActionForm {
 	@BeanField(title = "机种类别", name = "category_kind", type = FieldType.Integer)
 	private String category_kind;
 
+	private String category_name;
+
 	@BeanField(title = "未修理返还标记", name = "unrepair_flg", type = FieldType.Integer)
 	private String unrepair_flg;
 
@@ -292,5 +294,11 @@ public class MaterialFactForm extends ActionForm {
 	}
 	public void setService_repair_flg(String service_repair_flg) {
 		this.service_repair_flg = service_repair_flg;
+	}
+	public String getCategory_name() {
+		return category_name;
+	}
+	public void setCategory_name(String category_name) {
+		this.category_name = category_name;
 	}
 }

@@ -109,7 +109,9 @@ public class MaterialFactService {
 //					(level == 9 || level == 91 ||level == 92 ||level == 93
 //					|| level == 56 ||level == 57 ||level == 58 // TODO level
 //							)) {
-			if (isLightFix || (level != null && (level == 56 ||level == 57 ||level == 58 || level == 59))) {
+			if (isLightFix 
+					|| (level != null && (level == 56 ||level == 57 ||level == 58 || level == 59))
+					|| "光学视管".equals(resultBean.getCategory_name())) {
 				MaterialPartialForm mp = mps.loadMaterialPartial(conn, resultBean.getMaterial_id(), null);
 				if (mp == null) {
 					resultForm.setImg_operate_result("未订购零件");
