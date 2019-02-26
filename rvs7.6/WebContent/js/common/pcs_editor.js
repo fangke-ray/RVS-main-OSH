@@ -37,7 +37,8 @@ var pcsO = {
 						&& this.value == "0"
 						&& this.name.substring(0, 2) == "EM") {
 				} else {
-					pcs_values[this.name] = this.value;
+					if (!(isBreak && !this.value))
+						pcs_values[this.name] = this.value;
 				}
 			} else if (this.type == "checkbox"){
 				if (pcs_values[this.name] == null || pcs_values[this.name] == "") {

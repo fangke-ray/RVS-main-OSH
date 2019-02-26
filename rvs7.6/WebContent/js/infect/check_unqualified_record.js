@@ -284,8 +284,8 @@ var search_detailComplete=function(xhrobj, textStatus){//tempForm
                  $("#label_model_name").text(resInfo.tempForm.tools_no);//治具NO.
                  $("#label_model_name").parent().prev().html("治具NO.");
                  $("#sheetShower").hide();
-                 $("#label_borrow").html(resInfo.sectionAndLine);
-                 $("#label_borrow").parent().prev().html("借用治具");
+                 $("#label_borrow").html(resInfo.tempForm.process_code || "");
+//               $("#label_borrow").parent().prev().html("借用治具");
                  
                  $("#input_borrow_object_name").parent().prev().html("借用治具");
                  $("#label_borrow_object_name").parent().prev().html("借用治具");
@@ -297,8 +297,8 @@ var search_detailComplete=function(xhrobj, textStatus){//tempForm
                  $("#label_model_name").text(resInfo.tempForm.model_name);//型号
                  $("#label_model_name").parent().prev().html("型号");
                  $("#sheetShower").show();
-                 $("#label_borrow").html(resInfo.sectionAndLine);
-                 $("#label_borrow").parent().prev().html("借用设备");
+                 $("#label_borrow").html(resInfo.tempForm.process_code || "");
+//               $("#label_borrow").parent().prev().html("借用设备");
                  
                  $("#input_borrow_object_name").parent().prev().html("借用设备");
                  $("#label_borrow_object_name").parent().prev().html("借用设备");
@@ -314,6 +314,7 @@ var search_detailComplete=function(xhrobj, textStatus){//tempForm
  
             //线长
              if(login_id==line_leader_id){//当前线长
+                $("#label_borrow_device").hide();
 	            if(line_leader_handle_time=null || line_leader_handle_time==""){//线长未处理
                     $(".linear_not_handle").show();
                     $(".linear_handle_over").hide();
@@ -338,7 +339,6 @@ var search_detailComplete=function(xhrobj, textStatus){//tempForm
 	                $(".linear_handle_over").show();
 	                
 	                var position_handle=resInfo.tempForm.position_handle;//工位对处
-                    $("#label_borrow_device").hide();
 	                if(position_handle==1){
 	                     $("#label_position_handle").text("借用");
 	                     $("#label_borrow_device").show();
@@ -364,8 +364,8 @@ var search_detailComplete=function(xhrobj, textStatus){//tempForm
                 $(".linear_not_handle").hide();
                 $(".linear_handle_over").show();
                 
-                $("#label_borrow_device").hide();
                 var position_handle=resInfo.tempForm.position_handle;//工位对处
+                $("#label_borrow_device").hide();
 	            if(position_handle==1){
 	                 $("#label_position_handle").text("借用");
 	                 $("#label_borrow_device").show();
@@ -382,6 +382,8 @@ var search_detailComplete=function(xhrobj, textStatus){//tempForm
 	                 $("#label_position_handle").text("手工作业");
 	            }else if(position_handle==3){
 	                 $("#label_position_handle").text("暂停工位");
+                }else if(position_handle==4){
+                    $("#label_position_handle").text("有备品，无需更换");
 	            }else{
 	                $("#label_position_handle").text("");
 	            }

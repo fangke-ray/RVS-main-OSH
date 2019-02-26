@@ -170,7 +170,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										</td>							
 									</tr>
 									<tr>
-										<td class="ui-state-default td-title"></td>
+										<td class="ui-state-default td-title">所在工位</td>
 										<td class="td-content">
 											<label id="label_borrow"></label>
 										</td>

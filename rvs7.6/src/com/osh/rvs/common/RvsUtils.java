@@ -263,7 +263,7 @@ public class RvsUtils {
 			sOverline = "-1";
 		}
 
-		return sOverline;
+		return sOverline.trim();
 	}
 	
 	public static String getLevelOverLine(String model_name, String category_name, String level, LoginData user, String spprocess_code) throws Exception {
@@ -1165,7 +1165,7 @@ public class RvsUtils {
 	public static boolean isLightFix(Integer level) {
 		boolean isLightFix = (level != null) &&
 				((level == 9 || level== 91 || level == 92 || level == 93) ||
-						(level== 96 || level == 97 || level == 98));
+						(level== 96 || level == 97 || level == 98 || level == 99));
 		return isLightFix;
 	}	
 	public static boolean isMediumFix(String level) {

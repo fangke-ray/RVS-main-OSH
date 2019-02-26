@@ -111,6 +111,7 @@ public class QualityAssuranceAction extends BaseAction {
 			user.setProcess_code(process_code);
 			session.setAttribute(RvsConsts.SESSION_USER, user);
 		}
+
 		req.setAttribute("qs_position_id", qs_position_id);
 		req.setAttribute("qs_position_name", position_name);
 
@@ -306,7 +307,6 @@ public class QualityAssuranceAction extends BaseAction {
 					MaterialService ms = new MaterialService();
 					ms.getMaterialComment(pauseingPf.getMaterial_id(), callbackResponse, conn);
 
-					getPf(pauseingPf, qa_checked, isLeader, callbackResponse, conn);
 				} else {
 					// 准备中
 					callbackResponse.put("workstauts", WORK_STATUS_PREPAIRING);
@@ -855,6 +855,7 @@ public class QualityAssuranceAction extends BaseAction {
 
 		log.info("QualityAssuranceAction.doendpause end");
 	}
+
 	/**
 	 * 作业中断
 	 * @param mapping ActionMapping

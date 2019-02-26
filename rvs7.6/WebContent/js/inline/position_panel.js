@@ -545,7 +545,7 @@ var treatUsesnout = function(xhrobj) {
 					$("#snouts").find("tbody").html(resInfo.sReferChooser);
 					mySetReferChooser();
 				}
-			} else {
+			} else if (resInfo.used_snout){
 				$("#snoutpane td:eq(2), #snoutpane td:eq(3), #snoutpane td:eq(6), #snoutpane td:eq(7), #snouts").hide();
 				$("#snoutpane td:eq(4), #snoutpane td:eq(5), #unusesnoutbutton").show();
 				// 使用中的先端头
@@ -555,6 +555,14 @@ var treatUsesnout = function(xhrobj) {
 				$("#unusesnoutbutton").click(function() {
 					dounuse($("#snoutpane td:eq(5)").text());
 				});
+			} else {
+				$("#snoutpane td:eq(2), #snoutpane td:eq(3), #snoutpane td:eq(6), #snoutpane td:eq(7), #snouts").show();
+				$("#snoutpane td:eq(4), #snoutpane td:eq(5), #unusesnoutbutton").hide();
+				// 关联先端头参照
+				if (resInfo.sReferChooser != null) {
+					$("#snouts").find("tbody").html(resInfo.sReferChooser);
+					mySetReferChooser();
+				}
 			}
 			$("#input_snout").val("").prev().val("");
 
@@ -1689,7 +1697,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 			}
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 }
@@ -1772,6 +1780,7 @@ var wttime = function(){
 }
 
 var minuteFormat =function(iminute) {
+	if (!iminute) return "-";
 	var hours = parseInt(iminute / 60);
 	var minutes = iminute % 60;
 

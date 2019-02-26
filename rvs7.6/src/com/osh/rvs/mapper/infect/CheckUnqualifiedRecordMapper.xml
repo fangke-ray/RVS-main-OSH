@@ -163,6 +163,7 @@
 				COALESCE(dm.manage_code,tm.manage_code,'') AS manage_code,
 				COALESCE(dt.name,tm.tool_name,'') AS name,
 				dm.model_name,
+				pos.process_code,
 				cur.check_item,
 				cur.unqualified_status,
 				cur.product_content,
@@ -202,6 +203,10 @@
 				operator responsible_op
 			ON
 				cur.responsible_operator_id=responsible_op.operator_id
+			LEFT JOIN
+				position pos
+			ON
+				(dm.position_id = pos.position_id OR tm.position_id = pos.position_id)
 			LEFT JOIN
 				operator line_op
 			ON

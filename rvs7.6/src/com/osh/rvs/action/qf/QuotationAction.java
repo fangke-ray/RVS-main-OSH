@@ -374,6 +374,7 @@ public class QuotationAction extends BaseAction {
 				// 作业信息状态改为，暂停
 				ProductionFeatureMapper pfdao = conn.getMapper(ProductionFeatureMapper.class);
 				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_PAUSE);
+				workingPf.setUse_seconds(null);
 				pfdao.finishProductionFeature(workingPf);
 	
 				// 制作暂停信息

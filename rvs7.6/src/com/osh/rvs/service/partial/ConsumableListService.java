@@ -369,7 +369,7 @@ public class ConsumableListService {
 				SXSSFWorkbook work = new SXSSFWorkbook(1000);
 
 				// 创建Sheet
-				Sheet sheet = work.createSheet("消耗品发放记录一览");
+				Sheet sheet = work.createSheet("消耗品仓库库存一览");
 
 				Row row = null;
 

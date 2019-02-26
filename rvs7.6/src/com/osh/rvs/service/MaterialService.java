@@ -1057,12 +1057,13 @@ public class MaterialService {
 		Date today = new Date();
 		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + uuid + "\\";
 
-		String[] showLines = new String[5];
+		String[] showLines = new String[6];
 		showLines[0] = "检查卡";
 		showLines[1] = "最终检验";
 		showLines[2] = "分解工程";
 		showLines[3] = "NS 工程";
 		showLines[4] = "总组工程";
+		showLines[5] = "外科硬镜修理工程";
 
 		for (int i=0 ; i < showLines.length ; i++) {
 			String showLine = showLines[i]; 

@@ -762,12 +762,13 @@ public class PositionPanelService {
 
 		List<Map<String, String>> pcses = new ArrayList<Map<String, String>>();
 
-		String[] showLines = new String[5];
-		showLines[0] = "检查卡";
-		showLines[1] = "最终检验";
-		showLines[2] = "分解工程";
-		showLines[3] = "NS 工程";
-		showLines[4] = "总组工程";
+		String[] showLines = new String[6];
+		showLines[0] = "最终检验";
+		showLines[1] = "检查卡";
+		showLines[2] = "外科硬镜修理工程";
+		showLines[3] = "分解工程";
+		showLines[4] = "NS 工程";
+		showLines[5] = "总组工程";
 
 		for (String showLine : showLines) {
 			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, mform.getModel_name(), null, 

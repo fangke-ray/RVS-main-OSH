@@ -293,9 +293,13 @@ public class ReadInfect {
 							for (int irowcell = 0; irowcell<rowcells.getLength(); irowcell++) {
 								Element rowcell = (Element)rowcells.item(irowcell);
 								String cellText = getTextData(rowcell);
+								String iRowIdx = rowcell.getAttribute("ss:Index");
+								if (isEmpty(iRowIdx)) iRowIdx = "1";
 								// 单元格的循环
 								if (!isEmpty(cellText)) {
-									String cellNum = XlsUtil.getExcelColCode(irowcell) + (irow + 1);
+									String cellNum = XlsUtil.getExcelColCode(iRowIdx) + (irow + 1);
+									// refer可以有空格
+									cellText = cellText.replaceAll("&nbsp;", " ");
 									referItems.put(cellNum, cellText);
 								}
 							}
@@ -304,7 +308,6 @@ public class ReadInfect {
 				}
 				wsLength = 1;
 			}
-
 
 			// sheet的循环
 			Node worksheet = tnl.item(0);
@@ -686,6 +689,8 @@ public class ReadInfect {
 		cellText = cellText.replaceAll("#G\\[MANAGENO#" , "<manageNo/>");
 		cellText = cellText.replaceAll("#G\\[MANAGENO\\[R#" , "<manageNo replacable/>");
 		cellText = cellText.replaceAll("#G\\[MANAGENO\\[U.*#" , "<manageNo/>");
+		cellText = cellText.replaceAll("#G\\[NO\\[U.*#" , "<nodo/>");
+
 		// 型号
 		cellText = cellText.replaceAll("#G\\[MODEL#" , "<model/>");
 		cellText = cellText.replaceAll("#G\\[MODEL\\[U.*#" , "<model/>");
@@ -911,7 +916,7 @@ public class ReadInfect {
 						// 操作者
 						itemEntity.setData_type(1);
 					} else if (tag.startsWith("L")) {
-						// 单元格中的跳动
+						// 线长
 						itemEntity.setData_type(2);
 					} else if (tag.startsWith("V")) {
 					}
