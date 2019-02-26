@@ -216,10 +216,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<option value="J" ${(shelf eq 'J' ? 'selected' : '' )}>J 货架</option>
 						<option value="K" ${(shelf eq 'K' ? 'selected' : '' )}>K 货架</option>
 						<option value="L" ${(shelf eq 'L' ? 'selected' : '' )}>L 货架</option>
-						<option value="M" ${(shelf eq 'M' ? 'selected' : '' )}>M 货架</option>
-						<option value="N" ${(shelf eq 'N' ? 'selected' : '' )}>N 货架</option>
+						<option value="O" ${(shelf eq 'O' ? 'selected' : '' )}>O 货架</option>
+						<option value="P" ${(shelf eq 'P' ? 'selected' : '' )}>P 货架</option>
+						<option value="Q" ${(shelf eq 'Q' ? 'selected' : '' )}>Q 货架</option>
+						<option value="R" ${(shelf eq 'R' ? 'selected' : '' )}>R 货架</option>
+						<option value="S" ${(shelf eq 'S' ? 'selected' : '' )}>S 货架</option>
 						<option value="Z1" ${(shelf eq 'Z1' ? 'selected' : '' )}>ENDOEYE 货架上</option>
 						<option value="Z2" ${(shelf eq 'Z2' ? 'selected' : '' )}>ENDOEYE 货架下</option>
+						<option value="Z4" ${(shelf eq 'Z4' ? 'selected' : '' )}>UDI 货架</option>
+						<option value="M" ${(shelf eq 'M' ? 'selected' : '' )}>M 货架</option>
+						<option value="N" ${(shelf eq 'N' ? 'selected' : '' )}>N 货架</option>
 						<option value="Z3" ${(shelf eq 'Z3' ? 'selected' : '' )}>临时货架</option>
 					</select>
 					</th>
