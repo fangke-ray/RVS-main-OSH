@@ -95,13 +95,18 @@ public class AcceptanceService {
 		MaterialService mService = new MaterialService();
 		MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, newId);
 
-		// 周边设备不放通箱
+		// 周边设备手动放通箱
 		if (!"07".equals(mEntity.getKind())) { // TODO commit
 			HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
 			httpclient.start();
+			String kind = mEntity.getKind();
+			// UDI
+			if ("06".equals(kind) && RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
+				kind = "UDI";
+			}
 			try {  
 				HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
-						+ "/" + mEntity.getKind() + "/");
+						+ "/" + kind + "/");
 				httpclient.execute(request, null);
 			} catch (Exception e) {
 			} finally {

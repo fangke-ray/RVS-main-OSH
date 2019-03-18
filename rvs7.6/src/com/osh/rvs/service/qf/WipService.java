@@ -321,7 +321,7 @@ public class WipService {
 			}
 
 			// 如果是周边或小修理/光学视管，则取消零件订购。
-			if ("07".equals(mBean.getKind()) || "00000000055".equals(mBean.getCategory_id())
+			if ("07".equals(mBean.getKind()) || RvsConsts.CATEGORY_UDI.equals(mBean.getCategory_id())
 				|| RvsUtils.isLightFix(mBean.getLevel())) {
 				PartialOrderManageService pomService = new PartialOrderManageService();
 				pomService.deleteMaterialPartial(material_id, conn);

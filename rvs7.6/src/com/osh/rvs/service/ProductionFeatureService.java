@@ -426,7 +426,7 @@ public class ProductionFeatureService {
 		if ("00000000010".equals(position_id) || "00000000011".equals(position_id)) { // 消毒灭菌
 			if ("07".equals(mEntity.getKind()) && mEntity.getFix_type() == 1) {
 				nextPositions.add(RvsConsts.POSITION_QUOTATION_P_181); // 周边报价
-			} else if ("00000000055".equals(mEntity.getCategory_id())) { // 光学视管
+			} else if (RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) { // 光学视管
 				nextPositions.add("00000000013");
 			} else {
 				nextPositions.add("00000000012");
@@ -810,7 +810,7 @@ public class ProductionFeatureService {
 //				if (paProxy.getFinishedByLine(line_id)) { TODO 其实要这个的 像OGZ有最后一个工位并行的就会两次611。总之目前省下一次查询
 				if (level == 56 || level == 57 || level == 58 || level == 59) {
 					nextPositions.add(RvsConsts.POSITION_QA_P_613);
-				} else if ("00000000055".equals(mEntity.getCategory_id())) { // 光学视管
+				} else if (RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) { // 光学视管
 					nextPositions.add(RvsConsts.POSITION_QA_P_614);
 				} else if (paProxy.isLightFix) {
 					// 并且是主流程时，612工位

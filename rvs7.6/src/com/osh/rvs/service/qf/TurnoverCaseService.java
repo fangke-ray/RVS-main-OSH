@@ -214,11 +214,11 @@ public class TurnoverCaseService {
 				if (comLayer != null) sb.append("</tr><tr>");
 				comLayer = iLayer;
 			}
-			if ("M".equals(shelf) && iLayer > 1) {
-				sb.append("<td colspan=\"3\" location=\""); // 不规则M TODO
-			} else {
+//			if ("M".equals(shelf) && iLayer > 1) {
+//				sb.append("<td colspan=\"3\" location=\""); // 不规则M TODO
+//			} else {
 				sb.append("<td location=\"");
-			}
+//			}
 			sb.append(entity.getLocation());
 			sb.append("\" class=\"");
 			Date storage_time = entity.getStorage_time();

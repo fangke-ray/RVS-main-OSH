@@ -581,7 +581,7 @@ public class MaterialFactService {
 				if (level == 56 || level == 57 || level == 58 || level==59) {
 					qa_position = RvsConsts.POSITION_QA_P_613;
 				}
-				if ("00000000055".equals(mEntity.getCategory_id())) {
+				if (RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
 					qa_position = RvsConsts.POSITION_QA_P_614;
 				}
 
