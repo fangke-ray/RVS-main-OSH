@@ -1256,7 +1256,7 @@
 			select material_id, occur_times, max(arrival_plan_date) as arrival_plan_date
 			from (
 				select material_id, occur_times, coalesce(arrival_plan_date, cast('9999/12/31' as date)) as arrival_plan_date
-				from material_partial_detail where status = 3 
+				from material_partial_detail where waiting_quantity > 0 and status = 3 
 				) coaled
 			group by material_id, occur_times) maxed
 		on maxed.material_id = mp.material_id and maxed.occur_times = mp.occur_times

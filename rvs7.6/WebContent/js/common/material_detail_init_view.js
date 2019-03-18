@@ -63,13 +63,13 @@ $(function() {
 					}},
 				{name :'arrival_plan_date',index:'arrival_plan_date',width:100,align:'center', sorttype : 'date', formatter : function(value, options, rData) {
 		       		if (eapdEditable) {
-		       			if (rData["status"] == 3) {
+		       			if (rData["status"] == 3 || rData["status"] == 1) {
 		       				if (value == null || value=="9999/12/31" || value=="9999-12-31") {
 		       				return "<input type='text' class='fix_arrival_plan_date grid_input' value='' org='' readonly>"
 		       				} else {
 		       				return "<input type='text' class='fix_arrival_plan_date grid_input' value='"+ (value || "") +"' org='"+ (value || "") +"' readonly>"
 		       				}
-		       			} else if (rData["status"] == 4 || rData["status"] == 1) {
+		       			} else if (rData["status"] == 4) {
 		       				if (value == null || value=="9999/12/31" || value=="9999-12-31") {
 		       					return "";
 		       				} else {

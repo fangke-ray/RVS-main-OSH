@@ -80,7 +80,7 @@ public interface MaterialPartialMapper {
 
 	public int updateArrivePlanDateNoBoOnPartial();
 
-	public int updateArrivePlanDateBoOnPartial(@Param("material_id") String material_id);
+	public int updateArrivePlanDateBoOnPartial(@Param("material_id") String material_id); // 只能更新最后的occur_times
 
 	public int updateArrivedPlanDateBoResolvedOnPartial();
 
