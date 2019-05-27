@@ -10,7 +10,7 @@ $(function() {
 var kind="";
 var if_sap_message_key="";
 var seq ="";
-var curpagenum;
+var curpagenum = 1;
 
 /**
  * 一览查询
@@ -39,6 +39,9 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 	try {
 		// 以Object形式读取JSON
 		eval('resInfo =' + xhrobj.responseText);
+
+		listsize = resInfo.finished.length;
+		countMaxPage();
 		filed_list(resInfo.finished);
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
@@ -52,7 +55,13 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 function filed_list(listdata){
 	if ($("#gbox_exd_list").length > 0) {
 		$("#exd_list").jqGrid().clearGridData();
-		$("#exd_list").jqGrid('setGridParam', {data : listdata}).trigger("reloadGrid", [{current : false}]);
+
+		var maxpage = parseInt((listdata.length - 1) / 20) + 1;
+		if (curpagenum > maxpage) {
+			curpagenum = maxpage;
+		}
+
+		$("#exd_list").jqGrid('setGridParam', {data : listdata}).jqGrid('setGridParam', {page:curpagenum}).trigger("reloadGrid", [{current : false}]);
 	} else {
 		$("#exd_list").jqGrid({
 			toppager : true,
@@ -417,7 +426,7 @@ var doSave_ajaxSuccess = function(xhrobj, textStatus){
 		} else {
 			$("#detail_dialog").dialog("close");
 			doInit();
-			$("#exd_list").jqGrid('setGridParam', {page:curpagenum}).trigger("reloadGrid");
+//			$("#exd_list").jqGrid('setGridParam', {page:curpagenum}).trigger("reloadGrid");
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
@@ -469,7 +478,7 @@ var doDelete_ajaxSuccess = function(xhrobj, textStatus){
 			$("#confirmmessage").dialog("close");
 			$("#detail_dialog").dialog("close");
 			doInit();
-			$("#exd_list").jqGrid('setGridParam', {page:curpagenum}).trigger("reloadGrid");
+//			$("#exd_list").jqGrid('setGridParam', {page:curpagenum}).trigger("reloadGrid");
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);

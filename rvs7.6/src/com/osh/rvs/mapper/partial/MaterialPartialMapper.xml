@@ -393,14 +393,14 @@
 			</if>
 			<if test="outline_date_end!= null and outline_date_end!= '' ">
 				<![CDATA[ 
-					and date(a.outline_time) <= #{outline_date_end}
+					and a.outline_time <= date_add(#{outline_date_end}, interval 1 day)
 				]]>
 			</if>
 
 			<if test="bo_partial!= null and bo_partial!= '' ">
 				<![CDATA[ 
-					and EXISTS (SELECT 1 FROM material_partial_detail WHERE material_id = b.material_id and occur_times = b.occur_times
-						AND waiting_quantity > 0 AND partial_id IN (select partial_id from partial where code = #{bo_partial})
+					and (bo_flg = 1 AND EXISTS (SELECT 1 FROM material_partial_detail WHERE material_id = b.material_id and occur_times = b.occur_times
+						AND waiting_quantity > 0 AND partial_id IN (select partial_id from partial where code = #{bo_partial}))
 					)
 				]]>
 			</if>

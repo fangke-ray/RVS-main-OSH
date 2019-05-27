@@ -71,6 +71,10 @@
 			dm.devices_type_id = dt.devices_type_id
 		WHERE
 		    dt.specialized = 5
+		AND
+			dm.delete_flg = 0
+		AND
+			dm.status not in (2, 3)
 		ORDER BY dm.manage_code ASC
 	   ]]>
 	</select>

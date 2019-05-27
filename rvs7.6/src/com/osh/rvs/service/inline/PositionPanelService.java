@@ -1051,7 +1051,7 @@ public class PositionPanelService {
 			for(DevicesManageEntity devicesManageEntity:list){
 				map.put(devicesManageEntity.getDevices_manage_id(), devicesManageEntity.getName() + " " + devicesManageEntity.getManage_code());
 			}
-			map.put("00000000000", "(手动)");
+//			map.put("00000000000", "(手动)");
 
 			return "<span class=\"device_manage_select\"><select class=\"manager_no\" code=\"ER12101\">" +
 				CodeListUtils.getSelectOptions(map, "", null, false) + "</select></span>" +

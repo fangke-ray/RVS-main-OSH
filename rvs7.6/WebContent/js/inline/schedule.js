@@ -1262,6 +1262,7 @@ var findboth = function() {
 	};
 
 	keepSearchData = data;
+	keepSearchData["scheduled_assign_date"] = $("#pick_date").val();
 
 	// Ajax提交
 	$.ajax({

@@ -56,6 +56,32 @@ import framework.huiqing.common.util.copy.IntegerConverter;
 
 public class ScheduleService {
 
+
+	private static Map<String, String> delayMap = new HashMap<String, String>();
+	private static String delayMapOfDate = null;
+
+	private synchronized static String getDelayWithDelayMap(String scheduled_date, String am_pm, SqlSession conn) {
+		String todayString = DateUtil.toString(new Date(), DateUtil.ISO_DATE_PATTERN);
+		if (!todayString.equals(delayMapOfDate)) {
+			delayMapOfDate = todayString;
+			delayMap.clear();
+		}
+
+		String key = scheduled_date + " " + am_pm; 
+		if (delayMap.containsKey(key)) {
+			return delayMap.get(key);
+		} else {
+			HolidayMapper hdao = conn.getMapper(HolidayMapper.class);
+
+			Map<String, Object> condiMap = new HashMap<String, Object>();
+			condiMap.put("scheduled_date", scheduled_date);
+			condiMap.put("am_pm", am_pm);
+			String remain_days = hdao.compareExperial(condiMap);
+			delayMap.put(key, remain_days);
+			return delayMap.get(key);
+		}
+	}
+
 	/**
 	 * 在线维修对象检索一览
 	 * @param form
@@ -65,7 +91,6 @@ public class ScheduleService {
 	 */
 	public List<ScheduleForm> getMaterialList(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
 		ScheduleMapper dao = conn.getMapper(ScheduleMapper.class);
-		HolidayMapper hdao = conn.getMapper(HolidayMapper.class);
 		ScheduleEntity conditionBean = new ScheduleEntity();
 		CopyOptions cos = new CopyOptions();
 		cos.excludeEmptyString();
@@ -76,7 +101,6 @@ public class ScheduleService {
 
 		List<String> ids = dao.searchMaterialIdsByCondition(conditionBean);
 		List<ScheduleForm> retForms = new ArrayList<ScheduleForm>();
-		Map<String, String> delayMap = new HashMap<String, String>();
 
 		if (ids != null && ids.size() > 0) {
 			List<ScheduleEntity> entities = dao.searchMaterialByIds(ids);
@@ -237,18 +261,8 @@ public class ScheduleService {
 
 				// 过期颜色
 				if (retForm.getScheduled_date_end() != null) {
-					if (delayMap.containsKey(retForm.getScheduled_date_end()
-							+ retForm.getAm_pm())) {
-						retForm.setRemain_days(delayMap.get(retForm
-								.getScheduled_date_end() + retForm.getAm_pm()));
-					} else {
-						Map<String, Object> condiMap = new HashMap<String, Object>();
-						condiMap.put("scheduled_date", entity.getScheduled_date_end());
-						condiMap.put("am_pm", entity.getAm_pm());
-						String remain_days = hdao.compareExperial(condiMap);
-						delayMap.put(retForm.getScheduled_date_end() + retForm.getAm_pm(), remain_days);
-						retForm.setRemain_days(remain_days);
-					}
+					retForm.setRemain_days(
+							getDelayWithDelayMap(retForm.getScheduled_date_end(), retForm.getAm_pm(), conn));
 				}
 
 				// 行顺序
@@ -266,31 +280,30 @@ public class ScheduleService {
 
 	public List<ScheduleForm> getScheduleList(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
 		ScheduleMapper dao = conn.getMapper(ScheduleMapper.class);
-		HolidayMapper hdao = conn.getMapper(HolidayMapper.class);
 		ScheduleEntity conditionBean = new ScheduleEntity();
 		BeanUtil.copyToBean(form, conditionBean, null);
-		Map<String, String> delayMap = new HashMap<String, String>();
+
+		List<ScheduleForm> retForms = new ArrayList<ScheduleForm>();
+
+		if (conditionBean.getScheduled_assign_date() == null) {
+			Calendar tomorrow = Calendar.getInstance();
+			tomorrow.add(Calendar.DAY_OF_YEAR, 1);
+			tomorrow.set(Calendar.HOUR_OF_DAY, 0);
+			tomorrow.set(Calendar.MINUTE, 0);
+			tomorrow.set(Calendar.SECOND, 0);
+			tomorrow.set(Calendar.MILLISECOND, 0);
+			conditionBean.setScheduled_assign_date(tomorrow.getTime());
+		}
 
 		List<ScheduleEntity> entities = dao.searchScheduleByCondition(conditionBean);
-		List<ScheduleForm> retForms = new ArrayList<ScheduleForm>();
 		for (ScheduleEntity entity : entities) {
 			ScheduleForm retForm = new ScheduleForm();
 			BeanUtil.copyToForm(entity, retForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 			
 			// 过期颜色
 			if (retForm.getScheduled_date_end() != null) {
-				if (delayMap.containsKey(retForm.getScheduled_date_end()
-						+ retForm.getAm_pm())) {
-					retForm.setRemain_days(delayMap.get(retForm
-							.getScheduled_date_end() + retForm.getAm_pm()));
-				} else {
-					Map<String, Object> condiMap = new HashMap<String, Object>();
-					condiMap.put("scheduled_date", entity.getScheduled_date_end());
-					condiMap.put("am_pm", entity.getAm_pm());
-					String remain_days = hdao.compareExperial(condiMap);
-					delayMap.put(retForm.getScheduled_date_end() + retForm.getAm_pm(), remain_days);
-					retForm.setRemain_days(remain_days);
-				}
+				retForm.setRemain_days(
+						getDelayWithDelayMap(retForm.getScheduled_date_end(), retForm.getAm_pm(), conn));
 			}
 
 //			if (entity.getRemain_minutes() != null) {

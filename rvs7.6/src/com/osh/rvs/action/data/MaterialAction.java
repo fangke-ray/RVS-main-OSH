@@ -4,6 +4,7 @@ import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -202,7 +203,7 @@ public class MaterialAction extends BaseAction {
 		log.info("MaterialAction.getDetial start");
 		// Ajax响应对象	
 		Map<String, Object> detailResponse = new HashMap<String, Object>();
-		
+
 		String id = req.getParameter("id");
 		String occur_times = req.getParameter("occur_times");
 		MaterialForm materialForm = new MaterialForm();
@@ -876,7 +877,7 @@ public class MaterialAction extends BaseAction {
 
 		String fileName =req.getParameter("fileName");
 
-		String contentType = "";
+		String contentType = DownloadService.CONTENT_TYPE_ZIP;
 		if (CommonStringUtil.isEmpty(fileName)) {
 			fileName = new String(fileName.getBytes("iso-8859-1"),"UTF-8");
 		}else{
@@ -890,14 +891,32 @@ public class MaterialAction extends BaseAction {
 		res.setContentType(contentType);
 		File file = new File(filePath);
 		InputStream is = new BufferedInputStream(new FileInputStream(file));
-		byte[] buffer = new byte[is.available()];
-		is.read(buffer);
-		is.close();
-		
-		OutputStream os = new BufferedOutputStream(res.getOutputStream());
-		os.write(buffer);
-		os.flush();
-		os.close();
+		int avail = is.available();
+		byte[] buffer = null;
+		if (avail <= 268435456) { // 268435456 = 256 m
+			buffer = new byte[avail];
+			is.read(buffer);
+			is.close();
+
+			OutputStream os = new BufferedOutputStream(res.getOutputStream());
+			os.write(buffer);
+			os.flush();
+			os.close();
+
+		} else {
+
+			ByteArrayOutputStream output = new ByteArrayOutputStream();
+		    buffer = new byte[4096];
+		    int n = 0;
+		    while (-1 != (n = is.read(buffer))) {
+		        output.write(buffer, 0, n);
+		    }
+
+			OutputStream os = new BufferedOutputStream(res.getOutputStream());
+			os.write(output.toByteArray());
+			os.flush();
+			os.close();
+		}
 
 		log.info("MaterialAction.output end");
 		return null;

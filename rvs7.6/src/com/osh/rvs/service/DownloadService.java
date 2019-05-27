@@ -21,6 +21,7 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
+import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
@@ -456,7 +457,14 @@ public class DownloadService {
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 			topTable.addCell(cell);
 
-			cell = new PdfPCell(new Paragraph(new Paragraph(mBean.getSerial_no(), titleFont)));
+			cell = new PdfPCell();
+			String sSerialNo = CommonStringUtil.nullToAlter(mBean.getSerial_no(), " ");
+			Chunk chSerialNo = new Chunk(sSerialNo, titleFont);
+			if (sSerialNo.length() == 12) {
+				chSerialNo.setHorizontalScaling(0.88f);
+			}
+
+			cell.setPhrase(new Paragraph(chSerialNo));
 			cell.setFixedHeight(18);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_TOP);

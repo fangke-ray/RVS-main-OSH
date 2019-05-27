@@ -576,7 +576,7 @@ var setReferChooser = function(target, jthis, jfather, callback) {
 				refTr
 				.map(function(){
 					var hit = false;
-					$(this).chlilden("td:not('.referId')").each(function(idx, ele) {
+					$(this).children("td:not('.referId')").each(function(idx, ele) {
 						if ((ele.textContent || ele.innerText || "").toLowerCase().indexOf(text) >= 0) {
 							hit = true;
 						}

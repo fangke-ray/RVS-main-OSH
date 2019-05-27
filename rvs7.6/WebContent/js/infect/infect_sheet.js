@@ -8,36 +8,37 @@ $(function(){
 })
 /** 服务器处理路径 */
 var infectSheetServicePath = "usage_check.do";
+var stopDblSubmit = false;
 
 var doExchange = function(){
-			var newManageNo = $("#manage_replace_panel input:text").val();
-			var g_manage_id = $("dtag").attr("manage_id")
-			if (newManageNo) {
-				var postData = {
-					devices_manage_id : g_manage_id,
-					manage_code : newManageNo
-				}
-				$.ajax({
-					beforeSend : ajaxRequestType,
-					async : true,
-					url : 'devices_manage.do?method=doexchange',
-					cache : false,
-					data : postData,
-					type : "post",
-					dataType : "json",
-					success : ajaxSuccessCheck,
-					error : ajaxError,
-					complete : function(xhrObj){
-						var resInfo = $.parseJSON(xhrObj.responseText);
-						if (resInfo.errors.length == 0) {
-							$("#manage_replace_panel").dialog("close");
-							$("#check_sheet").dialog("close");
-							if (typeof findit === "function") findit();
-						}
-					}
-				});
-			}
+	var newManageNo = $("#manage_replace_panel input:text").val();
+	var g_manage_id = $("dtag").attr("manage_id")
+	if (newManageNo) {
+		var postData = {
+			devices_manage_id : g_manage_id,
+			manage_code : newManageNo
 		}
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : 'devices_manage.do?method=doexchange',
+			cache : false,
+			data : postData,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function(xhrObj){
+				var resInfo = $.parseJSON(xhrObj.responseText);
+				if (resInfo.errors.length == 0) {
+					$("#manage_replace_panel").dialog("close");
+					$("#check_sheet").dialog("close");
+					if (typeof findit === "function") findit();
+				}
+			}
+		});
+	}
+}
 
 /* 设备工具检点种详细信息 画面
 	object_type : 设备工具=1/治具=2 * 必须
@@ -460,6 +461,8 @@ var showInfectSheet =function(infectDetailData, isLeader){
 												})
 												if ($("#upper_check").length>0 && $("#upper_check").attr("checked"))
 													postDataR.upper_check = 1;
+												if(stopDblSubmit) return;
+												stopDblSubmit = true;
 												doCheckPoint(postDataR, $confirmmessage, $check_sheet);
 												if (infectDetailData.check_while_use) infectDetailData.check_while_use(false);
 											}
@@ -486,6 +489,8 @@ var showInfectSheet =function(infectDetailData, isLeader){
 									buttons: {
 										"确认":function(){
 											// TODO this button disable
+											if(stopDblSubmit) return;
+											stopDblSubmit = true;
 											doCheckPoint(postDataR, $confirmmessage, $check_sheet);
 											if (infectDetailData.check_while_use) infectDetailData.check_while_use(false);
 										},
@@ -523,6 +528,8 @@ var showInfectSheet =function(infectDetailData, isLeader){
 										if ($("#upper_check").length>0 && $("#upper_check").attr("checked"))
 											postDataR.upper_check = 1;
 											
+										if(stopDblSubmit) return;
+										stopDblSubmit = true;
 										doCheckPoint(postDataR, $confirmmessage, $check_sheet);
 										if (infectDetailData.check_while_use) infectDetailData.check_while_use(true);
 									},
@@ -546,7 +553,7 @@ var showInfectSheet =function(infectDetailData, isLeader){
 var doCheckPoint = function (postDataR, $confirmmessage, $check_sheet) {
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : true,
+		async : false,
 		url : infectSheetServicePath + "?method=doCheckPoint",
 		cache : false,
 		data : postDataR,
@@ -555,6 +562,7 @@ var doCheckPoint = function (postDataR, $confirmmessage, $check_sheet) {
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete : function(xhrObj){
+			stopDblSubmit = false;
 			if ($confirmmessage) $confirmmessage.dialog("close");
 			if ($check_sheet) $check_sheet.dialog("close");
 			if (typeof findit === "function") findit();

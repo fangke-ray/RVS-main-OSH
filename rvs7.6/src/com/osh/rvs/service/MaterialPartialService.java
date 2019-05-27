@@ -1775,7 +1775,6 @@ public class MaterialPartialService {
 			return conflexError;
 		}
 
-		String longContent = "";
 		String content = "";
 		for (MaterialPartialDetailEntity parital : paritals) {
 			if (parital.getArrival_plan_date().equals(parital.getHistory_limit_date()))
@@ -1804,7 +1803,6 @@ public class MaterialPartialService {
 
 		content = user.getName() + " 修改了" + req.getParameter("sorc_no") + "的\n" + content;
 		if (content.length() > 180) {
-			longContent = content + "，请确认详细状况！";
 			content = content.substring(0, 180) + "……，请确认详细状况！";
 		} else {
 			content += "，请确认详细状况！";

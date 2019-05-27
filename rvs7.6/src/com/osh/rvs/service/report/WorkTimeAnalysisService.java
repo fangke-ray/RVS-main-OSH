@@ -192,8 +192,19 @@ public class WorkTimeAnalysisService {
 		
 		GregorianCalendar cal = new GregorianCalendar();
 		cal.setFirstDayOfWeek(Calendar.MONDAY);
-		cal.setMinimalDaysInFirstWeek(7);
-		
+		cal.setMinimalDaysInFirstWeek(4);
+
+		GregorianCalendar one = new GregorianCalendar();
+		one.set(Calendar.YEAR, Integer.valueOf(year));
+		one.set(Calendar.MONTH, 0);
+		one.set(Calendar.DATE, 1);
+		one.setFirstDayOfWeek(Calendar.MONDAY);
+		one.setMinimalDaysInFirstWeek(4);
+
+		if (one.getWeekYear() != one.get(Calendar.YEAR)) {
+			week += 1;
+		}
+
 		cal.setWeekDate(year, week, cal.getFirstDayOfWeek());
 		
 		cal.set(Calendar.HOUR_OF_DAY, 0);

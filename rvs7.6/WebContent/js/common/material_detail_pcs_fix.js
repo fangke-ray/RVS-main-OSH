@@ -269,7 +269,7 @@ var showPcsDetailLeader = function(material_id, ismodal) {
 }
 
 var showPcsDetailManager = function(material_id, line_id, pcs_fix_order_key, ismodal, comment) {
-	if ($("#fix_order").length == 0) {
+//	if ($("#fix_order").length == 0) {
 
 		pcs_buttons["确定"] = function(){
 			var reqData = {
@@ -308,7 +308,7 @@ var showPcsDetailManager = function(material_id, line_id, pcs_fix_order_key, ism
 				}
 			});
 		}
-	}
+//	}
 	showPcsDetail(material_id, line_id, ismodal, function(){
 
 		pcs_dialog.find("div").css("float", "left").css("width", "980");
@@ -327,6 +327,7 @@ var showPcsDetailManager = function(material_id, line_id, pcs_fix_order_key, ism
 	});
 }
 
+// 线长填写
 function line_pcs(pcs_data) {
 	// Ajax提交
 	$.ajax({

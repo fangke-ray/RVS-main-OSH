@@ -17,7 +17,8 @@
 			LEFT JOIN operator o
 				ON `pf`.operator_id = `o`.operator_id
 			WHERE
-				`pf`.operate_result = 1
+				`pf`.finish_time is null
+				AND `pf`.operate_result = 1
 				AND `pf`.section_id = #{section_id}
 		]]>
 			<if test="line_id!= null and line_id!= '' ">

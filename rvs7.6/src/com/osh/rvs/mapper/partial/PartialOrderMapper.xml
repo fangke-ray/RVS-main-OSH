@@ -405,7 +405,7 @@
 		MPD.OCCUR_TIMES 
 		FROM
 		 MATERIAL_PARTIAL_DETAIL MPD
-		WHERE STATUS='0'
+		WHERE WAITING_QUANTITY > 0 AND STATUS='0'
     </select>
     
 	<!-- 移动定位数量后剩下的 -->

@@ -281,8 +281,18 @@
 			) as dismantle_time,
 			(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
 			(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id =13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as ns_processing_position,
-			mpd.scheduled_date as dec_plan_date,
-			mpd.finish_date as dec_finish_date,
+    (SELECT 
+            scheduled_date
+    FROM
+        material_process
+    WHERE
+        line_id = 12 and material_id = a.material_id) as dec_plan_date,
+    (SELECT 
+            scheduled_assign_date
+    FROM
+        material_process
+    WHERE
+        line_id = 12 and material_id = a.material_id) as dec_finish_date,
 			mpn.scheduled_date as ns_plan_date,
 			mpn.finish_date as ns_finish_date,
 			mpc.scheduled_date as com_plan_date,
@@ -336,12 +346,6 @@
 		left join (
 			SELECT material_id, scheduled_date, finish_date, px
 			FROM material_process
-			WHERE line_id = 12
-			) mpd
-			on a.material_id = mpd.material_id
-		left join (
-			SELECT material_id, scheduled_date, finish_date, px
-			FROM material_process
 			WHERE line_id = 13
 			) mpn
 			on a.material_id = mpn.material_id
@@ -349,6 +353,12 @@
 			SELECT material_id, scheduled_date, finish_date, scheduled_assign_date, px
 			FROM material_process
 			WHERE line_id = 14
+			AND material_id in
+		]]>
+			<foreach item="id" collection="list" open="(" separator="," close=")">
+				#{id}
+ 			</foreach> 
+		<![CDATA[
 			) mpc
 			on a.material_id = mpc.material_id
 		LEFT JOIN 
@@ -421,6 +431,7 @@
 				LEFT JOIN schedule_history sh
 					ON a.material_id = sh.material_id AND sh.scheduled_date = #{scheduled_assign_date}
 				WHERE b.line_id IS NOT NULL
+				AND (a.outline_time is null OR a.outline_time > date_add(current_date, interval -1 month))
 		]]>
 		<if test="line_id != null and line_id != ''">			
 			and b.line_id = #{line_id}
@@ -428,14 +439,9 @@
 		<if test="section_id != null and section_id != ''">			
 			and a.section_id = #{section_id}
 		</if>
-		<choose>
-			<when test="scheduled_assign_date !=null">
-				and b.SCHEDULED_ASSIGN_DATE = #{scheduled_assign_date}
-			</when>
-			<otherwise>
-				and b.SCHEDULED_ASSIGN_DATE = date_add(current_date, interval 1 day)
-			</otherwise>
-		</choose>
+		<if test="scheduled_assign_date != null and scheduled_assign_date != ''">
+			and b.SCHEDULED_ASSIGN_DATE = #{scheduled_assign_date}
+		</if>
 		group by a.material_id, b.line_id
 	</select>
 

@@ -31,7 +31,7 @@
 					    section_id, position_id, count(material_id) as processing_count
 					from
 					    production_feature
-					where operate_result = 1
+					where finish_time is null AND operate_result = 1
 					group by
 						section_id, position_id
 				) processing

@@ -8,7 +8,7 @@
 	<select id="getFinalInspectPassRate" parameterType="java.util.Date" resultType="decimal">
 		select round(sum(operate_result = 2) / count(1) * 100, 2) 
 		from production_feature pf where 
-		position_id in (46, 52)
+		position_id in (46, 52, 65)
 		and date(pf.finish_time) = #{count_date}
 		and operate_result in (2,6);
 	</select>

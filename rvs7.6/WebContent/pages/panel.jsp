@@ -175,7 +175,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">7.9.3281.415</p>
+								<p id="nee">7.9.3281.421</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
 								<p>2019年2月27日</p>
@@ -187,11 +187,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
 								<p>--------------------------------------</p>
-								<p>18/02/27 7.9.3281.415 更新</p>
+								<p>18/02/27 7.9.3281.417 更新</p>
 								<p>受理报价: 通箱库位扩充。</p>
+								<p>维修进度: 今日总组各工位计划 -> 今日总组各工位负荷。</p>
 								<p>--------------------------------------</p>
 								<p>19/01/03 7.9.3279.414 更新</p>
 								<p>现品: 光学视管投线前判断零件，按照机种区分。</p>
+								<p>维修进度: 今日总组各工位计划上线。</p>
 								<p>--------------------------------------</p>
 								<p>18/11/29 7.9.3272.413 更新</p>
 								<p>受理报价: 报价LT统计修改。</p>

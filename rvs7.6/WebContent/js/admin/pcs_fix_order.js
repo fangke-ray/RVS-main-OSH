@@ -151,7 +151,6 @@ $(function() {
 });
 
 var doPcResolve = function(pcs_fix_order_key, dispatch) {
-	// alert(dispatch);
 // Ajax提交
 	var data = {dispatch:dispatch, pcs_fix_order_key:pcs_fix_order_key };
 	$.ajax({
@@ -169,6 +168,7 @@ var doPcResolve = function(pcs_fix_order_key, dispatch) {
 }
 
 var showPcResolve = function(pcs_fix_order_key) {
+
 	this_dialog = $("#detail_dialog");
 	if (this_dialog.length === 0) {
 		$("body.outer").append("<div id='detail_dialog'/>");
@@ -238,6 +238,7 @@ function waiting_list(listdata){
 				var data = $("#waitinglist").getRowData(rid);
 				var material_id = data["material_id"];
 				var status = data["status"];
+
 				if (status == 5) {
 					showPcResolve(data["pcs_fix_order_key"]);
 				} else {

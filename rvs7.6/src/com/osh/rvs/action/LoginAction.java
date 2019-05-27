@@ -324,21 +324,24 @@ public class LoginAction extends BaseAction {
 		OperatorService oService = new OperatorService();
 		List<PositionEntity> positionsList = new ArrayList<PositionEntity>();
 
-		PositionEntity mainPosition = new PositionEntity();
-		// getPositionByID TODO
-		mainPosition.setPosition_id(loginData.getPosition_id());
-		mainPosition.setName(loginData.getPosition_name());
-		mainPosition.setProcess_code(loginData.getProcess_code());
-		mainPosition.setLine_id(loginData.getLine_id());
-		mainPosition.setLine_name(loginData.getLine_name());
-		// 分线判断
-		if (PositionService.getDividePositions(conn).contains(loginData.getPosition_id())) {
-			mainPosition.setLight_division_flg(1);
-		} else {
-			mainPosition.setLight_division_flg(0);
-		}
+		if (loginData.getPosition_id() != null) {
 
-		positionsList.add(mainPosition);
+			PositionEntity mainPosition = new PositionEntity();
+			// getPositionByID TODO
+			mainPosition.setPosition_id(loginData.getPosition_id());
+			mainPosition.setName(loginData.getPosition_name());
+			mainPosition.setProcess_code(loginData.getProcess_code());
+			mainPosition.setLine_id(loginData.getLine_id());
+			mainPosition.setLine_name(loginData.getLine_name());
+			// 分线判断
+			if (PositionService.getDividePositions(conn).contains(loginData.getPosition_id())) {
+				mainPosition.setLight_division_flg(1);
+			} else {
+				mainPosition.setLight_division_flg(0);
+			}
+
+			positionsList.add(mainPosition);
+		}
 		// positionsList.addAll();
 		for (PositionEntity p : oService.getUserPositions(loginData.getOperator_id(), conn)) {
 			if (!p.getPosition_id().equals(loginData.getPosition_id())) {

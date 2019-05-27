@@ -978,49 +978,77 @@
 			</table>
 		</div>
 		<div style="margin: 15px; float: left;">
-			<div class="ui-widget-header" style="width: 120px; text-align: center;">货架１３(周边)</div>
+			<div class="ui-widget-header" style="width: 148px; text-align: center;">货架１３(周边)</div>
 			<table class="condform wip-table" style="width: 120px;">
 				<tr>
 					<th class="ui-state-default" style="width: 14px;">Ａ</th>
 					<th class="ui-state-default" style="width: 14px;">Ｂ</th>
 					<th class="ui-state-default" style="width: 14px;">Ｃ</th>
 					<th class="ui-state-default" style="width: 14px;">Ｄ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｅ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｆ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｇ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｈ</th>
 				</tr>
 <tr>
 <td wipid="13A1">1</td>
 <td wipid="13B1">1</td>
 <td wipid="13C1">1</td>
 <td wipid="13D1">1</td>
+<td wipid="13E1">1</td>
+<td wipid="13F1">1</td>
+<td wipid="13G1">1</td>
+<td wipid="13H1">1</td>
 </tr>
 <tr>
 <td wipid="13A2">2</td>
 <td wipid="13B2">2</td>
 <td wipid="13C2">2</td>
 <td wipid="13D2">2</td>
+<td wipid="13E2">2</td>
+<td wipid="13F2">2</td>
+<td wipid="13G2">2</td>
+<td wipid="13H2">2</td>
 </tr>
 <tr>
 <td wipid="13A3">3</td>
 <td wipid="13B3">3</td>
 <td wipid="13C3">3</td>
 <td wipid="13D3">3</td>
+<td wipid="13E3">3</td>
+<td wipid="13F3">3</td>
+<td wipid="13G3">3</td>
+<td wipid="13H3">3</td>
 </tr>
 <tr>
 <td wipid="13A4">4</td>
 <td wipid="13B4">4</td>
 <td wipid="13C4">4</td>
 <td wipid="13D4">4</td>
+<td wipid="13E4">4</td>
+<td wipid="13F4">4</td>
+<td wipid="13G4">4</td>
+<td wipid="13H4">4</td>
 </tr>
 <tr>
 <td wipid="13A5">5</td>
 <td wipid="13B5">5</td>
 <td wipid="13C5">5</td>
 <td wipid="13D5">5</td>
+<td wipid="13E5">5</td>
+<td wipid="13F5">5</td>
+<td wipid="13G5">5</td>
+<td wipid="13H5">5</td>
 </tr>
 <tr>
 <td wipid="13A6">6</td>
 <td wipid="13B6">6</td>
 <td wipid="13C6">6</td>
 <td wipid="13D6">6</td>
+<td wipid="13E6">6</td>
+<td wipid="13F6">6</td>
+<td wipid="13G6">6</td>
+<td wipid="13H6">6</td>
 </tr>
 			</table>
 		</div>
