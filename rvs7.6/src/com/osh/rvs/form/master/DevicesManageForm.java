@@ -137,6 +137,12 @@ public class DevicesManageForm extends ActionForm {
 	@BeanField(title = "发放日期结束", name = "provide_date_end", type = FieldType.Date)
 	private String provide_date_end;// 发放日期结束
 
+	@BeanField(title = "评价", name = "backup_evaluation", type = FieldType.Integer)
+	private String backup_evaluation;
+
+	@BeanField(title = "对应内容", name = "corresponding", type = FieldType.String)
+	private String corresponding;
+
 	public String getCompare_section_id() {
 		return compare_section_id;
 	}
@@ -447,6 +453,22 @@ public class DevicesManageForm extends ActionForm {
 
 	public void setWaste_old_products(String waste_old_products) {
 		this.waste_old_products = waste_old_products;
+	}
+
+	public String getBackup_evaluation() {
+		return backup_evaluation;
+	}
+
+	public void setBackup_evaluation(String backup_evaluation) {
+		this.backup_evaluation = backup_evaluation;
+	}
+
+	public String getCorresponding() {
+		return corresponding;
+	}
+
+	public void setCorresponding(String corresponding) {
+		this.corresponding = corresponding;
 	}
 
 }

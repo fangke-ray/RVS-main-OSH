@@ -24,44 +24,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 
 <script type="text/javascript" src="js/admin/devices_manage.js"></script>
+<script type="text/javascript" src="js/equipment/device_backup_detail.js"></script>
 	<style>
-	.menulink {
-		font-size: 16px;
-		color: white;
-		float: right;
-		right: 4px;
-		margin: 4px;
-	}
 
-	.menulink:hover {
-		color: #FFB300;
-		cursor: pointer;
-	}
 
-	.littleball {
-		font-size: 10px;
-		-moz-border-radius-topleft: 8px;
-		-webkit-border-top-left-radius: 8px;
-		-khtml-border-top-left-radius: 8px;
-		border-top-left-radius: 8px;
-		-moz-border-radius-bottomleft: 8px;
-		-webkit-border-bottom-left-radius: 8px;
-		-khtml-border-bottom-left-radius: 8px;
-		border-bottom-left-radius: 8px;
-		-moz-border-radius-topright: 8px;
-		-webkit-border-top-right-radius: 8px;
-		-khtml-border-top-right-radius: 8px;
-		border-top-right-radius: 8px;
-		-moz-border-radius-bottomright: 8px;
-		-webkit-border-bottom-right-radius: 8px;
-		-khtml-border-bottom-right-radius: 8px;
-		border-bottom-right-radius: 8px; //
-		width: 18px; //
-		height: 18px;
-		text-align: center; //
-		background-color: green;
-		padding: 1px;
-	}
 	#accordion a.processing:before {
 		color:red;
 	}
@@ -89,7 +55,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<div id="body-mdl" class="dwidth-middleright" style="margin: auto;">
 					<div id="body-mdl" style="width: 994px; float: left;">
 			<div id="searcharea" class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middleright">
-				<span class="areatitle">检索条件</span>
+				<span class="areatitle">设备・工具检索条件</span>
 				<a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 					<span class="ui-icon ui-icon-circle-triangle-n"></span>
 				</a>
@@ -154,6 +120,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		</form>
 	</div>
 </div>
+
+					<style>
+						#list td[aria-describedby="list_backup_evaluation"],
+						.evaluation_tag,
+						#set_evaluation
+						{
+							font-size: 16px;
+						}
+					</style>
+
 	<div class="clear areaencloser"></div>
 	
 	<div id="listarea" class="">
@@ -167,6 +143,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="addbutton" value="新建设备工具" role="button" aria-disabled="false">
 			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="replacebutton" value="替换新品" role="button" aria-disabled="false">
 			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="deliverbutton" value="批量交付" role="button" aria-disabled="false">
+			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="backupreportbutton" value="导出替代关系表" role="button" aria-disabled="false" style="float:right; margin-right:2px;">
 		</div>
 		<table id="list"></table>
 		<div id="listpager"></div>
@@ -519,7 +496,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	      </div>
 	   </form>
 	</div>
-		
+	<style>
+	.referchooser {z-index: 1010;}
+	</style>
 	<!-- 查询条件责任工位 -->
 	<div class="referchooser ui-widget-content" id="deliver_position_referchooser" tabindex="-1">
 			<table width="200px">
@@ -572,29 +551,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 <div id="dialog_confrim"></div>
 
-<div class="referchooser ui-widget-content" id="search_position_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${pReferChooser}</table>
-</div>
-
-<div class="referchooser ui-widget-content" id="update_position_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${pReferChooser}</table>
-</div>
-
-<div class="referchooser ui-widget-content" id="add_position_name_referchooser" tabindex="-1">
+<div class="referchooser ui-widget-content" id="position_name_referchooser" tabindex="-1">
 	<table width="200px">
 		<tr>
 			<td></td>
@@ -606,29 +563,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </div>
 
 <!-- 管理员 -->
-<div class="referchooser ui-widget-content" id="search_operator_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${oReferChooser}</table>
-</div>
-
-<div class="referchooser ui-widget-content" id="update_operator_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${oReferChooser}</table>
-</div>
-
-<div class="referchooser ui-widget-content" id="add_operator_name_referchooser" tabindex="-1">
+<div class="referchooser ui-widget-content" id="operator_name_referchooser" tabindex="-1">
 	<table width="200px">
 		<tr>
 			<td></td>
@@ -640,29 +575,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </div>
 
 <!-- 设备工具品名 -->
-<div class="referchooser ui-widget-content" id="search_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${nReferChooser}</table>
-</div>
-
-<div class="referchooser ui-widget-content" id="update_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${nReferChooser}</table>
-</div>
-
-<div class="referchooser ui-widget-content" id="add_name_referchooser" tabindex="-1">
+<div class="referchooser ui-widget-content" id="name_referchooser" tabindex="-1">
 	<table width="200px">
 		<tr>
 			<td></td>
@@ -674,7 +587,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </div>
 
 <!-- 责任人员 -->
-<div class="referchooser ui-widget-content" id="update_responsible_operato_referchooser" tabindex="-1">
+<div class="referchooser ui-widget-content" id="responsible_operato_referchooser" tabindex="-1">
 	<table width="200px">
 		<tr>
 			<td></td>
@@ -685,16 +598,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<table  class="subform" id="update_choose_operator">${rReferChooser}</table>
 </div>
 
-<div class="referchooser ui-widget-content" id="add_responsible_operato_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform" id="add_choose_operator">${rReferChooser}</table>
-</div>
+
 
 <div class="clear"></div>
 
@@ -824,35 +728,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	    </div>	
 	</form>
 	
-<div class="referchooser ui-widget-content" id="replace_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${nReferChooser}</table>
-</div>
-<div class="referchooser ui-widget-content" id="replace_operator_name_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${oReferChooser}</table>
-</div>
-<div class="referchooser ui-widget-content" id="replace_position_referchooser" tabindex="-1">
-	<table width="200px">
-		<tr>
-			<td></td>
-			<td width="50%">过滤字:<input type="text"/></td>
-			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-		</tr>
-	</table>
-	<table  class="subform">${pReferChooser}</table>
 </div>
 </div>
 

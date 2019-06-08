@@ -116,6 +116,7 @@
 		<form-bean name="workDurationForm" type="com.osh.rvs.form.report.WorkDurationForm"></form-bean>
 		<form-bean name="SteelWireContainerWashProcessForm" type="com.osh.rvs.form.inline.SteelWireContainerWashProcessForm"></form-bean>
 		<form-bean name="ConsumableSupplyRecordForm" type="com.osh.rvs.form.partial.ConsumableSupplyRecordForm"></form-bean>
+		<form-bean name="deviceBackupForm" type="com.osh.rvs.form.equipment.DeviceBackupForm"></form-bean>
 	</form-beans>
 
 
@@ -1382,6 +1383,16 @@
 		</action>
 
 		<!-- rvs  七期end -->
+
+		<!-- 设备工具替代管理 -->
+		<action path="/device_backup"
+				type="com.osh.rvs.action.equipment.DeviceBackupAction"
+				name="deviceBackupForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+				<forward name="detail" path="/widgets/equipment/device_backup_detail.jsp"/>
+		</action>
 
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->

@@ -93,7 +93,14 @@ public class DevicesManageEntity implements Serializable {
 	private Date provide_date_end;                    
           
 	private String check_result; 
-	
+
+	private Integer backup_evaluation;
+
+	private String corresponding;
+
+	// 可替换状况
+	private Integer free_displace_flg;
+
 	public String getDaily_sheet_manage_no() {
 		return daily_sheet_manage_no;
 	}
@@ -315,5 +322,23 @@ public class DevicesManageEntity implements Serializable {
 	}
 	public void setSpecialized(Integer specialized) {
 		this.specialized = specialized;
+	}
+	public Integer getFree_displace_flg() {
+		return free_displace_flg;
+	}
+	public void setFree_displace_flg(Integer free_displace_flg) {
+		this.free_displace_flg = free_displace_flg;
+	}
+	public Integer getBackup_evaluation() {
+		return backup_evaluation;
+	}
+	public void setBackup_evaluation(Integer backup_evaluation) {
+		this.backup_evaluation = backup_evaluation;
+	}
+	public String getCorresponding() {
+		return corresponding;
+	}
+	public void setCorresponding(String corresponding) {
+		this.corresponding = corresponding;
 	}
 }

@@ -47,6 +47,7 @@ import framework.huiqing.common.util.copy.DateUtil;
 
 public class DownloadService {
 	public static final String CONTENT_TYPE_EXCEL = "application/vnd.ms-excel";
+	public static final String CONTENT_TYPE_EXCEL_OPENXML = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 	public static final String CONTENT_TYPE_PDF = "application/pdf";
 	public static final String CONTENT_TYPE_GIF = "image/gif";
 	public static final String CONTENT_TYPE_ZIP = "application/zip";

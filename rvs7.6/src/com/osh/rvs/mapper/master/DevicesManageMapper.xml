@@ -34,7 +34,16 @@
 		    dm.updated_time,
 		    dm.status,
 		    dm.comment,
-		    dm.location
+		    dm.location,
+		    CASE 
+		    WHEN br.manage_id IS NULL AND dbc.manage_id IS NULL THEN
+		    	-1
+		    WHEN br.manage_id IS NULL AND dbc.manage_id IS NOT NULL THEN
+		    	NULL
+		    ELSE
+				(br.inline > 0) * 4 + (br.free > 0) * 2 + (br.confirm > 0)
+			END as backup_evaluation,
+		    dbc.corresponding
 		from
 		    devices_manage dm
 		        join
@@ -61,6 +70,22 @@
 				AND (dm.status = 1)
 				and cfm_r.delete_flg != 1
 				AND (cfm_r.specified_model_name IS NULL OR cfm_r.specified_model_name LIKE concat('%', dm.model_name, '%'))
+			LEFT JOIN device_backup_corresponding dbc
+				ON dm.devices_manage_id = dbc.manage_id
+			LEFT JOIN 
+				(
+					SELECT 
+						manage_id, 
+						sum(free_displace_flg = 1) as free,
+						sum(free_displace_flg = 0) as confirm,
+						sum(coalesce(dm1.line_id = dm2.line_id, 0) AND free_displace_flg = 1) as inline
+					FROM device_backup_relation dbr
+					JOIN devices_manage dm1 ON dbr.manage_id = dm1.devices_manage_id
+					JOIN devices_manage dm2 ON dbr.backup_manage_id = dm2.devices_manage_id
+					AND dm2.status in (1, 4, 5) AND dm2.delete_flg = 0
+					GROUP BY manage_id
+				) br
+			ON dm.devices_manage_id = br.manage_id
 		]]>
 		<where>		
 		        dm.delete_flg=0
@@ -350,10 +375,32 @@
 		    dm.`updated_by`,
 		    dm.`updated_time`,
 		    dm.`status`,
-		    dm.`comment`
+		    dm.`comment`,
+		    
+		    l.name as line_name,
+			(br.inline > 0) * 4 + (br.free > 0) * 2 + (br.confirm > 0) as backup_evaluation,
+		    dbc.corresponding
 		FROM `devices_manage` dm
 		JOIN `devices_type` dt
 		ON dm.devices_type_id = dt.devices_type_id
+	    left join
+		    line l ON dm.line_id = l.line_id
+		LEFT JOIN device_backup_corresponding dbc
+			ON dm.devices_manage_id = dbc.manage_id
+		LEFT JOIN 
+			(
+				SELECT 
+					manage_id, 
+					sum(free_displace_flg = 1) as free,
+					sum(free_displace_flg = 0) as confirm,
+					sum(coalesce(dm1.line_id = dm2.line_id, 0) AND free_displace_flg = 1) as inline
+				FROM device_backup_relation dbr
+				JOIN devices_manage dm1 ON dbr.manage_id = dm1.devices_manage_id
+				JOIN devices_manage dm2 ON dbr.backup_manage_id = dm2.devices_manage_id
+				AND dm2.status in (1, 4, 5) AND dm2.delete_flg = 0
+				GROUP BY manage_id
+			) br
+		ON dm.devices_manage_id = br.manage_id
 		WHERE dm.`devices_manage_id` = #{devices_manage_id}
 		;
 		]]>

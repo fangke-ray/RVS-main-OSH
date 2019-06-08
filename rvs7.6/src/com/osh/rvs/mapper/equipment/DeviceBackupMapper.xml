@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.equipment.DeviceBackupMapper">
+
+	<select id="searchAll" resultType="DeviceBackupEntity">
+	<![CDATA[
+		SELECT 
+			manage_code, 
+			dm.devices_type_id as device_type_id, dt.name, dm.model_name, 
+			sec.name as section_name, ln.name as line_name, 
+			(br.inline > 0) * 4 + (br.free > 0) * 2 + (br.confirm > 0) as evaluation,
+			tecv as backup_in_manage,
+			dbc.corresponding
+		FROM devices_manage dm
+		JOIN devices_type dt
+			ON dm.devices_type_id = dt.devices_type_id
+		LEFT JOIN device_backup_corresponding dbc
+			ON dm.devices_manage_id = dbc.manage_id
+		LEFT JOIN line ln
+			ON dm.line_id = ln.line_id
+		LEFT JOIN section sec
+			ON dm.section_id = sec.section_id
+		LEFT JOIN 
+			(
+				SELECT 
+					manage_id, 
+					sum(free_displace_flg = 1) as free,
+					sum(free_displace_flg = 0) as confirm,
+					sum(coalesce(dm1.line_id = dm2.line_id, 0) AND free_displace_flg = 1) as inline,
+					group_concat(dm2ln.name, ':', dm2.manage_code, ':', dm2.status, ':', free_displace_flg order by (dm1.line_id = dm2.line_id) desc) as tecv
+				FROM device_backup_relation dbr
+				JOIN devices_manage dm1 ON dbr.manage_id = dm1.devices_manage_id
+				JOIN devices_manage dm2 ON dbr.backup_manage_id = dm2.devices_manage_id
+				AND dm2.status in (1, 4, 5) AND dm2.delete_flg = 0
+				LEFT JOIN line dm2ln ON dm2.line_id = dm2ln.line_id
+			GROUP BY manage_id
+			) br
+		ON dm.devices_manage_id = br.manage_id
+		WHERE (dm.line_id is not null OR status = 4)
+        and dt.devices_type_id in (
+			select devices_type_id from devices_manage dmi join device_backup_relation dbri on dmi.devices_manage_id = dbri.manage_id)
+		AND status in (1, 4, 5)
+		AND dm.delete_flg = 0
+		ORDER BY dm.line_id, dm.manage_code;
+	]]>
+	</select>
+
+	<select id="getRelation" parameterType="String" resultType="DeviceBackupEntity">
+		SELECT * FROM device_backup_relation
+		WHERE manage_id = #{manage_id}
+		OR backup_manage_id = #{manage_id}
+		;
+	</select>
+
+	<delete id="deleteRelation" parameterType="DeviceBackupEntity">
+		DELETE FROM `device_backup_relation`
+		WHERE manage_id = #{manage_id}
+		AND backup_manage_id = #{backup_manage_id}
+		;
+	</delete>
+
+	<insert id="insertRelation" parameterType="DeviceBackupEntity">
+		INSERT INTO `device_backup_relation`
+		(`manage_id`,
+		`backup_manage_id`,
+		`free_displace_flg`)
+		VALUES
+		(#{manage_id},
+		#{backup_manage_id},
+		#{free_displace_flg});
+	</insert>
+
+	<update id="updateRelation" parameterType="DeviceBackupEntity">
+		UPDATE `device_backup_relation`
+		SET
+		`free_displace_flg` = #{free_displace_flg}
+		WHERE `manage_id` = #{manage_id} AND `backup_manage_id` = #{backup_manage_id};
+	</update>
+
+	<insert id="replaceCorresponding" parameterType="DeviceBackupEntity">
+		REPLACE INTO `device_backup_corresponding`
+		(`manage_id`,
+		`corresponding`)
+		VALUES
+		(#{manage_id},
+		#{corresponding});
+	</insert>
+
+</mapper>
