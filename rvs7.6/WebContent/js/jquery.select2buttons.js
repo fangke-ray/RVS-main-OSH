@@ -11,7 +11,56 @@
  *
  * Licensed under the MIT
  **/
-jQuery.fn.select2Buttons = function(options) {
+ 
+var select2Buttons_methods = {
+	setDisplay : function(options) {
+		var select = $(this);
+		var ulHtml = select.next(".select2Buttons").children("ul.select-buttons");
+		if (options.enable) {
+			for (var iV in options.enable) {
+				var option = select.find("option:eq(" + options.enable[iV] + ")");
+				if (option.attr("disabled")) {
+					select.find("option:eq(" + options.enable[iV] + ")").enable();
+					var li = ulHtml.find("li:eq(" + options.enable[iV] + ")");
+					var liView = li.children();
+
+					li.removeClass('disabled');
+					var selectIndex = liView.attr("data-select-index");
+					var liText = liView.text();
+					li.html('<a href="#" data-select-index="' + selectIndex + '">' + liText + '</a>');
+				}
+			}
+		}
+		if (options.disable) {
+			for (var iV in options.disable) {
+				var option = select.find("option:eq(" + options.disable[iV] + ")");
+				if (!option.attr("disabled")) {
+					select.find("option:eq(" + options.disable[iV] + ")").disable();
+					var li = ulHtml.find("li:eq(" + options.disable[iV] + ")");
+					var liView = li.children();
+
+					li.addClass('disabled');
+					var selectIndex = liView.attr("data-select-index");
+					var liText = liView.text();
+					li.html('<span data-select-index="' + selectIndex + '">' + liText + '</span>');
+				}
+			}
+		}
+		if (options.visible) {
+			ulHtml.children("li").hide();
+			for (var iV in options.visible) {
+				ulHtml.children("li:eq(" + options.visible[iV] + ")").show();
+			}
+		}
+	}
+};
+
+jQuery.fn.select2Buttons = function(method, options) {
+if (typeof(method) === "string") {
+    if (select2Buttons_methods[method]) {
+   		return select2Buttons_methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+    }
+} else
 return this.each(function(){
 	var $ = jQuery;
 	var select = $(this);
@@ -57,7 +106,7 @@ return this.each(function(){
 			}
 			if ($(this).attr('disabled') || select.attr('disabled')) {
 				liHtml.addClass('disabled');
-				liHtml.append('<span>' + liText + '</span>');
+				liHtml.append('<span data-select-index="' + selectIndex + '">' + liText + '</span>');
 			} else {
 				liHtml.append('<a href="#" data-select-index="' + selectIndex + '">' + liText + '</a>');
 				if (inde === 0) {
@@ -109,7 +158,7 @@ return this.each(function(){
 		}) 
 	};
 
-	buttonsHtml.find('a').click(function(e){
+	buttonsHtml.find(".select-buttons").on("click", "a" , function(e){
       e.preventDefault();
       var allOptions = $(select.find('option'));
       var optionAcher = $(this);
@@ -193,4 +242,4 @@ return this.each(function(){
 		}
     });
   });
-};
+}

@@ -107,7 +107,7 @@ public class SystemImageManageService {
 			req = "^[A-Z]{2}[0-9]{6}$";
 		}else if("tcs".equals(systemImageManageForm.getClassify())){
 			//上传文件的文件名只能由数字和英文字母组合
-			req = "^[A-Z0-9]+$";
+			req = "^[A-Z0-9\\-]+$";
 		}
 		
 		Pattern pt = Pattern.compile(req);

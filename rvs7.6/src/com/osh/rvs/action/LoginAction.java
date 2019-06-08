@@ -188,7 +188,11 @@ public class LoginAction extends BaseAction {
 				if (dividePositions.contains(now_position)) {
 					MaterialProcessService mservice = new MaterialProcessService();
 					MaterialProcessEntity mEntity = mservice.loadMaterialProcessOfLine(workingPf.getMaterial_id(), workingPf.getLine_id(), conn);
-					loginData.setPx("" + (mEntity.getPx() + 1));
+					if (mEntity == null) {
+						loginData.setPx("0");
+					} else {
+						loginData.setPx("" + (mEntity.getPx() + 1));
+					}
 				} else {
 					loginData.setPx("0");
 				}

@@ -406,7 +406,11 @@ var process_set = function(rowdata) {
 				}
 
 			} else { // 小修
-				$("#search_section_id").val("00000000001");
+				if(rowdata["category_kind"] == 6) {
+					$("#search_section_id").val("00000000012").trigger("change");
+				} else {
+					$("#search_section_id").val("00000000001").trigger("change");
+				}
 				$("#ref_template").parent().parent().hide();
 
 				if (checkPart(material_id)) {

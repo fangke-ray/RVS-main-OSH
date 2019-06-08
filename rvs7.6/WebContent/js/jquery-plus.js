@@ -78,6 +78,10 @@ var warningConfirm = function(warnData, yesFunction, noFunction, title, yesButto
 	      return false;
 	      } 
 	     }); 
+	    },
+	    close:function(event) {
+	    	if(noFunction && event.currentTarget && event.currentTarget.className.indexOf("ui-dialog-titlebar-close") >= 0) 
+	    		noFunction();
 	    }
 		});
 	$errstring.html("<span class='errorarea'>" + warnData + "</span>");
@@ -594,12 +598,13 @@ var setReferChooser = function(target, jthis, jfather, callback) {
 	var shower = target.prev("input:text");
 	var filter = jthis.find("input:eq(0)");
 	var clearer = jthis.find("input:eq(1)");
-	var refTr = jthis.find(".subform").find("tr");
+	var refForm = jthis.find(".subform");
+	var refTr = refForm.find("tr");
 
 	var to;
 
 	shower.click(function(e){
-		jthis.css({"top" : shower.position().top + shower.height() - 5, "left" : shower.position().left}).show("fast");
+		jthis.css({"top" : shower.offset().top + shower.height() - 5, "left" : shower.offset().left}).show("fast");
 		filter.val("").trigger("change");
 		jthis[0].scrollTop = 0;
 		jthis.show("fade", function() {
@@ -684,14 +689,15 @@ var setReferChooser = function(target, jthis, jfather, callback) {
 		});
 	}
 
-	refTr.unbind("click").click(function() {
+	refForm.off("click").on("click", "tr", function() {
 		clearTimeout(to);
 		jthis.hide();
 		$(".referchooser_target").val($(this).find("td:eq(0)").text());
 		$(".referchooser_shower").val($(this).find("td:eq(1)").text()).focus();
 		if (callback != null) callback(this);
-	});
-	refTr.unbind("hover").hover(function() {$(this).addClass('ui-state-hover');}, function() {$(this).removeClass('ui-state-hover');});
+	})
+	.off("mouseover").on("mouseover", "tr", function() {$(this).addClass('ui-state-hover');})
+	.off("mouseout").on("mouseout", "tr", function() {$(this).removeClass('ui-state-hover');});
 }
 
 $(".ui-widget-overlay").on("click", function(){}); // alert (1);
