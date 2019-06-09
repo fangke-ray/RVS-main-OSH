@@ -17,6 +17,7 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.form.master.LightFixForm;
 import com.osh.rvs.service.LightFixService;
 import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.ProcessAssignService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
@@ -70,6 +71,10 @@ public class LightFixAction extends BaseAction {
 		}
 		String kReferChooser = CodeListUtils.getReferChooser(cList);
 		req.setAttribute("kReferChooser", kReferChooser);
+
+		ProcessAssignService paService = new ProcessAssignService();
+		String patOptions = paService.getGroupOptions("", conn);
+		req.setAttribute("patOptions", patOptions);
 
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);

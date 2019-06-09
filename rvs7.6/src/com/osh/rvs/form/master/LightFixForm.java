@@ -58,6 +58,9 @@ public class LightFixForm extends ActionForm implements Serializable {
 	@BeanField(title = "机种分类", name = "kind", type = FieldType.Integer, length = 2)
 	private String kind;
 
+	@BeanField(title = "关联参考流程", name = "correlated_pat_id", type = FieldType.String, length = 11)
+	private String correlated_pat_id;
+
 	/**
 	 * @return the light_fix_id
 	 */
@@ -201,7 +204,13 @@ public class LightFixForm extends ActionForm implements Serializable {
 	public void setKind(String kind) {
 		this.kind = kind;
 	}
-	
-	
+
+	public String getCorrelated_pat_id() {
+		return correlated_pat_id;
+	}
+
+	public void setCorrelated_pat_id(String correlated_pat_id) {
+		this.correlated_pat_id = correlated_pat_id;
+	}
 	
 }

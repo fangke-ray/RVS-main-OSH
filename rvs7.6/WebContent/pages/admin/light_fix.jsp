@@ -98,6 +98,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="ui-state-default td-title">修理等级</td>
 					<td class="td-content"><input type="text" id="add_rank" name="add_rank" alt="修理等级" maxlength="10" class="ui-widget-content"></td>
 				</tr>
+				<tr>
+					<td class="ui-state-default td-title">关联参考流程</td>
+					<td class="td-content" style="width:384px"><select name="correlated_pat_id" id="add_correlated_pat_id" alt="关联参考流程" class="ui-widget-content">${patOptions}</select></td>
+				</tr>
 			</table>
 			</div>
 			<div style="float:left;max-width:620px;">
@@ -148,6 +152,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<tr>
 					<td class="ui-state-default td-title">修理等级</td>
 					<td class="td-content"><input type="text" id="edit_rank" name="edit_rank" alt="修理等级" maxlength="10" class="ui-widget-content"></td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">关联参考流程</td>
+					<td class="td-content" style="width:384px"><select name="correlated_pat_id" id="edit_correlated_pat_id" alt="关联参考流程" class="ui-widget-content">${patOptions}</select></td>
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">最后更新人</td>

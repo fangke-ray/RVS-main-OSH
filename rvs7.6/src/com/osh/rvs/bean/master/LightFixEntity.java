@@ -25,7 +25,9 @@ public class LightFixEntity implements Serializable {
 	private Timestamp updated_time;
 
 	private String material_id;
-	
+
+	private String correlated_pat_id;
+
 	/**
 	 * @return the light_fix_id
 	 */
@@ -152,6 +154,14 @@ public class LightFixEntity implements Serializable {
 
 	public void setMaterial_id(String material_id) {
 		this.material_id = material_id;
+	}
+
+	public String getCorrelated_pat_id() {
+		return correlated_pat_id;
+	}
+
+	public void setCorrelated_pat_id(String correlated_pat_id) {
+		this.correlated_pat_id = correlated_pat_id;
 	}
 
 }

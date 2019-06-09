@@ -190,7 +190,8 @@ return this.each(function(){
 
     select.change(function(e, _inner){
 
- 		buttonsHtml.find('a').removeClass('picked');
+    	groupsHtml.find("a.picked").removeClass("picked");
+ 		buttonsHtml.find('a.picked').removeClass('picked');
  
  		if (_multiselect) {
 			var selectvals = select.val();

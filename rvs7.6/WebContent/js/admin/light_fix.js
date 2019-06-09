@@ -11,7 +11,8 @@ var servicePath = "light_fix.do";
 $(function() {
 	// 适用jquery按钮
 	$("input.ui-button").button();
-	$("#cond_kind").select2Buttons();
+	$("#cond_kind, #add_correlated_pat_id, #edit_correlated_pat_id").select2Buttons();
+
 	setReferChooser($("#cond_position_id"), $("#position_refer"));
 
 	// 右上图标效果
@@ -193,6 +194,7 @@ var showAdd = function() {
 	$("#addarea span.areatitle").html("新建" + modelname);
 	$("#addarea").show();
 	$("#addform input[type='text']").val("");
+	$("#add_correlated_pat_id").val("").trigger("change");
 	$(".errorarea-single").removeClass("errorarea-single");
 
 	$("#grid_add_kinds").find("tr").removeClass("ui-state-active");
@@ -218,7 +220,8 @@ var doAdd = function() {
 		var data = {
 			"activity_code" : $("#add_activity_code").val(),
 			"description" : $("#add_description").val(),
-			"rank" : $("#add_rank").val()
+			"rank" : $("#add_rank").val(),
+			"correlated_pat_id" : $("#add_correlated_pat_id").val()
 		};
 
 		$("#grid_add_kinds tr.ui-state-active").each(function(i,item){
@@ -306,6 +309,8 @@ var showEdit = function() {
 					$("#edit_activity_code").val(detail.activity_code);
 					$("#edit_description").val(detail.description);
 					$("#edit_rank").val(detail.rank);
+					$("#edit_correlated_pat_id").val(detail.correlated_pat_id).trigger("change");
+
 					$("#label_edit_updated_by").text(detail.updated_by);
 					$("#label_edit_updated_time").text(detail.updated_time);
 
@@ -360,7 +365,8 @@ var doEdit = function() {
 						"light_fix_id" : $("#edit_light_fix_id").val(),
 						"activity_code" : $("#edit_activity_code").val(),
 						"description" : $("#edit_description").val(),
-						"rank" : $("#edit_rank").val()
+						"rank" : $("#edit_rank").val(),
+						"correlated_pat_id" : $("#edit_correlated_pat_id").val()
 					};
 			
 					$("#grid_edit_kinds tr.ui-state-active").each(function(i,item){

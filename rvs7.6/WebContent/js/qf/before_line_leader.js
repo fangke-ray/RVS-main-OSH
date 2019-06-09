@@ -1278,7 +1278,6 @@ var showDetail=function(rid) {
 						$("#pa_main").html("");
 						$("#light_repair_process .subform tbody tr").each(function(index,ele){
 							var $tr = $(ele);
-							var pat_id = $tr.attr("pat_id");
 							
 							$tr.removeClass("ui-state-active");
 							$tr.addClass("unact");
@@ -1495,7 +1494,6 @@ var showedit_handleComplete=function(xhrobj){
 
 			$("#light_repair_process .subform tbody tr").each(function(index,ele){
 				var $tr = $(ele);
-				var pat_id = $tr.attr("pat_id");
 				
 				$tr.removeClass("ui-state-active");
 				$tr.addClass("unact");
@@ -1571,26 +1569,25 @@ var getDetail_ajaxSuccess=function(xhrobj){
 			var patContent = "";
 			for (var index in lightRepairs) {
 				var lightRepair = lightRepairs[index];
-				patContent += "<tr pat_id='"+ lightRepair.light_fix_id +"' class='unact'>" 
+				patContent += "<tr lf_id='"+ lightRepair.light_fix_id 
+								+ (lightRepair.correlated_pat_id ? "' pat_id='" + lightRepair.correlated_pat_id : "") +"' class='unact'>" 
 								+ "<td>" + lightRepair.activity_code + "</td>"
 								+ "<td>" + lightRepair.description + "</td>"
 						   + "</tr>";
 			};
 			
 			$("#light_repair_process .subform tbody").html(patContent);
-			
-			
-			
+
 			setTimeout(function(){
 				var materialLightFixs = resInfo.materialLightFixs;//维修对象选用小修理
 				$("#light_repair_process .subform tbody tr").removeClass("ui-state-active").addClass("unact");
 				for(var index in materialLightFixs){
 					var materialLightFix = materialLightFixs[index];
-					var pat_id = materialLightFix.light_fix_id;
-					chosedPat[pat_id] = 1;
+					var lf_id = materialLightFix.light_fix_id;
+					chosedPat[lf_id] = 1;
 					$("#light_repair_process .subform tbody tr").each(function(){
 						var $tr = $(this);
-						if(pat_id==$tr.attr("pat_id")) $tr.addClass("ui-state-active").removeClass("unact");
+						if(lf_id==$tr.attr("lf_id")) $tr.addClass("ui-state-active").removeClass("unact");
 					});
 				}
 				
@@ -1615,19 +1612,43 @@ var getDetail_ajaxSuccess=function(xhrobj){
 			//小修理流程工位TR单击事件
 			$("#light_repair_process .subform tbody tr").click(function(){
 				var $tr = $(this);
-				var pat_id = $tr.attr("pat_id");
+				var lf_id = $tr.attr("lf_id");
 				
 				if ($tr.hasClass("ui-state-active")) {
 					$tr.removeClass("ui-state-active");
 					$tr.addClass("unact");
-					chosedPat[pat_id] = 0;
+					chosedPat[lf_id] = 0;
+					changeFlow();
+			 		showResult(5.0);
 				}else{
 					$tr.addClass("ui-state-active");
 					$tr.removeClass("unact");
-					chosedPat[pat_id] = 1;
+					chosedPat[lf_id] = 1;
+
+					var correlated_pat_id = $tr.attr("pat_id");
+					if (correlated_pat_id) {
+						var $patTr = $("#ref_template option[value='" + correlated_pat_id + "']");
+						if ($patTr.length > 0 && !$patTr.attr("selected")) {
+							var curRefText = $("#ref_template option:selected").text();
+							warningConfirm("维修项目：" + $tr.children("td:eq(0)").text() + "具有关联的参考流程，是否将流程切换到【" + $patTr.text() + "】？"
+								+ "<br>（现有流程【" + curRefText + "】）",
+								function() {
+									$("#ref_template").val(correlated_pat_id).trigger("change");
+								},
+								function() {
+									changeFlow();
+							 		showResult(5.3);
+								}, "是否切换流程", "切换后重新选择", "保持现有流程继续"
+							)
+						} else {
+							changeFlow();
+					 		showResult(5.2);
+						}
+					} else {
+						changeFlow();
+				 		showResult(5.1);
+					}
 				}
-				changeFlow();
-		 		showResult(5);
 			});
 						
 			$("#light_fix_dialog").dialog({
@@ -1655,11 +1676,11 @@ var getDetail_ajaxSuccess=function(xhrobj){
 
 var changeFlow = function(){
 	var resultPos = {};
-	for (var pat_id in chosedPat) {
-		if (chosedPat[pat_id] == 1) {
+	for (var lf_id in chosedPat) {
+		if (chosedPat[lf_id] == 1) {
 			for (var iLightRepair in lightRepairs) {
 				var lightRepair = lightRepairs[iLightRepair];
-				if (pat_id == lightRepair.light_fix_id) {
+				if (lf_id == lightRepair.light_fix_id) {
 					for (var iprocesses in lightRepair.position_list) {
 						var process = lightRepair.position_list[iprocesses];
 						resultPos[process] = 1;
@@ -1673,7 +1694,7 @@ var changeFlow = function(){
 	for (var process in resultPos) {
 		$(".pos[code="+ process +"]").find("span").addClass("suceed");
 	};
-	
+
 	for (var process in chosedPos) {
 		if (chosedPos[process] == 1)
 		$(".pos[code="+ process +"]").find("span:not('.suceed')").addClass("point");
@@ -1687,9 +1708,9 @@ var update_material_process_assign=function(){
 	};
 	
 	var i=0;
-	for (var pat_id in chosedPat) {
-		if (chosedPat[pat_id] == 1) {
-			data["material_light_fix.light_fix_id[" + i + "]"] = pat_id;
+	for (var lf_id in chosedPat) {
+		if (chosedPat[lf_id] == 1) {
+			data["material_light_fix.light_fix_id[" + i + "]"] = lf_id;
 			i++;
 		}
 	}

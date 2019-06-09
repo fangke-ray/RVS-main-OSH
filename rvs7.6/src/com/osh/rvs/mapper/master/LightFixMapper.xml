@@ -52,6 +52,7 @@
 			activity_code,
 			description,
 			rank,
+			correlated_pat_id,
 			(select name from operator where operator_id = light_fix.updated_by) as updated_by,
 			updated_time
 		FROM light_fix
@@ -76,9 +77,9 @@
 	<insert id="insertLightFix" parameterType="LightFixEntity">
 		<![CDATA[ 
 		INSERT INTO light_fix 
-			(activity_code, description, rank, delete_flg, updated_by, updated_time) 
+			(activity_code, description, rank, correlated_pat_id, delete_flg, updated_by, updated_time) 
 		VALUES 
-			(#{activity_code}, #{description}, #{rank}, 0, #{updated_by}, current_timestamp)
+			(#{activity_code}, #{description}, #{rank}, #{correlated_pat_id}, 0, #{updated_by}, current_timestamp)
 		]]>
 	</insert>
 
@@ -88,6 +89,7 @@
 			activity_code = #{activity_code},
 			description = #{description},
 			rank = #{rank},
+			correlated_pat_id = #{correlated_pat_id},
 			updated_by = #{updated_by},
 			updated_time = current_timestamp
 		WHERE light_fix_id = #{light_fix_id}
@@ -150,6 +152,7 @@
 				v_category.kind,
 				light_fix.activity_code,
 				light_fix.description,
+				light_fix.correlated_pat_id,
 				position_of_light_fix.position_id
 			FROM
 			    material
