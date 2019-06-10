@@ -173,7 +173,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 														<select name="fix_type" alt="流水线分类" id="edit_fix_type" class="ui-widget-content">
 															${edit_fix_type}
 														</select>
-														<textarea name="comment" id="edit_comment" alt="备注信息" maxlength="225" class="ui-widget-content" rows="5" style="width: 444px;"></textarea>
+														<textarea name="comment" id="edit_comment" alt="备注信息" maxlength="500" class="ui-widget-content" rows="5" style="width: 444px;"></textarea>
 														<textarea name="comment_other" id="edit_comment_other" alt="备注信息" class="ui-widget-content" rows="5" style="width: 444px;" disabled readonly></textarea>
 														<!--select name="service_repair_flg" alt="返修标记" id="edit_service_repair_flg" class="ui-widget-content">
 															${edit_service_repair_flg}

@@ -170,7 +170,7 @@ public class MaterialForm extends ActionForm {
 	@BeanField(title = "维修等级", name = "levels", type = FieldType.String, length = 100)
 	private String levels;
 
-	@BeanField(title = "备注内容", name = "comment", type = FieldType.String, length = 250)
+	@BeanField(title = "备注内容", name = "comment", type = FieldType.String, length = 500)
 	private String comment;
 
 	public String getCategory_id() {
