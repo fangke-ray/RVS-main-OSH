@@ -67,6 +67,7 @@
 				#pires button{background-color:white;border-color:black;width:72px;padding:0 0;}
 				#pires button[usage="1"]{background-color:lightgreen;}
 				#pires button[usage="0"]{background-color:yellow;}
+				#pires tr[title] > td{background-color:aquamarine;}
 <%
 	if (!isTech) {
 %>

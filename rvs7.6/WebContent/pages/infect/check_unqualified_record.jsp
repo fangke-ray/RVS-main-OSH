@@ -22,6 +22,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
+<script type="text/javascript" src="js/infect/infect_sheet.js"></script>
 <script type="text/javascript" src="js/infect/check_unqualified_record.js"></script>
 
 <title>设备工具・治具点检不合格记录</title>
@@ -172,6 +173,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									<tr>
 										<td class="ui-state-default td-title">所在工位</td>
 										<td class="td-content">
+											<input type="hidden" id="hidden_position_id"/>
+											<input type="hidden" id="hidden_section_id"/>
+											<input type="hidden" id="hidden_operator_id"/>
 											<label id="label_borrow"></label>
 										</td>
 										<td class="ui-state-default td-title">责任人</td>
@@ -184,42 +188,51 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										</td>
 									</tr>
 									<tr>
-										<td colspan="6">
-											<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser" style="margin-left:-1px;margin-right:-1px;">
-												<span>线长处理</span>
-											</div>
-										</td>
-									</tr>
-									<tr>
 										<td class="ui-state-default td-title">不合格项目</td>
-										<td class="td-content" colspan="5">
+										<td class="td-content>
 											<label id="label_check_item"></label>
 										</td>
+										<td class="ui-state-default td-title">不合格描述</td>
+										<td class="td-content"  colspan="3">
+											<textarea id="label_unqualified_status" disabled cols="60" rows="2" style="font-size:12px;resize:none"></textarea>
+										</td>
 									</tr>
 									<tr>
-										<td class="ui-state-default td-title">不合格描述</td>
-										<td class="td-content"  colspan="5">
-											<textarea id="label_unqualified_status" disabled cols="130" rows="2" style="font-size:12px;resize:none"></textarea>
+										<td colspan="4">
+										<style>
+										#update_form_left,#update_form_right {margin:0;height:100%;}
+										#update_form_left textarea {width:420px;}
+										#update_form_right textarea {width:220px;}
+										</style>
+										<table id="update_form_left">
+
+											<tr>
+												<td colspan="4">
+													<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser" style="margin-left:-1px;margin-right:-1px;">
+														<span>线长处理</span>
+													</div>
 										</td>
 									</tr>
 									<tr id="sheetShower">
 										<td class="ui-state-default td-title">点检表</td>
-										<td class="td-content"  colspan="5">
-											<input class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="lookbutton" value="查看" role="button" aria-disabled="false" style="float:left;width:50px;height:28px;line-height:15px;font-weight:normal;" type="button">
+												<td class="td-content"  colspan="3">
+													<input class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="lookbutton" value="查看" role="button" aria-disabled="false" style="padding:0.5em; font-weight:normal;" type="button">
 										</td>
 									</tr>
 									<!-- 线长未处理开始 -->
 									<tr class="linear_not_handle" style="display:none">
 										<td class="ui-state-default td-title">工位对处</td>
-										<td class="td-content" colspan="5">
+												<td class="td-content" colspan="3">
 											<select id="edit_position_handle">${goPositionHandle2 }</select>
 										</td>
 									</tr>
 									<tr class="linear_not_handle" id="borrow_device" style="display:none">
 										<td class="ui-state-default td-title" >借用设备</td>
-										<td class="td-content" colspan="5" >
+												<td class="td-content" colspan="3" >
 											<input type="text" class="ui-widget-content" id="input_borrow_object_name">
 											<input type="hidden" id="hidden_borrow_object_id" value="">
+											<input type="text" class="ui-widget-content" id="input_borrow_acquire_object_name">
+											<input type="hidden" id="hidden_borrow_acquire_object_id" value="">
 										</td>
 									</tr>
 									<!-- 线长未处理结束 -->
@@ -227,13 +240,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									<!-- 线长处理完  其他人   开始-->
 									<tr class="linear_handle_over" style="display:none">
 										<td class="ui-state-default td-title" >工位对处</td>
-										<td class="td-content" id="optition_handle" colspan="5">
+										<td class="td-content" id="optition_handle" colspan="3">
 											<label id="label_position_handle"></label>
 										</td>
 									</tr>
 									<tr class="linear_handle_over" style="display:none;" id="label_borrow_device">
 										<td class="ui-state-default td-title" >借用设备</td>
-										<td class="td-content" colspan="5" >
+										<td class="td-content" colspan="3" >
 											<label id="label_borrow_object_name"></label>
 										</td>
 									</tr>
@@ -250,7 +263,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									<!-- 线长处理完  其他人   结束-->
 								
 									<tr class="manage_title">
-										<td colspan="6">
+										<td colspan="4">
 											<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser" style="margin-left:-1px;margin-right:-1px;">
 												<span>经理处理</span>
 											</div>
@@ -261,20 +274,20 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										if("manage".equals(role)){//经理 未选择无影响
 									%>
 									<tr class="manage_not_handle" style="display:none;">
-										<td class="ui-state-default td-title">设备对处</td>
-										<td class="td-content" colspan="5">
+												<td class="ui-state-default td-title">设备对处建议</td>
+												<td class="td-content" colspan="3">
 											<select id="edit_object_handle">${goObjectHandle }</select>
 										</td>
 									</tr>
 									<tr class="manage_not_handle" style="display:none;">
 										<td class="ui-state-default td-title">产品处理内容</td>
-										<td class="td-content" colspan="5">
+												<td class="td-content" colspan="3">
 											<select id="edit_product_handle" >${goProductContent }</select>
 										</td>
 									</tr>
 									<tr class="manage_not_handle" style="display:none;">
 										<td class="ui-state-default td-title">产品处理结果</td>
-										<td class="td-content"  colspan="5"> 
+												<td class="td-content"  colspan="3"> 
 											<textarea id="edit_product_result" style="resize:none;" cols="99"></textarea>
 										</td>
 									</tr>
@@ -288,19 +301,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									%>
 										<tr class="manage_handle" style="display:none">
 											<td class="ui-state-default td-title">设备对处</td>
-											<td id="device_handle" class="td-content ui-buttonset" colspan="5">
+													<td id="device_handle" class="td-content ui-buttonset" colspan="3">
 												<label id="label_object_handle"></label>
 											</td>
 										</tr>
 										<tr class="manage_handle" style="display:none">
 											<td class="ui-state-default td-title">产品处理内容</td>
-											<td id="product_handle" class="td-content ui-buttonset" colspan="5">
+													<td id="product_handle" class="td-content ui-buttonset" colspan="3">
 												<label id="label_product_handle"></label>
 											</td>
 										</tr>
 										<tr class="manage_handle" style="display:none">
 											<td class="ui-state-default td-title">产品处理结果</td>
-											<td class="td-content" colspan="5">
+													<td class="td-content" colspan="3">
 												<textarea id="label_product_result" cols="99" style="font-size:12px;resize:none;" disabled></textarea>
 											</td>
 										</tr>
@@ -318,8 +331,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										}
 									%>
 									
-									<tr class="">
-										<td colspan="6">
+										</table>
+										</td>
+										<td colspan="2" style="vertical-align: top;">
+										<table id="update_form_right">
+											<tr>
+												<td colspan="2">
 											<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser"style="margin-left:-1px;margin-right:-1px;">
 												<span>设备管理员处理</span>
 											</div>
@@ -331,27 +348,52 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										if("dtTechnology".equals(role)){
 									%>
 									<tr>
+												<td class="ui-state-default td-title">借用替换品<br>确认</td>
+												<td class="td-content">
+													<input type="text" class="ui-widget-content" id="edit_borrow_appointment_manage_code" readonly="readonly">
+													<input type="hidden" class="ui-widget-content" id="hidden_borrow_appointment">
+													<input type="text" class="ui-widget-content" id="edit_borrow_acquire_appointment_manage_code" readonly="readonly">
+													<input type="hidden" class="ui-widget-content" id="hidden_borrow_acquire_appointment">
+													<select id="edit_borrow_status">
+														<option value="0">不使用替换</option>
+														<option value="1">线上调剂</option>
+														<option value="2">申请借用</option>
+														<option value="3">允许</option>
+														<option value="8">禁止</option>
+														<option value="9">禁止</option>
+													</select>
+													<label id="label_borrow_backup_appointment"></label><br>
+													<label id="label_borrow_status"></label><br>
+												</td>
+											</tr>
+											<tr>
+												<td class="ui-state-default td-title">借用替换品<br>收回</td>
+												<td class="td-content">
+													<label id="label_borrow_until"></label>
+												</td>
+											</tr>
+											<tr>
 										<td class="ui-state-default td-title">设备对处结果</td>
-										<td class="td-content" colspan="5">
+										<td class="td-content">
 											<select id="edit_object_final_handle_result">${goObjectFinalHandleResult }</select>
 										</td>
 									</tr>
 									<tr class="dtTechnology_handle" style="display:none">
 										<td class="ui-state-default td-title">维修/校验/出借 开始日期</td>
-										<td class="td-content" colspan="5">
+												<td class="td-content">
 											<input type="text" class="ui-widget-content" id="edit_repair_start_date" readonly="readonly">
 										</td>
 									</tr>
 									<tr class="dtTechnology_handle" style="display:none">
 										<td class="ui-state-default td-title">维修/校验/出借 结束日期</td>
-										<td class="td-content"  colspan="5">
+												<td class="td-content">
 											<input type="text" class="ui-widget-content" id="edit_repair_end_date" readonly="readonly">
 										</td>
 									</tr>
 									<tr>
 										<td class="ui-state-default td-title">备注</td>
-										<td class="td-content" colspan="5">
-											<textarea id="edit_technology_comment" cols="99" style="font-size:12px;resize:none;"></textarea>
+												<td class="td-content">
+													<textarea id="edit_technology_comment" cols="60" style="font-size:12px;resize:none;"></textarea>
 										</td>
 									</tr>
 									<%
@@ -359,34 +401,43 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									%>
 									
 									<tr>
+										<td class="ui-state-default td-title">替换品</td>
+										<td class="td-content">
+											<label id="label_borrow_backup_appointment"></label><br>
+											<label id="label_borrow_status"></label><br>
+											<label id="label_borrow_until"></label>
+										</td>
+									</tr>
+									<tr>
 										<td class="ui-state-default td-title">设备对处结果</td>
-										<td class="td-content" colspan="5">
+										<td class="td-content">
 											<label id="label_object_final_handle_result"></label>
 										</td>
 									</tr>
 									<tr class="dtTechnology_result">
 										<td class="ui-state-default td-title">维修/校验/出借 开始日期</td>
-										<td class="td-content" colspan="5">
+												<td class="td-content">
 											<label id="label_repair_start_date"></label>
 										</td>
 									</tr>
 									<tr class="dtTechnology_result">
 										<td class="ui-state-default td-title">维修/校验/出借 结束日期</td>
-										<td class="td-content"  colspan="5">
+												<td class="td-content">
 											<label id="label_repair_end_date"></label>
 										</td>
 									</tr>
 									<tr>
 										<td class="ui-state-default td-title">备注</td>
-										<td class="td-content" colspan="5">
-											<textarea id="edit_technology_comment" cols="99" style="font-size:12px;resize:none;" readonly disabled></textarea>
+												<td class="td-content">
+													<textarea id="edit_technology_comment" cols="60" style="font-size:12px;resize:none;" readonly disabled></textarea>
 										</td>
 									</tr>
 									<%
 										}
 									%>
-									
-									
+										</table>
+										</td>
+									</tr>
 								</tbody>
 							</table>
 							<div style="height:44px">
@@ -417,7 +468,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</div>
 				<!-- 详细信息结束 -->
 				
-				<div id="name_refer" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:10000">
+				<div id="borrow_free_refer" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:10000">
 					 <table>
 						<tbody>
 						   <tr>
@@ -429,6 +480,18 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				  	 <table class="subform"></table>
 				</div>
 				
+				<div id="borrow_acquire_refer" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:10000">
+					 <table>
+						<tbody>
+						   <tr>
+								<td width="50%">过滤字:<input type="text"></td>	
+								<td align="right" width="50%"><input aria-disabled="false" role="button" class="ui-button ui-widget ui-state-default ui-corner-all" style="float:right;" value="清空" type="button"></td>
+						   </tr>
+					   </tbody>
+				  	 </table>
+				  	 <table class="subform"></table>
+				</div>
+
 			</div>
 			
 			<div class="clear areaencloser"></div>

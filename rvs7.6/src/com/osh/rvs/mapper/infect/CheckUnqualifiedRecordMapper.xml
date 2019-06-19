@@ -118,37 +118,53 @@
 				dm.devices_manage_id,
 				dt.name,
 				dm.manage_code,
-				dm.model_name
+				dm.model_name,
+				dm.line_id,
+				dm.status,
+				dbr.free_displace_flg
 			FROM
 				devices_manage dm
 			LEFT JOIN
 				devices_type  dt
 			ON
 				dm.devices_type_id=dt.devices_type_id
+			LEFT JOIN
+				device_backup_relation dbr
+			ON
+				dbr.manage_id = #{devices_manage_id} AND dbr.backup_manage_id = dm.devices_manage_id
 			WHERE
-				dm.devices_type_id=#{devices_type_id} AND dm.devices_manage_id<>#{devices_manage_id} AND dm.delete_flg=0 AND dm.status IN(1,4)
+				(dm.devices_type_id=#{devices_type_id} OR dbr.backup_manage_id IS NOT NULL) 
+			AND dm.devices_manage_id<>#{devices_manage_id} AND dm.delete_flg=0 AND dm.status IN(1,4,5)
+			AND NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+				where cur.manage_id = dm.devices_manage_id and cur.manage_id = 1
+				and (technology_handle_time IS NULL 
+					OR (repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))))
+			ORDER BY dm.model_name = #{model_name} DESC, dm.line_id = #{line_id} DESC 
 		]]>
 	</select>
 	
 	<select id="getToolsNameReferChooser" parameterType="ToolsManageEntity" resultType="ToolsManageEntity">
 		<![CDATA[
-				SELECT
-					tm.tools_manage_id,
-					tm.tool_name AS tools_name,
-					tm.manage_code,
-					tm.tools_no,
-					sec.name as section_name,
-					pos.process_code
-				FROM
-					tools_manage tm
-				LEFT JOIN
-					section sec
-					ON sec.section_id = tm.section_id
-				LEFT JOIN
-					position pos
-					ON pos.position_id = tm.position_id
-				WHERE
-					tm.tools_no=#{tools_no} AND tm.tools_manage_id<>#{tools_manage_id} AND tm.delete_flg=0 AND tm.status IN(1,4)
+			SELECT
+				tm.tools_manage_id,
+				tm.tool_name AS tools_name,
+				tm.manage_code,
+				tm.tools_no,
+				sec.name as section_name,
+				pos.process_code
+			FROM
+				tools_manage tm
+			LEFT JOIN
+				section sec
+				ON sec.section_id = tm.section_id
+			LEFT JOIN
+				position pos
+				ON pos.position_id = tm.position_id
+			WHERE
+				tm.tools_no=#{tools_no} AND tm.tools_manage_id<>#{tools_manage_id} AND tm.delete_flg=0 AND tm.status IN(1,4)
+			and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+				where cur.manage_id = tm.tools_manage_id and cur.manage_id = 2
+				and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
 		]]>
 	</select>
 	
@@ -172,6 +188,8 @@
 				cur.repair_date_start,
 				cur.repair_date_end,
 				cur.borrow_object_id,
+				cur.borrow_status,
+				cur.borrow_until,
 				cur.alarm_message_id,
 				cur.technology_comment,
 				responsible_op.name AS responsible_operator_name,
@@ -184,7 +202,10 @@
 				COALESCE(borrow_dt.name,borrow_tm.tool_name,'') AS borrow_object_name,
 				borrow_dm.model_name AS borrow_model_name,
 				COALESCE(borrow_dm.manage_code, borrow_tm.manage_code) AS borrow_manage_no, 
-				tm.tools_no
+				tm.tools_no,
+pos.position_id,
+COALESCE(dm.section_id, tm.section_id) AS section_id,
+responsible_op.operator_id AS responsible_operator_id
 			FROM
 				check_unqualified_record cur
 			LEFT JOIN
@@ -242,10 +263,11 @@
 				line_leader_id=#{line_leader_id},
 				line_leader_handle_time=CURRENT_TIMESTAMP()
 		]]>
-		<if test="position_handle!=null and position_handle==1">
+		<if test="position_handle!=null and (position_handle==1 or position_handle==5)">
 			<![CDATA[
 				,
-				borrow_object_id=#{borrow_object_id}
+				borrow_object_id=#{borrow_object_id},
+				borrow_status=#{borrow_status}
 			]]>
 		</if>
 		<where>
@@ -293,6 +315,13 @@
 				object_final_handle_result=#{object_final_handle_result},
 				repair_date_start=#{repair_date_start},
 				repair_date_end=#{repair_date_end},
+				borrow_object_id=#{borrow_object_id},
+				borrow_status=#{borrow_status},
+		]]>
+		<if test="borrow_until!=null and borrow_until!=''">
+				borrow_until=current_date,
+		</if>
+		<![CDATA[
 				technology_id=#{technology_id},
 				technology_handle_time=CURRENT_TIMESTAMP(),
 				technology_comment=#{technology_comment}
@@ -306,7 +335,7 @@
 	
 	<insert id="create" parameterType="CheckUnqualifiedRecordEntity">
 		<![CDATA[ 
-		INSERT INTO `rvsdb`.`check_unqualified_record`
+		INSERT INTO `check_unqualified_record`
 			(
 			`manage_id`,
 			`object_type`,

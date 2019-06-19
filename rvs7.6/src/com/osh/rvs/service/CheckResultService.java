@@ -891,11 +891,11 @@ public class CheckResultService {
 				Date expireDate = new Date(neo.getStartOfWeek().getTime() - 1);
 				// 往前1天开始算天数
 				cond.put("date", expireDate);
-				cond.put("interval", 2);
+				cond.put("interval", 3);
 				expireDate = hMapper.addWorkdays(cond);
 				if (expireDate.after(neo.getEndOfWeek()) ) {
-					// 一周两天都没有的情况
-					expireDate.setTime(neo.getStartOfWeek().getTime());
+					// 一周3天都没有的情况
+					expireDate.setTime(neo.getEndOfWeek().getTime());
 				}
 				neo.setExpireOfWeek(expireDate);
 			}
@@ -904,11 +904,11 @@ public class CheckResultService {
 
 				cond.put("date", expireDate);
 				// 月3天宽限
-				cond.put("interval", 4);
+				cond.put("interval", 5);
 				expireDate = hMapper.addWorkdays(cond);
 				neo.setExpireOfMonth(expireDate);
 				cond.put("date", expireDate);
-				cond.put("interval", 2);
+				cond.put("interval", 1);
 				expireDate = hMapper.addWorkdays(cond);
 				neo.setExpireOfMonthOfJig(expireDate);
 			}
@@ -929,7 +929,7 @@ public class CheckResultService {
 				} else {
 					Date expireDate = new Date(neo.getStartOfHMonth().getTime() - 1);
 					cond.put("date", expireDate);
-					cond.put("interval", 4);
+					cond.put("interval", 5);
 					expireDate = hMapper.addWorkdays(cond);
 					neo.setExpireOfHMonth(expireDate);
 				}
@@ -939,7 +939,7 @@ public class CheckResultService {
 				Date expireDate = new Date(neo.getStartOfHbp().getTime() - 1);
 				
 				cond.put("date", expireDate);
-				cond.put("interval", 4);
+				cond.put("interval", 5);
 				expireDate = hMapper.addWorkdays(cond);
 				neo.setExpireOfHbp(expireDate);
 			}
@@ -1198,8 +1198,8 @@ public class CheckResultService {
 		return null;
 	}
 
-	private String getStatusD(String status, boolean isLeader, int current, String manage_id, String item_seq) {
-		String matchKey = "d_" + manage_id + "_"+item_seq+"_" + current;
+	private String getStatusD(String status, boolean isLeader, int current, String manage_id, String item_seq, String cf_manage_id) {
+		String matchKey = "d_" + manage_id + "_"+item_seq+"_" + current + "_" + cf_manage_id;
 
 		if (status == null || "0".equals(status)) {
 
@@ -1580,13 +1580,8 @@ public class CheckResultService {
 			sendation.setSendation_id(loginData.getOperator_id());
 			sendation.setResolve_time(new Date());
 
-			int me = amDao.countAlarmMessageSendation(sendation);
-			if (me <= 0) {
-				// 没有发给处理者的信息时（代理线长），新建一条
-				amDao.createAlarmMessageSendation(sendation);
-			} else {
-				amDao.updateAlarmMessageSendation(sendation);
-			}
+			AlarmMesssageService amService = new AlarmMesssageService();
+			amService.replaceAlarmMessageSendation(sendation, conn);
 		}
 	}
 
@@ -1668,14 +1663,19 @@ public class CheckResultService {
 			}
 
 			// 替换共通数据
-			content = content.replaceAll("<manageNo/>", dmEntity.getManage_code() 
-					+ "<dtag manage_code='"+dmEntity.getManage_code()+"' manage_id='"+dmEntity.getDevices_manage_id()+"'"
-							+ " model_name='"+ dmEntity.getModel_name() +"'"
-							+ " device_name='"+ dmEntity.getName() +"'>");
-			content = content.replaceAll("<manageNo replacable/>", dmEntity.getManage_code() 
-					+ "<br/><input type='button' value='替换新品' class='ui-button manage_replace'/><dtag manage_code='"+dmEntity.getManage_code()+"' manage_id='"+dmEntity.getDevices_manage_id()+"'"
-							+ " model_name='"+ dmEntity.getModel_name() +"'"
-							+ " device_name='"+ dmEntity.getName() +"'>");
+			// 替换共通数据
+			String dtagHtml = "<dtag manage_code='"+dmEntity.getManage_code()+"' manage_id='"+dmEntity.getDevices_manage_id()+"'"
+					+ " model_name='"+ dmEntity.getModel_name() +"'"
+					+ " device_name='"+ dmEntity.getName() +"'>";
+			if (content.indexOf("<manage") < 0) {
+				content += dtagHtml;
+			} else {
+				content = content.replaceAll("<manageNo/>", dmEntity.getManage_code() 
+						+ dtagHtml);
+				content = content.replaceAll("<manageNo replacable/>", dmEntity.getManage_code() 
+						+ "<br/><input type='button' value='替换新品' class='ui-button manage_replace'/>"
+						+ dtagHtml);
+			}
 			content = content.replaceAll("<model/>", dmEntity.getModel_name());
 			content = content.replaceAll("<period type='full'/>", bperiod);
 			content = content.replaceAll("<period type='num'/>", bperiod.replaceAll("P", ""));
@@ -1805,7 +1805,7 @@ public class CheckResultService {
 							shift = 1;
 						}
 						retContent = retContent.replaceAll("<point type='check' item_seq='"+itemSeq+"' cycle_type='\\d+' (model_relative='[^']*' )?tab='\\d+' shift='"+shift+"'/>"
-								, getStatusD(""+rCre.getChecked_status(), isLeader, (current ? 0 : -1), manage_id, itemSeq));
+								, getStatusD(""+rCre.getChecked_status(), isLeader, (current ? 0 : -1), manage_id, itemSeq, check_file_manage_id));
 						String limits = "";
 						Pattern pInputData = Pattern.compile("<point type='number' item_seq='("+itemSeq+")' cycle_type='\\d+' "
 								+ "(model_relative='[^']*' )?(upper_limit='\\-?[\\d\\.]+' )?(lower_limit='\\-?[\\d\\.]+' )?"

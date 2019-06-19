@@ -30,6 +30,8 @@ public class PostMessageService {
 	public static final Integer LINE_PLAN_OVERTIME = 52;
 	public static final Integer COUNTDOWN_UNREACH = 60;
 
+	public static final Integer BORROW_STATUS_CONFIRM = 76;
+
 	/**
 	 * 根据登录者显示全部推送信息
 	 * @param conn

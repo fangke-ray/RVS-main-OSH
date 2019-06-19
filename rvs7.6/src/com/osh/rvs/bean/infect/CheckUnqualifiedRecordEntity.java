@@ -30,6 +30,7 @@ public class CheckUnqualifiedRecordEntity implements Serializable {
 	private Integer position_handle;// 工位对处
 	private Integer object_handle;// 管理对象对处
 	private String borrow_object_id;// 借用物品ID
+	private Integer borrow_status; // 借用物品状态
 	private String product_result;// 产品处理结果
 	private String responsible_operator_id;// 责任人ID
 	private String line_leader_id;// 线长ID
@@ -69,6 +70,7 @@ public class CheckUnqualifiedRecordEntity implements Serializable {
 	private String alarm_message_id;
 	private String position_id;
 	private String section_id;
+	private Date borrow_until;
 
 	public String getCheck_unqualified_record_key() {
 		return check_unqualified_record_key;
@@ -420,5 +422,21 @@ public class CheckUnqualifiedRecordEntity implements Serializable {
 
 	public void setSection_id(String section_id) {
 		this.section_id = section_id;
+	}
+
+	public Integer getBorrow_status() {
+		return borrow_status;
+	}
+
+	public void setBorrow_status(Integer borrow_status) {
+		this.borrow_status = borrow_status;
+	}
+
+	public Date getBorrow_until() {
+		return borrow_until;
+	}
+
+	public void setBorrow_until(Date borrow_until) {
+		this.borrow_until = borrow_until;
 	}
 }

@@ -16,7 +16,10 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.infect.CheckUnqualifiedRecordForm;
+import com.osh.rvs.form.master.CheckFileManageForm;
+import com.osh.rvs.service.CheckFileManageService;
 import com.osh.rvs.service.infect.CheckUnqualifiedRecordService;
 
 import framework.huiqing.action.BaseAction;
@@ -107,16 +110,13 @@ public class CheckUnqualifiedRecordAction extends BaseAction {
 
 		listResponse.put("errors", errors);
 		listResponse.put("finished", finished);
-		
-		
-		
+
 		// 返回Json格式响应信息
 		returnJsonResponse(response,listResponse);
 		
 		log.info("CheckUnqualifiedRecordAction.search end");
 	}
-	
-	
+
 	/**
 	 * 详细信息
 	 * @param mapping ActionMapping
@@ -135,38 +135,45 @@ public class CheckUnqualifiedRecordAction extends BaseAction {
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 		
 		CheckUnqualifiedRecordService service=new CheckUnqualifiedRecordService();
-		String nameReferChooser=service.getNameReferChooser(form, conn);
-		
-		
+
+		LoginData loginData=(LoginData)request.getSession().getAttribute(RvsConsts.SESSION_USER);
+		String operator_id= loginData.getOperator_id();//登录者ID
+
+		listResponse.put("isDTTechnology", "");
+		listResponse.put("isManage", "");
+
+		boolean canAlter = false;
+		String role_id=loginData.getRole_id();//角色ID
+		if(role_id.equals(RvsConsts.ROLE_MANAGER) || role_id.equals(RvsConsts.ROLE_QA_MANAGER)){//经理
+			request.setAttribute("role", "manage");
+			listResponse.put("isManage", "manage");
+		}else if(role_id.equals(RvsConsts.ROLE_DT_MANAGER)){//设备管理员
+			request.setAttribute("role", "dtTechnology");
+			listResponse.put("isDTTechnology", "dtTechnology");
+			canAlter = true;
+		}else{
+			request.setAttribute("role", "other");
+		}
+
 		CheckUnqualifiedRecordForm tempForm=service.getById(form, conn);
 		String line_leader_handle_time=tempForm.getLine_leader_handle_time();//线长处理时间
 		String line_leader_id=tempForm.getLine_leader_id();//线长ID
 		String product_content=tempForm.getProduct_content();//产品处理内容
-		
+
 		String borrow_object_id=tempForm.getBorrow_object_id();//借用物品ID
 		String object_type=tempForm.getObject_type();//对象类型
 		
 		String sectionAndLine=service.getBorrowSectionAndLine(borrow_object_id,Integer.valueOf(object_type),conn);
-		
-		LoginData loginData=(LoginData)request.getSession().getAttribute(RvsConsts.SESSION_USER);
-		String operator_id= loginData.getOperator_id();//登录者ID
-		
-		
-		String role_id=loginData.getRole_id();//角色ID
-		if(role_id.equals(RvsConsts.ROLE_DT_MANAGER)){//设备管理员
-			listResponse.put("isDTTechnology", "dtTechnology");
-		}else{
-			listResponse.put("isDTTechnology", "");
+
+		// 取得可查看检查票
+		if ("1".equals(object_type)) {
+			CheckFileManageService cfmService = new CheckFileManageService();
+			List<CheckFileManageForm> checkFileManageList = cfmService.search(tempForm, conn);
+			listResponse.put("checkFileManageList", checkFileManageList);
 		}
-		
-		if(role_id.equals(RvsConsts.ROLE_MANAGER) || role_id.equals(RvsConsts.ROLE_QA_MANAGER)){//经理
-			listResponse.put("isManage", "manage");
-		}else{
-			listResponse.put("isManage", "");
-		}
-		
+
 		listResponse.put("login_id", operator_id);
-		listResponse.put("nameReferChooser", nameReferChooser);
+
 		listResponse.put("line_leader_handle_time", line_leader_handle_time==null ?"":line_leader_handle_time);
 		listResponse.put("line_leader_id", line_leader_id==null ?"":line_leader_id);
 		listResponse.put("product_content", product_content);
@@ -174,13 +181,23 @@ public class CheckUnqualifiedRecordAction extends BaseAction {
 		listResponse.put("sectionAndLine", sectionAndLine);
 		
 		listResponse.put("errors", errors);
-	
+
+		if (line_leader_id != null && line_leader_id.equals(loginData.getOperator_id())
+				&& line_leader_handle_time == null) {
+			canAlter = true;
+		}
+
+		// 借用设备取得
+		if (canAlter) {
+			service.getAlterObjects(form, loginData, listResponse, conn);
+		}
+
 		// 返回Json格式响应信息
 		returnJsonResponse(response,listResponse);
 
 		log.info("CheckUnqualifiedRecordAction.detail end");
 	}
-	
+
 	/**
 	 * 线长确认
 	 * @param mapping ActionMapping
@@ -198,10 +215,17 @@ public class CheckUnqualifiedRecordAction extends BaseAction {
 		Validators v=BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 		// 错误信息集合
 		List<MsgInfo> errors = v != null ? v.validate(): new ArrayList<MsgInfo>();
-		
+	
 		if(errors.size()==0){
+			List<String> triggerList = new ArrayList<String>();
+
 			CheckUnqualifiedRecordService service=new CheckUnqualifiedRecordService();
-			service.updateByLineLeader(form, request, conn);
+			service.updateByLineLeader(form, request, triggerList, conn);
+
+			if (triggerList.size() > 0 && errors.size() == 0) {
+				conn.commit();
+				RvsUtils.sendTrigger(triggerList);
+			}
 		}
 		
 		listResponse.put("errors", errors);
@@ -262,10 +286,17 @@ public class CheckUnqualifiedRecordAction extends BaseAction {
 		List<MsgInfo> errors = v != null ? v.validate(): new ArrayList<MsgInfo>();
 		
 		if(errors.size()==0){
+			List<String> triggerList = new ArrayList<String>();
+
 			CheckUnqualifiedRecordService service=new CheckUnqualifiedRecordService();
-			service.updateByTechnology(form, request, conn);
+			service.updateByTechnology(form, request, conn, triggerList);
+
+			if (triggerList.size() > 0 && errors.size() == 0) {
+				conn.commit();
+				RvsUtils.sendTrigger(triggerList);
+			}
 		}
-		
+
 		listResponse.put("errors", errors);
 		
 		// 返回Json格式响应信息

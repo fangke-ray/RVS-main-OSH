@@ -43,6 +43,7 @@
 		    ELSE
 				(br.inline > 0) * 4 + (br.free > 0) * 2 + (br.confirm > 0)
 			END as backup_evaluation,
+			bred.borrow_object_id IS NOT NULL as borrowed,
 		    dbc.corresponding
 		from
 		    devices_manage dm
@@ -86,6 +87,14 @@
 					GROUP BY manage_id
 				) br
 			ON dm.devices_manage_id = br.manage_id
+			LEFT JOIN 
+				(
+					select distinct borrow_object_id from check_unqualified_record 
+					where borrow_object_id is not null and borrow_until is null
+					and object_type = 1
+					and happen_time > '2019-1-1'
+				) bred
+			ON dm.devices_manage_id = bred.borrow_object_id
 		]]>
 		<where>		
 		        dm.delete_flg=0
@@ -376,7 +385,7 @@
 		    dm.`updated_time`,
 		    dm.`status`,
 		    dm.`comment`,
-		    
+		    bred.manage_content,
 		    l.name as line_name,
 			(br.inline > 0) * 4 + (br.free > 0) * 2 + (br.confirm > 0) as backup_evaluation,
 		    dbc.corresponding
@@ -401,6 +410,18 @@
 				GROUP BY manage_id
 			) br
 		ON dm.devices_manage_id = br.manage_id
+		LEFT JOIN 
+			(
+				select borrow_object_id, group_concat(br_dm.manage_code) as manage_content
+				from check_unqualified_record br_cur
+				join `devices_manage` br_dm
+				ON br_cur.manage_id = br_dm.devices_manage_id
+				where borrow_object_id is not null and borrow_until is null
+				and object_type = 1
+				and happen_time > '2019-1-1'
+				group by borrow_object_id
+			) bred
+		ON dm.devices_manage_id = bred.borrow_object_id
 		WHERE dm.`devices_manage_id` = #{devices_manage_id}
 		;
 		]]>

@@ -411,4 +411,14 @@ public class DevicesManageService {
 			dao.disband(devicesManageEntity);
 		}
 	}
+
+	public DevicesManageForm getDetail(String manage_id, SqlSession conn) {
+		DevicesManageMapper dmMapper = conn.getMapper(DevicesManageMapper.class);
+		DevicesManageEntity dmEntity = dmMapper.getByKey(manage_id);
+
+		DevicesManageForm retForm = new DevicesManageForm();
+		BeanUtil.copyToForm(dmEntity, retForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+		return retForm;
+	}
+
 }

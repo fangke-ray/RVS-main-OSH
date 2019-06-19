@@ -5,6 +5,24 @@ $(function(){
 
 		$("body").append($tcs_sheet_container.html());
 	});
+
+	$("body").on("dragstart", ".ui-dialog", function(){
+		if ((".tcs_sheet").length <= 1) return;
+
+		var $uiDialog = $(this);
+		if ($uiDialog.find(".tcs_sheet").length > 0) {
+			var maZ = 0;
+			$(".tcs_sheet").each(function(){
+				var thisZ = parseInt($(this).closest(".ui-dialog").css("zIndex"));
+				if (thisZ > maZ) {
+					maZ = thisZ;
+				}
+			});
+			if (parseInt($uiDialog.css("zIndex")) <= maZ) {
+				$uiDialog.css("zIndex", maZ + 1);
+			}
+		}
+	})
 })
 /** 服务器处理路径 */
 var infectSheetServicePath = "usage_check.do";
@@ -32,7 +50,7 @@ var doExchange = function(){
 				var resInfo = $.parseJSON(xhrObj.responseText);
 				if (resInfo.errors.length == 0) {
 					$("#manage_replace_panel").dialog("close");
-					$("#check_sheet").dialog("close");
+					$(".tcs_sheet").dialog("close");
 					if (typeof findit === "function") findit();
 				}
 			}
@@ -51,9 +69,16 @@ var doExchange = function(){
 	check_file_manage_id : 点检票单 ID * 设备工具时必须
 	sheet_manage_no : 点检票单号 * 设备工具时必须
 	check_while_use : 使用前点检  * 周边维修对象点检时选择
+	select_date : 选择日期(yyyy/MM/dd) * 除系统管理员外，指定日期则变为表格只读
  */
 var showInfectSheet =function(infectDetailData, isLeader){
-	var $check_sheet = $("#check_sheet");
+	var $check_sheet = $(".tcs_sheet:hidden").eq(0);
+
+	if ($check_sheet.length == 0) {
+		var newTcsSheetId = "check_sheet" + new Date().getTime();
+		$("body").append('<div id="' + newTcsSheetId + '" class="tcs_sheet"></div>');
+		$check_sheet = $("#" + newTcsSheetId);
+	}
 	$check_sheet.hide();
 
 	var postData = {
@@ -62,7 +87,8 @@ var showInfectSheet =function(infectDetailData, isLeader){
 		operator_id : infectDetailData.operator_id,
 		manage_id : infectDetailData.manage_id,
 		check_file_manage_id : infectDetailData.check_file_manage_id,
-		object_type : infectDetailData.object_type
+		object_type : infectDetailData.object_type,
+		select_date : infectDetailData.select_date
 	}
 	$.ajax({
 		beforeSend : ajaxRequestType,
@@ -78,7 +104,13 @@ var showInfectSheet =function(infectDetailData, isLeader){
 			var resInfo = $.parseJSON(xhrObj.responseText);
 			if (resInfo.check_sheet) {
 				$check_sheet.html(resInfo.check_sheet);
-				$check_sheet.find("input,textarea").not("[inputted]").not(".t_comment").parent().addClass("tcs_input");
+				$check_sheet.find("input,textarea").not("[inputted]").not(".t_comment").parent().addClass("tcs_input")
+				.each(function(){
+					var $tcs_input = $(this);
+					if ($tcs_input.find("input[lock]").length > 0) {
+						$tcs_input.attr("lock", "1");
+					}
+				});
 				// alert($("#check_sheet input:radio").length);
 				// 使用期限
 				var $expireTr = $check_sheet.find("span.useEnd[expire='1']").parent().parent();
@@ -131,6 +163,10 @@ var showInfectSheet =function(infectDetailData, isLeader){
 				buttons : {}});
 			});
 			$("#upper_check").button();
+			if ($(".tcs_sheet:visible").length == 0) {
+				$(window).overlay();
+				$("div.overlay").attr("id", "ifoverlay");
+			}
 			$check_sheet.show();
 
 			var okButton = (isLeader == "true" ? "再点检确认" : "点检完成" )
@@ -138,11 +174,16 @@ var showInfectSheet =function(infectDetailData, isLeader){
 				title : "进行点检： " + infectDetailData.manage_code + "  " + infectDetailData.sheet_manage_no,
 				width : 1136,
 				show: "blind",
-				height : 640 ,
+				height : 640,
+				position : [0 + $(".tcs_sheet:visible").length * 40, 40],
 				resizable : false,
-				modal : true,
+				modal : false,
 				minHeight : 200,
 				close : function(){
+					if ($(".tcs_sheet:visible").length <= 0) {
+						$("#ifoverlay").remove();
+						$("body").css('overflow', 'auto');
+					}
 					$check_sheet.html("");
 				},
 				buttons : {
@@ -152,12 +193,13 @@ var showInfectSheet =function(infectDetailData, isLeader){
 						var pCommentData = {
 							manage_id : infectDetailData.manage_id,
 							check_file_manage_id : infectDetailData.check_file_manage_id,
-							object_type : infectDetailData.object_type
+							object_type : infectDetailData.object_type,
+							select_date : infectDetailData.select_date
 						}
 						// 多个
 						if ($(".t_comment").length > 0) {
 							if ($(".t_comment:checked").length == 0) {
-								alert("选择要做备注的对象");
+								errorPop("需要选择要做备注的对象");
 								return;
 							} else {
 								pCommentData.manage_id = $(".t_comment:checked").val();
@@ -203,6 +245,7 @@ var showInfectSheet =function(infectDetailData, isLeader){
 														success : ajaxSuccessCheck,
 														error : ajaxError,
 														complete : function(xhrObj){
+															$(".t_comment:checked").next("label").attr("exists", true);
 															$check_comment.dialog("close");
 														}
 													})
@@ -217,7 +260,7 @@ var showInfectSheet =function(infectDetailData, isLeader){
 						})
 					},
 					okButton:function(){
-						var noerror = true;
+						var noerror = true, noNan = true;
 						var postDataR = {section_id : infectDetailData.section_id,
 							position_id : infectDetailData.position_id, process_code : infectDetailData.process_code};
 
@@ -253,7 +296,7 @@ var showInfectSheet =function(infectDetailData, isLeader){
 								}
 							});
 							if (refered == false) {
-								alert("有参照值未输入!"); // TODO
+								errorPop("有参照值未输入!"); // TODO
 								return;
 							}
 
@@ -289,7 +332,10 @@ var showInfectSheet =function(infectDetailData, isLeader){
 									if (!inputVal) {
 										return;
 									}
-									if(typeof(inputVal) === "string") inputVal = parseFloat(inputVal.trim())
+									if(typeof(inputVal) === "string") {
+										inputVal = parseFloat(inputVal.trim());
+										if(!isNaN(inputVal)) ele.value = inputVal;
+									}
 									postDataR["submit.digit[" + ii + "]"] = inputVal;
 
 									var upper_limit = $ele.attr("upper_limit");
@@ -340,7 +386,7 @@ var showInfectSheet =function(infectDetailData, isLeader){
 									var status = 1;
 									if (isNaN(inputVal)) {
 										status = -1;
-										noerror = false;
+										noNan = false;
 									} else {
 										if (upper_limit && parseFloat(inputVal) > upper_limit) {
 											status = 2;
@@ -381,7 +427,10 @@ var showInfectSheet =function(infectDetailData, isLeader){
 						}
 
 						var $confirmmessage = $("#confirmmessage");
-						if (!noerror) {
+						if (!noNan) {
+							warningConfirm("请检查数值输入内容。");
+							return;
+						} else 	if (!noerror) {
 							if(isLeader == "true") {
 								var $husei = $check_sheet.find("span:contains('×'), span:contains('△')").parent().filter(".ui-state-active").parent();
 								var batsu = $husei.length;
@@ -445,7 +494,7 @@ var showInfectSheet =function(infectDetailData, isLeader){
 												}
 											})
 											if (empty) {
-												alert("请写全相关的信息！");
+												errorPop("请写全相关的信息！");
 											} else {
 												ii = 0;
 												// 加入不合格信息
@@ -542,10 +591,13 @@ var showInfectSheet =function(infectDetailData, isLeader){
 					}, "关闭" : function(){ $(this).dialog("close"); }
 				}
 			});
-			$("button:contains('okButton') span").text(okButton);
-			if (isLeader != "true") {
-				$("button:contains('备注') span").remove();
-			}
+			setTimeout(function(){
+				$(".ui-dialog-buttonpane button:contains('okButton') span").text(okButton);
+				if ($check_sheet.find("comment[exists]").length > 0) {
+					$(".ui-dialog-buttonpane button:contains('备注')").attr("exists", true);
+				}
+			} , 200);
+
 		}
 	});
 };
@@ -553,7 +605,7 @@ var showInfectSheet =function(infectDetailData, isLeader){
 var doCheckPoint = function (postDataR, $confirmmessage, $check_sheet) {
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : false,
+		async : true,
 		url : infectSheetServicePath + "?method=doCheckPoint",
 		cache : false,
 		data : postDataR,

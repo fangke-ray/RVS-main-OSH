@@ -927,7 +927,8 @@
 	</codelist>
 	
 	<codelist name="position_handle">
-		<value code="1">借用</value>
+		<value code="1">自由借用</value>
+		<value code="5">申请借用</value>
 		<value code="2">手工作业</value>
 		<value code="3">暂停工位</value>
 		<value code="4">有备品，无需更换</value>

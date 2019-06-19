@@ -135,7 +135,33 @@ public class DevicesManageAction extends BaseAction {
 		returnJsonResponse(response, listResponse);
 		log.info("DevicesManageAction.search end");
 	}
-	
+
+	/**
+	 * 设备工具管理画面详细
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void detail(ActionMapping mapping, ActionForm form, HttpServletRequest request,
+			HttpServletResponse response, SqlSession conn) throws Exception {
+		log.info("DevicesManageAction.detail start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// 设备工具管理详细数据
+		DevicesManageForm devicesManageForm = service.getDetail(request.getParameter("devices_manage_id"), conn);
+
+		listResponse.put("devicesManageForm", devicesManageForm);
+		listResponse.put("errors", errors);
+		returnJsonResponse(response, listResponse);
+		log.info("DevicesManageAction.detail end");
+	}
+
 	/**
 	 * 修改设备工具管理
 	 * @param mapping

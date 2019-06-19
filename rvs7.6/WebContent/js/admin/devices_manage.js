@@ -683,7 +683,7 @@ function filed_list(listdata){
 
 	                {name:'backup_evaluation',index:'backup_evaluation',width:35,align:'center', formatter:function(value, options, rData){
 	                	var params = "\"" + rData.devices_manage_id + "\",\"" +　rData.devices_type_id + "\",\"" + rData.model_name + "\",\"" + rData.line_name + "\"";
-	                	
+
 	                	if (!value) {
 	                		return "<a href='javascript:showDeviceBackup(" + params +")'>×</a>";
 	                	} else if (value == -1) {
@@ -698,12 +698,17 @@ function filed_list(listdata){
 	                }},
 	                {name:'corresponding',index:'corresponding',width:35,align:'center',formatter:function(value, options, rData){
 	                	var params = "\"" + rData.devices_manage_id + "\",\"" +　rData.devices_type_id + "\",\"" + rData.model_name + "\",\"" + rData.line_name + "\"";
-	                	
+	                	var ret = "";
+
 	                	if (value) {
-	                		return "<a href='javascript:showDeviceBackup(" + params +")'>有</a>";
+	                		ret = "<a href='javascript:showDeviceBackup(" + params +")'>有</a>";
 	                	} else {
-	                		return "<a href='javascript:showDeviceBackup(" + params +")'>无</a>";
+	                		ret = "<a href='javascript:showDeviceBackup(" + params +")'>无</a>";
 	                	}
+	                	if(rData.borrowed == "1") {
+	                		ret += "<span style='color:orange'>▲</span>"
+	                	}
+	                	return ret;
 	                }},
 
 	                {name:'daily_sheet_manage_no',index:'daily_sheet_manage_no',width:120,align:'center'},
@@ -927,13 +932,40 @@ var showEdit = function(){
             $("#update_section_id").enable(); 
        };
     }*/
-    $("#body-mdl").hide();
-	$("#body-detail").show();
 
 	var rowId=$("#list").jqGrid("getGridParam","selrow");//获取选中行的ID
 	var rowData=$("#list").getRowData(rowId);	
-    
-    //页面隐藏设备工具ID
+
+	if (rowData.corresponding && rowData.corresponding.indexOf("▲") >= 0) {
+         // Ajax提交
+         $.ajax({
+            beforeSend : ajaxRequestType,
+            async : true,
+            url : servicePath + '?method=detail',
+            cache : false,
+            data :{devices_manage_id : rowData.devices_manage_id},
+            type : "post",
+            dataType : "json",
+            success : ajaxSuccessCheck,
+            error : ajaxError,
+            complete : function(xhrobj, textStatus) {
+ 				var resInfo = $.parseJSON(xhrobj.responseText);
+ 				if (resInfo.devicesManageForm) {
+ 					$.extend(rowData, resInfo.devicesManageForm);
+ 					showEditContent(rowData);
+ 				}
+            }
+         });
+    } else {
+		showEditContent(rowData);
+	}
+}
+
+var showEditContent = function(rowData) {
+    $("#body-mdl").hide();
+	$("#body-detail").show();
+
+	//页面隐藏设备工具ID
     $("#hidden_devices_manage_id").val(rowData.devices_manage_id);
     //管理编号
 	$("#update_manage_code").val(rowData.manage_code);     
@@ -1091,26 +1123,30 @@ var showEdit = function(){
 	$("#delbutton").click(function(){
 		warningConfirm("确认删除管理编号为"+$("#update_manage_code").val()+",品名为"+$("#update_name").val()+"的设备工具？", 
 			function() {
-                     var data={
-                        "devices_manage_id": $("#hidden_devices_manage_id ").val()
-                     }
-                      // Ajax提交
-                     $.ajax({
-                        beforeSend : ajaxRequestType,
-                        async : true,
-                        url : servicePath + '?method=dodelete',
-                        cache : false,
-                        data :data,
-                        type : "post",
-                        dataType : "json",
-                        success : ajaxSuccessCheck,
-                        error : ajaxError,
-                        complete : delete_handleComplete
-                     });
+                 var data={
+                    "devices_manage_id": $("#hidden_devices_manage_id ").val()
+                 }
+                  // Ajax提交
+                 $.ajax({
+                    beforeSend : ajaxRequestType,
+                    async : true,
+                    url : servicePath + '?method=dodelete',
+                    cache : false,
+                    data :data,
+                    type : "post",
+                    dataType : "json",
+                    success : ajaxSuccessCheck,
+                    error : ajaxError,
+                    complete : delete_handleComplete
+                 });
 			},null,
 			"删除确认"
 		);
 	});
+
+	if (rowData.manage_content) {
+		infoPop("此设备工具正借用代替" + rowData.manage_content + "的工作。");
+	}
 };
 
 var delete_handleComplete = function(xhrobj, textStatus) {

@@ -129,7 +129,10 @@ public class CheckUnqualifiedRecordForm extends ActionForm implements Serializab
 	
 	@BeanField(title="治具品名ID",name="tools_type_id",type=FieldType.String)
 	private String tools_type_id;//治具品名ID
-	
+
+	@BeanField(title = "借用状态", name = "borrow_status", type = FieldType.Integer, length = 1)
+	private String borrow_status;
+
 	@BeanField(title="借用设备的型号",name="borrow_model_name",type=FieldType.String)
 	private String borrow_model_name;//借用设备的型号
 	
@@ -145,8 +148,14 @@ public class CheckUnqualifiedRecordForm extends ActionForm implements Serializab
 	@BeanField(title="设备管理员备注",name="technology_comment",type=FieldType.String)
 	private String technology_comment;//设备管理员备注
 
-	@BeanField(title="设备管理员备注",name="borrow_manage_no",type=FieldType.String)
+	@BeanField(title="借用品管理编号",name="borrow_manage_no",type=FieldType.String)
 	private String borrow_manage_no; // 借用品管理编号
+
+	private String position_id;
+	private String section_id;
+
+	@BeanField(title = "替换品收回日期", name = "borrow_until", type = FieldType.Date)
+	private String borrow_until;
 
 	public String getCheck_unqualified_record_key() {
 		return check_unqualified_record_key;
@@ -476,4 +485,35 @@ public class CheckUnqualifiedRecordForm extends ActionForm implements Serializab
 		this.borrow_manage_no = borrow_manage_no;
 	}
 
+	public String getPosition_id() {
+		return position_id;
+	}
+
+	public void setPosition_id(String position_id) {
+		this.position_id = position_id;
+	}
+
+	public String getSection_id() {
+		return section_id;
+	}
+
+	public void setSection_id(String section_id) {
+		this.section_id = section_id;
+	}
+
+	public String getBorrow_status() {
+		return borrow_status;
+	}
+
+	public void setBorrow_status(String borrow_status) {
+		this.borrow_status = borrow_status;
+	}
+
+	public String getBorrow_until() {
+		return borrow_until;
+	}
+
+	public void setBorrow_until(String borrow_until) {
+		this.borrow_until = borrow_until;
+	}
 }

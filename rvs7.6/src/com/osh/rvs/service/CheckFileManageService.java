@@ -54,7 +54,9 @@ public class CheckFileManageService {
 	public List<CheckFileManageForm> search(ActionForm form, SqlSession conn) {
 		CheckFileManageEntity entity = new CheckFileManageEntity();
 		// 复制表单到数据对象
-		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		CopyOptions cos = new CopyOptions();
+		cos.fieldRename("manage_id", "devices_manage_id");
+		BeanUtil.copyToBean(form, entity, cos);
 
 		CheckFileManageMapper dao = conn.getMapper(CheckFileManageMapper.class);
 

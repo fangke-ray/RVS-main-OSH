@@ -143,6 +143,9 @@ public class DevicesManageForm extends ActionForm {
 	@BeanField(title = "对应内容", name = "corresponding", type = FieldType.String)
 	private String corresponding;
 
+	@BeanField(title = "被借用中", name = "borrowed", type = FieldType.Integer)
+	private String borrowed;
+
 	public String getCompare_section_id() {
 		return compare_section_id;
 	}
@@ -469,6 +472,14 @@ public class DevicesManageForm extends ActionForm {
 
 	public void setCorresponding(String corresponding) {
 		this.corresponding = corresponding;
+	}
+
+	public String getBorrowed() {
+		return borrowed;
+	}
+
+	public void setBorrowed(String borrowed) {
+		this.borrowed = borrowed;
 	}
 
 }

@@ -65,6 +65,15 @@
 					AND cfm.filing_means=#{filing_means}
 				]]>
 			</if>
+			<if test="devices_manage_id!=null and devices_manage_id!=''">
+				AND EXISTS (select 1 from devices_manage dm JOIN devices_type dmdt on dm.devices_type_id = dmdt.devices_type_id
+					where devices_manage_id = #{devices_manage_id} 
+					AND (dm.devices_type_id = dt.devices_type_id 
+						OR (specialized = 1 AND cfm.check_file_manage_id = 00000000053) -- [TODO file specialized]
+						OR (specialized = 2 AND cfm.check_file_manage_id = 00000000098)) 
+					AND (cfm.specified_model_name IS NULL OR cfm.specified_model_name LIKE concat('%', dm.model_name, '%'))
+				)
+			</if>
 		</where>
 		ORDER BY
 			  cfm.updated_time DESC

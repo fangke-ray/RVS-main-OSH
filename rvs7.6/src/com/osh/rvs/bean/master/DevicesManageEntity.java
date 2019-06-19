@@ -98,6 +98,8 @@ public class DevicesManageEntity implements Serializable {
 
 	private String corresponding;
 
+	private Integer borrowed;
+
 	// 可替换状况
 	private Integer free_displace_flg;
 
@@ -340,5 +342,11 @@ public class DevicesManageEntity implements Serializable {
 	}
 	public void setCorresponding(String corresponding) {
 		this.corresponding = corresponding;
+	}
+	public Integer getBorrowed() {
+		return borrowed;
+	}
+	public void setBorrowed(Integer borrowed) {
+		this.borrowed = borrowed;
 	}
 }

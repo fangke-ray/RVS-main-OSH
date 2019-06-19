@@ -74,6 +74,9 @@ var showDeviceBackupDialog = function(resInfo) {
 
 	$("#set_evaluation").text(rowData.evaluation);
 	$("#set_corresponding").val(rowData.corresponding);
+	if (rowData.manage_content) {
+		$("#set_corresponding").parent().append("<div>当前此设备工具正代替" + rowData.manage_content + "使用中。</div>");
+	}
 
 	var $piresBody = $("#pires tbody");
 	$piresBody.html("");
@@ -174,7 +177,8 @@ var drawPiresBody = function(manage_code, line_name, devices, checkExist){
 	for (var i in devices) {
 		var device = devices[i];
 		if (!checkExist || existId.indexOf(device.devices_manage_id) < 0) {
-			retString += "<tr manage_id='" + device.devices_manage_id + "'><td>" + device.manage_code + "</td><td>" + getStatus(device.manage_level, device.status) 
+			retString += "<tr manage_id='" + device.devices_manage_id + "'" + (device.manage_content ? "title='正代替" + device.manage_content + "使用中'" : "")
+				+ "><td>" + device.manage_code + "</td><td>" + getStatus(device.manage_level, device.status) 
 				+ "</td><td>" + (device.model_name || "-") + "</td><td>" + getLine(device.section_name, device.line_name)
 				+ "</td><td class='ub'><button" + ((line_name == device.line_name) ? " coline" : "") + ">不可以</button> 代替" + manage_code 
 				+ "作业</td><td class='bu'><button>不可以</button> 用" + manage_code + "代替作业</td></tr>";

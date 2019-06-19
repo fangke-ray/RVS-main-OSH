@@ -2,6 +2,7 @@ package com.osh.rvs.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
@@ -24,6 +25,8 @@ public class DevicesTypeService {
 
 	public static final int SPECIALIZED_FOR_DISINFECT_DEVICE = 3; //消毒设备
 	public static final int SPECIALIZED_FOR_STERILIZE_DEVICE = 4;//灭菌设备
+
+	public static Set<String> freeAlterTypes = null;
 
 	/**
 	 * 设备工具品名 详细

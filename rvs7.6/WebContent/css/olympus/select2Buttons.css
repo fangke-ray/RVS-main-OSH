@@ -21,6 +21,10 @@
 .select2Buttons li {
 	margin: 2px;
 }
+.select2Buttons li.disabled {
+	margin: 0;
+	margin-top: 1px;
+}
 
 .select2Buttons li a,.select2Buttons .limited a,.select2Buttons .disabled,.select2Groups li a,.select2Groups .limited a
 	{
