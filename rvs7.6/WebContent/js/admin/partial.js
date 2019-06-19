@@ -535,7 +535,7 @@ var showAdd = function() {
 		rules:{		
 	       code:{
 	    	   required:true,
-	    	   maxlength:8
+	    	   maxlength:9
 	       },
 	       name:{
 	       	// Deleted by Gonglm 2/11 Start
@@ -712,46 +712,33 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 					// 通过Validate,切到修改确认画面
 					$("#editbutton").disable();
 
-					$("#confirmmessage").text("确认要修改记录吗？");
-				 	$("#confirmmessage").dialog({
-						resizable : false,
-						modal : true,
-						title : "修改确认",
-						close: function() {
-							$("#editbutton").enable();
-						},
-						buttons : {
-							"确认" : function() {
-								// 有无更新金额 返回false or true给后台代码 后台可以根据request.getParamter("")
-								//var priceNotChanged = ($("#edit_value_currency").val() ==($("#edit_value_currency").data("post"))&& $("#edit_price").val()==$("#edit_price").data("post"));
-								var data = {
-									"partial_id":$("#label_partial_id").text(),
-									"code" : $("#edit_code").val(),
-									"name" : $("#edit_name").val(),
-									"price":$("#edit_price").val(),
-									"order_flg":$("#edit_order_flg input:checked").val()
-									//"priceNotChanged" : priceNotChanged
-								}
-								$(this).dialog("close");
-								// Ajax提交
-								$.ajax({						
-									beforeSend : ajaxRequestType,
-									async : true,
-									url : servicePath + '?method=doupdate',
-									cache : false,
-									data : data,
-									type : "post",
-									dataType : "json",
-									success : ajaxSuccessCheck,
-									error : ajaxError,
-									complete : update_handleComplete
-								});
-							},
-							"取消" : function() {
-								$(this).dialog("close");
-							}
+					warningConfirm("确认要修改记录吗？", function() {
+						// 有无更新金额 返回false or true给后台代码 后台可以根据request.getParamter("")
+						//var priceNotChanged = ($("#edit_value_currency").val() ==($("#edit_value_currency").data("post"))&& $("#edit_price").val()==$("#edit_price").data("post"));
+						var data = {
+							"partial_id":$("#label_partial_id").text(),
+							"code" : $("#edit_code").val(),
+							"name" : $("#edit_name").val(),
+							"price":$("#edit_price").val(),
+							"order_flg":$("#edit_order_flg input:checked").val()
+							//"priceNotChanged" : priceNotChanged
 						}
-					});
+						// Ajax提交
+						$.ajax({						
+							beforeSend : ajaxRequestType,
+							async : true,
+							url : servicePath + '?method=doupdate',
+							cache : false,
+							data : data,
+							type : "post",
+							dataType : "json",
+							success : ajaxSuccessCheck,
+							error : ajaxError,
+							complete : update_handleComplete
+						});
+					}, function() {
+						$("#editbutton").enable();
+					}, "修改确认")
 				};
 			});
 		
@@ -775,32 +762,19 @@ var showDelete = function(rid) {
 	var rowData = $("#list").getRowData(rid);
 	var data = {"partial_id" : rowData.partial_id}
 
-	$("#confirmmessage").text("删除不能恢复。确认要删除["+encodeText(rowData.code)+"]的记录吗？");
-	$("#confirmmessage").dialog({
-		resizable : false,
-		modal : true,
-		title : "删除确认",
-		buttons : {
-			"确认" : function() {
-				$(this).dialog("close");
-				// Ajax提交
-				$.ajax({
-					beforeSend : ajaxRequestType,
-					async : false,
-					url : servicePath + '?method=dodelete',
-					cache : false,
-					data : data,
-					type : "post",
-					dataType : "json",
-					success : ajaxSuccessCheck,
-					error : ajaxError,
-					complete : update_handleComplete
-				});
-			},
-			"取消" : function() {
-				$(this).dialog("close");
-			}
-		}
-	});
-	
+	warningConfirm("删除不能恢复。确认要删除["+encodeText(rowData.code)+"]的记录吗？", function() {
+		// Ajax提交
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : false,
+			url : servicePath + '?method=dodelete',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : update_handleComplete
+		});
+	}, null, "删除确认");
 };

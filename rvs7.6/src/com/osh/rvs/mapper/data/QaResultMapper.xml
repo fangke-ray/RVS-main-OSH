@@ -33,6 +33,7 @@
     ON pr.position_id = p.position_id
     JOIN production_feature prEx
     	ON prEx.material_id=ma.material_id
+    	AND pr.position_id = prEx.position_id
     	AND prEx.pcs_inputs like '%"EN61___":"%'
 		AND pr.rework = prEx.rework
     JOIN 

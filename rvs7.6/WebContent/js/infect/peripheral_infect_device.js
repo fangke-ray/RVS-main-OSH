@@ -326,21 +326,8 @@ var insert_handleComplete = function(xhrobj, textStatus) {
 			// 共通出错信息框
 			treatBackMessages("#addarea", resInfo.errors);
 		} else {
-//			$("#confirmmessage").dialog("close");
-			$("#confirmmessage").text("处理已经完成。");
-			$("#confirmmessage").dialog({
-				width : 320,
-				height : 'auto',
-				resizable : false,
-				show : "blind",
-				modal : true,
-				title : "更新周边设备点检关系",
-				buttons : {
-					"关闭" : function() {
-						$(this).dialog("close");
-					}
-				}
-			});
+			infoPop("处理已经完成。", null, "更新周边设备点检关系");
+
 			// 重新查询
 			findit();
 		}

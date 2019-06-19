@@ -604,7 +604,18 @@ var setReferChooser = function(target, jthis, jfather, callback) {
 	var to;
 
 	shower.click(function(e){
-		jthis.css({"top" : shower.offset().top + shower.height() - 5, "left" : shower.offset().left}).show("fast");
+		var uiDialogTodo = jthis.closest(".ui-dialog");
+		if (uiDialogTodo.length == 0) {
+			uiDialogTodo = $(".ui-dialog:visible");
+			var zIndex = 1000;
+			if (uiDialogTodo.length > 0) {
+				zIndex = parseInt(uiDialogTodo.last().css("zIndex")) + 1
+			}
+			jthis.css({"top" : shower.offset().top + shower.height() - 5, "left" : shower.offset().left,
+				"zIndex": zIndex}).show("fast");
+		} else {
+			jthis.css({"top" : shower.position().top + shower.height() - 5, "left" : shower.position().left}).show("fast");
+		}
 		filter.val("").trigger("change");
 		jthis[0].scrollTop = 0;
 		jthis.show("fade", function() {
