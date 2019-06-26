@@ -62,10 +62,10 @@ public class DevicesManageForm extends ActionForm {
 	private String responsible_operator;
 
 	// 设备工具管理ID
-	@BeanField(title = "备工具管理ID", name = "devices_manage_id", type = FieldType.String, length = 11)
+	@BeanField(title = "设备工具管理ID", name = "devices_manage_id", type = FieldType.String, length = 11)
 	private String devices_manage_id;
 	// 管理编号
-	@BeanField(title = "管理编号", name = "manage_code", type = FieldType.String, notNull = true)
+	@BeanField(title = "设备工具管理编号", name = "manage_code", type = FieldType.String, length = 9, notNull = true)
 	private String manage_code;
 	// 设备工具品名ID
 	@BeanField(title = "设备工具品名ID", name = "devices_type_id", type = FieldType.String, length = 11, notNull = true)

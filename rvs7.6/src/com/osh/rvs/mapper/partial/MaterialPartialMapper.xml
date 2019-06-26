@@ -238,10 +238,10 @@
 		    a.material_id,
 		    b.bo_flg,
 		    b.bo_contents,
-				(select group_concat(c.code SEPARATOR ' ') from partial c 
+			case when b.bo_flg in (1,9)	then (select group_concat(c.code SEPARATOR ' ') from partial c 
 					join material_partial_detail d on c.partial_id = d.partial_id 
 					where d.material_id = a.material_id and d.occur_times = b.occur_times 
-					and d.waiting_quantity > 0 and d.status <> 2) as bo_contents_new,
+					and d.waiting_quantity > 0 and d.status <> 2) end as bo_contents_new,
 		    b.order_date,
 		    b.arrival_date,
 		    b.arrival_plan_date,

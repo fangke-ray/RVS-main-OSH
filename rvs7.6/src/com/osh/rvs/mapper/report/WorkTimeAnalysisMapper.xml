@@ -32,10 +32,10 @@
 			    material ma 
 			ON 
 				pf.material_id = ma.material_id
-			JOIN
-				v_model
-			ON
-				v_model.model_id = ma.model_id
+			JOIN 
+				model 
+			ON 
+				model.model_id = ma.model_id
 			WHERE
 				(pf.operate_result = 2 OR pf.operate_result = 6)
 			AND	pf.finish_time >= #{finish_time_start}

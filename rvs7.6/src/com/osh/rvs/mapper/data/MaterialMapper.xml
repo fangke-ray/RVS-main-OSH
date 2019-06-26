@@ -404,6 +404,28 @@
 			 JOIN position pos
 			 ON pf.position_id = pos.position_id and pos.line_id = 15
 		]]>
+		<if test="finish_time_start!= null or finish_time_end!= null">
+			<![CDATA[
+			JOIN production_feature pf47
+			ON pf47.material_id = a.material_id
+			AND pf47.position_id = 47
+			and pf47.pace = 0
+			]]>
+			<if test="finish_time_start!= null and finish_time_start!= '' ">
+				<![CDATA[
+				and pf47.finish_time >= #{finish_time_start}
+				]]>
+			</if>
+			<if test="finish_time_end!= null and finish_time_end!= '' ">
+				<![CDATA[
+				and pf47.finish_time < date_add(#{finish_time_end}, INTERVAL 1 day)
+				]]>
+			</if>
+			<![CDATA[
+			)
+			]]>
+		</if>
+
 		<where>
 		<![CDATA[
 			a.fix_type=1
@@ -459,27 +481,6 @@
 			</if>
 			
 			
-			<if test="finish_time_start!= null or finish_time_end!= null">
-				<![CDATA[
-				and EXISTS (
-					SELECT 1 FROM production_feature
-					WHERE material_id = a.material_id AND position_id = 47
-				]]>
-				<if test="finish_time_start!= null and finish_time_start!= '' ">
-					<![CDATA[
-					and finish_time >= #{finish_time_start}
-					]]>
-				</if>
-				<if test="finish_time_end!= null and finish_time_end!= '' ">
-					<![CDATA[
-					and date(finish_time) <= #{finish_time_end}
-					]]>
-				</if>
-				<![CDATA[
-				)
-				]]>
-			</if>
-
 			<if test="find_history!= null and find_history== 1">
 				<![CDATA[
 				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- TODO history

@@ -504,9 +504,9 @@ var replace = function(){
 		}
 	});
 	
-	setReferChooser($("#hidden_replace_tools_name"),$("#replace_name_referchooser"));
-    setReferChooser($("#hidden_replace_position_id"),$("#replace_position_referchooser"));
-    setReferChooser($("#hidden_replace_manager_operator_id"),$("#replace_operator_name_referchooser"));
+	setReferChooser($("#hidden_replace_name"),$("#name_referchooser"));
+	setReferChooser($("#hidden_replace_position_id"),$("#position_name_referchooser"));
+	setReferChooser($("#hidden_replace_manager_operator_id"),$("#operator_name_referchooser"));
 }
 var replace_handleComplete = function(xhrobj, textStatus) {
     var resInfo = null;
@@ -937,32 +937,32 @@ var showEdit = function(){
 	var rowData=$("#list").getRowData(rowId);	
 
 	if (rowData.corresponding && rowData.corresponding.indexOf("▲") >= 0) {
-         // Ajax提交
-         $.ajax({
-            beforeSend : ajaxRequestType,
-            async : true,
-            url : servicePath + '?method=detail',
-            cache : false,
-            data :{devices_manage_id : rowData.devices_manage_id},
-            type : "post",
-            dataType : "json",
-            success : ajaxSuccessCheck,
-            error : ajaxError,
-            complete : function(xhrobj, textStatus) {
- 				var resInfo = $.parseJSON(xhrobj.responseText);
- 				if (resInfo.devicesManageForm) {
- 					$.extend(rowData, resInfo.devicesManageForm);
- 					showEditContent(rowData);
- 				}
-            }
-         });
-    } else {
+		// Ajax提交
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : servicePath + '?method=detail',
+			cache : false,
+			data :{devices_manage_id : rowData.devices_manage_id},
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+	 		error : ajaxError,
+			complete : function(xhrobj, textStatus) {
+				var resInfo = $.parseJSON(xhrobj.responseText);
+				if (resInfo.devicesManageForm) {
+					$.extend(rowData, resInfo.devicesManageForm);
+					showEditContent(rowData);
+	 			}
+			}
+		});
+	} else {
 		showEditContent(rowData);
 	}
 }
 
 var showEditContent = function(rowData) {
-    $("#body-mdl").hide();
+	$("#body-mdl").hide();
 	$("#body-detail").show();
 
 	//页面隐藏设备工具ID

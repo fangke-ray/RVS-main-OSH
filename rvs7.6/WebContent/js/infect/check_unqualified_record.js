@@ -584,7 +584,7 @@ var showDetailComplete=function(xhrobj, textStatus){//tempForm
 				}
 			}else{//其他人
 				$("#label_borrow_backup_appointment").text(resInfo.tempForm.borrow_manage_no).show();
-				$("#label_borrow_until").text(resInfo.tempForm.borrow_until);
+				$("#label_borrow_until").text(resInfo.tempForm.borrow_until || "-");
 
 				var object_final_handle_result=resInfo.tempForm.object_final_handle_result;
 				if(object_final_handle_result==1){

@@ -666,6 +666,7 @@ var setReferChooser = function(target, jthis, jfather, callback) {
 		});
 	
 		filter.change(function() {
+			refTr = jthis.find(".subform > tbody > tr");
 			if (this.value === "") {
 				if (jfather) {  // modify with fengxc
 					jfather.change();//如果过滤是空,关联父类
