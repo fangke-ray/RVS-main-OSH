@@ -978,77 +978,49 @@
 			</table>
 		</div>
 		<div style="margin: 15px; float: left;">
-			<div class="ui-widget-header" style="width: 148px; text-align: center;">货架１３(周边)</div>
+			<div class="ui-widget-header" style="width: 120px; text-align: center;">货架１３(周边)</div>
 			<table class="condform wip-table" style="width: 120px;">
 				<tr>
 					<th class="ui-state-default" style="width: 14px;">Ａ</th>
 					<th class="ui-state-default" style="width: 14px;">Ｂ</th>
 					<th class="ui-state-default" style="width: 14px;">Ｃ</th>
 					<th class="ui-state-default" style="width: 14px;">Ｄ</th>
-					<th class="ui-state-default" style="width: 14px;">Ｅ</th>
-					<th class="ui-state-default" style="width: 14px;">Ｆ</th>
-					<th class="ui-state-default" style="width: 14px;">Ｇ</th>
-					<th class="ui-state-default" style="width: 14px;">Ｈ</th>
 				</tr>
 <tr>
 <td wipid="13A1">1</td>
 <td wipid="13B1">1</td>
 <td wipid="13C1">1</td>
 <td wipid="13D1">1</td>
-<td wipid="13E1">1</td>
-<td wipid="13F1">1</td>
-<td wipid="13G1">1</td>
-<td wipid="13H1">1</td>
 </tr>
 <tr>
 <td wipid="13A2">2</td>
 <td wipid="13B2">2</td>
 <td wipid="13C2">2</td>
 <td wipid="13D2">2</td>
-<td wipid="13E2">2</td>
-<td wipid="13F2">2</td>
-<td wipid="13G2">2</td>
-<td wipid="13H2">2</td>
 </tr>
 <tr>
 <td wipid="13A3">3</td>
 <td wipid="13B3">3</td>
 <td wipid="13C3">3</td>
 <td wipid="13D3">3</td>
-<td wipid="13E3">3</td>
-<td wipid="13F3">3</td>
-<td wipid="13G3">3</td>
-<td wipid="13H3">3</td>
 </tr>
 <tr>
 <td wipid="13A4">4</td>
 <td wipid="13B4">4</td>
 <td wipid="13C4">4</td>
 <td wipid="13D4">4</td>
-<td wipid="13E4">4</td>
-<td wipid="13F4">4</td>
-<td wipid="13G4">4</td>
-<td wipid="13H4">4</td>
 </tr>
 <tr>
 <td wipid="13A5">5</td>
 <td wipid="13B5">5</td>
 <td wipid="13C5">5</td>
 <td wipid="13D5">5</td>
-<td wipid="13E5">5</td>
-<td wipid="13F5">5</td>
-<td wipid="13G5">5</td>
-<td wipid="13H5">5</td>
 </tr>
 <tr>
 <td wipid="13A6">6</td>
 <td wipid="13B6">6</td>
 <td wipid="13C6">6</td>
 <td wipid="13D6">6</td>
-<td wipid="13E6">6</td>
-<td wipid="13F6">6</td>
-<td wipid="13G6">6</td>
-<td wipid="13H6">6</td>
 </tr>
 			</table>
 		</div>
@@ -1099,6 +1071,216 @@
 </tr>			
 			</table>
 		</div>
+
+		<div style="margin: 15px; float: left;">
+			<div class="ui-widget-header" style="width: 148px; text-align: center;">货架１５(UDI)</div>
+			<table class="condform wip-table" style="width: 120px;">
+				<tr>
+					<th class="ui-state-default" style="width: 14px;">Ａ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｂ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｃ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｄ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｅ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｆ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｇ</th>
+				</tr>
+<tr>
+<td wipid="15A1">1</td>
+<td wipid="15B1">1</td>
+<td wipid="15C1">1</td>
+<td wipid="15D1">1</td>
+<td wipid="15E1">1</td>
+<td wipid="15F1">1</td>
+<td wipid="15G1">1</td>
+</tr>
+<tr>
+<td wipid="15A2">2</td>
+<td wipid="15B2">2</td>
+<td wipid="15C2">2</td>
+<td wipid="15D2">2</td>
+<td wipid="15E2">2</td>
+<td wipid="15F2">2</td>
+<td wipid="15G2">2</td>
+</tr>
+<tr>
+<td wipid="15A3">3</td>
+<td wipid="15B3">3</td>
+<td wipid="15C3">3</td>
+<td wipid="15D3">3</td>
+<td wipid="15E3">3</td>
+<td wipid="15F3">3</td>
+<td wipid="15G3">3</td>
+</tr>
+<tr>
+<td wipid="15A4">4</td>
+<td wipid="15B4">4</td>
+<td wipid="15C4">4</td>
+<td wipid="15D4">4</td>
+<td wipid="15E4">4</td>
+<td wipid="15F4">4</td>
+<td wipid="15G4">4</td>
+</tr>
+<tr>
+<td wipid="15A5">5</td>
+<td wipid="15B5">5</td>
+<td wipid="15C5">5</td>
+<td wipid="15D5">5</td>
+<td wipid="15E5">5</td>
+<td wipid="15F5">5</td>
+<td wipid="15G5">5</td>
+</tr>
+<tr>
+<td wipid="15A6">6</td>
+<td wipid="15B6">6</td>
+<td wipid="15C6">6</td>
+<td wipid="15D6">6</td>
+<td wipid="15E6">6</td>
+<td wipid="15F6">6</td>
+<td wipid="15G6">6</td>
+</tr>
+<tr>
+<td wipid="15A7">7</td>
+<td wipid="15B7">7</td>
+<td wipid="15C7">7</td>
+<td wipid="15D7">7</td>
+<td wipid="15E7">7</td>
+<td wipid="15F7">7</td>
+<td wipid="15G7">7</td>
+</tr>
+<tr>
+<td wipid="15A8">8</td>
+<td wipid="15B8">8</td>
+<td wipid="15C8">8</td>
+<td wipid="15D8">8</td>
+<td wipid="15E8">8</td>
+<td wipid="15F8">8</td>
+<td wipid="15G8">8</td>
+</tr>
+<tr>
+<td wipid="15A9">9</td>
+<td wipid="15B9">9</td>
+<td wipid="15C9">9</td>
+<td wipid="15D9">9</td>
+<td wipid="15E9">9</td>
+<td wipid="15F9">9</td>
+<td wipid="15G9">9</td>
+</tr>
+<tr>
+<td wipid="15A10">10</td>
+<td wipid="15B10">10</td>
+<td wipid="15C10">10</td>
+<td wipid="15D10">10</td>
+<td wipid="15E10">10</td>
+<td wipid="15F10">10</td>
+<td wipid="15G10">10</td>
+</tr>
+			</table>
+		</div>
+		<div style="margin: 15px; float: left;">
+			<div class="ui-widget-header" style="width: 148px; text-align: center;">货架１６(UDI)</div>
+			<table class="condform wip-table" style="width: 120px;">
+				<tr>
+					<th class="ui-state-default" style="width: 14px;">Ａ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｂ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｃ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｄ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｅ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｆ</th>
+					<th class="ui-state-default" style="width: 14px;">Ｇ</th>
+				</tr>
+<tr>
+<td wipid="16A1">1</td>
+<td wipid="16B1">1</td>
+<td wipid="16C1">1</td>
+<td wipid="16D1">1</td>
+<td wipid="16E1">1</td>
+<td wipid="16F1">1</td>
+<td wipid="16G1">1</td>
+</tr>
+<tr>
+<td wipid="16A2">2</td>
+<td wipid="16B2">2</td>
+<td wipid="16C2">2</td>
+<td wipid="16D2">2</td>
+<td wipid="16E2">2</td>
+<td wipid="16F2">2</td>
+<td wipid="16G2">2</td>
+</tr>
+<tr>
+<td wipid="16A3">3</td>
+<td wipid="16B3">3</td>
+<td wipid="16C3">3</td>
+<td wipid="16D3">3</td>
+<td wipid="16E3">3</td>
+<td wipid="16F3">3</td>
+<td wipid="16G3">3</td>
+</tr>
+<tr>
+<td wipid="16A4">4</td>
+<td wipid="16B4">4</td>
+<td wipid="16C4">4</td>
+<td wipid="16D4">4</td>
+<td wipid="16E4">4</td>
+<td wipid="16F4">4</td>
+<td wipid="16G4">4</td>
+</tr>
+<tr>
+<td wipid="16A5">5</td>
+<td wipid="16B5">5</td>
+<td wipid="16C5">5</td>
+<td wipid="16D5">5</td>
+<td wipid="16E5">5</td>
+<td wipid="16F5">5</td>
+<td wipid="16G5">5</td>
+</tr>
+<tr>
+<td wipid="16A6">6</td>
+<td wipid="16B6">6</td>
+<td wipid="16C6">6</td>
+<td wipid="16D6">6</td>
+<td wipid="16E6">6</td>
+<td wipid="16F6">6</td>
+<td wipid="16G6">6</td>
+</tr>
+<tr>
+<td wipid="16A7">7</td>
+<td wipid="16B7">7</td>
+<td wipid="16C7">7</td>
+<td wipid="16D7">7</td>
+<td wipid="16E7">7</td>
+<td wipid="16F7">7</td>
+<td wipid="16G7">7</td>
+</tr>
+<tr>
+<td wipid="16A8">8</td>
+<td wipid="16B8">8</td>
+<td wipid="16C8">8</td>
+<td wipid="16D8">8</td>
+<td wipid="16E8">8</td>
+<td wipid="16F8">8</td>
+<td wipid="16G8">8</td>
+</tr>
+<tr>
+<td wipid="16A9">9</td>
+<td wipid="16B9">9</td>
+<td wipid="16C9">9</td>
+<td wipid="16D9">9</td>
+<td wipid="16E9">9</td>
+<td wipid="16F9">9</td>
+<td wipid="16G9">9</td>
+</tr>
+<tr>
+<td wipid="16A10">10</td>
+<td wipid="16B10">10</td>
+<td wipid="16C10">10</td>
+<td wipid="16D10">10</td>
+<td wipid="16E10">10</td>
+<td wipid="16F10">10</td>
+<td wipid="16G10">10</td>
+</tr>
+			</table>
+		</div>
+
 		</div>
 		<div class="clear"></div>
 	</div>
