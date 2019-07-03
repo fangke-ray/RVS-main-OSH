@@ -112,6 +112,7 @@ public class MaterialEntity implements Serializable {
 
 	private Integer bound_out_ocm;
 	private String levels;
+	private Integer avaliable_end_date_flg;
 
 	public String getCategory_id() {
 		return category_id;
@@ -765,4 +766,11 @@ public class MaterialEntity implements Serializable {
 		this.levels = levels;
 	}
 
+	public Integer getAvaliable_end_date_flg() {
+		return avaliable_end_date_flg;
+	}
+
+	public void setAvaliable_end_date_flg(Integer avaliable_end_date_flg) {
+		this.avaliable_end_date_flg = avaliable_end_date_flg;
+	}
 }

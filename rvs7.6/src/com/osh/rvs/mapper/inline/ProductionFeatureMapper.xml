@@ -71,10 +71,25 @@
 				not a.ticket_flg as sterilized, b.finish_time, a.bound_out_ocm ,
 				a.scheduled_expedited, tcs.location as wip_location,
 				CASE
-				WHEN 
-				avaliable_end_date > dy.avaliable_date THEN null
-				ELSE avaliable_end_date 
-				END as inline_time
+					WHEN a.level IN (1,2,3,56,57,59) THEN 
+						CASE
+							WHEN (SELECT avaliable_end_date FROM model_level_set WHERE model_id = a.model_id AND level = a.level) < CURRENT_DATE THEN 0
+							WHEN (SELECT avaliable_end_date FROM model_level_set WHERE model_id = a.model_id AND level = a.level) < dy.avaliable_date THEN 1
+							ELSE 2
+						END
+					WHEN a.ocm_rank IN (1,2,3,56,57,59) THEN 
+						CASE
+							WHEN (SELECT avaliable_end_date FROM model_level_set WHERE model_id = a.model_id AND level = a.ocm_rank) < CURRENT_DATE THEN 0
+							WHEN (SELECT avaliable_end_date FROM model_level_set WHERE model_id = a.model_id AND level = a.ocm_rank) < dy.avaliable_date THEN 1
+							ELSE 2
+						END
+					ELSE
+						CASE
+							WHEN (SELECT MIN(avaliable_end_date) FROM model_level_set WHERE model_id = a.model_id) < CURRENT_DATE THEN 0
+							WHEN (SELECT MIN(avaliable_end_date) FROM model_level_set WHERE model_id = a.model_id) < dy.avaliable_date THEN 1
+							ELSE 2
+						END
+				END AS avaliable_end_date_flg
 			FROM material a
 			LEFT JOIN production_feature b
 				ON a.material_id = b.material_id
@@ -84,12 +99,6 @@
 			LEFT JOIN customer c
 				ON a.customer_id = c.customer_id
 			LEFT JOIN turnover_case_storage tcs ON a.material_id = tcs.material_id
-			LEFT JOIN (
-select model_id, min(avaliable_end_date) as avaliable_end_date 
-from model_level_set
-group by model_id
-			) mdl_exp
-			ON a.model_id = mdl_exp.model_id
 			JOIN (select date_add(current_date, interval 15 day) as avaliable_date) dy 
 			WHERE a.break_back_flg = 0
 and a.inline_time is null -- [SpeedUp]

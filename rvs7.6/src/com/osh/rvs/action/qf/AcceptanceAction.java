@@ -70,13 +70,48 @@ public class AcceptanceAction extends BaseAction {
 
 		log.info("AcceptanceAction.init start");
 		
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		String mReferChooser = modelService.getOptions(conn);
-		req.getSession().setAttribute("mReferChooser", mReferChooser);
+		session.setAttribute("mReferChooser", mReferChooser);
 		
+		List<Integer> privacies = user.getPrivacies();
+		if (privacies.contains(RvsConsts.PRIVACY_PROCESSING)) {
+			req.setAttribute("role", "manager");
+		}else{
+			req.setAttribute("role", "none");
+		}
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
 		log.info("AcceptanceAction.init end");
+	}
+	
+	public void checkModelDepacy(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn){
+		log.info("AcceptanceAction.checkModelDepacy start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ALL);
+		v.delete("level", "ocm");
+		v.add("ocm", v.integerType());
+		v.add("level", v.integerType());
+		List<MsgInfo> errors = v != null ? v.validate(): new ArrayList<MsgInfo>();
+		MaterialForm materialForm = (MaterialForm)form;
+		MaterialService mservice = new MaterialService();
+		
+		if (errors.size() == 0) {
+			List<MsgInfo> messages = new ArrayList<MsgInfo>();
+			mservice.checkModelDepacy(materialForm, conn, messages);
+			callbackResponse.put("messages", messages);
+		}
+		
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("AcceptanceAction.checkModelDepacy end");
 	}
 
 	/**
@@ -103,7 +138,7 @@ public class AcceptanceAction extends BaseAction {
 		String id = materialForm.getMaterial_id();
 		MaterialService mservice = new MaterialService();
 
-		mservice.checkModelDepacy(materialForm, conn, errors);
+//		mservice.checkModelDepacy(materialForm, conn, errors);
 
 		mservice.checkRepeatNo(id, form, conn, errors);
 		

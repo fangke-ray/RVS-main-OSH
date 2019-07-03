@@ -16,8 +16,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1082,13 +1084,27 @@ public class MaterialService {
 		return uuid + ".zip";
 	}
 
+	private static Set<String> levelSet = new HashSet<String>();
+	static {
+		levelSet.add("1");//S1
+		levelSet.add("2");//S2
+		levelSet.add("3");//S3
+		levelSet.add("56");//E1
+		levelSet.add("57");//E2
+		levelSet.add("59");//EW
+	}
+
 	public void checkModelDepacy(MaterialForm materialForm,
 			SqlSession conn, List<MsgInfo> errors) {
 		ModelMapper mapper = conn.getMapper(ModelMapper.class);
 
 		String level = materialForm.getLevel();
+		if (level == null) {
+			level = materialForm.getOcm_rank();
+		}
+
 		String end_date = null;
-		if ("1".equals(level) ||"2".equals(level)|| "3".equals(level)) {
+		if (levelSet.contains(level)) {
 			end_date = mapper.checkModelDepacy(materialForm.getModel_id(), materialForm.getLevel());
 		} else {
 			end_date = mapper.checkModelDepacy(materialForm.getModel_id(), null);
@@ -1098,7 +1114,8 @@ public class MaterialService {
 			MsgInfo error = new MsgInfo();
 			error.setComponentid("model_id");
 			error.setErrcode("model.notDepacy");
-			if ("1".equals(level) ||"2".equals(level)|| "3".equals(level)) {
+			
+			if (levelSet.contains(level)) {
 				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("model.notDepacy", materialForm.getModel_name(), 
 						materialForm.getLevelName(), end_date));
 			} else {
