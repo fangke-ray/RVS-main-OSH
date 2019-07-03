@@ -16,6 +16,8 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.master.DevicesTypeEntity;
 import com.osh.rvs.form.master.DevicesTypeForm;
 import com.osh.rvs.service.DevicesTypeService;
+import com.osh.rvs.service.UploadService;
+
 import org.apache.log4j.Logger;
 
 import framework.huiqing.action.BaseAction;
@@ -163,5 +165,36 @@ public class DevicesTypeAction extends BaseAction {
 		callbackResponse.put("errors", errors);
 		returnJsonResponse(response, callbackResponse);
 		log.info("DevicesTypeAction.doupdate end");
+	}
+	
+	/**
+	 * 上传安全操作手顺图片
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void sourceImage(ActionMapping mapping, ActionForm form, HttpServletRequest req,
+			HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("DevicesTypeAction.sourceImage start");
+
+		// Ajax回馈对象
+		Map<String, Object> jsonResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		UploadService fservice = new UploadService();
+		String tempFilePath = fservice.getFile2Local(form, errors);
+
+		String photo_file_name = tempFilePath.substring(tempFilePath.lastIndexOf("\\") + 1);
+		service.copyPhoto(req.getParameter("devices_type_id"), photo_file_name);
+
+		// 检查发生错误时报告错误信息
+		jsonResponse.put("errors", errors);
+		// 返回Json格式响应信息
+		returnJsonResponse(res, jsonResponse);
+
+		log.info("DevicesTypeAction.sourceImage end");
 	}
 }

@@ -42,6 +42,7 @@ $(function() {
 		       <a target="_parent" href="devices_distribute.do">设备工具分布</a><br>		      
 		       <a target="_parent" href="tools_distribute.do">治具分布</a><br>
 <% } %>
+			   <a target="_parent" href="device_jig_repair_record.do">设备工具维修记录</a><br>
 		    </div>
 		   
 		    <h3 style="padding-left:30px;">设备工具/治具点检</h3>

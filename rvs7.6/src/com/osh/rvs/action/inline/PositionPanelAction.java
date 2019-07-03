@@ -49,6 +49,7 @@ import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CheckResultService;
+import com.osh.rvs.service.DevicesManageService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialProcessAssignService;
 import com.osh.rvs.service.MaterialRemainTimeService;
@@ -287,14 +288,27 @@ public class PositionPanelAction extends BaseAction {
 
 		// 虚拟组不在加载时判断待点检
 		if (sGroupPositionId == null) {
-			// 设定待点检信息
-			CheckResultService crService = new CheckResultService();
-			crService.checkForPosition(section_id, position_id, line_id, conn);
 
-			// 取得待点检信息
-			infectString = service.getInfectMessageByPosition(section_id,
-					position_id, line_id, conn);
+			// 各工位当日点检已完成标志
+			boolean infectPassed = CheckResultService.checkInfectPass(section_id, position_id);
+
+			// 如果点检不锁定的话，初始化暂不取异常信息
+			if (!infectPassed) {
+				// 设定待点检信息
+				CheckResultService crService = new CheckResultService();
+				crService.checkForPosition(section_id, position_id, line_id, conn);
+
+				// 取得待点检信息
+				infectString = service.getInfectMessageByPosition(section_id, position_id, line_id, conn);
+
+				if (infectString.length() == 0 || infectString.indexOf("限制工作") < 0) {
+					CheckResultService.setInfectPass(section_id, position_id);
+				}
+			} else {
+				listResponse.put("jsinitInfect", true);
+			}
 		}
+
 		// 判断操作者异常作业状态
 		infectString += service.getAbnormalWorkStateByOperator(user.getOperator_id(), conn);
 
@@ -524,6 +538,10 @@ public class PositionPanelAction extends BaseAction {
 				}
 			}
 
+			// 取得设备工具的安全手册信息
+			DevicesManageService dmS = new DevicesManageService();
+			listResponse.put("position_hcsgs", dmS.getOfPositionHazardousCautionsAndSafetyGuide(section_id, position_id, conn));
+			
 			// 取得正在或已完成的维修对象的下位触发工位
 			listResponse.put("fingers",
 					session.getAttribute(RvsConsts.JUST_WORKING));
@@ -554,6 +572,60 @@ public class PositionPanelAction extends BaseAction {
 		returnJsonResponse(res, listResponse);
 
 		log.info("PositionPanelAction.jsinit end");
+	}
+
+	/**
+	 * 工位画面初始取值(点检信息)处理
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={1, 0})
+	public void jsinitInfect(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSession conn)
+			throws Exception {
+
+		log.info("PositionPanelAction.jsinitInfect start");
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
+
+		// 取得用户信息
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		String section_id = user.getSection_id();
+		String position_id = user.getPosition_id();
+		String line_id = user.getLine_id();
+
+		// 取得待点检信息
+		String infectString = service.getInfectMessageByPosition(section_id, position_id, line_id, conn);
+
+		if (infectString.length() == 0) {
+			CheckResultService.setInfectPass(section_id, position_id);
+		} else {
+			if (infectString.indexOf("限制工作") >= 0) {
+				listResponse.put("workstauts", WORK_STATUS_FORBIDDEN);
+				MsgInfo msgInfo = new MsgInfo();
+				msgInfo.setComponentid("position_id");
+				msgInfo.setErrcode("privacy.objectOutOfDomain");
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "工位"));
+				infoes.add(msgInfo);
+			}
+		}
+
+		listResponse.put("infectString", infectString);
+
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", infoes);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("PositionPanelAction.jsinitInfect end");
 	}
 
 	/**

@@ -222,6 +222,11 @@
 					 manager_operator_id = #{manager_operator_id},
 				]]>
 			</if>
+			<if test="manage_code!= null and manage_code!= '' ">
+				<![CDATA[ 
+					 manage_code = #{manage_code},
+				]]>
+			</if>
 		<![CDATA[	
 				updated_by=#{updated_by},
 				updated_time=current_timestamp,
@@ -529,5 +534,33 @@
 			]]>
 		</if>
 		ORDER BY dm.manage_code
+    </select>
+    <select id="getAllManageCode" resultType="DevicesManageEntity">
+    	SELECT devices_manage_id, manage_code, dt.name, model_name
+		FROM
+			devices_manage dm
+		JOIN
+			devices_type dt
+		ON
+			dm.devices_type_id = dt.devices_type_id
+		WHERE dm.delete_flg=0
+		AND status in (1, 4, 5)
+		ORDER BY manage_code
+    </select>
+    <select id="getDeviceTypeOfPosition"  parameterType="DevicesManageEntity" resultType="DevicesTypeEntity">
+		SELECT 
+			dt.devices_type_id,
+			dt.name
+		FROM
+			devices_manage dm
+		JOIN
+			devices_type dt ON dm.devices_type_id = dt.devices_type_id
+		WHERE
+			dm.delete_flg = 0
+			    and dm.section_id =#{section_id}
+			    and dm.position_id =#{position_id}
+				and status in (1 , 5)
+				and manage_level = 1
+		GROUP BY dt.devices_type_id
     </select>
 </mapper>

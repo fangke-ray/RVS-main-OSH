@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.equipment.DeviceJigRepairRecordMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="search" parameterType="DeviceJigRepairRecordEntity" resultType="DeviceJigRepairRecordEntity">
+		<![CDATA[ 
+		SELECT
+			djrr.`device_jig_repair_record_key`,
+			djrr.`submit_time`,
+			djrr.`phenomenon`,
+			djrr.`repair_complete_time`,
+			CASE WHEN djrr.`repair_complete_time` IS NULL THEN NULL
+			WHEN djrr.`submit_time` = djrr.`repair_complete_time` THEN 0
+			ELSE f_diffminutes(djrr.`submit_time`, djrr.`repair_complete_time`)
+			END as device_halt,
+			djrr.`fault_causes`,
+			djrr.`countermeasure`,
+			ln.name as `line_name`,
+			cfm.`name` as confirmer_name,
+			group_concat(mtop.`name` separator '/') as maintainer_name,
+			line_op.name AS submitter_name,
+			COALESCE(djrs.object_type) AS object_type,
+			COALESCE(dm.manage_code,'') AS manage_code,
+			COALESCE(`object_name`,'') AS object_name,
+			djrr.`comment`,
+			djrr.consumable
+		FROM `device_jig_repair_record` djrr
+		LEFT JOIN line ln
+		ON djrr.line_id = ln.line_id
+		LEFT JOIN operator cfm
+		ON djrr.confirmer_id = cfm.operator_id
+		LEFT JOIN `device_jig_repair_maintainer` djpm
+		ON djrr.`device_jig_repair_record_key` = djpm.`device_jig_repair_record_key`
+		LEFT JOIN `operator` mtop
+		ON djpm.operator_id = mtop.operator_id
+		LEFT JOIN `device_jig_repair_submit` djrs
+		ON djrr.`device_jig_repair_record_key` = djrs.`device_jig_repair_record_key`
+		LEFT JOIN
+			devices_manage dm
+		ON
+			djrs.manage_id=dm.devices_manage_id AND djrs.object_type=1
+		LEFT JOIN
+			operator line_op
+		ON
+			djrs.submitter_id=line_op.operator_id
+		]]> 
+		<where> 
+			<if test="line_id!= null and line_id!= '' ">
+				AND djrr.line_id = #{line_id}
+			</if>
+			<if test="object_type!= null and object_type!= '' ">
+				<![CDATA[ 
+				AND djrs.object_type = #{object_type}
+				]]> 
+			</if>
+			<if test="submit_time_start!= null and submit_time_start!= '' ">
+				AND submit_time >= #{submit_time_start}
+			</if>
+			<if test="submit_time_end!= null and submit_time_end!= '' ">
+				<![CDATA[ 
+				AND submit_time < date_add(#{submit_time_end}, interval 1 day)
+				]]> 
+			</if>
+			<if test="manage_code!= null and manage_code!= '' ">
+				<![CDATA[ 
+				AND (
+				dm.manage_code = #{manage_code} 
+				OR `object_name` like CONCAT('%', #{manage_code}, '%')
+				)
+				]]> 
+			</if>
+			<if test="repair_complete_time_start!= null and repair_complete_time_start!= '' ">
+				AND repair_complete_time >= #{repair_complete_time_start}
+			</if>
+			<if test="repair_complete_time_end!= null and repair_complete_time_end!= '' ">
+				<![CDATA[ 
+				AND repair_complete_time < date_add(#{repair_complete_time_end}, interval 1 day)
+				]]> 
+			</if>
+			<if test="device_halt eq 9">
+				AND djrr.`repair_complete_time` IS NULL
+			</if>
+			<if test="comment!= null and comment!= ''">
+				AND djrr.`comment` like CONCAT('%', #{comment}, '%')
+			</if>
+		</where> 
+		<![CDATA[ 
+		GROUP BY djrr.`device_jig_repair_record_key`
+		]]> 
+		<if test="device_halt eq 1">
+		<![CDATA[ 
+			HAVING device_halt <= 475
+		]]> 
+		</if>
+		<if test="device_halt eq 2">
+		<![CDATA[ 
+			HAVING device_halt > 475
+		]]> 
+		</if>
+		<![CDATA[ 
+		ORDER BY `submit_time`;
+		]]> 
+	</select>
+
+	<insert id="insertRecord" parameterType="DeviceJigRepairRecordEntity">
+		INSERT INTO `device_jig_repair_record`
+		(
+		`submit_time`,
+		`line_id`,
+		`phenomenon`)
+		VALUES
+		(
+		#{submit_time},
+		#{line_id},
+		#{phenomenon});
+	</insert>
+
+	<update id="updateRecord" parameterType="DeviceJigRepairRecordEntity">
+		UPDATE `device_jig_repair_record`
+		SET
+		<if test="phenomenon!= null and phenomenon!= '' ">
+			<![CDATA[ 
+		`phenomenon` = #{phenomenon},
+			]]> 
+		</if>
+		<if test="repair_complete_time!= null and repair_complete_time!= '' ">
+			<![CDATA[ 
+		`repair_complete_time` = coalesce(`repair_complete_time`, #{repair_complete_time}),
+			]]> 
+		</if>
+		<if test="fault_causes!= null and fault_causes!= '' ">
+			<![CDATA[ 
+		`fault_causes` = #{fault_causes},
+			]]> 
+		</if>
+		`countermeasure` = #{countermeasure},
+		`comment` = #{comment},
+		`consumable` = #{consumable}
+		WHERE `device_jig_repair_record_key` = #{device_jig_repair_record_key};
+	</update>
+
+	<insert id="insertSubmit" parameterType="DeviceJigRepairRecordEntity">
+		INSERT INTO `device_jig_repair_submit`
+		(
+		`device_jig_repair_record_key`,
+		`submitter_id`,
+		`manage_id`,
+		`object_type`,
+		`object_name`)
+		VALUES
+		(
+		#{device_jig_repair_record_key},
+		#{submitter_id},
+		#{manage_id},
+		#{object_type},
+		#{object_name});
+	</insert>
+
+	<select id="getDetailForRepair" parameterType="String" resultType="DeviceJigRepairRecordEntity">
+		<![CDATA[ 
+		SELECT djrr.`device_jig_repair_record_key`,
+			djrr.`submit_time`,
+			djrr.`phenomenon`,
+			djrr.`repair_complete_time`,
+			djrr.`fault_causes`,
+			djrr.`countermeasure`,
+			ln.name as `line_name`,
+			group_concat(mtop.operator_id separator '/') as maintainer_id,
+			group_concat(mtop.`name` separator '/') as maintainer_name,
+			line_op.name AS submitter_name,
+			COALESCE(djrs.object_type) AS object_type,
+			COALESCE(dm.manage_code,'') AS manage_code,
+			COALESCE(`object_name`,'') AS object_name,
+			djrr.`comment`,
+			djrr.consumable
+		FROM `device_jig_repair_record` djrr
+		LEFT JOIN line ln
+		ON djrr.line_id = ln.line_id
+		LEFT JOIN `device_jig_repair_maintainer` djpm
+		ON djrr.`device_jig_repair_record_key` = djpm.`device_jig_repair_record_key`
+		LEFT JOIN `operator` mtop
+		ON djpm.operator_id = mtop.operator_id
+		LEFT JOIN `device_jig_repair_submit` djrs
+		ON djrr.`device_jig_repair_record_key` = djrs.`device_jig_repair_record_key`
+		LEFT JOIN
+			devices_manage dm
+		ON
+			djrs.manage_id=dm.devices_manage_id AND djrs.object_type=1
+		LEFT JOIN
+			operator line_op
+		ON
+			djrs.submitter_id=line_op.operator_id
+		WHERE
+			djrr.`device_jig_repair_record_key` = #{device_jig_repair_record_key} 
+		GROUP BY djrr.`device_jig_repair_record_key`
+		]]> 
+	</select>
+
+	<update id="updateConfirm" parameterType="DeviceJigRepairRecordEntity">
+		UPDATE `device_jig_repair_record`
+		SET
+		`confirmer_id` = #{confirmer_id}
+		WHERE `device_jig_repair_record_key` = #{device_jig_repair_record_key};
+	</update>
+
+	<select id="checkWithCheckUnqualifiedRecordKey" parameterType="String" resultType="String">
+		<![CDATA[ 
+		SELECT djrr.`device_jig_repair_record_key`
+		FROM `device_jig_repair_record` djrr
+		WHERE djrr.`check_unqualified_record_key` = #{check_unqualified_record_key}
+		]]> 
+	</select>
+
+	<insert id="insertMaintainer" parameterType="DeviceJigRepairRecordEntity">
+		INSERT INTO `device_jig_repair_maintainer`
+		(
+		`device_jig_repair_record_key`,
+		`operator_id`)
+		VALUES
+		(
+		#{device_jig_repair_record_key},
+		#{maintainer_id});
+	</insert>
+</mapper>

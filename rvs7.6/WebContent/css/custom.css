@@ -1016,3 +1016,74 @@ span.textlink {
 .roll_cell {
 	display:none;
 }
+
+#comments_sidebar {
+	position:fixed;
+	right:0;
+	top:50%;
+	background-color:#fff;
+	color:#000;
+	transform:translateY(-50%);
+	border:1px solid #aaaaaa;
+}
+#comments_sidebar .comments_area textarea{
+	width:100%;
+	min-height: 5em;
+	resize:none;
+	border:0;
+	padding:4px;
+	overflow:hidden;
+}
+#comments_sidebar ul{
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+#comments_sidebar .ui-corner-left + label {
+	-moz-border-radius-topleft: 6px;
+	-webkit-border-top-left-radius: 6px;
+	-khtml-border-top-left-radius: 6px;
+	border-top-left-radius: 6px;
+	-moz-border-radius-bottomleft: 6px;
+	-webkit-border-bottom-left-radius: 6px;
+	-khtml-border-bottom-left-radius: 6px;
+	border-bottom-left-radius: 6px;
+	height:42px;
+	margin-right:4px;
+}
+#comments_sidebar .ui-corner-left + label span {
+	font-size:16px;
+	margin-top:8px;
+}
+#comments_sidebar .tip_pages{
+	text-align : center;
+	position : absolute;
+	top: 32px;
+	width: 100%;
+/*	height:488px;*/
+	overflow-x:hidden;
+	overflow-y:auto;
+}
+#comments_sidebar .tip_page{
+	text-align : center;
+	position : relative;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height:94%;
+}
+#comments_sidebar .tip_page pre{
+	font-size : 3em;
+	color : red;
+}
+#comments_sidebar .tip_page img{
+	max-width:100%;
+}
+#comments_sidebar .tip_page[for=st_material_comment] textarea{
+	padding-top: 1.25em;
+	padding-left: 4em;
+	font-size: 1.25em;
+	color: darkblue;
+	text-align:left;
+	width: 94%;
+}

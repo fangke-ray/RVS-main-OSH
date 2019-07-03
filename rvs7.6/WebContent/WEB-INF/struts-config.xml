@@ -117,6 +117,7 @@
 		<form-bean name="SteelWireContainerWashProcessForm" type="com.osh.rvs.form.inline.SteelWireContainerWashProcessForm"></form-bean>
 		<form-bean name="ConsumableSupplyRecordForm" type="com.osh.rvs.form.partial.ConsumableSupplyRecordForm"></form-bean>
 		<form-bean name="deviceBackupForm" type="com.osh.rvs.form.equipment.DeviceBackupForm"></form-bean>
+		<form-bean name="deviceJigRepairRecordForm" type="com.osh.rvs.form.equipment.DeviceJigRepairRecordForm"></form-bean>
 	</form-beans>
 
 
@@ -1392,6 +1393,17 @@
 				parameter="method"
 				validate="false">
 				<forward name="detail" path="/widgets/equipment/device_backup_detail.jsp"/>
+		</action>
+		
+		<!-- 维修记录 -->
+		<action path="/device_jig_repair_record"
+				type="com.osh.rvs.action.equipment.DeviceJigRepairRecordAction"
+				name="deviceJigRepairRecordForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+				<forward name="init" path="/pages/equipment/device_jig_repair_record.jsp"/>
+				<forward name="detail" path="/widgets/equipment/device_jig_repair_record_detail.jsp"/>
 		</action>
 
 	</action-mappings>

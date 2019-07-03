@@ -26,6 +26,7 @@ var dryProcesses = "";
 var partial_closer = true;
 var $pause_clock = null;
 var isDivision = false;
+var device_safety_guide = {};
 
 /** 中断信息弹出框 */
 var makeBreakDialog = function(jBreakDialog) {
@@ -811,7 +812,7 @@ var treatStart = function(resInfo) {
 		}
 	});
 
-	if (resInfo.material_comment) {
+/*	if (resInfo.material_comment) {
 		$("#comments_dialog textarea").val(resInfo.material_comment).show();
 		$("#comments_dialog").css({
 			position:"fixed",
@@ -825,8 +826,14 @@ var treatStart = function(resInfo) {
 			opacity:"1"
 		}).show();
 		$("#comments_dialog span").removeClass("icon-share").addClass("icon-enter-2");
-	}
+	}*/
 
+	if (resInfo.material_comment || (device_safety_guide && device_safety_guide.length)) {
+		showSidebar(resInfo.material_comment);
+	} else {
+		$("#comments_sidebar").hide();
+	}
+	
 	if (resInfo.peripheralData && resInfo.peripheralData.length > 0) {
 		showPeripheral(resInfo);
 	}
@@ -964,6 +971,33 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			} else {
 				$("#toInfect").hide();
 			}
+
+			if (resInfo.jsinitInfect) {
+				setTimeout(function(){
+					// Ajax提交
+					$.ajax({
+						beforeSend : ajaxRequestType,
+						async : true,
+						url : servicePath + '?method=jsinitInfect',
+						cache : false,
+						data : null,
+						type : "post",
+						dataType : "json",
+						success : ajaxSuccessCheck,
+						error : ajaxError,
+						complete : function(xhrObj){
+							var resInfoIn = $.parseJSON(xhrObj.responseText);
+							if (resInfoIn.infectString) {
+								$("#toInfect").show()
+								.find("td:eq(1)").html(decodeText(resInfoIn.infectString));
+							} else {
+								$("#toInfect").hide();
+							}
+						}
+					});
+				}, 10);
+			}
+
 			// 暂停理由
 			pauseOptions = resInfo.pauseOptions;
 			pauseComments = $.parseJSON(resInfo.pauseComments);
@@ -994,6 +1028,10 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 				if (flowtext) $("#flowtext").html(flowtext);
 			}
 
+			
+			// 设备安全手册信息
+			if (resInfo.position_hcsgs) device_safety_guide = resInfo.position_hcsgs;
+
 			loadJs(
 			"js/data/operator-detail.js",
 			function(){
@@ -1013,6 +1051,12 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 					} else {
 						$("#position_status").text("准备中")
 							.css("background-color", "#0080FF");
+						
+						if (device_safety_guide && device_safety_guide.length) {
+							showSidebar(null);
+						} else {
+							$("#comments_sidebar").hide();
+						}
 					}
 				});
 			});
@@ -1235,17 +1279,24 @@ $(function() {
 
 	takeWs();
 	
-	$("#comments_dialog span").on("click",function(){
-		if($("#comments_dialog").width() < 100){
-			$("#comments_dialog").animate({width:"576px",opacity:"1"},300,function(){
-				$("#comments_dialog span").removeClass("icon-share").addClass("icon-enter-2");
-				$("#comments_dialog textarea").slideDown(200);
+	$("#comments_sidebar .ui-widget-header span").on("click",function(){
+		if($("#comments_sidebar").hasClass("shown")){
+			$("#comments_sidebar .tip_pages").css("overflow-y", "hidden");
+			$("#comments_sidebar img").hide();
+			$("#comments_sidebar .comments_area").slideUp(200,function(){
+				$("#comments_sidebar .ui-widget-header span").removeClass("icon-enter-2").addClass("icon-share");
+				$("#comments_sidebar").animate({width:"30px",opacity:".5"},300);
 			});
+			$("#comments_sidebar").removeClass("shown");
 		}else{
-			$("#comments_dialog textarea").slideUp(200,function(){
-				$("#comments_dialog span").removeClass("icon-enter-2").addClass("icon-share");
-				$("#comments_dialog").animate({width:"30px",opacity:".5"},300);
+			$("#comments_sidebar").animate({width:"1024px",opacity:"1"},300,function(){
+				$("#comments_sidebar .ui-widget-header span").removeClass("icon-share").addClass("icon-enter-2");
+				$("#comments_sidebar .comments_area").slideDown(200,function(){
+					$("#comments_sidebar img").show();
+					$("#comments_sidebar .tip_pages").css("overflow-y", "auto");
+				});
 			});
+			$("#comments_sidebar").addClass("shown");
 		}
 	});
 });
@@ -1607,6 +1658,48 @@ var doStart=function(){
 
 };
 
+
+var showSidebar = function(material_comment) {
+
+	var $ul = $("<ul/>");
+	var $content = $("<div class='tip_pages'/>");
+	
+	if (material_comment) {
+		$ul.append("<li><input type='radio' id='st_material_comment' name='showTips'><label for='st_material_comment'>维修对象备注<label></li>");
+		$content.append("<div class='tip_page' for='st_material_comment'><textarea readonly>" + material_comment + "</textarea></div>");
+	}
+	if (device_safety_guide) {
+		for (var idsg in device_safety_guide) {
+			var device_type = device_safety_guide[idsg];
+			$ul.append("<li><input type='radio' id='st_" + device_type.devices_type_id 
+				+ "' name='showTips'><label for='st_" + device_type.devices_type_id + "'>" + device_type.name + "<label></li>");
+			$content.append("<div class='tip_page' for='st_" + device_type.devices_type_id + "'>" 
+				+ (device_type.safety_guide ? "<img src='http://" + document.location.hostname + "/photos/safety_guide/" + device_type.devices_type_id + "'></img>" : "")
+				+ "</div>");
+		}
+	}
+	$content.children().hide();
+
+	$("#comments_sidebar .comments_area").html("")
+		.append($content)
+		.append($ul)
+		.find("ul").buttonset()
+		.find("input:radio").change(function(){
+			$("#comments_sidebar .tip_page").hide();
+			$("#comments_sidebar .tip_page[for='" + $(this).attr("id") + "']").show();
+		})
+		.end().find("input:radio:eq(0)").attr("checked", "checked").trigger("change");
+	$("#comments_sidebar .comments_area").hide();
+	$("#comments_sidebar").removeClass("shown").css({width:"30px",opacity:".5"});
+	$("#comments_sidebar .ui-widget-header span").removeClass("icon-enter-2").addClass("icon-share");
+
+	$("#comments_sidebar").show();
+
+	if (material_comment && !$("#comments_sidebar").hasClass("shown")) {
+		$("#comments_sidebar .ui-widget-header span").trigger("click");
+	}
+}
+
 var doStartForward=function(data){
 	// Ajax提交
 	$.ajax({
@@ -1686,13 +1779,26 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 					partial_closer = false;
 					$('#partialconfirmarea').dialog("close");
 				}
-				if ($("#comments_dialog:visible").length > 0) {
+/*				if ($("#comments_dialog:visible").length > 0) {
 					$("#comments_dialog textarea").val("");
 					$("#comments_dialog").hide();
+				}*/
+				if (device_safety_guide && device_safety_guide.length) {
+					$("#comments_sidebar .comments_area").val("");
+					$("#comments_sidebar").hide();
 				}
 
 				if (resInfo.processingPauseStart) {
 					setPauseClock(resInfo.processingPauseStart);
+				}
+
+				if (device_safety_guide && device_safety_guide.length) {
+					showSidebar(null);
+					if ($("#comments_sidebar").hasClass("shown")) {
+						$("#comments_sidebar .ui-widget-header span").trigger("click");
+					}
+				} else {
+					$("#comments_sidebar").hide();
 				}
 			}
 		}

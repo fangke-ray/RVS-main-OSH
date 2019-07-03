@@ -16,11 +16,13 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.DevicesManageEntity;
+import com.osh.rvs.bean.master.DevicesTypeEntity;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.XlsUtil;
 import com.osh.rvs.form.master.DevicesManageForm;
+import com.osh.rvs.form.master.DevicesTypeForm;
 import com.osh.rvs.mapper.master.DevicesManageMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
 
@@ -420,5 +422,60 @@ public class DevicesManageService {
 		BeanUtil.copyToForm(dmEntity, retForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 		return retForm;
 	}
+	
+	/**
+	 * 全部设备Option
+	 * @param conn
+	 * @return
+	 */
+	public String getOptions(SqlSession conn) {
+		List<String[]> lst = new ArrayList<String[]>();
+		
+		DevicesManageMapper dao = conn.getMapper(DevicesManageMapper.class);
+		List<DevicesManageEntity> list = dao.getAllManageCode();
+		
+		for (DevicesManageEntity entity : list) {
+			String[] line = new String[4];
+			line[0] = entity.getDevices_manage_id();
+			line[1] = entity.getManage_code();
+			line[2] = entity.getName();
+			if(CommonStringUtil.isEmpty(entity.getModel_name())){
+				line[3] = "";
+			} else {
+				line[3] = entity.getModel_name();
+			}
+			lst.add(line);
+		}
+		
+		String pReferChooser = CodeListUtils.getReferChooser(lst);
+		
+		return pReferChooser;
+	}
+	
+	public List<DevicesTypeForm> getOfPositionHazardousCautionsAndSafetyGuide(
+			String section_id, String position_id, SqlSession conn) {
+		DevicesManageMapper mapper = conn.getMapper(DevicesManageMapper.class);
 
+		List<DevicesTypeForm> result = new ArrayList<DevicesTypeForm>();
+
+		DevicesManageEntity dmCond = new DevicesManageEntity();
+		dmCond.setPosition_id(position_id);
+		dmCond.setSection_id(section_id);
+		List<DevicesTypeEntity> list = mapper.getDeviceTypeOfPosition(dmCond);
+
+		for(DevicesTypeEntity deviceType : list) {
+			DevicesTypeForm devicesTypeForm = new DevicesTypeForm();
+			boolean show = false;
+			if (DevicesTypeService.getSafetyGuideSet().contains(deviceType.getDevices_type_id())) {
+				devicesTypeForm.setSafety_guide("1");
+				show = true;
+			}
+			if (show) {
+				BeanUtil.copyToForm(deviceType, devicesTypeForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+				result.add(devicesTypeForm);
+			}
+		}
+
+		return result;
+	}
 }

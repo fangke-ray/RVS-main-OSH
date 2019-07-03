@@ -1,7 +1,9 @@
 package com.osh.rvs.service;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -18,6 +20,7 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
 import com.osh.rvs.bean.master.ToolsManageEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.XlsUtil;
 import com.osh.rvs.form.master.ToolsManageForm;
@@ -28,6 +31,7 @@ import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
+import framework.huiqing.common.util.FileUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
@@ -343,5 +347,41 @@ public class ToolsManageService {
 		}
 
 		return keys;
+	}
+	
+	public void copyPhoto(String manage_id, String photo_file_name) {
+		// 把图片拷贝到目标文件夹下
+		String today = DateUtil.toString(new Date(), "yyyyMM");
+		String tempFilePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + today + "\\" + photo_file_name;
+		String targetPath = PathConsts.BASE_PATH + PathConsts.PHOTOS + "\\jig\\" + manage_id;
+		File confFile = new File(tempFilePath);
+		if (confFile.exists()) {
+			FileUtils.copyFile(tempFilePath, targetPath, true);
+		}
+	}
+	
+	/**
+	 * 全部设备Option
+	 * @param conn
+	 * @return
+	 */
+	public String getOptions(SqlSession conn) {
+		List<String[]> lst = new ArrayList<String[]>();
+		
+		ToolsManageMapper dao = conn.getMapper(ToolsManageMapper.class);
+		List<ToolsManageEntity> list = dao.getAllManageCode();
+		
+		for (ToolsManageEntity entity : list) {
+			String[] line = new String[4];
+			line[0] = entity.getTools_manage_id();
+			line[1] = entity.getManage_code();
+			line[2] = entity.getTools_no();
+			line[3] = entity.getTools_name();
+			lst.add(line);
+		}
+	
+		String pReferChooser = CodeListUtils.getReferChooser(lst);
+		
+		return pReferChooser;
 	}
 }
