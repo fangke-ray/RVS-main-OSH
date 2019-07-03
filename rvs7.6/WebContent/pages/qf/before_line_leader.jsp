@@ -71,7 +71,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							</td>
 							<td class="ui-state-default td-title" rowspan="3">机身号</td>
 							<td class="td-content" rowspan="3" style="vertical-align: top;">
-								<input type="text" id="search_serialno" maxlength="12" class="ui-widget-content">
+								<input type="text" id="search_serialno" maxlength="20" class="ui-widget-content">
 								<input type="button" class="ui-button" id="search_serialno_plus" value="＋" style="padding: 0;"/>
 								<input type="button" class="ui-button" id="search_serialno_clear" value="×" style="padding: 0;"/>
 								<style>

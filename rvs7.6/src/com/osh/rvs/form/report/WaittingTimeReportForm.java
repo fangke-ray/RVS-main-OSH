@@ -23,7 +23,7 @@ public class WaittingTimeReportForm extends ActionForm implements Serializable {
 	@BeanField(title = "修理单号", name = "omr_notifi_no", type = FieldType.String, length = 14)
 	private String omr_notifi_no;
 
-	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String, length = 12)
+	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String)
 	private String serial_no;
 
 	@BeanField(title = "型号ID", name = "model_id", type = FieldType.String, length = 11)

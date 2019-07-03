@@ -58,7 +58,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="ui-state-default td-title">先端组件型号</td>
 					<td class="td-content" colspan="3"><select name="model_id" id="cond_model_id" class="ui-widget-content">${mOptions}</select></td>
 					<td class="ui-state-default td-title">先端组件序列号</td>
-					<td class="td-content"><input type="text" name="serial_no" id="cond_serial_no" maxlength="12" class="ui-widget-content"></td>
+					<td class="td-content"><input type="text" name="serial_no" id="cond_serial_no" maxlength="20" class="ui-widget-content"></td>
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">状态</td>

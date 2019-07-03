@@ -76,7 +76,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<tr>
 						    <td class="ui-state-default td-title">机身号</td>
 						    
-							<td class="td-content"><input type="text" id="search_serialno" maxlength="12" class="ui-widget-content"></td>
+							<td class="td-content"><input type="text" id="search_serialno" maxlength="20" class="ui-widget-content"></td>
 						    
 						    <td class="ui-state-default td-title" rowspan="2" >出检人员</td>
 						    

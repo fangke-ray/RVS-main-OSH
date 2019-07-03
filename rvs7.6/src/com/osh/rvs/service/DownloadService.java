@@ -461,8 +461,8 @@ public class DownloadService {
 			cell = new PdfPCell();
 			String sSerialNo = CommonStringUtil.nullToAlter(mBean.getSerial_no(), " ");
 			Chunk chSerialNo = new Chunk(sSerialNo, titleFont);
-			if (sSerialNo.length() == 12) {
-				chSerialNo.setHorizontalScaling(0.88f);
+			if (sSerialNo.length() >= 12) {
+				chSerialNo.setHorizontalScaling(0.93f-(sSerialNo.length() - 11)*0.05f);
 			}
 
 			cell.setPhrase(new Paragraph(chSerialNo));

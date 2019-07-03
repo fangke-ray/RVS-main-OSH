@@ -73,7 +73,7 @@ public class QuotaionProspectusForm extends ActionForm implements Serializable {
 	@BeanField(title = "型号名称", name = "model_name", type = FieldType.String, length = 50, notNull = true)
 	private String model_name;// 型号名称
 
-	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String, length = 8, notNull = true)
+	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String, notNull = true)
 	private String serial_no;// 机身号
 
 	@BeanField(title = "保修类别", name = "service_repair_flg", type = FieldType.Integer, length = 1)
