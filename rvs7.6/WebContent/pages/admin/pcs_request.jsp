@@ -31,11 +31,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<jsp:param name="part" value="1"/>
 			</jsp:include>
 	</div>
-
-
-
-		</div>
-
 		<div class="ui-widget-panel ui-corner-all width-full" style="align: center; padding-top: 16px; padding-bottom: 16px;" id="body-1">
 			<div id="searcharea" class="dwidth-full">
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">

@@ -110,6 +110,9 @@ public class ForSolutionAreaService {
 				}
 
 				if (conditionEntity.getExpedition_diff() != null) {
+					if(retForm.getScheduled_date()==null){
+						continue;
+					}
 					if (conditionEntity.getExpedition_diff() == 1) {
 						if (Integer.parseInt(retForm.getRemain_days()) >= 0)
 							continue;
