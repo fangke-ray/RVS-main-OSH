@@ -459,4 +459,16 @@
 		WHERE tools_manage_id=#{tools_manage_id}
 	   ]]>
 	</update>
+	
+	<select id="getAllManageCode" resultType="ToolsManageEntity">
+		select
+			manage_code,
+			tool_name AS tools_name,
+			tools_manage_id,
+			tools_no
+		from
+			tools_manage
+		WHERE delete_flg=0 and status in (1,4)
+		ORDER BY manage_code
+    </select>
 </mapper>

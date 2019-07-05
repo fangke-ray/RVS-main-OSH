@@ -85,6 +85,7 @@ import com.osh.rvs.mapper.master.ToolsManageMapper;
 
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
@@ -104,6 +105,39 @@ public class CheckResultService {
 	private static Map<String, Date[][]> weekEndOfMonth = new HashMap<String, Date[][]>();
 
 	Logger _logger = Logger.getLogger(CheckResultService.class);
+
+	public static Map<String, Set<String>> infectPass = new HashMap<String, Set<String>>();
+
+	public synchronized static boolean checkInfectPass(String section_id, String position_id) {
+		Calendar now = Calendar.getInstance();
+		String infectPassDateKey = now.get(Calendar.DATE) + "|" + (now.get(Calendar.HOUR_OF_DAY) >= 14);
+
+		if (!infectPass.containsKey(infectPassDateKey)) {
+			clearInfectPass(infectPassDateKey);
+		}
+
+		String infectPassPosKey = CommonStringUtil.nullToAlter(section_id, "") + "_" + position_id;
+
+		return infectPass.get(infectPassDateKey).contains(infectPassPosKey);
+	}
+
+	public synchronized static void clearInfectPass(String infectPassDateKey) {
+		infectPass.clear();
+		infectPass.put(infectPassDateKey, new HashSet<String>());
+	}
+
+	public synchronized static void setInfectPass(String section_id, String position_id) {
+		Calendar now = Calendar.getInstance();
+		String infectPassDateKey = now.get(Calendar.DATE) + "|" + (now.get(Calendar.HOUR_OF_DAY) >= 14);
+
+		if (!infectPass.containsKey(infectPassDateKey)) {
+			clearInfectPass(infectPassDateKey);
+		}
+		
+		String infectPassPosKey = CommonStringUtil.nullToAlter(section_id, "") + "_" + position_id;
+
+		infectPass.get(infectPassDateKey).add(infectPassPosKey);
+	}
 
 	/**
 	 * 确认点检项目是否建立
@@ -995,12 +1029,14 @@ public class CheckResultService {
 
 		for (int ii = 0; ii < list.size();ii++) {
 			ToolsCheckResultForm toolsCheckResultForm = list.get(ii);
+			String toolsNo = toolsCheckResultForm.getTools_no();
 			int isNowAvalible = isEmpty(toolsCheckResultForm.getResponsible_operator_id()) ? 0 : 12;
 			String manage_id = toolsCheckResultForm.getManage_id();
+			boolean hasPhoto = new File(PathConsts.BASE_PATH + PathConsts.PHOTOS + "\\jig\\" + toolsNo).exists();
 			checkContent.append("<tr class='tcs_content' stat manage_id='"+manage_id+"'>"
 					+ "<td>"+(ii+ 1)+"</td>"
 					+ "<td>" +toolsCheckResultForm.getManage_code()+ "</td>"
-					+ "<td>"+toolsCheckResultForm.getTools_no()+"</td>"
+					+ "<td>"+(hasPhoto ? "<a href='javascript:void(0)' class='t_pic icon-printer'>" + toolsNo + "</a>" : toolsNo)+ "</td>"
 					+ "<td class='HL WT'>"+toolsCheckResultForm.getTools_name()+"</td>"
 					+ "<td>1</td>"
 					+ "<td>1月/次</td>"

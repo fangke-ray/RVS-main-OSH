@@ -261,8 +261,8 @@ public class QuotationAction extends BaseAction {
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		String position_id = user.getPosition_id();
 		String process_code = user.getProcess_code();
-
 		String section_id = user.getSection_id();
+		List<Integer> privacies = user.getPrivacies();
 
 		// 判断维修对象在等待区，并返回这一条作业信息
 		ProductionFeatureEntity waitingPf = null;
@@ -287,6 +287,17 @@ public class QuotationAction extends BaseAction {
 			waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
 		}
 
+		if(errors.size() == 0){
+			if (waitingPf != null && waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_NOWORK_WAITING
+					&& !privacies.contains(RvsConsts.PRIVACY_PROCESSING)) {
+				//验证型号是否终止
+				MaterialService materialService = new MaterialService();
+				MaterialForm materialForm  = materialService.loadSimpleMaterialDetail(conn, material_id);
+
+				materialService.checkModelDepacy(materialForm, conn, errors);
+			}
+		}
+		
 		if (errors.size() == 0) {
 			QuotationService qService = new QuotationService();
 			qService.getProccessingData(detailResponse, material_id, waitingPf, user, conn);

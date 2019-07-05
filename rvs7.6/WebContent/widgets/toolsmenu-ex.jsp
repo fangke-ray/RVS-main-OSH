@@ -20,6 +20,7 @@
 		       <a target="_parent" href="tools_distribute.do">治具分布</a><br>		      
 		       <a target="_parent" href="peripheral_infect_device.do">周边设备点检关系</a><br>
 <% } %>
+			   <a target="_parent" href="device_jig_repair_record.do">设备工具维修记录</a><br>
 		    </div>
 </div>
 

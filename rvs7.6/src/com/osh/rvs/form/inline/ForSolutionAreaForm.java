@@ -20,7 +20,7 @@ public class ForSolutionAreaForm extends ActionForm {
 	@BeanField(title = "维修对象型号 ID", name = "model_id", type = FieldType.String, length = 11)
 	private String model_id;
 	private String model_name;
-	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String, length = 12)
+	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String)
 	private String serial_no;
 	@BeanField(title = "等级", name = "level", type = FieldType.Integer, length = 1)
 	private String level;

@@ -21,6 +21,7 @@ import com.osh.rvs.service.LineService;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.ToolsManageService;
+import com.osh.rvs.service.UploadService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
@@ -308,4 +309,36 @@ public class ToolsManageAction extends BaseAction {
 		returnJsonResponse(response, listResponse);
 		log.info("ToolsManageAction.dodeliver end");
 	}
+	
+	/**
+	 * 上传照片
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void sourceImage(ActionMapping mapping, ActionForm form, HttpServletRequest req,
+			HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("ToolsManageAction.sourceImage start");
+
+		// Ajax回馈对象
+		Map<String, Object> jsonResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		UploadService fservice = new UploadService();
+		String tempFilePath = fservice.getFile2Local(form, errors);
+
+		String photo_file_name = tempFilePath.substring(tempFilePath.lastIndexOf("\\") + 1);
+		service.copyPhoto(req.getParameter("tools_no"), photo_file_name);
+
+		// 检查发生错误时报告错误信息
+		jsonResponse.put("errors", errors);
+		// 返回Json格式响应信息
+		returnJsonResponse(res, jsonResponse);
+
+		log.info("ToolsManageAction.sourceImage end");
+	}
+
 }

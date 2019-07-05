@@ -49,10 +49,14 @@ background-color : #FFFFBB;
 	height:3em;
 	width:20em;
 }
-	
+#c_picture img {
+	max-width:1024px;
+	cursor : pointer;
+}	
 </style>
 <div id="check_sheet" class="tcs_sheet" style=""></div>
 <div id="confirmmessage"></div>
 <div id="c_comment"></div>
+<div id="c_picture"></div>
 <div id="manage_replace_panel" style="display:none;">
 替换新品管理编号: <input type="text" /><input type="button" class="ui-button" value="替换" onclick="doExchange()"/>

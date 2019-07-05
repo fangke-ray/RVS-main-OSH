@@ -127,6 +127,7 @@
 		<typeAlias alias="SteelWireContainerWashProcessEntity" type="com.osh.rvs.bean.inline.SteelWireContainerWashProcessEntity"/>
 		<typeAlias alias="ConsumableSupplyRecordEntity" type="com.osh.rvs.bean.partial.ConsumableSupplyRecordEntity"/>
 		<typeAlias alias="DeviceBackupEntity" type="com.osh.rvs.bean.equipment.DeviceBackupEntity"/>
+		<typeAlias alias="DeviceJigRepairRecordEntity" type="com.osh.rvs.bean.equipment.DeviceJigRepairRecordEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -266,5 +267,6 @@
 		<mapper resource="com/osh/rvs/mapper/report/WaittingTimeReportMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/report/RemainTimeReportMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/equipment/DeviceBackupMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/equipment/DeviceJigRepairRecordMapper.xml"/>
 	</mappers>
 </configuration> 

@@ -1,11 +1,11 @@
 package com.osh.rvs.form.master;
 
-import org.apache.struts.action.ActionForm;
+import com.osh.rvs.form.UploadForm;
 
 import framework.huiqing.bean.annotation.BeanField;
 import framework.huiqing.bean.annotation.FieldType;
 
-public class ToolsManageForm extends ActionForm {
+public class ToolsManageForm extends UploadForm {
 
 	/**
 	 * 治具管理

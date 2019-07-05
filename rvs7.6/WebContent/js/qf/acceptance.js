@@ -377,17 +377,67 @@ var showInput=function(rid, manual) {
 					}
 					// 地区
 					data.bound_out_ocm = $("#edit_bound_out_ocm").val();
+					
 					$.ajax({
 						beforeSend : ajaxRequestType,
 						async : false,
-						url : servicePath + '?method=doinsert',
+						url : servicePath + '?method=checkModelDepacy',
 						cache : false,
 						data : data,
 						type : "post",
 						dataType : "json",
 						success : ajaxSuccessCheck,
 						error : ajaxError,
-						complete : insert_handleComplete
+						complete : function(xhrobj, textStatus) {
+							var resInfo = null;
+							try {
+								// 以Object形式读取JSON
+								eval('resInfo =' + xhrobj.responseText);
+								if (resInfo.errors.length > 0) {
+									// 共通出错信息框
+									treatBackMessages("#editarea", resInfo.errors);
+								} else {
+									var messages = resInfo.messages;
+									if(messages.length > 0){
+										var warnData = "";
+										
+										for(var message of messages){
+											warnData += message.errmsg;
+										}
+										warningConfirm(warnData,function(){
+											$.ajax({
+												beforeSend : ajaxRequestType,
+												async : false,
+												url : servicePath + '?method=doinsert',
+												cache : false,
+												data : data,
+												type : "post",
+												dataType : "json",
+												success : ajaxSuccessCheck,
+												error : ajaxError,
+												complete : insert_handleComplete
+											});
+										},function(){});
+									}else{
+										$.ajax({
+											beforeSend : ajaxRequestType,
+											async : false,
+											url : servicePath + '?method=doinsert',
+											cache : false,
+											data : data,
+											type : "post",
+											dataType : "json",
+											success : ajaxSuccessCheck,
+											error : ajaxError,
+											complete : insert_handleComplete
+										});
+									}
+								}
+							}catch (e) {
+								alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+										+ e.lineNumber + " fileName: " + e.fileName);
+							};
+						}
 					});
 				}, "关闭" : function(){ $(this).dialog("close"); }
 			}
@@ -475,6 +525,13 @@ var enablebuttons = function() {
 };
 
 var enablebuttons2 = function() {
+	var role = $("body").attr("role");
+	var isManager = false;
+	// 经理
+	if(role == "manager"){
+		isManager = true;
+	}
+	
 	var rowids = $("#imp_list").jqGrid("getGridParam", "selarrrow");
 	if (rowids.length >= 1) {
 		$("#printbutton").enable();
@@ -494,11 +551,29 @@ var enablebuttons2 = function() {
 				break;
 			}
 		}
-		for (var i in rowids) {
-			var data = $("#imp_list").getRowData(rowids[i]);
-			if (data["doreception_time"].trim() != "") {
-				notaccepted = false;
-				break;
+		
+		//经理
+		if(isManager){
+			for (var i in rowids) {
+				var data = $("#imp_list").getRowData(rowids[i]);
+				if (data["doreception_time"].trim() != "") {
+					notaccepted = false;
+					break;
+				}
+			}
+		} else {//经理以外
+			for (var i in rowids) {
+				var data = $("#imp_list").getRowData(rowids[i]);
+				var doreception_time = data["doreception_time"].trim();
+				var avaliable_end_date_flg = data["avaliable_end_date_flg"].trim();
+				
+				if (avaliable_end_date_flg == 0 || avaliable_end_date_flg == 1) {
+					notaccepted = false;
+					break;
+				} else if(doreception_time != ""){
+					notaccepted = false;
+					break;
+				}
 			}
 		}
 	
@@ -537,7 +612,7 @@ function acceptted_list(){
 			datatype: "local",
 			colNames:['受理对象ID','导入时间','受理时间', '修理单号', '型号 ID', '型号' , '机身号','委托处ID','委托处','同意日', 
 			'等级ID', '等级','通箱编号', '受理人员ID','受理人员', '仓储人员', '备注', '直送', '返修标记', '流水类型','消毒灭菌ID', '选择式报价'
-			,'ocm_rank','customer_name','vip','scheduled_expedited','ocm_deliver_date', '直送区域', '通箱位置'],
+			,'ocm_rank','customer_name','vip','scheduled_expedited','ocm_deliver_date', '直送区域', '通箱位置','avaliable_end_date_flg'],
 			colModel:[
 				{name:'material_id',index:'material_id', hidden:true},
 				{name:'reception_time',index:'reception_time', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d H:i'}},
@@ -556,7 +631,12 @@ function acceptted_list(){
 				{name:'operator_id',index:'operator_id', hidden:true},
 				{name:'operator_name',index:'operator_name', width:50, hidden:true},
 				{name:'storager',index:'storager', width:50, hidden:true},
-				{name:'remark',index:'remark', width:105},
+				{name:'remark',index:'remark', width:105,formatter:function(value, options, rData){
+					if(rData.avaliable_end_date_flg == 0 || rData.break_back_flg == 1){
+						value += "型号终止";
+					} 
+					return value;
+				}},
 				{name:'direct_flg',index:'direct_flg', hidden:true},
 				{name:'service_repair_flg',index:'service_repair_flg', hidden:true},
 				{name:'fix_type',index:'fix_type', hidden:true},
@@ -574,7 +654,8 @@ function acceptted_list(){
 					width : 35,
 					align : 'center'
 				},
-				{name:'wip_location',index:'wip_location', width : 35}
+				{name:'wip_location',index:'wip_location', width : 35},
+				{name:'avaliable_end_date_flg',index:'avaliable_end_date_flg', hidden:true}
 			],
 			rowNum: 50,
 			toppager: false,
@@ -600,8 +681,18 @@ function acceptted_list(){
 				var length = dataIds.length;
 				for (var i = 0; i < length; i++) {
 					var rowdata = jthis.jqGrid('getRowData', dataIds[i]);
+					// 型号登记有效期标记
+					var avaliable_end_date_flg = rowdata["avaliable_end_date_flg"];
+					
 					if (rowdata["sterilized"] != "0") {
 						jthis.find("tr#" + dataIds[i] + " td").addClass("waitTicket");
+					}
+					
+					// 过期
+					if(avaliable_end_date_flg == 0 ){
+						jthis.find("tr#" + dataIds[i] + " td[aria\\-describedby='imp_list_model_name']").css({"background-color":"red"});
+					} else if(avaliable_end_date_flg == 1){//离过期还有一个月
+						jthis.find("tr#" + dataIds[i] + " td[aria\\-describedby='imp_list_model_name']").css({"background-color":"orange"});
 					}
 				}
 			}

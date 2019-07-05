@@ -20,6 +20,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.jqGrid.min.js"></script>
 <script type="text/javascript" src="js/i18n/grid.locale-cn.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
+<script type="text/javascript" src="js/ajaxfileupload.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 
@@ -354,6 +355,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td colspan="3" class="td-content">
 						<input type="text" id="update_manage_code" name="manage_code" alt="管理编号"  class="ui-widget-content">
 					</td>
+					<td class="ui-state-default td-title">专用工具照片</td>
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">治具NO.</td>
@@ -364,17 +366,24 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-content">
 						<input type="text" id="update_tools_name" name="tools_type_id" alt="治具名称"  class="ui-widget-content">	
 					</td>
+					<td class="td-content">
+						<input type="file" name="file" id="update_photo" name="photo" value="导入照片" alt="专用工具照片">	
+					</td>
 				</tr>					
 				<tr>
 					<td class="ui-state-default td-title">管理员</td>
-					<td class="td-content">
+					<td class="td-content" colspan="3">
 						<input id="update_manager_operator_id"  class="ui-widget-content" type="text">
 						<input type="hidden" id="hidden_update_manager_operator_id" name="manager_operator_id" alt="管理员">
+					</td>
+					<td class="td-content" rowspan="10">
+						<label id="show_no_photo">没有此专用工具的照片</label>
+						<img id="show_photo"></img>
 					</td>
 				</tr>
 				<tr>
 				    <td class="ui-state-default td-title">放置位置</td>
-					<td class="td-content">
+					<td class="td-content" colspan="3">
 						<input type="text" id="update_localtion" name="localtion" alt="放置位置" class="ui-widget-content">						
 					</td>	
 				</tr>

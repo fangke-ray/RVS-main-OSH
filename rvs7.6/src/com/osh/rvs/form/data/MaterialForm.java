@@ -22,7 +22,7 @@ public class MaterialForm extends ActionForm {
 	private String esas_no;
 	@BeanField(title = "维修对象型号", name = "model_id", type = FieldType.String, length = 11, notNull = true)
 	private String model_id;
-	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String, length = 12, notNull = true)
+	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String, length = 20, notNull = true)
 	private String serial_no;
 	@BeanField(title = "委托处", name = "ocm", type = FieldType.Integer, length = 2, notNull = true)
 	private String ocm;
@@ -172,6 +172,9 @@ public class MaterialForm extends ActionForm {
 
 	@BeanField(title = "备注内容", name = "comment", type = FieldType.String, length = 500)
 	private String comment;
+	
+	@BeanField(title = "有效期标记", name = "avaliable_end_date_flg", type = FieldType.Integer, length = 1)
+	private String avaliable_end_date_flg;
 
 	public String getCategory_id() {
 		return category_id;
@@ -841,6 +844,14 @@ public class MaterialForm extends ActionForm {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	public String getAvaliable_end_date_flg() {
+		return avaliable_end_date_flg;
+	}
+
+	public void setAvaliable_end_date_flg(String avaliable_end_date_flg) {
+		this.avaliable_end_date_flg = avaliable_end_date_flg;
 	}
 
 }

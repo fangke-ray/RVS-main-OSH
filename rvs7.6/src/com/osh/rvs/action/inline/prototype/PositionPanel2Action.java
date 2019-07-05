@@ -31,6 +31,13 @@ public class PositionPanel2Action extends PositionPanelAction {
 		super.jsinit(mapping, form, req, res, conn);
 	}
 
+	@Privacies(permit={1, 0})
+	public void jsinitInfect(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSession conn)
+			throws Exception {
+		super.jsinitInfect(mapping, form, req, res, conn);
+	}
+
 	@Privacies(permit={0})
 	public void doscan(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		super.doscan(mapping, form, req, res, conn);

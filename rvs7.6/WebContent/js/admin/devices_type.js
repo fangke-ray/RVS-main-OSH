@@ -33,9 +33,45 @@ $(function(){
     //新建---取消button
     $("#cancelbutton, #editarea span.ui-icon").click(function() {
         showList();
-    });   
+    });
+    
+    $("#show_photo").on("error", function(){
+		$("#show_photo").hide();
+		$("#show_no_photo").show();
+	});
+    
+    $("#update_photo").parent().on("change", "#update_photo", uploadPhoto);
+    
     findit();
-})
+});
+
+var uploadPhoto = function(){
+	if(!this.value) return;
+
+	var devices_type_id = $("#hidden_devices_type_id").val();
+    $.ajaxFileUpload({
+        url : servicePath + "?method=sourceImage", // 需要链接到服务器地址
+        secureuri : false,
+        data: {devices_type_id : devices_type_id},
+        fileElementId : 'update_photo', // 文件选择框的id属性
+        dataType : 'json', // 服务器返回的格式
+		success : function(responseText, textStatus) {
+			var resInfo = $.parseJSON(responseText);	
+
+			if (resInfo.errors.length > 0) {
+				// 共通出错信息框
+				treatBackMessages(null, resInfo.errors);
+			} else {
+				$("#update_photo").val("");
+				
+				$("#show_no_photo").hide();
+				$("#show_photo")
+					.attr("src", "http://" + document.location.hostname + "/photos/safety_guide/" + devices_type_id + "?_s=" + new Date().getTime()).show();
+			}
+		}
+     });
+}
+
 
 /** 
  * 检索处理
@@ -95,7 +131,7 @@ function filed_list(finished){
             width: 992,
             rowheight: 23,
             datatype: "local",
-            colNames:['','治具点检ID','品名','特定设备工具种类','删除标记','最后更新人','最后更新时间'],
+            colNames:['','治具点检ID','品名','特定设备工具种类','删除标记','安全操作<br>手顺','最后更新人','最后更新时间'],
             colModel:[
                        {name:'myac',fixed:true,width:40,sortable:false,resize:false,formatter:'actions',formatoptions:{keys:true, editbutton:false}},
                        {name:'devices_type_id',index:'devices_type_id', hidden:true}, 
@@ -106,6 +142,11 @@ function filed_list(finished){
 							}
 						},
                        {name:'delete_flg',index:'delete_flg',hidden:true}, 
+                       {name:'safety_guide',index:'safety_guide',width : 20, formatter : 'select',
+       					editoptions : {
+       						value : "0:;1:有"
+       					},align:'center'
+       				   },
                        {name:'updated_by',index:'updated_by',width : 35}, 
                        {name:'updated_time',index:'updated_time',width : 50}
                       ],
@@ -146,7 +187,8 @@ var showAdd = function() {
     $("#editbutton").val("新建");
     $("#editbutton").enable();
     $(".errorarea-single").removeClass("errorarea-single");
-
+    $(".safety_guide").hide();
+    
     // 前台Validate验证
     $("#editform").validate({
         rules:{
@@ -240,6 +282,8 @@ var showEdit = function() {
      $(".errorarea-single").removeClass("errorarea-single");
      $("#searcharea,#searchform,#listarea").hide(); 
      $("#editarea").show(); 
+     $(".safety_guide").show();
+     $("#update_photo").val("");
      
      var row = $("#list").jqGrid("getGridParam","selrow");//得到选中的行ID
      var rowData = $("#list").getRowData(row);
@@ -255,6 +299,11 @@ var showEdit = function() {
      $("#label_updated_by").text(rowData.updated_by);
      $("#label_updated_time").text(rowData.updated_time);        
    
+     $("#show_no_photo").hide();
+ 	 $("#show_photo").show()
+ 		.attr("src", "http://" + document.location.hostname + "/photos/safety_guide/" + rowData.devices_type_id + "?_s=" + new Date().getTime());
+
+     
     // 前台Validate验证
     $("#editform").validate({
         rules:{

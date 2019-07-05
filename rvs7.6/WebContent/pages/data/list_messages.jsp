@@ -71,7 +71,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="ui-state-default td-title">维修对象型号</td>
 					<td class="td-content"><input type="text" readonly class="ui-widget-content"><input type="hidden" name="model_id" id="cond_model_id"/></td>
 					<td class="ui-state-default td-title">机身号</td>
-					<td class="td-content"><input type="text" name="serial_no" id="cond_serial_no" maxlength="12" class="ui-widget-content"></td>
+					<td class="td-content"><input type="text" name="serial_no" id="cond_serial_no" maxlength="20" class="ui-widget-content"></td>
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">课室</td>

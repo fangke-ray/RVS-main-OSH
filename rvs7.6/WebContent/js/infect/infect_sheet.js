@@ -119,6 +119,29 @@ var showInfectSheet =function(infectDetailData, isLeader){
 					.find("input:radio[value='2']").attr("checked", "checked");
 				$check_sheet.find("input:radio").not(".input_type").button();
 				$check_sheet.find("input.ui-button").button();
+				$check_sheet.find("a.t_pic").click(function(){
+					var $check_picture = $("#c_picture");
+
+					$check_picture.html("<img src='http://" + document.location.hostname + "/photos/jig/" 
+						+ $(this).text().trim() + "' title='点击图片关闭'>");
+					$check_picture.children("img").click(function(){$check_picture.dialog("close");});
+					$check_picture.dialog({
+						title : "专用工具照片",
+						width : 800,
+						height : 640 ,
+						resizable : false,
+						modal : true,
+						minHeight : 200,
+						close : function(){
+							$check_picture.html("");
+						},
+						buttons : {
+							"关闭" : function(){
+								$check_picture.dialog("close");
+							}
+						}
+					});
+				});
 			}
 			if(isLeader == "true") {
 				$check_sheet.find("input:radio, input:text").not(".t_comment").not(".input_type").click(function(idx, ele) {

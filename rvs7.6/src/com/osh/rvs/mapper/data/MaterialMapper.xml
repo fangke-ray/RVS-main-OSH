@@ -163,7 +163,7 @@
 		select `m`.`material_id`,
 		coalesce(omr_notifi_no, sorc_no) as sorc_no,
 		`m`.`esas_no`,`m`.`model_id`,
-		`m`.`serial_no`,`m`.`ocm`,`m`.`level`,`m`.`reception_time`,
+		`m`.`serial_no`,`m`.`ocm`,`m`.`level`,`m`.`ocm_rank`, `m`.`reception_time`,
 		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`,
 		`m`.`storager`,`m`.`fix_type`,`m`.`service_repair_flg`,
 		`m`.`section_id`,`m`.`wip_location`,`m`.`direct_flg`,
@@ -421,9 +421,6 @@
 				and pf47.finish_time < date_add(#{finish_time_end}, INTERVAL 1 day)
 				]]>
 			</if>
-			<![CDATA[
-			)
-			]]>
 		</if>
 
 		<where>

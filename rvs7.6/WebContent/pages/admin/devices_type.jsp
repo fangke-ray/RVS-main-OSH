@@ -20,6 +20,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.jqGrid.min.js"></script>
 <script type="text/javascript" src="js/i18n/grid.locale-cn.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
+<script type="text/javascript" src="js/ajaxfileupload.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 
@@ -96,11 +97,21 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<tr>
 					<td class="ui-state-default td-title">品名</td>
 					<td class="td-content"><input type="text" alt="品名" name="name" id="edit_name" class="ui-widget-content" style="width:215px;"/></td>
+					<td class="td-content safety_guide" rowspan="5">
+						<label id="show_no_photo">无安全操作手顺</label>
+						<img id="show_photo"></img>
+					</td>
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">特定设备工具种类</td>
 					<td class="td-content">
 						<select id="edit_specialized" class="ui-widget-content">${specializedDeviceType}</select>
+					</td>
+				</tr>
+				<tr class="safety_guide">
+					<td class="ui-state-default td-title">安全操作手顺上传</td>
+					<td class="td-content">
+						<input  type="file" name="file" id="update_photo" name="photo" value="导入图片" alt="安全操作手顺">	
 					</td>
 				</tr>						
 				<tr>
@@ -133,6 +144,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
        </div>
      </div>
     <div class="clear areaencloser"></div>
+</div>
 </div>
 </body>
 </html>

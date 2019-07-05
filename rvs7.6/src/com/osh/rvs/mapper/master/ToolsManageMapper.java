@@ -41,4 +41,6 @@ public interface ToolsManageMapper {
 	
 	public void disband(ToolsManageEntity toolsManageEntity);
 
+	public List<ToolsManageEntity> getAllManageCode();
+
 }

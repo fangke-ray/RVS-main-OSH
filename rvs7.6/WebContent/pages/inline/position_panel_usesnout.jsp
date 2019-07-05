@@ -261,12 +261,19 @@ if (work_count_flg == 1) {
 	<div id="process_dialog"></div>
 	<div id="break_dialog"></div>
 	<%@include file="/widgets/position_panel/countdown_unreach.jsp"%>
-	<div id="comments_dialog" style="display:none;">
+	<!--div id="comments_dialog" style="display:none;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix">
 			<span class="areatitle icon-enter-2"> 维修对象相关信息</span>
 		</div>
 		<textarea style="width:100%;height:6em;resize:none;border:0;padding:4px;" disabled readonly>
 		</textarea>
+	</div-->
+	<div id="comments_sidebar" style="display:none;">
+		<div class="ui-widget-header ui-corner-top ui-helper-clearfix">
+			<span class="areatitle icon-enter-2">提示相关信息</span>
+		</div>
+		<div class="comments_area">
+		</div>
 	</div>
 	<div id="consumables_dialog">
 		<style>

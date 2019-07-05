@@ -118,8 +118,46 @@ $(function(){
 	
 	//交付动作
 	$("#more_update").click(more_update);
+	
+	$("#show_photo").on("error", function(){
+		$("#show_photo").hide();
+		$("#show_no_photo").show();
+	});
+	
+	$("#update_photo").parent().on("change", "#update_photo", uploadPhoto);
 
 });
+
+var uploadPhoto = function(){
+	if(!this.value) return;
+	if(!$("#update_tools_no").val()) {
+		errorPop("当前无法取到专用工具NO.");
+		return;
+	}
+
+	var tools_no = $("#update_tools_no").val();
+	$.ajaxFileUpload({
+		url : servicePath + "?method=sourceImage", // 需要链接到服务器地址
+		secureuri : false,
+		data: {tools_no : tools_no},
+		fileElementId : 'update_photo', // 文件选择框的id属性
+		dataType : 'json', // 服务器返回的格式
+		success : function(responseText, textStatus) {
+			var resInfo = $.parseJSON(responseText);	
+
+			if (resInfo.errors.length > 0) {
+				// 共通出错信息框
+				treatBackMessages(null, resInfo.errors);
+			} else {
+				$("#update_photo").val("");
+				
+				$("#show_no_photo").hide();
+				$("#show_photo")
+					.attr("src", "http://" + document.location.hostname + "/photos/jig/" + tools_no + "?_s=" + new Date().getTime()).show();
+			}
+		}
+	});
+}
 
 var more_update = function(){
 	
@@ -999,6 +1037,12 @@ var showDetail = function(){
     $("#hidden_update_responsible_operator_id").val(rowData.responsible_operator_id);
     $("#update_comment").val(rowData.comment);
     $("#update_order_date").val(rowData.order_date);
+    
+    $("#update_photo").val("");
+
+	$("#show_no_photo").hide();
+	$("#show_photo").show()
+		.attr("src", "http://" + document.location.hostname + "/photos/jig/" + rowData.tools_no + "?_s=" + new Date().getTime());
     
     $("#update_form").validate({
        rules:{

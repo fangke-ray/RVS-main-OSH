@@ -378,7 +378,7 @@
 		]]>
 		<if test="level==null">
 			<![CDATA[
-				and not exists(select 1 from model_level_set where model_id = #{model_id} and avaliable_end_date >= current_date)
+				and not exists(select 1 from model_level_set where model_id = #{model_id} and avaliable_end_date >= DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH))
 			]]> 
 		</if>
 		<if test="level!=null">
@@ -387,7 +387,7 @@
 			]]> 
 		</if>
 		<![CDATA[ 
-				and avaliable_end_date < current_date
+				and avaliable_end_date < DATE_ADD(CURRENT_DATE, INTERVAL 1 MONTH)
 				order by avaliable_end_date desc
 				limit 1
 		]]>
