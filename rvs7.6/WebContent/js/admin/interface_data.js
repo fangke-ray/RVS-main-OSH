@@ -41,7 +41,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 		eval('resInfo =' + xhrobj.responseText);
 
 		listsize = resInfo.finished.length;
-		countMaxPage();
+		//countMaxPage();
 		filed_list(resInfo.finished);
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
