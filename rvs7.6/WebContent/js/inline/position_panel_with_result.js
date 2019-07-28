@@ -17,6 +17,8 @@ var t_run_cost = 0;
 var pauseOptions = "";
 var breakOptions = "";
 
+var device_safety_guide = {};
+
 /** 中断信息弹出框 */
 var makeBreakDialog = function(jBreakDialog) {
 	jBreakDialog.dialog({
@@ -130,6 +132,12 @@ var treatStart = function(resInfo) {
 		});
 	}
 
+	if (resInfo.material_comment || (device_safety_guide && device_safety_guide.length)) {
+		showSidebar(resInfo.material_comment);
+	} else {
+		$("#comments_sidebar").hide();
+	}
+
 	$("#finishbutton").enable();
 	remapworking(resInfo.workingPfs)
 }
@@ -137,6 +145,25 @@ var treatStart = function(resInfo) {
 var showBreakOfInfect = function(infectString) {
 	var $break_dialog = $('#break_dialog');
 	$break_dialog.html(decodeText(infectString));
+	if ($break_dialog.html().indexOf("opd_pop") >= 0) {
+		$break_dialog.find("span").attr("id", "opd_loader_past");
+	}
+
+	var closeButtons = {
+		"退出回首页":function() {
+				window.location.href = "./panel.do?method=init";
+		}
+	}
+	if (infectString.indexOf("点检") >= 0) {
+		closeButtons ={
+			"进行点检":function() {
+				window.location.href = "./usage_check.do?from=position";
+			},
+			"退出回首页":function() {
+					window.location.href = "./panel.do?method=init";
+			}
+		}
+	}
 
 	$break_dialog.dialog({
 		modal : true,
@@ -148,16 +175,46 @@ var showBreakOfInfect = function(infectString) {
 		close: function(){
 			window.location.href = "./panel.do?method=init";
 		},
-		buttons :{
-			"确定":function() {
-				if (infectString.indexOf("点检") >= 0) {
-					window.location.href = "./usage_check.do?from=position";
-				} else {
-					window.location.href = "./panel.do?method=init";
-				}
-			}
-		}
+		buttons : closeButtons
 	});
+}
+
+var showSidebar = function(material_comment) {
+
+	var $ul = $("<ul/>");
+	var $content = $("<div class='tip_pages'/>");
+	
+	if (material_comment) {
+		$ul.append("<li><input type='radio' id='st_material_comment' name='showTips'><label for='st_material_comment'>维修对象备注<label></li>");
+		$content.append("<div class='tip_page' for='st_material_comment'><textarea readonly>" + material_comment + "</textarea></div>");
+	}
+	if (device_safety_guide) {
+		for (var idsg in device_safety_guide) {
+			var device_type = device_safety_guide[idsg];
+			$ul.append("<li><input type='radio' id='st_" + device_type.devices_type_id 
+				+ "' name='showTips'><label for='st_" + device_type.devices_type_id + "'>安全操作手顺: <br>" + device_type.name + "<label></li>");
+			$content.append("<div class='tip_page' for='st_" + device_type.devices_type_id + "'>" 
+				+ (device_type.safety_guide ? "<img src='/photos/safety_guide/" + device_type.devices_type_id + "'></img>" : "")
+				+ "</div>");
+		}
+	}
+	$content.children().hide();
+
+	$("#comments_sidebar .comments_area").html("")
+		.append($content)
+		.append($ul)
+		.find("ul").buttonset()
+		.find("input:radio").change(function(){
+			$("#comments_sidebar .tip_page").hide();
+			$("#comments_sidebar .tip_page[for='" + $(this).attr("id") + "']").show();
+		})
+		.end().find("input:radio:eq(0)").attr("checked", "checked").trigger("change");
+	$("#comments_sidebar .comments_area").hide();
+	$("#comments_sidebar").removeClass("shown").css({width:"30px",opacity:".5"});
+	$("#comments_sidebar .ui-widget-header span").removeClass("icon-enter-2").addClass("icon-share");
+
+	$("#comments_sidebar").show();
+
 }
 
 var doInit_ajaxSuccess = function(xhrobj, textStatus){
@@ -197,6 +254,9 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			});
 			$("#waitings").html($waiting_html);
 
+			// 设备危险归类/安全手册信息
+			if (resInfo.position_hcsgs) device_safety_guide = resInfo.position_hcsgs;
+
 			// 计算当前用时
 			var p_operator_cost = $("#p_operator_cost").text();
 			if (p_operator_cost.indexOf(':') < 0) {
@@ -225,6 +285,12 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 
 			if (resInfo.workstauts == 1) {
 				treatStart(resInfo);
+			} else {
+				if (device_safety_guide && device_safety_guide.length) {
+					showSidebar(null);
+				} else {
+					$("#comments_sidebar").hide();
+				}
 			}
 		}
 	} catch (e) {
@@ -295,6 +361,29 @@ $(function() {
 			$("#workings .dm_select .manager_no[code="+ code +"]").val(val).trigger("change");
 		});
 	}
+
+	$("#comments_sidebar .ui-widget-header span").on("click",function(){
+
+		if($("#comments_sidebar").hasClass("shown")){
+			$("#comments_sidebar .tip_pages").css("overflow-y", "hidden");
+			$("#comments_sidebar img").hide();
+			$("#comments_sidebar .comments_area").slideUp(200,function(){
+				$("#comments_sidebar .ui-widget-header span").removeClass("icon-enter-2").addClass("icon-share");
+				$("#comments_sidebar").animate({width:"30px",opacity:".5"},300);
+			});
+			$("#comments_sidebar").removeClass("shown");
+		}else{
+
+			$("#comments_sidebar").animate({width:"1024px",opacity:"1"},300,function(){
+				$("#comments_sidebar .ui-widget-header span").removeClass("icon-share").addClass("icon-enter-2");
+				$("#comments_sidebar .comments_area").slideDown(200,function(){
+					$("#comments_sidebar img").show();
+					$("#comments_sidebar .tip_pages").css("overflow-y", "auto");
+				});
+			});
+			$("#comments_sidebar").addClass("shown");
+		}
+	});
 });
 
 var makeReport = function() {
@@ -373,9 +462,21 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 
 			$("#s_t").text("");
 			$("#finishbutton").disable();
+			if (device_safety_guide && device_safety_guide.length) {
+				$("#comments_sidebar .comments_area").val("");
+				$("#comments_sidebar").hide();
+			}
+			if (device_safety_guide && device_safety_guide.length) {
+				showSidebar(null);
+				if ($("#comments_sidebar").hasClass("shown")) {
+					$("#comments_sidebar .ui-widget-header span").trigger("click");
+				}
+			} else {
+				$("#comments_sidebar").hide();
+			}
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 }

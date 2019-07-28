@@ -182,8 +182,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		</div>
 	</div>
 
-	<%@include file="../../widgets/equipment/add_spare_dialog.jsp"%>
-
 	<div id="dev_managecode_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="z-index:1050">
 		 <table>
 			<tbody>

@@ -57,10 +57,6 @@ public class DevicesTypeService {
 			}
 			devicesTypeForms.add(devicesTypeForm);
 		}
-		
-		
-		BeanUtil.copyToFormList(devicesTypeEntities, devicesTypeForms, CopyOptions.COPYOPTIONS_NOEMPTY,
-				DevicesTypeForm.class);
 
 		return devicesTypeForms;
 	}

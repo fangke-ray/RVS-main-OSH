@@ -193,7 +193,8 @@ var getPositionWork = function(position_id, px){
         <a title="" target="_parent" href="show.do#free_qis_cost">无偿QIS展示</a><br>
         <a title="" target="_parent" href="show.do#consumable_list">消耗品库存展示</a><br>
         <a title="" target="_parent" href="show.do#snout_list">先端预制看板</a><br>
-        <a title="" target="_parent" href="show.do#turnoverCase">通箱库位展示</a>
+        <a title="" target="_parent" href="show.do#turnoverCase">通箱库位展示</a><br>
+        <a title="Pending Area" target="_parent" href="show.do#devicesPendingArea">设备工具PA展示</a>
 </div>
 </div>
 <% } %>

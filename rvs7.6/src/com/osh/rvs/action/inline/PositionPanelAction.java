@@ -1334,9 +1334,13 @@ public class PositionPanelAction extends BaseAction {
 			listResponse.put("waitings",
 					service.getWaitingMaterial(section_id, user.getPosition_id(), user.getLine_id(),
 							user.getOperator_id(), user.getPx(), process_code, conn));
-	
+
 			// 取得现在处理中的批量
 			service.searchWorkingBatch(listResponse, user, conn);
+
+			// 取得设备工具的安全手册信息
+			DevicesManageService dmS = new DevicesManageService();
+			listResponse.put("position_hcsgs", dmS.getOfPositionHazardousCautionsAndSafetyGuide(section_id, position_id, conn));
 		}
 
 		// 检查发生错误时报告错误信息
