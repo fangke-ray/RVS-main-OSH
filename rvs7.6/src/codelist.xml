@@ -1,5 +1,15 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <codelist-config>
+	<codelist name="repair_category_kind">
+		<value code="1">粗镜</value>
+		<value code="2">电子细镜</value>
+		<value code="3">纤维镜</value>
+		<value code="4">混合细镜</value>
+		<value code="5">超声镜</value>
+		<value code="6">硬性镜</value>
+		<value code="7">周边设备</value>
+	</codelist>
+
 	<codelist name="category_kind">
 		<value code="1">粗镜</value>
 		<value code="2">电子细镜</value>
@@ -8,6 +18,8 @@
 		<value code="5">超声镜</value>
 		<value code="6">硬性镜</value>
 		<value code="7">周边设备</value>
+		<value code="8">手术器械</value>
+		<value code="9">附件</value>
 	</codelist>
 
 	<codelist name="qa_category_kind">
@@ -1195,6 +1207,58 @@
 		<value code="0">独立流程参照</value>
 		<!--value code="2">单元维修</value>
 		<value code="9">投线前</value-->
+	</codelist>
+
+	<codelist name="qf_production_module">
+		<value code="10">受理</value>
+		<value code="11">消毒</value>
+		<value code="12">灭菌</value>
+		<value code="13">出货</value>
+
+		<value code="20">投线</value>
+		<value code="21">零件入库</value>
+		<value code="22">维修零件订购</value>
+		<value code="23">维修零件出库</value>
+		<value code="24">出货单制作</value>
+		<value code="25">消耗品入库</value>
+		<value code="26">消耗品出库</value>
+
+		<value code="27">物料加工</value>
+	</codelist>
+
+	<codelist name="qf_production_type">
+		<value code="101">票单打印</value>
+		<value code="102">维修品实物受理/测漏</value>
+		<value code="103">维修品/备品系统受理</value>
+		<value code="104">备品系统导入</value>
+		<value code="105">备品实物受理/测漏</value>
+		<value code="106">维修品实物受理/测漏</value>
+		<value code="111">维修品消毒</value>
+		<value code="112">备品消毒</value>
+		<value code="113">镜箱消毒</value>
+		<value code="121">维修品灭菌</value>
+		<value code="122">备品灭菌</value>
+		<value code="131">镜箱出库</value>
+		<value code="132">维修品出货</value>
+
+		<value code="201">投线</value>
+		<value code="211">零件收货</value>
+		<value code="212">入库单导入</value>
+		<value code="213">零件核对/上架</value>
+		<value code="214">零件分装</value>
+		<value code="221">维修零件订购</value>
+		<value code="231">维修零件发放</value>
+		<value code="241">维修出货单制作</value>
+		<value code="242">未修理返送</value>
+		<value code="251">消耗品收货</value>
+		<value code="252">消耗品核对/上架</value>
+		<value code="261">消耗品出库</value>
+
+		<value code="271">固定件清洗</value>
+		<value code="272">热缩管切割</value>
+		<value code="273">耗材分装</value>
+		<value code="274">NS插入管零件预包装</value>
+		<value code="275">S1级组件拆包装/分配</value>
 	</codelist>
 
 </codelist-config>

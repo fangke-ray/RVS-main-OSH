@@ -51,7 +51,7 @@ public class LightFixAction extends BaseAction {
 		log.info("LightFixAction.init start");
 
 		// 取得类别下拉框信息
-		String kOptions = CodeListUtils.getSelectOptions("category_kind", null, "", false);
+		String kOptions = CodeListUtils.getSelectOptions("repair_category_kind", null, "", false);
 		req.setAttribute("kOptions", kOptions);
 
 		PositionService positionService = new PositionService();
@@ -61,7 +61,7 @@ public class LightFixAction extends BaseAction {
 		// 取得类别下拉框信息
 		List<String[]> cList = new ArrayList<String[]>();
 
-		Map<String, String> kindList = CodeListUtils.getList("category_kind");
+		Map<String, String> kindList = CodeListUtils.getList("repair_category_kind");
 		for (String kind_code : kindList.keySet()) {
 			String kind = kindList.get(kind_code);
 			String[] pline = new String[2];
