@@ -37,7 +37,7 @@ $(function() {
 				<a target="_parent" href="premake_partial.do">预制零件设定</a><br>
 <% } %>
 		    </div>
-		    <h3 style="padding-left:30px;">零件订购/签收</h3>
+		    <h3 style="padding-left:30px;">零件入出库</h3>
 		    <div>
 	<% if(links.get("analysis")){ %>
 		        <a target="_parent" href="partial_supply.do">零件补充</a><br>

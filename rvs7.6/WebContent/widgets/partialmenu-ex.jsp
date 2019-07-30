@@ -17,7 +17,7 @@
 		    </div>
 </div>
 <div class="dwidth-left">
-<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>零件订购/签收</h3>
+<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>零件入出库</h3>
 		    <div class="ui-accordion-content ui-helper-reset ui-widget-content">
 	<% if(links.get("analysis")){ %>
 		        <a target="_parent" href="partial_supply.do">零件补充</a><br>
