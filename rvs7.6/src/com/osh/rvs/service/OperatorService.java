@@ -110,6 +110,10 @@ public class OperatorService {
 			pResultBeans = dao.getPositionsOfOperator(operator_id, "0");
 			resultForm.setAbilities(pResultBeans);
 
+			List<String> afAbilities = dao.getAfAbilitiesOfOperator(operator_id);
+			// 取得间接作业能力
+			resultForm.setAf_abilities(afAbilities);
+
 			// 取得兼任权限
 			List<String> rResultBeans = dao.getRolesOfOperator(operator_id);
 			resultForm.setTemp_role(rResultBeans);
@@ -164,6 +168,10 @@ public class OperatorService {
 			// 取得可选工位
 			pResultBeans = dao.getPositionsOfOperator(operator_id, "0");
 			resultForm.setAbilities(pResultBeans);
+
+			List<String> afAbilities = dao.getAfAbilitiesOfOperator(operator_id);
+			// 取得间接作业能力
+			resultForm.setAf_abilities(afAbilities);
 
 			return resultForm;
 		}
@@ -275,6 +283,12 @@ public class OperatorService {
 			dao.insertPositionOfOperator(insertBean.getOperator_id(), sPosition_id, "0");
 		}
 
+		// 可选间接作业
+		List<String> updateAfAbilities = form.getAf_abilities();
+		for (String pType : updateAfAbilities) {
+			dao.insertAfAbilitiesOfOperator(insertBean.getOperator_id(), pType);
+		}
+
 		// 兼任角色关系插入到数据库中
 		List<String> temproles = form.getTemp_role();
 		for (String role_id : temproles) {
@@ -310,6 +324,7 @@ public class OperatorService {
 
 		// 删除原有权限关系
 		dao.deletePositionOfOperator(updateBean.getOperator_id());
+		dao.deleteAfAbiltiesOfOperator(updateBean.getOperator_id());
 
 		// 拥有权限关系插入到数据库中
 		// 主要工位
@@ -321,6 +336,11 @@ public class OperatorService {
 		List<String> updateAbilities = operatorForm.getAbilities();
 		for (String sPosition_id : updateAbilities) {
 			dao.insertPositionOfOperator(updateBean.getOperator_id(), sPosition_id, "0");
+		}
+		// 可选间接作业
+		List<String> updateAfAbilities = operatorForm.getAf_abilities();
+		for (String pType : updateAfAbilities) {
+			dao.insertAfAbilitiesOfOperator(updateBean.getOperator_id(), pType);
 		}
 
 		// 删除原有兼任角色关系
@@ -452,30 +472,50 @@ public class OperatorService {
 		return pReferChooser;
 	}
 	
-	   //取得所有治具点检人员
-		public String getAllToolsOperatorName(SqlSession conn){
-			List<String[]> lst = new ArrayList<String[]>();
+   //取得所有治具点检人员
+	public String getAllToolsOperatorName(SqlSession conn){
+		List<String[]> lst = new ArrayList<String[]>();
 
-			OperatorMapper dao = conn.getMapper(OperatorMapper.class);
-			List<OperatorNamedEntity> allOperator = dao.searchToolsOperator(null);
+		OperatorMapper dao = conn.getMapper(OperatorMapper.class);
+		List<OperatorNamedEntity> allOperator = dao.searchToolsOperator(null);
 
-			for (OperatorNamedEntity operator : allOperator) {
-				String[] p = new String[4];
-				p[0] = operator.getOperator_id();
-				p[1] = operator.getName();
-				p[2] = operator.getRole_name();
-				if(CommonStringUtil.isEmpty(operator.getLine_name())){
-					p[3] = "";
-				}else{
-					p[3] = operator.getLine_name();
-				}
-				
-				lst.add(p);
+		for (OperatorNamedEntity operator : allOperator) {
+			String[] p = new String[4];
+			p[0] = operator.getOperator_id();
+			p[1] = operator.getName();
+			p[2] = operator.getRole_name();
+			if(CommonStringUtil.isEmpty(operator.getLine_name())){
+				p[3] = "";
+			}else{
+				p[3] = operator.getLine_name();
 			}
-
-			String pReferChooser = CodeListUtils.getReferChooser(lst);
-
-			return pReferChooser;
+			
+			lst.add(p);
 		}
+
+		String pReferChooser = CodeListUtils.getReferChooser(lst);
+
+		return pReferChooser;
+	}
+
+	public List<PositionEntity> getUserAfAbilities(String operator_id,
+			SqlSession conn) {
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		List<PositionEntity> retList = new ArrayList<PositionEntity>();
+
+		List<String> codes = mapper.getAfAbilitiesOfOperator(operator_id);
+
+		for (String code : codes) {
+			PositionEntity aaEntity = new PositionEntity();
+			aaEntity.setPosition_id(code);
+			if (AcceptFactService.typeMap.containsKey(code)) {
+				aaEntity.setLine_name(AcceptFactService.moduleMap.get(code.substring(0, 2)));
+				aaEntity.setProcess_code(AcceptFactService. typeMap.get(code));
+				retList.add(aaEntity);
+			}
+		}
+
+		return retList;
+	}
 
 }

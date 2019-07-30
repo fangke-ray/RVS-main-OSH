@@ -175,6 +175,7 @@ public class LoginAction extends BaseAction {
 	private void setDetail(LoginData loginData, SqlSession conn, ProductionFeatureEntity workingPf) {
 		loginData.setPrivacies(getPrivacies(loginData.getRole_id(), conn));
 		setPositions(loginData, conn);
+		setAfAbilities(loginData, conn);
 
 		// 判断有没有进行中作业
 		// 取得当前作业中作业信息
@@ -377,6 +378,11 @@ public class LoginAction extends BaseAction {
 		loginData.setSections(sectionList);
 
 		return;
+	}
+
+	private void setAfAbilities(LoginData loginData, SqlSession conn) {
+		OperatorService oService = new OperatorService();
+		loginData.setAfAbilities(oService.getUserAfAbilities(loginData.getOperator_id(), conn));
 	}
 
 	public void pdaLogin(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,

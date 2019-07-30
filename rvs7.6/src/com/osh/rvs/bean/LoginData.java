@@ -12,7 +12,8 @@ import framework.huiqing.bean.annotation.BeanField;
 
 public class LoginData extends BaseUserBean {
 
-	private static final long serialVersionUID = 4302708914726757298L;
+//	private static final long serialVersionUID = 4302708914726757298L;
+	private static final long serialVersionUID = -2303725388392916120L;
 
 	private String operator_id;
 	private String line_id;
@@ -27,6 +28,7 @@ public class LoginData extends BaseUserBean {
 	private List<PositionEntity> positions = new ArrayList<PositionEntity>();
 	private List<SectionEntity> sections = new ArrayList<SectionEntity>();
 	private List<LineEntity> lines = new ArrayList<LineEntity>();
+	private List<PositionEntity> afAbilities = new ArrayList<PositionEntity>();
 	private String last_link;
 	private String working_role_id;
 	private String work_count_flg;
@@ -141,5 +143,11 @@ public class LoginData extends BaseUserBean {
 	}
 	public void setGroup_position_id(String group_position_id) {
 		this.group_position_id = group_position_id;
+	}
+	public List<PositionEntity> getAfAbilities() {
+		return afAbilities;
+	}
+	public void setAfAbilities(List<PositionEntity> afAbilities) {
+		this.afAbilities = afAbilities;
 	}
 }

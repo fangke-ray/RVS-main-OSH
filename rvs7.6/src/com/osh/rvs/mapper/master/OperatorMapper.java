@@ -96,4 +96,10 @@ public interface OperatorMapper {
 	//查询所有治具点检者
 	public List<OperatorNamedEntity> searchToolsOperator(OperatorEntity operator);
 
+	public List<String> getAfAbilitiesOfOperator(String operator_id);
+
+	public void deleteAfAbiltiesOfOperator(String operator_id);
+
+	public void insertAfAbilitiesOfOperator(@Param("operator_id") String operator_id, @Param("production_type") String pType);
+
 }

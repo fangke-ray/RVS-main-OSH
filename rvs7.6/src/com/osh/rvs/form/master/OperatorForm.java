@@ -62,12 +62,17 @@ public class OperatorForm extends ActionForm {
 	@BeanField(title = "分线", name = "px", type = FieldType.Integer)
 	private String px;
 
+	@BeanField(title = "间接作业能力", name = "af_ability", type = FieldType.Integer)
+	private String af_ability;
+
 	/** 拥有技能 */
 	private List<String> abilities = new AutofillArrayList<String>(String.class);
 	/** 拥有临时角色 */
 	private List<String> temp_role = new AutofillArrayList<String>(String.class);
 	/** 主要担当工位 */
 	private List<String> main_positions = new AutofillArrayList<String>(String.class);
+	/** 主要担当工位 */
+	private List<String> af_abilities = new AutofillArrayList<String>(String.class);
 
 	/**
 	 * 取得担当人 ID
@@ -323,5 +328,21 @@ public class OperatorForm extends ActionForm {
 
 	public void setPx(String px) {
 		this.px = px;
+	}
+
+	public List<String> getAf_abilities() {
+		return af_abilities;
+	}
+
+	public void setAf_abilities(List<String> af_abilities) {
+		this.af_abilities = af_abilities;
+	}
+
+	public String getAf_ability() {
+		return af_ability;
+	}
+
+	public void setAf_ability(String af_ability) {
+		this.af_ability = af_ability;
 	}
 }

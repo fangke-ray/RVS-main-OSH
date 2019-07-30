@@ -32,7 +32,7 @@
 		<value code="2">单元</value>
 		<!--value code="3">检测备品</value-->
 	</codelist>
-	
+
 	<codelist name="material_service_repair">
 		<value code="1">保内返修</value>
 		<value code="2">QIS</value>
@@ -1034,7 +1034,8 @@
 	</codelist>
 	
 	<codelist name="account_type">
-		<value code="1">直接工作帐号</value>
+		<value code="1">直接作业帐号</value>
+		<value code="6">间接作业帐号</value>
 		<value code="2">其他帐号</value>
 		<!--value code="3">培训帐号</value-->
 	</codelist>

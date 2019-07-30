@@ -45,6 +45,8 @@ public class OperatorEntity implements Serializable {
 	/** 分线 */
 	private Integer px;
 
+	private Integer af_ability;
+
 	/**
 	 * 取得角色 ID
 	 * @return role_id 角色 ID
@@ -241,5 +243,13 @@ public class OperatorEntity implements Serializable {
 
 	public void setPx(Integer px) {
 		this.px = px;
+	}
+
+	public Integer getAf_ability() {
+		return af_ability;
+	}
+
+	public void setAf_ability(Integer af_ability) {
+		this.af_ability = af_ability;
 	}
 }

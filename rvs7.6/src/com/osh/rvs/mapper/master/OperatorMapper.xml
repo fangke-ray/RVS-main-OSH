@@ -129,6 +129,10 @@
 				AND EXISTS (SELECT * FROM operator_abilities a 
 						WHERE o.OPERATOR_ID = a.OPERATOR_ID and a.POSITION_ID = #{position_id})
 			</if>
+			<if test="af_ability != null and af_ability != '' ">
+				AND EXISTS (SELECT * FROM operator_af_abilities aa 
+						WHERE o.OPERATOR_ID = aa.OPERATOR_ID and aa.production_type = #{af_ability})
+			</if>
 		</where> 
 		<![CDATA[ 
 		AND OPERATOR_ID <> 1
@@ -452,4 +456,29 @@
 		);
 		]]>
 	</select>
+
+	<select id="getAfAbilitiesOfOperator" resultType="String">
+		<![CDATA[
+		SELECT production_type FROM `operator_af_abilities`
+		WHERE OPERATOR_ID = #{operator_id}
+		ORDER BY production_type;
+		]]>
+	</select>
+
+	<insert id="insertAfAbilitiesOfOperator" parameterType="String">
+		<![CDATA[ 
+		INSERT INTO `operator_af_abilities`
+		(`operator_id`,
+		`production_type`)
+		VALUES
+		(#{operator_id}, #{production_type});
+		]]>
+	</insert>
+
+	<delete id="deleteAfAbiltiesOfOperator" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM `operator_af_abilities` 
+		WHERE OPERATOR_ID = #{operator_id};
+		]]>
+	</delete>
 </mapper>

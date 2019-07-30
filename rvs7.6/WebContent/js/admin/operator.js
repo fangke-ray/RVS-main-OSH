@@ -25,6 +25,7 @@ $(function() {
 	});
 
 	setReferChooser($("#hidden_position_id"),$("#search_position_name_referchooser"));
+	setReferChooser($("#hidden_af_ability_code"),$("#search_af_ability_referchooser"));
 
 	$("#cancelbutton, #editarea span.ui-icon").click(function() {
 		showList();
@@ -64,6 +65,9 @@ $(function() {
 		$("#cond_position_name").val("");
 		$("#hidden_position_id").val("");
 
+		$("#cond_af_ability").val("");
+		$("#hidden_af_ability_code").val("");
+
 		$("#cond_id").data("post", "");
 		$("#cond_name").data("post", "");
 		$("#cond_rank_kind").data("post", "");
@@ -88,6 +92,9 @@ $(function() {
 		$(this).toggleClass("ui-state-active");
 		var main_referId = $(this).find("td:first-child").text();
 		$("#grid_edit_positions").find("tr:has(.referId:contains('" + main_referId + "'))").removeClass("ui-state-active");
+	});
+	$("#grid_edit_af_abilities tr:not(:first)").click(function(){
+		$(this).toggleClass("ui-state-active");
 	});
 
 	$("select").select2Buttons();
@@ -294,6 +301,14 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 					.addClass("ui-state-active");
 			}
 
+			var af_abilities = resInfo.operatorForm.af_abilities;
+			$("#grid_edit_af_abilities").find("tr").removeClass("ui-state-active");
+
+			for (var iability in af_abilities) {
+				$("#grid_edit_af_abilities").find("tr:has(.referId:contains('"+af_abilities[iability]+"'))")
+					.addClass("ui-state-active");
+			}
+
 			var temp_roles = resInfo.operatorForm.temp_role;
 			var roles_id = [];
 			for (var irole in temp_roles) {
@@ -323,65 +338,58 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 					// 通过Validate,切到修改确认画面
 					$("#editbutton").disable();
 
-					$("#confirmmessage").text("确认要修改记录吗？");
-				 	$("#confirmmessage").dialog({
-						resizable : false,
-						modal : true,
-						title : "修改确认",
-						close: function() {
-							$("#editbutton").enable();
-						},
-						buttons : {
-							"确认" : function() {
-								var data = {
-									"id" : $("#label_edit_id").text(),
-									"name" : $("#input_name").val(),
-									"job_no" : $("#input_job_no").val(),
-									"work_count_flg" : $("#input_account_type").val(),
-									"section_id" : $("#input_section_id").val(),
-									"role_id" : $("#input_role_id").val(),
-									"line_id" : $("#input_line_id").val(),
+					warningConfirm("确认要修改记录吗？",
+						function() {
+							var data = {
+								"id" : $("#label_edit_id").text(),
+								"name" : $("#input_name").val(),
+								"job_no" : $("#input_job_no").val(),
+								"work_count_flg" : $("#input_account_type").val(),
+								"section_id" : $("#input_section_id").val(),
+								"role_id" : $("#input_role_id").val(),
+								"line_id" : $("#input_line_id").val(),
 //									"position_id" : $("#grid_edit_main_position tr.ui-state-active").find(".referId").html(),
-									"email" : $("#input_email").val(),
-									"px" : $("#input_px").val()
-								}
-
-								$("#grid_edit_positions tr.ui-state-active").each(function(i,item){
-									data["abilities[" + i + "]"] = $(item).find(".referId").html();
-								});
-
-								$("#grid_edit_main_position tr.ui-state-active").each(function(i,item){
-									data["main_positions[" + i + "]"] = $(item).find(".referId").html();
-									if (i == 0) {
-										data.position_id = data["main_positions[" + i + "]"];
-									}
-								});
-
-								var upd_temp_roles = $("#input_roles_id").val();
-								for (var irole in upd_temp_roles) {
-									data["temp_role[" + irole + "]"] = upd_temp_roles[irole];
-								}
-
-								$(this).dialog("close");
-								// Ajax提交
-								$.ajax({
-									beforeSend : ajaxRequestType,
-									async : true,
-									url : servicePath + '?method=doupdate',
-									cache : false,
-									data : data,
-									type : "post",
-									dataType : "json",
-									success : ajaxSuccessCheck,
-									error : ajaxError,
-									complete : update_handleComplete
-								});
-							},
-							"取消" : function() {
-								$(this).dialog("close");
+								"email" : $("#input_email").val(),
+								"px" : $("#input_px").val()
 							}
-						}
-					});
+
+							$("#grid_edit_positions tr.ui-state-active").each(function(i,item){
+								data["abilities[" + i + "]"] = $(item).find(".referId").html();
+							});
+
+							$("#grid_edit_main_position tr.ui-state-active").each(function(i,item){
+								data["main_positions[" + i + "]"] = $(item).find(".referId").html();
+								if (i == 0) {
+									data.position_id = data["main_positions[" + i + "]"];
+								}
+							});
+
+							$("#grid_edit_af_abilities tr.ui-state-active").each(function(i,item){
+								data["af_abilities[" + i + "]"] = $(item).find(".referId").html();
+							});
+
+							var upd_temp_roles = $("#input_roles_id").val();
+							for (var irole in upd_temp_roles) {
+								data["temp_role[" + irole + "]"] = upd_temp_roles[irole];
+							}
+
+							// Ajax提交
+							$.ajax({
+								beforeSend : ajaxRequestType,
+								async : true,
+								url : servicePath + '?method=doupdate',
+								cache : false,
+								data : data,
+								type : "post",
+								dataType : "json",
+								success : ajaxSuccessCheck,
+								error : ajaxError,
+								complete : update_handleComplete
+							});
+						}, function() {
+							$("#editbutton").enable();
+						}, "修改确认"
+					);
 				};
 			});
 		}
@@ -403,7 +411,8 @@ var findit = function() {
 		"job_no" : $("#cond_job_no").data("post"),
 		"section_id" : $("#cond_section_id").data("post"),
 		"line_id" : $("#cond_line_id").data("post"),
-		"position_id" : $("#hidden_position_id").val()
+		"position_id" : $("#hidden_position_id").val(),
+		"af_ability" : $("#hidden_af_ability_code").val()
 	}
 
 	// Ajax提交
@@ -454,6 +463,7 @@ var showAdd = function() {
 	// 工位全部清空
 	$("#grid_edit_main_position tr").removeClass("ui-state-active");
 	$("#grid_edit_positions tr").removeClass("ui-state-active");
+	$("#grid_edit_af_abilities tr").removeClass("ui-state-active");
 
 	$("#input_job_no").show();
 	$("#input_label_job_no").hide();
@@ -504,6 +514,11 @@ var showAdd = function() {
 					data.position_id = data["main_positions[" + i + "]"];
 				}
 			});
+
+			$("#editarea #grid_edit_af_abilities tr.ui-state-active").each(function(i,item){
+				data["af_abilities[" + i + "]"] = $(item).find(".referId").html();
+			});
+
 
 			var ist_temp_roles = $("#input_roles_id").val();
 			for (var irole in ist_temp_roles) {

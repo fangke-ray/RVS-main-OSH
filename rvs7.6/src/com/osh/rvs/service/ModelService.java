@@ -303,10 +303,15 @@ public class ModelService {
 	 * @return
 	 */
 	public String getOptions(SqlSession conn) {
+		return getOptions(conn, true);
+	}
+	public String getOptions(SqlSession conn, boolean onlyForRepair) {
 		List<String[]> mList = new ArrayList<String[]>();
 		List<ModelForm> allModel = this.getAllModel(conn);
 		
 		for (ModelForm model: allModel) {
+			if (onlyForRepair && 
+					("8".equals(model.getKind()) || "9".equals(model.getKind()))) continue;
 			String[] mline = new String[3];
 			mline[0] = model.getId();
 			mline[1] = model.getName();

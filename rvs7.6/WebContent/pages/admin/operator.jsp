@@ -82,9 +82,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">负责工位</td>
-					<td class="td-content" colspan="5">
+					<td class="td-content">
 						<input type="text" id="cond_position_name" class="ui-widget-content">
 						<input type="hidden" id="hidden_position_id">
+					</td>
+					<td class="ui-state-default td-title">间接作业能力</td>
+					<td class="td-content" colspan="3">
+						<input type="text" id="cond_af_ability" class="ui-widget-content">
+						<input type="hidden" id="hidden_af_ability_code">
 					</td>
 				</tr>
 				</tbody>
@@ -109,6 +114,18 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	  	 </table>
 	  	 <table class="subform">${pReferChooser}</table>
 	</div>
+	<div id="search_af_ability_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:10000">
+		 <table>
+			<tbody>
+			   <tr>
+					<td width="50%">过滤字:<input type="text"></td>	
+					<td align="right" width="50%"><input class="ui-button" style="float:right;" value="清空" type="button"></td>
+			   </tr>
+		   </tbody>
+	  	 </table>
+	  	 <table class="subform">${afReferChooser}</table>
+	</div>
+
 </div>
 
 <div id="listarea" class="width-middleright">
@@ -228,7 +245,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<div style="float:left;max-width:620px;">
 				<table class="subform" id="grid_edit_main_position">
 					<tr>
-						<th class="ui-state-default td-title" colspan="3" style="min-width:220px;">主要负责工位</th>
+						<th class="ui-state-default td-title" colspan="3" style="min-width:180px;">主要负责工位</th>
 					</tr>
 					<%=request.getAttribute("pReferChooser")%>
 				</table>
@@ -236,9 +253,17 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<div style="float:left;max-width:620px;">
 				<table class="subform" id="grid_edit_positions">
 					<tr>
-						<th class="ui-state-default td-title" colspan="3" style="min-width:220px;">可负责工位</th>
+						<th class="ui-state-default td-title" colspan="3" style="min-width:180px;">可负责工位</th>
 					</tr>
 					<%=request.getAttribute("pReferChooser")%>
+				</table>
+			</div>
+			<div style="float:left;max-width:620px;">
+				<table class="subform" id="grid_edit_af_abilities">
+					<tr>
+						<th class="ui-state-default td-title" colspan="3" style="min-width:160px;">间接作业能力</th>
+					</tr>
+					<%=request.getAttribute("afReferChooser")%>
 				</table>
 			</div>
 			<div class="clear" style="height:44px">
