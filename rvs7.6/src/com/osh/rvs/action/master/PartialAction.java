@@ -33,6 +33,7 @@ import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.message.ApplicationMessage;
 import framework.huiqing.common.util.validator.Validators;
 
 public class PartialAction extends BaseAction {
@@ -270,6 +271,13 @@ public class PartialAction extends BaseAction {
 			v = BeanUtil.createBeanValidators(partialUnpackForm, BeanUtil.CHECK_TYPE_PASSEMPTY);
 			v.add("split_quantity", v.required("分装数量"));
 			errors = v.validate();
+			
+			if(errors.size() == 0 && Integer.valueOf(partialForm.getSplit_quantity()) <= 0){
+				MsgInfo error = new MsgInfo();
+				error.setErrcode("validator.invalidParam.invalidMoreThanZero");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "分装数量"));
+				errors.add(error);
+			}
 		}
 		
 		if (errors.size() == 0) {
@@ -358,6 +366,13 @@ public class PartialAction extends BaseAction {
 			v = BeanUtil.createBeanValidators(partialUnpackForm, BeanUtil.CHECK_TYPE_PASSEMPTY);
 			v.add("split_quantity", v.required("分装数量"));
 			errors = v.validate();
+			
+			if(errors.size() == 0 && Integer.valueOf(partialForm.getSplit_quantity()) <= 0){
+				MsgInfo error = new MsgInfo();
+				error.setErrcode("validator.invalidParam.invalidMoreThanZero");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "分装数量"));
+				errors.add(error);
+			}
 		}
 		
 		// 无错误时更新数据
