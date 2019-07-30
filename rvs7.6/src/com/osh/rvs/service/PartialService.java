@@ -42,6 +42,7 @@ import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.PartialForm;
 import com.osh.rvs.form.master.PartialPositionForm;
+import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.PartialMapper;
 import com.osh.rvs.mapper.master.PartialPositionMapper;
 import com.osh.rvs.mapper.partial.PartialWasteModifyHistoryMapper;
@@ -86,7 +87,7 @@ public class PartialService {
 		}
 	}
 
-	public void insert(ActionForm form, HttpSession session, SqlSessionManager conn, List<MsgInfo> errors)
+	public String insert(ActionForm form, HttpSession session, SqlSessionManager conn, List<MsgInfo> errors)
 			throws Exception {
 		PartialEntity insertBean = new PartialEntity();
 		BeanUtil.copyToBean(form, insertBean, null);
@@ -96,6 +97,11 @@ public class PartialService {
 		/* partail表插入数据 */
 		PartialMapper dao = conn.getMapper(PartialMapper.class);
 		dao.insertPartial(insertBean);
+		
+		CommonMapper cDao = conn.getMapper(CommonMapper.class);
+		String partial_id = cDao.getLastInsertID();// //取得本连接最后取得的自增ID
+
+		return partial_id;
 
 		/*
 		 * CommonMapper cDao = conn.getMapper(CommonMapper.class); String partial_id =

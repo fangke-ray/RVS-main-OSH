@@ -27,8 +27,11 @@ $(function() {
     $("#cancelbutton, #editarea span.ui-icon").click(showList);
     
     /*radio-->button*/
-    $("#edit_order_flg,#operation_id,#search_consumable_flg").buttonset();
+    $("#edit_order_flg,#operation_id,#search_consumable_flg,#edit_unpack").buttonset();
 	$("#searchbutton").addClass("ui-button-primary");
+	
+	$("#edit_spec_kind option:eq(0)").remove();
+	$("#search_spec_kind,#edit_spec_kind").select2Buttons();
 	
 	/*初始化页面*/
 	 findit();
@@ -43,10 +46,21 @@ $(function() {
 		$("#search_code").val("").data("post", "");
 		$("#search_name").val("").data("post", "");
 		$("#search_consumable_flg_all").attr("checked","checked").trigger("change");
+		$("#search_spec_kind").val("").trigger("change");
 	});
 	
 	/*改废增button*/
 	$("#waste_revision_button").click(waste_revision_edit);
+	
+	/*零件入库工时标准*/
+	$("#standard_button").click(bussiness_standard);
+	$("#edit_unpack input[type='radio']").click(function(){
+		if(this.value == 1){
+			$("#edit_split_quantity").val("").closest("tr").show();
+		}else{
+			$("#edit_split_quantity").val("").closest("tr").hide();
+		}
+	});
 	
 	$("#upload_price_button").click(function(){
 		$("#upload_price_dialog").dialog({
@@ -115,7 +129,185 @@ $(function() {
 			}
 		});
 	});
-})
+});
+
+
+/*零件入库工时标准*/
+function bussiness_standard(){
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'partial_bussiness_standard.do?method=search',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : search_BussinessStandardComplete
+	});
+};
+
+var search_BussinessStandardComplete = function(xhrobj,textStatus){
+	var resInfo = null;
+	try {
+		eval('resInfo =' + xhrobj.responseText);
+		if (resInfo.errors.length > 0) {
+			// 共通出错信息框
+			treatBackMessages(null, resInfo.errors);
+		} else {
+			//零件出入库工时标准
+			let list = resInfo.finished;
+			
+			let content = "";
+			
+			//记录每个规格种别出入库工时标准(key:规格种别)
+			let map = new Map();
+
+			list.forEach((standard,index)=>{
+				let spec_kind = standard.spec_kind,//规格种别
+					spec_kind_name = standard.spec_kind_name,//规格种别名称
+					box_count = standard.box_count,//装箱数量
+					recept = standard.recept,//收货
+					collect_case = standard.collect_case,//拆盒
+					collation_on_shelf = standard.collation_on_shelf,//核对上架
+					off_shelf = standard.off_shelf,//下架
+					unpack = standard.unpack || "";//分装
+				
+				map.set(spec_kind,{box_count,recept,collect_case,collation_on_shelf,off_shelf,unpack});
+					
+				content += `<tr spec_kind="${spec_kind}">
+						  		<td class="ui-state-default td-title">${spec_kind_name}</td>
+						  		<td class="td-content">
+							  		<input type="checkbox" class="box-count-input" id="box_count_input${index}"/>
+							  		<label for="box_count_input${index}">每批一箱</label>
+							  		<input type="text" class="ui-widget-content box-count" style="margin-left:2px;"/>
+						  		</td>
+						  		<td class="td-content">
+						  			<input type="text" class="ui-widget-content recept"/>
+						  		</td>
+						  		<td class="td-content">
+					  				<input type="text" class="ui-widget-content collect-case"/>
+					  			</td>
+						  		<td class="td-content">
+						  			<input type="text" class="ui-widget-content collation-on-shelf"/>
+						  		</td>
+						  		<td class="td-content">
+							  		<input type="text" class="ui-widget-content off-shelf"/>
+						  		</td>
+						  		<td class="td-content">
+						  			<input type="text" class="ui-widget-content unpack"/>
+						  		</td>
+						    </tr>`;
+			});
+
+			//生成table
+			$("#standard_dialog tbody").empty().append(content);
+
+			//初始赋值
+			$("#standard_dialog tbody tr").each((index,tr) => {
+				let $tr = $(tr);
+				let spec_kind = $tr.attr("spec_kind");
+				
+				//零件出入库工时标准
+				let obj = map.get(spec_kind);
+				
+				//装箱数量
+				let box_count = obj.box_count;
+				if(box_count == -1){//每批一箱
+					$tr.find(".box-count").val(box_count).addClass("hidden");
+					$tr.find(".box-count-input").prop("checked",true).trigger("change");
+				}else{
+					$tr.find(".box-count").val(box_count);
+				}
+				
+				//收货
+				$tr.find(".recept").val(obj.recept);
+				
+				//拆盒
+				$tr.find(".collect-case").val(obj.collect_case);
+				
+				//核对上架
+				$tr.find(".collation-on-shelf").val(obj.collation_on_shelf);
+				
+				//下架
+				$tr.find(".off-shelf").val(obj.off_shelf);
+				
+				//分装
+				$tr.find(".unpack").val(obj.unpack);
+			});
+			
+			$("#standard_dialog .td-content").buttonset();
+			
+			//每批一箱事件
+			$(".box-count-input").click(function(){
+				let $input = $(this).nextAll("[type='text']");
+				this.checked == true ? $input.addClass("hidden").val("-1") : $input.removeClass("hidden").val("");
+			});
+			
+			$("#standard_dialog").dialog({
+				resizable : false,
+				modal : true,
+				title : "零件入库工时标准",
+				width : 1000,
+				buttons : {
+					"确认" : function() {
+						let data = {};
+						$(this).find("tbody tr").each(function(index,tr){
+							let $tr = $(tr);
+							data["partial_bussiness_standard.spec_kind[" + index + "]"] = $tr.attr("spec_kind");
+							data["partial_bussiness_standard.box_count[" + index + "]"] = $tr.find(".box-count").val().trim();
+							data["partial_bussiness_standard.collect_case[" + index + "]"] = $tr.find(".collect-case").val().trim();
+							
+							if($tr.find(".box-count-input").prop("checked") == true){
+								data["partial_bussiness_standard.box_count_flg[" + index + "]"] = "1";
+							}else{
+								data["partial_bussiness_standard.box_count_flg[" + index + "]"] = "0";
+							}
+							
+							data["partial_bussiness_standard.recept[" + index + "]"] = $tr.find(".recept").val().trim();
+							data["partial_bussiness_standard.collation_on_shelf[" + index + "]"] = $tr.find(".collation-on-shelf").val().trim();
+							data["partial_bussiness_standard.off_shelf[" + index + "]"] = $tr.find(".off-shelf").val().trim();
+							data["partial_bussiness_standard.unpack[" + index + "]"] = $tr.find(".unpack").val().trim();
+						});
+						
+						$.ajax({
+							beforeSend : ajaxRequestType,
+							async : true,
+							url : 'partial_bussiness_standard.do?method=doUpdate',
+							cache : false,
+							data : data,
+							type : "post",
+							dataType : "json",
+							success : ajaxSuccessCheck,
+							error : ajaxError,
+							complete :update_BussinessStandardComplete
+						});
+					},
+					"取消" : function() {
+						$(this).dialog("close");
+					}
+				}
+			});
+			
+		}
+	}catch(e){}
+};
+
+var update_BussinessStandardComplete = function(xhrobj,textStatus){
+	var resInfo = null;
+	try {
+		// 以Object形式读取JSON
+		eval('resInfo =' + xhrobj.responseText);
+		if (resInfo.errors.length > 0) {
+			// 共通出错信息框
+			treatBackMessages(null, resInfo.errors);
+		} else {
+			$("#standard_dialog").dialog("close");
+			infoPop("零件入库工时标准完成！",null,"提示信息")
+		}
+	}catch(e){}
+};
 
 /*判断改废增按钮enable、disable(当选择了零件之后enable；否则是disable)*/
 var enableButton= function(){
@@ -433,7 +625,7 @@ var search_handleComplete = function(xhrobj, textStatus) {
 					width : gridWidthMiddleRight,
 					rowheight : 23,
 					datatype : "local",
-					colNames : [  '','零件ID', '零件编码', '零件名称', '消耗品','参考价格', '最后更新人', '最后更新时间','是否存在有效期大于当前时间'],
+					colNames : [  '','零件ID', '零件编码', '零件名称', '消耗品','参考价格', '规格种别','最后更新人', '最后更新时间','是否存在有效期大于当前时间'],
 					colModel : [
 					{name:'myac', width:40, fixed:true, sortable:false, resize:false,formatter:'actions',formatoptions:{keys:true, editbutton:false}},
 					{name:'partial_id',index:'partial_id', hidden:true},
@@ -447,6 +639,7 @@ var search_handleComplete = function(xhrobj, textStatus) {
 						}
 					}},
 					{name:'price',index:'price', width:30,align:'right',sorttype:'currency',formatter:'currency',formatoptions:{thousandsSeparator:',',defaultValue: ''}},
+					{name:'spec_kind',index:'spec_kind', width:40,formatter:'select',editoptions:{value:$("#hide_grid_spec_kind").val()}},
 					{name:'updated_by',index:'updated_by',width : 35}, 
 					{name:'updated_time',index:'updated_time',width : 60},
 					{name:'is_exists',index:'is_exists',hidden:true,editable:false,formatoptions:function(value, options, rData) {
@@ -528,6 +721,11 @@ var showAdd = function() {
 	$("#editbutton").val("新建");
 	$("#editbutton").enable();
 	$(".errorarea-single").removeClass("errorarea-single");
+	//规格种别默认为:小零件
+	$("#edit_spec_kind").val("1").trigger("change");
+	$("#edit_unpack_no").attr("checked",true).trigger("change");
+	$("#edit_split_quantity").val("").closest("tr").hide();
+	
 	// 默认画面变化 e
 
 	// 前台Validate设定
@@ -558,8 +756,11 @@ var showAdd = function() {
 				"code" : $("#edit_code").val(),
 				"name" : $("#edit_name").val(),
 				"price":$("#edit_price").val(),
-				"order_flg":$("#edit_order_flg input:checked").val()
-			}
+				"order_flg":$("#edit_order_flg input:checked").val(),
+				"spec_kind":$("#edit_spec_kind").val(),
+				"unpack_flg":$("#edit_unpack input:checked").val(),
+				"split_quantity":$("#edit_split_quantity").val()
+			};
 
 			// Ajax提交
 			$.ajax({
@@ -611,7 +812,8 @@ var findit = function(data) {
 		KeepSearchData = {
 			"code":$("#search_code").val(),
 			"name":$("#search_name").val(),
-			"consumable_flg":$("#search_consumable_flg input:checked").val()
+			"consumable_flg":$("#search_consumable_flg input:checked").val(),
+			"spec_kind":$("#search_spec_kind").val()
 	    };
 	 } else {
 			keepSearchData = data;
@@ -703,6 +905,17 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			$("#label_price").text(resInfo.partialForm.new_price || "");
 			$("#label_update_time").text(resInfo.partialForm.updated_time);		
 			$("#edit_avarible_end_date").data("post",resInfo.partialForm.avarible_end_date)
+			$("#edit_spec_kind").val(resInfo.partialForm.spec_kind).trigger('change');
+			
+			//是否分装
+			var partialUnpackForm = resInfo.partialUnpackForm;
+			if(partialUnpackForm){
+				$("#edit_unpack_yes").attr("checked",true).trigger("change");
+				$("#edit_split_quantity").val(partialUnpackForm.split_quantity).closest("tr").show();//分装数量
+			}else{
+				$("#edit_unpack_no").attr("checked",true).trigger("change");
+				$("#edit_split_quantity").val("").closest("tr").hide();
+			}
 			
 			// 切换按钮效果
 			$("#editbutton").unbind("click");
@@ -720,7 +933,10 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 							"code" : $("#edit_code").val(),
 							"name" : $("#edit_name").val(),
 							"price":$("#edit_price").val(),
-							"order_flg":$("#edit_order_flg input:checked").val()
+							"order_flg":$("#edit_order_flg input:checked").val(),
+							"spec_kind":$("#edit_spec_kind").val(),
+							"unpack_flg":$("#edit_unpack input:checked").val(),
+							"split_quantity":$("#edit_split_quantity").val()
 							//"priceNotChanged" : priceNotChanged
 						}
 						// Ajax提交
