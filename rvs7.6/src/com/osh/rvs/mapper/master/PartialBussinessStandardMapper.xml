@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PartialBussinessStandardMapper">
+
+	<select id="search" resultType="PartialBussinessStandardEntity">
+	<![CDATA[
+	SELECT
+		spec_kind,
+	    box_count,
+	    recept,
+	    collect_case,
+	    collation_on_shelf,
+	    off_shelf,
+	    unpack
+	FROM
+		partial_bussiness_standard
+	]]>
+	</select>
+	
+	<update id="update" parameterType="PartialBussinessStandardEntity">
+	<![CDATA[
+	REPLACE INTO partial_bussiness_standard
+	(
+		spec_kind,
+		box_count,
+		recept,
+		collect_case,
+		collation_on_shelf,
+		off_shelf,
+		unpack
+	)
+	VALUES
+	(
+		#{spec_kind},
+		#{box_count},
+		#{recept},
+		#{collect_case},
+		#{collation_on_shelf},
+		#{off_shelf},
+		#{unpack}
+	)
+	]]>
+	</update>
+
+</mapper>

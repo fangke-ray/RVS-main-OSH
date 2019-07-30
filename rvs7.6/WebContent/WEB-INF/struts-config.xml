@@ -118,6 +118,7 @@
 		<form-bean name="ConsumableSupplyRecordForm" type="com.osh.rvs.form.partial.ConsumableSupplyRecordForm"></form-bean>
 		<form-bean name="deviceBackupForm" type="com.osh.rvs.form.equipment.DeviceBackupForm"></form-bean>
 		<form-bean name="deviceJigRepairRecordForm" type="com.osh.rvs.form.equipment.DeviceJigRepairRecordForm"></form-bean>
+		<form-bean name="partialBussinessStandardForm" type="com.osh.rvs.form.master.PartialBussinessStandardForm"></form-bean>
 	</form-beans>
 
 
@@ -1405,6 +1406,15 @@
 				<forward name="init" path="/pages/equipment/device_jig_repair_record.jsp"/>
 				<forward name="detail" path="/widgets/equipment/device_jig_repair_record_detail.jsp"/>
 		</action>
+		
+		<!-- 零件出入库工时标准 -->
+		<action path="/partial_bussiness_standard"
+				type="com.osh.rvs.action.master.PartialBussinessStandardAction"
+				name="partialBussinessStandardForm"
+				scope="request"
+				validate="false">
+		</action>
+		
 
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->

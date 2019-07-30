@@ -57,6 +57,21 @@ public class PartialForm extends UploadForm{
 	@BeanField(title = "最后更新时间", name = "updated_time",type=FieldType.TimeStamp)
 	private String updated_time;
 	
+	/**
+	 * 规格种别
+	 */
+	@BeanField(title = "规格种别", name = "spec_kind", type = FieldType.Integer, length = 1, notNull = true)
+	private String spec_kind;
+	
+	/**
+	 * 是否分装
+	 */
+	private String unpack_flg;
+
+	/**
+	 * 分装数量
+	 */
+	private String split_quantity;
 	
 	public String getOrder_flg() {
 		return order_flg;
@@ -136,4 +151,23 @@ public class PartialForm extends UploadForm{
 	public void setPrice(String price) {
 		this.price = price;
 	}
+	public String getSpec_kind() {
+		return spec_kind;
+	}
+	public void setSpec_kind(String spec_kind) {
+		this.spec_kind = spec_kind;
+	}
+	public String getUnpack_flg() {
+		return unpack_flg;
+	}
+	public void setUnpack_flg(String unpack_flg) {
+		this.unpack_flg = unpack_flg;
+	}
+	public String getSplit_quantity() {
+		return split_quantity;
+	}
+	public void setSplit_quantity(String split_quantity) {
+		this.split_quantity = split_quantity;
+	}
+	
 }

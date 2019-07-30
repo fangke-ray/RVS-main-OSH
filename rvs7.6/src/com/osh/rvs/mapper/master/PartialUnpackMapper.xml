@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.PartialUnpackMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="insert" parameterType="PartialUnpackEntity">
+	<![CDATA[
+		INSERT INTO partial_unpack(partial_id,split_quantity) VALUES(#{partial_id},#{split_quantity})
+	]]>
+	</insert>
+	
+	<update id="update" parameterType="PartialUnpackEntity">
+	<![CDATA[
+		UPDATE partial_unpack SET split_quantity = #{split_quantity} WHERE partial_id = #{partial_id}
+	]]>
+	</update>
+	
+	<select id="delete" parameterType="PartialUnpackEntity">
+	<![CDATA[
+		DELETE FROM partial_unpack WHERE partial_id = #{partial_id}
+	]]>
+	</select>
+	
+	<select id="getPartialUnpack" parameterType="PartialUnpackEntity" resultType="PartialUnpackEntity">
+	<![CDATA[
+		SELECT partial_id,split_quantity FROM partial_unpack WHERE partial_id = #{partial_id}
+	]]>
+	</select>
+	
+</mapper>

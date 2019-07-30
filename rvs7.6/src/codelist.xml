@@ -454,6 +454,14 @@
 		<value code="9">保修期内返品</value>
 		<value code="10">最终检查不良</value>
 	</codelist>
+	
+	<codelist name="partial_spec_kind">
+		<value code="1">小零件</value>
+		<value code="3">长零件</value>
+		<value code="5">中零件</value>
+		<value code="6">中零件(操作部)</value>
+		<value code="7">大零件</value>
+	</codelist>
 
 	<codelist name="loss_belongs">
 		<value code="3">报价</value>

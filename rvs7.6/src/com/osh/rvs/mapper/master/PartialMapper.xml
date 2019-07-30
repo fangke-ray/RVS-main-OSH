@@ -14,6 +14,7 @@
 		    p.PRICE,
 		    p.UPDATED_BY,
 		    p.UPDATED_TIME,
+		    p.spec_kind,
 		    (SELECT price FROM material_partial_detail mpd
 			JOIN material_partial mp
 			ON
@@ -64,6 +65,7 @@
 				 p.price,
 				O.NAME AS UPDATED_BY,
 				P.UPDATED_TIME,
+				P.spec_kind,
 				(exists (select 1 from partial_position_belong
 				 where partial_id = P.partial_id
 				and history_limit_date >= current_date)) as is_exists,
@@ -109,6 +111,11 @@
 		<if test="consumable_flg!=null and consumable_flg==2">
 			<![CDATA[
 				AND cm.PARTIAL_ID is null
+			]]>
+		</if>
+		<if test="spec_kind!=null and spec_kind!=''">
+			<![CDATA[
+				AND p.spec_kind = #{spec_kind}
 			]]>
 		</if>
 		</where>
@@ -178,6 +185,7 @@
 				  price,
 				  order_flg,
 				  consumable_flg,
+				  spec_kind,
 				 updated_by,
 				 UPDATED_TIME) 					
         VALUES 
@@ -186,6 +194,7 @@
 	        	 #{price},
 	        	 #{order_flg},
 	        	 #{consumable_flg},
+	        	 #{spec_kind},
 	        	 #{updated_by},
 	        	 current_timestamp); 
 		]]>
@@ -218,6 +227,7 @@
 			`price`=#{price},
 			updated_by =#{updated_by},
 			order_flg=#{order_flg},
+			spec_kind = #{spec_kind},
 			updated_time = current_timestamp
 		WHERE 
 		    partial_id=#{partial_id}

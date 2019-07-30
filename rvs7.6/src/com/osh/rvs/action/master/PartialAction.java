@@ -21,8 +21,10 @@ import com.osh.rvs.bean.master.PartialPositionEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.PartialForm;
 import com.osh.rvs.form.master.PartialPositionForm;
+import com.osh.rvs.form.master.PartialUnpackForm;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.PartialService;
+import com.osh.rvs.service.PartialUnpackService;
 import com.osh.rvs.service.partial.PartialPositionService;
 
 import framework.huiqing.action.BaseAction;
@@ -31,6 +33,7 @@ import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.message.ApplicationMessage;
 import framework.huiqing.common.util.validator.Validators;
 
 public class PartialAction extends BaseAction {
@@ -38,6 +41,7 @@ public class PartialAction extends BaseAction {
 	private Logger log = Logger.getLogger(getClass());
 
 	private PartialService service = new PartialService();
+	private final PartialUnpackService partialUnpackService = new PartialUnpackService();
 
 	/**
 	 * 零件管理画面初始表示处理
@@ -73,6 +77,10 @@ public class PartialAction extends BaseAction {
 		req.setAttribute("sValue_currency", CodeListUtils.getSelectOptions("value_currency", null, ""));
 		req.setAttribute("govalue_currency", CodeListUtils.getGridOptions("value_currency"));
 
+		// 规格种别
+		req.setAttribute("specKind", CodeListUtils.getSelectOptions("partial_spec_kind", null, ""));
+		req.setAttribute("gridSpecKind", CodeListUtils.getGridOptions("partial_spec_kind"));
+		
 		// 取得用户信息
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
@@ -203,6 +211,12 @@ public class PartialAction extends BaseAction {
 			PartialForm resultForm = service.getDetail(partialEntity, conn, errors);
 			if (resultForm != null) {
 				listResponse.put("partialForm", resultForm);
+				
+				PartialUnpackForm partialUnpackForm = new PartialUnpackForm();
+				partialUnpackForm.setPartial_id(resultForm.getPartial_id());
+				partialUnpackForm = partialUnpackService.getPartialUnpack(partialUnpackForm, conn);
+
+				listResponse.put("partialUnpackForm", partialUnpackForm);
 			}
 			PartialPositionEntity partialPositionEntity = new PartialPositionEntity();
 			partialPositionEntity.setPartial_id(partialEntity.getPartial_id());
@@ -248,8 +262,32 @@ public class PartialAction extends BaseAction {
 		/* 验证零件编码和零件是否输入值 */
 		service.customValidate(form, conn, errors);
 
+		PartialForm partialForm = (PartialForm) form;
+
+		PartialUnpackForm partialUnpackForm = new PartialUnpackForm();
+		partialUnpackForm.setSplit_quantity(partialForm.getSplit_quantity());
+
+		if ("1".equals(partialForm.getUnpack_flg())) {
+			v = BeanUtil.createBeanValidators(partialUnpackForm, BeanUtil.CHECK_TYPE_PASSEMPTY);
+			v.add("split_quantity", v.required("分装数量"));
+			errors = v.validate();
+			
+			if(errors.size() == 0 && Integer.valueOf(partialForm.getSplit_quantity()) <= 0){
+				MsgInfo error = new MsgInfo();
+				error.setErrcode("validator.invalidParam.invalidMoreThanZero");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "分装数量"));
+				errors.add(error);
+			}
+		}
+		
 		if (errors.size() == 0) {
-			service.insert(form, req.getSession(), conn, errors);
+			String partialID = service.insert(form, req.getSession(), conn, errors);
+			
+			if ("1".equals(partialForm.getUnpack_flg())) {
+				partialUnpackForm.setPartial_id(partialID);
+
+				partialUnpackService.insert(partialUnpackForm, conn);
+			}
 
 		}
 		/* 检查错误时报告错误信息 */
@@ -318,10 +356,45 @@ public class PartialAction extends BaseAction {
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ALL);
 		List<MsgInfo> errors = v.validate();
 		service.customValidate(form, conn, errors);
+		
+		PartialForm partialForm = (PartialForm) form;
+
+		PartialUnpackForm partialUnpackForm = new PartialUnpackForm();
+		partialUnpackForm.setSplit_quantity(partialForm.getSplit_quantity());
+
+		if ("1".equals(partialForm.getUnpack_flg())) {
+			v = BeanUtil.createBeanValidators(partialUnpackForm, BeanUtil.CHECK_TYPE_PASSEMPTY);
+			v.add("split_quantity", v.required("分装数量"));
+			errors = v.validate();
+			
+			if(errors.size() == 0 && Integer.valueOf(partialForm.getSplit_quantity()) <= 0){
+				MsgInfo error = new MsgInfo();
+				error.setErrcode("validator.invalidParam.invalidMoreThanZero");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "分装数量"));
+				errors.add(error);
+			}
+		}
+		
 		// 无错误时更新数据
 		if (errors.size() == 0) {
 			// 更新数据时从前台的传递一个参数，该参数返回值是true or false获取这个返回值 传递给service 执行service的判断
 			service.update(form, req.getSession(), conn, errors);
+			
+			partialUnpackForm.setPartial_id(partialForm.getPartial_id());
+
+			PartialUnpackForm respForm = partialUnpackService.getPartialUnpack(partialUnpackForm, conn);
+
+			if ("1".equals(partialForm.getUnpack_flg())) {
+				if (respForm == null) {
+					partialUnpackService.insert(partialUnpackForm, conn);
+				} else {
+					partialUnpackService.update(partialUnpackForm, conn);
+				}
+			} else {
+				if (respForm != null) {
+					partialUnpackService.delete(partialUnpackForm, conn);
+				}
+			}
 		}
 		callbackResponse.put("errors", errors);
 		returnJsonResponse(res, callbackResponse);

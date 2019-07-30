@@ -128,6 +128,8 @@
 		<typeAlias alias="ConsumableSupplyRecordEntity" type="com.osh.rvs.bean.partial.ConsumableSupplyRecordEntity"/>
 		<typeAlias alias="DeviceBackupEntity" type="com.osh.rvs.bean.equipment.DeviceBackupEntity"/>
 		<typeAlias alias="DeviceJigRepairRecordEntity" type="com.osh.rvs.bean.equipment.DeviceJigRepairRecordEntity"/>
+		<typeAlias alias="PartialBussinessStandardEntity" type="com.osh.rvs.bean.master.PartialBussinessStandardEntity"/>
+		<typeAlias alias="PartialUnpackEntity" type="com.osh.rvs.bean.master.PartialUnpackEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -165,6 +167,8 @@
 		<mapper resource="com/osh/rvs/mapper/master/SystemImageManageMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/PcsRequestMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/LightFixMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/PartialUnpackMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/PartialBussinessStandardMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/data/AlarmMesssageMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/data/MaterialMapper.xml" />

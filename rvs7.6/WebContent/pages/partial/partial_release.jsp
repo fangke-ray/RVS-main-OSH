@@ -40,7 +40,7 @@ background-color:white;}
 		<div id="body-2" class="ui-widget-panel ui-corner-all" style="align: center; padding-top: 16px; padding-bottom: 16px;">
 			<div id="body-lft" style="width: 256px; float: left;">
 				<jsp:include page="/appmenu.do?method=pinit" flush="true">
-					<jsp:param name="linkto" value="零件订购/签收"/>
+					<jsp:param name="linkto" value="零件入出库"/>
 				</jsp:include>
 			</div>
 			
