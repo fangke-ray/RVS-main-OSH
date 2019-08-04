@@ -11,6 +11,7 @@
 			NAME,
 			KIND,
 			default_pat_id,
+			with_case,
 			UPDATED_BY,
 			UPDATED_TIME
 		FROM V_CATEGORY
@@ -61,9 +62,9 @@
 	<insert id="insertCategory" parameterType="CategoryEntity">
 		<![CDATA[ 
 		INSERT INTO CATEGORY 
-			(NAME, KIND, default_pat_id, UPDATED_BY, UPDATED_TIME) 
+			(NAME, KIND, default_pat_id, with_case, UPDATED_BY, UPDATED_TIME) 
 		VALUES 
-			(#{name}, #{kind}, #{default_pat_id}, #{updated_by}, current_timestamp);
+			(#{name}, #{kind}, #{default_pat_id}, #{with_case}, #{updated_by}, current_timestamp);
 		]]>
 	</insert>
 
@@ -72,6 +73,7 @@
 		UPDATE CATEGORY SET NAME = #{name},
 			KIND = #{kind},
 			default_pat_id = #{default_pat_id},
+			with_case = #{with_case},
 			UPDATED_BY = #{updated_by},
 			UPDATED_TIME = current_timestamp
 		WHERE CATEGORY_ID = #{category_id};

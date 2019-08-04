@@ -59,6 +59,7 @@ $(function() {
 	});
 
 	$("#cond_kind,#input_kind,#input_default_pat_id").select2Buttons();
+	$("#edit_with_case").buttonset();
 
 	findit();
 });
@@ -217,6 +218,12 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			$("#label_edit_updated_by").text(resInfo.categoryForm.updated_by);
 			$("#label_edit_updated_time").text(resInfo.categoryForm.updated_time);
 
+			if(resInfo.categoryForm.with_case==1){
+				$("#with_case_yes").attr("checked", "checked").trigger("change");
+			}else{
+				$("#with_case_no").attr("checked", "checked").trigger("change");
+			}
+
 			$("#editform").validate({
 				rules : {
 					kind : {
@@ -239,6 +246,7 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 						"id" : $("#label_edit_id").text(),
 						"kind" : $("#input_kind").val(),
 						"default_pat_id" : $("#input_default_pat_id").val(),
+						"with_case": $("#edit_with_case input:checked").val(),
 						"name" : $("#input_name").val()
 					}
 
@@ -316,12 +324,13 @@ var showAdd = function() {
 	$("#editarea span.areatitle").html("新建" + modelname);
 	$("#editarea").show();
 	$("#editform tr:not(:has(input,textarea,select))").hide();
-	$("#editform input[type!='button'], #editform textarea").val("");
+	$("#editform input[type!='button'][type!='radio'], #editform textarea").val("");
 	$("#editform select").val("").trigger("change");
-	$("#editform label").html("");
+	$("#editform label").not("[for]").html("");
 	$("#editbutton").val("新建");
 	$("#editbutton").enable();
 	$(".errorarea-single").removeClass("errorarea-single");
+	$("#with_case_yes").attr("checked", "checked").trigger("change");
 	// 默认画面变化 e
 
 	// 前台Validate设定
@@ -346,6 +355,7 @@ var showAdd = function() {
 			var postdata = {
 				"kind" : $("#input_kind").val(),
 				"default_pat_id" : $("#input_default_pat_id").val(),
+				"with_case": $("#edit_with_case input:checked").val(),
 				"name" : $("#input_name").val()
 			}
 	

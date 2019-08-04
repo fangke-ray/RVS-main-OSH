@@ -12,7 +12,6 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
 import org.apache.http.nio.client.HttpAsyncClient;
 import org.apache.ibatis.session.SqlSession;
@@ -72,10 +71,11 @@ public class AcceptanceService {
 	 * 建立受理的作业记录
 	 * @param newId
 	 * @param session
+	 * @param triggerList 
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void accept(String newId, HttpSession session, SqlSession conn) throws Exception {
+	public void accept(String newId, HttpSession session, List<String> triggerList, SqlSession conn) throws Exception {
 		ProductionFeatureEntity entity = new ProductionFeatureEntity();
 		entity.setMaterial_id(newId);
 		entity.setPosition_id("00000000009");
@@ -95,25 +95,16 @@ public class AcceptanceService {
 		MaterialService mService = new MaterialService();
 		MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, newId);
 
-		// 周边设备手动放通箱
-		if (!"07".equals(mEntity.getKind())) { // TODO commit
-			HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
-			httpclient.start();
-			String kind = mEntity.getKind();
-			// UDI
-			if ("06".equals(kind) && RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
-				kind = "UDI";
-			}
-			try {  
-				HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
-						+ "/" + kind + "/");
-				httpclient.execute(request, null);
-			} catch (Exception e) {
-			} finally {
-				Thread.sleep(80);
-				httpclient.shutdown();
-			}
+		// 放通箱
+		HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
+		httpclient.start();
+		String kind = mEntity.getKind();
+		// UDI
+		if ("06".equals(kind) && RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
+			kind = "UDI";
 		}
+		triggerList.add("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
+				+ "/" + kind + "/");
 	}
 
 	/**
@@ -231,6 +222,8 @@ public class AcceptanceService {
 
 		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
 
+		List<String> triggerList = new ArrayList<String>();
+
 		// 整理提交数据
 		for (String parameterKey : parameterMap.keySet()) {
 			Matcher m = p.matcher(parameterKey);
@@ -241,12 +234,15 @@ public class AcceptanceService {
 
 					String[] value = parameterMap.get(parameterKey);
 
-					// TODO 全
 					if ("material_id".equals(column)) {
-						accept(value[0], session, conn);
+						accept(value[0], session, triggerList, conn);
 					}
 				}
 			}
+		}
+
+		if (errors.size() == 0 && triggerList.size() > 0) {
+			RvsUtils.sendTrigger(triggerList);
 		}
 	}
 
@@ -302,10 +298,14 @@ public class AcceptanceService {
 		MaterialMapper mDao = conn.getMapper(MaterialMapper.class);
 		mDao.updateMaterialReturn(ids);
 
+		TurnoverCaseService tcService = new TurnoverCaseService();
+
 		// FSE 数据同步
 		try{
 			for (String id: ids) {
 				FseBridgeUtil.toUpdateMaterial(id, "br111");
+
+				tcService.triggerUndoStorage(id);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

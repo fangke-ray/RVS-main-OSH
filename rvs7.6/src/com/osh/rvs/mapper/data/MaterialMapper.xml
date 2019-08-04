@@ -36,6 +36,7 @@
 		<![CDATA[ 
 			SELECT 
 				`m`.material_id,
+				`m`.`fix_type`,
 				coalesce(omr_notifi_no, sorc_no) as sorc_no,
 				`m`.model_id,
 				mdl.name as model_name,

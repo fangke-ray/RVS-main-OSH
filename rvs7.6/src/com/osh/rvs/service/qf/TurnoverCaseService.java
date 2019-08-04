@@ -7,6 +7,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
+import org.apache.http.nio.client.HttpAsyncClient;
+import org.apache.http.nio.reactor.IOReactorException;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
@@ -278,6 +282,20 @@ public class TurnoverCaseService {
 			SqlSessionManager conn) {
 		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
 		return mapper.checkEmpty(location);
+	}
+
+	public void triggerUndoStorage(String material_id) throws IOReactorException, InterruptedException {
+		HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
+		httpclient.start();
+		try {  
+			HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/assign_tc_space/" 
+				+ material_id + "/UNDO/");
+			httpclient.execute(request, null);
+		} catch (Exception e) {
+		} finally {
+			Thread.sleep(80);
+			httpclient.shutdown();
+		}
 	}
 
 }

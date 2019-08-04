@@ -92,6 +92,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-content" style="width:660px;"><select name="default_pat_id" alt="默认流程" id="input_default_pat_id" class="ui-widget-content">${patOptions}</select></td>
 				</tr>
 				<tr>
+					<td class="ui-state-default td-title">附周转箱</td>
+					<td class="td-content" id="edit_with_case">
+						<input type="radio" name="with_case" id="with_case_yes" checked="checked" class="ui-widget-content ui-helper-hidden-accessible" value="1"><label for="with_case_yes" aria-pressed="false">是</label>
+						<input type="radio" name="with_case" id="with_case_no" class="ui-widget-content ui-helper-hidden-accessible" value="0"><label for="with_case_no" aria-pressed="false">否</label>
+					</td>
+				</tr>
+				<tr>
 					<td class="ui-state-default td-title">最后更新人</td>
 					<td class="td-content"><label id="label_edit_updated_by"/></td>
 				</tr>

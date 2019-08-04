@@ -27,6 +27,9 @@ public class CategoryForm extends ActionForm {
 	/** 默认流程 ID */
 	@BeanField(title = "默认流程 ID", name = "default_pat_id", notNull=true, length = 11)
 	private String default_pat_id;
+	/** 维修对象种类 */
+	@BeanField(title = "附周转箱", name = "with_case", type = FieldType.Integer, length = 1)
+	private String with_case;
 
 	/**
 	 * 取得维修对象机种 ID
@@ -114,6 +117,14 @@ public class CategoryForm extends ActionForm {
 
 	public void setDefault_pat_id(String default_pat_id) {
 		this.default_pat_id = default_pat_id;
+	}
+
+	public String getWith_case() {
+		return with_case;
+	}
+
+	public void setWith_case(String with_case) {
+		this.with_case = with_case;
 	}
 
 }

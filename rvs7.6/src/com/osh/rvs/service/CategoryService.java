@@ -140,6 +140,7 @@ public class CategoryService {
 		LoginData loginData = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		String userid = loginData.getOperator_id();
 		insertBean.setUpdated_by(userid);
+		if (insertBean.getDefault_pat_id() == null) insertBean.setDefault_pat_id("00000000000"); 
 
 		// 新建记录插入到数据库中
 		CategoryMapper dao = conn.getMapper(CategoryMapper.class);
@@ -163,6 +164,7 @@ public class CategoryService {
 
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		updateBean.setUpdated_by(user.getOperator_id());
+		if (updateBean.getDefault_pat_id() == null) updateBean.setDefault_pat_id("00000000000"); 
 
 		// 更新数据库中记录
 		CategoryMapper dao = conn.getMapper(CategoryMapper.class);

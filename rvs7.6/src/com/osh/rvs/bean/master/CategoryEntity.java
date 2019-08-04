@@ -16,6 +16,8 @@ public class CategoryEntity implements Serializable {
 	private Integer kind = 0;
 	/** 默认流程 ID */
 	private String default_pat_id;
+	/** 附周转箱 */
+	private Integer with_case;
 	/** 删除类别 */
 	private boolean delete_flg = false;
 	/** 最后更新人 */
@@ -138,5 +140,13 @@ public class CategoryEntity implements Serializable {
 		buffer.append(this.name).append(", ");
 		buffer.append(this.kind).append(". ");
 		return buffer.toString();
+	}
+
+	public Integer getWith_case() {
+		return with_case;
+	}
+
+	public void setWith_case(Integer with_case) {
+		this.with_case = with_case;
 	}
 }

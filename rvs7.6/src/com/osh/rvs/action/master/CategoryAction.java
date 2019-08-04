@@ -202,6 +202,10 @@ public class CategoryAction extends BaseAction {
 
 		// 新建记录表单合法性检查
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ALL);
+		CategoryForm categoryForm = (CategoryForm)form;
+		if ("8".equals(categoryForm.getKind()) || "9".equals(categoryForm.getKind())) {
+			v.delete("default_pat_id");
+		}
 		List<MsgInfo> errors = v.validate();
 
 		if (errors.size() == 0) {
@@ -234,6 +238,10 @@ public class CategoryAction extends BaseAction {
 
 		// 修改记录表单合法性检查
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ALL);
+		CategoryForm categoryForm = (CategoryForm)form;
+		if ("8".equals(categoryForm.getKind()) || "9".equals(categoryForm.getKind())) {
+			v.delete("default_pat_id");
+		}
 		List<MsgInfo> errors = v.validate();
 
 		if (errors.size() == 0) {
