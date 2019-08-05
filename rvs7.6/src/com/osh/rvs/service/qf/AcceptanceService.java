@@ -12,8 +12,6 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
-import org.apache.http.nio.client.HttpAsyncClient;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
@@ -96,15 +94,13 @@ public class AcceptanceService {
 		MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, newId);
 
 		// 放通箱
-		HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
-		httpclient.start();
 		String kind = mEntity.getKind();
 		// UDI
 		if ("06".equals(kind) && RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
 			kind = "UDI";
 		}
 		triggerList.add("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
-				+ "/" + kind + "/");
+				+ "/" + kind + "/" + mEntity.getFix_type() + "/" + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
 	}
 
 	/**

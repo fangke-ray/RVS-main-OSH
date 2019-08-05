@@ -346,7 +346,8 @@ public class AcceptanceAction extends BaseAction {
 			httpclient.start();
 			try {  
 				HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/assign_tc_space/" 
-					+ mEntity.getMaterial_id() + "/" + mEntity.getKind() + "/");
+					+ mEntity.getMaterial_id() + "/" + mEntity.getKind() + "/"  
+					+ mEntity.getFix_type() + "/"  + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
 				httpclient.execute(request, null);
 			} catch (Exception e) {
 			} finally {
