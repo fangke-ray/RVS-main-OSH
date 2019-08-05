@@ -38,9 +38,9 @@ public class CategoryService {
 		// 周边组
 		Map<String, String> codeMapPeripheral = new TreeMap<String, String>();
 		for (CategoryEntity bean : l) {
-			if (bean.getKind() != 7) {
+			if (bean.getKind() < 7) {
 				codeMapEndoscope.put(bean.getCategory_id(), bean.getName());
-			} else {
+			} else if (bean.getKind() == 7) {
 				codeMapPeripheral.put(bean.getCategory_id(), bean.getName());
 			}
 		}
