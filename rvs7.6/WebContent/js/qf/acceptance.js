@@ -118,8 +118,9 @@ var uploadfile = function() {
 					treatBackMessages(null, resInfo.errors);
 				} else {
 					listdata = resInfo.list;
+					$("#uld_listarea span.ui-icon").click();
 					load_list();
-					if (resInfo.infoes)
+					if (resInfo.infoes && resInfo.infoes.length > 0)
 						infoesConfirm(resInfo.infoes);
 					if (resInfo.status)
 						uploadComplete(resInfo.status);
@@ -231,7 +232,7 @@ var showLoadInput=function(rid) {
 
 var showInput=function(rid, manual) {
 
-	var linkna = "widgets/qf/acceptance-edit.jsp";
+	var linkna = "widgets/qf/acceptance-edit.jsp?fromPage=manual";
 
 	$("#uld_listedit").hide();
 	// 导入编辑画面
@@ -456,10 +457,15 @@ var printTicket=function() {
 	var rowids = $("#imp_list").jqGrid("getGridParam", "selarrrow");
 	curpagenum = $("#imp_list").jqGrid('getGridParam', 'page');   //当前页码
 	var selectedRows = new Array();
+	var index = 0;
 	for (var i in rowids) {
 		var rowdata = $("#imp_list").getRowData(rowids[i]);
-		data["materials.material_id[" + i + "]"] = rowdata["material_id"];
+		if (rowdata["fix_type"] == "3") {
+			continue;
+		}
+		data["materials.material_id[" + index + "]"] = rowdata["material_id"];
 		selectedRows.push(rowdata["material_id"]);
+		index++;
 	}
 
 	// Ajax提交
@@ -534,13 +540,26 @@ var enablebuttons2 = function() {
 	
 	var rowids = $("#imp_list").jqGrid("getGridParam", "selarrrow");
 	if (rowids.length >= 1) {
-		$("#printbutton").enable();
+		var flag = false;
+		for (var i in rowids) {
+			var data = $("#imp_list").getRowData(rowids[i]);
+			// 勾选的记录中存在维修品（流水线or单元），则打印现品票按钮可以使用
+			if (data["fix_type"] == "1" || data["fix_type"] == "2") {
+				flag = true;
+				break;
+			}
+		}
+		if (flag) {
+			$("#printbutton").enable();
+		} else {
+			$("#printbutton").disable();
+		}
 		$("#returnbutton").enable();
 	} else {
 		$("#printbutton").disable();
 		$("#returnbutton").disable();
 	}
-	
+
 	if (rowids.length > 0) {
 		var flag = true;
 		var notaccepted = true;
@@ -551,7 +570,7 @@ var enablebuttons2 = function() {
 				break;
 			}
 		}
-		
+
 		//经理
 		if(isManager){
 			for (var i in rowids) {
@@ -576,7 +595,7 @@ var enablebuttons2 = function() {
 				}
 			}
 		}
-	
+
 		if (flag) {
 			$("#disinfectionbutton").enable();
 			$("#sterilizationbutton").enable();
@@ -684,7 +703,7 @@ function acceptted_list(){
 					// 型号登记有效期标记
 					var avaliable_end_date_flg = rowdata["avaliable_end_date_flg"];
 					
-					if (rowdata["sterilized"] != "0") {
+					if (rowdata["sterilized"] != "0" && rowdata["fix_type"] != "3") {
 						jthis.find("tr#" + dataIds[i] + " td").addClass("waitTicket");
 					}
 					
@@ -904,6 +923,8 @@ function load_list(){
 						comment += " 流水线";
 					} else if (rData["fix_type"] == "2") {
 						comment += " 单元";
+					} else if (rData["fix_type"] == "3") {
+						comment += " 备品";
 					}
 					return comment.trim();
 				}

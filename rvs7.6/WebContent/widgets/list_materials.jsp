@@ -99,8 +99,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<td class="ui-state-default td-title">OCM配送日</td>
 						<td class="td-content"><input type="text" name="ocm_shipping_date_start" id="search_ocm_shipping_date_start" maxlength="50" class="ui-widget-content" readonly="readonly">起<br/>
 						<input type="text" name="ocm_shipping_date_end" id="search_ocm_shipping_date_end" maxlength="50" class="ui-widget-content" readonly="readonly">止</td>
-						<td class="ui-state-default td-title"></td>
-						<td class="td-content"></td>
+						<td class="ui-state-default td-title">维修方式</td>
+						<td class="td-content"><select name="fix_type" id="search_fix_type" class="ui-widget-content">${ftOptions}</select></td>
 					</tr>
 				</tbody>
 				</table>

@@ -118,6 +118,9 @@ public class MaterialAction extends BaseAction {
 		req.setAttribute("today_date", DateUtil.toString(cal, DateUtil.DATE_PATTERN));
 		req.setAttribute("past_4_date", DateUtil.toString(RvsUtils.switchWorkDate(cal, -4, conn), DateUtil.DATE_PATTERN));
 
+		// 维修方式取得
+		req.setAttribute("ftOptions", CodeListUtils.getSelectOptions("material_fix_type_manual", null, ""));
+
 		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 		
 		String privacy="";

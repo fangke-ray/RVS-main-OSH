@@ -76,11 +76,17 @@ public class UploadAction extends BaseAction {
 		}
 		if (errors.size() == 0) {
 			List<MaterialForm> readList = new ArrayList<MaterialForm>();
-
+			
 			// 新的文件导入
 			Map<String, Integer> readMap = uService.readSetInlineStatus(readList, tempfilename, conn, errors, infoes);
 
 			if (errors.size() == 1 && "notSummaryFile".equals(errors.get(0).getErrcode())) {
+				// 备品文件导入
+				errors.clear();
+				readList = uService.readSparesFile(tempfilename, conn, errors, infoes);
+			}
+
+			if (errors.size() == 1 && "notSparesFile".equals(errors.get(0).getErrcode())) {
 				// 还是旧文件
 				errors.clear();
 				readList = uService.readFile(tempfilename, conn, errors);

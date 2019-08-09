@@ -306,6 +306,9 @@
 				and a.ocm_shipping_date <= #{ocm_shipping_date_end}
 				]]>
 			</if>
+			<if test="fix_type != null and fix_type != '' ">
+				and a.fix_type = #{fix_type}
+			</if>
 			<if test="scheduled_date_start!= null or scheduled_date_end!= null or complete_date_start!= null or complete_date_end!= null">
 				<![CDATA[
 				and EXISTS (
@@ -959,4 +962,11 @@
 			update material set customer_id=#{target_customer_id} where customer_id=#{original_customer_id}
 		]]>
 	</update>
+
+	<!--outline_time为空的维修对象  -->
+	<select id="searchMaterialByOutlineTime" resultType="MaterialEntity">
+		<![CDATA[
+			 select model_id,serial_no from material where outline_time is null
+		]]>
+	</select>
 </mapper>
