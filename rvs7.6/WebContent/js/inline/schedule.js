@@ -144,10 +144,10 @@ $(function() {
 				var dd = new Date(date);
 				if (dd > minDate) {
 					dd.setDate(dd.getDate()-1);
-					$("#pick_date").val(dd.getFullYear()+"/"+(dd.getMonth()+1)+"/"+dd.getDate());
+					$("#pick_date").val(dd.getFullYear()+"/"+fillZero(dd.getMonth()+1)+"/"+fillZero(dd.getDate()));
 				}
 			} else {
-				$("#pick_date").val(minDate.getFullYear()+"/"+(minDate.getMonth()+1)+"/"+minDate.getDate());
+				$("#pick_date").val(minDate.getFullYear()+"/"+fillZero(minDate.getMonth()+1)+"/"+fillZero(minDate.getDate()));
 			}
 			changeDate();
 		} else if ($(this).hasClass('ui-icon-circle-triangle-e')){ //加
@@ -156,10 +156,10 @@ $(function() {
 				var dd = new Date(date);
 				if (dd < maxDate) {
 					dd.setDate(dd.getDate()+1);
-					$("#pick_date").val(dd.getFullYear()+"/"+(dd.getMonth()+1)+"/"+dd.getDate());
+					$("#pick_date").val(dd.getFullYear()+"/"+fillZero(dd.getMonth()+1)+"/"+fillZero(dd.getDate()));
 				}
 			} else {
-				$("#pick_date").val(minDate.getFullYear()+"/"+(minDate.getMonth()+1)+"/"+minDate.getDate());
+				$("#pick_date").val(minDate.getFullYear()+"/"+fillZero(minDate.getMonth()+1)+"/"+fillZero(minDate.getDate()));
 			}
 			changeDate();
 		}

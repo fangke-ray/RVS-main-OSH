@@ -56,7 +56,7 @@ public interface ProcessAssignMapper {
 	/** 得到一个分支中全部的工位 **/ 
 	public List<String> getPartAll(@Param("refer_id") String pat_id, @Param("line_id")  String line_id);
 
-	public int get32(String material_id);
+//	public int get32(String material_id);
 
 	public int get20(String material_id);
 
