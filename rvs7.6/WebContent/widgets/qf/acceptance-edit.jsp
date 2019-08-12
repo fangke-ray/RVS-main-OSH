@@ -25,6 +25,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 	});
 </script>
+<% 
+	String fromPage = request.getParameter("fromPage");
+	boolean isFromManual = ("manual").equals(fromPage);
+%>
 
 	<form id="ins_material">
 		<input type="hidden" id="material_id">
@@ -133,7 +137,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<tr>
 				<td class="td-content" colspan="3">
 					<select name="fix_type" alt="修理分类" id="fix_type" class="ui-widget-content">
+						<% if (isFromManual) { %>
+						<%=CodeListUtils.getSelectOptions("material_fix_type_manual", null, "", false) %>
+						<% } else {%>
 						<%=CodeListUtils.getSelectOptions("material_fix_type", null, "", false) %>
+						<% } %>
 					</select>
 				</td>
 				</tr>

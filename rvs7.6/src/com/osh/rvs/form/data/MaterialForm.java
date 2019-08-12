@@ -5,6 +5,7 @@ import org.apache.struts.action.ActionForm;
 import framework.huiqing.bean.annotation.BeanField;
 import framework.huiqing.bean.annotation.FieldType;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.CommonStringUtil;
 
 public class MaterialForm extends ActionForm {
 
@@ -290,7 +291,11 @@ public class MaterialForm extends ActionForm {
 					service_repair_flg);
 		}
 		if (fix_type != null) {
-			remark += CodeListUtils.getValue("material_fix_type", fix_type);
+			String tmp = CodeListUtils.getValue("material_fix_type", fix_type);
+			if (CommonStringUtil.isEmpty(tmp)) {
+				tmp = CodeListUtils.getValue("material_fix_type_manual", fix_type);
+			}
+			remark += tmp;
 		}
 		return remark;
 	}

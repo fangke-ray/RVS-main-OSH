@@ -33,10 +33,16 @@
 		<!--value code="3">检测备品</value-->
 	</codelist>
 
+	<codelist name="material_fix_type_manual">
+		<value code="1">流水线</value>
+		<value code="2">单元</value>
+		<value code="3">备品</value>
+	</codelist>
+
 	<codelist name="material_service_repair">
 		<value code="1">保内返修</value>
 		<value code="2">QIS</value>
-		<value code="3">备品</value>
+		<!--value code="3">备品</value-->
 	</codelist>
 	
 	<codelist name="material_direct">

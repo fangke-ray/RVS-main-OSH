@@ -146,4 +146,11 @@ public interface MaterialMapper {
 	 * @param target_customer_id 归并目标
 	 */
 	public void updateCustomerId(@Param("target_customer_id") String target_customer_id ,@Param("original_customer_id") String original_customer_id);
+
+	/**
+	 * outline_time为空的维修对象
+	 * 
+	 * @return
+	 */
+	public List<MaterialEntity> searchMaterialByOutlineTime();
 }
