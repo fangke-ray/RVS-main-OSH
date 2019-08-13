@@ -77,6 +77,10 @@ var remapworking = function(workingPfs) {
 	if ($("#dm_select_all").length > 0) {
 		$dmSelect = $($("#dm_select_all").html());
 		$dmSelect.find(".select2Buttons").remove();
+		$dmSelect.find("option").each(function(idx, ele){
+			var text = $(ele).text();
+			$(ele).text(text.replace(/[^\u00-\uFF]\s*/g,''));
+		});
 	}
 
 	var waiting_html = "";
@@ -84,9 +88,13 @@ var remapworking = function(workingPfs) {
 		var waiting = workingPfs[iworking];
 		waiting_html += '<div class="waiting tube" id="w_' + waiting.material_id + '">' +
 							'<div class="tube-liquid' + expeditedColor(waiting.expedited)  + '">' +
-								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no +
-							'</div>' + '<div class="dm_select"></div>' +
-						'</div>'
+								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no;
+		if (waiting.fix_type == 3) {
+			waiting_html +=	'<div class="material_flags"><div class="rc">备</div></div>';
+		}	
+								
+		waiting_html +=	'</div>' + '<div class="dm_select"></div>';
+		waiting_html +=	'</div>';
 	}
 	var $waiting_html = $(waiting_html);
 
@@ -237,17 +245,32 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			var waiting_html = "";
 			for (var iwaiting = 0; iwaiting < resInfo.waitings.length; iwaiting++) {
 				var waiting = resInfo.waitings[iwaiting];
+				var block_status = waiting.block_status;
+
 				if (reason != waiting.waitingat) {
 					reason = waiting.waitingat;
 					waiting_html += '<div class="ui-state-default w_group" style="width: 420px; margin-top: 12px; margin-bottom: 8px; padding: 2px;">'+ reason +':</div>'
 				}
 				waiting_html += '<div class="waiting tube" id="w_' + waiting.material_id + '">' +
 									'<div class="tube-liquid' + expeditedColor(waiting.expedited)  + '">' +
-										(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no +
-									'</div>' +
-								'</div>';
+										(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no;
+				if (block_status == 3) {
+					waiting_html +=	'<div class="material_flags"><div class="rc">备</div></div>';
+				}
+				waiting_html +=	'</div>';
+				if (block_status == 3) {
+					waiting_html += '<div class="click_start"><input type="button" value="》开始"></div>';
+				}
+				waiting_html +=	'</div>';
 			}
 			var $waiting_html = $(waiting_html);
+			
+			$waiting_html.find("input:button").button().click(function(){
+				var $tube = $(this).parent().parent();
+				var material_id = $tube.attr("id").replace("w_","");
+				doStart(material_id);
+			});
+			
 			$waiting_html.filter(".w_group").each(function(){
 				var $w_group = $(this);
 				$w_group.text($w_group.text() + " " + $w_group.nextUntil(".w_group").length + " 台");
@@ -422,9 +445,12 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus){
 	};
 };
 
-var doStart=function(){
-	var data = {
-		material_id : $("#scanner_inputer").val()
+var doStart=function(materialId){
+	var data = {};
+	if (materialId) {
+		data["material_id"] = materialId;
+	}else{
+		data["material_id"] = $("#scanner_inputer").val();
 	}
 
 	$("#scanner_inputer").attr("value", "");
@@ -482,9 +508,8 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 }
 
 var doFinish=function(){
-
-	var data = {};
 	var pcs_inputses = {};
+	var pcs_rcs = {};
 
 	$("#workings > div").each(function(idx, ele){
 		var $wk = $(ele);
@@ -495,11 +520,31 @@ var doFinish=function(){
 		$manager_nos.each(function(idx, ele){
 			pcs_inputs[$(ele).attr("code")] = ele.value;
 		});
-
-		pcs_inputses[wk_id] = pcs_inputs;
+		
+		if ($wk.find(".rc").length > 0) {
+			pcs_rcs[wk_id] = pcs_inputs;
+		} else {
+			pcs_inputses[wk_id] = pcs_inputs;
+		}
 	});
 
-	data.pcs_inputs = Json_to_String(pcs_inputses);
+	if (!$.isEmptyObject(pcs_inputses) && !$.isEmptyObject(pcs_rcs)) {
+		warningConfirm("选择维修品或者备品完成？"
+				, function() {doFinish_ajax(pcs_inputses);}
+				, function() {doFinish_ajax(pcs_rcs);}
+				, ""
+				, "维修品"
+				, "备品");
+	} else if (!$.isEmptyObject(pcs_inputses)) {
+		doFinish_ajax(pcs_inputses);
+	} else if (!$.isEmptyObject(pcs_rcs)) {
+		doFinish_ajax(pcs_rcs);
+	}
+};
+
+var doFinish_ajax = function(pcs_inputs) {
+	var data = {};
+	data.pcs_inputs = Json_to_String(pcs_inputs);
 
 	// Ajax提交
 	$.ajax({
@@ -514,7 +559,7 @@ var doFinish=function(){
 		error : ajaxError,
 		complete : doFinish_ajaxSuccess
 	});
-};
+}
 
 var prevzero =function(i) {
 	if (i < 10) {

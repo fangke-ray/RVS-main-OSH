@@ -32,6 +32,21 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 .waiting.tube {
 	position:relative;
 }
+.click_start {
+	position: absolute;
+	right: -36px;
+	bottom: -10px;
+	display: none;
+}
+#waitings .click_start input {
+	padding: 5px;
+}
+#waitings .waiting {
+	position: relative;
+}
+#waitings .waiting:hover .click_start{
+	display: block;
+}
 </style>
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>

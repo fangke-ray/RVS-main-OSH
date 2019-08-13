@@ -556,4 +556,31 @@
 		ORDER BY COALESCE(action_time, "9999/12/31");
 	]]>
 	</select-->
+
+	<select id="getWaitingCdsMaterial" resultType="WaitingEntity" parameterType="String">
+	<![CDATA[ 
+		SELECT `m`.material_id, `m`.omr_notifi_no as sorc_no, `m`.model_id, `mdl`.name as model_name,
+			`c`.name as category_name, `m`.serial_no,
+			0 as expedited, `pf`.operate_result as waitingat,
+			0 as pause_reason,
+			0 as today, 
+			0 as reworked,
+			coalesce(`m`.direct_flg, 0) as direct_flg,
+			m.level in (9,91,92,93,96,97,98,99) as light_fix,
+			`m`.fix_type as block_status
+		FROM production_feature pf
+		JOIN material m
+			ON `pf`.material_id = `m`.material_id
+		JOIN model mdl
+			ON `m`.model_id = `mdl`.model_id
+		JOIN category c
+			ON `mdl`.category_id = `c`.category_id
+		WHERE `pf`.position_id = #{position_id}
+			AND `pf`.section_id = #{section_id}
+			AND `pf`.action_time is null
+			AND `pf`.finish_time is null
+			AND `pf`.operate_result not in (8)
+		ORDER BY `m`.reception_time;
+	]]>
+	</select>
 </mapper>

@@ -474,6 +474,13 @@ border:1px solid gray;
 color: rgb(0, 48, 0);
 }
 
+.tube-liquid .material_flags .rc
+{
+background-color: #0074E8;
+border:1px solid gray;
+color: #fff;
+}
+
 .tube-liquid > .finish_time_left
 {
 float:right;

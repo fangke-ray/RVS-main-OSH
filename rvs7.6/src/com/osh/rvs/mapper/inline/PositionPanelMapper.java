@@ -86,4 +86,5 @@ public interface PositionPanelMapper {
 
 	public List<ProductionFeatureEntity> getWorkingBatch(@Param("position_id") String position_id, @Param("operator_id") String operator_id);
 
+	public List<WaitingEntity> getWaitingCdsMaterial(@Param("section_id") String section_id, @Param("position_id") String position_id);
 }
