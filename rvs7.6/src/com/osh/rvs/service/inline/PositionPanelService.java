@@ -170,8 +170,12 @@ public class PositionPanelService {
 
 		PositionPanelMapper dao = conn.getMapper(PositionPanelMapper.class);
 
-		List<WaitingEntity> ret = dao.getWaitingMaterial(user.getLine_id(), user.getSection_id(),
-				userPositionId, null, user.getOperator_id(), user.getPx(), "true");
+		List<WaitingEntity> ret = null;
+		if ("121".equals(user.getProcess_code()) || "131".equals(user.getProcess_code())) {
+			ret = dao.getWaitingCdsMaterial(user.getSection_id(), userPositionId);
+		} else {
+			ret = dao.getWaitingMaterial(user.getLine_id(), user.getSection_id(), userPositionId, null, user.getOperator_id(), user.getPx(), "true");
+		}
 
 		return ret;
 	}
@@ -511,7 +515,12 @@ public class PositionPanelService {
 			String operator_id, String pxLevel, String process_code, SqlSession conn) {
 		PositionPanelMapper mapper = conn.getMapper(PositionPanelMapper.class);
 
-		List<WaitingEntity> ret = mapper.getWaitingMaterial(line_id, section_id, position_id, null, operator_id, pxLevel, null);
+		List<WaitingEntity> ret = null;
+		if ("121".equals(process_code) || "131".equals(process_code)) {
+			ret = mapper.getWaitingCdsMaterial(section_id, position_id);
+		} else {
+			ret = mapper.getWaitingMaterial(line_id, section_id, position_id, null, operator_id, pxLevel, null);
+		}
 
 		signWaitingEntity(ret, position_id, process_code, null, null, conn);
 

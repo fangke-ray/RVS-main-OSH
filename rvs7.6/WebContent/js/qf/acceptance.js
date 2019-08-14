@@ -460,11 +460,12 @@ var printTicket=function() {
 	var index = 0;
 	for (var i in rowids) {
 		var rowdata = $("#imp_list").getRowData(rowids[i]);
+		selectedRows.push(rowdata["material_id"]);
+		
 		if (rowdata["fix_type"] == "3") {
 			continue;
 		}
 		data["materials.material_id[" + index + "]"] = rowdata["material_id"];
-		selectedRows.push(rowdata["material_id"]);
 		index++;
 	}
 
@@ -565,7 +566,7 @@ var enablebuttons2 = function() {
 		var notaccepted = true;
 		for (var i in rowids) {
 			var data = $("#imp_list").getRowData(rowids[i]);
-			if (data["sterilized"] != "0" || data["doreception_time"].trim() == "") {
+			if ((data["sterilized"] != "0" && data["fix_type"] != "3") || data["doreception_time"].trim() == "") {
 				flag = false;
 				break;
 			}
@@ -1032,6 +1033,7 @@ var doAccept = function(){
 	var selectedRows = new Array();
 	for (var i in rowids) {
 		var rowdata = $("#imp_list").getRowData(rowids[i]);
+		selectedRows.push(rowdata["material_id"]);
 		data["materials.material_id[" + i + "]"] = rowdata["material_id"];
 		var t_direct = rowdata["direct_flg"];
 		if (t_direct == 1) {

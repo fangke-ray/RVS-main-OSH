@@ -969,4 +969,13 @@
 			 select model_id,serial_no from material where outline_time is null
 		]]>
 	</select>
+
+	<!--outline_time设成当前时间  -->
+	<update id="updateMaterialOutlineTime" parameterType="String">
+		<![CDATA[ 
+			UPDATE Material SET
+			outline_time = current_timestamp
+			where material_id = #{material_id}
+		]]>
+	</update>
 </mapper>

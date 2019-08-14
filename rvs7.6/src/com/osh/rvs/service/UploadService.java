@@ -2963,7 +2963,9 @@ public class UploadService {
 			MaterialMapper mDao = conn.getMapper(MaterialMapper.class);
 			List<MaterialEntity> modelidList = mDao.searchMaterialByOutlineTime();
 
+			String lineNo = "";
 			for (int iRow = 1; iRow <= sheet.getLastRowNum(); iRow++) {
+				lineNo = "第" + (iRow + 1) + "行";
 				row = sheet.getRow(iRow);
 				if (row != null) {
 					String model_name = getCellStringValue(row.getCell(5));
@@ -2975,11 +2977,11 @@ public class UploadService {
 						MsgInfo info = new MsgInfo();
 						info.setErrcode("validator.required");
 						if (CommonStringUtil.isEmpty(model_name)) { 
-							info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "第" + iRow
-									+ "行型号"));
+							info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", lineNo
+									+ "型号"));
 						} else {
-							info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "第" + iRow
-									+ "行机身号"));
+							info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", lineNo
+									+ "机身号"));
 						}
 						errors.add(info);
 						continue;
@@ -2997,8 +2999,8 @@ public class UploadService {
 					if (serial_no.length() > 20) {
 						MsgInfo info = new MsgInfo();
 						info.setErrcode("validator.invalidParam.invalidMaxLengthValue");
-						info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", "第" + iRow
-								+ "行机身号", "20"));
+						info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", lineNo
+								+ "机身号", "20"));
 						errors.add(info);
 						continue;
 					}  

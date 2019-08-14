@@ -39,7 +39,8 @@ var findit = function(data) {
 			"partial_order_date_end":$("#partial_order_date_end").val(),
 			"ocm_shipping_date_start":$("#search_ocm_shipping_date_start").val(),
 			"ocm_shipping_date_end":$("#search_ocm_shipping_date_end").val(),
-			"ocm":$("#search_ocm").val()
+			"ocm":$("#search_ocm").val(),
+			"fix_type":$("#search_fix_type").val()
 		};
 	} else {
 		keepSearchData = data;
@@ -89,6 +90,7 @@ var reset = function() {
 	$("#partial_order_date_end").val("");
 	$("#search_ocm_shipping_date_start").val("");
 	$("#search_ocm_shipping_date_end").val("");
+	$("#search_fix_type").val("").trigger("change");
 };
 
 var downResult = function() {
@@ -159,7 +161,7 @@ $(function() {
 		currentText: "今天"
 	});
 
-	$("#search_category_id, #search_section_id, #search_ocm, #search_level").select2Buttons();
+	$("#search_category_id, #search_section_id, #search_ocm, #search_level, #search_fix_type").select2Buttons();
 	setReferChooser($("#search_modelname"), $("#model_refer"), $("#search_category_id"));
 
 	$("#more_condition_button").click(function(){

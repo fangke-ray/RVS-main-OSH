@@ -1419,6 +1419,9 @@ public class PositionPanelAction extends BaseAction {
 		Map<String, LinkedHashMap<String, String>> jsonPcs_inputs = JSON.decode(sPcs_inputs, Map.class);
 
 		for (ProductionFeatureEntity workingPf : workingPfs) {
+			if (!jsonPcs_inputs.containsKey(workingPf.getMaterial_id())) {
+				continue;
+			}
 
 			// 计算一下总工时：
 			Integer use_seconds = 0;

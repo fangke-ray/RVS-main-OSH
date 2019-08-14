@@ -424,19 +424,24 @@ public class ProductionFeatureService {
 
 		// 固定流程工位 (有特殊界面的不列在内)
 		if ("00000000010".equals(position_id) || "00000000011".equals(position_id)) { // 消毒灭菌
-			if ("07".equals(mEntity.getKind()) && mEntity.getFix_type() == 1) {
-				nextPositions.add(RvsConsts.POSITION_QUOTATION_P_181); // 周边报价
-			} else if (RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) { // 光学视管
-				nextPositions.add("00000000013");
+			if (mEntity.getFix_type() == 3) {
+				// outline_time设成当前时间（业务处理全部结束了）
+				mDao.updateMaterialOutlineTime(material_id);
 			} else {
-				nextPositions.add("00000000012");
-			}
-			if (isFact) {
-				// FSE 数据同步
-				try{
-					FseBridgeUtil.toUpdateMaterialProcess(material_id, "fr" + workingPf.getProcess_code());
-				} catch (Exception e) {
-					e.printStackTrace();
+				if ("07".equals(mEntity.getKind()) && mEntity.getFix_type() == 1) {
+					nextPositions.add(RvsConsts.POSITION_QUOTATION_P_181); // 周边报价
+				} else if (RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) { // 光学视管
+					nextPositions.add("00000000013");
+				} else {
+					nextPositions.add("00000000012");
+				}
+				if (isFact) {
+					// FSE 数据同步
+					try{
+						FseBridgeUtil.toUpdateMaterialProcess(material_id, "fr" + workingPf.getProcess_code());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		} else if ("00000000012".equals(position_id)) { // 测漏
