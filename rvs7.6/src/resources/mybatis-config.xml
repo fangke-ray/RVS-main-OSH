@@ -130,6 +130,10 @@
 		<typeAlias alias="DeviceJigRepairRecordEntity" type="com.osh.rvs.bean.equipment.DeviceJigRepairRecordEntity"/>
 		<typeAlias alias="PartialBussinessStandardEntity" type="com.osh.rvs.bean.master.PartialBussinessStandardEntity"/>
 		<typeAlias alias="PartialUnpackEntity" type="com.osh.rvs.bean.master.PartialUnpackEntity"/>
+		<typeAlias alias="PartialWarehouseEntity" type="com.osh.rvs.bean.partial.PartialWarehouseEntity"/>
+		<typeAlias alias="PartialWarehouseDetailEntity" type="com.osh.rvs.bean.partial.PartialWarehouseDetailEntity"/>
+		<typeAlias alias="FactPartialWarehouseEntity" type="com.osh.rvs.bean.partial.FactPartialWarehouseEntity"/>
+		<typeAlias alias="AfProductionFeatureEntity" type="com.osh.rvs.bean.qf.AfProductionFeatureEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -249,6 +253,9 @@
 		<mapper resource="com/osh/rvs/mapper/partial/PartialWasteModifyHistoryMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/PremakePartialMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/SorcLossMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialWarehouseMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/PartialWarehouseDetailMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/FactPartialWarehouseMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/pda/PdaSupplyMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/pda/PdaApplyMapper.xml"/>
@@ -259,6 +266,7 @@
 		<mapper resource="com/osh/rvs/mapper/qf/ShippingMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qf/TurnoverCaseMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/qf/WipMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qf/AfProductionFeatureMapper.xml" />
 
 		<mapper resource="com/osh/rvs/mapper/qa/QualityAssuranceMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qa/ServiceRepairManageMapper.xml" />

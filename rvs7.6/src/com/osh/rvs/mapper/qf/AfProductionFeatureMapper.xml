@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.AfProductionFeatureMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="insert" parameterType="AfProductionFeatureEntity">
+	<![CDATA[
+	INSERT INTO af_production_feature
+	(
+	production_type,
+	operator_id,
+	action_time
+	)
+	VALUES
+	#{production_type},
+	#{operator_id},
+	#{action_time}
+	)
+	]]>
+	</insert>
+	
+	<update id="updateFinishTime" parameterType="string">
+	<![CDATA[
+		UPDATE af_production_feature SET finish_time = CURRENT_TIMESTAMP WHERE af_pf_key = #{af_pf_key}
+	]]>
+	</update>
+	
+	<select id="getUnfinish" resultType="AfProductionFeatureEntity" parameterType="string">
+	<![CDATA[
+		SELECT 
+			af_pf_key,
+			production_type,
+			operator_id,
+			action_time,
+			finish_time 
+		FROM
+			af_production_feature
+		WHERE
+			operator_id = #{operator_id}
+		AND
+			finish_time IS NULL
+	]]>
+	</select>
+</mapper>

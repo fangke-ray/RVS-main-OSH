@@ -119,6 +119,7 @@
 		<form-bean name="deviceBackupForm" type="com.osh.rvs.form.equipment.DeviceBackupForm"></form-bean>
 		<form-bean name="deviceJigRepairRecordForm" type="com.osh.rvs.form.equipment.DeviceJigRepairRecordForm"></form-bean>
 		<form-bean name="partialBussinessStandardForm" type="com.osh.rvs.form.master.PartialBussinessStandardForm"></form-bean>
+		<form-bean name="partialWarehouseForm" type="com.osh.rvs.form.partial.PartialWarehouseForm"></form-bean>
 	</form-beans>
 
 
@@ -1413,6 +1414,16 @@
 				name="partialBussinessStandardForm"
 				scope="request"
 				validate="false">
+		</action>
+		
+		<!-- 零件入库单管理 -->
+		<action path="/partial_warehouse"
+				type="com.osh.rvs.action.partial.PartialWarehouseAction"
+				name="partialWarehouseForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+				<forward name="init" path="/pages/partial/partial_warehouse.jsp"/>
 		</action>
 		
 
