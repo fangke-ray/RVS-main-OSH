@@ -908,15 +908,14 @@ public class MaterialAction extends BaseAction {
 
 		} else {
 
-			ByteArrayOutputStream output = new ByteArrayOutputStream();
-		    buffer = new byte[4096];
+		    buffer = new byte[40960];
 		    int n = 0;
-		    while (-1 != (n = is.read(buffer))) {
-		        output.write(buffer, 0, n);
-		    }
-
 			OutputStream os = new BufferedOutputStream(res.getOutputStream());
-			os.write(output.toByteArray());
+		    while (-1 != (n = is.read(buffer))) {
+				os.write(buffer, 0, n);
+		    }
+			is.close();
+
 			os.flush();
 			os.close();
 		}
