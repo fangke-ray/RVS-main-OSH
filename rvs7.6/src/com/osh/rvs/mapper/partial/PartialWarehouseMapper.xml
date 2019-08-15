@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.PartialWarehouseMapper">
+
+	<select id="search" resultType="PartialWarehouseEntity" parameterType="PartialWarehouseEntity">
+	<![CDATA[
+		SELECT
+			pw.`key`,
+			pw.warehouse_date,
+			pw.dn_no,
+			pw.step,
+			SUM(dtl.quantity) AS quantity,
+			(SELECT 
+				SUM(quantity) 
+			FROM 
+				fact_partial_warehouse 
+			LEFT JOIN 
+				af_production_feature
+            ON
+				fact_partial_warehouse.af_pf_key = af_production_feature.af_pf_key 
+			WHERE
+				af_production_feature.production_type = 213
+			AND
+				fact_partial_warehouse.partial_warehouse_key = pw.key
+            ) AS collation_quantity
+		FROM
+			partial_warehouse pw
+		JOIN
+			partial_warehouse_detail dtl
+		ON
+			pw.key = dtl.key
+	]]>
+	<where>
+	<if test="dn_no!=null and dn_no!=''">
+	<![CDATA[
+		AND pw.dn_no = #{dn_no}
+	]]>
+	</if>
+	<if test="warehouse_date_start!=null and warehouse_date_start!=''">
+	<![CDATA[
+		AND pw.warehouse_date >= #{warehouse_date_start}
+	]]>
+	</if>
+	<if test="warehouse_date_end!=null and warehouse_date_end!=''">
+	<![CDATA[
+		AND pw.warehouse_date <= #{warehouse_date_end}
+	]]>
+	</if>
+	<if test="step == 0">
+	<![CDATA[
+		AND pw.step = #{step}
+	]]>
+	</if>
+	<if test="step!=null and step!='' and step!=0">
+	<![CDATA[
+		AND pw.step = #{step}
+	]]>
+	</if>
+	<if test="(finish_date_start!=null and finish_date_start!='') or (finish_date_end!=null and finish_date_end!='')">
+	<![CDATA[
+		AND (SELECT 
+				MAX(finish_time)
+			FROM 
+				af_production_feature
+			LEFT JOIN
+				fact_partial_warehouse
+			ON
+				af_production_feature.af_pf_key = fact_partial_warehouse.af_pf_key
+			WHERE 
+				fact_partial_warehouse.partial_warehouse_key = pw.key 
+			and 
+				af_production_feature.production_type = 213) 
+			BETWEEN
+	]]>
+		<if test="finish_date_start!=null and finish_date_start!=''">
+		<![CDATA[
+			#{finish_date_start}
+		]]>
+		</if>
+		<if test="finish_date_start eq null or finish_date_start eq ''">
+		<![CDATA[
+			'2000-1-1'
+		]]>
+		</if>
+	<![CDATA[
+			AND
+	]]>
+		<if test="finish_date_end!=null and finish_date_end!=''">
+		<![CDATA[
+			DATE_ADD(#{finish_date_end},INTERVAL 1 DAY)
+		]]>
+		</if>
+		<if test="finish_date_end eq null or finish_date_end eq ''">
+		<![CDATA[
+			'2100-1-1'
+		]]>
+		</if>
+	</if>
+	</where>
+	<![CDATA[
+	GROUP BY
+			pw.key
+	]]>
+	</select>
+
+	<insert id="insert" parameterType="PartialWarehouseEntity">
+	<![CDATA[
+		INSERT INTO partial_warehouse (warehouse_date,dn_no,step) VALUES (#{warehouse_date},#{dn_no},#{step})
+	]]>
+	</insert>
+	
+	<select id="getByDnNo" resultType="PartialWarehouseEntity" parameterType="string">
+	<![CDATA[
+		SELECT `key`,warehouse_date,dn_no,step FROM partial_warehouse WHERE dn_no = #{dn_no}
+	]]>
+	</select>
+	
+	<select id="getByStep" resultType="PartialWarehouseEntity" parameterType="string">
+	<![CDATA[
+		SELECT `key`,warehouse_date,dn_no,step FROM partial_warehouse WHERE step IN
+	]]>
+	<foreach item="step" index="index" collection="array" open="(" separator="," close=")">
+		#{step}
+	</foreach>
+	</select>
+	
+	<select id="getByKey" resultType="PartialWarehouseEntity" parameterType="string">
+	<![CDATA[
+		SELECT `key`,warehouse_date,dn_no,step FROM partial_warehouse WHERE `key` = #{key}
+	]]>
+	</select>
+	
+</mapper>

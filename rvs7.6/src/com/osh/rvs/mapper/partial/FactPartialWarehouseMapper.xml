@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.FactPartialWarehouseMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="search" resultType="FactPartialWarehouseEntity" parameterType="string">
+	<![CDATA[
+		SELECT
+			af_pf_key,
+			partial_warehouse_key,
+			spec_kind,
+			quantity
+		FROM
+			fact_partial_warehouse
+	]]>
+	<where>
+	<if test="af_pf_key!=null and af_pf_key!=''">
+	<![CDATA[
+		AND af_pf_key = #{af_pf_key}
+	]]>
+	</if>
+	<if test="partial_warehouse_key!=null and partial_warehouse_key!=''">
+	<![CDATA[
+		AND partial_warehouse_key = #{partial_warehouse_key}
+	]]>
+	</if>
+	</where>
+	</select>
+
+	<insert id="insert" parameterType="FactPartialWarehouseEntity">
+	<![CDATA[
+		INSERT INTO fact_partial_warehouse 
+		(
+		af_pf_key,
+		partial_warehouse_key,
+		spec_kind,
+		quantity
+		) 
+		VALUES 
+		(
+		#{af_pf_key},
+		#{partial_warehouse_key},
+		#{spec_kind},
+		#{quantity}
+		)
+	]]>
+	</insert>
+	
+	<update id="update" parameterType="FactPartialWarehouseEntity">
+	<![CDATA[
+		UPDATE
+			fact_partial_warehouse
+		SET
+			quantity = #{quantity}
+		WHERE
+			af_pf_key = #{af_pf_key}
+		AND
+			partial_warehouse_key = #{partial_warehouse_key}
+		AND
+			spec_kind = #{spec_kind}
+	]]>
+	</update>
+	
+	<select id="countQuantityOfSpecKind" resultType="FactPartialWarehouseEntity" parameterType="FactPartialWarehouseEntity">
+	<![CDATA[
+		SELECT 
+		  	fpw.spec_kind,
+		  	SUM(fpw.quantity) AS quantity
+		FROM
+		    fact_partial_warehouse fpw
+		JOIN
+			af_production_feature afpf
+		ON
+			fpw.af_pf_key = afpf.af_pf_key
+		WHERE
+			afpf.production_type= #{production_type}
+		AND
+			fpw.partial_warehouse_key = #{partial_warehouse_key}
+		AND
+			fpw.af_pf_key <> #{af_pf_key}
+		GROUP BY
+			fpw.spec_kind
+	]]>
+	</select>
+</mapper>

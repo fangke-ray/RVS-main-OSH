@@ -53,7 +53,8 @@ $(function() {
 	<% } else if(links.get("line")){ %>
 		        <a target="_parent" href="partial_recept.do">零件签收</a><br>
 	<% } %>
-		        <a target="_parent" href="materialPartial.do">零件订购·签收管理</a>
+		        <a target="_parent" href="materialPartial.do">零件订购·签收管理</a><br>
+		        <a target="_parent" href="partial_warehouse.do">零件入库单管理</a>
 		    </div>
 <% if(links.get("analysis")){ %>
 		    <h3 style="padding-left:30px;">零件辅助功能</h3>

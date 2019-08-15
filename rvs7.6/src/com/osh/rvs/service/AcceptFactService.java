@@ -6,7 +6,13 @@ import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 
+import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
+import com.osh.rvs.form.qf.AfProductionFeatureForm;
+import com.osh.rvs.mapper.qf.AfProductionFeatureMapper;
+
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.CopyOptions;
 
 public class AcceptFactService {
 
@@ -15,6 +21,7 @@ public class AcceptFactService {
 
 	/**
 	 * 取得全部间接作业选项
+	 * 
 	 * @param conn
 	 * @return
 	 */
@@ -35,5 +42,26 @@ public class AcceptFactService {
 	public static void resetMap() {
 		moduleMap = CodeListUtils.getList("qf_production_module");
 		typeMap = CodeListUtils.getList("qf_production_type");
+	}
+
+	/**
+	 * 根据操作者ID查找未结束作业信息
+	 * 
+	 * @param operatorID
+	 * @param conn
+	 * @return
+	 */
+	public AfProductionFeatureForm getUnFinish(String operatorID, SqlSession conn) {
+		AfProductionFeatureMapper dao = conn.getMapper(AfProductionFeatureMapper.class);
+
+		AfProductionFeatureForm respForm = null;
+		AfProductionFeatureEntity entity = dao.getUnfinish(operatorID);
+
+		if (entity != null) {
+			respForm = new AfProductionFeatureForm();
+			BeanUtil.copyToForm(entity, respForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+		}
+
+		return respForm;
 	}
 }
