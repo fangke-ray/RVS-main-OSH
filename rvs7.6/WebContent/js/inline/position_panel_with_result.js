@@ -470,7 +470,7 @@ var doStart=function(materialId){
 	});
 };
 
-var doFinish_ajaxSuccess = function(xhrobj, textStatus){
+var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 	var resInfo = null;
 	try {
 		// 以Object形式读取JSON
@@ -484,10 +484,21 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 			$("#position_status").text("准备中");
 			$("#position_status").css("color", "#0080FF");
 			$("#manualdetailarea").hide();
-			$("#workings .tube").hide("drop", {direction: 'right'}, function() {});
+
+			if (pcs_inputs) {
+				for (var input in pcs_inputs) {
+					$("#workings").find("#w_" + input).addClass("finished").hide("drop", {direction: 'right'}, function() {});
+				}
+				if ($("#workings .tube").length == $("#workings .tube.finished").length) {
+					$("#finishbutton").disable();
+				}
+			} else {
+				$("#workings .tube").hide("drop", {direction: 'right'}, function() {});
+				$("#finishbutton").disable();
+			}
 
 			$("#s_t").text("");
-			$("#finishbutton").disable();
+
 			if (device_safety_guide && device_safety_guide.length) {
 				$("#comments_sidebar .comments_area").val("");
 				$("#comments_sidebar").hide();
@@ -505,22 +516,22 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
-}
+};
 
 var doFinish=function(){
 	var pcs_inputses = {};
 	var pcs_rcs = {};
 
-	$("#workings > div").each(function(idx, ele){
+	$("#workings > div:not(.finished)").each(function(idx, ele){
 		var $wk = $(ele);
-		var wk_id = $(ele).attr("id").replace("w_", "");
+		var wk_id = $wk.attr("id").replace("w_", "");
 		var pcs_inputs = {};
 
 		var $manager_nos = $wk.find(".manager_no");
 		$manager_nos.each(function(idx, ele){
 			pcs_inputs[$(ele).attr("code")] = ele.value;
 		});
-		
+
 		if ($wk.find(".rc").length > 0) {
 			pcs_rcs[wk_id] = pcs_inputs;
 		} else {
@@ -529,12 +540,24 @@ var doFinish=function(){
 	});
 
 	if (!$.isEmptyObject(pcs_inputses) && !$.isEmptyObject(pcs_rcs)) {
-		warningConfirm("选择维修品或者备品完成？"
-				, function() {doFinish_ajax(pcs_inputses);}
-				, function() {doFinish_ajax(pcs_rcs);}
-				, ""
-				, "维修品"
-				, "备品");
+		$("#pop_detail").text("选择维修品或者备品完成？");
+		$("#pop_detail").dialog({
+			dialogClass:'ui-warn-dialog',
+			width : 450,
+	        resizable:false,
+	        modal:true,
+	        title:"提示信息",
+	        buttons:{
+	            "维修品" : function() {
+	                $(this).dialog("close");
+	                doFinish_ajax(pcs_inputses);
+	            },
+	            "备品" : function() {
+	                $(this).dialog("close");
+	                doFinish_ajax(pcs_rcs);
+	            }
+	        }
+		});
 	} else if (!$.isEmptyObject(pcs_inputses)) {
 		doFinish_ajax(pcs_inputses);
 	} else if (!$.isEmptyObject(pcs_rcs)) {
@@ -557,9 +580,11 @@ var doFinish_ajax = function(pcs_inputs) {
 		dataType : "json",
 		success : ajaxSuccessCheck,
 		error : ajaxError,
-		complete : doFinish_ajaxSuccess
+		complete : function(xhrobj, textStatus){
+			doFinish_ajaxSuccess(xhrobj, textStatus, pcs_inputs);
+		}
 	});
-}
+};
 
 var prevzero =function(i) {
 	if (i < 10) {

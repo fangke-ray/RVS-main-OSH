@@ -3006,11 +3006,16 @@ public class UploadService {
 					}  
 
 					// 判断RVS中是否已经存在
-					for (int j = 1; j < modelidList.size(); j++) {
+					boolean check = false;
+					for (int j = 0; j < modelidList.size(); j++) {
 						MaterialEntity checkEntity = modelidList.get(j);
-						if (model_id.equals(checkEntity.getModel_id()) && serial_no.equals(checkEntity.getModel_id())) {
-							continue;
+						if (model_id.equals(checkEntity.getModel_id()) && serial_no.equals(checkEntity.getSerial_no())) {
+							check = true;
+							break;
 						}
+					}
+					if (check) {
+						continue;
 					}
 					
 					MaterialForm lineform = new MaterialForm();

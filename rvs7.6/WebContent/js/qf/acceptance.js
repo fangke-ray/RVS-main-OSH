@@ -118,7 +118,9 @@ var uploadfile = function() {
 					treatBackMessages(null, resInfo.errors);
 				} else {
 					listdata = resInfo.list;
-					$("#uld_listarea span.ui-icon").click();
+					if ($("#uld_listarea span.ui-icon").hasClass("ui-icon-circle-triangle-s")) {
+						$("#uld_listarea span.ui-icon").click();
+					}
 					load_list();
 					if (resInfo.infoes && resInfo.infoes.length > 0)
 						infoesConfirm(resInfo.infoes);
