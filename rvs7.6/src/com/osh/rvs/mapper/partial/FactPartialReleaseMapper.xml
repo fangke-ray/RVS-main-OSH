@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.FactPartialReleaseMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="insert" parameterType="FactPartialReleaseEntity">
+	<![CDATA[
+		INSERT INTO fact_partial_release 
+		(
+		af_pf_key,
+		material_id,
+		spec_kind,
+		quantity
+		) 
+		VALUES 
+		(
+		#{af_pf_key},
+		#{material_id},
+		#{spec_kind},
+		#{quantity}
+		)
+	]]>
+	</insert>
+
+	<update id="update" parameterType="FactPartialReleaseEntity">
+	<![CDATA[
+		UPDATE
+			fact_partial_release
+		SET
+			quantity = #{quantity}
+		WHERE
+			af_pf_key = #{af_pf_key}
+		AND
+			material_id = #{material_id}
+		AND
+			spec_kind = #{spec_kind}
+	]]>
+	</update>
+
+	<select id="getPartialRelease" resultType="FactPartialReleaseEntity" parameterType="FactPartialReleaseEntity">
+	<![CDATA[
+		SELECT 
+			af_pf_key,
+			material_id,
+			spec_kind,
+			quantity
+		FROM
+			fact_partial_release
+		WHERE
+			af_pf_key = #{af_pf_key}
+		AND
+			material_id = #{material_id}
+		AND
+			spec_kind = #{spec_kind}
+	]]>
+	</select>
+
+</mapper>

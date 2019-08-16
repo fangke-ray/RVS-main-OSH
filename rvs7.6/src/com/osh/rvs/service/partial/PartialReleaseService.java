@@ -401,5 +401,21 @@ public class PartialReleaseService {
 			}
 		}
 	}
-	
+
+	public List<MaterialPartialDetailForm> countQuantityOfKind(ActionForm form, SqlSession conn) {
+		PartialReleaseMapper dao = conn.getMapper(PartialReleaseMapper.class);
+
+		MaterialPartialDetailEntity entity = new MaterialPartialDetailEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		List<MaterialPartialDetailForm> respFormList = new ArrayList<MaterialPartialDetailForm>();
+		List<MaterialPartialDetailEntity> list = dao.countQuantityOfKind(entity);
+
+		if (list != null && list.size() > 0) {
+			BeanUtil.copyToFormList(list, respFormList, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialPartialDetailForm.class);
+		}
+
+		return respFormList;
+	}
+
 }

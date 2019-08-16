@@ -26,14 +26,14 @@
 		        <a target="_parent" href="partial_distrubute.do">零件发放</a><br>
 		        <a target="_parent" href="partial_recept.do">零件签收</a><br>
 	<% } else if(links.get("fact")){ %>
+				<a target="_parent" href="partial_warehouse.do">零件入库</a><br>
 		        <a target="_parent" href="partial_order.do">零件订购</a><br>
 		        <!--a target="_parent" href="partial_assign.do">零件到货导入</a><br-->
 		        <a target="_parent" href="partial_distrubute.do">零件发放</a><br>
 	<% } else if(links.get("line")){ %>
 		        <a target="_parent" href="partial_recept.do">零件签收</a><br>
 	<% } %>
-		        <a target="_parent" href="materialPartial.do">零件订购·签收管理</a><br>
-		        <a target="_parent" href="partial_warehouse.do">零件入库单管理</a>
+		        <a target="_parent" href="materialPartial.do">零件订购·签收管理</a>
 		    </div>
 </div>
 <% if(links.get("analysis")){ %>

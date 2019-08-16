@@ -112,6 +112,12 @@ public class MaterialPartialDetailEntity implements Serializable {
 	
 	private String smo_item_no;
 	
+	/*工程名称*/
+	private String line_name;
+	
+	/*规格种别*/
+	private Integer spec_kind;
+	
 	public String getNew_position_id() {
 		return new_position_id;
 	}
@@ -494,6 +500,22 @@ public class MaterialPartialDetailEntity implements Serializable {
 
 	public void setSmo_item_no(String smo_item_no) {
 		this.smo_item_no = smo_item_no;
+	}
+
+	public String getLine_name() {
+		return line_name;
+	}
+
+	public void setLine_name(String line_name) {
+		this.line_name = line_name;
+	}
+
+	public Integer getSpec_kind() {
+		return spec_kind;
+	}
+
+	public void setSpec_kind(Integer spec_kind) {
+		this.spec_kind = spec_kind;
 	}
 
 }

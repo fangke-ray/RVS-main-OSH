@@ -133,6 +133,12 @@ public class MaterialPartialDetailForm extends ActionForm {
 	@BeanField(title = "SMO项目号", name = "smo_item_no", type = FieldType.String, length = 4)
 	private String smo_item_no;
 
+	@BeanField(title = "工程名称", name = "line_name", type = FieldType.String)
+	private String line_name;
+	
+	@BeanField(title = "规格种别", name = "spec_kind", type = FieldType.Integer)
+	private String spec_kind;
+
 	public String getNew_position_id() {
 		return new_position_id;
 	}
@@ -395,6 +401,22 @@ public class MaterialPartialDetailForm extends ActionForm {
 
 	public void setSmo_item_no(String smo_item_no) {
 		this.smo_item_no = smo_item_no;
+	}
+
+	public String getLine_name() {
+		return line_name;
+	}
+
+	public void setLine_name(String line_name) {
+		this.line_name = line_name;
+	}
+
+	public String getSpec_kind() {
+		return spec_kind;
+	}
+
+	public void setSpec_kind(String spec_kind) {
+		this.spec_kind = spec_kind;
 	}
 
 }
