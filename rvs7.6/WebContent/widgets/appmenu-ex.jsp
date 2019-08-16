@@ -123,6 +123,7 @@ var getPositionWork = function(position_id, px){
 	<% if(links.get("bo_partial")) { %>
 		        <a href="materialPartial.do" title="现品零件BO管理">零件BO管理</a><br>
 	<% } %>
+				<a href="fact_material.do" title="现品零件BO管理">出货单制作</a><br>
     </div>
 </div>
 <% } %>
