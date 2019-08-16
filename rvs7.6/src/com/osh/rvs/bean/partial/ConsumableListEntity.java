@@ -99,6 +99,12 @@ public class ConsumableListEntity implements Serializable{
 
 	private BigDecimal consumpt_quota;
 	private BigDecimal price;
+	
+	/* 上架耗时 */
+	private Integer in_shelf_cost;
+	
+	/* 下架耗时 */
+	private Integer out_shelf_cost;
 
 	public Integer getPopular_item() {
 		return popular_item;
@@ -355,4 +361,22 @@ public class ConsumableListEntity implements Serializable{
 	public void setPrice(BigDecimal price) {
 		this.price = price;
 	}
+
+	public Integer getIn_shelf_cost() {
+		return in_shelf_cost;
+	}
+
+	public void setIn_shelf_cost(Integer in_shelf_cost) {
+		this.in_shelf_cost = in_shelf_cost;
+	}
+
+	public Integer getOut_shelf_cost() {
+		return out_shelf_cost;
+	}
+
+	public void setOut_shelf_cost(Integer out_shelf_cost) {
+		this.out_shelf_cost = out_shelf_cost;
+	}
+	
+	
 }

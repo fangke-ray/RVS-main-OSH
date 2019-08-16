@@ -56,6 +56,10 @@ public class ConsumableListAction extends BaseAction{
 		/* 补充日 */
 		req.setAttribute("sSupplyDayOptions", CodeListUtils.getSelectOptions("consumable_supply_day",null,""));
 		
+		/* 耗时 */
+		req.setAttribute("sShelfCost", CodeListUtils.getSelectOptions("consumable_shelf_cost",null,""));
+		req.setAttribute("jqShelfCost",CodeListUtils.getGridOptions("consumable_shelf_cost"));
+		
 		// 取得用户信息
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
@@ -515,7 +519,7 @@ public class ConsumableListAction extends BaseAction{
 		/* 查询 */
 		List<ConsumableListForm> list = service.searchConsumableListWithQuota(consumableListEntity, conn);
 
-		String fileName ="待处理一览.xlsx";
+		String fileName ="消耗品仓库库存一览.xlsx";
 
 		String filePath = service.createConsumableListRecord(consumableListForm, list);
 		

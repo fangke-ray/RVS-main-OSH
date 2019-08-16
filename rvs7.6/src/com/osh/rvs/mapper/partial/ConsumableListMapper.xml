@@ -20,6 +20,8 @@
 			    ,consumable_manage.stock_code
 			    ,consumable_manage.consumpt_quota
 			    ,consumable_manage.image_uploaded_flg
+			    ,consumable_manage.in_shelf_cost
+			    ,consumable_manage.out_shelf_cost
 			    ,CASE 
 			    WHEN consumable_manage.safety_lever > consumable_manage.available_inventory + consumable_manage.on_passage
 			    THEN '2'
@@ -141,7 +143,9 @@
 				  supply_day,
 				  stock_code,
 				  consumpt_quota,
-				  delete_flg ) 					
+				  delete_flg,
+				  in_shelf_cost,
+				  out_shelf_cost) 					
         VALUES 
 	        	(#{partial_id},
 	        	 #{type},
@@ -156,7 +160,10 @@
 	        	 #{supply_day},
 	        	 #{stock_code},
 	        	 #{consumpt_quota},
-	        	 0); 
+	        	 0,
+	        	 #{in_shelf_cost},
+				 #{out_shelf_cost}
+				 ); 
 		]]>
 	</insert>
 	
@@ -176,6 +183,8 @@
 				,cm.stock_code
 				,cm.consumpt_quota
 				,cm.delete_flg
+				,cm.in_shelf_cost
+				,cm.out_shelf_cost
 			FROM consumable_manage cm
 			JOIN partial p on p.partial_id=cm.partial_id
 			WHERE cm.partial_id = #{partial_id};
@@ -195,7 +204,9 @@
 				popular_item = #{popular_item},
 				stock_code = #{stock_code},
 				consumpt_quota = #{consumpt_quota},
-				delete_flg = 0
+				delete_flg = 0,
+				in_shelf_cost = #{in_shelf_cost},
+				out_shelf_cost = #{out_shelf_cost}
 			WHERE partial_id = #{partial_id}
 		]]>
 	</update>
