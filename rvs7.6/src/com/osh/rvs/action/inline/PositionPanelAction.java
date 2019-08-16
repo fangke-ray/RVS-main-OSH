@@ -1360,6 +1360,10 @@ public class PositionPanelAction extends BaseAction {
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
 		String material_id = req.getParameter("material_id");
+		if (material_id.contains("_")) {
+			String[] split = material_id.split("_");
+			material_id = split[0];
+		}
 
 		// 取得用户信息
 		HttpSession session = req.getSession();
@@ -1367,7 +1371,7 @@ public class PositionPanelAction extends BaseAction {
 		String section_id = user.getSection_id();
 
 		// 判断维修对象在等待区，并返回这一条作业信息
-		ProductionFeatureEntity waitingPf = service.checkMaterialId(material_id, "true", user, errors, conn);
+		ProductionFeatureEntity waitingPf = service.checkMaterialId(req.getParameter("material_id"), "true", user, errors, conn);
 
 		if (errors.size() == 0) {
 			// 停止之前的暂停
@@ -1419,7 +1423,11 @@ public class PositionPanelAction extends BaseAction {
 		Map<String, LinkedHashMap<String, String>> jsonPcs_inputs = JSON.decode(sPcs_inputs, Map.class);
 
 		for (ProductionFeatureEntity workingPf : workingPfs) {
-			if (!jsonPcs_inputs.containsKey(workingPf.getMaterial_id())) {
+			String material_id = workingPf.getMaterial_id();
+			if (workingPf.getOperate_result() == 5) {
+				material_id = material_id + "_5";
+			}
+			if (!jsonPcs_inputs.containsKey(material_id)) {
 				continue;
 			}
 
@@ -1437,7 +1445,7 @@ public class PositionPanelAction extends BaseAction {
 				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
 				workingPf.setUse_seconds(use_seconds);
 
-				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(workingPf.getMaterial_id()));
+				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(material_id));
 				workingPf.setPcs_inputs(sPcs_inputs);
 				workingPf.setPcs_comments(null);
 				pfService.finishProductionFeatureSetFinish(workingPf, conn);
@@ -1448,7 +1456,7 @@ public class PositionPanelAction extends BaseAction {
 				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
 				workingPf.setUse_seconds(use_seconds);
 
-				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(workingPf.getMaterial_id()));
+				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(material_id));
 				workingPf.setPcs_inputs(sPcs_inputs);
 				workingPf.setPcs_comments(null);
 				pfService.finishProductionFeature(workingPf, conn);

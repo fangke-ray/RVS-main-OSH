@@ -526,7 +526,7 @@
     	ON p.line_id = l.line_id
     	LEFT JOIN `section` s
     	ON pf.section_id = s.section_id
-		WHERE operate_result = 7
+		WHERE operate_result in (5, 7)
 		AND `pf`.finish_time is null
 		AND `pf`.position_id = #{position_id}
 		AND `pf`.operator_id = #{operator_id};
@@ -580,7 +580,7 @@
 			AND `pf`.action_time is null
 			AND `pf`.finish_time is null
 			AND `pf`.operate_result not in (8)
-		ORDER BY `m`.reception_time;
+		ORDER BY waitingat, `m`.reception_time;
 	]]>
 	</select>
 </mapper>

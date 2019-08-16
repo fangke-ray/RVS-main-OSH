@@ -86,13 +86,18 @@ var remapworking = function(workingPfs) {
 	var waiting_html = "";
 	for (var iworking = 0; iworking < workingPfs.length; iworking++) {
 		var waiting = workingPfs[iworking];
-		waiting_html += '<div class="waiting tube" id="w_' + waiting.material_id + '">' +
+		var tube_id = "w_" + waiting.material_id;
+		if (waiting.operate_result == 5) {
+			tube_id = tube_id + "_5";
+		}
+		waiting_html += '<div class="waiting tube" id="' + tube_id + '">' +
 							'<div class="tube-liquid' + expeditedColor(waiting.expedited)  + '">' +
 								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no;
-		if (waiting.fix_type == 3) {
+		if (waiting.operate_result == 5) {
+			waiting_html +=	'<div class="material_flags"><div class="package">箱</div></div>';
+		} else if (waiting.fix_type == 3) {
 			waiting_html +=	'<div class="material_flags"><div class="rc">备</div></div>';
-		}	
-								
+		}								
 		waiting_html +=	'</div>' + '<div class="dm_select"></div>';
 		waiting_html +=	'</div>';
 	}
@@ -128,7 +133,11 @@ var treatStart = function(resInfo) {
 
 	// 暂时的
 	if (resInfo.mform) {
-		$("#w_" + resInfo.mform.material_id).hide("drop", {direction: 'right'}, function() {
+		var tube_id = "w_" + resInfo.mform.material_id;
+		if (resInfo.mform.operate_result == "5") {
+			tube_id = tube_id + "_5";
+		}
+		$("#" + tube_id).hide("drop", {direction: 'right'}, function() {
 			var jthis = $(this);
 			var jGroup = jthis.prevAll(".w_group");
 			jthis.remove();
@@ -246,19 +255,25 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			for (var iwaiting = 0; iwaiting < resInfo.waitings.length; iwaiting++) {
 				var waiting = resInfo.waitings[iwaiting];
 				var block_status = waiting.block_status;
+				var tube_id = "w_" + waiting.material_id;
+				if (waiting.waitingat == "通箱") {
+					tube_id = tube_id + "_5";
+				}
 
 				if (reason != waiting.waitingat) {
 					reason = waiting.waitingat;
-					waiting_html += '<div class="ui-state-default w_group" style="width: 420px; margin-top: 12px; margin-bottom: 8px; padding: 2px;">'+ reason +':</div>'
+					waiting_html += '<div class="ui-state-default w_group" style="width: 420px; margin-top: 12px; margin-bottom: 8px; padding: 2px;">' + reason + '</div>';
 				}
-				waiting_html += '<div class="waiting tube" id="w_' + waiting.material_id + '">' +
+				waiting_html += '<div class="waiting tube" id="' + tube_id + '">' +
 									'<div class="tube-liquid' + expeditedColor(waiting.expedited)  + '">' +
 										(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no;
-				if (block_status == 3) {
+				if (reason == "通箱") {
+					waiting_html +=	'<div class="material_flags"><div class="package">箱</div></div>';
+				} else if (block_status == 3) {
 					waiting_html +=	'<div class="material_flags"><div class="rc">备</div></div>';
 				}
 				waiting_html +=	'</div>';
-				if (block_status == 3) {
+				if (block_status == 3 || reason == "通箱") {
 					waiting_html += '<div class="click_start"><input type="button" value="》开始"></div>';
 				}
 				waiting_html +=	'</div>';
@@ -521,6 +536,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 var doFinish=function(){
 	var pcs_inputses = {};
 	var pcs_rcs = {};
+	var pcs_package = {};
 
 	$("#workings > div:not(.finished)").each(function(idx, ele){
 		var $wk = $(ele);
@@ -534,13 +550,15 @@ var doFinish=function(){
 
 		if ($wk.find(".rc").length > 0) {
 			pcs_rcs[wk_id] = pcs_inputs;
+		} else if ($wk.find(".package").length > 0) {
+			pcs_package[wk_id] = pcs_inputs;
 		} else {
 			pcs_inputses[wk_id] = pcs_inputs;
 		}
 	});
 
 	if (!$.isEmptyObject(pcs_inputses) && !$.isEmptyObject(pcs_rcs)) {
-		$("#pop_detail").text("选择维修品或者备品完成？");
+		$("#pop_detail").text("请选择要完成的维修对象？");
 		$("#pop_detail").dialog({
 			dialogClass:'ui-warn-dialog',
 			width : 450,
@@ -555,6 +573,10 @@ var doFinish=function(){
 	            "备品" : function() {
 	                $(this).dialog("close");
 	                doFinish_ajax(pcs_rcs);
+	            },
+	            "通箱" : function() {
+	                $(this).dialog("close");
+	                doFinish_ajax(pcs_package);
 	            }
 	        }
 		});
@@ -562,13 +584,18 @@ var doFinish=function(){
 		doFinish_ajax(pcs_inputses);
 	} else if (!$.isEmptyObject(pcs_rcs)) {
 		doFinish_ajax(pcs_rcs);
+	} else if (!$.isEmptyObject(pcs_package)) {
+		doFinish_ajax(pcs_package);
 	}
 };
 
 var doFinish_ajax = function(pcs_inputs) {
 	var data = {};
+	if ($.isEmptyObject(pcs_inputs)) {
+		return false;
+	}
 	data.pcs_inputs = Json_to_String(pcs_inputs);
-
+	
 	// Ajax提交
 	$.ajax({
 		beforeSend : ajaxRequestType,

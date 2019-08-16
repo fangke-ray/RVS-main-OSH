@@ -207,7 +207,11 @@ and a.inline_time is null -- [SpeedUp]
 		<![CDATA[ 
 		UPDATE production_feature
 			SET OPERATOR_ID = #{operator_id},
-				OPERATE_RESULT = 7,
+		]]>
+		<if test="operate_result != 5">
+			OPERATE_RESULT = 7,
+		</if>
+		<![CDATA[
 				ACTION_TIME = current_timestamp
 		WHERE MATERIAL_ID = #{material_id}
 		AND POSITION_ID = #{position_id}

@@ -481,6 +481,13 @@ border:1px solid gray;
 color: #fff;
 }
 
+.tube-liquid .material_flags .package
+{
+background-color: #006666;
+border:1px solid gray;
+color: #fff;
+}
+
 .tube-liquid > .finish_time_left
 {
 float:right;

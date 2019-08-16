@@ -2949,10 +2949,9 @@ public class UploadService {
 				return null;
 			}
 			// 不是备品文件
-			if (!"到货日期".equals(getCellStringValue(row.getCell(0)))
-					|| !"型号".equals(getCellStringValue(row.getCell(5)))
-					|| !"机身号".equals(getCellStringValue(row.getCell(6)))) {
-				errors.clear();
+			int coloumNum = row.getPhysicalNumberOfCells();
+			if (coloumNum != 6 || (!"型号".equals(getCellStringValue(row.getCell(0)))
+					|| !"机身号".equals(getCellStringValue(row.getCell(1))))) {
 				MsgInfo e = new MsgInfo();
 				e.setErrcode("notSparesFile");
 				errors.add(e);
@@ -2968,8 +2967,8 @@ public class UploadService {
 				lineNo = "第" + (iRow + 1) + "行";
 				row = sheet.getRow(iRow);
 				if (row != null) {
-					String model_name = getCellStringValue(row.getCell(5));
-					String serial_no = getCellStringValue(row.getCell(6));
+					String model_name = getCellStringValue(row.getCell(0));
+					String serial_no = getCellStringValue(row.getCell(1));
 					
 					if (CommonStringUtil.isEmpty(model_name) && CommonStringUtil.isEmpty(serial_no)) {
 						continue;

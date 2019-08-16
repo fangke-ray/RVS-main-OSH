@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
 import org.apache.http.nio.client.HttpAsyncClient;
@@ -212,6 +213,12 @@ public class PositionPanelService {
 		ProductionFeatureEntity retWaiting = null;
 
 		Map<String, Object> parameters = new HashMap<String, Object>();
+		int operate_result = 0;
+		if (material_id.contains("_")) {
+			String[] split = material_id.split("_");
+			material_id = split[0];
+			operate_result = Integer.parseInt(split[1]);
+		}
 		parameters.put("material_id", material_id);
 		if (CommonStringUtil.isEmpty(material_id)) {
 			MsgInfo msgInfo = new MsgInfo();
@@ -282,7 +289,15 @@ public class PositionPanelService {
 							errors.add(msgInfo);
 						} else {
 							// 如有则返回等待中的作业信息。
-							retWaiting = productionFeature.get(0);
+							if (count == 1) {
+								retWaiting = productionFeature.get(0);
+							} else {
+								for (int i = 0; i < count; i++) {
+									if (operate_result == productionFeature.get(i).getOperate_result()) {
+										retWaiting = productionFeature.get(i);
+									}
+								}
+							}
 
 							if (errors.size() == 0) {
 								ForSolutionAreaService fsaService = new ForSolutionAreaService();
@@ -582,6 +597,7 @@ public class PositionPanelService {
 			}
 			else if ("3".equals(we.getWaitingat())) we.setWaitingat("中断等待再开");
 			else if ("7".equals(we.getWaitingat())) we.setWaitingat("待投入");
+			else if ("5".equals(we.getWaitingat())) we.setWaitingat("通箱");
 		}
 
 		// 根据后工程的仕挂量数提升优先度
@@ -909,6 +925,7 @@ public class PositionPanelService {
 			LoginData user, SqlSession conn) throws Exception {
 		// 取得维修对象信息。
 		MaterialForm mform = this.getMaterialInfo(material_id, conn);
+		mform.setOperate_result(String.valueOf(pf.getOperate_result()));
 		listResponse.put("mform", mform);
 
 		// 取得维修对象在本工位作业信息。 TODO v2
@@ -972,7 +989,16 @@ public class PositionPanelService {
 					firstAction_time = thisAction_time;
 				}
 				// 取得维修对象表示信息
-				MaterialEntity mForm = mDao.getMaterialNamedEntityByKey(workingPf.getMaterial_id());
+				MaterialEntity mEntity = mDao.getMaterialNamedEntityByKey(workingPf.getMaterial_id());
+
+				MaterialEntity mForm = new MaterialEntity();
+				mForm.setMaterial_id(mEntity.getMaterial_id());
+				mForm.setSorc_no(mEntity.getSorc_no());
+				mForm.setCategory_name(mEntity.getCategory_name());
+				mForm.setModel_name(mEntity.getModel_name());
+				mForm.setSerial_no(mEntity.getSerial_no());
+				mForm.setFix_type(mEntity.getFix_type());
+				mForm.setOperate_result(workingPf.getOperate_result());
 				mForms.add(mForm);
 			}
 
