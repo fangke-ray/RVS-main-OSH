@@ -100,10 +100,16 @@ public class ConsumableListForm extends ActionForm{
 	/*单价*/
 	@BeanField(title = "单价", name = "price", type = FieldType.UDouble)
 	private String price;
+	/* 上架耗时 */
+	@BeanField(title = "上架耗时", name = "in_shelf_cost", type = FieldType.Integer,length = 1,notNull = true)
+	private String in_shelf_cost;
+	/* 下架耗时 */
+	@BeanField(title = "下架耗时", name = "out_shelf_cost", type = FieldType.Integer,length = 1,notNull = true)
+	private String out_shelf_cost;
 
 	/** 按照产量取消耗平均 */
 	private String cost_avg_by_outline;
-
+	
 	public String getSupply_cycle() {
 		return supply_cycle;
 	}
@@ -296,4 +302,17 @@ public class ConsumableListForm extends ActionForm{
 	public void setPrice(String price) {
 		this.price = price;
 	}
+	public String getIn_shelf_cost() {
+		return in_shelf_cost;
+	}
+	public void setIn_shelf_cost(String in_shelf_cost) {
+		this.in_shelf_cost = in_shelf_cost;
+	}
+	public String getOut_shelf_cost() {
+		return out_shelf_cost;
+	}
+	public void setOut_shelf_cost(String out_shelf_cost) {
+		this.out_shelf_cost = out_shelf_cost;
+	}
+	
 }

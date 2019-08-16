@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.FactMaterialMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="search" resultType="FactMaterialEntity" parameterType="FactMaterialEntity">
+	<![CDATA[
+		SELECT
+			af_pf_key,
+			material_id
+		FROM
+			fact_material
+	]]>
+	<where>
+	<if test="af_pf_key!=null and af_pf_key!=''">
+	<![CDATA[
+		AND af_pf_key = #{af_pf_key}
+	]]>
+	</if>
+	<if test="material_id!=null and material_id!=''">
+	<![CDATA[
+		AND material_id = #{material_id}
+	]]>
+	</if>
+	</where>
+	</select>
+
+	<insert id="insert" parameterType="FactMaterialEntity">
+	<![CDATA[
+		INSERT INTO fact_material(af_pf_key,material_id) VALUES(#{af_pf_key},#{material_id})
+	]]>
+	</insert>
+	
+	<select id="getWaitings" resultType="MaterialEntity">
+	<![CDATA[
+	SELECT 
+		m.material_id,
+	    COALESCE(m.omr_notifi_no,m.sorc_no) AS sorc_no, 
+	    m.serial_no, 
+	    m.ocm, 
+		m.level, 
+	    m.reception_time, 
+		m.agreed_date, 
+	    mdl.name AS model_name, 
+	    m.scheduled_expedited,
+		COALESCE(mp.finish_date,m.outline_time) AS finish_time
+	FROM 
+		material m
+	JOIN 
+		model mdl
+	ON 
+		m.model_id = mdl.model_id
+	JOIN 
+		production_feature pf
+	ON 
+		m.material_id = pf.material_id AND pf.position_id = 47 AND pf.operate_result = 0 AND pf.action_time IS NULL
+	LEFT JOIN 
+		material_process mp
+	ON 
+		mp.material_id = m.material_id AND mp.line_id = 14
+	WHERE
+		m.break_back_flg = 0
+	AND
+		m.material_id NOT IN(SELECT material_id FROM fact_material)
+	ORDER BY 
+		pf.operate_result DESC, m.reception_time
+	]]>
+	</select>
+	
+	<select id="getFinished" resultType="MaterialEntity">
+	<![CDATA[
+	SELECT 
+		m.material_id,
+	    COALESCE(m.omr_notifi_no,m.sorc_no) AS sorc_no, 
+	    m.serial_no, 
+	    m.ocm, 
+		m.level, 
+	    m.reception_time, 
+		m.agreed_date, 
+	    mdl.name AS model_name, 
+	    m.scheduled_expedited,
+		COALESCE(mp.finish_date,m.outline_time) AS finish_time
+	FROM 
+		fact_material
+	JOIN
+		af_production_feature
+	ON
+		fact_material.af_pf_key = af_production_feature.af_pf_key
+	JOIN
+		material m
+	ON
+		fact_material.material_id = m.material_id
+	JOIN 
+		model mdl
+	ON 
+		m.model_id = mdl.model_id
+	JOIN 
+		production_feature pf
+	ON 
+		m.material_id = pf.material_id AND pf.position_id = 47 AND pf.operate_result = 0 AND pf.action_time IS NULL
+	LEFT JOIN 
+		material_process mp
+	ON 
+		mp.material_id = m.material_id AND mp.line_id = 14
+	WHERE
+		m.break_back_flg = 0
+	AND
+		af_production_feature.action_time >= CURRENT_DATE
+	ORDER BY 
+		pf.operate_result DESC, m.reception_time
+	]]>
+	</select>
+</mapper>

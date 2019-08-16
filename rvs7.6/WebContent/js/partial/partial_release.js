@@ -356,7 +356,7 @@ var arrive_partial_list=function(responseList){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','','零件编号','零件名称','待发放数量','发放数量','订购数量','消耗品标记','使用工位','追加订购','status'],
+			colNames:['','','零件编号','零件名称','待发放数量','发放数量','订购数量','消耗品标记','使用工程','使用工位','追加订购','status'],
 			colModel:[
 				{
 					name:'material_partial_detail_key',
@@ -428,6 +428,12 @@ var arrive_partial_list=function(responseList){
 						}
 						return "";
 					}
+				},
+				{
+					name:'line_name',
+					index:'line_name',
+					width:40,
+					align:'center'
 				},
 				{
 					name:'process_code',

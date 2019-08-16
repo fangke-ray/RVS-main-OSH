@@ -135,6 +135,7 @@
 			</div>
 			<div class="clear areaencloser"></div>
 
+			<input type="hidden" id="hide_shelf_cost" value="${jqShelfCost }">
 
 		<!-- JqGrid表格  -->
 		<div id="listarea" class="width-middleright">
@@ -231,6 +232,16 @@
 								每产出一台维修对象，使用消耗品数量。
 							</td>
 						</tr>
+						<tr>
+							<td class="ui-state-default td-title">上架耗时</td>
+							<td class="td-content">
+								<select id="add_in_shelf_cost" name="in_shelf_cost" alt="上架耗时">${sShelfCost}</select>
+							</td>
+							<td class="ui-state-default td-title">下架耗时</td>
+							<td class="td-content">
+								<select id="add_out_shelf_cost" name="out_shelf_cost" alt="下架耗时">${sShelfCost}</select>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 				</form>
@@ -290,6 +301,16 @@
 							<td class="td-content" colspan="3">
 								<input type="text" name="consumpt_quota" id="edit_consumpt_quota" alt="目标值"></input>
 								每产出一台维修对象，使用消耗品数量。
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">上架耗时</td>
+							<td class="td-content">
+								<select id="edit_in_shelf_cost">${sShelfCost}</select>
+							</td>
+							<td class="ui-state-default td-title">下架耗时</td>
+							<td class="td-content">
+								<select id="edit_out_shelf_cost">${sShelfCost}</select>
 							</td>
 						</tr>
 					</tbody>

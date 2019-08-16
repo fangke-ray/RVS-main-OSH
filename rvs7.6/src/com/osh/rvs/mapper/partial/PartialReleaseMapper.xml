@@ -140,7 +140,12 @@
 			cm.available_inventory as append,
 			mpd.status,
 			p.process_code,
-			mpd.belongs
+			mpd.belongs,
+			case
+				when p.line_id = 13 then 1
+			    else 0
+			end as flg,
+			line.name as line_name
 		from
 			material_partial_detail mpd
 		left join
@@ -152,6 +157,10 @@
 		on 
 			mpd.position_id = p.position_id
 		left join
+			line
+		on
+			p.line_id = line.line_id
+		left join
 			consumable_manage cm
 		on
 			cm.partial_id=pa.partial_id
@@ -160,7 +169,7 @@
 		where
 			 material_id=#{material_id} and mpd.occur_times=#{occur_times}
 		order by
-			mpd.waiting_quantity desc
+			flg DESC,mpd.waiting_quantity desc
 		]]>
 	</select>
 	
@@ -255,4 +264,27 @@
 			status not in (5, 6)
 	]]>
 	</update>
+	
+	<select id="countQuantityOfKind" resultType="MaterialPartialDetailEntity" parameterType="MaterialPartialDetailEntity">
+	<![CDATA[
+	SELECT 
+		material_partial_detail.material_id,
+	    partial.spec_kind,
+	    SUM(material_partial_detail.quantity) AS quantity
+	FROM
+		material_partial_detail
+	JOIN
+		partial
+	ON
+		material_partial_detail.partial_id = partial.partial_id
+	JOIN
+		partial_bussiness_standard
+	ON
+		partial_bussiness_standard.spec_kind = partial.spec_kind
+	WHERE
+		material_partial_detail.material_id = #{material_id} AND material_partial_detail.occur_times = #{occur_times}
+	GROUP BY
+		spec_kind
+	]]>
+	</select>
 </mapper>

@@ -21,10 +21,12 @@ import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.form.qf.FactMaterialForm;
 import com.osh.rvs.mapper.qf.ShippingMapper;
 import com.osh.rvs.service.inline.PositionPanelService;
-import com.osh.rvs.service.qf.TurnoverCaseService;
+import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.ShippingService;
+import com.osh.rvs.service.qf.TurnoverCaseService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
@@ -51,8 +53,7 @@ public class ShippingAction extends BaseAction {
 	 * @throws Exception
 	 */
 	@Privacies(permit = { 1, 0 })
-	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
-			SqlSession conn) throws Exception {
+	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
 
 		log.info("ShippingAction.init start");
 
@@ -65,6 +66,7 @@ public class ShippingAction extends BaseAction {
 
 	/**
 	 * 工位画面初始取值处理
+	 * 
 	 * @param mapping ActionMapping
 	 * @param form 表单
 	 * @param req 页面请求
@@ -72,8 +74,8 @@ public class ShippingAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
-	public void jsinit(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+	@Privacies(permit = { 1, 0 })
+	public void jsinit(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
 
 		log.info("ShippingAction.jsinit start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -89,7 +91,7 @@ public class ShippingAction extends BaseAction {
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
-		String section_id = user.getSection_id();//TODO 
+		String section_id = user.getSection_id();// TODO
 
 		user.setSection_id(null);
 		user.setPosition_id("00000000047");
@@ -134,6 +136,7 @@ public class ShippingAction extends BaseAction {
 
 	/**
 	 * 扫描开始/直接暂停重开
+	 * 
 	 * @param mapping ActionMapping
 	 * @param form 表单
 	 * @param req 页面请求
@@ -141,8 +144,8 @@ public class ShippingAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
-	public void doscan(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+	@Privacies(permit = { 0 })
+	public void doscan(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("ShippingAction.scan start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
 
@@ -159,9 +162,24 @@ public class ShippingAction extends BaseAction {
 			errors.add(info);
 		}
 
+		if (errors.size() == 0) {
+			// 检查出货单是否制作
+			FactMaterialService factMaterialService = new FactMaterialService();
+			FactMaterialForm factMaterialForm = new FactMaterialForm();
+			factMaterialForm.setMaterial_id(material_id);
+
+			int len = factMaterialService.search(factMaterialForm, conn).size();
+			if (len == 0) {
+				MsgInfo info = new MsgInfo();
+				info.setErrcode("info.material.shipping.sheet.empty");
+				info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.material.shipping.sheet.empty"));
+				errors.add(info);
+			}
+		}
+
 		log.info("ShippingAction.scan error" + errors.size());
 
-		if (errors.size() == 0){
+		if (errors.size() == 0) {
 			ShippingService service = new ShippingService();
 			service.scanMaterial(conn, material_id, req, errors, listResponse);
 		}
@@ -177,6 +195,7 @@ public class ShippingAction extends BaseAction {
 
 	/**
 	 * 作业完成
+	 * 
 	 * @param mapping ActionMapping
 	 * @param form 表单
 	 * @param req 页面请求
@@ -184,16 +203,16 @@ public class ShippingAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
-	public void dofinish(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+	@Privacies(permit = { 0 })
+	public void dofinish(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("ShippingAction.dofinish start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
 
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
 		if (errors.size() == 0) {
-			service.updateMaterial(req, conn);			
-			
+			service.updateMaterial(req, conn);
+
 			listRefresh(listResponse, conn);
 
 		}

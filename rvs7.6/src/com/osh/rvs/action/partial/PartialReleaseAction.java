@@ -20,12 +20,15 @@ import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.form.partial.FactPartialReleaseForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
+import com.osh.rvs.service.partial.FactPartialReleaseService;
 import com.osh.rvs.service.partial.PartialReleaseService;
 
 import framework.huiqing.action.BaseAction;
@@ -158,7 +161,39 @@ public class PartialReleaseAction extends BaseAction {
 //							conn.commit();
 //							RvsUtils.sendTrigger(triggerList);
 						}
-					}  else {
+						
+						if (isNoBo) {
+							/**零件出库**/
+							AcceptFactService acceptFactService = new AcceptFactService();
+							FactPartialReleaseService factPartialReleaseService = new FactPartialReleaseService();
+
+							String afPfKey = acceptFactService.getUnFinish(user.getOperator_id(), conn).getAf_pf_key();
+							List<MaterialPartialDetailForm> list = service.countQuantityOfKind(form, conn);
+
+							for (MaterialPartialDetailForm item : list) {
+								FactPartialReleaseForm factPartialReleaseForm = new FactPartialReleaseForm();
+								factPartialReleaseForm.setAf_pf_key(afPfKey);
+								factPartialReleaseForm.setMaterial_id(item.getMaterial_id());
+								factPartialReleaseForm.setSpec_kind(item.getSpec_kind());
+								factPartialReleaseForm.setQuantity(item.getQuantity());
+								
+								//判断当前维修对象零件出库作业数是否存在
+								FactPartialReleaseForm dbForm = factPartialReleaseService.getPartialRelease(factPartialReleaseForm, conn);
+								if(dbForm!=null){
+									Integer existQuantity = Integer.valueOf(dbForm.getQuantity());
+									Integer quantity = Integer.valueOf(factPartialReleaseForm.getQuantity());
+									
+									Integer totalQuantity = existQuantity + quantity;
+									factPartialReleaseForm.setQuantity(totalQuantity.toString());
+									//更新零件出库作业数
+									factPartialReleaseService.update(factPartialReleaseForm, conn);
+								}else{
+									//新建零件出库作业数
+									factPartialReleaseService.insert(factPartialReleaseForm, conn);
+								}
+							}
+						}
+					} else {
 						// 检查工位上BO零件为解除
 						fsoService.solveBo(materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times(), user.getOperator_id(), conn);
 					}

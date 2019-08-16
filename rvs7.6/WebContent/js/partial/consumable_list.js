@@ -16,9 +16,13 @@ $(function() {
 		});
 
 	$("#leak_set, #add_popular_item_set, #edit_popular_item_set").buttonset();
+	
+	
+	$("#edit_in_shelf_cost,#edit_out_shelf_cost").find("option:eq(0)").remove();
+	
 	$("#search_type," 
 	+ "#add_type, #add_supply_cycle, #add_supply_day,"
-	+ "#edit_type, #edit_supply_cycle, #edit_supply_day").select2Buttons();
+	+ "#edit_type, #edit_supply_cycle, #edit_supply_day,#add_in_shelf_cost,#add_out_shelf_cost,#edit_in_shelf_cost,#edit_out_shelf_cost").select2Buttons();
 
 	$("#search_count_period_start,#search_count_period_end")
 		.datepicker({
@@ -173,6 +177,12 @@ var showAdd = function() {
 			},
 			popular_item:{
 				required:true
+			},
+			in_shelf_cost:{
+				required:true
+			},
+			out_shelf_cost:{
+				required:true
 			}
 		}
 	});
@@ -202,7 +212,9 @@ var showAdd = function() {
 								"supply_day":$("#add_supply_day").val(),
 								"popular_item":$("#add_popular_item_set input:checked").val(),
 								"stock_code":$("#add_stock_code").val(),
-								"consumpt_quota":$("#add_consumpt_quota").val()
+								"consumpt_quota":$("#add_consumpt_quota").val(),
+								"in_shelf_cost" : $("#add_in_shelf_cost").val(),
+								"out_shelf_cost" : $("#add_out_shelf_cost").val()
 							};
 						 $.ajax({
 								beforeSend : ajaxRequestType,
@@ -228,7 +240,9 @@ var showAdd = function() {
 							"supply_day":$("#add_supply_day").val(),
 							"popular_item":$("#add_popular_item_set input:checked").val(),
 							"stock_code":$("#add_stock_code").val(),
-							"consumpt_quota":$("#add_consumpt_quota").val()
+							"consumpt_quota":$("#add_consumpt_quota").val(),
+							"in_shelf_cost" : $("#add_in_shelf_cost").val(),
+							"out_shelf_cost" : $("#add_out_shelf_cost").val()
 						};
 					$.ajax({
 						beforeSend : ajaxRequestType,
@@ -469,6 +483,9 @@ var showEdit_Complete = function(xhrobj,textStatus){
 			$("#edit_consumpt_quota").val(resInfo.returnForm.consumpt_quota);
 			$("#edit_partial_id").val(resInfo.returnForm.partial_id);
 			
+			$("#edit_in_shelf_cost").val(resInfo.returnForm.in_shelf_cost).trigger("change");
+			$("#edit_out_shelf_cost").val(resInfo.returnForm.out_shelf_cost).trigger("change");
+			
 			/*验证*/
 			$("#abandon_modify").validate({
 				rules:{	
@@ -525,7 +542,9 @@ var update_consumable_manage = function(){
 			"supply_day":$("#edit_supply_day").val(),
 			"popular_item":$("#edit_popular_item_set input:checked").val(),
 			"stock_code":$("#edit_stock_code").val(),
-			"consumpt_quota":$("#edit_consumpt_quota").val()
+			"consumpt_quota":$("#edit_consumpt_quota").val(),
+			"in_shelf_cost" : $("#edit_in_shelf_cost").val(),
+			"out_shelf_cost" : $("#edit_out_shelf_cost").val()
 		};
 	 $.ajax({
 			beforeSend : ajaxRequestType,
@@ -854,7 +873,7 @@ function show_consumable_list(consumableList) {
 			colNames : [ 'partial_id', '消耗品代码', '说明', '消耗品<br>分类', '基准在库', '安全库存',
 					'当前<br>有效库存', '补充<br>在途量', '期间内<br>入库量', 
 					'期间内<br>消耗总量', '期间内<br>替代发放', '期间内<br>在线补充',
-					'消耗率', '库位','有无图片','消耗率警报','库存不足'],
+					'消耗率', '库位','上架<br>耗时','下架<br>耗时','有无图片','消耗率警报','库存不足'],
 			colModel : [ {
 				name : 'partial_id',
 				index : 'partial_id',
@@ -972,7 +991,28 @@ function show_consumable_list(consumableList) {
 				index : 'stock_code',
 				width : 80,
 				align : 'left'
-			},{
+			},
+			{
+				name : 'in_shelf_cost',
+				index : 'in_shelf_cost',
+				width : 50,
+				align : 'center',
+				formatter:'select',
+				editoptions : {
+					value : $("#hide_shelf_cost").val()
+				}
+			},
+			{
+				name : 'out_shelf_cost',
+				index : 'out_shelf_cost',
+				width : 50,
+				align : 'center',
+				formatter:'select',
+				editoptions : {
+					value : $("#hide_shelf_cost").val()
+				}
+			},
+			{
 				name : 'image_uploaded_flg',
 				index : 'image_uploaded_flg',
 				hidden : true

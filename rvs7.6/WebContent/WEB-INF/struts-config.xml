@@ -120,6 +120,7 @@
 		<form-bean name="deviceJigRepairRecordForm" type="com.osh.rvs.form.equipment.DeviceJigRepairRecordForm"></form-bean>
 		<form-bean name="partialBussinessStandardForm" type="com.osh.rvs.form.master.PartialBussinessStandardForm"></form-bean>
 		<form-bean name="partialWarehouseForm" type="com.osh.rvs.form.partial.PartialWarehouseForm"></form-bean>
+		<form-bean name="FactMaterialForm" type="com.osh.rvs.form.qf.FactMaterialForm"></form-bean>
 	</form-beans>
 
 
@@ -1424,6 +1425,16 @@
 				parameter="method"
 				validate="false">
 				<forward name="init" path="/pages/partial/partial_warehouse.jsp"/>
+		</action>
+		
+		<!-- 出货单制作 -->
+		<action path="/fact_material"
+				type="com.osh.rvs.action.qf.FactMaterialAction"
+				name="FactMaterialForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+				<forward name="init" path="/pages/qf/outline_fact_material.jsp"/>
 		</action>
 		
 

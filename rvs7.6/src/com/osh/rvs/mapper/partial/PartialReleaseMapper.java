@@ -27,4 +27,9 @@ public interface PartialReleaseMapper {
 	public void updateWaitingQuantityAndStatuOfAppend(MaterialPartialDetailEntity entity);
 
 	public void updateStatusOfReady(MaterialPartialDetailEntity entity);
+	
+	/***统计每种规格订购数量*/
+	public List<MaterialPartialDetailEntity> countQuantityOfKind(MaterialPartialDetailEntity entity);
+	
+	
 }
