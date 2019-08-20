@@ -20,7 +20,7 @@ public class FactMaterialForm extends ActionForm implements Serializable {
 	 */
 	private static final long serialVersionUID = -8406210111024685941L;
 
-	@BeanField(title = "KEY", name = "af_pf_key", type = FieldType.String, length = 11, notNull = true)
+	@BeanField(title = "现品作业KEY", name = "af_pf_key", type = FieldType.String, length = 11, notNull = true)
 	private String af_pf_key;
 
 	@BeanField(title = "维修对象 ID", name = "material_id", type = FieldType.String, length = 11, notNull = true)

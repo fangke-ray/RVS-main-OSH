@@ -21,7 +21,7 @@
 	<script type="text/javascript" src="js/utils.js"></script>
 	<script type="text/javascript" src="js/jquery-plus.js"></script>
 	<script type="text/javascript" src="js/jquery.select2buttons.js"></script>
-	<script type="text/javascript" src="js/qf/outline_fact_material.js"></script>
+	<script type="text/javascript" src="js/qf/delivery_order.js"></script>
 	
 	<title>出货单制作</title>
 </head>

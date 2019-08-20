@@ -790,6 +790,8 @@ var refreshList = function() {
 	
 				$("#performance_list").jqGrid().clearGridData();
 				$("#performance_list").jqGrid('setGridParam', {data : listdata}).trigger("reloadGrid", [{current : false}]);
+
+				$("#sikake").text(listdata.length);
 			} catch (e) {
 				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
 						+ e.lineNumber + " fileName: " + e.fileName);

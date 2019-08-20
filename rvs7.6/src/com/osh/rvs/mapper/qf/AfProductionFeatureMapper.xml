@@ -27,7 +27,7 @@
 	]]>
 	</update>
 	
-	<select id="getUnfinish" resultType="AfProductionFeatureEntity" parameterType="string">
+	<select id="getUnfinishByOperator" resultType="AfProductionFeatureEntity" parameterType="string">
 	<![CDATA[
 		SELECT 
 			af_pf_key,

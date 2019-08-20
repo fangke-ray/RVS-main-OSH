@@ -136,6 +136,13 @@ public class HeaderAction extends BaseAction {
 			req.setAttribute("message_type", "op");
 		}
 
+		// 间接作业人员
+		if ("2".equals(user.getWork_count_flg())) {
+			req.setAttribute("indirect_worker", "id");
+		} else {
+			req.setAttribute("indirect_worker", "");
+		}
+		
 		// 假期列表
 		req.setAttribute("today_holiday", HolidayService.checkTodayHoliday(conn));
 		req.setAttribute("header_holidays", HolidayService.getHolidaysOnMonthAsJson());

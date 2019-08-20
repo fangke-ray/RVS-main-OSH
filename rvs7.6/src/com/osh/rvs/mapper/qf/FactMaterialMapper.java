@@ -27,12 +27,12 @@ public interface FactMaterialMapper {
 	 * 
 	 * @return
 	 */
-	public List<MaterialEntity> getWaitings();
+	public List<MaterialEntity> getDeliveryOrderWaitings();
 
 	/**
 	 * 今日出货单
 	 * 
 	 * @return
 	 */
-	public List<MaterialEntity> getFinished();
+	public List<MaterialEntity> getDeliveryOrderFinished();
 }

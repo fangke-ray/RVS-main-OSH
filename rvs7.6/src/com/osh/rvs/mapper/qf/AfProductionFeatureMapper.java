@@ -31,5 +31,5 @@ public interface AfProductionFeatureMapper {
 	 * @param operator_id
 	 * @return
 	 */
-	public AfProductionFeatureEntity getUnfinish(@Param("operator_id") String operator_id);
+	public AfProductionFeatureEntity getUnfinishByOperator(@Param("operator_id") String operator_id);
 }

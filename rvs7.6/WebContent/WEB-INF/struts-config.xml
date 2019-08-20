@@ -1387,6 +1387,17 @@
 		</action>
 
 		<!-- rvs  七期end -->
+		<!-- rvs  八期start -->
+
+		<!-- 间接作业 -->
+		<action path="/af_production_feature"
+				type="com.osh.rvs.action.qf.AfProductionFeatureAction"
+				name="AfProductionFeatureForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+				<forward name="init" path="/pages/qf/af_production_feature.jsp"/>
+		</action>
 
 		<!-- 设备工具替代管理 -->
 		<action path="/device_backup"
@@ -1428,15 +1439,16 @@
 		</action>
 		
 		<!-- 出货单制作 -->
-		<action path="/fact_material"
-				type="com.osh.rvs.action.qf.FactMaterialAction"
+		<action path="/delivery_order"
+				type="com.osh.rvs.action.qf.DeliveryOrderAction"
 				name="FactMaterialForm"
 				scope="request"
 				parameter="method"
 				validate="false">
-				<forward name="init" path="/pages/qf/outline_fact_material.jsp"/>
+				<forward name="init" path="/pages/qf/delivery_order.jsp"/>
 		</action>
 		
+		<!-- rvs 八期end -->
 
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->

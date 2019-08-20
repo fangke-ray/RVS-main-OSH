@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import net.arnx.jsonic.JSON;
 
@@ -121,6 +122,7 @@ public class PauseFeatureService {
 	private static String pauseReasonSelectOptions = null;
 	private static Map<String, String> pauseReasonSelectOptionMap = new HashMap<String, String>();
 	private static Map<String, String> pauseReasonSelectCommentMap = new HashMap<String, String>();
+	private static Map<String, Map<String, String>> pauseReasonIndirectGroupMap = new HashMap<String, Map<String, String>>();
 
 	/**
 	 * 取得暂停理由选项
@@ -136,6 +138,7 @@ public class PauseFeatureService {
 			pauseReasonSelectOptions = "";
 			pauseReasonSelectOptionMap.clear();
 			pauseReasonSelectCommentMap.clear();
+			pauseReasonIndirectGroupMap.clear();
 		}
 
 		for (int pause_code = 101; pause_code < 300; pause_code++) {
@@ -143,15 +146,33 @@ public class PauseFeatureService {
 			if (pause_reason == null) {
 				continue;
 			}
-			pauseReasonSelectOptionMap.put("" + pause_code, pause_reason);
-
-			pauseReasonSelectCommentMap.put("" + pause_code, getComments(pause_reason));
-
-			String kind = pause_reason.replaceAll("(\\d)+:.*", "");
-			if (!optGroups.containsKey(kind)) {
-				optGroups.put(kind, "<optgroup label=\"" + declare(kind) + "\">");
+			boolean forDirect = true, forIndirect = true;
+			if (pause_reason.indexOf('<') >= 0) {
+				String[] sPpart = pause_reason.split("<");
+				pause_reason = sPpart[0];
+				forDirect =  (sPpart[1].indexOf('Z') >= 0);
+				forIndirect =  (sPpart[1].indexOf('J') >= 0);
 			}
-			optGroups.put(kind, optGroups.get(kind) + "<option value=\"" + pause_code + "\">" + pause_reason + "</option>");
+
+			// WDT 直接辅助作业 WY 间接作业 MD 管理时间 MW 等待时间 H 休息离线
+			String kind = pause_reason.replaceAll("(\\d)+:.*", "");
+
+			if (forDirect) {
+				pauseReasonSelectOptionMap.put("" + pause_code, pause_reason);
+
+				pauseReasonSelectCommentMap.put("" + pause_code, getComments(pause_reason));
+
+				if (!optGroups.containsKey(kind)) {
+					optGroups.put(kind, "<optgroup label=\"" + declare(kind) + "\">");
+				}
+				optGroups.put(kind, optGroups.get(kind) + "<option value=\"" + pause_code + "\">" + pause_reason + "</option>");
+			}
+			if (forIndirect) {
+				if (!pauseReasonIndirectGroupMap.containsKey(kind)) {
+					pauseReasonIndirectGroupMap.put(kind, new TreeMap<String, String>());
+				}
+				pauseReasonIndirectGroupMap.get(kind).put("" + pause_code, pause_reason);
+			}
 		}
 
 		for (String kind : optGroups.keySet()) {
@@ -170,6 +191,13 @@ public class PauseFeatureService {
 			getPauseReasonSelectOptions();
 		}
 		return JSON.encode(pauseReasonSelectCommentMap);
+	}
+
+	public static Map<String, Map<String, String>> getPauseReasonIndirectGroupMap() {
+		if (pauseReasonIndirectGroupMap.isEmpty()) {
+			getPauseReasonSelectOptions();
+		}
+		return pauseReasonIndirectGroupMap;
 	}
 
 	private static String getComments(String pauseReason) {
@@ -194,6 +222,7 @@ public class PauseFeatureService {
 		pauseReasonSelectOptions = null;
 		pauseReasonSelectOptionMap.clear();
 		pauseReasonSelectCommentMap.clear();
+		pauseReasonIndirectGroupMap.clear();
 
 		getPauseReasonSelectOptions();
 	}

@@ -33,7 +33,7 @@
 	]]>
 	</insert>
 	
-	<select id="getWaitings" resultType="MaterialEntity">
+	<select id="getDeliveryOrderWaitings" resultType="MaterialEntity">
 	<![CDATA[
 	SELECT 
 		m.material_id,
@@ -69,7 +69,7 @@
 	]]>
 	</select>
 	
-	<select id="getFinished" resultType="MaterialEntity">
+	<select id="getDeliveryOrderFinished" resultType="MaterialEntity">
 	<![CDATA[
 	SELECT 
 		m.material_id,

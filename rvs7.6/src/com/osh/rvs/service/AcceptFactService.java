@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionManager;
 
 import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
@@ -55,7 +56,7 @@ public class AcceptFactService {
 		AfProductionFeatureMapper dao = conn.getMapper(AfProductionFeatureMapper.class);
 
 		AfProductionFeatureForm respForm = null;
-		AfProductionFeatureEntity entity = dao.getUnfinish(operatorID);
+		AfProductionFeatureEntity entity = dao.getUnfinishByOperator(operatorID);
 
 		if (entity != null) {
 			respForm = new AfProductionFeatureForm();
@@ -63,5 +64,20 @@ public class AcceptFactService {
 		}
 
 		return respForm;
+	}
+
+	/**
+	 * 结束当前作业或间歇事件
+	 */
+	public void finishCurrentAfWorkingOrPausingForOperator(String operatorId, boolean assertWorking, SqlSessionManager conn) throws Exception {
+		AfProductionFeatureMapper afMapper = conn.getMapper(AfProductionFeatureMapper.class);
+		AfProductionFeatureEntity entity = afMapper.getUnfinishByOperator(operatorId);
+
+		if (entity != null) {
+			afMapper.updateFinishTime(entity.getAf_pf_key());
+		} else if (!assertWorking) {
+			PauseFeatureService pfService = new PauseFeatureService();
+			pfService.finishPauseFeature(null, null, null, operatorId, conn);
+		}
 	}
 }

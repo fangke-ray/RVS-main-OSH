@@ -20,6 +20,7 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.form.qf.FactMaterialForm;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.qf.DeliveryOrderService;
 import com.osh.rvs.service.qf.FactMaterialService;
 
 import framework.huiqing.action.BaseAction;
@@ -34,7 +35,7 @@ import framework.huiqing.common.util.validator.Validators;
  * @author dell
  * 
  */
-public class FactMaterialAction extends BaseAction {
+public class DeliveryOrderAction extends BaseAction {
 
 	private Logger log = Logger.getLogger(getClass());
 
@@ -49,7 +50,7 @@ public class FactMaterialAction extends BaseAction {
 	 * @throws Exception
 	 */
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
-		log.info("FactMaterialAction.init start");
+		log.info("DeliveryOrderAction.init start");
 
 		// 设定OCM文字
 		req.setAttribute("oOptions", CodeListUtils.getGridOptions("material_direct_ocm"));
@@ -60,7 +61,7 @@ public class FactMaterialAction extends BaseAction {
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
-		log.info("FactMaterialAction.init end");
+		log.info("DeliveryOrderAction.init end");
 	}
 
 	/**
@@ -74,13 +75,13 @@ public class FactMaterialAction extends BaseAction {
 	 * @throws Exception
 	 */
 	public void search(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
-		log.info("FactMaterialAction.search start");
+		log.info("DeliveryOrderAction.search start");
 
 		// Ajax响应对象
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
-		FactMaterialService service = new FactMaterialService();
+		DeliveryOrderService service = new DeliveryOrderService();
 
 		// 待出货单
 		List<MaterialForm> waitings = service.getWaitings(conn);
@@ -95,7 +96,7 @@ public class FactMaterialAction extends BaseAction {
 		// 返回Json格式回馈信息
 		returnJsonResponse(res, callbackResponse);
 
-		log.info("FactMaterialAction.search end");
+		log.info("DeliveryOrderAction.search end");
 	}
 
 	/**
@@ -109,7 +110,7 @@ public class FactMaterialAction extends BaseAction {
 	 * @throws Exception
 	 */
 	public void doInsert(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
-		log.info("FactMaterialAction.doInsert start");
+		log.info("DeliveryOrderAction.doInsert start");
 
 		// Ajax响应对象
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
@@ -138,7 +139,7 @@ public class FactMaterialAction extends BaseAction {
 		// 返回Json格式回馈信息
 		returnJsonResponse(res, callbackResponse);
 
-		log.info("FactMaterialAction.doInsert end");
+		log.info("DeliveryOrderAction.doInsert end");
 
 	}
 }
