@@ -427,6 +427,7 @@ public class ProductionFeatureService {
 			if (mEntity.getFix_type() == 3) {
 				// outline_time设成当前时间（业务处理全部结束了）
 				mDao.updateMaterialOutlineTime(material_id);
+				return null;
 			} else {
 				if ("07".equals(mEntity.getKind()) && mEntity.getFix_type() == 1) {
 					nextPositions.add(RvsConsts.POSITION_QUOTATION_P_181); // 周边报价

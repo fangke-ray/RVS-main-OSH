@@ -1429,41 +1429,47 @@ public class PositionPanelAction extends BaseAction {
 			}
 			if (!jsonPcs_inputs.containsKey(material_id)) {
 				continue;
+			} else {
+				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(material_id));
 			}
 
-			// 计算一下总工时：
-			Integer use_seconds = 0;
-			if ("00000000010".equals(workingPf.getPosition_id())) {
-				/// 取得本次工时
-				String sUse_seconds = RvsUtils.getZeroOverLine("_default", null, user, user.getProcess_code());
-				try {
-					use_seconds = Integer.parseInt(sUse_seconds) * 60;
-				} catch (Exception e){
-				}
-
-				// 作业信息状态改为，作业完成
-				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
-				workingPf.setUse_seconds(use_seconds);
-
-				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(material_id));
-				workingPf.setPcs_inputs(sPcs_inputs);
-				workingPf.setPcs_comments(null);
-				pfService.finishProductionFeatureSetFinish(workingPf, conn);
-			} else if ("00000000011".equals(workingPf.getPosition_id())) {
-				use_seconds = service.getTotalTimeByRework(workingPf, conn);
-
-				// 作业信息状态改为，作业完成
-				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
-				workingPf.setUse_seconds(use_seconds);
-
-				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(material_id));
+			// 通箱处理
+			if (workingPf.getOperate_result() == 5) {
+				workingPf.setUse_seconds(null);
 				workingPf.setPcs_inputs(sPcs_inputs);
 				workingPf.setPcs_comments(null);
 				pfService.finishProductionFeature(workingPf, conn);
+			} else {
+				// 计算一下总工时：
+				Integer use_seconds = 0;
+				if ("00000000010".equals(workingPf.getPosition_id())) {
+					/// 取得本次工时
+					String sUse_seconds = RvsUtils.getZeroOverLine("_default", null, user, user.getProcess_code());
+					try {
+						use_seconds = Integer.parseInt(sUse_seconds) * 60;
+					} catch (Exception e){
+					}
+	
+					// 作业信息状态改为，作业完成
+					workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+					workingPf.setUse_seconds(use_seconds);
+					workingPf.setPcs_inputs(sPcs_inputs);
+					workingPf.setPcs_comments(null);
+					pfService.finishProductionFeatureSetFinish(workingPf, conn);
+				} else if ("00000000011".equals(workingPf.getPosition_id())) {
+					use_seconds = service.getTotalTimeByRework(workingPf, conn);
+	
+					// 作业信息状态改为，作业完成
+					workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+					workingPf.setUse_seconds(use_seconds);
+					workingPf.setPcs_inputs(sPcs_inputs);
+					workingPf.setPcs_comments(null);
+					pfService.finishProductionFeature(workingPf, conn);
+				}
+	
+				// 启动下个工位
+				pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
 			}
-
-			// 启动下个工位
-			pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
 		}
 
 		// 通知

@@ -1105,12 +1105,6 @@
 		<value code="1">即时</value>
 		<value code="2">定点</value>
 	</codelist>
-
-	<codelist name="consumable_shelf_cost">
-		<value code="1">短</value>
-		<value code="2">中</value>
-		<value code="3">长</value>
-	</codelist>
 	
 	<codelist name="qis_corresponse_flg">
 		<value code="1">无偿更换</value>
@@ -1253,7 +1247,7 @@
 		<value code="103">维修品/备品系统受理</value>
 		<value code="104">备品系统导入</value>
 		<value code="105">备品实物受理/测漏</value>
-		<value code="106">维修品实物受理/测漏</value>
+		<value code="106">镜箱入库</value>
 		<value code="111">维修品消毒</value>
 		<value code="112">备品消毒</value>
 		<value code="113">镜箱消毒</value>
@@ -1280,13 +1274,6 @@
 		<value code="273">耗材分装</value>
 		<value code="274">NS插入管零件预包装</value>
 		<value code="275">S1级组件拆包装/分配</value>
-	</codelist>
-	
-	<codelist name="partial_warehouse_step">
-		<value code="0">收货完</value>
-		<value code="1">核对/上架中</value>
-		<value code="2">待分装</value>
-		<value code="3">入库完</value>
 	</codelist>
 
 </codelist-config>
