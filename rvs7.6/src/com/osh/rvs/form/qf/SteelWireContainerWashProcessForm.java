@@ -1,4 +1,4 @@
-package com.osh.rvs.form.inline;
+package com.osh.rvs.form.qf;
 
 import org.apache.struts.action.ActionForm;
 
@@ -21,21 +21,29 @@ public class SteelWireContainerWashProcessForm extends ActionForm {
 	@BeanField(title = "清洗品 ID", name = "partial_id", type = FieldType.String, length = 11, notNull = true)
 	private String partial_id;
 
+	/** 物料加工作业类别 **/
+	@BeanField(title = "物料加工作业类别", name = "process_type", type = FieldType.Integer, length = 1, notNull = true)
+	private String process_type;
+
 	/** 入库批号 **/
-	@BeanField(title = "入库批号", name = "lot_no", type = FieldType.String, length = 15, notNull = true)
+	@BeanField(title = "入库批号", name = "lot_no", type = FieldType.String, length = 15)
 	private String lot_no;
 
 	/** 处理时间 **/
 	@BeanField(title = "处理时间", name = "process_time", type = FieldType.DateTime, notNull = true)
 	private String process_time;
 
-	/** 清洗数量 **/
-	@BeanField(title = "清洗数量", name = "quantity", type = FieldType.Integer, length = 3, notNull = true)
+	/** 作业数量 **/
+	@BeanField(title = "作业数量", name = "quantity", type = FieldType.Integer, length = 3, notNull = true)
 	private String quantity;
 
 	/** 责任人 ID **/
 	@BeanField(title = "责任人 ID", name = "operator_id", type = FieldType.String, length = 11, notNull = true)
 	private String operator_id;
+
+	/** 分配维修对象 ID **/
+	@BeanField(title = "分配维修对象 ID", name = "material_id", type = FieldType.String, length = 11)
+	private String material_id;
 
 	/** 零件编码 **/
 	@BeanField(title = "零件编码", name = "code", type = FieldType.String, length = 9)
@@ -52,6 +60,10 @@ public class SteelWireContainerWashProcessForm extends ActionForm {
 	/** 处理结束时间 **/
 	@BeanField(title = "处理结束时间", name = "process_time_end", type = FieldType.Date)
 	private String process_time_end;
+
+	/** 修理单号 **/
+	@BeanField(title = "修理单号", name = "sorc_no", type = FieldType.String)
+	private String sorc_no;
 
 	public String getPartial_id() {
 		return partial_id;
@@ -123,6 +135,30 @@ public class SteelWireContainerWashProcessForm extends ActionForm {
 
 	public void setProcess_time_end(String process_time_end) {
 		this.process_time_end = process_time_end;
+	}
+
+	public String getProcess_type() {
+		return process_type;
+	}
+
+	public void setProcess_type(String process_type) {
+		this.process_type = process_type;
+	}
+
+	public String getMaterial_id() {
+		return material_id;
+	}
+
+	public void setMaterial_id(String material_id) {
+		this.material_id = material_id;
+	}
+
+	public String getSorc_no() {
+		return sorc_no;
+	}
+
+	public void setSorc_no(String sorc_no) {
+		this.sorc_no = sorc_no;
 	}
 
 }

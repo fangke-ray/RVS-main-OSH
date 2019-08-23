@@ -1,10 +1,10 @@
-package com.osh.rvs.bean.inline;
+package com.osh.rvs.bean.qf;
 
 import java.io.Serializable;
 import java.util.Date;
 
 /**
- * @Description: 钢丝固定件清洗记录
+ * @Description: 物料加工
  * @author liuxb
  * @date 2018-5-14 下午1:03:27
  */
@@ -18,17 +18,23 @@ public class SteelWireContainerWashProcessEntity implements Serializable {
 	/** 清洗品 ID **/
 	private String partial_id;
 
+	/** 物料加工作业类别 **/
+	private Integer process_type;
+
 	/** 入库批号 **/
 	private String lot_no;
 
 	/** 处理时间 **/
 	private Date process_time;
 
-	/** 清洗数量 **/
+	/** 作业数量 **/
 	private Integer quantity;
 
 	/** 责任人 ID **/
 	private String operator_id;
+
+	/** 分配维修对象 ID **/
+	private String material_id;
 
 	/** 零件编码 **/
 	private String code;
@@ -41,6 +47,9 @@ public class SteelWireContainerWashProcessEntity implements Serializable {
 
 	/** 处理结束时间 **/
 	private Date process_time_end;
+
+	/** 修理单号 **/
+	private String sorc_no;
 
 	public String getPartial_id() {
 		return partial_id;
@@ -112,6 +121,30 @@ public class SteelWireContainerWashProcessEntity implements Serializable {
 
 	public void setProcess_time_end(Date process_time_end) {
 		this.process_time_end = process_time_end;
+	}
+
+	public Integer getProcess_type() {
+		return process_type;
+	}
+
+	public void setProcess_type(Integer process_type) {
+		this.process_type = process_type;
+	}
+
+	public String getMaterial_id() {
+		return material_id;
+	}
+
+	public void setMaterial_id(String material_id) {
+		this.material_id = material_id;
+	}
+
+	public String getSorc_no() {
+		return sorc_no;
+	}
+
+	public void setSorc_no(String sorc_no) {
+		this.sorc_no = sorc_no;
 	}
 
 }

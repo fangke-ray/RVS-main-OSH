@@ -124,7 +124,7 @@
 		<typeAlias alias="WaittingTimeReportEntity" type="com.osh.rvs.bean.report.WaittingTimeReportEntity"/>
 		<typeAlias alias="RemainTimeReportEntity" type="com.osh.rvs.bean.report.RemainTimeReportEntity"/>
 
-		<typeAlias alias="SteelWireContainerWashProcessEntity" type="com.osh.rvs.bean.inline.SteelWireContainerWashProcessEntity"/>
+		<typeAlias alias="SteelWireContainerWashProcessEntity" type="com.osh.rvs.bean.qf.SteelWireContainerWashProcessEntity"/>
 		<typeAlias alias="ConsumableSupplyRecordEntity" type="com.osh.rvs.bean.partial.ConsumableSupplyRecordEntity"/>
 		<typeAlias alias="DeviceBackupEntity" type="com.osh.rvs.bean.equipment.DeviceBackupEntity"/>
 		<typeAlias alias="DeviceJigRepairRecordEntity" type="com.osh.rvs.bean.equipment.DeviceJigRepairRecordEntity"/>
@@ -218,7 +218,6 @@
 		<mapper resource="com/osh/rvs/mapper/inline/ScheduleMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/inline/ScheduleProcessMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/inline/SoloProductionFeatureMapper.xml" />
-		<mapper resource="com/osh/rvs/mapper/inline/SteelWireContainerWashProcessMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/inline/SupportMapper.xml" />
 
 		<mapper resource="com/osh/rvs/mapper/manage/CapacityMapper.xml"/>
@@ -271,6 +270,7 @@
 		<mapper resource="com/osh/rvs/mapper/qf/WipMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qf/AfProductionFeatureMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qf/FactMaterialMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/qf/SteelWireContainerWashProcessMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/qa/QualityAssuranceMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qa/ServiceRepairManageMapper.xml" />

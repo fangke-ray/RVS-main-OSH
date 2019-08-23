@@ -114,7 +114,7 @@
 		<form-bean name="WaittingTimeReportForm" type="com.osh.rvs.form.report.WaittingTimeReportForm"></form-bean>
 		<form-bean name="RemainTimeReportForm" type="com.osh.rvs.form.report.RemainTimeReportForm"></form-bean>
 		<form-bean name="workDurationForm" type="com.osh.rvs.form.report.WorkDurationForm"></form-bean>
-		<form-bean name="SteelWireContainerWashProcessForm" type="com.osh.rvs.form.inline.SteelWireContainerWashProcessForm"></form-bean>
+		<form-bean name="SteelWireContainerWashProcessForm" type="com.osh.rvs.form.qf.SteelWireContainerWashProcessForm"></form-bean>
 		<form-bean name="ConsumableSupplyRecordForm" type="com.osh.rvs.form.partial.ConsumableSupplyRecordForm"></form-bean>
 		<form-bean name="deviceBackupForm" type="com.osh.rvs.form.equipment.DeviceBackupForm"></form-bean>
 		<form-bean name="deviceJigRepairRecordForm" type="com.osh.rvs.form.equipment.DeviceJigRepairRecordForm"></form-bean>
@@ -1367,14 +1367,14 @@
 			   <forward name="init" path="/pages/report/work_duration.jsp" />
 		</action>
 		
-		<!-- 钢丝固定件清洗作业 -->
+		<!-- 物料加工 -->
 		<action path="/steel_wire_container_wash_process" 
-				type="com.osh.rvs.action.inline.SteelWireContainerWashProcessAction" 
+				type="com.osh.rvs.action.qf.SteelWireContainerWashProcessAction" 
 				name="SteelWireContainerWashProcessForm"
 				parameter="method"
 				scope="request"
 				validate="false">
-			   <forward name="init" path="/pages/inline/steel_wire_container_wash_process.jsp" />
+			   <forward name="init" path="/pages/qf/steel_wire_container_wash_process.jsp" />
 		</action>
 		
 		<action path="/consumable_supply_record" 

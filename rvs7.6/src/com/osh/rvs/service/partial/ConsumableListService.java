@@ -590,4 +590,25 @@ public class ConsumableListService {
 			}
 		}
 	}
+	
+	public String getAllHeatshrinkable(SqlSession conn){
+		List<String[]> lst = new ArrayList<String[]>();
+
+		ConsumableListMapper dao = conn.getMapper(ConsumableListMapper.class);
+		List<ConsumableListEntity> allPartial = dao.searchAllHeatshrinkable();
+
+		for (ConsumableListEntity partial : allPartial) {
+			String[] p = new String[3];
+			p[0] = partial.getPartial_id().toString();
+			p[1] = partial.getCode();
+			p[2] = partial.getCut_length().toString();
+			
+			lst.add(p);
+		}
+
+		String pReferChooser = CodeListUtils.getReferChooser(lst);
+
+		return pReferChooser;
+	}
+	
 }

@@ -382,5 +382,22 @@
 				#{cut_length});
 		]]>
 	</insert>
+	
+	<select id="searchAllHeatshrinkable" resultType="ConsumableListEntity">
+	<![CDATA[
+		SELECT 
+			heatshrinkable_tube.partial_id,
+			partial.code,
+			group_concat(heatshrinkable_tube.cut_length) as cut_length
+		FROM
+			heatshrinkable_tube
+		JOIN
+			partial
+		ON
+			heatshrinkable_tube.partial_id = partial.partial_id
+		GROUP BY 
+			heatshrinkable_tube.partial_id
+	]]>
+	</select>
 
  </mapper>

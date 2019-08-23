@@ -87,9 +87,6 @@ var getPositionWork = function(position_id, px){
 	<% if(links.get("support")) { %>
 		        <a href="support.do">辅助工作</a><br>
 	<% } %>
-	<% if(links.get("wash")) { %>
-				<a href="steel_wire_container_wash_process.do">钢丝固定件清洗</a><br>
-	<% } %>
 		    </div>
 </div>
 <% } %>
@@ -123,6 +120,9 @@ var getPositionWork = function(position_id, px){
 	<% } %>
 	<% if(links.get("bo_partial")) { %>
 		        <a href="materialPartial.do" title="现品零件BO管理">零件BO管理</a><br>
+	<% } %>
+	<% if(links.get("wash")) { %>
+				<a href="steel_wire_container_wash_process.do">物料加工记录</a><br>
 	<% } %>
     </div>
 </div>

@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.SteelWireContainerWashProcessMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="search" parameterType="SteelWireContainerWashProcessEntity" resultType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		SELECT
+			sw.partial_id,
+			sw.process_type,
+			sw.process_time,
+			sw.lot_no,
+			sw.quantity,
+			partial.code,
+		    operator.name AS operator_name,
+		    COALESCE(material.omr_notifi_no, material.sorc_no) AS sorc_no
+		FROM
+			steel_wire_container_wash_process sw
+		JOIN
+			partial
+		ON
+			sw.partial_id = partial.partial_id
+		JOIN
+			operator
+		ON
+			sw.operator_id = operator.operator_id
+		LEFT JOIN
+			material
+		ON
+			sw.material_id = material.material_id
+	]]>
+	<where>
+	<if test="process_type!=null and process_type!='' ">
+	<![CDATA[
+		AND sw.process_type = #{process_type}
+	]]>
+	</if>
+	<if test="code!=null and code!='' ">
+	<![CDATA[
+		AND partial.code LIKE CONCAT(#{code}, '%')
+	]]>
+	</if>
+	<if test="lot_no!=null and lot_no!='' ">
+	<![CDATA[
+		AND sw.lot_no = #{lot_no}
+	]]>
+	</if>
+	<if test="process_time_start!=null and process_time_start!='' ">
+	<![CDATA[
+		AND sw.process_time >= #{process_time_start}
+	]]>
+	</if>
+	<if test="process_time_end!=null and process_time_end!='' ">
+	<![CDATA[
+		AND sw.process_time < DATE_ADD(#{process_time_end}, interval 1 day)
+	]]>
+	</if>
+	<if test="operator_id!=null and operator_id!='' ">
+	<![CDATA[
+		AND sw.operator_id = #{operator_id}
+	]]>
+	</if>
+	</where>
+	ORDER BY
+		sw.process_time ASC
+	</select>
+	
+	<insert id="insert" parameterType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		INSERT INTO steel_wire_container_wash_process
+		(
+		partial_id,
+		process_type,
+		process_time,
+		lot_no,
+		quantity,
+		operator_id,
+		material_id
+		)
+		VALUES
+		(
+		#{partial_id},
+		#{process_type},
+		CURRENT_TIMESTAMP,
+		#{lot_no},
+		#{quantity},
+		#{operator_id},
+		#{material_id}
+		)
+	]]>
+	</insert>
+
+	<update id="update" parameterType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		UPDATE 
+			steel_wire_container_wash_process 
+		SET 
+			quantity = #{quantity}
+	]]>
+	<if test="lot_no!=null and lot_no!=''">
+	<![CDATA[
+			,lot_no = #{lot_no}
+	]]>
+	</if>
+	<![CDATA[
+		WHERE
+			partial_id = #{partial_id}
+		AND
+			process_type = #{process_type}
+		AND
+			process_time = #{process_time}
+	]]>
+	</update>
+	
+	<update id="updateMaterial" parameterType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		UPDATE 
+			steel_wire_container_wash_process 
+		SET 
+			material_id = #{material_id}
+		WHERE
+			partial_id = #{partial_id}
+		AND
+			process_type = #{process_type}
+		AND
+			process_time = #{process_time}
+	]]>
+	</update>
+	
+	<select id="searchMaterial" resultType="MaterialEntity">
+	<![CDATA[
+	SELECT
+	   m.material_id,
+	   COALESCE(m.omr_notifi_no, m.sorc_no) AS sorc_no,
+	   v_model.name AS model_name,
+	   m.level
+	FROM
+	    material m
+	JOIN
+		v_model
+	ON
+		m.model_id = v_model.MODEL_ID
+	LEFT JOIN
+		process_assign_template
+	ON
+		m.pat_id = process_assign_template.process_assign_template_id
+	WHERE
+		m.inline_time IS NOT NULL
+	AND
+		m.outline_time IS NULL
+	AND
+		(m.level=1 OR process_assign_template.derive_kind=1)
+	AND
+		EXISTS (SELECT 1 FROM material_partial WHERE material_id = m.material_id AND bo_flg<>7)
+	AND
+		 NOT EXISTS (
+			SELECT 
+				1
+			FROM 
+				production_feature p1
+	        JOIN 
+				position
+			ON 
+				p1.position_id = position.position_id AND position.line_id = 14
+			WHERE
+				p1.operate_result = 2 
+			AND	
+				p1.material_id = m.material_id
+	     )
+	ORDER BY
+		m.scheduled_date
+	]]>
+	</select>
+
+</mapper>

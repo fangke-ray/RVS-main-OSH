@@ -105,6 +105,9 @@ public class ConsumableListEntity implements Serializable{
 	
 	/* 下架耗时 */
 	private Integer out_shelf_cost;
+	
+	/* 剪裁长度 */
+	private String cut_length;
 
 	public Integer getPopular_item() {
 		return popular_item;
@@ -377,6 +380,13 @@ public class ConsumableListEntity implements Serializable{
 	public void setOut_shelf_cost(Integer out_shelf_cost) {
 		this.out_shelf_cost = out_shelf_cost;
 	}
-	
-	
+
+	public String getCut_length() {
+		return cut_length;
+	}
+
+	public void setCut_length(String cut_length) {
+		this.cut_length = cut_length;
+	}
+
 }
