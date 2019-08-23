@@ -656,7 +656,7 @@ function distribut(){
                 eval('resInfo =' + xhrobj.responseText);
                 if (resInfo.errors.length > 0) {
                     // 共通出错信息框
-                    treatBackMessages("#updateform", resInfo.errors);
+                    treatBackMessages(null, resInfo.errors);
                 } else {
                 	materialList(resInfo.list);
                 	
@@ -735,7 +735,7 @@ function distribut(){
 
 function materialList(listdata){
 	if ($("#gbox_materiallist").length > 0) {
-        $("#list").jqGrid().clearGridData();
+        $("#materiallist").jqGrid().clearGridData();
         $("#materiallist").jqGrid('setGridParam',{data:listdata}).trigger("reloadGrid", [{current:false}]);
     } else {
     	$("#materiallist").jqGrid({
@@ -763,7 +763,7 @@ function materialList(listdata){
             recordpos : 'left',
             hidegrid : false,
             deselectAfterSort : false,
-            onSelectRow:enableButton,
+            onSelectRow:null,
             ondblClickRow : function(){},
             viewsortcols : [true,'vertical',true],
             gridComplete:function(){
