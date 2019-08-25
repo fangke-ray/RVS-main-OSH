@@ -7,6 +7,7 @@
  */
 package com.osh.rvs.action.qf;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,10 +25,13 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.form.qf.AfProductionFeatureForm;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.PauseFeatureService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
+import framework.huiqing.bean.message.MsgInfo;
 
 
 public class AfProductionFeatureAction extends BaseAction {
@@ -47,12 +51,28 @@ public class AfProductionFeatureAction extends BaseAction {
 	public void getByOperator(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 
 		log.info("AfProductionFeatureAction.getByOperator start");
-		
+
 		// Ajax响应对象
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 取得当前进行中作业
+		AcceptFactService service = new AcceptFactService();
+		AfProductionFeatureForm processForm = service.getProcessOfOperator(user, conn);
+
+		if (processForm != null) {
+			// 如果是直接作业，取得标准工时
+			if ("1".equals(processForm.getIs_working())) {
+				Integer standard_minutes = service.getStandardMinutes(processForm, conn);
+				if (standard_minutes != null) {
+					processForm.setStandard_minutes("" + standard_minutes);
+				}
+			}
+
+			callbackResponse.put("processForm", processForm);
+		}
 
 		// 可做工位
 		List<PositionEntity> afAbilities = user.getAfAbilities();
@@ -61,7 +81,7 @@ public class AfProductionFeatureAction extends BaseAction {
 		callbackResponse.put("pauseReasonGroup", PauseFeatureService.getPauseReasonIndirectGroupMap());
 
 		// 检查发生错误时报告错误信息
-		callbackResponse.put("errors", errors);
+		callbackResponse.put("errors", new ArrayList<MsgInfo>());
 		// 返回Json格式回馈信息
 		returnJsonResponse(res, callbackResponse);
 
@@ -78,17 +98,25 @@ public class AfProductionFeatureAction extends BaseAction {
 	 * @throws Exception
 	 */
 	@Privacies(permit={1, 0})
-	public void doinsert(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
-		log.info("AfProductionFeatureAction.doinsert start");
+	public void doSwitch(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("AfProductionFeatureAction.doSwitch start");
 		// Ajax响应对象
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 
-	
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		AcceptFactService service = new AcceptFactService();
+
+		AfProductionFeatureForm processForm = service.switchTo(form, user, conn);
+
+		callbackResponse.put("processForm", processForm);
+
 		// 检查发生错误时报告错误信息
-		callbackResponse.put("errors", errors);
+		callbackResponse.put("errors", new ArrayList<MsgInfo>());
 		// 返回Json格式回馈信息
 		returnJsonResponse(res, callbackResponse);
 		
-		log.info("AfProductionFeatureAction.doinsert end");
+		log.info("AfProductionFeatureAction.doSwitch end");
 	}
 }

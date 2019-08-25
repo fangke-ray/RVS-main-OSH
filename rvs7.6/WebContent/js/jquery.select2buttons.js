@@ -186,6 +186,9 @@ return this.each(function(){
 		}).addClass('picked');
       }
       select.trigger('change', true);
+    })
+    .on("dragstart", "a" , function(e){
+    	return false;
     });
 
     select.change(function(e, _inner){

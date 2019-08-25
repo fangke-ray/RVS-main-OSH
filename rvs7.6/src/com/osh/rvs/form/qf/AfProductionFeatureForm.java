@@ -39,6 +39,10 @@ public class AfProductionFeatureForm extends ActionForm implements Serializable 
 
 	private String production_type_name;
 
+	private String is_working;
+
+	private String standard_minutes;
+
 	public String getAf_pf_key() {
 		return af_pf_key;
 	}
@@ -88,6 +92,22 @@ public class AfProductionFeatureForm extends ActionForm implements Serializable 
 
 	public void setProduction_type_name(String production_type_name) {
 		this.production_type_name = production_type_name;
+	}
+
+	public String getIs_working() {
+		return is_working;
+	}
+
+	public void setIs_working(String is_working) {
+		this.is_working = is_working;
+	}
+
+	public String getStandard_minutes() {
+		return standard_minutes;
+	}
+
+	public void setStandard_minutes(String standard_minutes) {
+		this.standard_minutes = standard_minutes;
 	}
 
 }

@@ -91,6 +91,9 @@ public class PauseFeatureService {
 		dao.makePauseFeature(entity);
 	}
 
+	public void finishPauseFeature(String finish_operator_id, SqlSessionManager conn) {
+		finishPauseFeature(null, null, null, finish_operator_id, null, conn);
+	}
 	public void finishPauseFeature(String material_id, String section_id, String position_id, String finish_operator_id,
 			SqlSessionManager conn) {
 		finishPauseFeature(material_id, section_id, position_id, finish_operator_id, null, conn);

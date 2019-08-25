@@ -120,6 +120,7 @@
 		<form-bean name="deviceJigRepairRecordForm" type="com.osh.rvs.form.equipment.DeviceJigRepairRecordForm"></form-bean>
 		<form-bean name="partialBussinessStandardForm" type="com.osh.rvs.form.master.PartialBussinessStandardForm"></form-bean>
 		<form-bean name="partialWarehouseForm" type="com.osh.rvs.form.partial.PartialWarehouseForm"></form-bean>
+		<form-bean name="afProductionFeatureForm" type="com.osh.rvs.form.qf.AfProductionFeatureForm"></form-bean>
 		<form-bean name="FactMaterialForm" type="com.osh.rvs.form.qf.FactMaterialForm"></form-bean>
 	</form-beans>
 
@@ -1392,7 +1393,7 @@
 		<!-- 间接作业 -->
 		<action path="/af_production_feature"
 				type="com.osh.rvs.action.qf.AfProductionFeatureAction"
-				name="AfProductionFeatureForm"
+				name="afProductionFeatureForm"
 				scope="request"
 				parameter="method"
 				validate="false">

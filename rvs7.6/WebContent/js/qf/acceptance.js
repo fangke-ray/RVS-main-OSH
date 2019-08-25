@@ -404,8 +404,8 @@ var showInput=function(rid, manual) {
 									if(messages.length > 0){
 										var warnData = "";
 										
-										for(var message of messages){
-											warnData += message.errmsg;
+										for(var imessage in messages){
+											warnData += messages[imessage].errmsg;
 										}
 										warningConfirm(warnData,function(){
 											$.ajax({
@@ -820,7 +820,10 @@ $(function() {
 	$("#manualbutton").click(function() {
 		showInput(0,1)
 	});
-	$("#printbutton").click(printTicket);
+	$("#printbutton").click(function() {
+		afObj.applyProcess(101, this, printTicket, arguments);
+	});
+
 	$("#outbutton").click(dayworkReport);
 	$("#acceptancebutton").click(doAccept);
 	$("#disinfectionbutton").click(doDisinfection);

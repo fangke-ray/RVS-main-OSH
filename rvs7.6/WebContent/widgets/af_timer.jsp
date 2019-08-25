@@ -7,7 +7,7 @@
 	height:120px;
 	border-radius: 60px;
 	position:fixed;
-	opacity: 0.65;
+	opacity: 0.75;
 	cursor: pointer;
 	-moz-user-select:none;
 	-webkit-user-select:none;
@@ -21,17 +21,26 @@
 #af_holder {
 	width:100%;
 	height:100%;
-	border:1px solid black;
+	border:1px solid lightgray;
 	background-color: white;
 	border-radius: 60px;
 	position: absolute;
 	overflow: hidden;
 }
 #af_holder div {
-	background-color : blue;
+	background-color : #ADEDFF;
+}
+#af_holder div[process="1"] {
+	background-color : #E7FDC9;
+}
+#af_holder div[process="2"] {
+	background-color : #FEFEB3;
+}
+#af_holder div[process="3"] {
+	background-color : #FFCBA1;
 }
 #af_timer .prod {
-	position: relative;
+	position: absolute;
 	font-size: 16px;
 	display: block;
 	text-align: center;
@@ -42,17 +51,43 @@
 	left:1px;
 	width:116px;
 }
+#af_timer .prod[line="2"] {
+	top: 40px;
+	left:4px;
+	width:110px;
+}
+#af_timer .prod[line="3"] {
+	top: 30px;
+	left: 8px;
+	width: 108px;
+}
 #af_process, #af_standard {
-	position: relative;
+	position: absolute;
 	display: inline;
 	padding: 0 0.5em;
-	border:1px solid black;
 }
+#af_standard {
+	border : 1px solid #B7DEE8;
+	border-top : 0;
+	border-radius: 10px;
+	pointer-events: none;
+	box-shadow: 1px 1px 3px inset;
+}
+
 #af_standard:empty {
 	display: none;
 }
 #af_process {
 	background-color: lightblue;
+}
+#af_process[process="1"] {
+	background-color : #E7FDC9;
+}
+#af_process[process="2"] {
+	background-color : #FEFEB3;
+}
+#af_process[process="3"] {
+	background-color : #FFCBA1;
 }
 #af_timer li {
 	list-style: none;
@@ -124,7 +159,7 @@
 	top : 90px; bottom : auto;
 }
 #af_timer[vdir="up"] #af_pause_reason_group {
-	bottom : 90px; top : auto;
+	bottom : 110px; top : auto;
 }
 #af_pause_reason_group {
 	left : 0;
@@ -145,9 +180,9 @@
 
 <div id="af_timer" switch="no" hdir="left" vdir="down">
 <div id="af_holder"><div></div></div>
-<span class="prod" line=1>AF Timer</span>
 <div id="af_standard"></div>
-<div id="af_process">30</div>
+<div id="af_process"></div>
+<span class="prod" line=1></span>
 <ul id="af_abilities_group"></ul>
 <ul id="af_abilities">
 </ul>
@@ -162,6 +197,8 @@
 </div>
 
 <script type="text/javascript">
+var afObj = (function() {
+
 var afInit = function() {
 	$.ajax({
 		beforeSend : ajaxRequestType,
@@ -188,9 +225,76 @@ var afInit = function() {
 				$("#af_pause_reason").html(prGrhtml)
 					.find("li").hide();
 			}
+
+			setProcessForm(resInfo.processForm);
+
+			clearInterval(af_clockTo);
+			af_clockTo = setInterval(refreshRate, 60000);
 		}
 	});
 } 
+
+var setProcessForm = function(processForm){
+	var type_code = processForm.production_type;
+	if (processForm.is_working === "0") {
+		setProdText(type_code, "p");
+	} else {
+		setProdText(type_code, "a");
+	}
+	now_standard = processForm.standard_minutes;
+	$("#af_standard").text(now_standard || "");
+
+	$afTimer.data({
+		"action_time": new Date(processForm.action_time),
+		"is_working": processForm.is_working
+	});
+	refreshRate();
+}
+
+var refreshRate= function() {
+	var actmin = parseInt((new Date().getTime() - $afTimer.data("action_time").getTime()) / 60000);
+	$("#af_process").text(actmin);
+	if (!now_standard) {
+		var rate = actmin / 30;
+		setProcessClock(rate);
+		$("#af_holder div").css({"height": "100%", "marginTop": "0%"})
+			.removeAttr("process");
+		$("#af_process").removeAttr("process");
+	} else {
+		var rate = actmin / now_standard;
+		setProcessClock(rate);
+		var percent = parseInt(rate * 100);
+		if (percent > 100) percent = 100;
+		var process = 0;
+		if (percent > 90) {
+			process = 3;
+		} else if (percent > 75) {
+			process = 2;
+		} else {
+			process = 1;
+		}
+		$("#af_holder div").css({"height": percent + "%", "marginTop": (100 - percent) + "%"})
+			.attr("process", process);
+		$("#af_process").attr("process", process);
+	}
+}
+var setProdText = function(type_code, from) {
+	var type_name = "";
+	if (from === "p") {
+		type_name = $("#af_pause_reason li[code=" + type_code + "]").text();
+	} else if (from === "a") {
+		type_name = $("#af_abilities li[code=" + type_code + "]").text();
+	}
+	var $afProd = $afTimer.find(".prod");
+	$afProd.text(type_name);
+	var linec = parseInt($afProd.height() / parseInt($afProd.css("lineHeight")));
+	$afProd.attr("line", linec);
+	if (linec > 1) {
+		linec = parseInt($afProd.height() / parseInt($afProd.css("lineHeight")));
+		$afProd.attr("line", linec);
+	}
+	$afTimer.attr({"type_code": type_code, "from": from});
+}
 
 var setAfAbilities = function(afAbilities) {
 	var afGrhtml = "";
@@ -230,6 +334,9 @@ var setInpagePos = function(){
 	var af_yM = 0, saf_yM = 0;
 	var $afTimer = $("#af_timer");
 	var $afHolder = $("#af_holder");
+	var now_standard = 0;
+	var af_clockTo = null;
+
 	$afHolder
 	.bind("mousedown", function(evt){
 		$afTimer.attr("moving", true);
@@ -238,6 +345,8 @@ var setInpagePos = function(){
 		setInpagePos();
 		if (Math.abs(af_xM - saf_xM) < 10 && Math.abs(af_yM - saf_yM) < 10) {
 			if ($afTimer.attr("switch") === "no") {
+				$("#af_pause_reason").find("li").hide();
+				$("#af_abilities").find("li").hide();
 				$afTimer.attr("switch", "yes");
 			} else {
 				$afTimer.attr("switch", "no");
@@ -251,19 +360,30 @@ var setInpagePos = function(){
 	$("body")
 	.bind("mousemove", function(evt){
 		if (af_dragged) {
-			var xD = evt.pageX - af_xM;
-			var yD = evt.pageY - af_yM;
+			if (evt.pageX > document.defaultView.screen.availWidth - 20 ||
+				evt.pageX < 20) {
+				af_dragged = false;
+			}
+			if (evt.pageY > document.defaultView.screen.availHeight - 20 ||
+				evt.pageY < 20) {
+				af_dragged = false;
+			}
 
-			var nRight = parseInt($afTimer.css("right")) - xD;
-			var nTop = parseInt($afTimer.css("top")) + yD;
-			if (nRight < -20) nRight = -20;
-			if (nTop < -20) nTop = -20;
+			if (af_dragged) {
+				var xD = evt.pageX - af_xM;
+				var yD = evt.pageY - af_yM;
 
-			$afTimer.css("right", nRight + "px");
-			$afTimer.css("top", nTop + "px");
+				var nRight = parseInt($afTimer.css("right")) - xD;
+				var nTop = parseInt($afTimer.css("top")) + yD;
+				if (nRight < -20) nRight = -20;
+				if (nTop < -20) nTop = -20;
 
-			af_xM = evt.pageX;
-			af_yM = evt.pageY;
+				$afTimer.css("right", nRight + "px");
+				$afTimer.css("top", nTop + "px");
+
+				af_xM = evt.pageX;
+				af_yM = evt.pageY;
+			}
 		}
 	} );
 
@@ -274,6 +394,12 @@ var setInpagePos = function(){
 			.filter("[group='" + group + "']").show();
 	});
 
+	$("#af_abilities").on("click", "li", function(){
+		var code = $(this).attr("code");
+		doSwitch("1", code);
+		$afTimer.attr("switch", "no");
+	});
+
 	$("#af_pause_reason_group").on("click", "li", function(){
 		var group = $(this).attr("group");
 		$("#af_abilities").find("li").hide();
@@ -281,12 +407,17 @@ var setInpagePos = function(){
 			.filter("[group='" + group + "']").show();
 	});
 
-	var obradius = $("#af_timer").width() / 2;
-	$("#af_standard").css({"left" : (obradius * 0.75) + "px", "top" : (obradius * -0.5) + "px"});
+	$("#af_pause_reason").on("click", "li", function(){
+		var code = $(this).attr("code");
+		doSwitch("0", code);
+		$afTimer.attr("switch", "no");
+	});
 
-	$("#af_holder div").css({"height": "30%", "marginTop": "70%"});
+	var obradius = $("#af_timer").width() / 2;
+	$("#af_standard").css({"left" : (obradius * 0.75) + "px", "top" : "0px"});
+
 	var initAft_r = parseInt(localStorage.getItem("aft_r"));
-	// document.defaultView.screen.availWidth - 120
+	// document.defaultView.screen.availWidth - 120 * 2
 	if (initAft_r > 1126) initAft_r = 1126;
 	else if (initAft_r < 0) initAft_r = 0;
 	var initAft_t = parseInt(localStorage.getItem("aft_t"));
@@ -298,16 +429,65 @@ var setInpagePos = function(){
 
 	afInit();
 
-var setProcessClock = function(percent) {
-	var posX = getClockPosX(percent) + 0.75;
-	var posY = getClockPosY(percent) + 0.5;
+var setProcessClock = function(rate) {
+	var posX = getClockPosX(rate) + 0.75;
+	var posY = getClockPosY(rate) + 0.75;
 	$("#af_process").css({"left" : (obradius * posX) + "px", "top" : (obradius * posY) + "px"});
 }
-var getClockPosX = function(percent){
-	return Math.sin(percent*2*Math.PI);
+var getClockPosX = function(rate){
+	return Math.sin(rate*2*Math.PI);
 }
-var getClockPosY = function(percent){
-	return -Math.cos(percent*2*Math.PI);
+var getClockPosY = function(rate){
+	return -Math.cos(rate*2*Math.PI);
 }
 
+var swtiching = false;
+var doSwitch = function(is_working, production_type) {
+	if (swtiching) return;
+
+	swtiching = true;
+
+	var isWorkingFromTo = $afTimer.data("is_working") + ">" + is_working;
+	var postData = {"is_working" : isWorkingFromTo,  // 切换自直接/间接作业 + // 切换到直接/间接作业
+		"production_type" : production_type // 作业内容
+	};
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'af_production_feature.do?method=doSwitch',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhjObj) {
+			var resInfo = $.parseJSON(xhjObj.responseText);
+			swtiching = false;
+			if (resInfo.errors.length == 0) {
+				setProcessForm(resInfo.processForm);
+			}
+			clearInterval(af_clockTo);
+			af_clockTo = setInterval(refreshRate, 60000);
+		}
+	});
+}
+
+return {
+	applyProcess : function(process_type_code, call_obj, call_method, call_params) {
+		if ($afTimer.attr("from") === "a" &&
+			$afTimer.attr("type_code") == process_type_code) {
+			call_method.apply(call_obj, call_params);
+		} else {
+			var warnData = "当前您的作业状态是“" + $afTimer.attr("from") 
+				+ "”，<BR>是否将作业状态切换到“" + $afTimer.attr("type_code") + "”并继续操作？";
+			warningConfirm(warnData, function() {
+				
+				
+			}, null, "计时中作业状态与实际操作不符", "切换", "放弃操作");
+		}
+	}
+}
+})();
 </script>

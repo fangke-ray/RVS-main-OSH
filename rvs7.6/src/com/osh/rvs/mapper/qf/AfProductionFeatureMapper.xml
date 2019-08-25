@@ -14,6 +14,7 @@
 	action_time
 	)
 	VALUES
+	(
 	#{production_type},
 	#{operator_id},
 	#{action_time}
@@ -43,4 +44,11 @@
 			finish_time IS NULL
 	]]>
 	</select>
+
+	<update id="finishProductionOfOperator" parameterType="string">
+	<![CDATA[
+		UPDATE af_production_feature SET finish_time = CURRENT_TIMESTAMP WHERE operator_id = #{operator_id} AND finish_time IS NULL;
+	]]>
+	</update>
+
 </mapper>

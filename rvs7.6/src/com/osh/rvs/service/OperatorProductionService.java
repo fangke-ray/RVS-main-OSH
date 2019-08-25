@@ -15,6 +15,7 @@ import java.util.Map;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
@@ -22,6 +23,7 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.OperatorProductionEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MonthFilesDownloadForm;
 import com.osh.rvs.form.data.OperatorProductionForm;
 import com.osh.rvs.mapper.data.OperatorProductionMapper;
@@ -828,5 +830,55 @@ public class OperatorProductionService {
 		
 		return monthFilesDownloadForms;
 	}
-	
+
+	/**
+	 * 建立间接无关的暂停时间
+	 * @param operator_id
+	 * @param reason
+	 * @param start_time
+	 * @param comments
+	 * @throws Exception
+	 */
+	public void createSimplePauseFeature(String operator_id, Integer reason, Date start_time, String comments) throws Exception {
+		OperatorProductionEntity entity = new OperatorProductionEntity();
+		
+		// 担当人 ID
+		entity.setOperator_id(operator_id);
+		// 理由
+		entity.setReason(reason); 
+		entity.setComments(comments); 
+		entity.setPause_start_time(start_time);
+
+		// 临时采用可写连接
+		SqlSessionManager writableConn = RvsUtils.getTempWritableConn();
+
+		try {
+			writableConn.startManagedSession(false);
+
+			OperatorProductionMapper dao = writableConn.getMapper(OperatorProductionMapper.class);
+
+			dao.savePause(entity);
+
+			writableConn.commit();
+		} catch (Exception e) {
+			if (writableConn != null && writableConn.isManagedSessionStarted()) {
+				writableConn.rollback();
+			}
+		} finally {
+			try {
+				writableConn.close();
+			} catch (Exception e) {
+			} finally {
+				writableConn = null;
+			}
+		}
+	}
+
+	/**
+	 * 取得min（当前时间，上班时间）
+	 * @return
+	 */
+	public Date getAutoStartTime() {
+		return getNewDate(new Date(), work_start, work_start_min, 1);
+	}
 }

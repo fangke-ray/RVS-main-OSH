@@ -32,4 +32,11 @@ public interface AfProductionFeatureMapper {
 	 * @return
 	 */
 	public AfProductionFeatureEntity getUnfinishByOperator(@Param("operator_id") String operator_id);
+
+	/**
+	 * 结束操作者的当前作业信息
+	 * @param operator_id
+	 * @return
+	 */
+	public int finishProductionOfOperator(String operator_id);
 }

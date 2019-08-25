@@ -13,7 +13,7 @@
 			(#{operator_id}, #{finisher_id}, #{reason}, #{alarm_messsage_id}, #{material_id}, #{section_id}, #{position_id}, #{comments}, current_timestamp, #{pause_finish_time}, #{snout_serial_no} );
 	]]>
 	</insert>
-	
+
 	<update id="finishPauseFeature" parameterType="PauseFeatureEntity">
 	<![CDATA[ 
 		UPDATE `pause_feature` SET
