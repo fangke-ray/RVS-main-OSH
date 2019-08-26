@@ -78,6 +78,13 @@ public class AcceptFactService {
 
 		return respForm;
 	}
+	public AfProductionFeatureEntity getUnFinishEntity(String operatorID, SqlSession conn) {
+		AfProductionFeatureMapper dao = conn.getMapper(AfProductionFeatureMapper.class);
+
+		AfProductionFeatureEntity entity = dao.getUnfinishByOperator(operatorID);
+
+		return entity;
+	}
 
 	/**
 	 * 结束当前作业或间歇事件
