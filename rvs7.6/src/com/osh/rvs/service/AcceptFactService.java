@@ -107,7 +107,7 @@ public class AcceptFactService {
 					AfProductionFeatureForm pausingForm = new AfProductionFeatureForm();
 					OperatorProductionService opService = new OperatorProductionService();
 					Date autoStartTime = opService.getAutoStartTime(); 
-					opService.createSimplePauseFeature(user.getOperator_id(), REASON_WY7, autoStartTime, "");
+					opService.createSimplePauseFeature(user.getOperator_id(), REASON_WY7, autoStartTime, "", null);
 					pausingForm.setProduction_type("" + REASON_WY7);
 					pausingForm.setAction_time(DateUtil.toString(autoStartTime, DateUtil.DATE_TIME_PATTERN));
 					pausingForm.setIs_working("0");
@@ -429,7 +429,7 @@ public class AcceptFactService {
 			// 建立新间隔作业
 			OperatorProductionService opService = new OperatorProductionService();
 			opService.createSimplePauseFeature(operator_id, IntegerConverter.getInstance().getAsObject(production_type), 
-					action_time, operator_id);
+					action_time, null, conn);
 		}
 		return action_time;
 	}

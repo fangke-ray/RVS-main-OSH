@@ -837,9 +837,11 @@ public class OperatorProductionService {
 	 * @param reason
 	 * @param start_time
 	 * @param comments
+	 * @param writableConn 读写连接，如调用方不是可写链接，传NULL
 	 * @throws Exception
 	 */
-	public void createSimplePauseFeature(String operator_id, Integer reason, Date start_time, String comments) throws Exception {
+	public void createSimplePauseFeature(String operator_id, Integer reason, Date start_time, String comments
+			, SqlSessionManager writableConn) throws Exception {
 		OperatorProductionEntity entity = new OperatorProductionEntity();
 		
 		// 担当人 ID
@@ -848,29 +850,35 @@ public class OperatorProductionService {
 		entity.setReason(reason); 
 		entity.setComments(comments); 
 		entity.setPause_start_time(start_time);
+		entity.setPause_finish_time(null);
 
-		// 临时采用可写连接
-		SqlSessionManager writableConn = RvsUtils.getTempWritableConn();
+		if (writableConn == null) {
+			// 临时采用可写连接
+			writableConn = RvsUtils.getTempWritableConn();
 
-		try {
-			writableConn.startManagedSession(false);
-
-			OperatorProductionMapper dao = writableConn.getMapper(OperatorProductionMapper.class);
-
-			dao.savePause(entity);
-
-			writableConn.commit();
-		} catch (Exception e) {
-			if (writableConn != null && writableConn.isManagedSessionStarted()) {
-				writableConn.rollback();
-			}
-		} finally {
 			try {
-				writableConn.close();
+				writableConn.startManagedSession(false);
+
+				OperatorProductionMapper dao = writableConn.getMapper(OperatorProductionMapper.class);
+
+				dao.savePause(entity);
+
+				writableConn.commit();
 			} catch (Exception e) {
+				if (writableConn != null && writableConn.isManagedSessionStarted()) {
+					writableConn.rollback();
+				}
 			} finally {
-				writableConn = null;
+				try {
+					writableConn.close();
+				} catch (Exception e) {
+				} finally {
+					writableConn = null;
+				}
 			}
+		} else {
+			OperatorProductionMapper dao = writableConn.getMapper(OperatorProductionMapper.class);
+			dao.savePause(entity);
 		}
 	}
 
