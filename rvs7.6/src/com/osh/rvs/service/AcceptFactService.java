@@ -433,4 +433,28 @@ public class AcceptFactService {
 		}
 		return action_time;
 	}
+
+	/**
+	 * 根据作业内容查找未结束作业信息
+	 * 
+	 * @param production_type
+	 * @param conn
+	 * @return
+	 */
+	public AfProductionFeatureEntity getUnFinishByType(int production_type, SqlSession conn) {
+		AfProductionFeatureMapper dao = conn.getMapper(AfProductionFeatureMapper.class);
+		return dao.getUnfinishByType(production_type);
+	}
+
+	/**
+	 * 建立作业信息
+	 * 
+	 * @param entity
+	 * @param conn
+	 * @return
+	 */
+	public void insert(AfProductionFeatureEntity entity, SqlSession conn) {
+		AfProductionFeatureMapper dao = conn.getMapper(AfProductionFeatureMapper.class);
+		dao.insert(entity);
+	}
 }

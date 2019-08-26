@@ -221,6 +221,10 @@ $("#ogzbutton").click(function(){
 				<input type="button" class="ui-button" value="忽略"></input>
 				<input type="button" class="ui-button" value="刷新"></input>
 			</div>
+
+			<div id="test_listarea" class="width-middleright">
+				<table id="test_list"></table>
+			</div>
 		</div>
 </div>
 

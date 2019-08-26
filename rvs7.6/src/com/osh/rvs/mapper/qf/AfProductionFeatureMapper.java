@@ -39,4 +39,12 @@ public interface AfProductionFeatureMapper {
 	 * @return
 	 */
 	public int finishProductionOfOperator(String operator_id);
+
+	/**
+	 * 根据作业内容查找未结束作业信息
+	 * 
+	 * @param production_type
+	 * @return
+	 */
+	public AfProductionFeatureEntity getUnfinishByType(@Param("production_type") int production_type);
 }
