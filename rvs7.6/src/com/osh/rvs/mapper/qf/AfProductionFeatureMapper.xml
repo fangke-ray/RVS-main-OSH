@@ -51,4 +51,20 @@
 	]]>
 	</update>
 
+	<select id="getUnfinishByType" resultType="AfProductionFeatureEntity" parameterType="int">
+	<![CDATA[
+		SELECT 
+			af_pf_key,
+			production_type,
+			operator_id,
+			action_time,
+			finish_time 
+		FROM
+			af_production_feature
+		WHERE
+			production_type = #{production_type}
+		AND
+			finish_time IS NULL
+	]]>
+	</select>
 </mapper>

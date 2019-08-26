@@ -1119,12 +1119,21 @@ var doReturn = function(){
 }
 
 function doDisinfection(){
+	var test_listdata = [];
 	var rowids = $("#imp_list").jqGrid("getGridParam","selarrrow");
 	var ids = [];
+	var test_ids = [];
 	var comm = "";
 
 	for (var i in rowids) {
 		var rowdata = $("#imp_list").getRowData(rowids[i]);
+		test_listdata[i]={
+				material_id:rowdata["material_id"],
+				sorc_no:rowdata["sorc_no"],
+				model_name:rowdata["model_name"],
+				serial_no:rowdata["serial_no"],
+				fix_type:rowdata["fix_type"]
+		};
 		ids[ids.length] = rowdata["material_id"];
 		var t_direct = rowdata["direct_flg"];
 		if (t_direct == 1) {
@@ -1149,16 +1158,73 @@ function doDisinfection(){
 			}
 		});
 	} else {
-		$.ajax({
-			data : {ids:ids.join(",")},
-			url: servicePath + "?method=doDisinfection",
-			async: false, 
-			beforeSend: ajaxRequestType, 
-			success: ajaxSuccessCheck, 
-			error: ajaxError, 
-			type : "post",
-			complete : function(){
-				loadImpListData();
+		var jthis = $("#test_list");
+		if ($("#gbox_test_list").length > 0) {
+			jthis.jqGrid().clearGridData();
+			jthis.jqGrid('setGridParam',{data:test_listdata}).trigger("reloadGrid", [{current:true}]);
+		} else {
+			jthis.jqGrid({
+				data:test_listdata,
+				height: 215,
+				width: 500,
+				rowheight: 23,
+				datatype: "local",
+				colNames:['','修理单号','型号','机身号',''],
+				colModel:[
+					{name:'material_id',index:'material_id', hidden:true},
+					{name:'sorc_no',index:'sorc_no', width:60},
+					{name:'model_name',index:'model_name'},
+					{name:'serial_no',index:'serial_no', width:60, align:'center'},
+					{name:'fix_type',index:'fix_type', hidden:true}
+				],
+				rowNum: 50,
+				toppager: false,
+				viewrecords: true,
+				multiselect: true,
+				gridview: true
+			});
+		}
+
+		$("#test_listarea").dialog({
+			resizable : false,
+			modal : true,
+			width: 525,
+			title : "测漏确认",
+			buttons : {
+				"确认" : function() {
+					rowids = $("#test_list").jqGrid("getGridParam","selarrrow");
+					if (rowids.length == 0) {
+						errorPop("请选择测漏对象。");
+						return;
+					}
+					for (var i in rowids) {
+						var rowdata = $("#test_list").getRowData(rowids[i]);
+						test_ids[test_ids.length] = rowdata["material_id"] + "_" + rowdata["fix_type"];
+					}
+					$(this).dialog("close");
+				},
+				"关闭" : function() {
+					$(this).dialog("close");
+				}
+			},
+			close: function (){
+				var data = {};
+				data.ids = ids.join(",");
+				if (test_ids.length > 0) {
+					data.test_ids = test_ids.join(",");
+				}
+				$.ajax({
+					data : data,
+					url: servicePath + "?method=doDisinfection",
+					async: false, 
+					beforeSend: ajaxRequestType, 
+					success: ajaxSuccessCheck, 
+					error: ajaxError, 
+					type : "post",
+					complete : function(){
+						loadImpListData();
+					}
+				});	
 			}
 		});
 	}

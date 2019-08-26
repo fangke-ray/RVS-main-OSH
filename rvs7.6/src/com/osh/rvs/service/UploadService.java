@@ -3018,6 +3018,7 @@ public class UploadService {
 					}
 					
 					MaterialForm lineform = new MaterialForm();
+					lineform.setMaterial_id("Line" + iRow);
 					lineform.setModel_id(model_id);
 					lineform.setModel_name(model_name);
 					lineform.setSerial_no(serial_no);
