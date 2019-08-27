@@ -4,6 +4,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
@@ -11,8 +12,12 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
+import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.TurnoverCaseService;
 
 import framework.huiqing.common.util.message.ApplicationMessage;
@@ -23,6 +28,13 @@ public class PdaTcShippingAction extends PdaBaseAction {
 
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,SqlSession conn) throws Exception {
 		log.info("PdaTcShippingAction.init start");
+
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 切换作业
+		AcceptFactService afService = new AcceptFactService();
+		afService.switchWorking("131", user);
 
 		TurnoverCaseForm tcForm = (TurnoverCaseForm) form;
 		TurnoverCaseService service = new TurnoverCaseService();
@@ -91,6 +103,9 @@ public class PdaTcShippingAction extends PdaBaseAction {
 	public void doShipping(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("PdaTcShippingAction.doShipping start");
 
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
 		TurnoverCaseForm tcForm = (TurnoverCaseForm) form;
 		TurnoverCaseService service = new TurnoverCaseService();
 
@@ -115,6 +130,10 @@ public class PdaTcShippingAction extends PdaBaseAction {
 				// 出库动作
 				service.warehousing(conn, location);
 				warehoused = true;
+
+				// 更新到现品作业记录（维修品）
+				FactMaterialService fmsService = new FactMaterialService();
+				fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
 			}
 		} else {
 			// 错误信息
