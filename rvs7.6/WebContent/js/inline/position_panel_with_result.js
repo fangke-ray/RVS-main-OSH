@@ -534,30 +534,40 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 };
 
 var doFinish=function(){
-	var pcs_inputses = {};
-	var pcs_rcs = {};
-	var pcs_package = {};
+	var pcs_inputs = {};
+	var pcs_inputs_rcs = {};
+	var pcs_inputs_package = {};
+	var pcs_count = 0;
 
 	$("#workings > div:not(.finished)").each(function(idx, ele){
 		var $wk = $(ele);
 		var wk_id = $wk.attr("id").replace("w_", "");
-		var pcs_inputs = {};
+		var pcs_input = {};
 
 		var $manager_nos = $wk.find(".manager_no");
 		$manager_nos.each(function(idx, ele){
-			pcs_inputs[$(ele).attr("code")] = ele.value;
+			pcs_input[$(ele).attr("code")] = ele.value;
 		});
 
 		if ($wk.find(".rc").length > 0) {
-			pcs_rcs[wk_id] = pcs_inputs;
+			pcs_inputs_rcs[wk_id] = pcs_input;
 		} else if ($wk.find(".package").length > 0) {
-			pcs_package[wk_id] = pcs_inputs;
+			pcs_inputs_package[wk_id] = pcs_input;
 		} else {
-			pcs_inputses[wk_id] = pcs_inputs;
+			pcs_inputs[wk_id] = pcs_input;
 		}
 	});
+	if (!$.isEmptyObject(pcs_inputs)) {
+		pcs_count++;
+	}
+	if (!$.isEmptyObject(pcs_inputs_rcs)) {
+		pcs_count++;
+	}
+	if (!$.isEmptyObject(pcs_inputs_package)) {
+		pcs_count++;
+	}
 
-	if (!$.isEmptyObject(pcs_inputses) && !$.isEmptyObject(pcs_rcs)) {
+	if (pcs_count > 1) {
 		$("#pop_detail").text("请选择要完成的维修对象？");
 		$("#pop_detail").dialog({
 			dialogClass:'ui-warn-dialog',
@@ -568,24 +578,24 @@ var doFinish=function(){
 	        buttons:{
 	            "维修品" : function() {
 	                $(this).dialog("close");
-	                doFinish_ajax(pcs_inputses);
+	                doFinish_ajax(pcs_inputs);
 	            },
 	            "备品" : function() {
 	                $(this).dialog("close");
-	                doFinish_ajax(pcs_rcs);
+	                doFinish_ajax(pcs_inputs_rcs);
 	            },
 	            "通箱" : function() {
 	                $(this).dialog("close");
-	                doFinish_ajax(pcs_package);
+	                doFinish_ajax(pcs_inputs_package);
 	            }
 	        }
 		});
-	} else if (!$.isEmptyObject(pcs_inputses)) {
-		doFinish_ajax(pcs_inputses);
-	} else if (!$.isEmptyObject(pcs_rcs)) {
-		doFinish_ajax(pcs_rcs);
-	} else if (!$.isEmptyObject(pcs_package)) {
-		doFinish_ajax(pcs_package);
+	} else if (!$.isEmptyObject(pcs_inputs)) {
+		doFinish_ajax(pcs_inputs);
+	} else if (!$.isEmptyObject(pcs_inputs_rcs)) {
+		doFinish_ajax(pcs_inputs_rcs);
+	} else if (!$.isEmptyObject(pcs_inputs_package)) {
+		doFinish_ajax(pcs_inputs_package);
 	}
 };
 
