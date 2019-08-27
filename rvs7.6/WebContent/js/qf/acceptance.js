@@ -815,17 +815,24 @@ $(function() {
 		showEditBack();
 	});
 
-	$("#uploadbutton").click(uploadfile);
-	$("#importbutton").click(reception_import);
+	$("#uploadbutton").click(function() {
+		afObj.applyProcess(104, this, uploadfile, arguments);
+	});
+	$("#importbutton").click(function() {
+		afObj.applyProcess(104, this, reception_import, arguments);
+	});
 	$("#manualbutton").click(function() {
-		showInput(0,1)
+		afObj.applyProcess([103, 104], this, showInput, [0,1]);
 	});
 	$("#printbutton").click(function() {
 		afObj.applyProcess(101, this, printTicket, arguments);
 	});
 
 	$("#outbutton").click(dayworkReport);
-	$("#acceptancebutton").click(doAccept);
+	$("#acceptancebutton").click(function() {
+		afObj.applyProcess(103, this, doAccept, arguments);
+	});
+
 	$("#disinfectionbutton").click(doDisinfection);
 	$("#sterilizationbutton").click(doSterilization);
 	$("#returnbutton").click(doReturn);
@@ -834,7 +841,9 @@ $(function() {
 		load_list();
 	});
 
-	$("#tcStorageButton").click(showStoragePlan);
+	$("#tcStorageButton").click(function() {
+		afObj.applyProcess(106, this, showStoragePlan, arguments);
+	});
 
 	load_list();
 

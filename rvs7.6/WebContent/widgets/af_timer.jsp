@@ -98,6 +98,9 @@
 	height: 1.5em;
 	filter: drop-shadow(0 5px 1px gray);
 }
+#af_timer li.selected {
+	filter: brightness(66%);
+}
 #af_timer[moving] ul,
 #af_timer[switch="no"] ul {
 	display: none;
@@ -356,6 +359,7 @@ var setInpagePos = function(){
 			if ($afTimer.attr("switch") === "no") {
 				$("#af_pause_reason").find("li").hide();
 				$("#af_abilities").find("li").hide();
+				$("#af_abilities_group li.selected, #af_pause_reason_group li.selected").removeClass("selected");
 				$afTimer.attr("switch", "yes");
 			} else {
 				$afTimer.attr("switch", "no");
@@ -401,6 +405,8 @@ var setInpagePos = function(){
 		$("#af_pause_reason").find("li").hide();
 		$("#af_abilities").find("li").hide()
 			.filter("[group='" + group + "']").show();
+		$("#af_abilities_group li.selected, #af_pause_reason_group li.selected").removeClass("selected");
+		$(this).addClass("selected");
 	});
 
 	$("#af_abilities").on("click", "li", function(){
@@ -414,6 +420,8 @@ var setInpagePos = function(){
 		$("#af_abilities").find("li").hide();
 		$("#af_pause_reason").find("li").hide()
 			.filter("[group='" + group + "']").show();
+		$("#af_abilities_group li.selected, #af_pause_reason_group li.selected").removeClass("selected");
+		$(this).addClass("selected");
 	});
 
 	$("#af_pause_reason").on("click", "li", function(){

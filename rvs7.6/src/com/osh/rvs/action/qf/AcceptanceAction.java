@@ -242,6 +242,13 @@ public class AcceptanceAction extends BaseAction {
 
 		service.accept(req.getParameterMap(), req.getSession(), conn, errors);
 
+		if (errors.size() == 0) {
+			conn.commit();
+			AcceptFactService afService = new AcceptFactService();
+			LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+			afService.fingerOperatorRefresh(user.getOperator_id());
+		}
+
 		// 检查发生错误时报告错误信息
 		callbackResponse.put("errors", errors);
 		// 返回Json格式回馈信息

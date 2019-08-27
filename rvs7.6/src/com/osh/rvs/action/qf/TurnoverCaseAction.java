@@ -18,6 +18,7 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
 import com.osh.rvs.service.qf.TurnoverCaseService;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.ModelService;
 
 import framework.huiqing.action.BaseAction;
@@ -236,6 +237,12 @@ public class TurnoverCaseAction extends BaseAction {
 		// 执行检索
 		TurnoverCaseService service = new TurnoverCaseService();
 		service.checkStorage(conn, req.getParameter("location"));
+
+		// 刷新完成数量
+		conn.commit();
+		AcceptFactService afService = new AcceptFactService();
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		afService.fingerOperatorRefresh(user.getOperator_id());
 
 		// 检查发生错误时报告错误信息
 		calbackResponse.put("errors", new ArrayList<MsgInfo>());

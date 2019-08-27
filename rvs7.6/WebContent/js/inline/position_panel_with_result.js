@@ -462,14 +462,32 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus){
 
 var doStart=function(materialId){
 	var data = {};
+	var processType = 111; // 维修品消毒
+	if ($("#g_process_code").val() == "131") {
+		processType = 121; // 维修品灭菌 
+	}
 	if (materialId) {
 		data["material_id"] = materialId;
+
+		if (processType == 111) {
+			if (materialId.indexOf("_5") >= 0) {
+				processType = 113; // 镜箱消毒
+			} else {
+				processType = 112; // 备品消毒
+			}
+		} else {
+			processType = 122; // 备品灭菌
+		}
 	}else{
 		data["material_id"] = $("#scanner_inputer").val();
 	}
 
 	$("#scanner_inputer").attr("value", "");
 
+	afObj.applyProcess(processType, this, doStartPost, [data]);
+};
+
+var doStartPost = function(data) {
 	// Ajax提交
 	$.ajax({
 		beforeSend : ajaxRequestType,
@@ -483,7 +501,7 @@ var doStart=function(materialId){
 		error : ajaxError,
 		complete : doStart_ajaxSuccess
 	});
-};
+}
 
 var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 	var resInfo = null;
@@ -558,7 +576,8 @@ var doFinish=function(){
 	});
 
 	if (!$.isEmptyObject(pcs_inputses) && !$.isEmptyObject(pcs_rcs)) {
-		$("#pop_detail").text("请选择要完成的维修对象？");
+		var warningText = null;
+		$("#pop_detail").text("请选择要完成的作业对象。");
 		$("#pop_detail").dialog({
 			dialogClass:'ui-warn-dialog',
 			width : 450,
@@ -568,24 +587,40 @@ var doFinish=function(){
 	        buttons:{
 	            "维修品" : function() {
 	                $(this).dialog("close");
-	                doFinish_ajax(pcs_inputses);
+	                if ($("#g_process_code").val() == "131") {
+		                afObj.applyProcess(121, this, doFinish_ajax, [pcs_inputses]);
+	                } else {
+		                afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputses]);
+	                }
 	            },
 	            "备品" : function() {
 	                $(this).dialog("close");
-	                doFinish_ajax(pcs_rcs);
+	                if ($("#g_process_code").val() == "131") {
+		                afObj.applyProcess(122, this, doFinish_ajax, [pcs_rcs]);
+	                } else {
+		                afObj.applyProcess(112, this, doFinish_ajax, [pcs_rcs]);
+	                }
 	            },
 	            "通箱" : function() {
 	                $(this).dialog("close");
-	                doFinish_ajax(pcs_package);
+	                afObj.applyProcess(112, this, doFinish_ajax, [pcs_package]);
 	            }
 	        }
 		});
 	} else if (!$.isEmptyObject(pcs_inputses)) {
-		doFinish_ajax(pcs_inputses);
+        if ($("#g_process_code").val() == "131") {
+            afObj.applyProcess(121, this, doFinish_ajax, [pcs_inputses]);
+        } else {
+            afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputses]);
+        }
 	} else if (!$.isEmptyObject(pcs_rcs)) {
-		doFinish_ajax(pcs_rcs);
+        if ($("#g_process_code").val() == "131") {
+            afObj.applyProcess(122, this, doFinish_ajax, [pcs_rcs]);
+        } else {
+            afObj.applyProcess(112, this, doFinish_ajax, [pcs_rcs]);
+        }
 	} else if (!$.isEmptyObject(pcs_package)) {
-		doFinish_ajax(pcs_package);
+		afObj.applyProcess(112, this, doFinish_ajax, [pcs_package]);
 	}
 };
 

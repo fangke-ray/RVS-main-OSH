@@ -47,6 +47,7 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.inline.DryingProcessForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesManageService;
@@ -1476,6 +1477,9 @@ public class PositionPanelAction extends BaseAction {
 		if (triggerList.size() > 0) {
 			conn.commit();
 			RvsUtils.sendTrigger(triggerList);
+
+			AcceptFactService afService = new AcceptFactService();
+			afService.fingerOperatorRefresh(user.getOperator_id());
 		}
 
 		OperatorProductionService opService = new OperatorProductionService();
