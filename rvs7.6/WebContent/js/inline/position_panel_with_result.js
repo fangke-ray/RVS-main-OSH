@@ -552,31 +552,40 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 };
 
 var doFinish=function(){
-	var pcs_inputses = {};
-	var pcs_rcs = {};
-	var pcs_package = {};
+	var pcs_inputs = {};
+	var pcs_inputs_rcs = {};
+	var pcs_inputs_package = {};
+	var pcs_count = 0;
 
 	$("#workings > div:not(.finished)").each(function(idx, ele){
 		var $wk = $(ele);
 		var wk_id = $wk.attr("id").replace("w_", "");
-		var pcs_inputs = {};
+		var pcs_input = {};
 
 		var $manager_nos = $wk.find(".manager_no");
 		$manager_nos.each(function(idx, ele){
-			pcs_inputs[$(ele).attr("code")] = ele.value;
+			pcs_input[$(ele).attr("code")] = ele.value;
 		});
 
 		if ($wk.find(".rc").length > 0) {
-			pcs_rcs[wk_id] = pcs_inputs;
+			pcs_inputs_rcs[wk_id] = pcs_input;
 		} else if ($wk.find(".package").length > 0) {
-			pcs_package[wk_id] = pcs_inputs;
+			pcs_inputs_package[wk_id] = pcs_input;
 		} else {
-			pcs_inputses[wk_id] = pcs_inputs;
+			pcs_inputs[wk_id] = pcs_input;
 		}
 	});
+	if (!$.isEmptyObject(pcs_inputs)) {
+		pcs_count++;
+	}
+	if (!$.isEmptyObject(pcs_inputs_rcs)) {
+		pcs_count++;
+	}
+	if (!$.isEmptyObject(pcs_inputs_package)) {
+		pcs_count++;
+	}
 
-	if (!$.isEmptyObject(pcs_inputses) && !$.isEmptyObject(pcs_rcs)) {
-		var warningText = null;
+	if (pcs_count > 1) {
 		$("#pop_detail").text("请选择要完成的作业对象。");
 		$("#pop_detail").dialog({
 			dialogClass:'ui-warn-dialog',
@@ -588,9 +597,9 @@ var doFinish=function(){
 	            "维修品" : function() {
 	                $(this).dialog("close");
 	                if ($("#g_process_code").val() == "131") {
-		                afObj.applyProcess(121, this, doFinish_ajax, [pcs_inputses]);
+		                afObj.applyProcess(121, this, doFinish_ajax, [pcs_inputs]);
 	                } else {
-		                afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputses]);
+		                afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputs]);
 	                }
 	            },
 	            "备品" : function() {
@@ -607,11 +616,11 @@ var doFinish=function(){
 	            }
 	        }
 		});
-	} else if (!$.isEmptyObject(pcs_inputses)) {
+	} else if (!$.isEmptyObject(pcs_inputs)) {
         if ($("#g_process_code").val() == "131") {
-            afObj.applyProcess(121, this, doFinish_ajax, [pcs_inputses]);
+            afObj.applyProcess(121, this, doFinish_ajax, [pcs_inputs]);
         } else {
-            afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputses]);
+            afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputs]);
         }
 	} else if (!$.isEmptyObject(pcs_rcs)) {
         if ($("#g_process_code").val() == "131") {

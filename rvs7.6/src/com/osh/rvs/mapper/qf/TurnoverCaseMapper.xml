@@ -106,7 +106,7 @@
 	<select id="getEntityByLocationForShipping" resultType="TurnoverCaseEntity">
 		<![CDATA[ 
 			SELECT
-				shelf, location, `execute`
+				shelf, location, `execute`, tcs.material_id
 			FROM turnover_case_storage tcs
 			JOIN production_feature pf ON tcs.material_id = pf.material_id and position_id = 47 and operate_result = 0
 			WHERE location = #{location}

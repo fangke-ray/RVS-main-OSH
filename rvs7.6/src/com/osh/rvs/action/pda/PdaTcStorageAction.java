@@ -12,8 +12,14 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
+import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.TurnoverCaseService;
 
 import framework.huiqing.common.util.message.ApplicationMessage;
@@ -27,6 +33,11 @@ public class PdaTcStorageAction extends PdaBaseAction {
 		log.info("PdaTcStorageAction.init start");
 
 		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 切换作业
+		AcceptFactService afService = new AcceptFactService();
+		afService.switchWorking("106", user);
 
 		TurnoverCaseForm tcForm = (TurnoverCaseForm) form;
 		TurnoverCaseService service = new TurnoverCaseService();
@@ -96,6 +107,9 @@ public class PdaTcStorageAction extends PdaBaseAction {
 	public void doStorage(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("PdaTcStorageAction.doStorage start");
 
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
 		TurnoverCaseForm tcForm = (TurnoverCaseForm) form;
 		TurnoverCaseService service = new TurnoverCaseService();
 
@@ -104,7 +118,6 @@ public class PdaTcStorageAction extends PdaBaseAction {
 		TurnoverCaseEntity entity = null;
 
 		// 移动起点
-		HttpSession session = req.getSession();
 		String moveFromLocation = (String) session.getAttribute(TC_MOVE_FROM);
 
 		// 货架号
@@ -123,9 +136,21 @@ public class PdaTcStorageAction extends PdaBaseAction {
 					// 切换货架
 					shelf = entity.getShelf();
 				} else {
-					// 入库动作
-					service.checkStorage(conn, location);
-					storaged = true;
+					// 判断是否完成消毒
+					ProductionFeatureService pfService = new ProductionFeatureService();
+					int count = pfService.checkFinishedDisinfection(entity.getMaterial_id(), conn);
+					if (count == 0) {
+						// 错误信息
+						req.setAttribute("errmsg", ApplicationMessage.WARNING_MESSAGES.getMessage("info.turnoverCase.notFinishedDisinfection"));
+					} else {
+						// 入库动作
+						service.checkStorage(conn, location);
+						storaged = true;
+
+						// 更新到现品作业记录（维修品）
+						FactMaterialService fmsService = new FactMaterialService();
+						fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
+					}
 				}
 			} else {
 				// 错误信息

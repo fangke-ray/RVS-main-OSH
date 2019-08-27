@@ -507,4 +507,36 @@ public class AcceptFactService {
 	public void fingerOperatorRefresh(String operator_id) {
 		RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/refreshProcess/" + operator_id + "/0/0");
 	}
+
+	/**
+	 * 切换作业
+	 * @param production_type
+	 * @param user
+	 * @throws Exception 
+	 */
+	public void switchWorking(String production_type, LoginData user) throws Exception {
+
+		// 操作者 ID
+		String operator_id = user.getOperator_id();
+
+		SqlSessionManager writableConn = RvsUtils.getTempWritableConn();
+		try {
+			writableConn.startManagedSession();
+			// 切换作业
+			AcceptFactService afService = new AcceptFactService();
+			afService.switchTo(null, true, production_type, operator_id, true, writableConn);
+			writableConn.commit();
+		} catch (Exception e) {
+			if (writableConn!= null && writableConn.isManagedSessionStarted()) {
+				writableConn.rollback();
+			}
+		} finally {
+			try {
+				writableConn.close();
+			} catch (Exception e) {
+			} finally {
+				writableConn = null;
+			}
+		}
+	}
 }

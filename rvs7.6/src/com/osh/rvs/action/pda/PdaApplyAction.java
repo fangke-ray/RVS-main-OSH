@@ -2,13 +2,17 @@ package com.osh.rvs.action.pda;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.pda.PdaApplyForm;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.partial.PdaApplyService;
 
 /**
@@ -37,6 +41,13 @@ public class PdaApplyAction extends PdaBaseAction {
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
 		log.info("PdaApplyAction.init start");
+
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 切换作业
+		AcceptFactService afService = new AcceptFactService();
+		afService.switchWorking("261", user);
 
 		PdaApplyForm applyForm = (PdaApplyForm)form;
 		PdaApplyService service = new PdaApplyService();

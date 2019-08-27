@@ -1085,4 +1085,14 @@ public class ProductionFeatureService {
 		
 		return listForm;
 	}
+
+	/**
+	 * 判断是否完成消毒
+	 * @param material_id
+	 * @param conn
+	 */
+	public int checkFinishedDisinfection(String material_id, SqlSession conn) {
+		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
+		return dao.checkFinishedDisinfection(material_id);
+	}
 }

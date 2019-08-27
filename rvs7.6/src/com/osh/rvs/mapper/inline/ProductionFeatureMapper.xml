@@ -654,4 +654,16 @@ and a.inline_time is null -- [SpeedUp]
 		]]>
 	</select>
 
+	<!-- 判断是否完成消毒 -->
+	<select id="checkFinishedDisinfection" resultType="int" parameterType="String">
+		<![CDATA[ 
+			SELECT count(1)
+			FROM production_feature
+			WHERE
+				material_id = #{material_id}
+			AND position_id = 10
+			AND operate_result = 5
+			AND finish_time IS NOT NULL
+		]]>
+	</select>
 </mapper>

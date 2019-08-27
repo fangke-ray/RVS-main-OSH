@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
@@ -12,8 +13,11 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.partial.ConsumableSupplyEntity;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.pda.PdaSupplyForm;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.partial.ConsumableSupplyService;
 import com.osh.rvs.service.partial.PdaSupplyService;
 
@@ -40,6 +44,13 @@ public class PdaSupplyAction extends PdaBaseAction {
 		
 		actionForward = mapping.findForward(FW_INIT);
 		
+		HttpSession session = request.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 切换作业
+		AcceptFactService afService = new AcceptFactService();
+		afService.switchWorking("252", user);
+
 		PdaSupplyService service = new PdaSupplyService();
 		int supply_num = service.getCurrentDaySupplyNum(conn);
 		request.setAttribute("supply_num", supply_num);
