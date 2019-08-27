@@ -19,6 +19,7 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.mapper.data.OperatorProductionMapper;
+import com.osh.rvs.mapper.partial.PartialWarehouseDetailMapper;
 import com.osh.rvs.mapper.qf.AfProductionFeatureMapper;
 import com.osh.rvs.service.qf.FactMaterialService;
 
@@ -213,6 +214,8 @@ public class AcceptFactService {
 		return getStandardMinutes(processForm, conn, false);
 	}
 	public Integer getStandardMinutes(AfProductionFeatureForm processForm, SqlSession conn, boolean justStart) {
+		PartialWarehouseDetailMapper partialWarehouseDetailMapper = conn.getMapper(PartialWarehouseDetailMapper.class);
+		
 		String key = processForm.getAf_pf_key();
 		String productionType = processForm.getProduction_type();
 
@@ -312,12 +315,16 @@ public class AcceptFactService {
 				case "201" : // 投线 TODO
 					// 按key查询af_pf时间段中material.inline_time，
 					// 乘以每单用时
-				case "213" : // 零件核对/上架 TODO
+				case "213" : // 零件核对/上架
 					// 按零件类别统计零件数
 					// 各自乘以单位核对时间
-				case "214" : // 零件分装 TODO
+					standardPart2 = partialWarehouseDetailMapper.countCollationOnShelfStandardTime(key);
+					break;
+				case "214" : // 零件分装
 					// 按零件类别统计分装零件数
 					// 各自乘以单位分装时间
+					standardPart2 = partialWarehouseDetailMapper.countUnpackStandardTime(key);
+					break;
 				case "221" : // 维修零件订购 TODO
 					// 按key统计个人的订购单订单*修改次数
 					// 乘以维修零件订购单时间

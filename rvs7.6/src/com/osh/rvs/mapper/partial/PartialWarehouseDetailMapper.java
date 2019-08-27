@@ -1,5 +1,6 @@
 package com.osh.rvs.mapper.partial;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -51,5 +52,18 @@ public interface PartialWarehouseDetailMapper {
 	 * @return
 	 */
 	public List<PartialWarehouseDetailEntity> countUnpackQuantityOfKind(@Param("key") String key);
-
+	
+	/**
+	 * 根据作业af_pf_key统计零件核对上架标准工时
+	 * @param af_pf_key
+	 * @return
+	 */
+	public BigDecimal countCollationOnShelfStandardTime(@Param("af_pf_key") String af_pf_key);
+	
+	/**
+	 * 根据作业af_pf_key统计零件分装标准工时
+	 * @param af_pf_key
+	 * @return
+	 */
+	public BigDecimal countUnpackStandardTime(@Param("af_pf_key") String af_pf_key);
 }
