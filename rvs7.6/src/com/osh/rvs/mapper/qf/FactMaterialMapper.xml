@@ -8,20 +8,29 @@
 	<select id="search" resultType="FactMaterialEntity" parameterType="FactMaterialEntity">
 	<![CDATA[
 		SELECT
-			af_pf_key,
+			fm.af_pf_key,
 			material_id
 		FROM
-			fact_material
+			fact_material fm
+		JOIN
+			af_production_feature apf
+		ON
+			fm.af_pf_key = apf.af_pf_key
 	]]>
 	<where>
 	<if test="af_pf_key!=null and af_pf_key!=''">
 	<![CDATA[
-		AND af_pf_key = #{af_pf_key}
+		AND fm.af_pf_key = #{af_pf_key}
 	]]>
 	</if>
 	<if test="material_id!=null and material_id!=''">
 	<![CDATA[
 		AND material_id = #{material_id}
+	]]>
+	</if>
+	<if test="production_type!=null and production_type!=''">
+	<![CDATA[
+		AND apf.production_type = #{production_type}
 	]]>
 	</if>
 	</where>
@@ -32,7 +41,7 @@
 		INSERT INTO fact_material(af_pf_key,material_id) VALUES(#{af_pf_key},#{material_id})
 	]]>
 	</insert>
-	
+
 	<select id="getDeliveryOrderWaitings" resultType="MaterialEntity">
 	<![CDATA[
 	SELECT 

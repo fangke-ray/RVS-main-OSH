@@ -491,6 +491,8 @@ $(function() {
     			operator_ws.send("pong:"+resInfo.id + "+" + operator_ws.readyState);
     		} else if ("message" == resInfo.method) {
     			refreshMes();
+    		} else if ("message" == resInfo.method) {
+    			afObj.refresh();
     		} else if ("light" == resInfo.method) {
     			if (typeof(refreshLightWaiting) === "function") refreshLightWaiting(resInfo.list);
     		}
@@ -715,6 +717,8 @@ var afObj = (function() {
 return {
 	applyProcess : function(process_type, call_obj, call_method, call_params) {
 		call_method.apply(call_obj, call_params);
+	},
+	refresh : function() {// do Nothing
 	}
 }
 })();

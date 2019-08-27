@@ -1,4 +1,4 @@
-var servicePath = "fact_material.do";
+var servicePath = "delivery_order.do";
 
 $(function(){
 	$("input.ui-button").button();
@@ -13,8 +13,12 @@ $(function(){
 		}
 	});
     
-    $("#shipbutton").click(makeShip);
-    
+    $("#shipbutton").click(function(){
+    	afObj.applyProcess(241, this, makeShip, arguments);
+    });
+
+    load_list([]);
+    acceptted_list([]);
     findit();
 });
 
@@ -38,7 +42,7 @@ function makeShip(){
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete : function(xhrobj, textStatus){
-			let resInfo = null;
+			var resInfo = null;
 			try {
 				// 以Object形式读取JSON
 				eval('resInfo =' + xhrobj.responseText);
@@ -48,7 +52,9 @@ function makeShip(){
 				} else {
 					findit();
 				}
-			}catch(e){}
+			}catch(e){
+				console.log(e.message);
+			}
 		}
 	});
 };
@@ -65,7 +71,7 @@ function findit(){
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete : function(xhrobj, textStatus){
-			let resInfo = null;
+			var resInfo = null;
 			try {
 				// 以Object形式读取JSON
 				eval('resInfo =' + xhrobj.responseText);
@@ -76,13 +82,15 @@ function findit(){
 					load_list(resInfo.waitings);
 					acceptted_list(resInfo.finished);
 				}
-			}catch(e){}
+			}catch(e){
+				console.log(e.message);
+			}
 		}
 	});
 };
 
 function load_list(listdata){
-	if ($("#gbox_list").length > 0 || listdata.length === 0) {
+	if ($("#gbox_list").length > 0) {
 		$("#list").jqGrid().clearGridData();
 		$("#list").jqGrid('setGridParam',{data:listdata}).trigger("reloadGrid", [{current:false}]);
 	} else {
@@ -114,9 +122,9 @@ function load_list(listdata){
 						align : 'center', 
 						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}
 					},
-				{name:'sorc_no',index:'sorc_no', width:105},
+				{name:'sorc_no',index:'sorc_no', width:60},
 				{name:'model_name',index:'model_id', width:125},
-				{name:'serial_no',index:'serial_no', width:50, align:'center'},
+				{name:'serial_no',index:'serial_no', width:60, align:'center'},
 				{
 					name : 'ocm',
 					index : 'ocm',
@@ -152,7 +160,7 @@ function load_list(listdata){
 };
 
 function acceptted_list(listdata){
-	if ($("#gbox_curlist").length > 0 || listdata.length === 0) {
+	if ($("#gbox_curlist").length > 0) {
 		$("#curlist").jqGrid().clearGridData();
 		$("#curlist").jqGrid('setGridParam',{data:listdata}).trigger("reloadGrid", [{current:false}]);
 	} else {
@@ -184,9 +192,9 @@ function acceptted_list(listdata){
 						align : 'center', 
 						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}
 					},
-				{name:'sorc_no',index:'sorc_no', width:105},
+				{name:'sorc_no',index:'sorc_no', width:60},
 				{name:'model_name',index:'model_id', width:125},
-				{name:'serial_no',index:'serial_no', width:50, align:'center'},
+				{name:'serial_no',index:'serial_no', width:60, align:'center'},
 				{
 					name : 'ocm',
 					index : 'ocm',

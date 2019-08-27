@@ -119,19 +119,12 @@ public class DeliveryOrderAction extends BaseAction {
 		List<MsgInfo> errors = v != null ? v.validate() : new ArrayList<MsgInfo>();
 
 		if (errors.size() == 0) {
-			AcceptFactService acceptFactService = new AcceptFactService();
 			FactMaterialService factMaterialService = new FactMaterialService();
 
 			// 当前登录者
 			LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
-			// 根据操作者ID查找未结束作业信息
-			AfProductionFeatureForm productionForm = acceptFactService.getUnFinish(user.getOperator_id(), conn);
-			// 作业KEY
-			String afPfKey = productionForm.getAf_pf_key();
-
 			FactMaterialForm factMaterialForm = (FactMaterialForm) form;
-			factMaterialForm.setAf_pf_key(afPfKey);
-			factMaterialService.insert(factMaterialForm, conn);
+			factMaterialService.insertFactMaterial(user.getOperator_id(), factMaterialForm.getMaterial_id(), 0, conn);
 		}
 
 		// 检查发生错误时报告错误信息

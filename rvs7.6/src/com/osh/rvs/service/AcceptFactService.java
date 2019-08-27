@@ -14,10 +14,13 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.OperatorProductionEntity;
 import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
+import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.mapper.data.OperatorProductionMapper;
 import com.osh.rvs.mapper.qf.AfProductionFeatureMapper;
+import com.osh.rvs.service.qf.FactMaterialService;
 
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -264,18 +267,22 @@ public class AcceptFactService {
 		if (!justStart) { // 刚切换时，不需要统计
 			// 作业单位计时 part2
 			switch (productionType) {
-				case "101" : // 票单打印 TODO
+				case "101" : // 票单打印
 					// 通过fact_material表取得现品票打印数量
 					// 按照RVS中实际现品票单数统计
 					// 乘以每单用时
+					standardPart2 = calcFromFactMaterial(key, "TICKET_PER_MAT", conn);
+					break;
 				case "103" : // 维修品/备品系统受理 TODO
 					// 按key查询af_pf时间段中完成的111工位记录数，
 					// 分内窥镜、周边设备、手术器械和附件
 					// 分别乘以每单用时
 					// 返回合计
-				case "106" : // 镜箱入库 TODO
+				case "106" : // 镜箱入库
 					// 通过fact_material表取得上架数量
 					// 乘以每单镜箱上架用时
+					standardPart2 = calcFromFactMaterial(key, "TC_INSTOR_ONSH_PER_MAT", conn);
+					break;
 				case "111" : // 维修品消毒 TODO
 					// 按key查询af_pf时间段中完成的121工位记录数，
 					// 分手动和设备
@@ -288,15 +295,17 @@ public class AcceptFactService {
 					// 设备中分内窥镜、周边设备、手术器械和附件
 					// 分别乘以每单用时
 					// 返回合计
-				case "113" : // 镜箱消毒 TODO
+				case "113" : // 镜箱消毒
 					// 按key查询af_pf时间段中完成的121工位记录数，
 					// 其中的镜箱
 					// 乘以每单用时
-				case "131" : // 镜箱出库 TODO
-					// 1）每次搬运时间固定
-					// 2）通过fact_material表取得下架数量
+					standardPart2 = calcFromFactMaterial(key, "DISINF_TC_PER_MAT", conn);
+					break;
+				case "131" : // 镜箱出库
+					// 通过fact_material表取得下架数量
 					// 乘以每单镜箱下架用时
-					// 返回 1） + 2）
+					standardPart2 = calcFromFactMaterial(key, "TC_OUTSTOR_OFFSH_PER_MAT", conn);
+					break;
 				case "132" : // 维修品出货 TODO
 					// 按key查询af_pf时间段中完成的711工位记录数，
 					// 乘以每单用时
@@ -321,9 +330,10 @@ public class AcceptFactService {
 					// 2) 按零件类别统计零件数
 					// 各自乘以单位下架时间
 					// 返回 1） + 2）
-				case "241" : // 维修出货单制作 TODO
+				case "241" : // 维修出货单制作
 					// 通过fact_material表取得出货单制作数量
-					// 乘以单位出货单制作时间
+					standardPart2 = calcFromFactMaterial(key, "SHIPPING_ORDER_PER_MAT", conn);
+					break;
 				case "242" : // 未修理返送 TODO
 					// 按key查询af_pf时间段中outline_time bbf = 2记录数，
 					// 乘以每单用时
@@ -345,6 +355,24 @@ public class AcceptFactService {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * 按现品作业表来统计
+	 * @param key
+	 * @param string
+	 * @return
+	 */
+	private BigDecimal calcFromFactMaterial(String key, String factorName, SqlSession conn) {
+
+		FactMaterialService fmService = new FactMaterialService();
+		FactMaterialEntity fmCondition = new FactMaterialEntity();
+		fmCondition.setAf_pf_key(key);
+		List<FactMaterialEntity> list = fmService.searchEntities(fmCondition, conn);
+
+		BigDecimal factor = storedStandardFactors.get(factorName);
+
+		return factor.multiply(new BigDecimal(list.size()));
 	}
 
 	/**
@@ -463,5 +491,13 @@ public class AcceptFactService {
 	public void insert(AfProductionFeatureEntity entity, SqlSession conn) {
 		AfProductionFeatureMapper dao = conn.getMapper(AfProductionFeatureMapper.class);
 		dao.insert(entity);
+	}
+
+	/**
+	 * 通知后台刷新作业标记
+	 * @param operator_id
+	 */
+	public void fingerOperatorRefresh(String operator_id) {
+		RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/refreshProcess/" + operator_id + "/0/0");
 	}
 }

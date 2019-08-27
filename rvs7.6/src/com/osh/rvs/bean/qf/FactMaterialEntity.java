@@ -25,6 +25,8 @@ public class FactMaterialEntity implements Serializable {
 	 */
 	private String material_id;
 
+	private Integer production_type;
+
 	public String getAf_pf_key() {
 		return af_pf_key;
 	}
@@ -39,6 +41,14 @@ public class FactMaterialEntity implements Serializable {
 
 	public void setMaterial_id(String material_id) {
 		this.material_id = material_id;
+	}
+
+	public Integer getProduction_type() {
+		return production_type;
+	}
+
+	public void setProduction_type(Integer production_type) {
+		this.production_type = production_type;
 	}
 
 }

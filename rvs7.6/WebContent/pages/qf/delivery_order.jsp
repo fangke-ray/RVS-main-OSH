@@ -40,9 +40,9 @@
 				</jsp:include>
 			</div>
 			
-			<div id="body-mdl" style="width: 994px; float: left;">
+			<div id="body-mdl" style="width: 994px; float: left; padding-left: 12px;">
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-				   	 <span class="areatitle">待出货单一览</span>
+				   	 <span class="areatitle">待制作出货单维修品一览</span>
 				     <a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 					 	<span class="ui-icon ui-icon-circle-triangle-n"></span>
 					 </a>
@@ -60,7 +60,7 @@
 				<div class="areaencloser"></div>
 				
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-				   	 <span class="areatitle">今日出货单一览</span>
+				   	 <span class="areatitle">今日完成出货单一览</span>
 				     <a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 					 	<span class="ui-icon ui-icon-circle-triangle-n"></span>
 					 </a>

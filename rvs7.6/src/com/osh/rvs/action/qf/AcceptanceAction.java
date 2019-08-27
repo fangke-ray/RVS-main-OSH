@@ -396,6 +396,17 @@ public class AcceptanceAction extends BaseAction {
 		MaterialMapper mdao = conn.getMapper(MaterialMapper.class);
 		mdao.updateMaterialTicket(ids);
 
+		// 取得用户信息
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 更新到现品作业记录（维修品）
+		FactMaterialService fmsService = new FactMaterialService();
+		int updateCount = 0;
+		for (MaterialEntity mEntity : mBeans) {
+			updateCount += fmsService.insertFactMaterial(user.getOperator_id(), mEntity.getMaterial_id(), 1, conn);
+		}
+
 		// 分配库位
 		conn.commit();
 		for (MaterialEntity mEntity : mBeans) {
@@ -411,6 +422,11 @@ public class AcceptanceAction extends BaseAction {
 				Thread.sleep(80);
 				httpclient.shutdown();
 			}
+		}
+
+		if (updateCount > 0) {
+			AcceptFactService afService = new AcceptFactService();
+			afService.fingerOperatorRefresh(user.getOperator_id());
 		}
 
 		// 检查发生错误时报告错误信息

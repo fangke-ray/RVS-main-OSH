@@ -131,6 +131,10 @@
 	border: 1px solid #62A2B3;
 	background-color: #98C9D6;
 }
+#af_pause_reason_group li[group="-1"] {
+	background-color: #000000;
+	color:white;
+}
 #af_timer[vdir="down"] #af_abilities_group {
 	top : -30px; bottom : auto;
 }
@@ -191,6 +195,7 @@
 	<li group="WY">间接作业</li>
 	<li group="MD">管理等待</li>
 	<li group="H">休息离线</li>
+	<li group="-1"><label>◑ 下班</label></li>
 </ul>
 <ul id="af_pause_reason">
 </ul>
@@ -200,12 +205,16 @@
 var afObj = (function() {
 
 var afInit = function() {
+	refreshAf("init");
+} 
+
+var refreshAf = function(init) {
 	$.ajax({
 		beforeSend : ajaxRequestType,
 		async : true,
 		url : 'af_production_feature.do?method=getByOperator',
 		cache : false,
-		data : null,
+		data : {"init": init},
 		type : "post",
 		dataType : "json",
 		success : ajaxSuccessCheck,
@@ -232,7 +241,7 @@ var afInit = function() {
 			af_clockTo = setInterval(refreshRate, 60000);
 		}
 	});
-} 
+}
 
 var setProcessForm = function(processForm){
 	var type_code = processForm.production_type;
@@ -442,7 +451,7 @@ var getClockPosY = function(rate){
 }
 
 var swtiching = false;
-var doSwitch = function(is_working, production_type) {
+var doSwitch = function(is_working, production_type, saraniCallback) {
 	if (swtiching) return;
 
 	swtiching = true;
@@ -470,23 +479,68 @@ var doSwitch = function(is_working, production_type) {
 			}
 			clearInterval(af_clockTo);
 			af_clockTo = setInterval(refreshRate, 60000);
+			if (typeof(saraniCallback) == "function") saraniCallback();
 		}
 	});
 }
 
 return {
 	applyProcess : function(process_type_code, call_obj, call_method, call_params) {
-		if ($afTimer.attr("from") === "a" &&
-			$afTimer.attr("type_code") == process_type_code) {
+		var fromTcode = $afTimer.attr("type_code");
+		var codeMatch = false;
+		if (process_type_code instanceof Array) {
+			for (var ic in process_type_code) {
+				if (fromTcode == process_type_code[ic]) {
+					codeMatch = true; break;
+				}
+			}
+		} else {
+			codeMatch = (fromTcode == process_type_code);
+		}
+		if ($afTimer.attr("from") === "a" && codeMatch) {
 			call_method.apply(call_obj, call_params);
 		} else {
-			var warnData = "当前您的作业状态是“" + $afTimer.attr("from") 
-				+ "”，<BR>是否将作业状态切换到“" + $afTimer.attr("type_code") + "”并继续操作？";
+			var fromText, toText;
+			if ($afTimer.attr("from") === "a") {
+				var $fromLi = $("#af_abilities li[code='" + fromTcode + "']");
+				fromText = $fromLi.attr("group") + ":" + $fromLi.text();
+			} else {
+				var $fromLi = $("#af_pause_reason li[code='" + fromTcode + "']");
+				fromText = $("#af_pause_reason_group li[group=" + $fromLi.attr("group") + "]").text()
+					+ ":" + $fromLi.text();
+			}
+			if (process_type_code instanceof Array) {
+				for (var ic in process_type_code) {
+					var $toLi = $("#af_abilities li[code='" + process_type_code + "']");
+					toText += $toLi.attr("group") + ":" + $toLi.text();
+				}
+				toText += "之一";
+			} else {
+				var $toLi = $("#af_abilities li[code='" + process_type_code + "']");
+				if ($toLi.length == 0) {
+					errorPop("您没有操作此功能的权限。");
+					return;
+				}
+				toText = $toLi.attr("group") + ":" + $toLi.text();
+			}
+
+			var warnData = "当前您的作业状态是“" + fromText 
+				+ "”，<BR>是否将作业状态切换到“" + toText + "”并继续操作？";
 			warningConfirm(warnData, function() {
-				
-				
+				var post_production_type;
+				if (process_type_code instanceof Array) {
+					// TODO
+				} else {
+					post_production_type = process_type_code;
+				}
+				doSwitch("1", post_production_type, function(){
+					call_method.apply(call_obj, call_params);
+				});
 			}, null, "计时中作业状态与实际操作不符", "切换", "放弃操作");
 		}
+	},
+	refresh : function(){
+		refreshAf("notInit");
 	}
 }
 })();

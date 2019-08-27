@@ -18,10 +18,10 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.form.qf.FactMaterialForm;
 import com.osh.rvs.mapper.qf.ShippingMapper;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qf.FactMaterialService;
@@ -165,10 +165,11 @@ public class ShippingAction extends BaseAction {
 		if (errors.size() == 0) {
 			// 检查出货单是否制作
 			FactMaterialService factMaterialService = new FactMaterialService();
-			FactMaterialForm factMaterialForm = new FactMaterialForm();
-			factMaterialForm.setMaterial_id(material_id);
+			FactMaterialEntity factMaterial = new FactMaterialEntity();
+			factMaterial.setMaterial_id(material_id);
+			factMaterial.setProduction_type(241);
 
-			int len = factMaterialService.search(factMaterialForm, conn).size();
+			int len = factMaterialService.searchEntities(factMaterial, conn).size();
 			if (len == 0) {
 				MsgInfo info = new MsgInfo();
 				info.setErrcode("info.material.shipping.sheet.empty");
