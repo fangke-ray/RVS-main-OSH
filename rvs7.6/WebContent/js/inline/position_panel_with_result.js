@@ -605,14 +605,14 @@ var doFinish=function(){
 	            "备品" : function() {
 	                $(this).dialog("close");
 	                if ($("#g_process_code").val() == "131") {
-		                afObj.applyProcess(122, this, doFinish_ajax, [pcs_rcs]);
+		                afObj.applyProcess(122, this, doFinish_ajax, [pcs_inputs_rcs]);
 	                } else {
-		                afObj.applyProcess(112, this, doFinish_ajax, [pcs_rcs]);
+		                afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_rcs]);
 	                }
 	            },
 	            "通箱" : function() {
 	                $(this).dialog("close");
-	                afObj.applyProcess(112, this, doFinish_ajax, [pcs_package]);
+	                afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_package]);
 	            }
 	        }
 		});
@@ -624,12 +624,12 @@ var doFinish=function(){
         }
 	} else if (!$.isEmptyObject(pcs_rcs)) {
         if ($("#g_process_code").val() == "131") {
-            afObj.applyProcess(122, this, doFinish_ajax, [pcs_rcs]);
+            afObj.applyProcess(122, this, doFinish_ajax, [pcs_inputs_rcs]);
         } else {
-            afObj.applyProcess(112, this, doFinish_ajax, [pcs_rcs]);
+            afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_rcs]);
         }
 	} else if (!$.isEmptyObject(pcs_package)) {
-		afObj.applyProcess(112, this, doFinish_ajax, [pcs_package]);
+		afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_package]);
 	}
 };
 
