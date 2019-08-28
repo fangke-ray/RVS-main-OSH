@@ -130,10 +130,6 @@ public class PdaTcShippingAction extends PdaBaseAction {
 				// 出库动作
 				service.warehousing(conn, location);
 				warehoused = true;
-
-				// 更新到现品作业记录（维修品）
-				FactMaterialService fmsService = new FactMaterialService();
-				fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
 			}
 		} else {
 			// 错误信息
@@ -163,6 +159,17 @@ public class PdaTcShippingAction extends PdaBaseAction {
 
 		// 当前货架待出库列表
 		List<TurnoverCaseForm> shippingPlanListOnShelf = service.filterOnShelf(shippingPlanList, shelf);
+
+		if (warehoused) {
+			// 更新到现品作业记录（维修品）
+			FactMaterialService fmsService = new FactMaterialService();
+			int updateCount = fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
+			// 通知后台刷新作业标记
+			if (updateCount > 0) {
+				AcceptFactService afService = new AcceptFactService();
+				afService.fingerOperatorRefresh(user.getOperator_id());
+			}
+		}
 
 		req.setAttribute("shelf", shelf);
 		req.setAttribute("waitCount", shippingPlanList.size());

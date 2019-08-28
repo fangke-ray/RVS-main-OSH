@@ -13,7 +13,6 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
-import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
@@ -122,7 +121,7 @@ public class PdaTcStorageAction extends PdaBaseAction {
 
 		// 货架号
 		String shelf = tcForm.getShelf();
-		boolean storaged = true;
+		boolean storaged = false;
 
 		if (moveFromLocation == null) { // 入库动作
 			if (location != null)
@@ -146,10 +145,6 @@ public class PdaTcStorageAction extends PdaBaseAction {
 						// 入库动作
 						service.checkStorage(conn, location);
 						storaged = true;
-
-						// 更新到现品作业记录（维修品）
-						FactMaterialService fmsService = new FactMaterialService();
-						fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
 					}
 				}
 			} else {
@@ -197,6 +192,17 @@ public class PdaTcStorageAction extends PdaBaseAction {
 
 		// 当前货架待入库列表
 		List<TurnoverCaseForm> storagePlanListOnShelf = service.filterOnShelf(storagePlanList, shelf);
+
+		if (storaged) {
+			// 更新到现品作业记录（维修品）
+			FactMaterialService fmsService = new FactMaterialService();
+			int updateCount = fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
+			// 通知后台刷新作业标记
+			if (updateCount > 0) {
+				AcceptFactService afService = new AcceptFactService();
+				afService.fingerOperatorRefresh(user.getOperator_id());
+			}
+		}
 
 		req.setAttribute("shelf", shelf);
 		req.setAttribute("waitCount", storagePlanList.size());
