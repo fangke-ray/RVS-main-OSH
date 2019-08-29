@@ -31,6 +31,8 @@ import com.osh.rvs.bean.partial.ConsumableApplicationDetailEntity;
 import com.osh.rvs.bean.partial.ConsumableApplicationEntity;
 import com.osh.rvs.bean.partial.ConsumableListEntity;
 import com.osh.rvs.bean.partial.ConsumableOnlineEntity;
+import com.osh.rvs.bean.partial.FactConsumableWarehouseEntity;
+import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
@@ -44,6 +46,7 @@ import com.osh.rvs.mapper.partial.ConsumableApplicationDetailMapper;
 import com.osh.rvs.mapper.partial.ConsumableApplicationMapper;
 import com.osh.rvs.mapper.partial.ConsumableListMapper;
 import com.osh.rvs.mapper.partial.ConsumableOnlineMapper;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.PostMessageService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -215,6 +218,8 @@ public class ConsumableApplyService {
 		// 取得当前在库数量
 		Map<String, Integer> nowAvailableInventoryMap = new HashMap<String, Integer>();
 		Set<String> targetPartialIds = new HashSet<String>();
+		Map<String, Integer> partialCostMap = new HashMap<String, Integer>();
+		Map<Integer, Integer> quantityMap = new HashMap<Integer, Integer>();
 
 		List<ConsumableApplicationDetailEntity> list = new ArrayList<ConsumableApplicationDetailEntity>();
 		for(ConsumableApplicationForm caForm:formList){
@@ -233,8 +238,14 @@ public class ConsumableApplyService {
 				nowAvailableInventoryMap.put(CommonStringUtil.fillChar("" + availableInventory.getPartial_id(), '0', 11, true), 
 						availableInventory.getAvailable_inventory());
 			}
-		}
 
+			List<ConsumableListEntity> cEntitys = clMapper.getConsumableDetails(targetPartialIds);
+			for (ConsumableListEntity cEntity : cEntitys) {
+				partialCostMap.put(CommonStringUtil.fillChar("" + cEntity.getPartial_id(), '0', 11, true), 
+						cEntity.getOut_shelf_cost());
+			}
+		}
+		
 		//发放完成标记
 		Integer all_supplied = null;
 
@@ -276,8 +287,7 @@ public class ConsumableApplyService {
 			all_supplied = 0;
 		}
 
-
-
+	
 		LoginData loginData = (LoginData)req.getSession().getAttribute(RvsConsts.SESSION_USER);
 		String operator_id = loginData.getOperator_id();
 
@@ -293,7 +303,6 @@ public class ConsumableApplyService {
 		ConsumableApplicationDetailMapper consumableApplicationDetailDao = conn.getMapper(ConsumableApplicationDetailMapper.class);
 		ConsumableOnlineMapper consumableOnlineDao = conn.getMapper(ConsumableOnlineMapper.class);
 
-
 		Map<String,String> postMap = new HashMap<String,String>();
 
 		boolean sendNothing = true;
@@ -304,6 +313,7 @@ public class ConsumableApplyService {
 
 			if (supply_quantity == 0) continue;
 
+			String partial_id = entity.getPartial_id();//零件ID
 			Integer db_supply_quantity = entity.getDb_supply_quantity(); //发放数量(数据库中)
 			String openflg = entity.getOpenflg();//开封标记
 			Integer available_inventory = entity.getAvailable_inventory();//当前有效库存
@@ -346,9 +356,14 @@ public class ConsumableApplyService {
 				return false;
 			}
 
-			//更新线上库存
-			String partial_id = entity.getPartial_id();//零件ID
+			Integer shelf_cost = partialCostMap.get(partial_id);
+			Integer quantity = 1;
+			if (quantityMap.containsKey(shelf_cost)) {
+				quantity = quantityMap.get(shelf_cost) + 1;
+			}
+			quantityMap.put(shelf_cost, quantity);
 
+			//更新线上库存
 			ConsumableOnlineEntity consumableOnlineEntity = new ConsumableOnlineEntity();
 			consumableOnlineEntity.setPartial_id(Integer.valueOf(partial_id));
 			consumableOnlineEntity.setCourse(Integer.valueOf(section_id));
@@ -379,6 +394,27 @@ public class ConsumableApplyService {
 			}
 		}
 
+		FactConsumableWarehouseService fcwSerivce = new FactConsumableWarehouseService();
+		AcceptFactService acceptFactService = new AcceptFactService();
+		// 根据操作者ID查找未结束作业信息
+		AfProductionFeatureEntity afpfEntity = acceptFactService.getUnFinishEntity(loginData.getOperator_id(), conn);
+		if (afpfEntity != null) {
+			for (Integer out_shelf_cost : quantityMap.keySet()) {
+				// 记录到消耗品出入库作业数
+				Integer nowQuantity = fcwSerivce.getQuantity(afpfEntity.getAf_pf_key(), out_shelf_cost, conn);
+
+				FactConsumableWarehouseEntity fcwEntity = new FactConsumableWarehouseEntity();
+				fcwEntity.setAf_pf_key(afpfEntity.getAf_pf_key());
+				fcwEntity.setShelf_cost(out_shelf_cost);
+				if (nowQuantity == null) {
+					fcwEntity.setQuantity(quantityMap.get(out_shelf_cost));
+					fcwSerivce.insert(fcwEntity, conn);
+				} else {
+					fcwEntity.setQuantity(nowQuantity + quantityMap.get(out_shelf_cost));
+					fcwSerivce.update(fcwEntity, conn);
+				}
+			}
+		}
 
 		//处理推送人员
 		OperatorMapper operatorMapper = conn.getMapper(OperatorMapper.class);
@@ -489,6 +525,11 @@ public class ConsumableApplyService {
 				Thread.sleep(100);
 				httpclient.shutdown();
 			}
+		}
+
+		if (quantityMap.size() > 0) {
+			conn.commit();
+			acceptFactService.fingerOperatorRefresh(loginData.getOperator_id());
 		}
 
 		return true;

@@ -400,4 +400,18 @@
 	]]>
 	</select>
 
+ 	<select id="getConsumableDetails" resultType="ConsumableListEntity" parameterType="java.util.Set">
+		<![CDATA[ 
+			SELECT 
+				partial_id, in_shelf_cost, out_shelf_cost
+			from consumable_manage
+			where partial_id in 
+		]]> 
+		<foreach item="id" collection="set" open="(" separator="," close=")"> 
+			#{id}
+		</foreach> 
+		<![CDATA[ 
+			;
+		]]>
+	</select>
  </mapper>
