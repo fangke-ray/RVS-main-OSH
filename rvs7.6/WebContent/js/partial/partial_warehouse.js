@@ -39,7 +39,7 @@ $(function(){
     	$("#detail").hide();
     });
     
-    $("#workarea span.ui-icon").click(()=> $("#search").show().siblings().hide());
+    $("#workarea span.ui-icon.ui-icon-circle-triangle-w").click(()=> $("#search").show().siblings().hide());
     
     $("#confirmButton").click(doConfirm);
     

@@ -130,4 +130,10 @@
 	]]>
 	</select>
 	
+	<update id="updateStep" parameterType="PartialWarehouseEntity">
+	<![CDATA[
+		UPDATE partial_warehouse SET step = #{step} WHERE `key` = #{key}
+	]]>
+	</update>
+	
 </mapper>

@@ -51,4 +51,10 @@ public interface PartialWarehouseMapper {
 	 * @return
 	 */
 	public PartialWarehouseEntity getByKey(@Param("key") String key);
+	
+	/**
+	 * 更新step
+	 * @param entity
+	 */
+	public void updateStep(PartialWarehouseEntity entity);
 }

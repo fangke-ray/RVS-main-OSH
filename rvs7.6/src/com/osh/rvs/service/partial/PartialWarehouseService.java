@@ -415,6 +415,7 @@ public class PartialWarehouseService {
 	public void updateQuantity(HttpServletRequest request, SqlSession conn, List<MsgInfo> errors) {
 		FactPartialWarehouseMapper factPartialWarehouseMapper = conn.getMapper(FactPartialWarehouseMapper.class);
 		PartialWarehouseDetailMapper partialWarehouseDetailMapper = conn.getMapper(PartialWarehouseDetailMapper.class);
+		PartialWarehouseMapper partialWarehouseMapper = conn.getMapper(PartialWarehouseMapper.class);
 
 		AcceptFactService acceptFactService = new AcceptFactService();
 
@@ -491,6 +492,8 @@ public class PartialWarehouseService {
 			}
 		}
 
+		boolean isEqual = true;
+		
 		if (errors.size() == 0) {
 			/** 【分装】/【核对/上架】总数 **/
 			List<PartialWarehouseDetailEntity> kindList = new ArrayList<PartialWarehouseDetailEntity>();
@@ -541,6 +544,10 @@ public class PartialWarehouseService {
 						error.setLineno(CodeListUtils.getValue("partial_spec_kind", specKind.toString()));
 						error.setErrmsg(label + "之和大于总数！");
 						errors.add(error);
+					}else if(!totalQuantity.equals(quantity)){
+						if(isEqual){
+							isEqual = false;
+						}
 					}
 				}
 			}
@@ -569,6 +576,29 @@ public class PartialWarehouseService {
 					factPartialWarehouseMapper.update(entity);
 				}
 			}
+			
+			if(isEqual){
+				PartialWarehouseEntity partialWarehouseEntity = partialWarehouseMapper.getByKey(key);
+				Integer step = partialWarehouseEntity.getStep();
+				
+				if(step == 0){
+					//核对/上架
+					if ("213".equals(productionType)) {
+						step = 2;
+					}else if("214".equals(productionType)){//分装
+						step = 1;
+					}
+				}else{
+					step = 3;
+				}
+				partialWarehouseEntity.setStep(step);
+				
+				partialWarehouseMapper.updateStep(partialWarehouseEntity);
+			}
+			
+			conn.commit();
+			
+			acceptFactService.fingerOperatorRefresh(user.getOperator_id());
 		}
 	}
 }
