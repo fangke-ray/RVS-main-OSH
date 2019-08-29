@@ -58,4 +58,18 @@ public interface AfProductionFeatureMapper {
 	public List<AfProductionFeatureEntity> countPositionProcessBetweenAfProcess(
 			AfProductionFeatureEntity condition);
 
+	/**
+	 * 查询零件发放到工程的大修理维修品数/按包含NS与不包含NS划分
+	 * @param key
+	 * @return
+	 */
+	public List<AfProductionFeatureEntity> countMajorOnNsProceed(String key);
+
+	/**
+	 * 查询零件发放到工程的中小修维修品数/按首工位NS与非NS划分
+	 * @param key
+	 * @return
+	 */
+	public List<AfProductionFeatureEntity> countMinorOnNsProceed(String key);
+
 }

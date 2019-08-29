@@ -42,6 +42,7 @@ $(function() {
 	<% if(links.get("analysis")){ %>
 		        <a target="_parent" href="partial_supply.do">零件补充</a><br>
 		        <a target="_parent" href="partial_storage.do">零件库存</a><br>
+				<a target="_parent" href="partial_warehouse.do">零件入库</a><br>
 		        <a target="_parent" href="partial_order.do">零件订购</a><br>
 		        <!--a target="_parent" href="partial_assign.do">零件到货导入</a><br-->
 		        <a target="_parent" href="partial_distrubute.do">零件发放</a><br>

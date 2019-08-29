@@ -130,4 +130,40 @@
 	]]>
 	</select>
 
+
+	<select id="countMajorOnNsProceed" resultType="AfProductionFeatureEntity" parameterType="String">
+	<![CDATA[
+		select ns_count as division, count(1) as cnt from (
+		select ma.material_id, (count(pos.line_id = 13) * (level != 1) > 0) as ns_count from fact_partial_release fpr
+		JOIN material ma ON fpr.material_id = ma.material_id
+		JOIN v_model mdl ON ma.model_id = mdl.model_id
+		JOIN process_assign_template pat ON COALESCE(ma.pat_id, mdl.default_pat_id) = pat.process_assign_template_id
+		JOIN process_assign pa ON pat.process_assign_template_id = pa.refer_id and pa.refer_type = 1
+		JOIN position pos on pa.position_id = pos.position_id
+		WHERE fpr.af_pf_key = #{af_pf_key}
+		AND level not in (9, 91, 92, 93, 94, 95, 96, 97, 98, 99)
+		GROUP BY ma.material_id
+		) tmp
+		GROUP by ns_count
+		;
+	]]>
+	</select>
+
+	<select id="countMinorOnNsProceed" resultType="AfProductionFeatureEntity" parameterType="String">
+	<![CDATA[
+		select ns_count as division, count(1) as cnt from (
+		select ma.material_id, (pos.line_id = 13) as ns_count from fact_partial_release fpr
+		JOIN material ma ON fpr.material_id = ma.material_id
+		JOIN material_process_assign pa ON ma.material_id = pa.material_id 
+		JOIN position pos on pa.position_id = pos.position_id
+		WHERE fpr.af_pf_key = #{af_pf_key}
+		AND prev_position_id = 0
+		AND level in (9, 91, 92, 93, 94, 95, 96, 97, 98, 99)
+		GROUP BY ma.material_id
+		) tmp
+		GROUP by ns_count
+		;
+	]]>
+	</select>
+
 </mapper>

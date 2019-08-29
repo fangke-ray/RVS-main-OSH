@@ -59,7 +59,7 @@ public class ModelAction extends BaseAction {
 
 		CategoryService cservice = new CategoryService();
 		// 取得下拉框信息
-		String cOptions = cservice.getOptions(conn);
+		String cOptions = cservice.getWithSpareOptions(conn);
 		req.setAttribute("cOptions", cOptions);
 		
 		//等级

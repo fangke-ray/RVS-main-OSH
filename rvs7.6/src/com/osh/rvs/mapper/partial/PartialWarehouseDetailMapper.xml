@@ -124,7 +124,7 @@
 	<select id="countCollationOnShelfStandardTime" resultType="BigDecimal" parameterType="string">
 	<![CDATA[
 		SELECT
-		   SUM(pwd.quantity * pbs.collation_on_shelf)
+		   COALESCE(SUM(pwd.quantity * pbs.collation_on_shelf), 0)
 		FROM
 			(SELECT
 			    fact_partial_warehouse.partial_warehouse_key

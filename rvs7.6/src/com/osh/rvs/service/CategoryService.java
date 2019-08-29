@@ -56,12 +56,36 @@ public class CategoryService {
 		//内镜组
 		Map<String, String> codeMapEndoscope = new TreeMap<String, String>();
 		for (CategoryEntity bean : l) {
-			if (bean.getKind() != 7) {
+			if (bean.getKind() < 7) {
 				codeMapEndoscope.put(bean.getCategory_id(), bean.getName());
 			} 
 		}
 		return CodeListUtils.getSelectOptions(codeMapEndoscope, null, null, false);
 	
+	}
+
+	public String getWithSpareOptions(SqlSession conn) {
+		CategoryMapper dao = conn.getMapper(CategoryMapper.class);
+		List<CategoryEntity> l = dao.getAllCategory();
+		// 内镜组
+		Map<String, String> codeMapEndoscope = new TreeMap<String, String>();
+		// 周边组
+		Map<String, String> codeMapPeripheral = new TreeMap<String, String>();
+		// 手术器械/附件组
+		Map<String, String> codeMapSpare = new TreeMap<String, String>();
+		for (CategoryEntity bean : l) {
+			if (bean.getKind() < 7) {
+				codeMapEndoscope.put(bean.getCategory_id(), bean.getName());
+			} else if (bean.getKind() == 7) {
+				codeMapPeripheral.put(bean.getCategory_id(), bean.getName());
+			} else {
+				codeMapSpare.put(bean.getCategory_id(), bean.getName());
+			}
+		}
+		return "<optgroup label=\"\"><option value=\"\"></option></optgroup>" 
+			+ "<optgroup label=\"内窥镜\">" + CodeListUtils.getSelectOptions(codeMapEndoscope, null, null, false) + "</optgroup>"
+			+ "<optgroup label=\"周边设备\">" + CodeListUtils.getSelectOptions(codeMapPeripheral, null, null, false) + "</optgroup>"
+			+ "<optgroup label=\"手术器械/附件\">" + CodeListUtils.getSelectOptions(codeMapSpare, null, null, false) + "</optgroup>";
 	}
 
 	/**

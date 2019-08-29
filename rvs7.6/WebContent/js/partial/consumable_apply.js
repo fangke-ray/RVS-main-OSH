@@ -129,7 +129,9 @@ var page_apply = {
 				recordpos : 'left',
 				hidegrid : false,
 				deselectAfterSort : false,
-				ondblClickRow : page_apply.showDetail,
+				ondblClickRow : function() {
+					afObj.applyProcess(261, this, page_apply.showDetail, arguments);
+				},
 				onSelectRow :null,
 				viewsortcols : [true, 'vertical', true]
 			});
@@ -710,34 +712,12 @@ var page_apply = {
 								},
 								"全部发放" : function() {
 									data.part_supply_comfrim = 1;
-									$.ajax({
-										beforeSend : ajaxRequestType,
-										async : false,
-										url : "consumable_apply.do?method=doUpdate",
-										cache : false,
-										data : data,
-										type : "post",
-										dataType : "json",
-										success : ajaxSuccessCheck,
-										error : ajaxError,
-										complete : doUpdate_ajaxSuccess
-									});
+									afObj.applyProcess(261, this, page_apply.doUpdateExecute, [data]);
 									$(this).dialog("close");
 								},
 								"部分发放":function(){
 									data.part_supply_comfrim = 0;
-									$.ajax({
-										beforeSend : ajaxRequestType,
-										async : false,
-										url : "consumable_apply.do?method=doUpdate",
-										cache : false,
-										data : data,
-										type : "post",
-										dataType : "json",
-										success : ajaxSuccessCheck,
-										error : ajaxError,
-										complete : doUpdate_ajaxSuccess
-									});
+									afObj.applyProcess(261, this, page_apply.doUpdateExecute, [data]);
 									$(this).dialog("close");
 								}
 							}
@@ -754,9 +734,13 @@ var page_apply = {
 			};
 		};
 		
+		afObj.applyProcess(261, this, page_apply.doUpdateExecute, [data]);
+	},
+
+	doUpdateExecute : function(data) {
 		$.ajax({
 			beforeSend : ajaxRequestType,
-			async : true,
+			async : false,
 			url : "consumable_apply.do?method=doUpdate",
 			cache : false,
 			data : data,
@@ -767,7 +751,6 @@ var page_apply = {
 			complete :doUpdate_ajaxSuccess
 		});
 	},
-	
 	
 	setUpdate : function(data,key){
 		

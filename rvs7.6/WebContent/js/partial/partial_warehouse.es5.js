@@ -30,11 +30,17 @@ $(function () {
 
 	$("#searchbutton").click(findit);
 
-	$("#importButton").click(uploadFile);
+    $("#importButton").click(function(){
+		afObj.applyProcess(212, this, uploadFile, arguments);
+    });
 
-	$("#collationOnShelfButton").click(onShelf);
-
-	$("#unpackButton").click(unpack);
+    $("#collationOnShelfButton").click(function(){
+		afObj.applyProcess(213, this, onShelf, arguments);
+    });
+    
+    $("#unpackButton").click(function(){
+		afObj.applyProcess(214, this, unpack, arguments);
+    });
 
 	$("#gobackbutton,#detail span.ui-icon").click(function () {
 		$("#search").show();
@@ -62,17 +68,21 @@ function doConfirm() {
 		data["fact_partial_warehouse.quantity[" + index + "]"] = $tr.find("input[type='text']").val().trim();
 	});
 
+	afObj.applyProcess(curProductionType, this, doConfirmExecute, [data]);
+};
+
+function doConfirmExecute(data){
 	$.ajax({
-		beforeSend: ajaxRequestType,
-		async: true,
-		url: servicePath + '?method=doConfirm',
-		cache: false,
-		data: data,
-		type: "post",
-		dataType: "json",
-		success: ajaxSuccessCheck,
-		error: ajaxError,
-		complete: function complete(xhrobj, textStatus) {
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=doConfirm',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj, textStatus) {
 			var resInfo = null;
 			try {
 				// 以Object形式读取JSON
@@ -84,10 +94,12 @@ function doConfirm() {
 					$("#search").show().siblings().hide();
 					findit();
 				}
-			} catch (e) {}
+			}catch(e){
+				console.log("doConfirm:" + e.message);
+			}
 		}
 	});
-};
+}
 
 function unpack() {
 	searchByStep("0,2", "分装", function () {
@@ -389,27 +401,29 @@ function uploadFile() {
 		width: 400,
 		buttons: {
 			"上传": function _() {
-				$.ajaxFileUpload({
-					url: servicePath + '?method=doUpload', // 需要链接到服务器地址
-					secureuri: false,
-					fileElementId: 'file', // 文件选择框的id属性
-					dataType: 'json', // 服务器返回的格式
-					success: function success(responseText, textStatus) {
-						var resInfo = null;
-						try {
-							// 以Object形式读取JSON
-							eval('resInfo =' + responseText);
-							if (resInfo.errors.length > 0) {
-								// 共通出错信息框
-								treatBackMessages(null, resInfo.errors);
-							} else {
-								$("#file_upload").dialog("close");
-								findit();
-								infoPop("文件上传成功。");
-							}
-						} catch (e) {}
-					}
-				});
+				afObj.applyProcess(212, this, function(){
+					$.ajaxFileUpload({
+						url: servicePath + '?method=doUpload', // 需要链接到服务器地址
+						secureuri: false,
+						fileElementId: 'file', // 文件选择框的id属性
+						dataType: 'json', // 服务器返回的格式
+						success: function success(responseText, textStatus) {
+							var resInfo = null;
+							try {
+								// 以Object形式读取JSON
+								eval('resInfo =' + responseText);
+								if (resInfo.errors.length > 0) {
+									// 共通出错信息框
+									treatBackMessages(null, resInfo.errors);
+								} else {
+									$("#file_upload").dialog("close");
+									findit();
+									infoPop("文件上传成功。");
+								}
+							} catch (e) {}
+						}
+					});
+				}, arguments);
 			},
 			"取消": function _() {
 				$(this).dialog("close");

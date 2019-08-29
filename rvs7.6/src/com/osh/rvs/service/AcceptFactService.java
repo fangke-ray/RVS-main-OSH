@@ -352,13 +352,14 @@ public class AcceptFactService {
 				case "221" : // 维修零件订购 TODO
 					// 按key统计个人的订购单订单*修改次数
 					// 乘以维修零件订购单时间
-				case "231" : // 维修零件发放 TODO
+				case "231" : // 维修零件发放
 					// 1）维修零件发放派送判断
 					// 1-1） 中小修理并且首工位NS ==> NS零件发放时间
 					// 1-2） 中小修理并且首工位非NS ==> 分解/总组零件发放时间
 					// 1-3） 大修理并且流程包含NS ==> NS零件发放 + 分解/总组零件发放时间
 					// 1-4） 大修理并且流程不包含NS ==> 分解/总组零件发放时间
-					// 2) 按零件类别统计零件数
+					BigDecimal standardPart2_1 = calcFromMaterialPartialSendLines(key, conn);
+					// 2) 按零件类别统计零件数 TODO
 					// 各自乘以单位下架时间
 					// 返回 1） + 2）
 				case "241" : // 维修出货单制作
@@ -371,10 +372,10 @@ public class AcceptFactService {
 					standardPart2 = calcFromFactMaterial(key, "UNREPAIR_RETURN_PER_MAT", conn);
 					break;
 				case "252" : // 消耗品核对/上架 TODO
-					// 按消耗品上架时长统计品名数（借用partialwarehousedetail）
+					// 按消耗品上架时长统计品名数（fact_consumable_warehouse）
 					// 各自乘以单位上架时间
 				case "261" : // 消耗品出库 TODO
-					// 按消耗品下架时长统计品名数（借用partialwarehousedetail）
+					// 按消耗品下架时长统计品名数（fact_consumable_warehouse）
 					// 各自乘以单位下架时间
 				case "271" : // 固定件清洗 TODO
 					// 按key查询af_pf时间段中`steel_wire_container_wash_process` process_time记录数，
@@ -388,6 +389,53 @@ public class AcceptFactService {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * 按维修对象发送工程计算工时
+	 * @param key
+	 * @param conn
+	 * @return
+	 */
+	private BigDecimal calcFromMaterialPartialSendLines(String key,
+			SqlSession conn) {
+		AfProductionFeatureMapper mapper = conn.getMapper(AfProductionFeatureMapper.class);
+		BigDecimal bdRet = new BigDecimal(0);
+
+		// 取得fact_partial_release表中相应发送掉的中小修理
+		List<AfProductionFeatureEntity> listMinor = mapper.countMinorOnNsProceed(key);
+		for (AfProductionFeatureEntity minor : listMinor) {
+			if (minor.getDivision() == 1) {
+				// division = 1 先到 NS
+				// 1-1） 中小修理并且首工位NS ==> NS零件发放时间
+				bdRet = bdRet.add(storedStandardFactors.get("PART_RELEASE_NS_PER_MAT")
+						.multiply(new BigDecimal(minor.getCnt())));
+			} else if (minor.getDivision() == 0) {
+				// division = 0 先到 NS 以外
+				// 1-2） 中小修理并且首工位非NS ==> 分解/总组零件发放时间
+				bdRet = bdRet.add(storedStandardFactors.get("PART_RELEASE_NO_NS_PER_MAT")
+						.multiply(new BigDecimal(minor.getCnt())));
+			}
+		}
+		
+		// 取得fact_partial_release表中相应发送掉的大修理
+		List<AfProductionFeatureEntity> listMajor = mapper.countMajorOnNsProceed(key);
+		for (AfProductionFeatureEntity major : listMajor) {
+			if (major.getDivision() == 1) {
+				// division = 1 有 NS
+				// 1-3） 大修理并且流程包含NS ==> NS零件发放 + 分解/总组零件发放时间
+				bdRet = bdRet.add(storedStandardFactors.get("PART_RELEASE_NS_PER_MAT")
+						.add(storedStandardFactors.get("PART_RELEASE_NO_NS_PER_MAT"))
+						.multiply(new BigDecimal(major.getCnt())));
+			} else if (major.getDivision() == 0) {
+				// division = 0 无 NS
+				// 1-4） 大修理并且流程不包含NS ==> 分解/总组零件发放时间
+				bdRet = bdRet.add(storedStandardFactors.get("PART_RELEASE_NO_NS_PER_MAT")
+						.multiply(new BigDecimal(major.getCnt())));
+			}
+		}
+
+		return bdRet;
 	}
 
 	/**
