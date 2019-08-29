@@ -154,6 +154,10 @@ public class ConsumableSupplyAction extends BaseAction {
 			ConsumableListService clService = new ConsumableListService();
 			ConsumableListEntity cEntitiy = clService.getConsumableDetailEntity(detailForm.getPartial_id(), conn);
 			if (cEntitiy != null) {
+
+				// 增加消耗品存量
+				service.updateConsumableManage(entity, conn);
+
 				LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 				// 根据操作者ID查找未结束作业信息
 				AcceptFactService acceptFactService = new AcceptFactService();
@@ -172,10 +176,10 @@ public class ConsumableSupplyAction extends BaseAction {
 						fcwEntity.setQuantity(nowQuantity + 1);
 						fcwSerivce.update(fcwEntity, conn);
 					}
-				}
 
-				// 增加消耗品存量
-				service.updateConsumableManage(entity, conn);
+					conn.commit();
+					acceptFactService.fingerOperatorRefresh(detailForm.getPartial_id());
+				}
 			}
 		}
 
