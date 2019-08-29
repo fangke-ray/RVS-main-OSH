@@ -47,7 +47,7 @@ $(function () {
 		$("#detail").hide();
 	});
 
-	$("#workarea span.ui-icon").click(function () {
+	$("#workarea span.ui-icon.ui-icon-circle-triangle-w").click(function () {
 		return $("#search").show().siblings().hide();
 	});
 

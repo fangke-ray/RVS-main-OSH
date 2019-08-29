@@ -178,7 +178,7 @@ public class ConsumableSupplyAction extends BaseAction {
 					}
 
 					conn.commit();
-					acceptFactService.fingerOperatorRefresh(detailForm.getPartial_id());
+					acceptFactService.fingerOperatorRefresh(user.getOperator_id());
 				}
 			}
 		}

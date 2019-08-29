@@ -72,4 +72,6 @@ public interface ConsumableListMapper {
 	public void setHeatshrinkableLength(@Param("partial_id") String partial_id, @Param("cut_length") String cut_length);
 	
 	public List<ConsumableListEntity> searchAllHeatshrinkable();
+
+	public List<ConsumableListEntity> getConsumableDetails(@Param("set") Set<String> targetPartialIds);
 }

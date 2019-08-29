@@ -14,11 +14,16 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.partial.ConsumableListEntity;
 import com.osh.rvs.bean.partial.ConsumableSupplyEntity;
+import com.osh.rvs.bean.partial.FactConsumableWarehouseEntity;
+import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.pda.PdaSupplyForm;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.partial.ConsumableListService;
 import com.osh.rvs.service.partial.ConsumableSupplyService;
+import com.osh.rvs.service.partial.FactConsumableWarehouseService;
 import com.osh.rvs.service.partial.PdaSupplyService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -115,15 +120,42 @@ public class PdaSupplyAction extends PdaBaseAction {
 		} else {
 			service.updatePartialSupply(entity, conn);
 		}
-		service.updateConsumableManage(entity, conn);
 
-		
-		
 		PdaSupplyService pdaSupplyService = new PdaSupplyService();
 		int supply_num = pdaSupplyService.getCurrentDaySupplyNum(conn);
-		
-		
 		request.setAttribute("supply_num", supply_num);
+
+		ConsumableListService clService = new ConsumableListService();
+		ConsumableListEntity cEntitiy = clService.getConsumableDetailEntity(detailForm.getPartial_id(), conn);
+		if (cEntitiy != null) {
+
+			// 增加消耗品存量
+			service.updateConsumableManage(entity, conn);
+
+			LoginData user = (LoginData) request.getSession().getAttribute(RvsConsts.SESSION_USER);
+			// 根据操作者ID查找未结束作业信息
+			AcceptFactService acceptFactService = new AcceptFactService();
+			AfProductionFeatureEntity afpfEntity = acceptFactService.getUnFinishEntity(user.getOperator_id(), conn);
+			if (afpfEntity != null) {
+				// 记录到消耗品出入库作业数
+				FactConsumableWarehouseService fcwSerivce = new FactConsumableWarehouseService();
+				Integer nowQuantity = fcwSerivce.getQuantity(afpfEntity.getAf_pf_key(), cEntitiy.getIn_shelf_cost(), conn);
+				FactConsumableWarehouseEntity fcwEntity = new FactConsumableWarehouseEntity();
+				fcwEntity.setAf_pf_key(afpfEntity.getAf_pf_key());
+				fcwEntity.setShelf_cost(cEntitiy.getIn_shelf_cost());
+				if (nowQuantity == null) {
+					fcwEntity.setQuantity(1);
+					fcwSerivce.insert(fcwEntity, conn);
+				} else {
+					fcwEntity.setQuantity(nowQuantity + 1);
+					fcwSerivce.update(fcwEntity, conn);
+				}
+
+				conn.commit();
+				acceptFactService.fingerOperatorRefresh(user.getOperator_id());
+			}
+		}
+
 		request.setAttribute("errors", getStrMsgInfo(errors));
 		
 		actionForward = mapping.findForward(FW_INIT);
