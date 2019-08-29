@@ -208,7 +208,11 @@
 var afObj = (function() {
 
 var afInit = function() {
-	refreshAf("init");
+	if (typeof(ajaxRequestType) == "undefined") {
+		setTimeout(function(){refreshAf("init");}, 1000); // setTimeout(afInit, 1000);
+	} else {
+		refreshAf("init");
+	}
 } 
 
 var refreshAf = function(init) {
@@ -326,14 +330,14 @@ var setAfAbilities = function(afAbilities) {
 }
 
 var setInpagePos = function(){
-	var aw = document.defaultView.screen.availWidth / 2
+	var aw = document.documentElement.clientWidth / 2
 	if (aw < parseInt($afTimer.css("right")) + parseInt($afTimer.css("width"))) {
 		$afTimer.attr("hdir", "left");
 	} else {
 		$afTimer.attr("hdir", "right");
 	}
 
-	var ah = document.defaultView.screen.availHeight / 2
+	var ah = document.documentElement.clientHeight / 2
 	if (ah < parseInt($afTimer.css("top")) + parseInt($afTimer.css("height"))) {
 		$afTimer.attr("vdir", "up");
 	} else {
@@ -373,12 +377,13 @@ var setInpagePos = function(){
 	$("body")
 	.bind("mousemove", function(evt){
 		if (af_dragged) {
-			if (evt.pageX > document.defaultView.screen.availWidth - 20 ||
+			if (evt.pageX > document.documentElement.clientWidth - 20 ||
 				evt.pageX < 20) {
 				af_dragged = false;
 			}
-			if (evt.pageY > document.defaultView.screen.availHeight - 20 ||
-				evt.pageY < 20) {
+
+			if (evt.pageY - window.scrollY > document.documentElement.clientHeight - 20 ||
+				evt.pageY - window.scrollY < 20) {
 				af_dragged = false;
 			}
 

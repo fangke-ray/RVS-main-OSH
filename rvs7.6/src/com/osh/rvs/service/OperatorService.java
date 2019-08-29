@@ -518,4 +518,14 @@ public class OperatorService {
 		return retList;
 	}
 
+	public static boolean hasAfAbility(List<PositionEntity> afAbilities,
+			String ability_code) {
+		for (PositionEntity afAbility : afAbilities) {
+			if (afAbility.getPosition_id().equals(ability_code)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 }

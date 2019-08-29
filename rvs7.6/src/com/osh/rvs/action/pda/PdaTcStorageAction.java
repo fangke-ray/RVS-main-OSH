@@ -17,6 +17,7 @@ import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.TurnoverCaseService;
@@ -33,6 +34,11 @@ public class PdaTcStorageAction extends PdaBaseAction {
 
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 判断权限
+		if (!OperatorService.hasAfAbility(user.getAfAbilities(), "106")) {
+			// TODO 不能进入
+		}
 
 		// 切换作业
 		AcceptFactService afService = new AcceptFactService();
@@ -193,21 +199,22 @@ public class PdaTcStorageAction extends PdaBaseAction {
 		// 当前货架待入库列表
 		List<TurnoverCaseForm> storagePlanListOnShelf = service.filterOnShelf(storagePlanList, shelf);
 
+		req.setAttribute("shelf", shelf);
+		req.setAttribute("waitCount", storagePlanList.size());
+		req.setAttribute("storagePlanListOnShelf", storagePlanListOnShelf);
+		req.setAttribute("shelfMap", service.getShelfMap(shelf, storagePlanListOnShelf, conn));
+
 		if (storaged) {
 			// 更新到现品作业记录（维修品）
 			FactMaterialService fmsService = new FactMaterialService();
 			int updateCount = fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
 			// 通知后台刷新作业标记
 			if (updateCount > 0) {
+				conn.commit();
 				AcceptFactService afService = new AcceptFactService();
 				afService.fingerOperatorRefresh(user.getOperator_id());
 			}
 		}
-
-		req.setAttribute("shelf", shelf);
-		req.setAttribute("waitCount", storagePlanList.size());
-		req.setAttribute("storagePlanListOnShelf", storagePlanListOnShelf);
-		req.setAttribute("shelfMap", service.getShelfMap(shelf, storagePlanListOnShelf, conn));
 
 		actionForward = mapping.findForward(FW_INIT);
 

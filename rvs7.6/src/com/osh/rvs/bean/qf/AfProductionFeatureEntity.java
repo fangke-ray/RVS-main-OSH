@@ -41,6 +41,26 @@ public class AfProductionFeatureEntity implements Serializable {
 	 */
 	private Date finish_time;
 
+	/**
+	 * 对应工位
+	 */
+	private String position_id;
+
+	/**
+	 * 对应工位作业状态
+	 */
+	private String operate_result;
+
+	/**
+	 * 分类
+	 */
+	private Integer division;
+
+	/**
+	 * 统计数量
+	 */
+	private Integer cnt;
+
 	public String getAf_pf_key() {
 		return af_pf_key;
 	}
@@ -79,5 +99,37 @@ public class AfProductionFeatureEntity implements Serializable {
 
 	public void setFinish_time(Date finish_time) {
 		this.finish_time = finish_time;
+	}
+
+	public String getPosition_id() {
+		return position_id;
+	}
+
+	public void setPosition_id(String position_id) {
+		this.position_id = position_id;
+	}
+
+	public String getOperate_result() {
+		return operate_result;
+	}
+
+	public void setOperate_result(String operate_result) {
+		this.operate_result = operate_result;
+	}
+
+	public Integer getDivision() {
+		return division;
+	}
+
+	public void setDivision(Integer division) {
+		this.division = division;
+	}
+
+	public Integer getCnt() {
+		return cnt;
+	}
+
+	public void setCnt(Integer cnt) {
+		this.cnt = cnt;
 	}
 }

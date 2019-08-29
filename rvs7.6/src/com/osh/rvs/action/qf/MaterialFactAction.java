@@ -35,6 +35,7 @@ import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.SectionService;
+import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.MaterialFactService;
 
 import framework.huiqing.action.BaseAction;
@@ -298,7 +299,13 @@ public class MaterialFactAction extends BaseAction {
 //		}
 
 		if (errors.size() == 0) {
-			materialFactService.updateInline(form, conn);
+			LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+			// 更新到现品作业记录（维修品）
+			FactMaterialService fmsService = new FactMaterialService();
+			fmsService.insertFactMaterial(user.getOperator_id(), req.getParameter("material_id"), 1, conn);
+
+			materialFactService.updateInline(form, user.getOperator_id(), conn);
 		}
 
 		// 检查发生错误时报告错误信息

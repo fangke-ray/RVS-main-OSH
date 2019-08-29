@@ -506,6 +506,9 @@ public class LoginAction extends BaseAction {
 			// 合并这个人的所有权限
 			loginData.setPrivacies(privacies);
 
+			// 取得这个人间接作业权限
+			setAfAbilities(loginData, conn);
+
 			// 用户信息保存在会话中
 			session.setAttribute(RvsConsts.SESSION_USER, loginData);
 			session.setAttribute("user_name", loginData.getName());

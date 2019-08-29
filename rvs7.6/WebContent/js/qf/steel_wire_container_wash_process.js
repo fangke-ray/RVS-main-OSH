@@ -395,7 +395,9 @@ function list(listdata){
 			'</div>');
 		$("#addbutton").button();
 		// 追加处理
-		$("#addbutton").click(showAdd);
+		$("#addbutton").click(function(){
+			afObj.applyProcess(270 + parseInt(process_type), this, showAdd, arguments);
+		});
     }
 };
 
@@ -486,22 +488,25 @@ function showAdd(){
 		}else{
 			data["quantity"] = $("#add_quantity").val();
 		}
-		
-		$.ajax({
-	        beforeSend : ajaxRequestType,
-	        async : true,
-	        url : servicePath + '?method=doInsert',
-	        cache : false,
-	        data : data,
-	        type : "post",
-	        dataType : "json",
-	        success : ajaxSuccessCheck,
-	        error : ajaxError,
-	        complete : insert_handleComplete
-	    });
+
+		afObj.applyProcess(270 + parseInt(process_type), this, doInsertExecute, [data]);
 	});
 };
 
+function doInsertExecute(postData) {
+	$.ajax({
+        beforeSend : ajaxRequestType,
+        async : true,
+        url : servicePath + '?method=doInsert',
+        cache : false,
+        data : postData,
+        type : "post",
+        dataType : "json",
+        success : ajaxSuccessCheck,
+        error : ajaxError,
+        complete : insert_handleComplete
+    });
+}
 
 function insert_handleComplete (xhrobj, textStatus){
 	var resInfo = null;

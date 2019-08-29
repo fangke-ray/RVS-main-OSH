@@ -1,5 +1,7 @@
 package com.osh.rvs.mapper.qf;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Param;
 
 import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
@@ -47,4 +49,13 @@ public interface AfProductionFeatureMapper {
 	 * @return
 	 */
 	public AfProductionFeatureEntity getUnfinishByType(@Param("production_type") int production_type);
+
+	/**
+	 * 查询作业时间内的工位实现件数
+	 * @param condition
+	 * @return
+	 */
+	public List<AfProductionFeatureEntity> countPositionProcessBetweenAfProcess(
+			AfProductionFeatureEntity condition);
+
 }

@@ -114,7 +114,7 @@ public class TurnoverCaseService {
 		return lcf;
 	}
 
-	public void warehousing(SqlSessionManager conn,
+	public List<String> warehousing(SqlSessionManager conn,
 			Map<String, String[]> parameterMap) {
 		List<String> locations = new AutofillArrayList<String> (String.class); 
 		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
@@ -138,6 +138,8 @@ public class TurnoverCaseService {
 		for (String location : locations) {
 			mapper.warehousing(location);
 		}
+
+		return locations;
 	}
 
 	/**
@@ -167,7 +169,7 @@ public class TurnoverCaseService {
 		mapper.checkStorage(location);
 	}
 
-	public void checkStorage(SqlSessionManager conn,
+	public List<String> checkStorage(SqlSessionManager conn,
 			Map<String, String[]> parameterMap) {
 		List<String> locations = new AutofillArrayList<String> (String.class); 
 		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
@@ -191,6 +193,14 @@ public class TurnoverCaseService {
 		for (String location : locations) {
 			mapper.checkStorage(location);
 		}
+
+		return locations;
+	}
+
+	public TurnoverCaseEntity getEntityByLocation(String location,
+			SqlSession conn) {
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+		return mapper.getEntityByLocation(location);
 	}
 
 	public TurnoverCaseEntity getEntityByLocationForStorage(String location,

@@ -115,11 +115,15 @@ $(function() {
 	}
 	});	
 
-	$("#shipbutton").click(doFinish);
+	$("#shipbutton").click(function() {
+		afObj.applyProcess(132, this, doFinish, arguments);
+	});
 
 	$("#reportbutton").click(makeReport);
 
-	$("#tcWarehouseButton").click(showWarehousingPlan);
+	$("#tcWarehouseButton").click(function() {
+		afObj.applyProcess(131, this, showWarehousingPlan, arguments);
+	});
 
 	doShippingInit();
 });
@@ -378,6 +382,10 @@ var doStart=function(){
 
 	$("#scanner_inputer").attr("value", "");
 
+	afObj.applyProcess(132, this, doStartPost, [data]);
+};
+
+var doStartPost = function(data) {
 	// Ajax提交
 	$.ajax({
 		beforeSend : ajaxRequestType,
@@ -391,4 +399,4 @@ var doStart=function(){
 		error : ajaxError,
 		complete : doStart_ajaxSuccess
 	});
-};
+}

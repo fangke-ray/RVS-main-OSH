@@ -19,9 +19,11 @@ import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.qa.ServiceRepairManageMapper;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.WipService;
 
 import framework.huiqing.action.BaseAction;
@@ -307,6 +309,17 @@ public class WipAction extends BaseAction {
 			featureService.removeWorking(material_id, null, conn);
 
 			wipService.stop(conn, material_id);
+
+			LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+			// 更新到现品作业记录（维修品）
+			FactMaterialService fmsService = new FactMaterialService();
+			fmsService.insertFactMaterial(user.getOperator_id(), material_id, 1, conn);
+
+			conn.commit();
+
+			// 刷新间接人员作业记录
+			AcceptFactService afService = new AcceptFactService();
+			afService.fingerOperatorRefresh(user.getOperator_id());
 		}
 
 		// 检查发生错误时报告错误信息

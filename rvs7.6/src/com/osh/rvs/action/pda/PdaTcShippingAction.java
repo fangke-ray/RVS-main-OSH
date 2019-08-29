@@ -160,21 +160,22 @@ public class PdaTcShippingAction extends PdaBaseAction {
 		// 当前货架待出库列表
 		List<TurnoverCaseForm> shippingPlanListOnShelf = service.filterOnShelf(shippingPlanList, shelf);
 
+		req.setAttribute("shelf", shelf);
+		req.setAttribute("waitCount", shippingPlanList.size());
+		req.setAttribute("shippingPlanListOnShelf", shippingPlanListOnShelf);
+		req.setAttribute("shelfMap", service.getShelfMap(shelf, shippingPlanListOnShelf, conn));
+
 		if (warehoused) {
 			// 更新到现品作业记录（维修品）
 			FactMaterialService fmsService = new FactMaterialService();
 			int updateCount = fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
 			// 通知后台刷新作业标记
 			if (updateCount > 0) {
+				conn.commit();
 				AcceptFactService afService = new AcceptFactService();
 				afService.fingerOperatorRefresh(user.getOperator_id());
 			}
 		}
-
-		req.setAttribute("shelf", shelf);
-		req.setAttribute("waitCount", shippingPlanList.size());
-		req.setAttribute("shippingPlanListOnShelf", shippingPlanListOnShelf);
-		req.setAttribute("shelfMap", service.getShelfMap(shelf, shippingPlanListOnShelf, conn));
 
 		actionForward = mapping.findForward(FW_INIT);
 

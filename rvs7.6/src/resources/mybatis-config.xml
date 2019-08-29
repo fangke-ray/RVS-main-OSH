@@ -136,6 +136,7 @@
 		<typeAlias alias="AfProductionFeatureEntity" type="com.osh.rvs.bean.qf.AfProductionFeatureEntity"/>
 		<typeAlias alias="FactPartialReleaseEntity" type="com.osh.rvs.bean.partial.FactPartialReleaseEntity"/>
 		<typeAlias alias="FactMaterialEntity" type="com.osh.rvs.bean.qf.FactMaterialEntity"/>
+		<typeAlias alias="FactConsumableWarehouseEntity" type="com.osh.rvs.bean.partial.FactConsumableWarehouseEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -258,6 +259,7 @@
 		<mapper resource="com/osh/rvs/mapper/partial/PartialWarehouseDetailMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/FactPartialWarehouseMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/FactPartialReleaseMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/FactConsumableWarehouseMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/pda/PdaSupplyMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/pda/PdaApplyMapper.xml"/>

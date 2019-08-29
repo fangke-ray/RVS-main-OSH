@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.FactConsumableWarehouseMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="search" resultType="FactConsumableWarehouseEntity" parameterType="string">
+	<![CDATA[
+		SELECT
+			af_pf_key,
+			shelf_cost,
+			quantity
+		FROM
+			`fact_consumable_warehouse`
+	]]>
+	<where>
+	<if test="af_pf_key!=null and af_pf_key!=''">
+	<![CDATA[
+		AND af_pf_key = #{af_pf_key}
+	]]>
+	</if>
+	<if test="shelf_cost!=null and shelf_cost!=''">
+	<![CDATA[
+		AND shelf_cost = #{shelf_cost}
+	]]>
+	</if>
+	</where>
+	</select>
+
+	<insert id="insert" parameterType="FactConsumableWarehouseEntity">
+	<![CDATA[
+		INSERT INTO `fact_consumable_warehouse`
+		(`af_pf_key`,
+		`shelf_cost`,
+		`quantity`)
+		VALUES
+		(
+		#{af_pf_key},
+		#{shelf_cost},
+		#{quantity}
+		);
+	]]>
+	</insert>
+	
+	<update id="update" parameterType="FactConsumableWarehouseEntity">
+	<![CDATA[
+		UPDATE
+			`fact_consumable_warehouse`
+		SET
+			quantity = #{quantity}
+		WHERE
+			af_pf_key = #{af_pf_key}
+		AND
+			shelf_cost = #{shelf_cost}
+	]]>
+	</update>
+
+</mapper>

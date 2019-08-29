@@ -66,6 +66,7 @@ $(function() {
 
 	/*入库*/
 	$("#add_supply_button").click(function() {
+		afObj.applyProcess(252, this, function() {
 		var partial_id = $("#hidden_partial_id").val();
 		if (partial_id != null && partial_id != "" && $("#supply_form").valid()) {
 			var data = {
@@ -104,6 +105,7 @@ $(function() {
 				}
 			});
 		}			
+		}, arguments);
 	});
 });
 

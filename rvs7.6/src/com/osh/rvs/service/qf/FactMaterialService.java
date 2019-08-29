@@ -70,6 +70,8 @@ public class FactMaterialService {
 	 */
 	public int insertFactMaterial(String operator_id, String material_id,
 			int check_flg, SqlSessionManager conn) {
+		if (material_id == null) return 0;
+
 		// 根据操作者ID查找未结束作业信息
 		AcceptFactService acceptFactService = new AcceptFactService();
 		AfProductionFeatureEntity afpfEntity = acceptFactService.getUnFinishEntity(operator_id, conn);

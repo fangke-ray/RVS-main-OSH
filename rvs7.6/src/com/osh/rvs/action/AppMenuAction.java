@@ -250,7 +250,7 @@ public class AppMenuAction extends BaseAction {
 		// 清洗
 		if (privacies.contains(RvsConsts.PRIVACY_FACT_MATERIAL)) {
 			menuLinks.put("wash", true);
-			menuLinks.put("在线作业", true);
+			// menuLinks.put("在线作业", true);
 		} else {
 			menuLinks.put("wash", false);
 		}

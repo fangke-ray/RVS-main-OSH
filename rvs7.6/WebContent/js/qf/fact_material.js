@@ -543,7 +543,7 @@ $process_dialog.dialog({
 			if (rowdata["ccd_operate_result"] == "已指定"){
 				data.ccd_change = true;
 			}
-			doInline(data);
+			afObj.applyProcess(201, this, doInline, [data]);
 		}, "关闭" : function(){ $(this).dialog("close"); }
 	}
 });

@@ -388,7 +388,9 @@ $(document).ready(function() {
 	$("#expeditebutton").click(line_expedite);
 	$("#nogoodbutton").click(treat_nogood);
 	$("#resystembutton").click(doResystem);
-	$("#stopbutton").click(doStop);
+	$("#stopbutton").click(function(){
+		afObj.applyProcess(242, this, doStop, arguments);
+	});
 	$("#printbutton").click(printTicket);
 	$("#printaddbutton").click(function(){printTicket(1)});
 	$("#movebutton").click(doMove);
@@ -898,29 +900,33 @@ var doStop=function() {
 		title : "返还操作确认",
 		buttons : {
 			"确认" : function() {
-				$(this).dialog("close");
-				var data = {material_id : rowdata["material_id"]};
-			
-				$.ajax({
-					beforeSend : ajaxRequestType,
-					async : false,
-					url : 'wip.do?method=dostop',
-					cache : false,
-					data : data,
-					type : "post",
-					dataType : "json",
-					success : ajaxSuccessCheck,
-					error : ajaxError,
-					complete : function() {
-						findit();
-					}
-				});	
+				afObj.applyProcess(242, this, doStopExecute, [rowdata]);
 			},
 			"取消" : function() {
 				$(this).dialog("close");
 			}
 		}
 	});
+}
+
+var doStopExecute=function(rowdata) {
+	$("#confirmmessage").dialog("close");
+	var data = {material_id : rowdata["material_id"]};
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : 'wip.do?method=dostop',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function() {
+			findit();
+		}
+	});	
 }
 
 var printTicket=function(addan) {

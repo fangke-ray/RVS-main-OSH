@@ -62,7 +62,7 @@ $(function(){
 	
 	/*大单发放*/
 	$("#bigsubmitbutton").click(function(){
-		changeMaterialStatus("big");
+		afObj.applyProcess(231, this, changeMaterialStatus, ["big"]);
 	});
 	
 	/*BO 判定*/

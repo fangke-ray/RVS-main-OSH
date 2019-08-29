@@ -713,6 +713,7 @@ var isWorkDayTime = function(d_dateTime){
 
 <% String sIndirectWorker = (String)request.getAttribute("indirect_worker"); %>
 <% if ("".equals(sIndirectWorker)) { %>
+<script type="text/javascript">
 var afObj = (function() {
 return {
 	applyProcess : function(process_type, call_obj, call_method, call_params) {
@@ -722,6 +723,7 @@ return {
 	}
 }
 })();
+</script>
 <% } else { %>
 <jsp:include page="/widgets/af_timer.jsp" flush="true"></jsp:include>
 <% } %>

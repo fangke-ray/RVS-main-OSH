@@ -92,6 +92,15 @@
 		]]>
 	</select>
 
+	<select id="getEntityByLocation" resultType="TurnoverCaseEntity">
+		<![CDATA[ 
+			SELECT
+				shelf, location, `execute`, material_id
+			FROM turnover_case_storage
+			WHERE location = #{location}
+		]]>
+	</select>
+
 	<select id="getEntityByLocationForStorage" resultType="TurnoverCaseEntity">
 		<![CDATA[ 
 			SELECT

@@ -96,6 +96,17 @@ public class ConsumableListService {
 		BeanUtil.copyToFormList(resultList, resultForm, null, ConsumableListForm.class);
 		return resultForm;
 	}
+	public ConsumableListEntity getConsumableDetailEntity(String partial_id, SqlSession conn) {
+		ConsumableListMapper dao = conn.getMapper(ConsumableListMapper.class);
+
+		List<ConsumableListEntity> resultList = dao.getConsumableDetail(Integer.parseInt(partial_id));
+
+		if (resultList.size() == 0) {
+			return null;
+		} else {
+			return resultList.get(0);
+		}
+	}
 	
 	/**
 	 * 加入消耗品库存

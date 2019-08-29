@@ -31,6 +31,10 @@ import framework.huiqing.common.util.copy.IntegerConverter;
 
 public class AcceptFactService {
 
+	private static final Integer DIVISITON_CATEGROY_KIND = 1; // 机种四分类
+	private static final Integer DIVISITON_REPAIR_MANUAL_DEVICE_AND_CATEGROY_KIND = 2; // 分手动后设备中机种二分类 
+	private static final Integer DIVISITON_SPAIR_MANUAL_DEVICE_AND_CATEGROY_KIND = 3; // 分手动后设备中机种四分类 
+
 	public static Map<String, String> moduleMap = CodeListUtils.getList("qf_production_module");
 	public static Map<String, String> typeMap = CodeListUtils.getList("qf_production_type");
 
@@ -276,45 +280,65 @@ public class AcceptFactService {
 					// 乘以每单用时
 					standardPart2 = calcFromFactMaterial(key, "TICKET_PER_MAT", conn);
 					break;
-				case "103" : // 维修品/备品系统受理 TODO
+				case "103" : // 维修品/备品系统受理
 					// 按key查询af_pf时间段中完成的111工位记录数，
 					// 分内窥镜、周边设备、手术器械和附件
 					// 分别乘以每单用时
 					// 返回合计
+					standardPart2 = calcFromPositionProcess(key, "00000000009", "2", 
+							new String[]{"SYS_RECEPT_ENSC_PER_MAT", "SYS_RECEPT_PERI_PER_MAT", "SYS_RECEPT_SURGI_PER_MAT", "SYS_RECEPT_ACCENA_PER_MAT"}, 
+							DIVISITON_CATEGROY_KIND, conn);
+					break;
 				case "106" : // 镜箱入库
 					// 通过fact_material表取得上架数量
 					// 乘以每单镜箱上架用时
 					standardPart2 = calcFromFactMaterial(key, "TC_INSTOR_ONSH_PER_MAT", conn);
 					break;
-				case "111" : // 维修品消毒 TODO
+				case "111" : // 维修品消毒
 					// 按key查询af_pf时间段中完成的121工位记录数，
 					// 分手动和设备
 					// 设备中分内窥镜、周边设备
 					// 分别乘以每单用时
 					// 返回合计
-				case "112" : // 备品消毒 TODO
+					standardPart2 = calcFromPositionProcess(key, "00000000010", "2", 
+							new String[]{"DISINF_MANUAL_PER_MAT", "DISINF_ENSC_PER_MAT", "DISINF_PERI_PER_MAT"}, 
+							DIVISITON_REPAIR_MANUAL_DEVICE_AND_CATEGROY_KIND, conn);
+					break;
+				case "112" : // 备品消毒
 					// 按key查询af_pf时间段中完成的121工位记录数，
 					// 分手动和设备
 					// 设备中分内窥镜、周边设备、手术器械和附件
 					// 分别乘以每单用时
 					// 返回合计
+					standardPart2 = calcFromPositionProcess(key, "00000000010", "2", 
+							new String[]{"DISINF_MANUAL_PER_MAT", "DISINF_ENSC_PER_MAT", "DISINF_PERI_PER_MAT", "DISINF_SURGI_PER_MAT", "DISINF_ACCENA_PER_MAT"}, 
+							DIVISITON_SPAIR_MANUAL_DEVICE_AND_CATEGROY_KIND, conn);
+					break;
 				case "113" : // 镜箱消毒
 					// 按key查询af_pf时间段中完成的121工位记录数，
 					// 其中的镜箱
 					// 乘以每单用时
-					standardPart2 = calcFromFactMaterial(key, "DISINF_TC_PER_MAT", conn);
+					standardPart2 = calcFromPositionProcess(key, "00000000010", "5", 
+							new String[]{"DISINF_TC_PER_MAT"}, 
+							null, conn);
 					break;
 				case "131" : // 镜箱出库
 					// 通过fact_material表取得下架数量
 					// 乘以每单镜箱下架用时
 					standardPart2 = calcFromFactMaterial(key, "TC_OUTSTOR_OFFSH_PER_MAT", conn);
 					break;
-				case "132" : // 维修品出货 TODO
+				case "132" : // 维修品出货
 					// 按key查询af_pf时间段中完成的711工位记录数，
 					// 乘以每单用时
-				case "201" : // 投线 TODO
-					// 按key查询af_pf时间段中material.inline_time，
+					standardPart2 = calcFromPositionProcess(key, "00000000047", "2", 
+							new String[]{"SHIPPING_PER_MAT"}, 
+							null, conn);
+					break;
+				case "201" : // 投线
+					// 通过fact_material表取得现品票打印数量
 					// 乘以每单用时
+					standardPart2 = calcFromFactMaterial(key, "INLINE_PER_MAT", conn);
+					break;
 				case "213" : // 零件核对/上架
 					// 按零件类别统计零件数
 					// 各自乘以单位核对时间
@@ -341,9 +365,11 @@ public class AcceptFactService {
 					// 通过fact_material表取得出货单制作数量
 					standardPart2 = calcFromFactMaterial(key, "SHIPPING_ORDER_PER_MAT", conn);
 					break;
-				case "242" : // 未修理返送 TODO
-					// 按key查询af_pf时间段中outline_time bbf = 2记录数，
+				case "242" : // 未修理返送
+					// 通过fact_material表取得未修理返送数量
 					// 乘以每单用时
+					standardPart2 = calcFromFactMaterial(key, "UNREPAIR_RETURN_PER_MAT", conn);
+					break;
 				case "252" : // 消耗品核对/上架 TODO
 					// 按消耗品上架时长统计品名数（借用partialwarehousedetail）
 					// 各自乘以单位上架时间
@@ -380,6 +406,38 @@ public class AcceptFactService {
 		BigDecimal factor = storedStandardFactors.get(factorName);
 
 		return factor.multiply(new BigDecimal(list.size()));
+	}
+
+	/**
+	 * 按完成工位来统计
+	 * @param key 间接人员作业记录主键
+	 * @param position_id
+	 * @param operate_result
+	 * @param factorNames
+	 * @param cond_division
+	 * @param conn
+	 * @return
+	 */
+	private BigDecimal calcFromPositionProcess(String key, String position_id,
+			String operate_result, String[] factorNames, Integer cond_division, SqlSession conn) {
+		AfProductionFeatureMapper mapper = conn.getMapper(AfProductionFeatureMapper.class);
+		AfProductionFeatureEntity condition = new AfProductionFeatureEntity();
+		condition.setAf_pf_key(key);
+		condition.setPosition_id(position_id);
+		condition.setOperate_result(operate_result);
+		condition.setDivision(cond_division);
+
+		List<AfProductionFeatureEntity> results = mapper.countPositionProcessBetweenAfProcess(condition);
+
+		BigDecimal calc = new BigDecimal(0);
+
+		for (AfProductionFeatureEntity result : results) {
+			int division = result.getDivision();
+			BigDecimal factor = storedStandardFactors.get(factorNames[division]);
+			calc = calc.add(factor.multiply(new BigDecimal(result.getCnt())));
+		}
+
+		return calc;
 	}
 
 	/**
@@ -509,7 +567,7 @@ public class AcceptFactService {
 	}
 
 	/**
-	 * 切换作业
+	 * 切换作业(无可写连接时)
 	 * @param production_type
 	 * @param user
 	 * @throws Exception 

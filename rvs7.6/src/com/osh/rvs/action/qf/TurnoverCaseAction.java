@@ -15,8 +15,10 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
+import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.TurnoverCaseService;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.ModelService;
@@ -168,9 +170,22 @@ public class TurnoverCaseAction extends BaseAction {
 		// Ajax回馈对象
 		Map<String, Object> calbackResponse = new HashMap<String, Object>();
 
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
 		// 执行检索
 		TurnoverCaseService service = new TurnoverCaseService();
-		service.warehousing(conn, req.getParameter("location"));
+		String location = req.getParameter("location");
+		service.warehousing(conn, location);
+		TurnoverCaseEntity lEntity = service.getEntityByLocation(location, conn);
+
+		// 记录入库作业
+		FactMaterialService fmsService = new FactMaterialService();
+		fmsService.insertFactMaterial(user.getOperator_id(), lEntity.getMaterial_id(), 1, conn);
+
+		// 刷新完成数量
+		conn.commit();
+		AcceptFactService afService = new AcceptFactService();
+		afService.fingerOperatorRefresh(user.getOperator_id());
 
 		// 检查发生错误时报告错误信息
 		calbackResponse.put("errors", new ArrayList<MsgInfo>());
@@ -191,7 +206,22 @@ public class TurnoverCaseAction extends BaseAction {
 
 		// 执行检索
 		TurnoverCaseService service = new TurnoverCaseService();
-		service.warehousing(conn, req.getParameterMap());
+		List<String> locations = service.warehousing(conn, req.getParameterMap());
+
+		// 记录入库作业
+		FactMaterialService fmsService = new FactMaterialService();
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		int updateCount = 0;
+		for(String location : locations) {
+			TurnoverCaseEntity lEntity = service.getEntityByLocation(location, conn);
+			updateCount += fmsService.insertFactMaterial(user.getOperator_id(), lEntity.getMaterial_id(), 1, conn);
+		}
+
+		if (updateCount > 0) {
+			conn.commit();
+			AcceptFactService afService = new AcceptFactService();
+			afService.fingerOperatorRefresh(user.getOperator_id());
+		}
 
 		// 检查发生错误时报告错误信息
 		calbackResponse.put("errors", new ArrayList<MsgInfo>());
@@ -234,14 +264,20 @@ public class TurnoverCaseAction extends BaseAction {
 		// Ajax回馈对象
 		Map<String, Object> calbackResponse = new HashMap<String, Object>();
 
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
 		// 执行检索
 		TurnoverCaseService service = new TurnoverCaseService();
-		service.checkStorage(conn, req.getParameter("location"));
+		String location = req.getParameter("location");
+		service.checkStorage(conn, location);
+
+		FactMaterialService fmsService = new FactMaterialService();
+		TurnoverCaseEntity lEntity = service.getEntityByLocation(location, conn);
+		fmsService.insertFactMaterial(user.getOperator_id(), lEntity.getMaterial_id(), 1, conn);
 
 		// 刷新完成数量
 		conn.commit();
 		AcceptFactService afService = new AcceptFactService();
-		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 		afService.fingerOperatorRefresh(user.getOperator_id());
 
 		// 检查发生错误时报告错误信息
@@ -263,7 +299,22 @@ public class TurnoverCaseAction extends BaseAction {
 
 		// 执行检索
 		TurnoverCaseService service = new TurnoverCaseService();
-		service.checkStorage(conn, req.getParameterMap());
+		List<String> locations = service.checkStorage(conn, req.getParameterMap());
+
+		// 记录入库作业
+		FactMaterialService fmsService = new FactMaterialService();
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		int updateCount = 0;
+		for(String location : locations) {
+			TurnoverCaseEntity lEntity = service.getEntityByLocation(location, conn);
+			updateCount += fmsService.insertFactMaterial(user.getOperator_id(), lEntity.getMaterial_id(), 1, conn);
+		}
+
+		if (updateCount > 0) {
+			conn.commit();
+			AcceptFactService afService = new AcceptFactService();
+			afService.fingerOperatorRefresh(user.getOperator_id());
+		}
 
 		// 检查发生错误时报告错误信息
 		calbackResponse.put("errors", new ArrayList<MsgInfo>());

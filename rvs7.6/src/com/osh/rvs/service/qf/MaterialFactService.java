@@ -49,6 +49,7 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.mapper.qf.MaterialFactMapper;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialProcessAssignService;
 import com.osh.rvs.service.MaterialProcessService;
@@ -346,7 +347,7 @@ public class MaterialFactService {
 		dao.updateUnrepairBySorc(entity);
 	}
 
-	public void updateInline(ActionForm form, SqlSessionManager conn) throws Exception {
+	public void updateInline(ActionForm form, String operator_id, SqlSessionManager conn) throws Exception {
 		// 表单复制到数据对象
 		MaterialFactEntity entity = new MaterialFactEntity();
 		BeanUtil.copyToBean(form, entity, null);
@@ -358,7 +359,12 @@ public class MaterialFactService {
 			conn.commit();
 			FseBridgeUtil.toUpdateMaterial(entity.getMaterial_id(), "200inline");
 			FseBridgeUtil.toUpdateMaterialProcess(entity.getMaterial_id(), "200inline");
+
 			RvsUtils.sendTrigger(triggerList);
+
+			// 刷新间接人员作业记录
+			AcceptFactService afService = new AcceptFactService();
+			afService.fingerOperatorRefresh(operator_id);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

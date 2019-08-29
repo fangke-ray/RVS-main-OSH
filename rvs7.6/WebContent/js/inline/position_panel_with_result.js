@@ -612,7 +612,7 @@ var doFinish=function(){
 	            },
 	            "通箱" : function() {
 	                $(this).dialog("close");
-	                afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_package]);
+	                afObj.applyProcess(113, this, doFinish_ajax, [pcs_inputs_package]);
 	            }
 	        }
 		});
@@ -622,14 +622,14 @@ var doFinish=function(){
         } else {
             afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputs]);
         }
-	} else if (!$.isEmptyObject(pcs_rcs)) {
+	} else if (!$.isEmptyObject(pcs_inputs_rcs)) {
         if ($("#g_process_code").val() == "131") {
             afObj.applyProcess(122, this, doFinish_ajax, [pcs_inputs_rcs]);
         } else {
             afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_rcs]);
         }
-	} else if (!$.isEmptyObject(pcs_package)) {
-		afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_package]);
+	} else if (!$.isEmptyObject(pcs_inputs_package)) {
+		afObj.applyProcess(113, this, doFinish_ajax, [pcs_inputs_package]);
 	}
 };
 

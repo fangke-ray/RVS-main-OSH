@@ -67,4 +67,67 @@
 			finish_time IS NULL
 	]]>
 	</select>
+
+	<select id="countPositionProcessBetweenAfProcess" resultType="AfProductionFeatureEntity" parameterType="AfProductionFeatureEntity">
+	<![CDATA[
+		SELECT count(material_id) as cnt, division FROM (
+			SELECT pospf.material_id, 
+	]]>
+
+	<if test="division eq null"><!-- 无需分类 -->
+			0 as division
+	</if> 
+	<if test="division eq 1"><!-- 按机种 -->
+			CASE 
+			WHEN (mdl.kind = 7) THEN 1 
+			WHEN (mdl.kind = 8) THEN 2 
+			WHEN (mdl.kind = 9) THEN 3 
+			ELSE 0 
+			END as division
+	</if> 
+	<if test="division eq 2 or division eq 3"><!-- 按手动(TODO 设备ID 00000002687/00000002688)+机种 -->
+			CASE 
+			WHEN pospf.pcs_inputs like '%0000000268%' THEN 0
+			WHEN (mdl.kind = 7) THEN 2 
+			WHEN (mdl.kind = 8) THEN 3 
+			WHEN (mdl.kind = 9) THEN 4 
+			ELSE 1 
+			END as division
+	</if> 
+
+	<![CDATA[
+			FROM af_production_feature afpf
+			JOIN production_feature pospf
+			on afpf.operator_id = pospf.operator_id
+			and pospf.operate_result = #{operate_result}
+			and pospf.position_id = #{position_id}
+	]]>
+
+	<if test="division eq 1 or division eq 2 or division eq 3"><!-- 按机种 -->
+	<![CDATA[
+		JOIN material ma
+		on pospf.material_id = ma.material_id
+	]]>
+		<if test="division eq 2"><!-- 只要维修品 -->
+		and ma.fix_type in (1, 2)
+		</if> 
+		<if test="division eq 2"><!-- 只要备品 -->
+		and ma.fix_type = 3
+		</if> 
+	<![CDATA[
+		join v_model mdl
+		on ma.model_id = mdl.model_id
+	]]>
+	</if> 
+
+	<![CDATA[
+			where af_pf_key = #{af_pf_key}
+			and pospf.finish_time >= afpf.action_time
+			and (afpf.finish_time IS NULL OR pospf.finish_time <= afpf.finish_time)
+		) vset
+		group by division
+		;
+	]]>
+	</select>
+
 </mapper>

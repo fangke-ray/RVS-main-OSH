@@ -283,29 +283,34 @@ var doStop=function() {
 		title : "返还操作确认",
 		buttons : {
 			"确认" : function() {
-				$(this).dialog("close");
-				var data = {material_id : rowdata["material_id"]};
-			
-				$.ajax({
-					beforeSend : ajaxRequestType,
-					async : false,
-					url : servicePath + '?method=dostop',
-					cache : false,
-					data : data,
-					type : "post",
-					dataType : "json",
-					success : ajaxSuccessCheck,
-					error : ajaxError,
-					complete : function() {
-						findit();
-					}
-				});	
+				afObj.applyProcess(242, this, doStopExecute, [rowdata]);
 			},
 			"取消" : function() {
 				$(this).dialog("close");
 			}
 		}
 	});
+}
+
+var doStopExecute=function(rowdata) {
+	$("#confirmmessage").dialog("close");
+
+	var data = {material_id : rowdata["material_id"]};
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=dostop',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function() {
+			findit();
+		}
+	});	
 }
 
 var reimgcheck=function() {
@@ -446,7 +451,9 @@ $(function() {
 	$("#cachebutton").click(showWipMap);
 	$("#warehousingbutton").click(warehousing);
 	$("#resystembutton").click(doResystem);
-	$("#stopbutton").click(doStop);
+	$("#stopbutton").click(function(){
+		afObj.applyProcess(242, this, doStop, arguments);
+	});
 	$("#movebutton").click(doMove);
 	$("#imgcheckbutton").click(reimgcheck);
 

@@ -26,6 +26,8 @@ public interface TurnoverCaseMapper {
 
 	public List<TurnoverCaseEntity> getListOnShelf(String shelf);
 
+	public TurnoverCaseEntity getEntityByLocation(String location);
+
 	public TurnoverCaseEntity getEntityByLocationForStorage(String location);
 
 	public TurnoverCaseEntity getEntityByLocationForShipping(String location);
