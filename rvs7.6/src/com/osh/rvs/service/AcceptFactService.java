@@ -219,6 +219,7 @@ public class AcceptFactService {
 	}
 	public Integer getStandardMinutes(AfProductionFeatureForm processForm, SqlSession conn, boolean justStart) {
 		PartialWarehouseDetailMapper partialWarehouseDetailMapper = conn.getMapper(PartialWarehouseDetailMapper.class);
+		AfProductionFeatureMapper afProductionFeatureMapper = conn.getMapper(AfProductionFeatureMapper.class);
 		
 		String key = processForm.getAf_pf_key();
 		String productionType = processForm.getProduction_type();
@@ -361,6 +362,8 @@ public class AcceptFactService {
 					// 2) 按零件类别统计零件数
 					// 各自乘以单位下架时间
 					// 返回 1） + 2）
+					BigDecimal standardPart2_2 = partialWarehouseDetailMapper.countOffShelfStandardTime(key);
+					standardPart2.add(standardPart2_2);
 				case "241" : // 维修出货单制作
 					// 通过fact_material表取得出货单制作数量
 					standardPart2 = calcFromFactMaterial(key, "SHIPPING_ORDER_PER_MAT", conn);
@@ -379,6 +382,10 @@ public class AcceptFactService {
 				case "271" : // 固定件清洗 TODO
 					// 按key查询af_pf时间段中`steel_wire_container_wash_process` process_time记录数，
 					// 乘以单位固定件清洗时间
+					Integer cn = afProductionFeatureMapper.countSWCWash(key,1);
+					BigDecimal factor = storedStandardFactors.get("SWC_WASH_PER_CD");
+					
+					standardPart2 = factor.multiply(new BigDecimal(cn));
 			}
 		}
 

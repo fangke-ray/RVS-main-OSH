@@ -57,5 +57,13 @@ public interface AfProductionFeatureMapper {
 	 */
 	public List<AfProductionFeatureEntity> countPositionProcessBetweenAfProcess(
 			AfProductionFeatureEntity condition);
+	
+	/**
+	 * 统计物料作业次数
+	 * @param af_pf_key
+	 * @param process_type
+	 * @return
+	 */
+	public Integer countSWCWash(@Param("af_pf_key") String af_pf_key,@Param("process_type") int process_type);
 
 }

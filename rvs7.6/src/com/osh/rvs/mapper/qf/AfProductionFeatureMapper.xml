@@ -129,5 +129,22 @@
 		;
 	]]>
 	</select>
+	
+	<select id="countSWCWash" resultType="int" parameterType="string">
+	<![CDATA[
+		SELECT 
+		    COUNT(1)
+		FROM
+		    steel_wire_container_wash_process
+		WHERE
+		    process_type = #{process_type}
+		AND 
+			process_time 
+		BETWEEN
+			(SELECT action_time FROM af_production_feature WHERE af_pf_key = #{af_pf_key})
+		AND
+			(SELECT finish_time FROM af_production_feature WHERE af_pf_key = #{af_pf_key})
+	]]>
+	</select>
 
 </mapper>
