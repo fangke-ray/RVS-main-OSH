@@ -364,6 +364,7 @@ public class AcceptFactService {
 					// 返回 1） + 2）
 					BigDecimal standardPart2_2 = partialWarehouseDetailMapper.countOffShelfStandardTime(key);
 					standardPart2.add(standardPart2_2);
+					break;
 				case "241" : // 维修出货单制作
 					// 通过fact_material表取得出货单制作数量
 					standardPart2 = calcFromFactMaterial(key, "SHIPPING_ORDER_PER_MAT", conn);
@@ -386,6 +387,7 @@ public class AcceptFactService {
 					BigDecimal factor = storedStandardFactors.get("SWC_WASH_PER_CD");
 					
 					standardPart2 = factor.multiply(new BigDecimal(cn));
+					break;
 			}
 		}
 
