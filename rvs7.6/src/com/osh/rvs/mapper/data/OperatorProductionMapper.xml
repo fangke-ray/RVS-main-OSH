@@ -368,7 +368,18 @@
 			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70);
 		]]>
 	</update>
-	
+
+	<update id="autoFinishPauseFeature" parameterType="OperatorProductionEntity">
+	<![CDATA[ 
+		UPDATE `pause_feature` SET
+			FINISHER_ID = #{operator_id},
+			PAUSE_FINISH_TIME = #{pause_finish_time}
+		WHERE OPERATOR_ID = #{operator_id}
+			AND PAUSE_FINISH_TIME IS NULL
+			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70);
+	]]>
+	</update>
+
 	<update id="updatePauseOvertime" parameterType="OperatorProductionEntity">
 		<![CDATA[
 			UPDATE pause_feature
@@ -441,6 +452,18 @@
 				and operator_id = #{operator_id}
 			) mft
 			;
+		]]>
+	</select>
+
+	<select id="getOperatorPauseFinishPast" parameterType="OperatorProductionEntity" resultType="int">
+		<![CDATA[ 
+		SELECT count(1) FROM
+		pause_feature
+		WHERE
+		operator_id = #{operator_id}
+		AND pause_finish_time >= #{pause_finish_time}
+		AND REASON BETWEEN 100 and 300
+		;
 		]]>
 	</select>
 

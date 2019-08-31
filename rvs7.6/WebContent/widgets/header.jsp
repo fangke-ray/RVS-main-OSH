@@ -491,7 +491,7 @@ $(function() {
     			operator_ws.send("pong:"+resInfo.id + "+" + operator_ws.readyState);
     		} else if ("message" == resInfo.method) {
     			refreshMes();
-    		} else if ("message" == resInfo.method) {
+    		} else if ("afRefresh" == resInfo.method) {
     			afObj.refresh();
     		} else if ("light" == resInfo.method) {
     			if (typeof(refreshLightWaiting) === "function") refreshLightWaiting(resInfo.list);

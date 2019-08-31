@@ -74,11 +74,19 @@ public class AfProductionFeatureAction extends BaseAction {
 			callbackResponse.put("processForm", processForm);
 		}
 
-		// 可做工位
-		List<PositionEntity> afAbilities = user.getAfAbilities();
-		callbackResponse.put("afAbilities", afAbilities);
+		String init = req.getParameter("init");
 
-		callbackResponse.put("pauseReasonGroup", PauseFeatureService.getPauseReasonIndirectGroupMap());
+		if (init != null) {
+			// 可做工位
+			List<PositionEntity> afAbilities = user.getAfAbilities();
+			callbackResponse.put("afAbilities", afAbilities);
+
+			callbackResponse.put("pauseReasonGroup", PauseFeatureService.getPauseReasonIndirectGroupMap());
+		}
+
+		boolean isManager = user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING)
+				|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE);
+		callbackResponse.put("isManager", isManager);
 
 		// 检查发生错误时报告错误信息
 		callbackResponse.put("errors", new ArrayList<MsgInfo>());
@@ -119,4 +127,35 @@ public class AfProductionFeatureAction extends BaseAction {
 		
 		log.info("AfProductionFeatureAction.doSwitch end");
 	}
+
+	/**
+	 * 作业记录停止（管理员：停止记录/操作人员：下班）
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	@Privacies(permit={1, 0})
+	public void doEnd(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("AfProductionFeatureAction.doEnd start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		AcceptFactService service = new AcceptFactService();
+
+		service.end(form, user, conn);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", new ArrayList<MsgInfo>());
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("AfProductionFeatureAction.doEnd end");
+	}
+
 }

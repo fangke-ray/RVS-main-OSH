@@ -160,29 +160,9 @@ public class OperatorProductionService {
 
 			Calendar startTime = Calendar.getInstance();
 			startTime.setTime(conditionBean.getPause_start_time());
-			int nowHour = startTime.get(Calendar.HOUR_OF_DAY);
-			int nowMinute = startTime.get(Calendar.MINUTE);
 
-			boolean restAfternoon = false;
-			// 4段结束时间
-			// 12:00 之前，12:00结束，补上12:00～17:30的下午休假。
-			// 17:30 之前，17:30结束
-			// 20:30 之前，20:30结束
-			// 20:30 之后，1分钟结束
-			if (nowHour < work_forenoon_end ||
-					(nowHour == work_forenoon_end && nowMinute < work_forenoon_end_min)) {
-				conditionBean.setPause_finish_time(getNewDate(startTime.getTime(), work_forenoon_end, work_forenoon_end_min));
-				restAfternoon = true;
-			} else if (nowHour < work_end ||
-					(nowHour == work_end && nowMinute < work_end_min)) {
-				conditionBean.setPause_finish_time(getNewDate(startTime.getTime(), work_end, work_end_min));
-			} else if (nowHour < work_overwork_end ||
-					(nowHour == work_overwork_end && nowMinute < work_overwork_end_min)) {
-				conditionBean.setPause_finish_time(getNewDate(startTime.getTime(), work_overwork_end, work_overwork_end_min));
-			} else {
-				startTime.add(Calendar.MINUTE, 1);
-				conditionBean.setPause_finish_time(startTime.getTime());
-			}
+			boolean restAfternoon = isStartAtAm(startTime);
+			conditionBean.setFinish_time(getAutoFinishTime(startTime));
 
 			if (conditionBean.getReason() == null) {
 				if (!CommonStringUtil.isEmpty(conditionBean.getComments())) {
@@ -213,7 +193,49 @@ public class OperatorProductionService {
 		}
 		
 	}
-	
+
+	/**
+	 * 开始时间是上午
+	 * @param startTime
+	 * @return
+	 */
+	public boolean isStartAtAm(Calendar startTime) {
+		int nowHour = startTime.get(Calendar.HOUR_OF_DAY);
+		int nowMinute = startTime.get(Calendar.MINUTE);
+		if (nowHour < work_forenoon_end ||
+				(nowHour == work_forenoon_end && nowMinute < work_forenoon_end_min)) {
+			return true;
+		}
+		return false;
+	}
+	/**
+	 * 取得自动结束时间
+	 * @param startTime
+	 * @return
+	 */
+	public Date getAutoFinishTime(Calendar startTime) {
+		// 4段结束时间
+		// 12:00 之前，12:00结束，补上12:00～17:30的下午休假。
+		// 17:30 之前，17:30结束
+		// 20:30 之前，20:30结束
+		// 20:30 之后，1分钟结束
+		int nowHour = startTime.get(Calendar.HOUR_OF_DAY);
+		int nowMinute = startTime.get(Calendar.MINUTE);
+		if (nowHour < work_forenoon_end ||
+				(nowHour == work_forenoon_end && nowMinute < work_forenoon_end_min)) {
+			return getNewDate(startTime.getTime(), work_forenoon_end, work_forenoon_end_min);
+		} else if (nowHour < work_end ||
+				(nowHour == work_end && nowMinute < work_end_min)) {
+			return getNewDate(startTime.getTime(), work_end, work_end_min);
+		} else if (nowHour < work_overwork_end ||
+				(nowHour == work_overwork_end && nowMinute < work_overwork_end_min)) {
+			return getNewDate(startTime.getTime(), work_overwork_end, work_overwork_end_min);
+		} else {
+			startTime.add(Calendar.MINUTE, 1);
+			return startTime.getTime();
+		}
+	}
+
 	public void deletePauseOvertime(ActionForm form, SqlSession conn) throws Exception {
 		OperatorProductionEntity conditionBean = new OperatorProductionEntity();
 		BeanUtil.copyToBean(form, conditionBean, null);
@@ -888,5 +910,26 @@ public class OperatorProductionService {
 	 */
 	public Date getAutoStartTime() {
 		return getNewDate(new Date(), work_start, work_start_min, 1);
+	}
+
+	public boolean checkFinishDayWork(String operator_id, SqlSession conn) {
+		// 下班时间
+		Date offWork = getNewDate(new Date(), work_end, work_end_min, 0);
+		OperatorProductionMapper dao = conn.getMapper(OperatorProductionMapper.class);
+		OperatorProductionEntity condition = new OperatorProductionEntity();
+		condition.setOperator_id(operator_id);
+		condition.setPause_finish_time(offWork);
+
+		int cnt = dao.getOperatorPauseFinishPast(condition);
+
+		return cnt > 0;
+	}
+
+	public void assertFinishPauseFeature(String operator_id, Date assert_pause_finish, SqlSessionManager conn) {
+		OperatorProductionMapper mapper = conn.getMapper(OperatorProductionMapper.class);
+		OperatorProductionEntity condition = new OperatorProductionEntity();
+		condition.setOperator_id(operator_id);
+		condition.setPause_finish_time(assert_pause_finish);
+		mapper.autoFinishPauseFeature(condition);
 	}
 }

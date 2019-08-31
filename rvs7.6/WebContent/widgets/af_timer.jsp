@@ -242,7 +242,20 @@ var refreshAf = function(init) {
 					.find("li").hide();
 			}
 
-			setProcessForm(resInfo.processForm);
+			if(resInfo.isManager) {
+				$afTimer.data("is_manager", resInfo.isManager);
+				if (resInfo.isManager == true) {
+					$("#af_pause_reason_group li[group='-1']").text("◑ 关闭计时");
+				}
+			}
+
+			if(resInfo.processForm) {
+				isClosed = false;
+				setProcessForm(resInfo.processForm);
+			} else {
+				isClosed = true;
+				$("#af_timer .prod").text("停止计时").attr("line", 1);
+			}
 
 			clearInterval(af_clockTo);
 			af_clockTo = setInterval(refreshRate, 60000);
@@ -254,8 +267,12 @@ var setProcessForm = function(processForm){
 	var type_code = processForm.production_type;
 	if (processForm.is_working === "0") {
 		setProdText(type_code, "p");
+		$("#af_pause_reason_group li[group='-1']").show();
 	} else {
 		setProdText(type_code, "a");
+		if ($afTimer.data("is_manager") != true) {
+			$("#af_pause_reason_group li[group='-1']").hide();
+		}
 	}
 	now_standard = processForm.standard_minutes;
 	$("#af_standard").text(now_standard || "");
@@ -352,6 +369,7 @@ var setInpagePos = function(){
 	var $afHolder = $("#af_holder");
 	var now_standard = 0;
 	var af_clockTo = null;
+	var isClosed = false;
 
 	$afHolder
 	.bind("mousedown", function(evt){
@@ -361,10 +379,12 @@ var setInpagePos = function(){
 		setInpagePos();
 		if (Math.abs(af_xM - saf_xM) < 10 && Math.abs(af_yM - saf_yM) < 10) {
 			if ($afTimer.attr("switch") === "no") {
-				$("#af_pause_reason").find("li").hide();
-				$("#af_abilities").find("li").hide();
-				$("#af_abilities_group li.selected, #af_pause_reason_group li.selected").removeClass("selected");
-				$afTimer.attr("switch", "yes");
+				if (!isClosed || $afTimer.data("is_manager") == true) {
+					$("#af_pause_reason").find("li").hide();
+					$("#af_abilities").find("li").hide();
+					$("#af_abilities_group li.selected, #af_pause_reason_group li.selected").removeClass("selected");
+					$afTimer.attr("switch", "yes");
+				}
 			} else {
 				$afTimer.attr("switch", "no");
 			}
@@ -422,6 +442,11 @@ var setInpagePos = function(){
 
 	$("#af_pause_reason_group").on("click", "li", function(){
 		var group = $(this).attr("group");
+		if (group == "-1") {
+			closeWork();
+			return;
+		}
+
 		$("#af_abilities").find("li").hide();
 		$("#af_pause_reason").find("li").hide()
 			.filter("[group='" + group + "']").show();
@@ -463,7 +488,49 @@ var getClockPosY = function(rate){
 	return -Math.cos(rate*2*Math.PI);
 }
 
+var closeWork = function(){
+	if ($afTimer.data("is_manager") == true) {
+		doEnd();
+	} else {
+		warningConfirm("您是否要完成当天所有的作业？", doEnd, null, "结束当前作业");
+	}
+}
+
 var swtiching = false;
+var doEnd = function(is_working, production_type, saraniCallback) {
+	if (swtiching) return;
+
+	swtiching = true;
+
+	$afTimer.attr("switch", "no");
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'af_production_feature.do?method=doEnd',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhjObj) {
+			var resInfo = $.parseJSON(xhjObj.responseText);
+			swtiching = false;
+
+			$("#af_timer .prod").text("停止计时").attr("line", 1);
+			now_standard = 0;
+			$("#af_standard").text("");
+			$("#af_process").text("");
+			$("#af_holder div").css({"height": "0%", "marginTop": "100%"})
+				.removeAttr("process");
+
+			clearInterval(af_clockTo);
+			if (typeof(saraniCallback) == "function") saraniCallback();
+		}
+	});
+}
+
 var doSwitch = function(is_working, production_type, saraniCallback) {
 	if (swtiching) return;
 
@@ -499,6 +566,20 @@ var doSwitch = function(is_working, production_type, saraniCallback) {
 
 return {
 	applyProcess : function(process_type_code, call_obj, call_method, call_params) {
+		if (isClosed) {
+			if ($afTimer.data("is_manager") != true) {
+				errorPop("您已下班，当天不能再处理需要计时的作业。");
+				return;
+			} else if (process_type_code == 103 || process_type_code == 213 || process_type_code == 214 || process_type_code == 241) { // 必须记录
+				doSwitch("1", post_production_type, function(){
+					call_method.apply(call_obj, call_params);
+				});
+			} else {
+				call_method.apply(call_obj, call_params); // 直接执行
+			}
+			return;
+		}
+
 		var fromTcode = $afTimer.attr("type_code");
 		var codeMatch = false;
 		if (process_type_code instanceof Array) {
@@ -511,7 +592,7 @@ return {
 			codeMatch = (fromTcode == process_type_code);
 		}
 		if ($afTimer.attr("from") === "a" && codeMatch) {
-			call_method.apply(call_obj, call_params);
+			call_method.apply(call_obj, call_params); // 直接执行
 		} else {
 			var fromText, toText;
 			if ($afTimer.attr("from") === "a") {

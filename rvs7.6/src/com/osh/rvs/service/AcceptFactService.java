@@ -2,6 +2,7 @@ package com.osh.rvs.service;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -116,17 +117,24 @@ public class AcceptFactService {
 			OperatorProductionMapper mapper = conn.getMapper(OperatorProductionMapper.class);
 			OperatorProductionEntity processingPauseStart = mapper.getProcessingPauseStart(user.getOperator_id());
 			if (processingPauseStart == null) {
-				boolean isManager = user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING);
+				boolean isManager = user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING)
+						|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE);
 				if (!isManager) {
-					// 建立“WY7:作业准备”状态
-					AfProductionFeatureForm pausingForm = new AfProductionFeatureForm();
-					OperatorProductionService opService = new OperatorProductionService();
-					Date autoStartTime = opService.getAutoStartTime(); 
-					opService.createSimplePauseFeature(user.getOperator_id(), REASON_WY7, autoStartTime, "", null);
-					pausingForm.setProduction_type("" + REASON_WY7);
-					pausingForm.setAction_time(DateUtil.toString(autoStartTime, DateUtil.DATE_TIME_PATTERN));
-					pausingForm.setIs_working("0");
-					return pausingForm;
+					// 判断已经下班
+					OperatorProductionService pfService = new OperatorProductionService();
+					if (!pfService.checkFinishDayWork(user.getOperator_id(), conn)) {
+						// 建立“WY7:作业准备”状态
+						AfProductionFeatureForm pausingForm = new AfProductionFeatureForm();
+						OperatorProductionService opService = new OperatorProductionService();
+						Date autoStartTime = opService.getAutoStartTime(); 
+						opService.createSimplePauseFeature(user.getOperator_id(), REASON_WY7, autoStartTime, "", null);
+						pausingForm.setProduction_type("" + REASON_WY7);
+						pausingForm.setAction_time(DateUtil.toString(autoStartTime, DateUtil.DATE_TIME_PATTERN));
+						pausingForm.setIs_working("0");
+						return pausingForm;
+					} else {
+						return null;
+					}
 				} else {
 					return null;
 				}
@@ -529,18 +537,47 @@ public class AcceptFactService {
 	}
 
 	/**
+	 * 结束计时
+	 * @param form
+	 * @param user
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void end(ActionForm form, LoginData user, SqlSessionManager conn) throws Exception {
+		// 操作者 ID
+		String operator_id = user.getOperator_id();
+
+		boolean isManager = user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING)
+				|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE);
+		// 是管理员, 只结束不开始下一个
+		if (isManager) {
+			switchTo(null, null, null, operator_id, false, conn);
+		} else {
+			// 操作人员，将间隔时间的结束时间延长到下班OR加班时段定时
+			OperatorProductionService opService = new OperatorProductionService();
+			Calendar now = Calendar.getInstance();
+
+			// 自动结束时间
+			Date autoFinishTime = opService.getAutoFinishTime(now);
+			// 更新当前间隔结束于自动
+			opService.assertFinishPauseFeature(operator_id, autoFinishTime, conn);
+		}
+
+	}
+
+	/**
 	 * 切换作业
 	 * @param from_working 当前是TRUE=直接作业；FALSE=其他；NULL=不明
-	 * @param to_working 要切换到TRUE=直接作业；FALSE=其他
+	 * @param to_working 要切换到TRUE=直接作业；FALSE=其他；NULL=没有下一个记录时间
 	 * @param production_type 作业内容
 	 * @param operator_id 操作者 ID
 	 * @param check_status 判断是否已经是需要切换的状态了
 	 * @param conn
 	 * @throws Exception 
 	 */
-	public Date switchTo(Boolean from_working, boolean to_working, String production_type, 
+	public Date switchTo(Boolean from_working, Boolean to_working, String production_type, 
 			String operator_id, boolean check_status, SqlSessionManager conn) throws Exception {
-		if (operator_id == null || production_type == null) return null;
+		if (operator_id == null || (to_working != null && production_type == null)) return null;
 
 		AfProductionFeatureMapper apfMapper = conn.getMapper(AfProductionFeatureMapper.class);
 		PauseFeatureService pfService = new PauseFeatureService();
@@ -550,7 +587,7 @@ public class AcceptFactService {
 			AfProductionFeatureEntity apfEntity = apfMapper.getUnfinishByOperator(operator_id);
 			from_working = (apfEntity != null);
 
-			if (to_working && from_working && check_status) {
+			if (to_working != null && to_working && from_working && check_status) {
 				if (production_type.equals(apfEntity.getProduction_type() + "")) {
 					return null; // 已经开始此作业内容则不需要操作
 				}
@@ -566,18 +603,20 @@ public class AcceptFactService {
 		}
 
 		Date action_time = new Date();
-		if (to_working) {
-			// 建立新直接作业
-			AfProductionFeatureEntity insertEntity = new AfProductionFeatureEntity();
-			insertEntity.setProduction_type(IntegerConverter.getInstance().getAsObject(production_type));
-			insertEntity.setOperator_id(operator_id);
-			insertEntity.setAction_time(action_time);
-			apfMapper.insert(insertEntity);
-		} else {
-			// 建立新间隔作业
-			OperatorProductionService opService = new OperatorProductionService();
-			opService.createSimplePauseFeature(operator_id, IntegerConverter.getInstance().getAsObject(production_type), 
-					action_time, null, conn);
+		if (to_working != null) {
+			if (to_working) {
+				// 建立新直接作业
+				AfProductionFeatureEntity insertEntity = new AfProductionFeatureEntity();
+				insertEntity.setProduction_type(IntegerConverter.getInstance().getAsObject(production_type));
+				insertEntity.setOperator_id(operator_id);
+				insertEntity.setAction_time(action_time);
+				apfMapper.insert(insertEntity);
+			} else {
+				// 建立新间隔作业
+				OperatorProductionService opService = new OperatorProductionService();
+				opService.createSimplePauseFeature(operator_id, IntegerConverter.getInstance().getAsObject(production_type), 
+						action_time, null, conn);
+			}
 		}
 		return action_time;
 	}

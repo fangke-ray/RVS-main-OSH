@@ -23,7 +23,8 @@ public interface OperatorProductionMapper {
 	public String existPause(OperatorProductionEntity entity);
 	
 	public void updatePause(OperatorProductionEntity entity);
-	
+	public void autoFinishPauseFeature(OperatorProductionEntity entity);
+
 	public OperatorProductionEntity getPauseOvertime(OperatorProductionEntity entity);
 	
 	public void deletePauseOvertime(OperatorProductionEntity entity);
@@ -45,4 +46,5 @@ public interface OperatorProductionMapper {
 	 * @return
 	 */
 	public Date getLastProceedFinish(String operator_id);
+	public int getOperatorPauseFinishPast(OperatorProductionEntity condition);
 }
