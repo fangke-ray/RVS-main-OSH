@@ -187,4 +187,37 @@
 	]]>
 	</select>
 	
+	<select id="countOffShelfStandardTime" resultType="BigDecimal" parameterType="string">
+	<![CDATA[
+		SELECT
+		   SUM(pwd.quantity * pbs.off_shelf)
+		FROM
+			(SELECT
+			    fact_partial_warehouse.partial_warehouse_key
+			FROM
+				fact_partial_warehouse
+			JOIN
+			    af_production_feature
+			ON
+				fact_partial_warehouse.af_pf_key = af_production_feature.af_pf_key
+			WHERE
+				af_production_feature.af_pf_key = #{af_pf_key}
+			GROUP BY
+				fact_partial_warehouse.partial_warehouse_key
+			) AS fpw
+		JOIN
+			partial_warehouse_detail pwd
+		ON
+			fpw.partial_warehouse_key = pwd.key
+		JOIN
+			partial
+		ON
+			pwd.partial_id = partial.partial_id
+		JOIN
+			partial_bussiness_standard pbs
+		ON
+			partial.spec_kind = pbs.spec_kind
+	]]>
+	</select>
+	
 </mapper>

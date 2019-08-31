@@ -66,4 +66,12 @@ public interface PartialWarehouseDetailMapper {
 	 * @return
 	 */
 	public BigDecimal countUnpackStandardTime(@Param("af_pf_key") String af_pf_key);
+	
+	/**
+	 * 根据作业af_pf_key统计零件下架标准工时
+	 * @param af_pf_key
+	 * @return
+	 */
+	public BigDecimal countOffShelfStandardTime(@Param("af_pf_key") String af_pf_key);
+	
 }
