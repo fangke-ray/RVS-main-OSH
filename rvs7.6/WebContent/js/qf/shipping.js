@@ -164,7 +164,7 @@ function load_list(listdata){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['受理时间','同意时间','完成日期','返还','修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处', '等级', '加急', '通箱位置'],
+			colNames:['受理时间','同意时间','完成日期','返还','修理单号', '货单制作', '型号 ID', '型号' , '机身号','委托处', '等级', '加急', '通箱位置'],
 			colModel:[{
 						name : 'reception_time',
 						index : 'reception_time',
@@ -200,7 +200,7 @@ function load_list(listdata){
 						hidden : true		
 					},
 				{name:'sorc_no',index:'sorc_no', width:105},
-				{name:'esas_no',index:'esas_no', width:50, align:'center'},
+				{name:'filing_time',index:'filing_time', width:50, align:'center',sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'Y-m-d'}},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_id', width:125},
 				{name:'serial_no',index:'serial_no', width:50, align:'center'},
@@ -268,7 +268,7 @@ function acceptted_list(quotation_listdata){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['受理时间','同意时间','总组完成时间','出货时间', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号', '委托处', '等级'],
+			colNames:['受理时间','同意时间','总组完成时间','出货时间', '修理单号', '型号 ID', '型号' , '机身号', '委托处', '等级'],
 			colModel:[
 				{
 						name : 'reception_time',
@@ -293,7 +293,6 @@ function acceptted_list(quotation_listdata){
 						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'H:i'}
 				},
 				{name:'sorc_no',index:'sorc_no', width:105},
-				{name:'esas_no',index:'esas_no', width:50, align:'center'},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_id', width:125},
 				{name:'serial_no',index:'serial_no', width:50, align:'center'},
