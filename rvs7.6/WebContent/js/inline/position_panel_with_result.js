@@ -132,9 +132,16 @@ var treatStart = function(resInfo) {
 	leagal_overline = resInfo.leagal_overline;
 
 	// 暂时的
+	var mforms = [];
 	if (resInfo.mform) {
-		var tube_id = "w_" + resInfo.mform.material_id;
-		if (resInfo.mform.operate_result == "5") {
+		mforms[0] = resInfo.mform;
+	} else if (resInfo.mforms) {
+		mforms = resInfo.mforms;
+	}
+	for (var i = 0; i < mforms.length; i++) {
+		var mform = mforms[i];
+		var tube_id = "w_" + mform.material_id;
+		if (mform.operate_result == "5") {
 			tube_id = tube_id + "_5";
 		}
 		$("#" + tube_id).hide("drop", {direction: 'right'}, function() {
@@ -144,11 +151,11 @@ var treatStart = function(resInfo) {
 			if (jGroup.nextUntil(".w_group").length == 0) {
 				jGroup.hide("fade", function() {
 					jGroup.remove();
-				})
+				});
 			}
-		});
+		});		
 	}
-
+		
 	if (resInfo.material_comment || (device_safety_guide && device_safety_guide.length)) {
 		showSidebar(resInfo.material_comment);
 	} else {
@@ -156,7 +163,7 @@ var treatStart = function(resInfo) {
 	}
 
 	$("#finishbutton").enable();
-	remapworking(resInfo.workingPfs)
+	remapworking(resInfo.workingPfs);
 }
 
 var showBreakOfInfect = function(infectString) {
@@ -377,6 +384,17 @@ $(function() {
 	});
 
 	doInit();
+
+	if ($("#g_process_code").val() == "131") {
+		$("#btnarea").hide();
+	} else {
+		$("#rcbutton").on("click",function(){
+			doStartAll("rc", 112);
+		});
+		$("#packagebutton").on("click",function(){
+			doStartAll("package", 113);
+		});
+	}
 
 	// 输入框触发，配合浏览器
 	$("#scanner_inputer").keypress(function(){
@@ -663,18 +681,62 @@ var prevzero =function(i) {
 	} else {
 		return "" + i; 
 	}
-}
+};
 
 var minuteFormat =function(iminute) {
 	var hours = parseInt(iminute / 60);
 	var minutes = iminute % 60;
 
 	return prevzero(hours) + ":" + prevzero(minutes);
-}
+};
 
 var convertMinute =function(sminute) {
 	var hours = sminute.replace(/(.*):(.*)/, "$1");
 	var minutes = sminute.replace(/(.*):(.*)/, "$2");
 
 	return hours * 60 + parseInt(minutes);
-}
+};
+
+var doStartAll = function(wk_type, processType) {
+	var material_ids = [];
+	var index = 0;
+	$("#waitings > div.tube").each(function(idx, ele){
+		var $wk = $(ele);
+		if ($wk.find("." + wk_type).length > 0) {
+			var wk_id = $wk.attr("id").replace("w_", "");
+			material_ids[index] = wk_id;
+			index++;
+		}
+	});
+	if (material_ids.length == 0) {
+		if (wk_type == "rc") {
+			errorPop("没有备品作业，请选择其他作业对象。");
+		} else {
+			errorPop("没有通箱作业，请选择其他作业对象。");
+		}
+		return false;
+	}
+
+	var data = {};
+	data.material_ids = material_ids.join(",");
+
+	$("#scanner_inputer").attr("value", "");
+
+	afObj.applyProcess(processType, this, doStartAllPost, [data]);
+};
+
+var doStartAllPost = function(data) {
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=doscanfAll',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : doStart_ajaxSuccess
+	});
+};

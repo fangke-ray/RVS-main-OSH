@@ -2089,4 +2089,68 @@ public class PositionPanelAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 		log.info("PositionPanelAction.doFoundryChange end");
 	}
+
+	@Privacies(permit={0})
+	public void doscanfAll(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("PositionPanelAction.doscanfAll start");
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String material_ids = req.getParameter("material_ids");
+		String[] id_split = material_ids.split(",");
+
+		// 取得用户信息
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 停止之前的暂停
+		bfService.finishPauseFeature(null, null, null, user.getOperator_id(), conn);
+
+		List<MaterialForm> mforms = new ArrayList<MaterialForm>();
+		for (int i = 0; i < id_split.length; i++) {
+			String material_id = id_split[i];
+			// 通箱的场合
+			if (material_id.contains("_")) {
+				String[] split = material_id.split("_");
+				material_id = split[0];
+			}
+
+			// 判断维修对象在等待区，并返回这一条作业信息
+			ProductionFeatureEntity waitingPf = service.checkMaterialId(id_split[i], "true", user, errors, conn);
+	
+			if (errors.size() == 0) {
+				// 取得维修对象信息。
+				MaterialForm mform = new MaterialForm();
+				mform.setMaterial_id(waitingPf.getMaterial_id());
+				mform.setOperate_result(String.valueOf(waitingPf.getOperate_result()));
+				mforms.add(mform);
+
+				// 作业信息状态改为，批量作业中
+				waitingPf.setOperator_id(user.getOperator_id());
+				pfService.startBatchProductionFeature(waitingPf, conn);
+	
+				// 如果等待中信息是暂停中，则结束掉暂停记录(有可能已经被结束)
+				// 只要开始做，就结束掉本人所有的暂停信息。
+				bfService.finishPauseFeature(material_id, user.getSection_id(), user.getPosition_id(), user.getOperator_id(), conn);
+			}
+		}
+
+		if (errors.size() > 0) {
+			conn.rollback();
+		} else {
+			listResponse.put("mforms", mforms);
+			// 取得现在处理中的批量
+			service.searchWorkingBatch(listResponse, user, conn);
+		}
+
+		user.setSection_id(user.getSection_id());
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("PositionPanelAction.doscanfAll end");
+	}
 }

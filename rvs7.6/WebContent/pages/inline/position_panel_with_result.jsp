@@ -120,6 +120,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			</div>
 
 			<div class="dwidth-full">
+				<div id="btnarea" style="margin-bottom: 10px;">
+					<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="rcbutton" value="备品全部投入" role="button" aria-disabled="false">
+					<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="packagebutton" value="通箱全部投入" role="button" aria-disabled="false">
+				</div>
+
 				<div id="storagearea" style="float: left;">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-half">
 						<span class="areatitle">等待区信息</span>
