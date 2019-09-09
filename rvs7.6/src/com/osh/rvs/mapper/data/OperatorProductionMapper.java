@@ -47,4 +47,9 @@ public interface OperatorProductionMapper {
 	 */
 	public Date getLastProceedFinish(String operator_id);
 	public int getOperatorPauseFinishPast(OperatorProductionEntity condition);
+
+	public List<OperatorProductionEntity> getAfProductionFeatureByCondition(
+			OperatorProductionEntity conditionBean);
+
+	public List<OperatorProductionEntity> getAfProductionFeatureByKey(OperatorProductionEntity conditionBean);
 }

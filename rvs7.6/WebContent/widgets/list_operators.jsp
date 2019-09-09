@@ -54,16 +54,7 @@ boolean isLeader = Boolean.valueOf("" + request.getAttribute("isLeader"));
 				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
 				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchbutton" value="检索" role="button" aria-disabled="false" style="float:right;right:2px">
 			</div>
-<% 
-	LoginData user = (LoginData) request.getSession().getAttribute(RvsConsts.SESSION_USER);
-	String role_id = user.getRole_id();
-	if ("00000000009".equals(role_id) || "00000000012".equals(role_id) || "00000000004".equals(role_id)) { 
-%>			<div style="height:44px">
-				<input type="button" class="ui-button" id="monthreportbutton" value="月报表下载" style="float:right;right:2px">
-			</div>
-<% 
-	}
-%>		</form>
+		</form>
 	</div>
 	<div class="clear areaencloser"></div>
 </div>

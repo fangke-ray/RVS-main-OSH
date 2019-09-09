@@ -73,7 +73,7 @@ $(function() {
 				width : 992,
 				rowheight : 23,
 				datatype : "local",
-				colNames : ['作业时间', '','工号', '姓名', '', '担当主要工位', '实际工时',
+				colNames : ['作业时间', '','工号', '姓名', '', '担当主要工位/作业', '实际工时',
 						'主要技能'],
 				colModel : [{
 							name : 'action_time',

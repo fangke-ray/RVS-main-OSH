@@ -420,14 +420,14 @@ public class OperatorProductionAction extends BaseAction {
 	private List<OperatorProductionForm> searchByCondition(ActionForm form, SqlSession conn) {
 		// 检索条件表单合法性检查
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
-		
+
 		List<MsgInfo> errors = v.validate();
-		
+
 		List<OperatorProductionForm> lResultForm = new ArrayList<OperatorProductionForm>();
 		if (errors.size() == 0) {
 			lResultForm = operatorProductionService.searchByCondition(form, conn);
 		}
-		
+
 		return lResultForm;
 	}
 	

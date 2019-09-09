@@ -66,7 +66,7 @@
 		]]>
 		<where>
 			<![CDATA[
-				a.work_count_flg <> 0
+				a.work_count_flg = 1
 			]]>
 			<if test="section_id != null and section_id!= ''">
 				and a.section_id = #{section_id}
@@ -78,7 +78,7 @@
 				and a.name like CONCAT('%','${name}','%') 
 			</if>
 			<if test="line_id != null and line_id!= ''">
-				and pos_main.line_id =#{line_id}
+				and (pos_main.line_id =#{line_id} OR a.line_id = #{line_id})
 			</if>
 			<if test="delete_flg == null or delete_flg == ''">
 				and a.delete_flg = 0
@@ -110,7 +110,7 @@
 		]]>
 		<where>
 			<![CDATA[
-				a.work_count_flg <> 0
+				a.work_count_flg = 1
 			]]>
 			<if test="job_no != null and job_no!= ''">
 				and a.job_no = #{job_no}
@@ -181,7 +181,7 @@
 			    order by count(*) desc
 			    limit 1) as tmp ON tmp.operator_id = a.operator_id
 			LEFT JOIN
-			    line c ON tmp.line_id = c.line_id
+			    line c ON coalesce(tmp.line_id, a.line_id) = c.line_id
 			where a.operator_id = #{operator_id};
 		]]>
 	</select>
@@ -467,4 +467,109 @@
 		]]>
 	</select>
 
+	<select id="getAfProductionFeatureByCondition" parameterType="OperatorProductionEntity" resultType="OperatorProductionEntity">
+		<![CDATA[
+			SELECT a.operator_id, coalesce(b.action_date, #{action_time_start}, current_date) as action_time,
+				a.job_no,
+				a.name,
+				pos_main.name as main_ability,
+				group_concat(distinct production_type separator ' ') as position_name,
+				sum(worktime) as worktime
+			FROM operator a
+			left join (
+				SELECT 
+				production_type,
+				operator_id,
+				date(action_time) as action_date,
+				COALESCE(sum(COALESCE(unix_timestamp(finish_time) - unix_timestamp(action_time),0)), 0) as worktime
+				FROM af_production_feature
+				WHERE action_time is not null
+				]]>
+				<if test="action_time_start !=null">
+					<![CDATA[
+					and action_time >= #{action_time_start}
+					]]>
+				</if>		
+				<if test="action_time_end !=null">
+					<![CDATA[
+					and action_time < date_add(#{action_time_end}, interval 1 day)
+					]]>
+				</if>
+				<![CDATA[
+				group by production_type,operator_id,action_date
+				]]>
+			<![CDATA[
+			) b on a.operator_id = b.operator_id
+			left join position pos_main on a.position_id = pos_main.position_id
+		]]>
+		<where>
+			<![CDATA[
+				a.work_count_flg = 6
+			]]>
+			<if test="section_id != null and section_id!= ''">
+				and a.section_id = #{section_id}
+			</if>
+			<if test="job_no != null and job_no!= ''">
+				and a.job_no = #{job_no}
+			</if>	
+			<if test="name != null and name!= ''">
+				and a.name like CONCAT('%','${name}','%') 
+			</if>
+			<if test="line_id != null and line_id!= ''">
+				and a.line_id = #{line_id}
+			</if>
+			<if test="delete_flg == null or delete_flg == ''">
+				and a.delete_flg = 0
+			</if>
+		</where>
+		<![CDATA[
+			group by a.operator_id, b.action_date
+		]]>
+	</select>
+
+	<select id="getAfProductionFeatureByKey" parameterType="OperatorProductionEntity" resultType="OperatorProductionEntity">
+		<![CDATA[
+		SELECT
+			 c.position_id,
+			 '' as process_code,
+			 c.pause_start_time, 
+			 c.pause_finish_time,
+			 c.sorc_no,
+			 c.model_name as model_name,
+			 c.reason,
+			 c.comments,
+			 c.operate_result,
+			 c.pace
+		 from (
+			SELECT 
+				production_type as position_id,
+				a.action_time as pause_start_time,
+				a.finish_time as pause_finish_time,
+				'' as model_name,
+				'无详细' as sorc_no,
+				'' as reason,
+				'' as comments,
+				'' as operate_result,
+				'' as pace
+			FROM af_production_feature a
+			WHERE a.operator_id = #{operator_id}
+			AND (a.action_time between #{action_time} and date_add(#{action_time}, interval 1 day))
+			union
+			SELECT 
+				'' as position_id,
+				b.pause_start_time,
+				b.pause_finish_time,
+				'' as model_name,
+				'' as sorc_no,
+				b.reason,
+				b.comments,
+				'' as operate_result,
+				'' as pace
+			FROM pause_feature b
+			WHERE b.operator_id = #{operator_id}
+			AND (b.reason between 100 and 300 OR b.reason between 49 and 70)
+			AND b.pause_start_time between #{action_time} and date_add(#{action_time}, interval 1 day)
+		) as c order by pause_start_time,pause_finish_time
+		]]>
+	</select>
 </mapper>

@@ -9,8 +9,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpSession;
 
@@ -21,6 +23,7 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.OperatorProductionEntity;
+import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -28,7 +31,9 @@ import com.osh.rvs.form.data.MonthFilesDownloadForm;
 import com.osh.rvs.form.data.OperatorProductionForm;
 import com.osh.rvs.mapper.data.OperatorProductionMapper;
 import com.osh.rvs.mapper.master.HolidayMapper;
+import com.osh.rvs.mapper.master.OperatorMapper;
 
+import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
@@ -59,19 +64,60 @@ public class OperatorProductionService {
 		BeanUtil.copyToBean(form, conditionBean, null);
 		
 		OperatorProductionMapper dao = conn.getMapper(OperatorProductionMapper.class);
-		List<OperatorProductionEntity> list = null;
+		List<OperatorProductionEntity> list = new ArrayList<OperatorProductionEntity>();
+		List<OperatorProductionEntity> listDirect = new ArrayList<OperatorProductionEntity>();
+		List<OperatorProductionEntity> listIndirect = new ArrayList<OperatorProductionEntity>();
+
+		boolean forIndirect = (CommonStringUtil.isEmpty(conditionBean.getSection_id())) 
+				&& (CommonStringUtil.isEmpty(conditionBean.getLine_id()) 
+				|| "00000000011".equals(conditionBean.getLine_id()) || "00000000020".equals(conditionBean.getLine_id()));
+		// 检索条件限定日期时
 		if (conditionBean.getAction_time_start() != null && conditionBean.getAction_time_start().equals(conditionBean.getAction_time_end())) {
-			list = dao.getProductionFeatureByConditionOfDay(conditionBean);
+			listDirect = dao.getProductionFeatureByConditionOfDay(conditionBean);
+			list.addAll(listDirect);
 		} else {
-			list = dao.getProductionFeatureByCondition(conditionBean);
+			listDirect = dao.getProductionFeatureByCondition(conditionBean);
+			list.addAll(listDirect);
 		}
+		if (forIndirect) {
+			listIndirect = dao.getAfProductionFeatureByCondition(conditionBean);
+			for(OperatorProductionEntity indirect : listIndirect) {
+				indirect.setPosition_name(getIndirectWorkGroup(indirect.getPosition_name()));
+			}
+			list.addAll(listIndirect);
+		}
+
 		List<OperatorProductionForm> rtList = new ArrayList<OperatorProductionForm>();
-		if (list != null) {
-			BeanUtil.copyToFormList(list, rtList, null, OperatorProductionForm.class);
-		}
+
+		BeanUtil.copyToFormList(list, rtList, null, OperatorProductionForm.class);
+
 		return rtList;
 	}
-	
+
+	/**
+	 * 取得间接认员作业组名
+	 * 
+	 * @param codes
+	 * @return
+	 */
+	private String getIndirectWorkGroup(String codes) {
+		if (codes == null) return null;
+		Set<String> groupModules = new HashSet<String>();
+		String[] codeArr = codes.split(" ");
+
+		for (String code : codeArr) {
+			groupModules.add(code.substring(0, 2));
+		}
+
+		String ret = "";
+
+		for(String groupModule : groupModules) {
+			ret += (CodeListUtils.getValue("qf_production_module", groupModule)) + " ";
+		}
+
+		return ret;
+	}
+
 	public OperatorProductionForm getDetail(ActionForm form, SqlSession conn) {
 		OperatorProductionEntity conditionBean = new OperatorProductionEntity();
 		BeanUtil.copyToBean(form, conditionBean, null);
@@ -83,7 +129,7 @@ public class OperatorProductionService {
 		if (entity != null) {
 			BeanUtil.copyToForm(entity, rtForm, null);
 		}
-		
+
 		return rtForm;
 	}
 	
@@ -109,7 +155,19 @@ public class OperatorProductionService {
 		
 		OperatorProductionMapper dao = conn.getMapper(OperatorProductionMapper.class);
 		// 取得作业/暂停/组件作业的一览(数据库原始数据)
-		List<OperatorProductionEntity> list = dao.getProductionFeatureByKey(conditionBean);
+		List<OperatorProductionEntity> list = null;
+
+		OperatorMapper oMapper = conn.getMapper(OperatorMapper.class);
+		OperatorEntity target = oMapper.getOperatorByID(conditionBean.getOperator_id());
+		
+		if (target.getWork_count_flg() == RvsConsts.WORK_COUNT_FLG_INDIRECT) {
+			list = dao.getAfProductionFeatureByKey(conditionBean);
+			for(OperatorProductionEntity item : list) {
+				item.setProcess_code(CodeListUtils.getValue("qf_production_type", item.getPosition_id()));
+			}
+		} else {
+			list = dao.getProductionFeatureByKey(conditionBean);
+		}
 
 		// 编辑后的一览
 		List<OperatorProductionEntity> newList = new ArrayList<OperatorProductionEntity>();

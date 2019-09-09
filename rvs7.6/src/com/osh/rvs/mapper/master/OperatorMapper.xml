@@ -18,10 +18,10 @@
 			EMAIL,
 			PX,
 			UPDATED_BY,
-			UPDATED_TIME
+			UPDATED_TIME,
+			DELETE_FLG
 		FROM OPERATOR
-		WHERE DELETE_FLG = 0
-		AND OPERATOR_ID = #{operator_id};
+		WHERE OPERATOR_ID = #{operator_id};
 		]]>
 	</select>
 
