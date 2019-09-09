@@ -85,7 +85,8 @@ public class AfProductionFeatureAction extends BaseAction {
 		}
 
 		boolean isManager = user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING)
-				|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE);
+				|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE)
+				|| user.getPrivacies().contains(RvsConsts.PRIVACY_RECEPT_EDIT);
 		callbackResponse.put("isManager", isManager);
 
 		// 检查发生错误时报告错误信息
@@ -156,6 +157,76 @@ public class AfProductionFeatureAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 		
 		log.info("AfProductionFeatureAction.doEnd end");
+	}
+
+	/**
+	 * 取得本人零件订购单编辑记录+SAP零件单修改记录
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void getPartialOrderList(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+		log.info("AfProductionFeatureAction.getPartialOrderList start");
+
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		AcceptFactService service = new AcceptFactService();
+
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		callbackResponse.put("today_partial_order_edit_by_self", service.getTodayPartialOrderEditBySelf(user.getOperator_id(), conn));
+
+		callbackResponse.put("today_partial_order_edit_from_sap", service.getTodayPartialOrderEditFromSap(conn));
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", new ArrayList<MsgInfo>());
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("AfProductionFeatureAction.getPartialOrderList end");
+	}
+
+	/**
+	 * 提交维修对象零件订单编辑记录
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void doPartialOrder(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("AfProductionFeatureAction.doPartialOrder start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		AcceptFactService service = new AcceptFactService();
+
+		boolean edited = service.editPartialOrder(req.getParameter("omr_notifi_no"), user, errors, conn);
+
+		if(edited) {
+			conn.commit();
+
+			service.fingerOperatorRefresh(user.getOperator_id());
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("AfProductionFeatureAction.doPartialOrder end");
 	}
 
 }

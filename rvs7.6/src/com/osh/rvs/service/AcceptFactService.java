@@ -13,22 +13,27 @@ import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.OperatorProductionEntity;
+import com.osh.rvs.bean.partial.FactPartialReleaseEntity;
 import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
 import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
+import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.data.OperatorProductionMapper;
 import com.osh.rvs.mapper.partial.PartialWarehouseDetailMapper;
 import com.osh.rvs.mapper.qf.AfProductionFeatureMapper;
 import com.osh.rvs.service.qf.FactMaterialService;
 
+import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.copy.IntegerConverter;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class AcceptFactService {
 
@@ -358,9 +363,11 @@ public class AcceptFactService {
 					// 各自乘以单位分装时间
 					standardPart2 = partialWarehouseDetailMapper.countUnpackStandardTime(key);
 					break;
-				case "221" : // 维修零件订购 TODO
+				case "221" : // 维修零件订购 fact_partial_release kind-0
 					// 按key统计个人的订购单订单*修改次数
 					// 乘以维修零件订购单时间
+					standardPart2 = calcFromMaterialPartialRelease(key, conn);
+					break;
 				case "231" : // 维修零件发放
 					// 1）维修零件发放派送判断
 					// 1-1） 中小修理并且首工位NS ==> NS零件发放时间
@@ -692,5 +699,90 @@ public class AcceptFactService {
 				writableConn = null;
 			}
 		}
+	}
+
+	/**
+	 * 当前作业者当天所有维修品零件订单编辑记录
+	 * @param operator_id
+	 * @param conn
+	 * @return
+	 */
+	public List<FactPartialReleaseEntity> getTodayPartialOrderEditBySelf(String operator_id,
+			SqlSession conn) {
+		FactPartialReleaseMapper fprMapper = conn.getMapper(FactPartialReleaseMapper.class);
+		List<FactPartialReleaseEntity> ret = fprMapper.getTodayPartialOrderEdit(operator_id);
+		for (FactPartialReleaseEntity entity : ret) {
+			Integer level = entity.getLevel();
+			if (level != null) {
+				entity.setLevel_name(CodeListUtils.getValue("material_level", "" + level));
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * SAP传送的未分配到人所有维修品零件订单编辑记录
+	 * @param operator_id
+	 * @return
+	 */
+	public List<FactPartialReleaseEntity> getTodayPartialOrderEditFromSap(SqlSession conn) {
+		FactPartialReleaseMapper fprMapper = conn.getMapper(FactPartialReleaseMapper.class);
+		List<FactPartialReleaseEntity> ret = fprMapper.getTodayPartialOrderEdit("00000000000");
+		for (FactPartialReleaseEntity entity : ret) {
+			Integer level = entity.getLevel();
+			if (level != null) {
+				entity.setLevel_name(CodeListUtils.getValue("material_level", "" + level));
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * 维修对象订购记录更新
+	 * 
+	 * @param omr_notifi_no
+	 * @param user
+	 * @param errors 
+	 * @param conn
+	 */
+	public boolean editPartialOrder(String omr_notifi_no, LoginData user,
+			List<MsgInfo> errors, SqlSessionManager conn) {
+		MaterialMapper mMapper = conn.getMapper(MaterialMapper.class);
+		MaterialEntity mEntity = mMapper.loadMaterialByOmrNotifiNo(omr_notifi_no);
+
+		if (mEntity == null) {
+			// 维修对象不存在
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("omr_notifi_no");
+			error.setErrcode("dbaccess.recordNotExist");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "维修对象"));
+			errors.add(error);
+			return false;
+		} else {
+			if (mEntity.getOutline_time() != null) {
+				// 维修对象已不在线
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("omr_notifi_no");
+				error.setErrcode("info.linework.outLine");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.outLine"));
+				errors.add(error);
+				return false;
+			} else if (mEntity.getFix_type() == null || mEntity.getFix_type() != 1) {
+				// 不是维修对象
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("omr_notifi_no");
+				error.setErrcode("info.material.isNotForRepairItem");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.material.isNotForRepairItem"));
+				errors.add(error);
+				return false;
+			}
+		}
+
+		AfProductionFeatureEntity workingAfpf = getUnFinishEntity(user.getOperator_id(), conn);
+
+		FactPartialReleaseService fprService = new FactPartialReleaseService();
+		fprService.updatePartialOrderEdit(workingAfpf.getAf_pf_key(), user.getOperator_id(), mEntity.getMaterial_id(), conn);
+
+		return true;
 	}
 }

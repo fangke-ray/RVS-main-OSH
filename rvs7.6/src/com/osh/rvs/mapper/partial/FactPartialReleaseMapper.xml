@@ -57,4 +57,27 @@
 	]]>
 	</select>
 
+	<select id="getTodayPartialOrderEdit" resultType="FactPartialReleaseEntity" parameterType="String">
+		SELECT omr_notifi_no, mdl.name as model_name, ma.level, sum(quantity) as quantity 
+		FROM 
+		`fact_partial_release` fpr
+		JOIN
+		`af_production_feature` af_pf
+		ON fpr.af_pf_key = af_pf.af_pf_key
+		JOIN
+		`material` ma
+		ON fpr.material_id = ma.material_id
+		JOIN
+		`model` mdl
+		ON ma.model_id = mdl.model_id
+		WHERE
+		af_pf.operator_id = #{operator_id}
+		and (af_pf.action_time > current_date OR af_pf.operator_id = 00000000000)
+		and fpr.spec_kind = 0
+		GROUP BY
+		ma.material_id
+		ORDER BY omr_notifi_no
+		;
+	</select>
+
 </mapper>

@@ -1,5 +1,7 @@
 package com.osh.rvs.mapper.partial;
 
+import java.util.List;
+
 import com.osh.rvs.bean.partial.FactPartialReleaseEntity;
 
 /**
@@ -30,4 +32,9 @@ public interface FactPartialReleaseMapper {
 	 * @return
 	 */
 	public FactPartialReleaseEntity getPartialRelease(FactPartialReleaseEntity entity);
+
+	/**
+	 * 获得维修品零件订单
+	 */
+	public List<FactPartialReleaseEntity> getTodayPartialOrderEdit(String operator_id);
 }

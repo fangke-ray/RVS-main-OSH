@@ -305,6 +305,8 @@ function setLabelText(data, data2, data3, times, material_id, occur_times) {
 			boflag = "BO解决";
 		} else if (data2.bo_flg === '9') {
 			boflag = "未签收";
+		} else if (data2.bo_flg === '7') {
+			boflag = "预提";
 		}
 		$("#label_bo_flg").text(boflag);
 		$("#label_order_date").text(data2.order_date);

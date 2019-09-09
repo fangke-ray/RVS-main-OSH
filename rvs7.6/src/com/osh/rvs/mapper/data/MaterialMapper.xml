@@ -699,6 +699,14 @@
 		]]>
 	</select>
 
+	<select id="loadMaterialByOmrNotifiNo" resultType="MaterialEntity" parameterType="String">
+		SELECT 
+			material_id, model_id, fix_type, break_back_flg, inline_time, outline_time
+		FROM Material WHERE omr_notifi_no = #{omr_notifi_no} 
+		ORDER BY break_back_flg LIMIT 1
+	</select>
+		
+
 	<update id="updateMaterial" parameterType="MaterialEntity">
 		<![CDATA[ 
 			UPDATE Material SET

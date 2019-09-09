@@ -195,6 +195,9 @@ function initGrid() {
 							if (bo && bo==="2") {
 								return "BO解决";
 							}
+							if (bo && bo==="7") {
+								return "预提";
+							}
 							return "";
 						}
 					}, {

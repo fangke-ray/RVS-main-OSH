@@ -710,7 +710,7 @@ var isWorkDayTime = function(d_dateTime){
 
 
 </script>
-
+	</div>
 <% String sIndirectWorker = (String)request.getAttribute("indirect_worker"); %>
 <% if ("".equals(sIndirectWorker)) { %>
 <script type="text/javascript">

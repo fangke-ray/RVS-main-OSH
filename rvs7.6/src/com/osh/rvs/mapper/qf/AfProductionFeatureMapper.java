@@ -80,4 +80,18 @@ public interface AfProductionFeatureMapper {
 	 */
 	public List<AfProductionFeatureEntity> countMinorOnNsProceed(String key);
 
+	/**
+	 * 取得零件订单编辑作业次数
+	 * @param key
+	 * @return
+	 */
+	public int countMaterialPartialOrderEdits(String key);
+
+	/**
+	 * 按作业KEY统计各类消耗品处理数量
+	 * @param condition
+	 * @return
+	 */
+	public List<AfProductionFeatureEntity> countConsumableWarehouseOfAfProcess(String key);
+
 }

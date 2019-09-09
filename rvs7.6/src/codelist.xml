@@ -1267,7 +1267,7 @@
 		<value code="212">入库单导入</value>
 		<value code="213">零件核对/上架</value>
 		<value code="214">零件分装</value>
-		<value code="221">维修零件订购</value>
+		<value code="221">零件订购单编辑</value>
 		<value code="231">维修零件发放</value>
 		<value code="241">维修出货单制作</value>
 		<value code="242">未修理返送</value>

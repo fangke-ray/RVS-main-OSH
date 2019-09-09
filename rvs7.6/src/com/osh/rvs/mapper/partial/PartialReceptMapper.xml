@@ -113,6 +113,8 @@
 				mpd.material_id=#{material_id}
 			AND
 				(mpd.position_id=#{position_id} OR mpd.position_id IS NULL)
+			AND 
+				mpd.status > 0
 			ORDER by bom_quantity asc,waiting_receive_quantity desc, status = 3 
 		]]>
 	</select>

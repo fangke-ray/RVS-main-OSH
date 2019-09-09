@@ -231,7 +231,7 @@
 			CASE 
 			WHEN
 				EXISTS (select 1 from material_partial_detail 
-					where material_id = m.material_id and position_id = pf.position_id and waiting_quantity > 0)
+					where material_id = m.material_id and position_id = pf.position_id and waiting_quantity > 0 and status > 0)
 				THEN 1
 			WHEN
 				EXISTS (select 1 from `for_solution_area` 

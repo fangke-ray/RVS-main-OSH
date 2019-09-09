@@ -32,12 +32,15 @@
 }
 #af_holder div[process="1"] {
 	background-color : #E7FDC9;
+	box-shadow : 1px -1.5px 1px #96F713;
 }
 #af_holder div[process="2"] {
 	background-color : #FEFEB3;
+	box-shadow : 1px -1.5px 1px #FCFC0C;
 }
 #af_holder div[process="3"] {
 	background-color : #FFCBA1;
+	box-shadow : 1px -1.5px 1px #F69240;
 }
 #af_timer .prod {
 	position: absolute;
@@ -100,6 +103,9 @@
 }
 #af_timer li.selected {
 	filter: brightness(66%);
+}
+#af_timer li:hover {
+	background-color : #f0f0f0;
 }
 #af_timer[moving] ul,
 #af_timer[switch="no"] ul {
@@ -168,6 +174,18 @@
 #af_timer[vdir="up"] #af_pause_reason_group {
 	bottom : 110px; top : auto;
 }
+#af_timer .af_state_tool {
+	position: absolute;
+	display: none;
+	width: 25%;
+	height: 25%;
+	background-color : #FFB300;
+	color: white;
+	text-align: center;
+	left: 38.2%;
+	top: 61.8%;
+	border-radius: 50%;
+}
 #af_pause_reason_group {
 	left : 0;
 }
@@ -183,6 +201,19 @@
 #af_timer[hdir="right"] #af_pause_reason {
 	right : 240px; left : auto;
 }
+#af_part_order_editor > table > tbody > tr > td {
+	border : 1px solid darkgray;
+	vertical-align: top;
+}
+#af_part_order_self th, #af_part_order_sap th {
+	width : 80px;
+}
+#af_part_order_self td, #af_part_order_sap td {
+	text-align : center;
+}
+#af_part_order_editor .part_order_highlight {
+	background-color : paleturquoise;
+}
 </style>
 
 <div id="af_timer" switch="no" hdir="left" vdir="down">
@@ -190,9 +221,6 @@
 <div id="af_standard"></div>
 <div id="af_process"></div>
 <span class="prod" line=1></span>
-<ul id="af_abilities_group"></ul>
-<ul id="af_abilities">
-</ul>
 <ul id="af_pause_reason_group">
 	<li group="WDT">辅助作业</li>
 	<li group="WY">间接作业</li>
@@ -202,6 +230,10 @@
 </ul>
 <ul id="af_pause_reason">
 </ul>
+<ul id="af_abilities_group"></ul>
+<ul id="af_abilities">
+</ul>
+<div class="af_state_tool" for="221">▲</div>
 </div>
 
 <script type="text/javascript">
@@ -249,16 +281,15 @@ var refreshAf = function(init) {
 				}
 			}
 
+			clearInterval(af_clockTo);
+
 			if(resInfo.processForm) {
 				isClosed = false;
 				setProcessForm(resInfo.processForm);
 			} else {
 				isClosed = true;
-				$("#af_timer .prod").text("停止计时").attr("line", 1);
+				showStop();
 			}
-
-			clearInterval(af_clockTo);
-			af_clockTo = setInterval(refreshRate, 60000);
 		}
 	});
 }
@@ -281,7 +312,14 @@ var setProcessForm = function(processForm){
 		"action_time": new Date(processForm.action_time),
 		"is_working": processForm.is_working
 	});
+
+	if (type_code == "221") {
+		$(".af_state_tool[for='" + type_code + "']").show();
+	} else {
+		$(".af_state_tool").hide();
+	}
 	refreshRate();
+	af_clockTo = setInterval(refreshRate, 60000);
 }
 
 var refreshRate= function() {
@@ -359,6 +397,13 @@ var setInpagePos = function(){
 		$afTimer.attr("vdir", "up");
 	} else {
 		$afTimer.attr("vdir", "down");
+	}
+}
+
+var stateTool = function(){
+	var type_code = $(this).attr("for");
+	switch(type_code) {
+		case "221" : showPartialOrderList();
 	}
 }
 
@@ -474,6 +519,7 @@ var setInpagePos = function(){
 	$afTimer.css("right", initAft_r + "px");
 	$afTimer.css("top", initAft_t + "px");
 
+	$afTimer.find(".af_state_tool").click(stateTool);
 	afInit();
 
 var setProcessClock = function(rate) {
@@ -518,17 +564,25 @@ var doEnd = function(is_working, production_type, saraniCallback) {
 			var resInfo = $.parseJSON(xhjObj.responseText);
 			swtiching = false;
 
-			$("#af_timer .prod").text("停止计时").attr("line", 1);
-			now_standard = 0;
-			$("#af_standard").text("");
-			$("#af_process").text("");
-			$("#af_holder div").css({"height": "0%", "marginTop": "100%"})
-				.removeAttr("process");
+			showStop();
 
 			clearInterval(af_clockTo);
+
 			if (typeof(saraniCallback) == "function") saraniCallback();
 		}
 	});
+}
+
+var showStop = function(){
+	$afTimer.removeAttr("process").removeAttr("from");
+	$("#af_timer .prod").text("停止计时").attr("line", 1);
+	now_standard = 0;
+	$("#af_standard").text("");
+	$("#af_process").text("");
+	$("#af_holder div").css({"height": "0%", "marginTop": "100%"})
+		.removeAttr("process");
+	$("#af_pause_reason_group li[group='-1']").hide();
+	$(".af_state_tool").hide();
 }
 
 var doSwitch = function(is_working, production_type, saraniCallback) {
@@ -554,12 +608,113 @@ var doSwitch = function(is_working, production_type, saraniCallback) {
 		complete : function(xhjObj) {
 			var resInfo = $.parseJSON(xhjObj.responseText);
 			swtiching = false;
+			clearInterval(af_clockTo);
 			if (resInfo.errors.length == 0) {
 				setProcessForm(resInfo.processForm);
 			}
-			clearInterval(af_clockTo);
-			af_clockTo = setInterval(refreshRate, 60000);
 			if (typeof(saraniCallback) == "function") saraniCallback();
+		}
+	});
+}
+
+var showPartialOrderList = function(){
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'af_production_feature.do?method=getPartialOrderList',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhjObj) {
+			var resInfo = $.parseJSON(xhjObj.responseText);
+			if (resInfo.errors.length == 0) {
+				if ($("#af_part_order_editor").length == 0) {
+					$("body").append("<div id='af_part_order_editor'></div>")
+				}
+
+				var $part_order_list = $("<table><tbody><tr><th>本人今日编辑记录</th><th>SAP 编辑记录</th></tr><tr><td><table id='af_part_order_self'></table></td><td><table id='af_part_order_sap'></table></td></tr></tbody></table>");
+				if (resInfo.today_partial_order_edit_by_self) {
+					var af_part_order_html = "<tr><th>修理单号</th><th>型号</th><th>维修等级</th><th>编辑次数</th></tr>";
+					for (var iSelf in resInfo.today_partial_order_edit_by_self) {
+						var rcd = resInfo.today_partial_order_edit_by_self[iSelf];
+						af_part_order_html += "<tr><td>" + rcd.omr_notifi_no + "</td><td>" + rcd.model_name + "</td><td>" + (rcd.level_name || "") + "</td><td>" + rcd.quantity + "</td></tr>";
+					}
+					$part_order_list.find("#af_part_order_self").html(af_part_order_html);
+				}
+				if (resInfo.today_partial_order_edit_from_sap) {
+					var af_part_order_html = "<tr><th>修理单号</th><th>型号</th><th>维修等级</th><th>编辑次数</th></tr>";
+					for (var iSap in resInfo.today_partial_order_edit_from_sap) {
+						var rcd = resInfo.today_partial_order_edit_from_sap[iSap];
+						af_part_order_html += "<tr><td>" + rcd.omr_notifi_no + "</td><td>" + rcd.model_name + "</td><td>" + (rcd.level_name || "") + "</td><td>" + rcd.quantity + "</td></tr>";
+					}
+					$part_order_list.find("#af_part_order_sap").html(af_part_order_html);
+				}
+
+				var $af_PartOrderEditor = $("#af_part_order_editor").html("");
+				$af_PartOrderEditor.append("<input id='af_mp_omr_notifi_no' type='text'><input type='button' value='登记'>")
+					.append($part_order_list)
+					.find("input:button").button()
+						.click(function(){
+							if ($("#af_mp_omr_notifi_no").val()) {
+								var $thisbutton = $(this);
+								$thisbutton.disable();
+								$.ajax({
+									beforeSend : ajaxRequestType,
+									async : true,
+									url : 'af_production_feature.do?method=doPartialOrder',
+									cache : false,
+									data : {omr_notifi_no : $("#af_mp_omr_notifi_no").val().trim()},
+									type : "post",
+									dataType : "json",
+									success : ajaxSuccessCheck,
+									error : ajaxError,
+									complete : function(xhjObj) {
+										var resInfo = $.parseJSON(xhjObj.responseText);
+										if (resInfo.errors.length > 0) {
+											$("#af_mp_omr_notifi_no").focus();
+											$thisbutton.enable();
+											// 共通出错信息框
+											treatBackMessages("#af_part_order_editor", resInfo.errors);
+										} else {
+											$af_PartOrderEditor.dialog("close");
+											setTimeout(showPartialOrderList, 720);
+										}
+									}
+								})
+							}
+						});
+				$("#af_mp_omr_notifi_no").bind("keyup", function(evt){
+					if(evt.keyCode === 13) {
+						if (this.className.indexOf("error") >= 0) return;
+						$(this).next().trigger("click")
+					}
+					this.className = "";
+					if(this.value.length > 2) {
+						var checkvalue = this.value;
+						$("#af_part_order_self tr,#af_part_order_sap tr").find("td:eq(0)").each(function(){
+							var $td = $(this);
+							var this_text = ($td.text());
+							var idxv = this_text.indexOf(checkvalue);
+							if (idxv >= 0) {
+								$td.html("<span>" + this_text.substring(0, idxv) + "</span><span class='part_order_highlight'>" + this_text.substring(idxv, idxv + checkvalue.length) + "</span><span>" + this_text.substring(idxv + checkvalue.length) + "</span>");	
+							} else {
+								$td.text(this_text);
+							}
+						});
+					}
+				});
+				$af_PartOrderEditor.dialog({
+					modal : true, 
+					title : "零件订购单编辑记录表", 
+					width : 680,
+					buttons : {
+						"关闭" : function(){$af_PartOrderEditor.dialog("close");}
+					}
+				});
+			}
 		}
 	});
 }
@@ -570,12 +725,19 @@ return {
 			if ($afTimer.data("is_manager") != true) {
 				errorPop("您已下班，当天不能再处理需要计时的作业。");
 				return;
-			} else if (process_type_code == 103 || process_type_code == 213 || process_type_code == 214 || process_type_code == 241) { // 必须记录
-				doSwitch("1", post_production_type, function(){
-					call_method.apply(call_obj, call_params);
-				});
 			} else {
-				call_method.apply(call_obj, call_params); // 直接执行
+				var $toLi = $("#af_abilities li[code='" + process_type_code + "']");
+				if ($toLi.length == 0) {
+					errorPop("您没有操作此功能的权限。");
+					return;
+				}
+				if (process_type_code == 103 || process_type_code == 213 || process_type_code == 214 || process_type_code == 241) { // 必须记录
+					doSwitch("1", process_type_code, function(){
+						call_method.apply(call_obj, call_params);
+					});
+				} else {
+					call_method.apply(call_obj, call_params); // 直接执行
+				}
 			}
 			return;
 		}
@@ -594,7 +756,7 @@ return {
 		if ($afTimer.attr("from") === "a" && codeMatch) {
 			call_method.apply(call_obj, call_params); // 直接执行
 		} else {
-			var fromText, toText;
+			var fromText = "", toText = "";
 			if ($afTimer.attr("from") === "a") {
 				var $fromLi = $("#af_abilities li[code='" + fromTcode + "']");
 				fromText = $fromLi.attr("group") + ":" + $fromLi.text();
@@ -606,7 +768,13 @@ return {
 			if (process_type_code instanceof Array) {
 				for (var ic in process_type_code) {
 					var $toLi = $("#af_abilities li[code='" + process_type_code + "']");
-					toText += $toLi.attr("group") + ":" + $toLi.text();
+					if ($toLi.length > 0) {
+						toText += $toLi.attr("group") + ":" + $toLi.text();
+					}
+				}
+				if (toText.length == 0) {
+					errorPop("您没有操作此功能的权限。");
+					return;
 				}
 				toText += "之一";
 			} else {
@@ -638,4 +806,5 @@ return {
 	}
 }
 })();
+
 </script>

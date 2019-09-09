@@ -62,6 +62,8 @@ public interface MaterialMapper {
 
 	public MaterialEntity loadMaterialDetailAccpetance(String id);
 
+	public MaterialEntity loadMaterialByOmrNotifiNo(String omr_notifi_no);
+
 	/**
 	 * 维修对象一览，修改维修对象
 	 * 

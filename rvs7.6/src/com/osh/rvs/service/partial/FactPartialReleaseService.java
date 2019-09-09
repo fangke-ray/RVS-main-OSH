@@ -64,4 +64,32 @@ public class FactPartialReleaseService {
 
 		return respForm;
 	}
+
+	/**
+	 * 更新零件订购单编辑记录
+	 * @param af_pf_key
+	 * @param operator_id
+	 * @param material_id
+	 * @param conn
+	 */
+	public void updatePartialOrderEdit(String af_pf_key, String operator_id,
+			String material_id, SqlSessionManager conn) {
+		FactPartialReleaseMapper mapper = conn.getMapper(FactPartialReleaseMapper.class);
+		
+		FactPartialReleaseEntity cond = new FactPartialReleaseEntity();
+		cond.setAf_pf_key(af_pf_key);
+		cond.setMaterial_id(material_id);
+		cond.setOperator_id(operator_id);
+		cond.setSpec_kind(0);
+
+		FactPartialReleaseEntity hitEntity = mapper.getPartialRelease(cond);
+
+		if (hitEntity == null) {
+			cond.setQuantity(1);
+			mapper.insert(cond);
+		} else {
+			cond.setQuantity(hitEntity.getQuantity() + 1);
+			mapper.update(cond);
+		}
+	}
 }

@@ -85,9 +85,9 @@
 			ELSE 0 
 			END as division
 	</if> 
-	<if test="division eq 2 or division eq 3"><!-- 按手动(TODO 设备ID 00000002687/00000002688)+机种 -->
+	<if test="division eq 2 or division eq 3"><!-- 按手动机种 -->
 			CASE 
-			WHEN pospf.pcs_inputs like '%0000000268%' THEN 0
+			WHEN pospf.pcs_inputs like '%manual%' THEN 0
 			WHEN (mdl.kind = 7) THEN 2 
 			WHEN (mdl.kind = 8) THEN 3 
 			WHEN (mdl.kind = 9) THEN 4 
@@ -129,7 +129,18 @@
 		;
 	]]>
 	</select>
-	
+
+	<select id="countConsumableWarehouseOfAfProcess" resultType="AfProductionFeatureEntity" parameterType="string">
+		select 
+			shelf_cost as division, quantity as cnt
+		from
+			fact_consumable_warehouse fcw
+		where 
+			af_pf_key = #{af_pf_key}
+		;
+	</select>
+
+
 	<select id="countSWCWash" resultType="int" parameterType="string">
 	<![CDATA[
 		SELECT 
@@ -143,7 +154,7 @@
 		BETWEEN
 			(SELECT action_time FROM af_production_feature WHERE af_pf_key = #{af_pf_key})
 		AND
-			(SELECT finish_time FROM af_production_feature WHERE af_pf_key = #{af_pf_key})
+			(SELECT COALESCE(finish_time, '2999-01-01') FROM af_production_feature WHERE af_pf_key = #{af_pf_key})
 	]]>
 	</select>
 
@@ -183,4 +194,14 @@
 	]]>
 	</select>
 
+
+	<select id="countMaterialPartialOrderEdits" resultType="int" parameterType="String">
+	select 
+		sum(quantity) as cnt
+	from
+		fact_partial_release fpr
+	where
+		fpr.af_pf_key = #{af_pf_key}
+	;
+	</select>
 </mapper>

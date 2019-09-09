@@ -24,6 +24,10 @@ public class FactPartialReleaseEntity implements Serializable {
 	 * 维修对象 ID
 	 */
 	private String material_id;
+	private String omr_notifi_no;
+	private String model_name;
+	private Integer level;
+	private String level_name;
 
 	/**
 	 * 规格种别
@@ -34,6 +38,11 @@ public class FactPartialReleaseEntity implements Serializable {
 	 * 作业数量
 	 */
 	private Integer quantity;
+
+	/**
+	 * 用户 ID
+	 */
+	private String operator_id;
 
 	public String getAf_pf_key() {
 		return af_pf_key;
@@ -65,6 +74,46 @@ public class FactPartialReleaseEntity implements Serializable {
 
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
+	}
+
+	public String getOmr_notifi_no() {
+		return omr_notifi_no;
+	}
+
+	public void setOmr_notifi_no(String omr_notifi_no) {
+		this.omr_notifi_no = omr_notifi_no;
+	}
+
+	public String getModel_name() {
+		return model_name;
+	}
+
+	public void setModel_name(String model_name) {
+		this.model_name = model_name;
+	}
+
+	public String getOperator_id() {
+		return operator_id;
+	}
+
+	public void setOperator_id(String operator_id) {
+		this.operator_id = operator_id;
+	}
+
+	public Integer getLevel() {
+		return level;
+	}
+
+	public void setLevel(Integer level) {
+		this.level = level;
+	}
+
+	public String getLevel_name() {
+		return level_name;
+	}
+
+	public void setLevel_name(String level_name) {
+		this.level_name = level_name;
 	}
 
 }
