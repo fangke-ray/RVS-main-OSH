@@ -120,14 +120,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			</div>
 
 			<div class="dwidth-full">
-				<div id="btnarea" style="margin-bottom: 10px;">
-					<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="rcbutton" value="备品全部投入" role="button" aria-disabled="false">
-					<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="packagebutton" value="通箱全部投入" role="button" aria-disabled="false">
-				</div>
-
 				<div id="storagearea" style="float: left;">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-half">
 						<span class="areatitle">等待区信息</span>
+						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="packagebutton" value="通箱全部投入" style="float:right;display:none;" role="button" aria-disabled="false">
+						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="rcbutton" value="备品全部投入" style="float:right;display:none;" role="button" aria-disabled="false">
 					</div>
 					<div class="ui-widget-content dwidth-half" style="height: 215px; overflow-y: auto; overflow-x: hidden;">
 						<div id="waitings" style="margin: 20px;">

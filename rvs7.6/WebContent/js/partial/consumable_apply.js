@@ -683,8 +683,26 @@ var page_apply = {
 		
 		var data={};
 		page_apply.setUpdate(data,key);
-		
-		var doUpdate_ajaxSuccess = function(xhrobj, textStatus){
+
+		afObj.applyProcess(261, this, page_apply.doUpdateExecute, [data]);
+	},
+
+	doUpdateExecute : function(data) {
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : false,
+			url : "consumable_apply.do?method=doUpdate",
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : page_apply.doUpdate_ajaxSuccess
+		});
+	},
+	
+	doUpdate_ajaxSuccess : function(xhrobj, textStatus){
 			var resInfo = null;
 			try {
 				// 以Object形式读取JSON
@@ -730,28 +748,9 @@ var page_apply = {
 					
 				}
 			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+				console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
 			};
-		};
-		
-		afObj.applyProcess(261, this, page_apply.doUpdateExecute, [data]);
-	},
-
-	doUpdateExecute : function(data) {
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			async : false,
-			url : "consumable_apply.do?method=doUpdate",
-			cache : false,
-			data : data,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete :doUpdate_ajaxSuccess
-		});
-	},
-	
+		},
 	setUpdate : function(data,key){
 		
 		data.consumable_application_key = key;

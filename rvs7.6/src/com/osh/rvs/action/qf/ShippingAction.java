@@ -23,6 +23,7 @@ import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.qf.ShippingMapper;
+import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.ShippingService;
@@ -164,17 +165,22 @@ public class ShippingAction extends BaseAction {
 
 		if (errors.size() == 0) {
 			// 检查出货单是否制作
-			FactMaterialService factMaterialService = new FactMaterialService();
-			FactMaterialEntity factMaterial = new FactMaterialEntity();
-			factMaterial.setMaterial_id(material_id);
-			factMaterial.setProduction_type(241);
+			MaterialService mService = new MaterialService();
+			MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, material_id);
+			if (mEntity.getBreak_back_flg() == 0) { // 维修品
 
-			int len = factMaterialService.searchEntities(factMaterial, conn).size();
-			if (len == 0) {
-				MsgInfo info = new MsgInfo();
-				info.setErrcode("info.material.shipping.sheet.empty");
-				info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.material.shipping.sheet.empty"));
-				errors.add(info);
+				FactMaterialService factMaterialService = new FactMaterialService();
+				FactMaterialEntity factMaterial = new FactMaterialEntity();
+				factMaterial.setMaterial_id(material_id);
+				factMaterial.setProduction_type(241);
+
+				int len = factMaterialService.searchEntities(factMaterial, conn).size();
+				if (len == 0) {
+					MsgInfo info = new MsgInfo();
+					info.setErrcode("info.material.shipping.sheet.empty");
+					info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.material.shipping.sheet.empty"));
+					errors.add(info);
+				}
 			}
 		}
 

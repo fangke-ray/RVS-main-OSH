@@ -36,13 +36,13 @@
 	<codelist name="material_fix_type_manual">
 		<value code="1">流水线</value>
 		<value code="2">单元</value>
-		<value code="3">备品</value>
+		<value code="3">CDS备品</value>
 	</codelist>
 
 	<codelist name="material_service_repair">
 		<value code="1">保内返修</value>
 		<value code="2">QIS</value>
-		<!--value code="3">备品</value-->
+		<value code="3">备品</value>
 	</codelist>
 	
 	<codelist name="material_direct">
@@ -1262,7 +1262,7 @@
 		<value code="131">镜箱出库</value>
 		<value code="132">维修品出货</value>
 
-		<value code="201">投线</value>
+		<value code="201">投线系统操作/运输</value>
 		<value code="211">零件收货</value>
 		<value code="212">入库单导入</value>
 		<value code="213">零件核对/上架</value>
@@ -1275,7 +1275,7 @@
 		<value code="252">消耗品核对/上架</value>
 		<value code="261">消耗品出库</value>
 
-		<value code="271">固定件清洗</value>
+		<value code="271">固定件清洗/分装</value>
 		<value code="272">热缩管切割</value>
 		<value code="273">耗材分装</value>
 		<value code="274">NS插入管零件预包装</value>

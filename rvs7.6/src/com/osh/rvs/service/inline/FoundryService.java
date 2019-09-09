@@ -31,6 +31,7 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.report.FoundryEntity;
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.report.FoundryMapper;
@@ -266,7 +267,7 @@ public class FoundryService {
 		OperatorMapper operatorMapper = conn.getMapper(OperatorMapper.class);
 		OperatorEntity operatorEntity = operatorMapper.getOperatorByID(operator_id);
 		int work_count_flg = operatorEntity.getWork_count_flg();
-		if (work_count_flg == 1) {
+		if (work_count_flg == RvsConsts.WORK_COUNT_FLG_DIRECT) {
 			// 判断是否代工中
 			FoundryMapper foundryMapper = conn.getMapper(FoundryMapper.class);
 			Date foundry_start_time = foundryMapper.getStartTime(operator_id);

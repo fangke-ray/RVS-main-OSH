@@ -40,6 +40,8 @@ public class AppMenuAction extends BaseAction {
 	private static final String LINE_QA = "00000000015"; // 品保工程
 	private static final String LINE_SHIP = "00000000017"; // 出货工程
 
+	private static final String LINE_FACTM = "00000000020"; // 物料组
+
 	/**
 	 * 菜单初始表示处理
 	 * 
@@ -90,6 +92,13 @@ public class AppMenuAction extends BaseAction {
 				menuLinks.put("acceptance", true);
 				req.setAttribute("beforePosition", links);
 				menuLinks.put("受理报价", true);
+			} else {
+				links = getLinksByPositions(userPositions, LINE_FACTM, section_id, px, conn);
+				if (links.length() > 0) {
+					menuLinks.put("acceptance", true);
+					req.setAttribute("beforePosition", links);
+					menuLinks.put("受理报价", true);
+				}
 			}
 		}
 		if (privacies.contains(RvsConsts.PRIVACY_RECEPT_FACT)) {

@@ -164,7 +164,7 @@ function load_list(listdata){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['受理时间','同意时间','完成日期','返还','修理单号', '货单制作', '型号 ID', '型号' , '机身号','委托处', '等级', '加急', '通箱位置'],
+			colNames:['受理时间','同意时间','完成日期','返还','修理单号', '出货单制作', '型号 ID', '型号' , '机身号','委托处', '等级', '加急', '通箱位置'],
 			colModel:[{
 						name : 'reception_time',
 						index : 'reception_time',
@@ -180,7 +180,7 @@ function load_list(listdata){
 					}, {
 						name : 'finish_time',
 						index : 'finish_time',
-						width : 65,
+						width : 70,
 						align : 'center', 
 						sorttype: 'date',
 						formatter: function(value,r,rData){
@@ -199,8 +199,8 @@ function load_list(listdata){
 						align : 'center',
 						hidden : true		
 					},
-				{name:'sorc_no',index:'sorc_no', width:105},
-				{name:'filing_time',index:'filing_time', width:50, align:'center',sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'Y-m-d'}},
+				{name:'sorc_no',index:'sorc_no', width:100},
+				{name:'filing_time',index:'filing_time', width:50, align:'center',sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_id', width:125},
 				{name:'serial_no',index:'serial_no', width:50, align:'center'},

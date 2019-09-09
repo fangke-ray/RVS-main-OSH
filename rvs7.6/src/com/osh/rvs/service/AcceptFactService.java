@@ -23,8 +23,10 @@ import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.data.OperatorProductionMapper;
+import com.osh.rvs.mapper.partial.FactPartialReleaseMapper;
 import com.osh.rvs.mapper.partial.PartialWarehouseDetailMapper;
 import com.osh.rvs.mapper.qf.AfProductionFeatureMapper;
+import com.osh.rvs.service.partial.FactPartialReleaseService;
 import com.osh.rvs.service.qf.FactMaterialService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -123,7 +125,8 @@ public class AcceptFactService {
 			OperatorProductionEntity processingPauseStart = mapper.getProcessingPauseStart(user.getOperator_id());
 			if (processingPauseStart == null) {
 				boolean isManager = user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING)
-						|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE);
+						|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE)
+						|| user.getPrivacies().contains(RvsConsts.PRIVACY_RECEPT_EDIT);
 				if (!isManager) {
 					// 判断已经下班
 					OperatorProductionService pfService = new OperatorProductionService();
@@ -375,11 +378,11 @@ public class AcceptFactService {
 					// 1-3） 大修理并且流程包含NS ==> NS零件发放 + 分解/总组零件发放时间
 					// 1-4） 大修理并且流程不包含NS ==> 分解/总组零件发放时间
 					BigDecimal standardPart2_1 = calcFromMaterialPartialSendLines(key, conn);
-					// 2) 按零件类别统计零件数 TODO
+					// 2) 按零件类别统计零件数
 					// 各自乘以单位下架时间
 					// 返回 1） + 2）
 					BigDecimal standardPart2_2 = partialWarehouseDetailMapper.countOffShelfStandardTime(key);
-					standardPart2.add(standardPart2_2);
+					standardPart2 = standardPart2_1.add(standardPart2_2);
 					break;
 				case "241" : // 维修出货单制作
 					// 通过fact_material表取得出货单制作数量
@@ -390,13 +393,19 @@ public class AcceptFactService {
 					// 乘以每单用时
 					standardPart2 = calcFromFactMaterial(key, "UNREPAIR_RETURN_PER_MAT", conn);
 					break;
-				case "252" : // 消耗品核对/上架 TODO
+				case "252" : // 消耗品核对/上架
 					// 按消耗品上架时长统计品名数（fact_consumable_warehouse）
 					// 各自乘以单位上架时间
-				case "261" : // 消耗品出库 TODO
+					standardPart2 = calcFromConsumableWarehouse(key, 
+							new String[]{"CSM_INSTOR_ONSH_L_PER_CD", "CSM_INSTOR_ONSH_M_PER_CD", "CSM_INSTOR_ONSH_S_PER_CD"}, conn);
+					break;
+				case "261" : // 消耗品出库
 					// 按消耗品下架时长统计品名数（fact_consumable_warehouse）
 					// 各自乘以单位下架时间
-				case "271" : // 固定件清洗 TODO
+					standardPart2 = calcFromConsumableWarehouse(key, 
+							new String[]{"CSM_OUTSTOR_OFFSH_L_PER_CD", "CSM_OUTSTOR_OFFSH_M_PER_CD", "CSM_OUTSTOR_OFFSH_S_PER_CD"}, conn);
+					break;
+				case "271" : // 固定件清洗
 					// 按key查询af_pf时间段中`steel_wire_container_wash_process` process_time记录数，
 					// 乘以单位固定件清洗时间
 					Integer cn = afProductionFeatureMapper.countSWCWash(key,1);
@@ -413,6 +422,15 @@ public class AcceptFactService {
 		} else {
 			return null;
 		}
+	}
+
+	/**
+	 * 按维修对象发送表查询数量
+	 */
+	private BigDecimal calcFromMaterialPartialRelease(String key,
+		SqlSession conn) {
+			BigDecimal bdRet = new BigDecimal(0);
+			return bdRet; // TODO
 	}
 
 	/**
@@ -513,6 +531,30 @@ public class AcceptFactService {
 	}
 
 	/**
+	 * 按完成工位来统计
+	 * @param key 间接人员作业记录主键
+	 * @param factorNames
+	 * @param conn
+	 * 
+	 */
+	private BigDecimal calcFromConsumableWarehouse(String key, String[] factorNames, SqlSession conn) {
+		AfProductionFeatureMapper mapper = conn.getMapper(AfProductionFeatureMapper.class);
+
+		List<AfProductionFeatureEntity> results = mapper.countConsumableWarehouseOfAfProcess(key);
+
+		BigDecimal calc = new BigDecimal(0);
+
+		for (AfProductionFeatureEntity result : results) {
+			int division = result.getDivision();
+			BigDecimal factor = storedStandardFactors.get(factorNames[division - 1]);
+			calc = calc.add(factor.multiply(new BigDecimal(result.getCnt())));
+		}
+
+		return calc;
+	}
+
+
+	/**
 	 * 切换作业
 	 * @param form
 	 * @param user
@@ -564,7 +606,8 @@ public class AcceptFactService {
 		String operator_id = user.getOperator_id();
 
 		boolean isManager = user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING)
-				|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE);
+				|| user.getPrivacies().contains(RvsConsts.PRIVACY_LINE)
+				|| user.getPrivacies().contains(RvsConsts.PRIVACY_RECEPT_EDIT);
 		// 是管理员, 只结束不开始下一个
 		if (isManager) {
 			switchTo(null, null, null, operator_id, false, conn);

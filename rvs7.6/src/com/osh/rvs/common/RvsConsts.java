@@ -112,4 +112,6 @@ public class RvsConsts extends BaseConst {
 	public static final int TICKET_ADDENDA = 0;
 
 	public static final String CATEGORY_UDI = "00000000055";
+	public static final int WORK_COUNT_FLG_DIRECT = 1;
+	public static final int WORK_COUNT_FLG_INDIRECT = 6;
 }

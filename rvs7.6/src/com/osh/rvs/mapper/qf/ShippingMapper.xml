@@ -31,6 +31,7 @@
 				af_production_feature
 			ON
 				fact_material.af_pf_key = af_production_feature.af_pf_key
+			AND af_production_feature.production_type = 241
 			ORDER BY operate_result DESC, reception_time
 		]]>
 		

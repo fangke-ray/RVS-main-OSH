@@ -1198,7 +1198,7 @@ function doDisinfection(){
 			resizable : false,
 			modal : true,
 			width: 525,
-			title : "测漏确认",
+			title : "其中需测漏品确认",
 			buttons : {
 				"确认" : function() {
 					rowids = $("#test_list").jqGrid("getGridParam","selarrrow");

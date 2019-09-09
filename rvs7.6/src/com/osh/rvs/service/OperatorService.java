@@ -84,7 +84,7 @@ public class OperatorService {
 		OperatorMapper dao = conn.getMapper(OperatorMapper.class);
 		OperatorEntity resultBean = dao.getOperatorByID(operator_id);
 
-		if (resultBean == null) {
+		if (resultBean == null || resultBean.isDelete_flg()) {
 			// 检索不到的情况下
 			MsgInfo error = new MsgInfo();
 			error.setComponentid("operator_id");

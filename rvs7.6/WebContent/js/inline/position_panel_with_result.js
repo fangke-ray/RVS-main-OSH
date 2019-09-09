@@ -366,6 +366,8 @@ var doInit=function(){
 	});
 };
 
+var manual_types = [];
+
 //$(document).ready(function() {
 $(function() {
 	$("input.ui-button").button();
@@ -377,17 +379,17 @@ $(function() {
 	$("#finishbutton").disable();
 	$(".manager_no").select2Buttons();
 
-	loadJs(
-	"js/data/operator-detail.js",
-	function(){
-		opd_load($("#workarea table td:contains('暂停时间')"), function(){$(".opd_re_comment").remove()});
-	});
+//	loadJs(
+//	"js/data/operator-detail.js",
+//	function(){
+//		opd_load($("#workarea table td:contains('暂停时间')"), function(){$(".opd_re_comment").remove()});
+//	});
 
 	doInit();
 
 	if ($("#g_process_code").val() == "131") {
-		$("#btnarea").hide();
 	} else {
+		$("#rcbutton, #packagebutton").show();
 		$("#rcbutton").on("click",function(){
 			doStartAll("rc", 112);
 		});
@@ -438,6 +440,12 @@ $(function() {
 				});
 			});
 			$("#comments_sidebar").addClass("shown");
+		}
+	});
+
+	$("#dm_select_all select option").each(function(idx, ele){
+		if (ele.innerText.indexOf("手动") >= 0) {
+			manual_types.push(ele.value);
 		}
 	});
 });
@@ -583,6 +591,9 @@ var doFinish=function(){
 		var $manager_nos = $wk.find(".manager_no");
 		$manager_nos.each(function(idx, ele){
 			pcs_input[$(ele).attr("code")] = ele.value;
+			if (manual_types.indexOf(ele.value) >= 0) {
+				pcs_input["EI" + $(ele).attr("code").substring(2)] = "manual";
+			}
 		});
 
 		if ($wk.find(".rc").length > 0) {
@@ -710,9 +721,9 @@ var doStartAll = function(wk_type, processType) {
 	});
 	if (material_ids.length == 0) {
 		if (wk_type == "rc") {
-			errorPop("没有备品作业，请选择其他作业对象。");
+			errorPop("没有待作业备品，请选择其他作业对象。");
 		} else {
-			errorPop("没有通箱作业，请选择其他作业对象。");
+			errorPop("没有待作业通箱，请选择其他作业对象。");
 		}
 		return false;
 	}

@@ -72,7 +72,16 @@
 	WHERE
 		m.break_back_flg = 0
 	AND
-		m.material_id NOT IN(SELECT material_id FROM fact_material)
+		NOT EXISTS 
+		(SELECT material_id 
+		FROM fact_material
+		JOIN af_production_feature
+		ON fact_material.af_pf_key = af_production_feature.af_pf_key
+		WHERE
+		material_id = m.material_id
+		AND 
+		af_production_feature.production_type = 241
+		)
 	ORDER BY 
 		pf.operate_result DESC, m.reception_time
 	]]>
@@ -117,6 +126,8 @@
 		m.break_back_flg = 0
 	AND
 		af_production_feature.action_time >= CURRENT_DATE
+	AND
+		af_production_feature.production_type = 241
 	ORDER BY 
 		pf.operate_result DESC, m.reception_time
 	]]>

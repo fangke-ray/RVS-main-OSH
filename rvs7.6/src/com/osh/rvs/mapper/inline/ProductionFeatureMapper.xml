@@ -105,7 +105,7 @@ and a.inline_time is null -- [SpeedUp]
 			and not exists (
 				select material_id from production_feature p1
 				where p1.material_id = a.material_id
-				and p1.position_id in(10,11)
+				and p1.position_id in(10,11) and p1.operate_result <> 5
 			)
 			ORDER BY reception_time DESC;
 		]]>
