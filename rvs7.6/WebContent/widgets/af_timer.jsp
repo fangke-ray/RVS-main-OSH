@@ -422,7 +422,7 @@ var stateTool = function(){
 		af_dragged = true;saf_xM = af_xM = evt.pageX;saf_yM = af_yM = evt.pageY;} )
 	.bind("mouseup", function(){
 		setInpagePos();
-		if (Math.abs(af_xM - saf_xM) < 10 && Math.abs(af_yM - saf_yM) < 10) {
+		if (Math.abs(af_xM - saf_xM) < 10 && Math.abs(af_yM - saf_yM) < 10 && !swtiching) {
 			if ($afTimer.attr("switch") === "no") {
 				if (!isClosed || $afTimer.data("is_manager") == true) {
 					$("#af_pause_reason").find("li").hide();
@@ -562,9 +562,10 @@ var doEnd = function(is_working, production_type, saraniCallback) {
 		error : ajaxError,
 		complete : function(xhjObj) {
 			var resInfo = $.parseJSON(xhjObj.responseText);
-			swtiching = false;
 
 			showStop();
+
+			swtiching = false;
 
 			clearInterval(af_clockTo);
 
@@ -607,11 +608,11 @@ var doSwitch = function(is_working, production_type, saraniCallback) {
 		error : ajaxError,
 		complete : function(xhjObj) {
 			var resInfo = $.parseJSON(xhjObj.responseText);
-			swtiching = false;
 			clearInterval(af_clockTo);
 			if (resInfo.errors.length == 0) {
 				setProcessForm(resInfo.processForm);
 			}
+			swtiching = false;
 			if (typeof(saraniCallback) == "function") saraniCallback();
 		}
 	});

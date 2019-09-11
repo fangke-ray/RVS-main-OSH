@@ -174,7 +174,7 @@ public class AcceptFactService {
 
 		storedStandardFactors.put("UPLOAD_SPARE_PER_PRO", new BigDecimal(5)); // 备品系统导入 FOR 104
 
-		storedStandardFactors.put("SYS_RECEPT_SPARE_PER_MAT", new BigDecimal(2)); // 维修品实物受理 FOR 105
+		storedStandardFactors.put("FACT_RECEPT_SPARE_PER_MAT", new BigDecimal(2)); // 维修品实物受理 FOR 105
 
 		storedStandardFactors.put("TC_INSTOR_TRANS_PER_PRO", new BigDecimal(6)); // 镜箱入库搬运 FOR 106 
 		storedStandardFactors.put("TC_INSTOR_ONSH_PER_MAT", new BigDecimal(5)); // 镜箱入库系统操作 FOR 106
@@ -429,8 +429,14 @@ public class AcceptFactService {
 	 */
 	private BigDecimal calcFromMaterialPartialRelease(String key,
 		SqlSession conn) {
-			BigDecimal bdRet = new BigDecimal(0);
-			return bdRet; // TODO
+		BigDecimal bdRet = new BigDecimal(0);
+		FactPartialReleaseMapper mapper = conn.getMapper(FactPartialReleaseMapper.class);
+		Integer sumPartialOrderEdit = mapper.countPartialOrderEditInAfpf(key);
+		if (sumPartialOrderEdit != null) {
+			bdRet = new BigDecimal(sumPartialOrderEdit)
+				.multiply(storedStandardFactors.get("PART_ORDER_PER_MAT"));
+		}
+		return bdRet;
 	}
 
 	/**
@@ -687,9 +693,15 @@ public class AcceptFactService {
 	 * @param conn
 	 * @return
 	 */
-	public AfProductionFeatureEntity getUnFinishByType(int production_type, SqlSession conn) {
+	public AfProductionFeatureEntity getUnspecUnfinishByType(int production_type, SqlSession conn) {
 		AfProductionFeatureMapper dao = conn.getMapper(AfProductionFeatureMapper.class);
-		return dao.getUnfinishByType(production_type);
+		List<AfProductionFeatureEntity> results = dao.getUnfinishByType(production_type);
+		for (AfProductionFeatureEntity result : results) {
+			if ("00000000000".equals(result.getOperator_id())) {
+				return result;
+			}
+		}
+		return null;
 	}
 
 	/**

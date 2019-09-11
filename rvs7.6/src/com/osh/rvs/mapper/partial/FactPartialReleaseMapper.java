@@ -37,4 +37,11 @@ public interface FactPartialReleaseMapper {
 	 * 获得维修品零件订单
 	 */
 	public List<FactPartialReleaseEntity> getTodayPartialOrderEdit(String operator_id);
+
+	/**
+	 * 统计单次作业中维修品零件订单编辑数量
+	 * @param af_pf_key
+	 * @return
+	 */
+	public Integer countPartialOrderEditInAfpf(String af_pf_key);
 }

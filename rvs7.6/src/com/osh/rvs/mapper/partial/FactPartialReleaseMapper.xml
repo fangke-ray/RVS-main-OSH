@@ -80,4 +80,14 @@
 		;
 	</select>
 
+	<select id="countPartialOrderEditInAfpf" resultType="int" parameterType="String">
+		SELECT sum(quantity) as quantity 
+		FROM 
+		`fact_partial_release` fpr
+		WHERE
+		fpr.af_pf_key = #{af_pf_key}
+		and fpr.spec_kind = 0
+		;
+	</select>
+
 </mapper>

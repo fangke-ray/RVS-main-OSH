@@ -727,6 +727,5 @@ return {
 <% } else { %>
 <jsp:include page="/widgets/af_timer.jsp" flush="true"></jsp:include>
 <% } %>
-	</div>
 
 

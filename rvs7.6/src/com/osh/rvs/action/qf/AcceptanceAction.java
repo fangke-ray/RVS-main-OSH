@@ -296,7 +296,7 @@ public class AcceptanceAction extends BaseAction {
 
 			String insertId = "";
 			if (!pfkeyMap.containsKey(production_type)) {
-				AfProductionFeatureEntity afEntity = afService.getUnFinishByType(production_type, conn);
+				AfProductionFeatureEntity afEntity = afService.getUnspecUnfinishByType(production_type, conn);
 				if (afEntity == null) {
 					Calendar cal = Calendar.getInstance();
 					cal.set(Calendar.HOUR_OF_DAY, 1);

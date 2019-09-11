@@ -48,7 +48,7 @@ public interface AfProductionFeatureMapper {
 	 * @param production_type
 	 * @return
 	 */
-	public AfProductionFeatureEntity getUnfinishByType(@Param("production_type") int production_type);
+	public List<AfProductionFeatureEntity> getUnfinishByType(@Param("production_type") int production_type);
 
 	/**
 	 * 查询作业时间内的工位实现件数
