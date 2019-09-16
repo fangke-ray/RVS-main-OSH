@@ -193,7 +193,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<input type="button" id="waste_revision_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="改废增" role="button">
 				 	<input type="button" id="upload_price_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="零件价格上传">
 				  	<input type="button" id="download_price_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="零件价格下载">
-				  	<input type="button" id="standard_button" class="ui-button" value="零件入库工时标准">
+				  	<input type="button" id="standard_button" class="ui-button" value="零件入出库工时标准">
 				  </div>
 			</div>
 		</div>

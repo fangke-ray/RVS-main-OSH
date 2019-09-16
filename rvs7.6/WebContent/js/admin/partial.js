@@ -248,7 +248,7 @@ var search_BussinessStandardComplete = function(xhrobj,textStatus){
 			$("#standard_dialog").dialog({
 				resizable : false,
 				modal : true,
-				title : "零件入库工时标准",
+				title : "零件入出库工时标准",
 				width : 1000,
 				buttons : {
 					"确认" : function() {
@@ -304,7 +304,7 @@ var update_BussinessStandardComplete = function(xhrobj,textStatus){
 			treatBackMessages(null, resInfo.errors);
 		} else {
 			$("#standard_dialog").dialog("close");
-			infoPop("零件入库工时标准完成！",null,"提示信息")
+			infoPop("零件入出库工时标准更新完成！",null,"提示信息")
 		}
 	}catch(e){}
 };

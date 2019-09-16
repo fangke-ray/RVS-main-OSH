@@ -98,8 +98,14 @@ public class UserDefineCodesAction extends BaseAction {
 
 		BeanUtil.copyToBean(userDefineCodesForm, userDefineCodesEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
-		// 更新用户定义设定值
-		service.updateUserDefineCodes(userDefineCodesEntity, conn);
+		String code = userDefineCodesEntity.getCode();
+		if (code.indexOf("AFST-") >= 0) {
+			// 更新间接作业标准工时
+			service.updateStandards(userDefineCodesEntity, conn);
+		} else {
+			// 更新用户定义设定值
+			service.updateUserDefineCodes(userDefineCodesEntity, conn);
+		}
 
 		listResponse.put("errors", errors);
 		returnJsonResponse(response, listResponse);

@@ -11,6 +11,7 @@ import com.osh.rvs.bean.manage.UserDefineCodesEntity;
 import com.osh.rvs.form.manage.UserDefineCodesForm;
 import com.osh.rvs.mapper.manage.UserDefineCodesMapper;
 
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 
@@ -61,5 +62,25 @@ public class UserDefineCodesService {
 				return cache.get(code);
 			}
 		}
+	}
+
+	public void updateStandards(UserDefineCodesEntity userDefineCodesEntity,
+			SqlSessionManager conn) {
+		String[] codes = userDefineCodesEntity.getCode().split(";");
+		String[] values = userDefineCodesEntity.getValue().split(";");
+
+		UserDefineCodesMapper dao = conn.getMapper(UserDefineCodesMapper.class);
+
+		for(int i = 0; i < codes.length; i++) {
+			String code = codes[i];
+			if (!CommonStringUtil.isEmpty(code)) {
+				UserDefineCodesEntity singleUserDefineCodesEntity = new UserDefineCodesEntity();
+				singleUserDefineCodesEntity.setCode(code);
+				singleUserDefineCodesEntity.setValue(values[i]);
+				dao.updateUserDefineCodes(singleUserDefineCodesEntity);
+			}
+		}
+
+		AcceptFactService.resetStoredStandardFactors(conn);
 	}
 }

@@ -15,14 +15,17 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.OperatorProductionEntity;
+import com.osh.rvs.bean.manage.UserDefineCodesEntity;
 import com.osh.rvs.bean.partial.FactPartialReleaseEntity;
 import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
 import com.osh.rvs.bean.qf.FactMaterialEntity;
+import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.data.OperatorProductionMapper;
+import com.osh.rvs.mapper.manage.UserDefineCodesMapper;
 import com.osh.rvs.mapper.partial.FactPartialReleaseMapper;
 import com.osh.rvs.mapper.partial.PartialWarehouseDetailMapper;
 import com.osh.rvs.mapper.qf.AfProductionFeatureMapper;
@@ -222,6 +225,32 @@ public class AcceptFactService {
 		storedStandardFactors.put("CSM_RELEASE_PER_PRO", new BigDecimal(2)); // 消耗品出库发放现场 FOR 261
 
 		storedStandardFactors.put("SWC_WASH_PER_CD", new BigDecimal(2)); // 钢丝固定件清洗 FOR 271
+
+		SqlSession conn = ReverseResolution.getTempConn();
+		resetStoredStandardFactors(conn);
+		conn.close();
+		conn = null;
+	}
+
+	public static void resetStoredStandardFactors(SqlSession conn) {
+		UserDefineCodesMapper dao = conn.getMapper(UserDefineCodesMapper.class);
+
+		/* 查询用户定义数值 */
+		List<UserDefineCodesEntity> userDefineCodesEntityList = dao.searchUserDefineCodes();
+		for (UserDefineCodesEntity userDefineCodesEntity : userDefineCodesEntityList) {
+			if (userDefineCodesEntity.getCode().startsWith("AFST-")) {
+				String code = userDefineCodesEntity.getCode().substring(5);
+				if (storedStandardFactors.containsKey(code)) {
+					try {
+						BigDecimal newValue = new BigDecimal(userDefineCodesEntity.getValue());
+						storedStandardFactors.put(code, newValue);
+					} catch(NumberFormatException e) {
+						// DO NOT recept
+						e.printStackTrace();
+					}
+				}
+			}
+		}
 	}
 
 	/** 
