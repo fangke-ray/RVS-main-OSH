@@ -349,6 +349,10 @@ public class OperatorProductionAction extends BaseAction {
 			List<MonthFilesDownloadForm> overworkList = operatorProductionService.getMonthFiles("作业延误明细");
 
 			listResponse.put("overworkList", overworkList);
+
+			List<MonthFilesDownloadForm> afReportList = operatorProductionService.getMonthFiles("间接作业人员作业报表");
+
+			listResponse.put("afReportList", afReportList);
 		}
 		
 		//返回Json格式响应信息

@@ -56,9 +56,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							<table id="detail_list"></table>
 							<div id="detail_listpager"></div>
 						</td>
+						</tr>
+						<tr>
 						<td>
 							<table id="overwork_list"></table>
 							<div id="overwork_listpager"></div>
+						</td>
+						<td>
+							<table id="af_report_list"></table>
+							<div id="af_report_listpager"></div>
 						</td>
 						</tr>
 						</table>
@@ -78,8 +84,8 @@ function initMonthFilesGrid(listName, listdata){
 	$("#" + listName).jqGrid({
 		toppager : true,
 		data : listdata,
-		height : 480,
-		width : 320,
+		height : 400,
+		width : 480,
 		rowheight :20,
 		datatype : "local",
 		colNames:['文件名','文件大小'],
@@ -125,7 +131,7 @@ function search_files_handleComplete(xhrobj, textStatus){
 	initMonthFilesGrid("report_list", resInfo.reportList);	
 	initMonthFilesGrid("detail_list", resInfo.detailList);	
 	initMonthFilesGrid("overwork_list", resInfo.overworkList);	
-	
+	initMonthFilesGrid("af_report_list", resInfo.afReportList);
 }
 
 //月报表显示详细
