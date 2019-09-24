@@ -992,6 +992,8 @@ $(function() {
 	$("#printbutton").click(printTicket);
 	$("#printaddbutton").disable();
 	$("#printaddbutton").click(function(){printTicket(1)});
+	$("#tejunbutton").button().toggle(function(){$("#tejunbutton > span > div").show()},function(evt){$("#tejunbutton > span > div").hide()})
+		.find("a").click(function(){window.open(this.href, "_tejun")});
 
 	$("#edit_customer_name").autocomplete({
 		source : customers,
