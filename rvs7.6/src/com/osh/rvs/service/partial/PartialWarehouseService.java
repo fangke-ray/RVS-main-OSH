@@ -104,24 +104,26 @@ public class PartialWarehouseService {
 		PartialWarehouseDetailMapper partialWarehouseDetailDao = conn.getMapper(PartialWarehouseDetailMapper.class);
 		CommonMapper commonDao = conn.getMapper(CommonMapper.class);
 
-		PartialWarehouseEntity warehouseEntity = (PartialWarehouseEntity) map.get("warehouseEntity");
 		@SuppressWarnings("unchecked")
-		List<PartialWarehouseDetailEntity> list = (List<PartialWarehouseDetailEntity>) map.get("list");
-
-		// 新建零件入库单
-		partialWarehouseDao.insert(warehouseEntity);
-
-		// 获取入库单KEY
-		String key = commonDao.getLastInsertID();
-
-		for (PartialWarehouseDetailEntity entity : list) {
-			entity.setKey(key);
-			// 新建零件入库明细
-			partialWarehouseDetailDao.insert(entity);
+		Map<String,PartialWarehouseEntity> pwMap = (Map<String,PartialWarehouseEntity>) map.get("pw");
+		@SuppressWarnings("unchecked")
+		Map<String,List<PartialWarehouseDetailEntity>> pwdMap = (Map<String,List<PartialWarehouseDetailEntity>>)map.get("pwd");
+		
+		for(String dn : pwMap.keySet()){
+			PartialWarehouseEntity warehouseEntity = pwMap.get(dn);
+			List<PartialWarehouseDetailEntity> list = pwdMap.get(dn);
+			
+			// 新建零件入库单
+			partialWarehouseDao.insert(warehouseEntity);
+			// 获取入库单KEY
+			String key = commonDao.getLastInsertID();
+			
+			for (PartialWarehouseDetailEntity entity : list) {
+				entity.setKey(key);
+				// 新建零件入库明细
+				partialWarehouseDetailDao.insert(entity);
+			}
 		}
-
-		// TODO 更新间接人员作业信息处理结束时间
-
 	}
 
 	private Map<String, Object> validateFile(String fileName, SqlSessionManager conn, List<MsgInfo> errors) {
@@ -135,11 +137,7 @@ public class PartialWarehouseService {
 		String fileCode = RvsUtils.getFileCode(fileName);
 		BufferedReader reader = null;
 
-		// 需要封装标记
-		boolean isNeedUnpack = false;
-
 		Map<String, Object> respMap = new HashMap<String, Object>();
-		List<PartialWarehouseDetailEntity> list = new ArrayList<PartialWarehouseDetailEntity>();
 		try {
 			reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), fileCode));
 			String tempString = null;
@@ -147,6 +145,13 @@ public class PartialWarehouseService {
 			MsgInfo error = null;
 			PartialWarehouseEntity warehouseEntity = null;
 			PartialWarehouseDetailEntity warehouseDetailEntity = null;
+
+			// 零件入库单
+			Map<String,PartialWarehouseEntity> pwCache = new HashMap<String,PartialWarehouseEntity>();
+			// 需要封装标记
+			Map<String,Boolean> needUnpackCache = new HashMap<String,Boolean>();
+			// 零件入库单明细
+			Map<String,List<PartialWarehouseDetailEntity>> pwdCache  = new HashMap<String,List<PartialWarehouseDetailEntity>>();
 
 			while ((tempString = reader.readLine()) != null) {
 				rowNum++;
@@ -164,18 +169,18 @@ public class PartialWarehouseService {
 					return null;
 				}
 
-				// 取得第三行（验证格式）
-				if (rowNum == 3) {
-					// DN单号
-					String dnNo = arr[0];
-					if (CommonStringUtil.isEmpty(dnNo)) {
-						error = new MsgInfo();
-						error.setErrcode("file.invalidFormat");
-						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("file.invalidFormat"));
-						errors.add(error);
-						return null;
-					}
+				//（验证格式）
+				// DN单号
+				String dnNo = arr[0];
+				if (CommonStringUtil.isEmpty(dnNo)) {
+					error = new MsgInfo();
+					error.setErrcode("file.invalidFormat");
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("file.invalidFormat"));
+					errors.add(error);
+					return null;
+				}
 
+				if(!pwCache.containsKey(dnNo)){
 					// 日期
 					String strDate = arr[6];
 					if (CommonStringUtil.isEmpty(strDate)) {
@@ -202,7 +207,7 @@ public class PartialWarehouseService {
 							return null;
 						}
 					}
-
+					
 					if (!strDate.matches(DATE_EXPRESSION) && !strDate.matches(ISO_DATE_EXPRESSION)) {// 日期形式不匹配
 						error = new MsgInfo();
 						error.setErrcode("validator.invalidParam.invalidDateValue");
@@ -223,8 +228,9 @@ public class PartialWarehouseService {
 						warehouseEntity.setWarehouse_date(DateUtil.toDate(strDate, DateUtil.ISO_DATE_PATTERN));
 					}
 
-					respMap.put("warehouseEntity", warehouseEntity);
-				}
+					pwCache.put(dnNo, warehouseEntity);
+					pwdCache.put(dnNo, (new ArrayList<PartialWarehouseDetailEntity>()));
+				} 
 
 				warehouseDetailEntity = new PartialWarehouseDetailEntity();
 
@@ -250,14 +256,16 @@ public class PartialWarehouseService {
 
 						warehouseDetailEntity.setPartial_id(partialID);
 
-						if (!isNeedUnpack) {
+						if (!needUnpackCache.containsKey(dnNo) || !needUnpackCache.get(dnNo)) {
 							// 查询是否需要分装
 							PartialUnpackEntity partialUnpackEntity = new PartialUnpackEntity();
 							partialUnpackEntity.setPartial_id(partialID);
 							partialUnpackEntity = partialUnpackDao.getPartialUnpack(partialUnpackEntity);
 
 							if (partialUnpackEntity != null) {
-								isNeedUnpack = true;
+								needUnpackCache.put(dnNo, true);
+							} else {
+								needUnpackCache.put(dnNo, false);
 							}
 						}
 					}
@@ -289,7 +297,7 @@ public class PartialWarehouseService {
 					warehouseDetailEntity.setQuantity(Integer.valueOf(strQuantity));
 				}
 
-				list.add(warehouseDetailEntity);
+				pwdCache.get(dnNo).add(warehouseDetailEntity);
 			}
 
 			if (rowNum < 3) {
@@ -300,52 +308,60 @@ public class PartialWarehouseService {
 			}
 
 			if (errors.size() == 0) {
-				Map<String, Integer> map = new HashMap<String, Integer>();
-
-				// 遍历数据，相同零件数量合并
-				for (PartialWarehouseDetailEntity entity : list) {
-					// 零件ID
-					String partialID = entity.getPartial_id();
-
-					// 数量
-					Integer quantity = entity.getQuantity();
-
-					if (map.containsKey(partialID)) {
-						Integer preQuantity = map.get(partialID);
-						// 数量累计
-						quantity += preQuantity;
-						map.put(partialID, quantity);
+				// 设置分装标记
+				for(String dnNo : pwCache.keySet()){
+					boolean isNeedUnpack = needUnpackCache.get(dnNo);
+					// 需要封裝
+					if (isNeedUnpack) {
+						// 收货完
+						pwCache.get(dnNo).setStep(0);
 					} else {
-						map.put(partialID, quantity);
+						// 核对/上架中
+						pwCache.get(dnNo).setStep(1);
 					}
 				}
 
-				list.clear();
-				for (String partialID : map.keySet()) {
-					PartialWarehouseDetailEntity entity = new PartialWarehouseDetailEntity();
-					// 设置零件ID
-					entity.setPartial_id(partialID);
+				// 遍历数据，相同零件数量合并
+				for(String dnNo : pwdCache.keySet()){
+					Map<String, Integer> map = new HashMap<String, Integer>();
+					
+					List<PartialWarehouseDetailEntity> list = pwdCache.get(dnNo);
+					for (PartialWarehouseDetailEntity entity : list) {
+						// 零件ID
+						String partialID = entity.getPartial_id();
 
-					// 设置数量
-					entity.setQuantity(map.get(partialID));
+						// 数量
+						Integer quantity = entity.getQuantity();
 
-					list.add(entity);
+						if (map.containsKey(partialID)) {
+							Integer preQuantity = map.get(partialID);
+							// 数量累计
+							quantity += preQuantity;
+							map.put(partialID, quantity);
+						} else {
+							map.put(partialID, quantity);
+						}
+					}
+
+					list.clear();
+
+					for (String partialID : map.keySet()) {
+						PartialWarehouseDetailEntity entity = new PartialWarehouseDetailEntity();
+						// 设置零件ID
+						entity.setPartial_id(partialID);
+
+						// 设置数量
+						entity.setQuantity(map.get(partialID));
+						
+
+						list.add(entity);
+					}
+
+					pwdCache.put(dnNo, list);
 				}
 
-				respMap.put("list", list);
-
-				warehouseEntity = (PartialWarehouseEntity) respMap.get("warehouseEntity");
-
-				// 需要封裝
-				if (isNeedUnpack) {
-					// 收货完
-					warehouseEntity.setStep(0);
-				} else {
-					// 核对/上架中
-					warehouseEntity.setStep(1);
-				}
-
-				respMap.put("warehouseEntity", warehouseEntity);
+				respMap.put("pw", pwCache);
+				respMap.put("pwd", pwdCache);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
