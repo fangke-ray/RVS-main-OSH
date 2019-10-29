@@ -189,34 +189,16 @@
 	
 	<select id="countOffShelfStandardTime" resultType="BigDecimal" parameterType="string">
 	<![CDATA[
-		SELECT
-		   COALESCE(SUM(pwd.quantity * pbs.off_shelf), 0)
+		SELECT 
+		    COALESCE(SUM(fact_partial_release.quantity * pbs.off_shelf), 0)
 		FROM
-			(SELECT
-			    fact_partial_warehouse.partial_warehouse_key
-			FROM
-				fact_partial_warehouse
-			JOIN
-			    af_production_feature
-			ON
-				fact_partial_warehouse.af_pf_key = af_production_feature.af_pf_key
-			WHERE
-				af_production_feature.af_pf_key = #{af_pf_key}
-			GROUP BY
-				fact_partial_warehouse.partial_warehouse_key
-			) AS fpw
-		JOIN
-			partial_warehouse_detail pwd
-		ON
-			fpw.partial_warehouse_key = pwd.key
-		JOIN
-			partial
-		ON
-			pwd.partial_id = partial.partial_id
+		    fact_partial_release 
 		JOIN
 			partial_bussiness_standard pbs
 		ON
-			partial.spec_kind = pbs.spec_kind
+			fact_partial_release.spec_kind = pbs.spec_kind
+		WHERE
+		    fact_partial_release.af_pf_key = #{af_pf_key}
 	]]>
 	</select>
 	
