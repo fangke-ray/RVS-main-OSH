@@ -29,6 +29,7 @@ import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.message.ApplicationMessage;
 import framework.huiqing.common.util.validator.Validators;
 
 /**
@@ -215,52 +216,61 @@ public class PartialWarehouseAction extends BaseAction {
 		LoginData user = (LoginData) request.getSession().getAttribute(RvsConsts.SESSION_USER);
 		// 根据操作者ID查找未结束作业信息
 		AfProductionFeatureForm productionForm = acceptFactService.getUnFinish(user.getOperator_id(), conn);
-
-		PartialWarehouseForm partialWarehouseForm = (PartialWarehouseForm) form;
-		// 入库单KEY
-		String key = partialWarehouseForm.getKey();
-		// 作业类型
-		String productionType = partialWarehouseForm.getProduction_type();
-
-		/** 入库单信息 **/
-		partialWarehouseForm = partialWarehouseService.getByKey(key, conn);
-
-		List<PartialWarehouseDetailForm> list = new ArrayList<PartialWarehouseDetailForm>();
-		/** 入库单明细 **/
-		if ("213".equals(productionType)) {// 核对/上架
-			list = partialWarehouseDetailService.searchByKey(key, conn);
-		} else {// 分装
-			list = partialWarehouseDetailService.searchUnpackByKey(key, conn);
+		
+		if(productionForm == null){
+			MsgInfo error = new MsgInfo();
+			error.setErrcode("info.linework.workingLost");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingLost"));
+			errors.add(error);
 		}
 
-		/** 入库单每种规格作业总数 **/
-		List<PartialWarehouseDetailForm> kindList = new ArrayList<PartialWarehouseDetailForm>();
+		if(errors.size() == 0){
+			PartialWarehouseForm partialWarehouseForm = (PartialWarehouseForm) form;
+			// 入库单KEY
+			String key = partialWarehouseForm.getKey();
+			// 作业类型
+			String productionType = partialWarehouseForm.getProduction_type();
 
-		if ("213".equals(productionType)) {// 核对/上架
-			kindList = partialWarehouseDetailService.countCollactionQuantityOfKind(key, conn);
-		} else {// 分装
-			kindList = partialWarehouseDetailService.countUnpackQuantityOfKind(key, conn);
+			/** 入库单信息 **/
+			partialWarehouseForm = partialWarehouseService.getByKey(key, conn);
+
+			List<PartialWarehouseDetailForm> list = new ArrayList<PartialWarehouseDetailForm>();
+			/** 入库单明细 **/
+			if ("213".equals(productionType)) {// 核对/上架
+				list = partialWarehouseDetailService.searchByKey(key, conn);
+			} else {// 分装
+				list = partialWarehouseDetailService.searchUnpackByKey(key, conn);
+			}
+
+			/** 入库单每种规格作业总数 **/
+			List<PartialWarehouseDetailForm> kindList = new ArrayList<PartialWarehouseDetailForm>();
+
+			if ("213".equals(productionType)) {// 核对/上架
+				kindList = partialWarehouseDetailService.countCollactionQuantityOfKind(key, conn);
+			} else {// 分装
+				kindList = partialWarehouseDetailService.countUnpackQuantityOfKind(key, conn);
+			}
+
+			/** 入库单已经作业每种规格总数 **/
+			FactPartialWarehouseForm factPartialWarehouseForm = new FactPartialWarehouseForm();
+			// 设置入库单KEY
+			factPartialWarehouseForm.setPartial_warehouse_key(key);
+			// 设置作业类型
+			factPartialWarehouseForm.setProduction_type(productionType);
+			// 设置作业KEY
+			factPartialWarehouseForm.setAf_pf_key(productionForm.getAf_pf_key());
+			List<FactPartialWarehouseForm> factList = factPartialWarehouseService.countQuantityOfSpecKind(factPartialWarehouseForm, conn);
+
+			/** 当前作业每种规格数量 **/
+			List<FactPartialWarehouseForm> curFactList = factPartialWarehouseService.search(factPartialWarehouseForm, conn);
+
+			listResponse.put("partialWarehouseForm", partialWarehouseForm);
+			listResponse.put("list", list);
+			listResponse.put("kindList", kindList);
+			listResponse.put("factList", factList);
+			listResponse.put("curFactList", curFactList);
 		}
-
-		/** 入库单已经作业每种规格总数 **/
-		FactPartialWarehouseForm factPartialWarehouseForm = new FactPartialWarehouseForm();
-		// 设置入库单KEY
-		factPartialWarehouseForm.setPartial_warehouse_key(key);
-		// 设置作业类型
-		factPartialWarehouseForm.setProduction_type(productionType);
-		// 设置作业KEY
-		factPartialWarehouseForm.setAf_pf_key(productionForm.getAf_pf_key());
-		List<FactPartialWarehouseForm> factList = factPartialWarehouseService.countQuantityOfSpecKind(factPartialWarehouseForm, conn);
-
-		/** 当前作业每种规格数量 **/
-		List<FactPartialWarehouseForm> curFactList = factPartialWarehouseService.search(factPartialWarehouseForm, conn);
-
-		listResponse.put("partialWarehouseForm", partialWarehouseForm);
-		listResponse.put("list", list);
-		listResponse.put("kindList", kindList);
-		listResponse.put("factList", factList);
-		listResponse.put("curFactList", curFactList);
-
+		
 		// 检查发生错误时报告错误信息
 		listResponse.put("errors", errors);
 
