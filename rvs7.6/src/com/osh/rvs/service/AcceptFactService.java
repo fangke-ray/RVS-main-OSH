@@ -177,7 +177,10 @@ public class AcceptFactService {
 
 		storedStandardFactors.put("UPLOAD_SPARE_PER_PRO", new BigDecimal(5)); // 备品系统导入 FOR 104
 
-		storedStandardFactors.put("FACT_RECEPT_SPARE_PER_MAT", new BigDecimal(2)); // 维修品实物受理 FOR 105
+		storedStandardFactors.put("FACT_RECEPT_ENSC_SPARE_PER_MAT", new BigDecimal(2)); // 备品内窥镜实物受理 FOR 105
+		storedStandardFactors.put("FACT_RECEPT_PERI_SPARE_PER_MAT", new BigDecimal(5)); // 备品周边实物受理 FOR 105
+		storedStandardFactors.put("FACT_RECEPT_SURGI_SPARE_PER_MAT", new BigDecimal("2.5")); // 手术器械实物受理 FOR 105
+		storedStandardFactors.put("FACT_RECEPT_ACCENA_SPARE_PER_MAT", new BigDecimal("1.5")); // 备品附件实物受理 FOR 105
 
 		storedStandardFactors.put("TC_INSTOR_TRANS_PER_PRO", new BigDecimal(6)); // 镜箱入库搬运 FOR 106 
 		storedStandardFactors.put("TC_INSTOR_ONSH_PER_MAT", new BigDecimal(5)); // 镜箱入库系统操作 FOR 106
@@ -301,7 +304,7 @@ public class AcceptFactService {
 			standardPart1 = storedStandardFactors.get("STERI_PER_PRO"); break;
 		case "131" : // 镜箱出库
 			// 每次搬运时间固定
-			standardPart1 = storedStandardFactors.get("STERI_PER_PRO"); break;
+			standardPart1 = storedStandardFactors.get("TC_OUTSTOR_TRANS_PER_PRO"); break;
 		case "201" : // 投线
 			// 每次整理/运输内镜时间固定
 			standardPart1 = storedStandardFactors.get("DISTRIB_PER_PRO"); break;
@@ -621,9 +624,13 @@ public class AcceptFactService {
 		retForm.setAction_time(DateUtil.toString(actionTime, DateUtil.DATE_TIME_PATTERN));
 
 		// 取得标准工时
-		Integer standard_minutes = getStandardMinutes(retForm, conn, true);
-		if (standard_minutes != null) {
-			retForm.setStandard_minutes("" + standard_minutes);
+		if (toWorking) {
+			Integer standard_minutes = getStandardMinutes(retForm, conn, true);
+			if (standard_minutes != null) {
+				retForm.setStandard_minutes("" + standard_minutes);
+			}
+		} else {
+			retForm.setStandard_minutes(null);
 		}
 
 		return retForm;

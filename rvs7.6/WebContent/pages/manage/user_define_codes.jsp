@@ -118,7 +118,7 @@ p\:shaperange button {
 
 <div class="O" line=7 content><span lang="ZH-CN">实物受理</span></div>
 <div class="O" line=7 by_what><span lang="ZH-CN">件数</span></div>
-<div class="O" line=7 standard><span lang="ZH-CN">维修品</span><input type="text" name="FACT_RECEPT_SPARE_PER_MAT"></div>
+<div class="O" line=7 standard><span lang="ZH-CN">备品内窥镜</span><input type="text" name="FACT_RECEPT_ENSC_SPARE_PER_MAT"><span lang="ZH-CN">周边设备</span><input type="text" name="FACT_RECEPT_PERI_SPARE_PER_MAT"><span lang="ZH-CN">手术器械</span><input type="text" name="FACT_RECEPT_SURGI_SPARE_PER_MAT"><span lang="ZH-CN">备品附件</span><input type="text" name="FACT_RECEPT_ACCENA_SPARE_PER_MAT"></div>
 
 <div class="O" line=8 content><span lang="ZH-CN">入库搬运</span></div>
 <div class="O" line=8 by_what><span lang="ZH-CN">批次</span></div>
@@ -152,9 +152,17 @@ p\:shaperange button {
 <div class="O" line=15 by_what><span lang="ZH-CN">件数</span></div>
 <div class="O" line=15 standard><span lang="ZH-CN">周转箱</span><input type="text" name="TC_OUTSTOR_OFFSH_PER_MAT"></div>
 
-<div class="O" line=16 content><span lang="ZH-CN">包装出货</span></div>
+<div class="O" line=16 content><span lang="ZH-CN">出货包装</span></div>
 <div class="O" line=16 by_what><span lang="ZH-CN">件数</span></div>
-<div class="O" line=16 standard><span lang="ZH-CN">维修品</span><input type="text" name="SHIPPING_PER_MAT"></div>
+<div class="O" line=16 standard><span lang="ZH-CN">维修品</span><input type="text" name="PACKAGE_PER_MAT"></div>
+
+<div class="O" line=17 content><span lang="ZH-CN">出货装车</span></div>
+<div class="O" line=17 by_what><span lang="ZH-CN">每车件数</span></div>
+<div class="O" line=17 standard><span lang="ZH-CN">内窥镜</span><input type="text" name="SHIPPING_ENSC_CNT2_TROLLEY"><span lang="ZH-CN">周边设备</span><input type="text" name="SHIPPING_PERI_CNT2_TROLLEY"><span lang="ZH-CN">光学视管</span><input type="text" name="SHIPPING_UDI_CNT2_TROLLEY"></div>
+
+<div class="O" line=18 content><span lang="ZH-CN">出货搬运</span></div>
+<div class="O" line=18 by_what><span lang="ZH-CN">车数</span></div>
+<div class="O" line=18 standard><span lang="ZH-CN">每台车</span><input type="text" name="SHIPPING_PER_TROLLEY"></div>
 
 <button>更新受理组间接作业标准工时</button>
 </p:shaperange>
