@@ -204,7 +204,7 @@ public class AcceptFactService {
 
 		storedStandardFactors.put("SHIPPING_ENSC_CNT2_TROLLEY", new BigDecimal(12)); // 维修品出货维修品装车 FOR 133
 		storedStandardFactors.put("SHIPPING_PERI_CNT2_TROLLEY", new BigDecimal(6)); // 维修品出货周边装车 FOR 133
-		storedStandardFactors.put("SHIPPING_UDI_CNT2_TROLLEY", new BigDecimal(-1)); // 维修品出货光学视管装车 FOR 133
+		storedStandardFactors.put("SHIPPING_UDI_CNT2_TROLLEY", new BigDecimal(999)); // 维修品出货光学视管装车 FOR 133
 
 		storedStandardFactors.put("SHIPPING_PER_TROLLEY", new BigDecimal(4)); // 维修品出货每车 FOR 133
 
@@ -398,7 +398,7 @@ public class AcceptFactService {
 					// 总车数乘以每车时间
 					// 返回合计
 					standardPart2 = calcFromPositionBetweenCloseProcesses(key, "00000000047", "2", productionType,
-							new String[]{"SHIPPING_ENSC_CNT2_TROLLEY", "SYS_RECEPT_PERI_PER_MAT", "SHIPPING_UDI_CNT2_TROLLEY"}, 
+							new String[]{"SHIPPING_ENSC_CNT2_TROLLEY", "SHIPPING_PERI_CNT2_TROLLEY", "SHIPPING_UDI_CNT2_TROLLEY"}, 
 							"SHIPPING_PER_TROLLEY",
 							null, conn);
 					break;
