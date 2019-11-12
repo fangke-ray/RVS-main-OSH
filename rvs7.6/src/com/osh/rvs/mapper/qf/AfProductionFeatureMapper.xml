@@ -130,6 +130,25 @@
 	]]>
 	</select>
 
+	<select id="countPositionProcessBetweenCloseAfProcesses" resultType="AfProductionFeatureEntity" parameterType="AfProductionFeatureEntity">
+	<![CDATA[
+		select 
+		case when CATEGORY_name = '光学视管' then 2
+		when kind = 07 then 1
+		else 0
+		end as division,
+		count(1) as cnt
+		 from production_feature pf
+		join material ma on pf.material_id = ma.material_id
+		join v_model mdl on ma.model_id = mdl.model_id
+		where position_id = #{position_id} and operate_result = #{operate_result}
+		and finish_time 
+			between coalesce((select finish_time from af_production_feature where af_pf_key < #{af_pf_key} and production_type = #{production_type} order by finish_time desc limit 1), '2019-11-11')
+			and (select action_time from af_production_feature where af_pf_key = #{af_pf_key})
+		group by division;
+	]]>
+	</select>
+
 	<select id="countConsumableWarehouseOfAfProcess" resultType="AfProductionFeatureEntity" parameterType="string">
 		select 
 			shelf_cost as division, quantity as cnt

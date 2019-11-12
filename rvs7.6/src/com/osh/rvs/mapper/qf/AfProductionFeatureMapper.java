@@ -57,7 +57,15 @@ public interface AfProductionFeatureMapper {
 	 */
 	public List<AfProductionFeatureEntity> countPositionProcessBetweenAfProcess(
 			AfProductionFeatureEntity condition);
-	
+
+	/**
+	 * 查询两次作业之间的工位实现件数
+	 * @param condition
+	 * @return
+	 */
+	public List<AfProductionFeatureEntity> countPositionProcessBetweenCloseAfProcesses(
+			AfProductionFeatureEntity condition);
+
 	/**
 	 * 统计物料作业次数
 	 * @param af_pf_key

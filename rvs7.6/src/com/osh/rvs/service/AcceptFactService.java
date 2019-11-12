@@ -168,7 +168,7 @@ public class AcceptFactService {
 		storedStandardFactors.put("TICKET_PER_MAT", new BigDecimal(1)); // 维修品票单单印 FOR 101
 
 		storedStandardFactors.put("FACT_RECEPT_PER_MAT", new BigDecimal(2)); // 维修品实物受理 FOR 102
-		storedStandardFactors.put("FACT_TESTMR_PER_MAT", new BigDecimal(5)); // 维修品/备品实物测漏 FOR 102
+		storedStandardFactors.put("FACT_TESTMR_PER_MAT", new BigDecimal(5)); // 维修品/备品实物测漏 FOR 102/105
 
 		storedStandardFactors.put("SYS_RECEPT_ENSC_PER_MAT", new BigDecimal("2.5")); // 维修品/备品内窥镜系统受理 FOR 103/105
 		storedStandardFactors.put("SYS_RECEPT_PERI_PER_MAT", new BigDecimal(2)); // 维修品/备品周边系统受理 FOR 103/105
@@ -198,7 +198,15 @@ public class AcceptFactService {
 		storedStandardFactors.put("TC_OUTSTOR_TRANS_PER_PRO", new BigDecimal(6)); // 镜箱出库搬运 FOR 131 
 		storedStandardFactors.put("TC_OUTSTOR_OFFSH_PER_MAT", new BigDecimal(1)); // 镜箱出库系统操作 FOR 131
 
-		storedStandardFactors.put("SHIPPING_PER_MAT", new BigDecimal(4)); // 维修品出货 FOR 132
+		storedStandardFactors.put("PACKAGE_PER_MAT", new BigDecimal(4)); // 维修品包装 FOR 132
+
+//		storedStandardFactors.put("SHIPPING_PER_PRO", new BigDecimal(4)); // 维修品出货基本时间 FOR 133
+
+		storedStandardFactors.put("SHIPPING_ENSC_CNT2_TROLLEY", new BigDecimal(12)); // 维修品出货维修品装车 FOR 133
+		storedStandardFactors.put("SHIPPING_PERI_CNT2_TROLLEY", new BigDecimal(6)); // 维修品出货周边装车 FOR 133
+		storedStandardFactors.put("SHIPPING_UDI_CNT2_TROLLEY", new BigDecimal(-1)); // 维修品出货光学视管装车 FOR 133
+
+		storedStandardFactors.put("SHIPPING_PER_TROLLEY", new BigDecimal(4)); // 维修品出货每车 FOR 133
 
 		storedStandardFactors.put("INLINE_PER_MAT", new BigDecimal("1.5")); // 系统投线 FOR 201
 		storedStandardFactors.put("DISTRIB_PER_PRO", new BigDecimal(20)); // 整理/运输内镜 FOR 201
@@ -320,7 +328,7 @@ public class AcceptFactService {
 		}
 
 		BigDecimal standardPart2 = BigDecimal.ZERO;
-		if (!justStart) { // 刚切换时，不需要统计
+		if (!justStart || "133".equals(productionType)) { // 刚切换时，不需要统计 // 维修品出货是以之前的作业为基准，因此刚开始就可以计算
 			// 作业单位计时 part2
 			switch (productionType) {
 				case "101" : // 票单打印
@@ -376,11 +384,22 @@ public class AcceptFactService {
 					// 乘以每单镜箱下架用时
 					standardPart2 = calcFromFactMaterial(key, "TC_OUTSTOR_OFFSH_PER_MAT", conn);
 					break;
-				case "132" : // 维修品出货
+				case "132" : // 维修品包装
 					// 按key查询af_pf时间段中完成的711工位记录数，
 					// 乘以每单用时
 					standardPart2 = calcFromPositionProcess(key, "00000000047", "2", 
-							new String[]{"SHIPPING_PER_MAT"}, 
+							new String[]{"PACKAGE_PER_MAT"}, 
+							null, conn);
+					break;
+				case "133" : // 维修品出货
+					// 按key查询af_pf时间，以及最近一次同样的维修品出货之间完成的711工位记录数，
+					// 分内窥镜、周边设备、光学视管
+					// 分别计算为车数
+					// 总车数乘以每车时间
+					// 返回合计
+					standardPart2 = calcFromPositionBetweenCloseProcesses(key, "00000000047", "2", productionType,
+							new String[]{"SHIPPING_ENSC_CNT2_TROLLEY", "SYS_RECEPT_PERI_PER_MAT", "SHIPPING_UDI_CNT2_TROLLEY"}, 
+							"SHIPPING_PER_TROLLEY",
 							null, conn);
 					break;
 				case "201" : // 投线
@@ -570,6 +589,44 @@ public class AcceptFactService {
 
 	/**
 	 * 按完成工位来统计
+	 * @param key 间接人员作业记录主键
+	 * @param position_id
+	 * @param operate_result
+	 * @param productionType 
+	 * @param loadNames
+	 * @param factorName 
+	 * @param cond_division
+	 * @param conn
+	 * @return
+	 */
+	private BigDecimal calcFromPositionBetweenCloseProcesses(String key, String position_id,
+			String operate_result, String productionType, String[] loadNames, String factorName, Integer cond_division, SqlSession conn) {
+		AfProductionFeatureMapper mapper = conn.getMapper(AfProductionFeatureMapper.class);
+		AfProductionFeatureEntity condition = new AfProductionFeatureEntity();
+		condition.setAf_pf_key(key);
+		condition.setProduction_type(Integer.parseInt(productionType));
+		condition.setPosition_id(position_id);
+		condition.setOperate_result(operate_result);
+		condition.setDivision(cond_division);
+
+		List<AfProductionFeatureEntity> results = mapper.countPositionProcessBetweenCloseAfProcesses(condition);
+
+		BigDecimal calc = new BigDecimal(0);
+
+		for (AfProductionFeatureEntity result : results) {
+			int division = result.getDivision();
+			BigDecimal load = storedStandardFactors.get(loadNames[division]);
+			BigDecimal factor = storedStandardFactors.get(factorName);
+			calc = calc.add(new BigDecimal(result.getCnt())
+					.divide(load, 0, BigDecimal.ROUND_UP)
+					.multiply(factor));
+		}
+
+		return calc;
+	}
+
+	/**
+	 * 按消耗品作业记录来统计
 	 * @param key 间接人员作业记录主键
 	 * @param factorNames
 	 * @param conn

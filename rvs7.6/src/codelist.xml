@@ -1260,7 +1260,8 @@
 		<value code="121">维修品灭菌</value>
 		<value code="122">备品灭菌</value>
 		<value code="131">镜箱出库</value>
-		<value code="132">维修品出货</value>
+		<value code="132">维修品包装</value>
+		<value code="133">维修品出货</value>
 
 		<value code="201">投线系统操作/运输</value>
 		<value code="211">零件收货</value>
