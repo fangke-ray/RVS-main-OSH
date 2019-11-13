@@ -358,7 +358,13 @@ function list(listdata){
             	  {name:'hid_process_time',index:'hid_process_time',hidden:true,formatter : function(value, options, rData) {return rData["process_time"];	}},
 	              {name:'code',index:'code',width:100},
                   {name:'lot_no',index:'lot_no',width:50},
-                  {name:'cut_length',index:'cut_length',width:50,align:'right',formatter : function(value, options, rData) {return rData["lot_no"];	}},
+                  {name:'cut_length',index:'cut_length',width:50,align:'right',formatter : function(value, options, rData) {
+                	  if(!rData["lot_no"]){
+                		  return "-"; 
+                	  }else{
+                		  return rData["lot_no"];
+                	  }
+                   }},
                   {name:'quantity',index:'quantity',width:50,align:'right'},
                   {name:'process_time',index:'process_time',width:90,align:'center',sorttype:'date',formatter:'date',formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'Y-m-d'}},
                   {name:'operator_name',index:'operator_name',width:100},
@@ -576,7 +582,7 @@ function showEdit () {
 	
 	if(process_type == 2){
 		var arr = heatshrinkableMap.get((rowData.partial_id).replace(/^0+/,"")).split(",");
-		var content = "";
+		var content = "<option value=''></option>";
 		arr.forEach(function(item){
 			content +="<option value='" + item + "'>" + item+ "</option>";
 		});

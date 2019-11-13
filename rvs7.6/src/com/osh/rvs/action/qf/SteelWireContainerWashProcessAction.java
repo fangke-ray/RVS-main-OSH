@@ -160,9 +160,9 @@ public class SteelWireContainerWashProcessAction extends BaseAction {
 		// 钢丝固定件清洗
 		if ("1".equals(processType)) {
 			v.add("lot_no", v.required("入库批号"));
-		} else if ("2".equals(processType)) {// 热缩管切割
+		} /*else if ("2".equals(processType)) {// 热缩管切割
 			v.add("lot_no", v.required("切割长度"));
-		}
+		}*/
 		List<MsgInfo> errors = v.validate();
 
 		// 耗材分装

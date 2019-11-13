@@ -98,7 +98,7 @@
 		SET 
 			quantity = #{quantity}
 	]]>
-	<if test="lot_no!=null and lot_no!=''">
+	<if test="process_type == 1 or process_type == 2">
 	<![CDATA[
 			,lot_no = #{lot_no}
 	]]>
