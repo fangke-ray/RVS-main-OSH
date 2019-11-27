@@ -155,6 +155,9 @@ public class PartialWarehouseService {
 
 			while ((tempString = reader.readLine()) != null) {
 				rowNum++;
+				if ("".equals(tempString)) {
+					continue;
+				}
 				if (rowNum == 1 || rowNum == 2) {// 去除表头
 					continue;
 				}
@@ -170,8 +173,19 @@ public class PartialWarehouseService {
 				}
 
 				//（验证格式）
+				int leftPad = 0;
+				if (leftPad == 0 && "".equals(arr[0])) {
+					for (int i = 0; i < arr.length; i++) {
+						if ("".equals(arr[i])) {
+							leftPad++;
+						} else {
+							break;
+						}
+					}
+				}
+
 				// DN单号
-				String dnNo = arr[0];
+				String dnNo = arr[0 + leftPad];
 				if (CommonStringUtil.isEmpty(dnNo)) {
 					error = new MsgInfo();
 					error.setErrcode("file.invalidFormat");
@@ -182,7 +196,7 @@ public class PartialWarehouseService {
 
 				if(!pwCache.containsKey(dnNo)){
 					// 日期
-					String strDate = arr[6];
+					String strDate = arr[6 + leftPad];
 					if (CommonStringUtil.isEmpty(strDate)) {
 						error = new MsgInfo();
 						error.setErrcode("file.invalidFormat");
@@ -193,7 +207,7 @@ public class PartialWarehouseService {
 
 					if (dnNo.length() > 8) {
 						error = new MsgInfo();
-						error.setErrmsg("第" + rowNum + "行第1列交货长度大于8。");
+						error.setErrmsg("第" + rowNum + "行第" +  (1 + leftPad) + "列交货长度大于8。");
 						errors.add(error);
 						return null;
 					} else {
@@ -211,7 +225,7 @@ public class PartialWarehouseService {
 					if (!strDate.matches(DATE_EXPRESSION) && !strDate.matches(ISO_DATE_EXPRESSION)) {// 日期形式不匹配
 						error = new MsgInfo();
 						error.setErrcode("validator.invalidParam.invalidDateValue");
-						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidDateValue", "第" + rowNum + "行第7列Mat.Av.Dt.", DateUtil.DATE_PATTERN + "或者"
+						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidDateValue", "第" + rowNum + "行第" +  (7 + leftPad) + "列Mat.Av.Dt.", DateUtil.DATE_PATTERN + "或者"
 								+ DateUtil.ISO_DATE_PATTERN));
 						errors.add(error);
 						return null;
@@ -235,10 +249,10 @@ public class PartialWarehouseService {
 				warehouseDetailEntity = new PartialWarehouseDetailEntity();
 
 				// 物料（零件Code）
-				String code = arr[3];
+				String code = arr[3 + leftPad];
 				if (CommonStringUtil.isEmpty(code)) {
 					error = new MsgInfo();
-					error.setErrmsg("第" + rowNum + "行第4列物料为空。");
+					error.setErrmsg("第" + rowNum + "行第" +  (4 + leftPad) + "列物料为空。");
 					errors.add(error);
 				} else {
 					// 查询零件信息
@@ -248,7 +262,7 @@ public class PartialWarehouseService {
 						// 零件不存在
 						error = new MsgInfo();
 						error.setErrcode("dbaccess.recordNotExist");
-						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "第" + rowNum + "行第4列物料【" + code + "】"));
+						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "第" + rowNum + "行第" +  (4 + leftPad) + "列物料【" + code + "】"));
 						errors.add(error);
 					} else {
 						PartialEntity partialEntity = partialList.get(0);
@@ -272,26 +286,32 @@ public class PartialWarehouseService {
 				}
 
 				// 数量
-				String strQuantity = arr[4];
+				String strQuantity = arr[4 + leftPad];
+				if (strQuantity != null) {
+					strQuantity = strQuantity.trim();
+					if (strQuantity.indexOf(".") >= 0) {
+						strQuantity = strQuantity.substring(0, strQuantity.indexOf("."));
+					}
+				}
 				if (CommonStringUtil.isEmpty(strQuantity)) {
 					error = new MsgInfo();
 					error.setErrcode("validator.required");
-					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "第" + rowNum + "行第5列"));
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "第" + rowNum + "行第" +  (1 + leftPad) + "列"));
 					errors.add(error);
 				} else if (strQuantity.length() > 5) {// 长度大于5
 					error = new MsgInfo();
 					error.setErrcode("validator.invalidParam.invalidMaxLengthValue");
-					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", "第" + rowNum + "行第5列", "5"));
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", "第" + rowNum + "行第" +  (1 + leftPad) + "列", "5"));
 					errors.add(error);
 				} else if (!UploadService.isNum(strQuantity)) {// 数量不是数字
 					error = new MsgInfo();
 					error.setErrcode("validator.invalidParam.invalidIntegerValue");
-					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidIntegerValue", "第" + rowNum + "行第5列"));
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidIntegerValue", "第" + rowNum + "行第" +  (1 + leftPad) + "列"));
 					errors.add(error);
 				} else if (Integer.valueOf(strQuantity) <= 0) {// 数字小于1
 					error = new MsgInfo();
 					error.setErrcode("validator.invalidParam.invalidMoreThanZero");
-					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "第" + rowNum + "行第5列"));
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "第" + rowNum + "行第" +  (1 + leftPad) + "列"));
 					errors.add(error);
 				} else {
 					warehouseDetailEntity.setQuantity(Integer.valueOf(strQuantity));
