@@ -541,6 +541,9 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 		if (errors.size() == 0) {
 			// getProccessingData(listResponse, material_id, workwaitingPf, user, conn);
+			// 只要开始做，就结束掉本人所有的暂停信息。
+			bfService.finishPauseFeature(null, user.getSection_id(), user.getPosition_id(), user.getOperator_id(), 
+					serial_no, conn);
 
 			// 作业信息状态改为，作业中
 			SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);

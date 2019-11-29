@@ -220,7 +220,7 @@ public class OperatorProductionService {
 			startTime.setTime(conditionBean.getPause_start_time());
 
 			boolean restAfternoon = isStartAtAm(startTime);
-			conditionBean.setFinish_time(getAutoFinishTime(startTime));
+			conditionBean.setPause_finish_time(getAutoFinishTime(startTime));
 
 			if (conditionBean.getReason() == null) {
 				if (!CommonStringUtil.isEmpty(conditionBean.getComments())) {

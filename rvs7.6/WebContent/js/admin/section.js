@@ -47,9 +47,10 @@ $(function() {
 
 	// 清空检索条件
 	$("#resetbutton").click(function() {
-		$("#cond_id").data("post", "");
-		$("#cond_name").data("post", "");
-		$("#cond_inline_flg_set").data("post", "");
+		$("#cond_id").val("").data("post", "");
+		$("#cond_name").val("").data("post", "");
+		$("#cond_inline_flg_set").data("post", "")
+			.find("input:radio:eq(0)").attr("checked", true).trigger("change");
 	});
 
 	// 编辑权限
@@ -218,6 +219,7 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			grid_detail_positions.find("tr").removeClass("ui-state-active");
 			for (var iposition in positions) {
 				grid_detail_positions.find("tr:has(.referId:contains('"+positions[iposition]+"'))")
+					.filter(function(){return $(this).find(".referId").text() === fillZero(positions[iposition], 11)})
 					.addClass("ui-state-active");
 			}
 
