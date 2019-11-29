@@ -83,7 +83,7 @@ resize:none;
 				</tr-->
 				<tr for="final_inspect_pass">
 					<td class="ui-state-default td-title">最终检查合格率</td>
-					<td class="ui-state-default td-subtitle">≧99.9%</td>
+					<td class="ui-state-default td-subtitle">≧99.98%</td>
 					<td class="td-content" weekday_index="1"></td>
 					<td class="td-content" weekday_index="2"></td>
 					<td class="td-content" weekday_index="3"></td>
@@ -93,7 +93,7 @@ resize:none;
 				</tr>
 				<tr for="intime_complete">
 					<td class="ui-state-default td-title">大修理5天内纳期遵守比率</td>
-					<td class="ui-state-default td-subtitle">≧75%</td>
+					<td class="ui-state-default td-subtitle">≧80%</td>
 					<td class="td-content" weekday_index="1"></td>
 					<td class="td-content" weekday_index="2"></td>
 					<td class="td-content" weekday_index="3"></td>
@@ -153,7 +153,7 @@ resize:none;
 				</tr -->
 				<tr for="quotation_lt">
 					<td class="ui-state-default td-title">报价周期LT达成率</td>
-					<td class="ui-state-default td-subtitle">1天内达成比率≧82%</td>
+					<td class="ui-state-default td-subtitle">1天内达成比率≧85%</td>
 					<td class="td-content" weekday_index="1"></td>
 					<td class="td-content" weekday_index="2"></td>
 					<td class="td-content" weekday_index="3"></td>
