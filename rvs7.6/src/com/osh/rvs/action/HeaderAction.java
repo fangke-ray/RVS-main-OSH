@@ -136,8 +136,10 @@ public class HeaderAction extends BaseAction {
 			req.setAttribute("message_type", "op");
 		}
 
+		String servletPath = req.getServletPath();
 		// 间接作业人员
-		if (("" + RvsConsts.WORK_COUNT_FLG_INDIRECT).equals(user.getWork_count_flg())) {
+		if (("" + RvsConsts.WORK_COUNT_FLG_INDIRECT).equals(user.getWork_count_flg())
+				&& servletPath.indexOf("show.") < 0) {
 			req.setAttribute("indirect_worker", "id");
 		} else {
 			req.setAttribute("indirect_worker", "");

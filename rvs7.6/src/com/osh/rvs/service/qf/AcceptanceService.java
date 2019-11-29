@@ -99,8 +99,10 @@ public class AcceptanceService {
 		if ("06".equals(kind) && RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
 			kind = "UDI";
 		}
-		triggerList.add("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
-				+ "/" + kind + "/" + mEntity.getFix_type() + "/" + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
+		if (mEntity.getFix_type() != null && mEntity.getFix_type() != 3) { // 备品通箱不入库也不消毒通箱(备品必须单都包含通箱信息)
+			triggerList.add("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
+					+ "/" + kind + "/" + mEntity.getFix_type() + "/" + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
+		}
 	}
 
 	/**

@@ -222,9 +222,9 @@
 <div id="af_process"></div>
 <span class="prod" line=1></span>
 <ul id="af_pause_reason_group">
-	<li group="WDT">辅助作业</li>
 	<li group="WY">间接作业</li>
-	<li group="MD">管理等待</li>
+	<li group="MD">管理时间</li>
+	<li group="MW">等待时间</li>
 	<li group="H">休息离线</li>
 	<li group="-1"><label>◑ 下班</label></li>
 </ul>
@@ -263,15 +263,24 @@ var refreshAf = function(init) {
 			if (resInfo.afAbilities) setAfAbilities(resInfo.afAbilities);
 			if (resInfo.pauseReasonGroup) {
 				var prGrhtml = "";
+				var prAidHtml = "";
 				for (var prGr in resInfo.pauseReasonGroup) {
 					var prOfGr = resInfo.pauseReasonGroup[prGr];
-					for (var prCode in prOfGr) {
-						var prName = prOfGr[prCode].split(":");
-						prGrhtml += "<li group='" + prGr + "' code='" + prCode + "'>" + prName[1] + "</li>"
+					if (prGr === "WDT") {
+						for (var prCode in prOfGr) {
+							var prName = prOfGr[prCode].split(":");
+							prAidHtml += "<li group='" + prGr + "' code='" + prCode + "'>" + prName[1] + "</li>"
+						}
+					} else {
+						for (var prCode in prOfGr) {
+							var prName = prOfGr[prCode].split(":");
+							prGrhtml += "<li group='" + prGr + "' code='" + prCode + "'>" + prName[1] + "</li>"
+						}
 					}
 				}
 				$("#af_pause_reason").html(prGrhtml)
 					.find("li").hide();
+				$("#af_abilities").append(prAidHtml);
 			}
 
 			if(resInfo.isManager) {
@@ -353,8 +362,11 @@ var setProdText = function(type_code, from) {
 	var type_name = "";
 	if (from === "p") {
 		type_name = $("#af_pause_reason li[code=" + type_code + "]").text();
+		if (!type_name) {
+			type_name = $("#af_abilities li[group='WDT'][code=" + type_code + "]").text();
+		}
 	} else if (from === "a") {
-		type_name = $("#af_abilities li[code=" + type_code + "]").text();
+		type_name = $("#af_abilities li[code=" + type_code + "]").eq(0).text();
 	}
 	var $afProd = $afTimer.find(".prod");
 	$afProd.text(type_name);
@@ -381,6 +393,7 @@ var setAfAbilities = function(afAbilities) {
 	for (var group in groups) {
 		afGrhtml += "<li group='" + group + (group.length > 5 ? "' len='" : "") + "'>" + group + "</li>";
 	}
+	afGrhtml += '<li group="WDT">辅助作业</li>';
 	$("#af_abilities_group").html(afGrhtml);
 }
 
@@ -481,7 +494,13 @@ var stateTool = function(){
 
 	$("#af_abilities").on("click", "li", function(){
 		var code = $(this).attr("code");
-		doSwitch("1", code);
+		var group = $(this).attr("group");
+		if (group === "WDT") {
+			doSwitch("0", code);
+		} else {
+			doSwitch("1", code);
+		}
+
 		$afTimer.attr("switch", "no");
 	});
 
@@ -577,6 +596,7 @@ var doEnd = function(is_working, production_type, saraniCallback) {
 var showStop = function(){
 	$afTimer.removeAttr("process").removeAttr("from");
 	$("#af_timer .prod").text("停止计时").attr("line", 1);
+	isClosed = true;
 	now_standard = 0;
 	$("#af_standard").text("");
 	$("#af_process").text("");
