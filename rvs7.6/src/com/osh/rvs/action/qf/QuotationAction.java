@@ -463,6 +463,22 @@ public class QuotationAction extends BaseAction {
 				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidIntegerValue", "中断代码"));
 				errors.add(msgInfo);
 			}
+
+			// 判断竞合
+			if (iReason > 70) {
+				MaterialForm materialForm = (MaterialForm) form;
+				if (materialForm.getWip_location() != null) {
+					materialForm.setMaterial_id(workingPf.getMaterial_id());
+					WipService wipService = new WipService();
+					if (wipService.checkLocateInuse(materialForm, conn, errors)) {
+						MsgInfo error = new MsgInfo();
+						error.setComponentid("wip_location");
+						error.setErrcode("info.wipShelf.notEmpty");
+						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.wipShelf.notEmpty"));
+						errors.add(error);
+					}
+				}
+			}
 		}
 
 		PositionPanelService service = new PositionPanelService();
@@ -516,6 +532,7 @@ public class QuotationAction extends BaseAction {
 				} else if (iReason == 73) { // 放入WIP
 					log.info("WIP:" + req.getParameter("wip_location"));
 				}
+
 				// 更新维修对象。
 				MaterialEntity bean = new MaterialEntity();
 				BeanUtil.copyToBean(form, bean, CopyOptions.COPYOPTIONS_NOEMPTY);
@@ -712,6 +729,16 @@ public class QuotationAction extends BaseAction {
 							errors.add(error);
 							listResponse.put("agreed_date", DateUtil.toString(orginAgreedDate, DateUtil.DATE_PATTERN));
 						}
+					}
+
+					// 判断竞合
+					WipService wipService = new WipService();
+					if (wipService.checkLocateInuse(materialForm, conn, errors)) {
+						MsgInfo error = new MsgInfo();
+						error.setComponentid("wip_location");
+						error.setErrcode("info.wipShelf.notEmpty");
+						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.wipShelf.notEmpty"));
+						errors.add(error);
 					}
 				}
 			}

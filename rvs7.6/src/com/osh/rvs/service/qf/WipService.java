@@ -380,4 +380,27 @@ public class WipService {
 		WipMapper dao = conn.getMapper(WipMapper.class);
 		return dao.checkImgCheckReworking(material_id, "00000000015");
 	}
+
+	public boolean checkLocateInuse(MaterialForm materialForm,
+			SqlSession conn, List<MsgInfo> errors) {
+		List<MaterialEntity> lHit = new ArrayList<MaterialEntity>();
+		WipMapper dao = conn.getMapper(WipMapper.class);
+
+		MaterialEntity conditionBean = new MaterialEntity();
+		conditionBean.setWip_location(materialForm.getWip_location());
+		lHit = dao.searchMaterial(conditionBean);
+
+		if (lHit.size() == 0) {
+			return false;
+		} else if (lHit.size() > 1) {
+			return true;
+		} else {
+			String hitMaterialId = lHit.get(0).getMaterial_id();
+			if (hitMaterialId.equals(materialForm.getMaterial_id())) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
 }
