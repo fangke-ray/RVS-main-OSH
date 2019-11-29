@@ -126,7 +126,7 @@ public class PartialReleaseAction extends BaseAction {
 		Map<String,Object> listResponse=new HashMap<String, Object>();
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 		List<MsgInfo> errors = v != null ? v.validate(): new ArrayList<MsgInfo>();
-		
+
 		PartialReleaseService service=new PartialReleaseService();
 		
 		String flag=request.getParameter("flag");
@@ -162,7 +162,7 @@ public class PartialReleaseAction extends BaseAction {
 //							conn.commit();
 //							RvsUtils.sendTrigger(triggerList);
 						}
-						
+
 						if (isNoBo) {
 							/**零件出库**/
 							AcceptFactService acceptFactService = new AcceptFactService();
@@ -196,6 +196,9 @@ public class PartialReleaseAction extends BaseAction {
 									}
 								}
 							}
+
+							// 零件发放者完成321工位
+							service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, conn);
 						}
 					} else {
 						// 检查工位上BO零件为解除

@@ -1119,16 +1119,16 @@ public class RvsUtils {
 
 		// 纳期限定
 		Integer timeLimit = RvsConsts.TIME_LIMIT;
-		// 直送快速
-		if (scheduledExpedite != null && 2 == scheduledExpedite) {
-			if (1 == level) {
-				// S1同意日期+2个工作日
-				timeLimit = +2;
-			} else {
-				// S2/S3同意日期+4个工作日
-				timeLimit = +4;
-			}
-		}
+//		// 直送快速
+//		if (scheduledExpedite != null && 2 == scheduledExpedite) {
+//			if (1 == level) {
+//				// S1同意日期+2个工作日
+//				timeLimit = +2;
+//			} else {
+//				// S2/S3同意日期+4个工作日
+//				timeLimit = +4;
+//			}
+//		}
 		if (lightFix) {
 			timeLimit = +2;
 		}

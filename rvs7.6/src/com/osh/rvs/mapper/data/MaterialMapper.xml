@@ -79,11 +79,7 @@
 			CASE
 				WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
 					THEN 2
-				WHEN `m`.Scheduled_expedited = 2 AND `m`.level = 1
-					THEN 2
-				WHEN `m`.Scheduled_expedited = 2
-					THEN 4
-				ELSE 6
+				ELSE 5
 			END
 			)) as scheduled_date
 

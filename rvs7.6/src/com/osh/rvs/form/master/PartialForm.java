@@ -39,7 +39,7 @@ public class PartialForm extends UploadForm{
 	@BeanField(title = "零件 ID", name = "partial_id", type = FieldType.String, primaryKey = true, length = 11)
 	private String partial_id;
     /*零件编码*/
-	@BeanField(title = "零件编码", name = "code", length = 8,notNull = true)
+	@BeanField(title = "零件编码", name = "code", length = 9,notNull = true)
 	private String code;
 	/*零件名称*/
 	@BeanField(title = "零件名称", name = "name", length = 120)

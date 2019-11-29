@@ -401,7 +401,8 @@ public class LineLeaderService {
 	/**
 	 * 线长完成零件相关工位
 	 */
-	public void partialResolve(String material_id, String model_name, String position_id, SqlSessionManager conn, LoginData user) throws Exception {
+	public ProductionFeatureEntity partialResolve(String material_id, String model_name, String section_id, String position_id, 
+			SqlSessionManager conn, LoginData user) throws Exception {
 		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 
 		// 取得标准工作时间
@@ -422,12 +423,17 @@ public class LineLeaderService {
 		entity.setUse_seconds(use_seconds);
 		entity.setMaterial_id(material_id);
 		entity.setPosition_id(position_id);
-		entity.setSection_id(user.getSection_id());
+		if (section_id != null) {
+			entity.setSection_id(section_id);
+		} else {
+			entity.setSection_id(user.getSection_id());
+		}
 		entity.setPcs_inputs("{\"EN"+position.getProcess_code()+"01\":\"1\"}");
 
 		// 更新为完成
 		dao.finishPatchProductionFeature(entity);
 
+		return entity;
 	}
 
 	/**

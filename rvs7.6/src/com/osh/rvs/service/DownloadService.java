@@ -542,8 +542,15 @@ public class DownloadService {
 //					sSchedulePlan = DateUtil.toString(mpBean.getCom_plan_date(), DateUtil.ISO_DATE_PATTERN);
 //				}
 				if (mBean.getScheduled_date() == null) {
-					Date dSchedulePlan = RvsUtils.switchWorkDate(mBean.getAgreed_date(), RvsConsts.TIME_LIMIT, conn);
-					sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
+					
+					if (mBean.getLevel() == null) {
+						Date dSchedulePlan = RvsUtils.switchWorkDate(mBean.getAgreed_date(), RvsConsts.TIME_LIMIT, conn);
+						sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
+					} else {
+						Date dSchedulePlan = RvsUtils.getTimeLimit(mBean.getAgreed_date(), mBean.getLevel(), 
+								mBean.getFix_type(), mBean.getScheduled_expedited(), conn, false)[0];
+						sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
+					}
 				} else {
 					sSchedulePlan = DateUtil.toString(mBean.getScheduled_date(), DateUtil.ISO_DATE_PATTERN);
 				}

@@ -112,18 +112,25 @@
 					</when>
 					<when test="position_eval == 2">
 						<choose>
-							<when test="position_id == 32 and support_date!= null">
+							<when test="position_id == 32 and support_date != null">
 						<![CDATA[
 						and (
 						(a.level in (9,91,92,93,96,97,98,99,56,57,58,59) and a.agreed_date is not null)
 						or
-						exists(select material_id from production_feature d where d.material_id = a.material_id and d.position_id = #{position_id} and d.operate_result NOT IN (5,8))
+						exists(select material_id from production_feature d join position d_p on d.position_id = d_p.position_id and d_p.line_id = 14 where d.material_id = a.material_id)
 						)
+						]]>
+							</when>
+							<when test="position_id == 32 and support_date == null">
+						<![CDATA[
+						and 
+						exists(select material_id from production_feature d join position d_p on d.position_id = d_p.position_id and d_p.line_id = 14 where d.material_id = a.material_id)
 						]]>
 							</when>
 							<otherwise>
 						<![CDATA[
-						and exists(select material_id from production_feature d where d.material_id = a.material_id and d.position_id = #{position_id} and d.operate_result NOT IN (5,8))
+						and 
+						exists(select material_id from production_feature d where d.material_id = a.material_id and d.position_id = #{position_id} and d.operate_result NOT IN (5,8))
 						]]>
 							</otherwise>
 						</choose>				

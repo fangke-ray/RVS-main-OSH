@@ -265,7 +265,7 @@ public class LineLeaderAction extends BaseAction {
 
 		if ("00000000020".equals(position_id)) {
 			// “零件订购”工位线长处理
-			service.partialResolve(material_id, model_name, position_id, conn, loginData);
+			service.partialResolve(material_id, model_name, loginData.getSection_id(), position_id, conn, loginData);
 			// 触发之后工位
 			ProductionFeatureService pfService = new ProductionFeatureService();
 			// 取得刚才完成的作业信息（主要需要rework）
@@ -339,14 +339,10 @@ public class LineLeaderAction extends BaseAction {
 		LoginData loginData = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 
 		// “零件订购”工位线长处理
-		service.partialResolve(material_id, model_name, position_id, conn, loginData);
+		ProductionFeatureEntity workingPf = service.partialResolve(material_id, model_name, loginData.getSection_id(), position_id, conn, loginData);
 		// 触发之后工位
 		ProductionFeatureService pfService = new ProductionFeatureService();
 		// 取得刚才完成的作业信息（主要需要rework）
-		ProductionFeatureEntity workingPf = new ProductionFeatureEntity();
-		workingPf.setMaterial_id(material_id);
-		workingPf.setPosition_id(position_id);
-		workingPf.setSection_id(loginData.getSection_id());
 		workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
 		workingPf = pfService.searchProductionFeatureOne(workingPf, conn);
 		pfService.fingerNextPosition(material_id, workingPf, conn, triggerList);

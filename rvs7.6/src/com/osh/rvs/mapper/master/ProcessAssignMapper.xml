@@ -296,11 +296,11 @@ WHERE `pf`.POSITION_ID = #{position_id} AND `pf`.material_id = #{material_id} AN
 		]]>
 	</select>
 
-	<select id="get32" resultType="int">
+	<!--select id="get32" resultType="int">
 		<![CDATA[ 
 		SELECT COUNT(1) FROM PRODUCTION_FEATURE pf WHERE `pf`.operate_result = 2 AND MATERIAL_ID = #{material_id}  AND `pf`.POSITION_ID IN (23,31);
 		]]>
-	</select>
+	</select-->
 
 	<select id="getFinishedPositionsInline" resultType="ProductionFeatureEntity">
 		<![CDATA[ 

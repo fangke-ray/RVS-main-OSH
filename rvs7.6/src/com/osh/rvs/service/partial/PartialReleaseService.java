@@ -15,12 +15,14 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.partial.ConsumableListEntity;
 import com.osh.rvs.bean.partial.ConsumableSubstituteEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
@@ -30,6 +32,8 @@ import com.osh.rvs.mapper.partial.ConsumableListMapper;
 import com.osh.rvs.mapper.partial.ConsumableSubstituteMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.mapper.partial.PartialReleaseMapper;
+import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.inline.LineLeaderService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -416,6 +420,35 @@ public class PartialReleaseService {
 		}
 
 		return respFormList;
+	}
+
+	public void finishNsPartialRelease(String material_id, LoginData user, SqlSessionManager conn) throws Exception {
+		// 检查工位等待存在
+		ProductionFeatureService pfService = new ProductionFeatureService();
+
+		ProductionFeatureEntity workingPf = new ProductionFeatureEntity();
+		workingPf.setMaterial_id(material_id);
+		workingPf.setPosition_id("00000000027");
+		workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_NOWORK_WAITING);
+		workingPf = pfService.searchProductionFeatureOne(workingPf, conn);
+
+		if (workingPf != null) {
+			// 自动完成
+			LineLeaderService lService = new LineLeaderService();
+			lService.partialResolve(material_id, null, workingPf.getSection_id(), "00000000027", conn, user);
+
+			List<String> triggerList = new ArrayList<String>();
+		
+			workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+
+			// 触发之后工位
+			pfService.fingerNextPosition(material_id, workingPf, conn, triggerList);
+
+			if (triggerList.size() > 0) {
+				conn.commit();
+				RvsUtils.sendTrigger(triggerList);
+			}
+		}
 	}
 
 }
