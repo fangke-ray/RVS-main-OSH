@@ -351,6 +351,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 						$("#stopbutton").enable();
 						$("#printbutton").enable().val("重新打印小票" + $("#performance_list tr#" + id).find("td[aria\-describedby='performance_list_ticket_flg']").text()+"份");
 						$("#printaddbutton").enable();
+						$("#quotationcommentbutton").enable();
                         
                         if(rowdata.isHistory==1){
                             $("#modifybutton").enable();
@@ -362,6 +363,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 					},
 					viewsortcols : [true, 'vertical', true],
 					gridComplete : function() {
+						disableButtons();
 					}
 				});
 			}
@@ -372,18 +374,14 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 	};
 };
 
+function disableButtons(){
+	$("#expeditebutton,#nogoodbutton,#resystembutton,#stopbutton,#printbutton,#printaddbutton,#movebutton,#sendbutton,#sendqabutton,#quotationcommentbutton").disable();
+};
+
 $(document).ready(function() {
 	$("div.ui-button").button();
 	$("input.ui-button").button();
-	$("#expeditebutton").disable();
-	$("#nogoodbutton").disable();
-	$("#resystembutton").disable();
-	$("#stopbutton").disable();
-	$("#printbutton").disable();
-	$("#printaddbutton").disable();
-	$("#movebutton").disable();
-	$("#sendbutton").disable();
-	$("#sendqabutton").disable();
+	disableButtons();
 
 	$("#expeditebutton").click(line_expedite);
 	$("#nogoodbutton").click(treat_nogood);
@@ -396,6 +394,7 @@ $(document).ready(function() {
 	$("#movebutton").click(doMove);
 	$("#sendqabutton").click(doJudge);
 	$("#sendccdbutton").click(doCcdChange);
+	$("#quotationcommentbutton").click(doQuotationCommentChange);
 	$("#sendbutton").hover(
 		function(){$(this).find("div.ui-widget-content").show();},
 		function(){$(this).find("div.ui-widget-content").hide();}
@@ -548,6 +547,86 @@ $(document).ready(function() {
 		$(this).remove();
 	})
 });
+
+function doQuotationCommentChange(){
+	var rowid = $("#performance_list").jqGrid("getGridParam", "selrow");
+	var rowdata = $("#performance_list").getRowData(rowid);
+	
+	var data = {
+		material_id : rowdata.material_id,
+		write : "1"
+	};
+	
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'material.do?method=getMaterialComment',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj) {
+			var resInfo = null;
+			try {
+				// 以Object形式读取JSON
+				eval('resInfo =' + xhrobj.responseText);
+				if (resInfo.errors.length > 0) {
+					// 共通出错信息框
+					treatBackMessages(null, resInfo.errors);
+				} else {
+					$("#comment_dialog").dialog({
+					    resizable : false,
+						modal : true,
+						title : "报价备注",
+						width : 1050,
+						buttons : {
+							"确认" : function() {
+								var postData = {
+									material_id : rowdata.material_id,
+									comment : $("#edit_material_comment").val()
+								};
+								
+								$.ajax({
+									beforeSend : ajaxRequestType,
+									async : false,
+									url : 'material.do?method=doUpdateMaterialComment',
+									cache : false,
+									data : postData,
+									type : "post",
+									dataType : "json",
+									success : ajaxSuccessCheck,
+									error : ajaxError,
+									complete : function(xhrObj) {
+										var resInfo = $.parseJSON(xhrObj.responseText);
+										if (resInfo.errors && resInfo.errors.length > 0) {
+											treatBackMessages(null, resInfo.errors);
+											return;
+										} else {
+											$("#comment_dialog").dialog('close');
+										}
+									}
+								});
+							},
+							"取消" : function() {
+								$(this).dialog("close");
+							}
+						}
+					});
+					
+					if (resInfo.material_comment_other) {
+						$("#edit_material_comment_other").val(resInfo.material_comment_other).show();
+					}else{
+						$("#edit_material_comment_other").val("");
+					}
+					$("#edit_material_comment").val(resInfo.material_comment);
+				}
+			} catch(e) {
+			}
+		}
+	});	
+};
 
 /** 
  * 检索处理

@@ -16,6 +16,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.service.CustomerService;
@@ -83,6 +84,17 @@ public class BeforeLineLeaderAction extends BaseAction {
 		} else {
 			req.setAttribute("editor", "false");
 		}
+		
+		String quotator = "false";
+		List<PositionEntity> positions = user.getPositions();
+		for(PositionEntity entity : positions){
+			// 报价人员
+			if("151".equals(entity.getProcess_code()) || "181".equals(entity.getProcess_code())){
+				quotator = "true";
+				break;
+			}
+		}
+		req.setAttribute("quotator", quotator);
 		
 
 		// 迁移到页面

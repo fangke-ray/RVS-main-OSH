@@ -1207,12 +1207,19 @@ public class MaterialService {
 	public void updateMaterialComment(String material_id, String operator_id,
 			String comment, SqlSessionManager conn) {
 		MaterialCommentMapper mapper = conn.getMapper(MaterialCommentMapper.class);
+		
 		Map<String, Object> materialComment = new HashMap<String, Object>();
 		materialComment.put("material_id", material_id);
 		materialComment.put("operator_id", operator_id);
 		materialComment.put("comment", comment);
-		materialComment.put("create_datetime", new Date());
-		mapper.inputMaterialComment(materialComment);		
+		
+		String dbComment = mapper.getMyMaterialComment(material_id, operator_id);
+		if(dbComment == null){
+			materialComment.put("create_datetime", new Date());
+			mapper.inputMaterialComment(materialComment);
+		}else{
+			mapper.updateMaterialComment(materialComment);
+		}
 	}
 
 	public void getMaterialCommentEdit(String material_id, String operator_id,

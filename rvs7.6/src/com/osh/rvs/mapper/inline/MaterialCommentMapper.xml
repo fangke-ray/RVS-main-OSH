@@ -35,6 +35,12 @@
 	]]>
 	</insert>
 	
+	<update id="updateMaterialComment" parameterType="map">
+	<![CDATA[
+		update material_comment set comment = #{comment} where material_id = #{material_id} and  operator_id = #{operator_id}
+	]]> 
+	</update>
+	
 	<delete id="deleteMaterialComment" parameterType="String">
 		<![CDATA[
 			delete from material_comment where material_id = #{material_id} and operator_id = #{operator_id}

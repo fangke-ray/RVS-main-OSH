@@ -43,6 +43,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	boolean isEditor = ("true").equals(editor);
 	String manager = (String) request.getAttribute("manager");
 	boolean isManager = ("true").equals(manager);
+	String quotator = (String) request.getAttribute("quotator");
+	boolean isQuotator = ("true").equals(quotator);
+	
 %>
 <div class="ui-widget-panel width-full" style="align:center;padding-top:16px;overflow-x: hidden;" id="body-3">
 	
@@ -130,12 +133,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<span class="areatitle">今日 现品报价课 受理报价工程 一览</span>
 	</div>
 	<div class="ui-widget-content">
-<% if (isManager) { %>
 		<div style="padding:2px;padding-left:6px;padding-top:8px;height:36px;">
+<% if (isManager) { %>
+		
 		<input id="expeditebutton" class="ui-button" value="优先报价" type="button"/>
 		<input id="nogoodbutton" class="ui-button" value="中断再开" type="button"/>
 		<!--input type="button" class="ui-button" value="系统返还" id="resystembutton" /-->
-		<input type="button" class="ui-button" value="未修理返还" id="stopbutton" />
 		<input type="button" class="ui-button" value="移动库位" id="movebutton" />
 		<div class="ui-button" id="sendbutton" style="font-size:14px;">
 			转送
@@ -147,15 +150,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<input type="button" class="ui-button" id="printbutton" value="重新打印小票" />
 		<input type="button" class="ui-button" id="printaddbutton" value="补充打印小票" />
 		<input type="button" value="申请消耗品" class="ui-button" onclick="javascript:consumable_application_edit()"/>
-		</div>
 <% } else if (isEditor) { %>
-		<div style="padding:2px;padding-left:6px;padding-top:8px;height:36px;">
-		<input type="button" class="ui-button" value="未修理返还" id="stopbutton" />
 		<input type="button" class="ui-button" id="printbutton" value="重新打印小票" />
 		<input type="button" class="ui-button" id="printaddbutton" value="补充打印小票" />
 		<input type="button" value="申请消耗品" class="ui-button" onclick="javascript:consumable_application_edit()"/>
-		</div>
 <% } %>
+<% if (isQuotator) {%>
+		<input type="button" class="ui-button" value="未修理返还" id="stopbutton" />
+		<input type="button" class="ui-button" value="报价备注" id="quotationcommentbutton" />
+<% } %>
+	</div>
 		<table id="performance_list"></table>
 		<div id="performance_listpager"></div>
 	</div>
@@ -178,5 +182,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <div id="confirmmessage"></div>
 
 <div id="light_fix_dialog"></div>
+
+<div id="comment_dialog">
+	<table class="condform">
+		<tr>
+			<td class="td-content">
+				<textarea id="edit_material_comment" style="width:500px;height:100px;resize:none;" maxlength="500"></textarea>
+			</td>
+			<td class="td-content">
+				<textarea id="edit_material_comment_other" style="width:500px;height:100px;resize:none;display:none;" readonly disabled></textarea>
+			</td>
+		</tr>
+	</table>
+</div>
+
 <input type="hidden" id="paOptions" value='${paOptions }'>
 </body></html>
