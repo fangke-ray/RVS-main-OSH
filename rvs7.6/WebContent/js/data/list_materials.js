@@ -184,10 +184,10 @@ function initGrid() {
 		rowheight : 23,
 		datatype : "local",
 		colNames : ['维修对象ID','修理单号','型号','等级', '机身号', '委托处', '维修课室' , '当前位置', 'NS<br>当前位置', '受理日期','同意日期',
-				'纳期','总组出货<br>安排','总组出货','零件订购日','入库预定日','延误','返还'],
+				'纳期','总组出货<br>安排','总组出货','零件订购日','入库预定日','延误','返还','环序号'],
 		colModel : [
 			{name:'material_id',index:'material_id', hidden:true, key: true},
-			{name:'sorc_no',index:'sorc_no', width:85},
+			{name:'sorc_no',index:'sorc_no', width:55},
 			{name:'model_name',index:'model_name', width:105},
 			{name:'level',index:'level', width:20, align:'center', formatter:'select', editoptions:{value:lOptions}},
 			{name:'serial_no',index:'serial_no', width:50},
@@ -226,7 +226,8 @@ function initGrid() {
 				return "";
 			}},
 			{name:'is_late',index:'is_late', width:20},
-			{name:'break_back_flg',index:'break_back_flg', hidden:true}
+			{name:'break_back_flg',index:'break_back_flg', hidden:true},
+			{name:'ring_code',index:'ring_code',  width:40,hidden:true}
 		],
 		rowNum : 50,
 		pager : "#listpager",
@@ -274,6 +275,13 @@ function search_handleComplete(xhrobj, textStatus) {
 		// $("#list").gridResize({minWidth:1248,maxWidth:1248,minHeight:200,
 		// maxHeight:900});
 	}
+	
+	if(keepSearchData.category_id == '00000000055'){
+		$("#list").jqGrid('showCol','ring_code');
+	}else{
+		$("#list").jqGrid('hideCol','ring_code');
+	}
+	$("#list").jqGrid('setGridWidth', '992');
 
 };
 

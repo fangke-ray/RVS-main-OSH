@@ -176,6 +176,9 @@ public class MaterialForm extends ActionForm {
 	
 	@BeanField(title = "有效期标记", name = "avaliable_end_date_flg", type = FieldType.Integer, length = 1)
 	private String avaliable_end_date_flg;
+	
+	@BeanField(title = "环序号", name = "ring_code", type = FieldType.String, length = 6)
+	private String ring_code;
 
 	public String getCategory_id() {
 		return category_id;
@@ -857,6 +860,14 @@ public class MaterialForm extends ActionForm {
 
 	public void setAvaliable_end_date_flg(String avaliable_end_date_flg) {
 		this.avaliable_end_date_flg = avaliable_end_date_flg;
+	}
+
+	public String getRing_code() {
+		return ring_code;
+	}
+
+	public void setRing_code(String ring_code) {
+		this.ring_code = ring_code;
 	}
 
 }

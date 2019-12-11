@@ -113,6 +113,8 @@ public class MaterialEntity implements Serializable {
 	private Integer bound_out_ocm;
 	private String levels;
 	private Integer avaliable_end_date_flg;
+	//环序号
+	private String ring_code;
 
 	public String getCategory_id() {
 		return category_id;
@@ -773,4 +775,13 @@ public class MaterialEntity implements Serializable {
 	public void setAvaliable_end_date_flg(Integer avaliable_end_date_flg) {
 		this.avaliable_end_date_flg = avaliable_end_date_flg;
 	}
+
+	public String getRing_code() {
+		return ring_code;
+	}
+
+	public void setRing_code(String ring_code) {
+		this.ring_code = ring_code;
+	}
+	
 }

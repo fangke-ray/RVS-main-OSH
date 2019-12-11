@@ -199,9 +199,17 @@
 				a.agreed_date,
 				a.ocm_shipping_date,
 				a.break_back_flg
+		]]>
+		<if test="category_id=='00000000055'">
+				,serial_ring.ring_code
+		</if>
+		<![CDATA[ 
 			 from Material a left join material_process mpr on mpr.material_id = a.material_id and mpr.line_id = 14
 			 left join material_partial mpt on mpt.material_id = a.material_id
 		]]>
+		<if test="category_id=='00000000055'">
+			left join serial_ring on a.material_id = serial_ring.material_id
+		</if>
 		<where>
 				a.break_back_flg IN(0,1,2)
 			<if test="model_id!= null and model_id!= ''">
