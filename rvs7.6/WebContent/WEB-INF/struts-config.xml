@@ -122,6 +122,8 @@
 		<form-bean name="partialWarehouseForm" type="com.osh.rvs.form.partial.PartialWarehouseForm"></form-bean>
 		<form-bean name="afProductionFeatureForm" type="com.osh.rvs.form.qf.AfProductionFeatureForm"></form-bean>
 		<form-bean name="FactMaterialForm" type="com.osh.rvs.form.qf.FactMaterialForm"></form-bean>
+		<form-bean name="WastePartialRecycleCaseForm" type="com.osh.rvs.form.partial.WastePartialRecycleCaseForm"></form-bean>
+		<form-bean name="WastePartialArrangementForm" type="com.osh.rvs.form.partial.WastePartialArrangementForm"></form-bean>
 	</form-beans>
 
 
@@ -1447,6 +1449,25 @@
 				parameter="method"
 				validate="false">
 				<forward name="init" path="/pages/qf/delivery_order.jsp"/>
+		</action>
+		
+		<!-- 废弃零件回收箱 -->
+		<action path="/waste_partial_recycle_case"
+				type="com.osh.rvs.action.partial.WastePartialRecycleCaseAction"
+				name="WastePartialRecycleCaseForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+		</action>
+		
+		<!-- 废弃零件整理 -->
+		<action path="/waste_partial_arrangement"
+				type="com.osh.rvs.action.partial.WastePartialArrangementAction"
+				name="WastePartialArrangementForm"
+				scope="request"
+				parameter="method"
+				validate="false">
+				<forward name="init" path="/pages/partial/waste_partial_arrangement.jsp"/>
 		</action>
 		
 		<!-- rvs 八期end -->

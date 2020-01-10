@@ -234,6 +234,7 @@
 <ul id="af_abilities">
 </ul>
 <div class="af_state_tool" for="221">▲</div>
+<div class="af_state_tool" for="164">▲</div>
 </div>
 
 <script type="text/javascript">
@@ -322,7 +323,7 @@ var setProcessForm = function(processForm){
 		"is_working": processForm.is_working
 	});
 
-	if (type_code == "221") {
+	if (type_code == "221" || type_code == "164") {
 		$(".af_state_tool[for='" + type_code + "']").show();
 	} else {
 		$(".af_state_tool").hide();
@@ -417,6 +418,9 @@ var stateTool = function(){
 	var type_code = $(this).attr("for");
 	switch(type_code) {
 		case "221" : showPartialOrderList();
+			break;
+		case "164" : showWastePartialList();
+			break;
 	}
 }
 
@@ -738,7 +742,29 @@ var showPartialOrderList = function(){
 			}
 		}
 	});
-}
+};
+
+var showWastePartialList = function(){
+	var $this_dialog = $("#waste_partial_editor");
+	if ($this_dialog.length === 0) {
+		$("body.outer").append("<div id='waste_partial_editor'/>");
+		$this_dialog = $("#waste_partial_editor");
+	}
+	$this_dialog.hide();
+	
+	$this_dialog.load("widgets/partial/waste_partial.jsp", function(responseText, textStatus, XMLHttpRequest) {
+		$this_dialog.dialog({
+			modal : true, 
+			title : "废弃零件回收", 
+			width : 1100,
+			height: 700,
+			resizable:false,
+			buttons : {
+				"关闭" : function(){$this_dialog.dialog("close");}
+			}
+		});
+	});
+};
 
 return {
 	applyProcess : function(process_type_code, call_obj, call_method, call_params) {

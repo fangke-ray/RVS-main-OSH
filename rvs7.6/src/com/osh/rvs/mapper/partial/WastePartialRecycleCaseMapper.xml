@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.WastePartialRecycleCaseMapper">
+
+	<select id="search" resultType="WastePartialRecycleCaseEntity" parameterType="WastePartialRecycleCaseEntity">
+	<![CDATA[
+	SELECT
+		case_id,
+		case_code,
+		collect_kind,
+		comment,
+		package_date,
+		weight,
+		waste_apply_date
+	FROM
+		waste_partial_recycle_case
+	]]>
+	<where>
+	<if test="waste_flg==1">
+	<![CDATA[
+	AND waste_apply_date IS NULL
+	]]>
+	</if>
+	<if test="package_flg==1">
+	<![CDATA[
+	AND package_date IS NULL
+	]]>
+	</if>
+	<if test="collect_kind!=null and collect_kind!=''">
+	<![CDATA[
+	AND	collect_kind = #{collect_kind}
+	]]>
+	</if>
+	</where>
+	</select>
+
+	<insert id="insert" parameterType="WastePartialRecycleCaseEntity">
+	<![CDATA[
+	INSERT INTO waste_partial_recycle_case
+	(
+	case_code,
+	collect_kind,
+	comment,
+	package_date,
+	weight,
+	waste_apply_date
+	)
+	VALUES
+	(
+	#{case_code},
+	#{collect_kind},
+	#{comment},
+	#{package_date},
+	#{weight},
+	#{waste_apply_date}
+	)
+	]]>
+	</insert>
+	
+	<update id="update" parameterType="WastePartialRecycleCaseEntity">
+	<![CDATA[
+	UPDATE
+		waste_partial_recycle_case
+	SET
+		case_code = #{case_code},
+		weight = #{weight},
+		comment = #{comment}
+	WHERE
+		case_id = #{case_id}
+	]]>
+	</update>
+	
+	<update id="updateWeight" parameterType="WastePartialRecycleCaseEntity">
+	<![CDATA[
+	UPDATE
+		waste_partial_recycle_case
+	SET
+		weight = #{weight}
+	WHERE
+		case_id = #{case_id}
+	]]>
+	</update>
+	
+	<select id="getCaseByCode" resultType="WastePartialRecycleCaseEntity" parameterType="string">
+	<![CDATA[
+	SELECT
+		case_id,
+		case_code,
+		collect_kind,
+		comment,
+		package_date,
+		weight,
+		waste_apply_date
+	FROM
+		waste_partial_recycle_case
+	WHERE
+		waste_apply_date IS NULL
+	AND
+		case_code = #{case_code}
+	]]>
+	</select>
+	
+	<select id="updatePackageDate" parameterType="string">
+	<![CDATA[
+	UPDATE waste_partial_recycle_case SET package_date = CURRENT_DATE WHERE case_id = #{case_id}
+	]]>
+	</select>
+</mapper>

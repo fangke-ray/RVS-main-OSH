@@ -137,6 +137,9 @@
 		<typeAlias alias="FactPartialReleaseEntity" type="com.osh.rvs.bean.partial.FactPartialReleaseEntity"/>
 		<typeAlias alias="FactMaterialEntity" type="com.osh.rvs.bean.qf.FactMaterialEntity"/>
 		<typeAlias alias="FactConsumableWarehouseEntity" type="com.osh.rvs.bean.partial.FactConsumableWarehouseEntity"/>
+		
+		<typeAlias alias="WastePartialArrangementEntity" type="com.osh.rvs.bean.partial.WastePartialArrangementEntity"/>
+		<typeAlias alias="WastePartialRecycleCaseEntity" type="com.osh.rvs.bean.partial.WastePartialRecycleCaseEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -260,6 +263,8 @@
 		<mapper resource="com/osh/rvs/mapper/partial/FactPartialWarehouseMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/FactPartialReleaseMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/FactConsumableWarehouseMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/WastePartialArrangementMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/WastePartialRecycleCaseMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/pda/PdaSupplyMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/pda/PdaApplyMapper.xml"/>

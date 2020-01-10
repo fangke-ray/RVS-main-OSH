@@ -34,11 +34,14 @@ import com.osh.rvs.service.qf.FactMaterialService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.copy.IntegerConverter;
 import framework.huiqing.common.util.message.ApplicationMessage;
+import framework.huiqing.common.util.validator.JustlengthValidator;
+import framework.huiqing.common.util.validator.LongTypeValidator;
 
 public class AcceptFactService {
 
@@ -932,5 +935,62 @@ public class AcceptFactService {
 		fprService.updatePartialOrderEdit(workingAfpf.getAf_pf_key(), user.getOperator_id(), mEntity.getMaterial_id(), conn);
 
 		return true;
+	}
+
+	/**
+	 * 检查扫描维修对象合法性
+	 * @param material_id
+	 * @param errors
+	 * @param conn
+	 */
+	public MaterialEntity checkMaterialId(String material_id, List<MsgInfo> errors, SqlSession conn) {
+		MaterialEntity materialEntity = null;
+		Map<String, Object> parameters = new HashMap<String, Object>();
+		
+		if (material_id.contains("_")) {
+			String[] split = material_id.split("_");
+			material_id = split[0];
+		}
+		
+		parameters.put("material_id", material_id);
+		if (CommonStringUtil.isEmpty(material_id)) {
+			MsgInfo msgInfo = new MsgInfo();
+			msgInfo.setComponentid("material_id");
+			msgInfo.setErrcode("validator.required");
+			msgInfo.setErrmsg("扫描失敗！");
+			errors.add(msgInfo);
+		}
+		
+		String message1 = new LongTypeValidator("扫描号码").validate(parameters, "material_id");
+		if (message1 != null) {
+			MsgInfo msgInfo = new MsgInfo();
+			msgInfo.setComponentid("material_id");
+			msgInfo.setErrcode("validator.invalidParam.invalidIntegerValue");
+			msgInfo.setErrmsg(message1);
+			errors.add(msgInfo);
+		}
+		String message2 = new JustlengthValidator("扫描号码", 11).validate(parameters, "material_id");
+		if (message2 != null) {
+			MsgInfo msgInfo = new MsgInfo();
+			msgInfo.setComponentid("material_id");
+			msgInfo.setErrcode("validator.invalidParam.invalidJustLengthValue");
+			msgInfo.setErrmsg(message2);
+			errors.add(msgInfo);
+		}
+		
+		if(errors.size() == 0){
+			MaterialMapper materialMapper = conn.getMapper(MaterialMapper.class);
+			materialEntity = materialMapper.getMaterialNamedEntityByKey(material_id);
+			
+			if(materialEntity == null){
+				MsgInfo msgInfo = new MsgInfo();
+				msgInfo.setComponentid("material_id");
+				msgInfo.setErrcode("info.linework.invalidCode");
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.invalidCode"));
+				errors.add(msgInfo);
+			}
+		}
+		
+		return materialEntity;
 	}
 }

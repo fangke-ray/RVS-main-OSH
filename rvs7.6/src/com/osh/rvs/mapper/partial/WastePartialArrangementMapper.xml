@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.WastePartialArrangementMapper">
+
+	<select id="search" resultType="WastePartialArrangementEntity" parameterType="WastePartialArrangementEntity">
+	<![CDATA[
+	SELECT
+		wpa.material_id,
+		wpa.part,
+		wpa.operator_id,
+		wpa.collect_time,
+		wpa.collect_case_id,
+		wprc.case_code,
+		operator.name AS operator_name,
+		ma.omr_notifi_no,
+		v_model.name AS model_name,
+		ma.serial_no,
+		ma.level,
+		ma.service_repair_flg
+	FROM
+		waste_partial_arrangement wpa
+	JOIN
+		waste_partial_recycle_case wprc
+	ON
+		 wpa.collect_case_id = wprc.case_id
+	JOIN
+		material ma
+	ON
+		wpa.material_id = ma.material_id
+	JOIN
+		v_model
+	ON
+		ma.model_id = v_model.model_id
+	JOIN
+		operator
+	ON
+		wpa.operator_id = operator.operator_id
+	]]>
+	<where>
+	<if test="material_id!=null and material_id!=''">
+	<![CDATA[
+	AND wpa.material_id = #{material_id}
+	]]>
+	</if>
+	<if test="collect_time_start!=null and collect_time_start!=''">
+	<![CDATA[
+	AND wpa.collect_time >= #{collect_time_start}
+	]]>
+	</if>
+	<if test="collect_time_end!=null and collect_time_end!=''">
+	<![CDATA[
+	AND wpa.collect_time < #{collect_time_end}
+	]]>
+	</if>
+	<if test="omr_notifi_no!=null and omr_notifi_no!=''">
+	<![CDATA[
+	AND ma.omr_notifi_no LIKE CONCAT('%', #{omr_notifi_no}, '%')
+	]]>
+	</if>
+	<if test="serial_no!=null and serial_no!=''">
+	<![CDATA[
+	AND ma.serial_no LIKE CONCAT('%', #{serial_no}, '%')
+	]]>
+	</if>
+	<if test="model_id!=null and model_id!=''">
+	<![CDATA[
+	AND v_model.model_id = #{model_id}
+	]]>
+	</if>
+	</where>
+	<![CDATA[
+	ORDER BY wpa.collect_time DESC
+	]]>
+	</select>
+
+	<insert id="insert" parameterType="WastePartialArrangementEntity">
+	<![CDATA[
+	INSERT INTO waste_partial_arrangement 
+	(
+	material_id,
+	part,
+	operator_id,
+	collect_time,
+	collect_case_id
+	)
+	VALUES
+	(
+	#{material_id},
+	#{part},
+	#{operator_id},
+	CURRENT_TIMESTAMP,
+	#{collect_case_id}
+	)
+	]]>
+	</insert>
+	
+	<select id="getMaxPartByMaterialId" resultType="int" parameterType="string">
+	<![CDATA[
+	SELECT MAX(part) FROM waste_partial_arrangement WHERE material_id = #{material_id}
+	]]>
+	</select>
+	
+</mapper>

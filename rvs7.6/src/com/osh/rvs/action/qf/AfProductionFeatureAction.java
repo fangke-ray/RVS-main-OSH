@@ -8,6 +8,7 @@
 package com.osh.rvs.action.qf;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,16 +24,25 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.form.partial.WastePartialArrangementForm;
+import com.osh.rvs.form.partial.WastePartialRecycleCaseForm;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.PauseFeatureService;
+import com.osh.rvs.service.partial.WastePartialArrangementService;
+import com.osh.rvs.service.partial.WastePartialRecycleCaseService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
-
+import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.copy.DateUtil;
 
 public class AfProductionFeatureAction extends BaseAction {
 
@@ -227,6 +237,140 @@ public class AfProductionFeatureAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 		
 		log.info("AfProductionFeatureAction.doPartialOrder end");
+	}
+
+	public void getWastePartial(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("AfProductionFeatureAction.getWastePartial start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String goMaterialServiceRepaire = CodeListUtils.getGridOptions("material_service_repair");
+		callbackResponse.put("goMaterialServiceRepaire", goMaterialServiceRepaire);
+
+		WastePartialArrangementService wastePartialArrangementService = new WastePartialArrangementService();
+
+		// 收集开始时候
+		Calendar start = Calendar.getInstance();
+		start.set(Calendar.HOUR_OF_DAY, 0);
+		start.set(Calendar.MINUTE, 0);
+		start.set(Calendar.SECOND, 0);
+		start.set(Calendar.MILLISECOND, 0);
+
+		// 收集结束时间
+		Calendar end = Calendar.getInstance();
+		end.add(Calendar.DATE, 1);
+		end.set(Calendar.HOUR_OF_DAY, 0);
+		end.set(Calendar.MINUTE, 0);
+		end.set(Calendar.SECOND, 0);
+		end.set(Calendar.MILLISECOND, 0);
+
+		WastePartialArrangementForm wastePartialArrangementForm = new WastePartialArrangementForm();
+		wastePartialArrangementForm.setCollect_time_start(DateUtil.toString(start.getTime(), DateUtil.DATE_PATTERN));
+		wastePartialArrangementForm.setCollect_time_end(DateUtil.toString(end.getTime(), DateUtil.DATE_PATTERN));
+
+		// 当日完成废弃零件整理维修对象
+		List<WastePartialArrangementForm> materialList = wastePartialArrangementService.search(wastePartialArrangementForm, conn);
+		callbackResponse.put("complate", materialList);
+
+		// 未打包回收箱
+		WastePartialRecycleCaseService wastePartialRecycleCaseService = new WastePartialRecycleCaseService();
+		WastePartialRecycleCaseForm wastePartialRecycleCaseForm = new WastePartialRecycleCaseForm();
+		wastePartialRecycleCaseForm.setPackage_flg("1");
+		wastePartialRecycleCaseForm.setWaste_flg("1");
+
+		List<WastePartialRecycleCaseForm> caseList = wastePartialRecycleCaseService.search(wastePartialRecycleCaseForm, conn);
+		callbackResponse.put("caseList", caseList);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("AfProductionFeatureAction.getWastePartial end");
+	}
+
+	public void wastePartialScan(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("AfProductionFeatureAction.wastePartialScan start");
+
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// 维修对象ID
+		String material_id = req.getParameter("material_id");
+
+		AcceptFactService acceptFactService = new AcceptFactService();
+		WastePartialArrangementService wastePartialArrangementService = new WastePartialArrangementService();
+		WastePartialRecycleCaseService wastePartialRecycleCaseService = new WastePartialRecycleCaseService();
+
+		// 检查扫描维修对象合法性
+		MaterialEntity materialEntity = acceptFactService.checkMaterialId(material_id, errors, conn);
+		if (errors.size() == 0) {
+			// 机种
+			String kind = materialEntity.getKind();
+			// 等级
+			Integer level = materialEntity.getLevel();
+
+			// 回收箱用途种类
+			String collectKind = null;
+			// 能否收集标记
+			Boolean collectFlg = true;
+
+			WastePartialArrangementForm wastePartialArrangementForm = new WastePartialArrangementForm();
+			wastePartialArrangementForm.setMaterial_id(material_id);
+			// 废弃零件整理记录
+			List<WastePartialArrangementForm> arrangementList = wastePartialArrangementService.search(wastePartialArrangementForm, conn);
+			
+			// 周边设备
+			if ("07".equals(kind)) {
+				// 设置回收箱用途种类 “2”表示周边设备
+				collectKind = "2";
+				
+				MaterialForm materialForm = new MaterialForm();
+				BeanUtil.copyToForm(materialEntity, materialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+				callbackResponse.put("materialForm", materialForm);
+			} else {// 内窥镜
+				// 设置回收箱用途种类 “1”表示内窥镜
+				collectKind = "1";
+
+				int size = arrangementList.size();
+
+				// S2/S3(可以收集2次)
+				if (level!=null && (level == 2 || level == 3)) {
+					if (size >= 2) {
+						// 不能再次收集
+						collectFlg = false;
+					}
+				} else {// 其他等级(只能收集一次)
+					if (size >= 1) {
+						// 不能再次收集
+						collectFlg = false;
+					}
+				}
+			}
+			callbackResponse.put("collectKind", collectKind);
+			callbackResponse.put("collectFlg", collectFlg);
+			callbackResponse.put("arrangementList", arrangementList);
+
+			// 能收集
+			if (collectFlg) {
+				// 查询回收箱
+				WastePartialRecycleCaseForm wastePartialRecycleCaseForm = new WastePartialRecycleCaseForm();
+				wastePartialRecycleCaseForm.setCollect_kind(collectKind);
+				wastePartialRecycleCaseForm.setPackage_flg("1");
+				wastePartialRecycleCaseForm.setWaste_flg("1");
+				
+				List<WastePartialRecycleCaseForm> caseList = wastePartialRecycleCaseService.search(wastePartialRecycleCaseForm, conn);
+				callbackResponse.put("caseList", caseList);
+			}
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("AfProductionFeatureAction.wastePartialScan end");
 	}
 
 }
