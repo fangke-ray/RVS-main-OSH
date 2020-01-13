@@ -91,26 +91,32 @@ public class PauseFeatureService {
 		dao.makePauseFeature(entity);
 	}
 
-	public void finishPauseFeature(String finish_operator_id, SqlSessionManager conn) {
+	public void finishPauseFeature(String finish_operator_id, SqlSessionManager conn) throws Exception {
 		finishPauseFeature(null, null, null, finish_operator_id, null, conn);
 	}
 	public void finishPauseFeature(String material_id, String section_id, String position_id, String finish_operator_id,
-			SqlSessionManager conn) {
+			SqlSessionManager conn) throws Exception {
 		finishPauseFeature(material_id, section_id, position_id, finish_operator_id, null, conn);
 	}
 	public void finishPauseFeature(String material_id, String section_id, String position_id, String finish_operator_id,
-			String snout_serial_no, SqlSessionManager conn) {
+			String snout_serial_no, SqlSessionManager conn) throws Exception {
 		PauseFeatureMapper dao = conn.getMapper(PauseFeatureMapper.class);
 
 		// 其他普通的暂停结束掉/个人用
-		if (dao.checkOperatorPauseFeature(finish_operator_id) != null) {
-			dao.stopOperatorPauseFeature(finish_operator_id);
+		PauseFeatureEntity hitPause = dao.checkOperatorPauseFeature(finish_operator_id);
+		if (hitPause != null) {
+			hitPause.setFinisher_id(finish_operator_id);
+			dao.finishPauseFeature(hitPause);
 		}
 
 		if (material_id != null) {
 			// 工序必要的暂停结束掉/维修对象用
-			if (dao.checkPauseFeature(material_id, section_id, position_id) != null) {
-				dao.stopPauseFeature(material_id, section_id, position_id, finish_operator_id);
+			List<PauseFeatureEntity> hitList = dao.checkPauseFeature(material_id, section_id, position_id);
+			if (hitList != null) {
+				for (PauseFeatureEntity hitBreak : hitList) {
+					hitBreak.setFinisher_id(finish_operator_id);
+					dao.finishPauseFeature(hitBreak);
+				}
 			}
 		}
 		if (snout_serial_no != null) {

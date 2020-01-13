@@ -29,7 +29,7 @@ var downPdf = function(sorc_no) {
 }
 
 var rePdf = function(sorc_no, material_id) {
-	if (confirm("是否重新生成"+sorc_no+"的PDF文档？")) {
+	warningConfirm("是否重新生成"+sorc_no+"的PDF文档？", function(){
 		// download.do?method=file&material_id=" + workingPf.getMaterial_id()
 		var data = {material_id : material_id};
 		$.ajax({
@@ -43,10 +43,12 @@ var rePdf = function(sorc_no, material_id) {
 			success : ajaxSuccessCheck,
 			error : ajaxError,
 			complete : function() {
-				alert(sorc_no+"的工程检查票重新生成完毕！");
+				infoPop(sorc_no+"的工程检查票重新生成完毕！");
+				griddata_update(quotation_listdata, "material_id", material_id, "isHistory", "1", false);
+				$("#exd_list").jqGrid('setGridParam',{data:quotation_listdata}).trigger("reloadGrid", [{current:true}]);
 			}
 		});
-	}
+	})
 }
 var doFiling = function(type) {
 
@@ -86,9 +88,8 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			// 共通出错信息框
 			treatBackMessages(null, resInfo.errors);
 		} else {
-//			lOptions = resInfo.lOptions;
-//			oOptions = resInfo.oOptions;
-			filed_list(resInfo.finished);
+			quotation_listdata = resInfo.finished;
+			filed_list();
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
@@ -227,7 +228,7 @@ $(function() {
 	doInit();
 });
 
-function filed_list(quotation_listdata){
+function filed_list(){
 	if ($("#gbox_exd_list").length > 0) {
 		$("#exd_list").jqGrid().clearGridData();
 		$("#exd_list").jqGrid('setGridParam',{data:quotation_listdata}).trigger("reloadGrid", [{current:false}]);

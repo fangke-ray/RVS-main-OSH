@@ -18,10 +18,11 @@
 	<![CDATA[ 
 		UPDATE `pause_feature` SET
 			FINISHER_ID = #{finisher_id},
-			COMMENTS = #{comments},
+			COMMENTS = coalesce(#{comments}, COMMENTS),
 			PAUSE_FINISH_TIME = current_timestamp
 		WHERE OPERATOR_ID = #{operator_id}
-			AND PAUSE_START_TIME = #{pause_start_time};
+			AND PAUSE_START_TIME = #{pause_start_time}
+			AND REASON = #{reason};
 	]]>
 	</update>
 
@@ -44,9 +45,9 @@
 	]]>
 	</update>
 
-	<select id="checkPauseFeature" parameterType="String" resultType="String">
+	<select id="checkPauseFeature" parameterType="String" resultType="PauseFeatureEntity">
 	<![CDATA[ 
-		SELECT 'exist' FROM `pause_feature`
+		SELECT operator_id, pause_start_time, reason FROM `pause_feature`
 		WHERE MATERIAL_ID = #{material_id}
 	]]>
 			<if test="section_id!= null and section_id!= '' and section_id !='00000000000'">
@@ -91,9 +92,9 @@
 	]]>
 	</update>
 
-	<select id="checkOperatorPauseFeature" parameterType="String" resultType="String">
+	<select id="checkOperatorPauseFeature" parameterType="String" resultType="PauseFeatureEntity">
 	<![CDATA[ 
-		SELECT 'exist' FROM `pause_feature`
+		SELECT operator_id, pause_start_time, reason FROM `pause_feature`
 		WHERE OPERATOR_ID = #{operator_id}
 			AND (PAUSE_FINISH_TIME IS NULL OR PAUSE_FINISH_TIME > current_timestamp)
 			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70)

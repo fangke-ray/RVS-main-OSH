@@ -16,14 +16,14 @@ public interface PauseFeatureMapper {
 
 	public List<PauseFeatureEntity> searchPauseFeature(PauseFeatureEntity entity);
 
-	public void stopPauseFeature(@Param("material_id") String material_id, @Param("section_id") String section_id, @Param("position_id") String position_id, @Param("finisher_id") String finish_operator_id);
+//	public void stopPauseFeature(@Param("material_id") String material_id, @Param("section_id") String section_id, @Param("position_id") String position_id, @Param("finisher_id") String finish_operator_id);
 	public void stopBreakFeature(@Param("material_id") String material_id, @Param("section_id") String section_id, @Param("position_id") String position_id, @Param("finisher_id") String finish_operator_id);
 
-	public String checkPauseFeature(@Param("material_id") String material_id, @Param("section_id") String section_id, @Param("position_id") String position_id);
+	public List<PauseFeatureEntity> checkPauseFeature(@Param("material_id") String material_id, @Param("section_id") String section_id, @Param("position_id") String position_id);
 
 	public void stopOperatorPauseFeature(String finish_operator_id);
 
-	public String checkOperatorPauseFeature(String operator_id);
+	public PauseFeatureEntity checkOperatorPauseFeature(String operator_id);
 
 	public List<String> getAllPositionBreaked(PauseFeatureEntity entity) throws Exception;
 

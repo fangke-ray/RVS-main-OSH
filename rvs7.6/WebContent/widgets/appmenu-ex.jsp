@@ -195,7 +195,10 @@ var getPositionWork = function(position_id, px){
         <a title="" target="_parent" href="show.do#consumable_list">消耗品库存展示</a><br>
         <a title="" target="_parent" href="show.do#snout_list">先端预制看板</a><br>
         <a title="" target="_parent" href="show.do#turnoverCase">通箱库位展示</a><br>
-        <a title="Pending Area" target="_parent" href="show.do#devicesPendingArea">设备工具PA展示</a>
+        <a title="Pending Area" target="_parent" href="show.do#devicesPendingArea">设备工具PA展示</a><br>
+	间接作业人员工时图: <br>
+        <a title="受理人员工时图" target="_parent" href="show.do#afProductionFeature11">受理</a> <a title="物料人员工时图" target="_parent" href="show.do#afProductionFeature20">物料</a>
+
 </div>
 </div>
 <% } %>

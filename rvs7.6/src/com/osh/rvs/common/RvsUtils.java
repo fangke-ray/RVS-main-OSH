@@ -235,7 +235,9 @@ public class RvsUtils {
 			return null;
 		else {
 			// UTF-8全角三字节
-			return "^" + modelName.replaceAll("[\\{\\(\\[｛【「『（\\}\\)\\]｝】」』）]", ".{1,3}").replaceAll("[  　]", "[  　]{0,1}") + "$";
+			return "^" + modelName.replaceAll("[\\{\\(\\[｛【「『（]", "[^A-Z0-9]{1,3}")
+					.replaceAll("[\\}\\)\\]｝】」』）]", "[^A-Z0-9]{0,3}")
+					.replaceAll("[  　]", "[  　]{0,1}") + "$";
 		}
 	}
 

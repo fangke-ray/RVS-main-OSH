@@ -164,36 +164,27 @@ var check_file_manage_list=function(listdata){
 //删除
 var showDelete=function(rid){
     var rowData = $("#check_file_manage_list").getRowData(rid);
-    $("#confirmmessage").text("删除不能恢复。确认要删除["+rowData.check_manage_code+"]的记录吗？");
-    
-     $("#confirmmessage").dialog({
-        resizable:false,
-        modal:true,
-        title:"删除确认",
-        buttons:{
-            "确认" : function() {
-                $(this).dialog("close");
-                var data={
-                    "check_file_manage_id":rowData.check_file_manage_id
-                }
-                 $.ajax({
-			        beforeSend : ajaxRequestType,
-			        async : true,
-			        url : servicePath + '?method=doDelete',
-			        cache : false,
-			        data : data,
-			        type : "post",
-			        dataType : "json",
-			        success : ajaxSuccessCheck,
-			        error : ajaxError,
-			        complete : delete_handleComplete
-			    });
-            },
-            "取消" : function() {
-                $(this).dialog("close");
-            }
-        }
-     });
+
+	warningConfirm("删除不能恢复。确认要删除["+rowData.check_manage_code+"]的记录吗？", 
+		function() {
+			var data={
+				"check_file_manage_id":rowData.check_file_manage_id
+			}
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : true,
+				url : servicePath + '?method=doDelete',
+				cache : false,
+				data : data,
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : delete_handleComplete
+			});
+		},null,
+		"删除确认"
+	);
 };
 
 //删除完成函数
@@ -207,20 +198,7 @@ var delete_handleComplete=function(xhrobj, textStatus){
             treatBackMessages("", resInfo.errors);
         } else {
              findit();
-			 $("#confirmmessage").text("删除已经完成。");
-			 $("#confirmmessage").dialog({
-				width : 320,
-				height :'auto',
-				resizable :false,
-				show : "blind",
-				modal : true,
-				title : "删除",
-				buttons : {
-				    "关闭": function() {
-				          $(this).dialog("close");
-				     }
-				}
-			});
+			infoPop("删除已经完成。", null, "删除");
         }
     } catch (e) {
         alert("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);

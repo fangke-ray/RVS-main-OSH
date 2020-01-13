@@ -383,7 +383,7 @@
 			        join
 			    role_of_operator roo ON roo.operator_id = op.operator_id
 			        join
-			    role ro ON roo.role_id = ro.role_id
+			    role ro ON roo.role_id = ro.role_id AND op.role_id != ro.role_id 
 			        join
 			    privacy_of_role pr ON ro.role_id = pr.role_id
 			        join

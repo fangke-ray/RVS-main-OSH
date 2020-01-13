@@ -237,7 +237,8 @@
 				GROUP BY `pfp`.material_id) ppf1
 				ON `m`.material_id = `ppf1`.material_id
 			LEFT JOIN (select cast(material_id as unsigned) material_id, countermeasures 
-				from service_repair_manage where material_id like '0%') `srm`
+				from service_repair_manage where material_id like '0%'
+				and rc_mailsend_date > date_add(current_date, interval -6 month)) `srm`
 				ON `m`.material_id = `srm`.material_id
 			LEFT JOIN customer `c`
 				ON `m`.customer_id = `c`.customer_id

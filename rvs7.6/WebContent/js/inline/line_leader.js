@@ -804,8 +804,13 @@ var showMaterial = function(material_id) {
 	var $material_detail = $("#material_detail");
 	if ($material_detail.length == 0) {
 		$('body').append('<div id="material_detail" />');
+		if (jQuery.fn.select2Buttons == undefined) {
+			loadCss("css/olympus/select2Buttons.css",
+				function(){loadJs("js/jquery.select2buttons.js")});
+		}
 		$material_detail = $("#material_detail");
 	}
+
 	$material_detail.hide();
 	// 导入编辑画面
 	$material_detail.load("widget.do?method=materialDetail&material_id=" + material_id,

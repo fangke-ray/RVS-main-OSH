@@ -8,10 +8,18 @@
 	<select id="getWaitings" resultType="MaterialEntity">
 		<![CDATA[
 			SELECT `m`.material_id,coalesce(m.omr_notifi_no,m.sorc_no) as sorc_no, `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm, `m`.bound_out_ocm,
-			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
-			  `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.scheduled_expedited,
-			  coalesce(`mp`.finish_date,`m`.outline_time) as finish_time,
-			  `m`.break_back_flg, tcs.location as wip_location,af_production_feature.action_time as filing_time
+				`m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
+				`m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.scheduled_expedited,
+				coalesce(`mp`.finish_date,`m`.outline_time) as finish_time,
+				`m`.break_back_flg, tcs.location as wip_location,
+				(SELECT
+					action_time
+				FROM fact_material
+				JOIN af_production_feature ON fact_material.af_pf_key = af_production_feature.af_pf_key
+				WHERE
+					fact_material.material_id = m.material_id
+					and af_production_feature.production_type = 241) 
+				as filing_time
 			FROM material m
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
 			JOIN production_feature pf
@@ -23,15 +31,6 @@
 				ON mp.material_id = m.material_id
 				AND mp.line_id = 14
 			LEFT JOIN turnover_case_storage tcs ON `m`.material_id = tcs.material_id
-			LEFT JOIN
-				fact_material
-			ON
-				m.material_id = fact_material.material_id
-			LEFT JOIN
-				af_production_feature
-			ON
-				fact_material.af_pf_key = af_production_feature.af_pf_key
-			AND af_production_feature.production_type = 241
 			ORDER BY operate_result DESC, reception_time
 		]]>
 		
