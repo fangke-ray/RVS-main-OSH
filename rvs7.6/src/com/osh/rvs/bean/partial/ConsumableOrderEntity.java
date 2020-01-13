@@ -66,6 +66,12 @@ public class ConsumableOrderEntity implements Serializable {
 
 	/* 补充在途量 */
 	private Integer on_passage;
+	
+	
+	/* 消耗品名称 */
+	private String partial_name;
+	/* 危化品标记 */
+	private Integer hazardous_flg;
 
 	public String getDb_flg() {
 		return db_flg;
@@ -209,6 +215,22 @@ public class ConsumableOrderEntity implements Serializable {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	public String getPartial_name() {
+		return partial_name;
+	}
+
+	public void setPartial_name(String partial_name) {
+		this.partial_name = partial_name;
+	}
+
+	public Integer getHazardous_flg() {
+		return hazardous_flg;
+	}
+
+	public void setHazardous_flg(Integer hazardous_flg) {
+		this.hazardous_flg = hazardous_flg;
 	}
 
 }

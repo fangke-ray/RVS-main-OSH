@@ -19,6 +19,7 @@ import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
 
 import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.partial.ConsumableOrderEntity;
@@ -168,9 +169,6 @@ public class ConsumableOrderService {
 		ConsumableOrderMapper dao = conn.getMapper(ConsumableOrderMapper.class);
 		List<ConsumableOrderEntity> list = dao.searchConsumableOrderDetailById(entity);
 		
-		
-		PartialMapper partailDao = conn.getMapper(PartialMapper.class);
-		
 		try {
 			FileUtils.copyFile(new File(path), new File(cachePath));
 		} catch (IOException e) {
@@ -194,6 +192,11 @@ public class ConsumableOrderService {
 			font.setFontHeightInPoints((short)10);
 			font.setFontName("微软雅黑");
 			
+			HSSFFont readfont=work.createFont();
+			readfont.setFontHeightInPoints((short)10);
+			readfont.setFontName("微软雅黑");
+			readfont.setColor(HSSFColor.RED.index);
+			
 			HSSFCellStyle baseStyle = work.createCellStyle();
 			baseStyle.setBorderLeft(HSSFCellStyle.BORDER_THIN);  
 			baseStyle.setBorderTop(HSSFCellStyle.BORDER_THIN); 
@@ -206,25 +209,29 @@ public class ConsumableOrderService {
 			codeStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);//水平居中
 			codeStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);//垂直居中
 			
+			HSSFCellStyle readCodeStyle = work.createCellStyle();
+			readCodeStyle.cloneStyleFrom(baseStyle);
+			readCodeStyle.setFont(readfont);
+			readCodeStyle.setAlignment(HSSFCellStyle.ALIGN_CENTER);//水平居中
+			readCodeStyle.setVerticalAlignment(HSSFCellStyle.VERTICAL_CENTER);//垂直居中
+			
 			for(int i=0;i<list.size();i++){
 				
 				entity = list.get(i);
 				
-				PartialEntity  partialEntity = partailDao.getPartialByID(String.valueOf(entity.getPartial_id()));
-				String code = partialEntity.getCode();
-				String name = partialEntity.getName();
-				if (name == null) name = ""; 
-				
 				row = sheet.createRow(i+1);
 				
 				cell = row.createCell(0);//消耗品代码
-				cell.setCellValue(code);
-				cell.setCellStyle(codeStyle);
+				cell.setCellValue(entity.getCode());
 				cell.setCellType(HSSFCell.CELL_TYPE_STRING);
-				
+				if(entity.getHazardous_flg() == 1){
+					cell.setCellStyle(readCodeStyle);
+				}else{
+					cell.setCellStyle(codeStyle);
+				}
 				
 				cell = row.createCell(1);//消耗品代码
-				cell.setCellValue(name);
+				cell.setCellValue(entity.getPartial_name());
 				cell.setCellStyle(baseStyle);
 				cell.setCellType(HSSFCell.CELL_TYPE_STRING);
 				

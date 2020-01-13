@@ -77,9 +77,28 @@
 	</select>
 
 	<select id="searchConsumableOrderDetailById" parameterType="ConsumableOrderEntity" resultType="ConsumableOrderEntity">
-		<![CDATA[ 
-			select partial_id,order_quantity from consumable_order_detail where consumable_order_key = #{consumable_order_key}
-		]]>
+	<![CDATA[ 
+	SELECT 
+		consumable_order_detail.partial_id,
+		consumable_order_detail.order_quantity,
+		partial.code,
+		partial.name AS partial_name,
+		consumable_manage.hazardous_flg
+	FROM 
+		consumable_order_detail
+	JOIN
+		partial
+	ON
+		consumable_order_detail.partial_id = partial.partial_id
+	JOIN
+		consumable_manage
+	ON
+		consumable_order_detail.partial_id = consumable_manage.partial_id
+	WHERE
+		consumable_order_detail.consumable_order_key = #{consumable_order_key}
+	ORDER BY
+		consumable_manage.hazardous_flg DESC
+	]]>
 	</select>
 
 	<!-- 查询输入零件 -->
