@@ -108,6 +108,9 @@ public class ConsumableListEntity implements Serializable{
 	
 	/* 剪裁长度 */
 	private String cut_length;
+	
+	/* 危化品标记 */
+	private Integer hazardous_flg;
 
 	public Integer getPopular_item() {
 		return popular_item;
@@ -387,6 +390,14 @@ public class ConsumableListEntity implements Serializable{
 
 	public void setCut_length(String cut_length) {
 		this.cut_length = cut_length;
+	}
+
+	public Integer getHazardous_flg() {
+		return hazardous_flg;
+	}
+
+	public void setHazardous_flg(Integer hazardous_flg) {
+		this.hazardous_flg = hazardous_flg;
 	}
 
 }

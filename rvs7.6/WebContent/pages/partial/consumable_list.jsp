@@ -242,6 +242,13 @@
 								<select id="add_out_shelf_cost" name="out_shelf_cost" alt="下架耗时">${sShelfCost}</select>
 							</td>
 						</tr>
+						<tr>
+							<td class="ui-state-default td-title">危化品标记</td>
+							<td class="td-content" id="add_hazardous_flg">
+								<input type="radio" name="hazardous_flg" id="add_hazardous_flg_n" class="ui-widget-content" value="0" checked="checked"><label for="add_hazardous_flg_n">否</label>
+								<input type="radio" name="hazardous_flg" id="add_hazardous_flg_y" class="ui-widget-content" value="1"><label for="add_hazardous_flg_y">是</label>
+							</td>
+						</tr>
 					</tbody>
 				</table>
 				</form>
@@ -311,6 +318,13 @@
 							<td class="ui-state-default td-title">下架耗时</td>
 							<td class="td-content">
 								<select id="edit_out_shelf_cost">${sShelfCost}</select>
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">危化品标记</td>
+							<td class="td-content" id="edit_hazardous_flg">
+								<input type="radio" name="hazardous_flg" id="edit_hazardous_flg_n" class="ui-widget-content" value="0"><label for="edit_hazardous_flg_n">否</label>
+								<input type="radio" name="hazardous_flg" id="edit_hazardous_flg_y" class="ui-widget-content" value="1"><label for="edit_hazardous_flg_y">是</label>
 							</td>
 						</tr>
 					</tbody>

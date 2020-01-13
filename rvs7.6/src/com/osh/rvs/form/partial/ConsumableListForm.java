@@ -106,6 +106,9 @@ public class ConsumableListForm extends ActionForm{
 	/* 下架耗时 */
 	@BeanField(title = "下架耗时", name = "out_shelf_cost", type = FieldType.Integer,length = 1,notNull = true)
 	private String out_shelf_cost;
+	/* 危化品标记 */
+	@BeanField(title = "危化品标记", name = "hazardous_flg", type = FieldType.Integer,length = 1,notNull = true)
+	private String hazardous_flg;
 
 	/** 按照产量取消耗平均 */
 	private String cost_avg_by_outline;
@@ -313,6 +316,12 @@ public class ConsumableListForm extends ActionForm{
 	}
 	public void setOut_shelf_cost(String out_shelf_cost) {
 		this.out_shelf_cost = out_shelf_cost;
+	}
+	public String getHazardous_flg() {
+		return hazardous_flg;
+	}
+	public void setHazardous_flg(String hazardous_flg) {
+		this.hazardous_flg = hazardous_flg;
 	}
 	
 }

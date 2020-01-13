@@ -22,6 +22,7 @@
 			    ,consumable_manage.image_uploaded_flg
 			    ,consumable_manage.in_shelf_cost
 			    ,consumable_manage.out_shelf_cost
+			    ,consumable_manage.hazardous_flg
 			    ,CASE 
 			    WHEN consumable_manage.safety_lever > consumable_manage.available_inventory + consumable_manage.on_passage
 			    THEN '2'
@@ -145,7 +146,8 @@
 				  consumpt_quota,
 				  delete_flg,
 				  in_shelf_cost,
-				  out_shelf_cost) 					
+				  out_shelf_cost,
+				  hazardous_flg) 					
         VALUES 
 	        	(#{partial_id},
 	        	 #{type},
@@ -162,7 +164,8 @@
 	        	 #{consumpt_quota},
 	        	 0,
 	        	 #{in_shelf_cost},
-				 #{out_shelf_cost}
+				 #{out_shelf_cost},
+				 #{hazardous_flg}
 				 ); 
 		]]>
 	</insert>
@@ -185,6 +188,7 @@
 				,cm.delete_flg
 				,cm.in_shelf_cost
 				,cm.out_shelf_cost
+				,hazardous_flg
 			FROM consumable_manage cm
 			JOIN partial p on p.partial_id=cm.partial_id
 			WHERE cm.partial_id = #{partial_id};
@@ -206,7 +210,8 @@
 				consumpt_quota = #{consumpt_quota},
 				delete_flg = 0,
 				in_shelf_cost = #{in_shelf_cost},
-				out_shelf_cost = #{out_shelf_cost}
+				out_shelf_cost = #{out_shelf_cost},
+				hazardous_flg = #{hazardous_flg}
 			WHERE partial_id = #{partial_id}
 		]]>
 	</update>

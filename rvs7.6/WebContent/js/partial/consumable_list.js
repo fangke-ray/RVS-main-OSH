@@ -15,7 +15,7 @@ $(function() {
 			}
 		});
 
-	$("#leak_set, #add_popular_item_set, #edit_popular_item_set").buttonset();
+	$("#leak_set, #add_popular_item_set, #edit_popular_item_set,#add_hazardous_flg,#edit_hazardous_flg").buttonset();
 	
 	
 	$("#edit_in_shelf_cost,#edit_out_shelf_cost").find("option:eq(0)").remove();
@@ -144,6 +144,7 @@ var showAdd = function() {
 	$("#add_code").next("p").remove();
 	$("#pop_window_new select").val("").trigger("change");
 	$("#add_popular_item_n").attr("checked","checked").trigger("change");
+	$("#add_hazardous_flg_n").attr("checked","checked").trigger("change");
 	
 	$("#add_code").unbind("keyup");
 	$("#add_code").bind("keyup", function(e){
@@ -214,7 +215,8 @@ var showAdd = function() {
 								"stock_code":$("#add_stock_code").val(),
 								"consumpt_quota":$("#add_consumpt_quota").val(),
 								"in_shelf_cost" : $("#add_in_shelf_cost").val(),
-								"out_shelf_cost" : $("#add_out_shelf_cost").val()
+								"out_shelf_cost" : $("#add_out_shelf_cost").val(),
+								"hazardous_flg" : $("#add_hazardous_flg input:checked").val(),
 							};
 						 $.ajax({
 								beforeSend : ajaxRequestType,
@@ -242,7 +244,8 @@ var showAdd = function() {
 							"stock_code":$("#add_stock_code").val(),
 							"consumpt_quota":$("#add_consumpt_quota").val(),
 							"in_shelf_cost" : $("#add_in_shelf_cost").val(),
-							"out_shelf_cost" : $("#add_out_shelf_cost").val()
+							"out_shelf_cost" : $("#add_out_shelf_cost").val(),
+							"hazardous_flg" : $("#add_hazardous_flg input:checked").val(),
 						};
 					$.ajax({
 						beforeSend : ajaxRequestType,
@@ -486,6 +489,12 @@ var showEdit_Complete = function(xhrobj,textStatus){
 			$("#edit_in_shelf_cost").val(resInfo.returnForm.in_shelf_cost).trigger("change");
 			$("#edit_out_shelf_cost").val(resInfo.returnForm.out_shelf_cost).trigger("change");
 			
+			if(resInfo.returnForm.hazardous_flg == 0){
+				$("#edit_hazardous_flg").children("input:eq(0)").attr("checked", true).trigger("change");
+			}else{
+				$("#edit_hazardous_flg").children("input:eq(1)").attr("checked", true).trigger("change");
+			}
+			
 			/*验证*/
 			$("#abandon_modify").validate({
 				rules:{	
@@ -544,7 +553,8 @@ var update_consumable_manage = function(){
 			"stock_code":$("#edit_stock_code").val(),
 			"consumpt_quota":$("#edit_consumpt_quota").val(),
 			"in_shelf_cost" : $("#edit_in_shelf_cost").val(),
-			"out_shelf_cost" : $("#edit_out_shelf_cost").val()
+			"out_shelf_cost" : $("#edit_out_shelf_cost").val(),
+			"hazardous_flg" : $("#edit_hazardous_flg input:checked").val(),
 		};
 	 $.ajax({
 			beforeSend : ajaxRequestType,
@@ -873,7 +883,7 @@ function show_consumable_list(consumableList) {
 			colNames : [ 'partial_id', '消耗品代码', '说明', '消耗品<br>分类', '基准在库', '安全库存',
 					'当前<br>有效库存', '补充<br>在途量', '期间内<br>入库量', 
 					'期间内<br>消耗总量', '期间内<br>替代发放', '期间内<br>在线补充',
-					'消耗率', '库位','上架<br>耗时','下架<br>耗时','有无图片','消耗率警报','库存不足'],
+					'消耗率', '库位','上架<br>耗时','下架<br>耗时','有无图片','消耗率警报','库存不足','hazardous_flg'],
 			colModel : [ {
 				name : 'partial_id',
 				index : 'partial_id',
@@ -1024,6 +1034,10 @@ function show_consumable_list(consumableList) {
 				name : 'leak',
 				index : 'leak',
 				hidden : true
+			},{
+				name : 'hazardous_flg',
+				index : 'hazardous_flg',
+				hidden : true
 			}],
 			rowNum : 30,
 			rownumbers:true,
@@ -1050,6 +1064,7 @@ function show_consumable_list(consumableList) {
 					var rowData = $exd_list.jqGrid('getRowData', IDS[i]);
 					var leak = parseInt(rowData["leak"]);
 					var consumed_rate_alarm = parseInt(rowData["consumed_rate_alarm"]);
+					var hazardous_flg = parseInt(rowData["hazardous_flg"]);
 					if (leak == 1 ) {
 						$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='consumable_list_available_inventory']").addClass("ui-state-highlight");
 					}else if(leak == 2){
@@ -1059,6 +1074,9 @@ function show_consumable_list(consumableList) {
 						$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='consumable_list_consumed_rate']").addClass("ui-state-highlight");
 					}
 
+					if (hazardous_flg == 1 ) {
+						$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='consumable_list_code']").addClass("ui-state-error");
+					}
 				}
 			}
 		});
