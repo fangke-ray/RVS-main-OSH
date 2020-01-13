@@ -261,7 +261,7 @@ public class ProductionFeatureService {
 				if (prevPositions.size() == 0 || !isFact 
 						|| paProxy.getFinishedCountByPositions(prevPositions) == prevPositions.size()) {
 					workingPf.setPosition_id(fingerPositionId);
-					List<String> x = fingerNextPosition(material_id, workingPf, conn, triggerList);
+					List<String> x = fingerNextPosition(material_id, workingPf, conn, triggerList, isFact);
 					if (x!=null) {
 						retList.addAll(x);
 					}

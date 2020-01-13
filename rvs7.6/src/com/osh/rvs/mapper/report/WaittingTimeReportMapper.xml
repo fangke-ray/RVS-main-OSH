@@ -17,7 +17,7 @@
 		ON
 			ma.model_id = v_model.model_id
 	]]>
-	<if test="dec_px!=null and dec_px!='' ">
+	<if test="dec_px!=null">
 	<![CDATA[
 		JOIN 
 			material_process dec_mp 
@@ -25,7 +25,7 @@
 			ma.material_id = dec_mp.material_id AND dec_mp.line_id = 12
 	]]>
 	</if>
-	<if test="ns_px!=null and ns_px!='' ">
+	<if test="ns_px!=null">
 	<![CDATA[
 		JOIN 
 			material_process ns_mp 
@@ -33,7 +33,7 @@
 			ma.material_id = ns_mp.material_id AND ns_mp.line_id = 13
 	]]>
 	</if>
-	<if test="com_px!=null and com_px!='' ">
+	<if test="com_px!=null">
 	<![CDATA[
 		JOIN 
 			material_process com_mp 

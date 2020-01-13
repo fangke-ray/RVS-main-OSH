@@ -183,7 +183,7 @@ public class XlsUtil {
 	}
 
 	// 取得位置地址
-	public String GetAddress(Dispatch range) {
+	public static String GetAddress(Dispatch range) {
 		String address = Dispatch.get(range, "Address").toString();
 		return address;
 	}
@@ -282,7 +282,7 @@ public class XlsUtil {
 	}
 
 	// 替换文字
-	public void ReplaceInCell(Dispatch cell, String source, String target) {
+	public static void ReplaceInCell(Dispatch cell, String source, String target) {
 
 	    Variant xlLookAt = new Variant(new Integer(2));  
 		  
@@ -340,13 +340,19 @@ public class XlsUtil {
 		}
 	}
 
-	private int getWidthPosition(Dispatch cell, int picWidth) {
+	private static int getWidthPosition(Dispatch cell, int picWidth) {
 		int cellWidth = Dispatch.get(cell, "Width").changeType(Variant.VariantInt).getInt();
 		if (cellWidth < picWidth + 2) {
 			return 0;
 		} else {
 			return (cellWidth - picWidth) / 2 - 1;
 		}
+	}
+	public void SetNumberFormatLocal(String position, String style) {
+		sheet = Dispatch.get(workbook, "ActiveSheet").toDispatch();
+		Dispatch cell = Dispatch.invoke(sheet, "Range", Dispatch.Get, new Object[] { position }, new int[1])
+				.toDispatch();
+		Dispatch.put(cell, "NumberFormatLocal", style);
 	}
 	public void SetNumberFormatLocal(Dispatch cell, String style) {
 		Dispatch.put(cell, "NumberFormatLocal", style);
@@ -369,7 +375,7 @@ public class XlsUtil {
 				.toDispatch();
 		SetCellBackGroundColor(cell, colorCode);
 	}
-	public void SetCellBackGroundColor(Dispatch cell, String colorCode) {
+	public static void SetCellBackGroundColor(Dispatch cell, String colorCode) {
 		if (cell == null) return;
 		Dispatch interior = Dispatch.get(cell, "Interior").toDispatch();
 
@@ -424,7 +430,7 @@ public class XlsUtil {
 		return retr;
 	}
 
-	public String getCellLocation(Dispatch cell) {
+	public static String getCellLocation(Dispatch cell) {
 		String drow = Dispatch.get(cell, "Row").toString();
 		String dcol = Dispatch.get(cell, "Column").toString();
 		return getExcelColCode(dcol) + drow;
@@ -465,7 +471,7 @@ public class XlsUtil {
 		return xl.getProperty("Selection").toDispatch();
 	}
 	
-	public void Print(String path) {
+	public static void Print(String path) {
 		 ComThread.InitSTA();
 		 
 		 ActiveXComponent xl = new ActiveXComponent("Excel.Application");

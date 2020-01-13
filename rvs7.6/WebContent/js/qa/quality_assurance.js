@@ -27,6 +27,21 @@ var downPdf = function(sorc_no) {
 var showBreakOfInfect = function(infectString) {
 	var $break_dialog = $('#break_dialog');
 	$break_dialog.html(decodeText(infectString));
+	var closeButtons = {
+		"退出回首页":function() {
+				window.location.href = "./panel.do?method=init";
+		}
+	}
+	if (infectString.indexOf("点检") >= 0) {
+		closeButtons ={
+			"进行点检":function() {
+				window.location.href = "./usage_check.do?from=position";
+			},
+			"退出回首页":function() {
+					window.location.href = "./panel.do?method=init";
+			}
+		}
+	}
 
 	$break_dialog.dialog({
 		modal : true,
@@ -38,11 +53,7 @@ var showBreakOfInfect = function(infectString) {
 		close: function(){
 			window.location.href = "./panel.do?method=init";
 		},
-		buttons :{
-			"确定":function() {
-				window.location.href = "./usage_check.do?from=position";
-			}
-		}
+		buttons : closeButtons
 	});
 }
 

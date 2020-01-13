@@ -106,7 +106,7 @@
 			FROM
 				material_partial_detail mpd
 			JOIN
-				v_partial pa
+				`partial` pa
 			ON
 				pa.partial_id=mpd.partial_id
 			WHERE
