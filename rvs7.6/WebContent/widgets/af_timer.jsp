@@ -416,11 +416,17 @@ var setInpagePos = function(){
 
 var stateTool = function(){
 	var type_code = $(this).attr("for");
-	switch(type_code) {
-		case "221" : showPartialOrderList();
-			break;
-		case "164" : showWastePartialList();
-			break;
+	
+	if($afTimer.data("is_working") == "1"){
+		switch(type_code) {
+			case "221" : showPartialOrderList();
+				break;
+		}
+	}else{
+		switch(type_code) {
+			case "164" : showWastePartialList();
+				break;
+		}
 	}
 }
 

@@ -131,6 +131,7 @@ $(function() {
 	<% } %>
 	<% if(links.get("fact_material")) { %>
 		        <a href="materialFact.do">现品投线</a><br>
+		        <a href="waste_partial_arrangement.do">废弃零件回收追溯</a><br>
 				<a href="delivery_order.do" title="出货单制作">出货单制作</a><br>
 	<% } %>
 	<% if(links.get("bo_partial")) { %>

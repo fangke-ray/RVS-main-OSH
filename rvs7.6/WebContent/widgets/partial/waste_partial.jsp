@@ -20,7 +20,8 @@
 	width: 13%;
 }
 #search_case table tr td:nth-child(3){
-	width: 10%;
+	width: 13%;
+	text-align: right;
 }
 #search_case table tr td:nth-last-child(1){
 	text-align: center;
@@ -86,7 +87,7 @@
 						<tr style="text-align:center;">
 							<td class='td-content' style="display: none;"><input type='checkbox' id="checkAll"></td>
 							<td class='ui-state-default td-title'>装箱编号</td>
-							<td class='ui-state-default td-title'>重量</td>
+							<td class='ui-state-default td-title'>重量(kg)</td>
 							<td class='ui-state-default td-title'>备注说明</td>
 							<td class='ui-state-default td-title'></td>
 						</tr>
@@ -114,7 +115,7 @@
 					<tr>
 						<td class='ui-state-default td-title'>用途种类</td>
 						<td class="td-content" id="add_collect_kind">
-							<input type="radio" name="collect_kind" id="add_collect_kind_all" value="" class="ui-widget-content" checked/><label for="add_collect_kind_all">(全部)</label>
+							<input type="radio" name="collect_kind" id="add_collect_kind_all" value="" class="ui-widget-content" checked/><label for="add_collect_kind_all">(无)</label>
 							<input type="radio" name="collect_kind" id="add_collect_kind_endo" value="1" class="ui-widget-content" /><label for="add_collect_kind_endo">内窥镜</label>
 							<input type="radio" name="collect_kind" id="add_collect_kind_perl" value="2" class="ui-widget-content" /><label for="add_collect_kind_perl">周边设备</label>
 						</td>
@@ -147,22 +148,22 @@
 				<table class="condform">
 					<tr>
 						<td class='ui-state-default td-title'>装箱编号</td>
-						<td class="td-content"><span id="label_case_code"></span></td>
+						<td class="td-content"><span id="dialog_label_case_code"></span></td>
 					</tr>
 					<tr>
 						<td class='ui-state-default td-title'>用途种类</td>
-						<td class="td-content"><span id="label_collect_kind_name"></span></td>
+						<td class="td-content"><span id="dialog_label_collect_kind_name"></span></td>
 					</tr>
 					<tr>
 						<td class='ui-state-default td-title'>重量</td>
 						<td class="td-content">
-							<input type="text" class="ui-widget-content" id="update_weight">
+							<input type="text" class="ui-widget-content" id="dialog_update_weight">(kg)
 						</td>
 					</tr>
 					<tr>
 						<td class='ui-state-default td-title'>备注说明</td>
 						<td class="td-content">
-							<textarea rows="1" cols="50" disabled="disabled" readonly="readonly" style="resize: none;" id="label_comment"></textarea>
+							<textarea rows="1" cols="50" disabled="disabled" readonly="readonly" style="resize: none;" id="dialog_label_comment"></textarea>
 						</td>
 					</tr>
 				</table>
@@ -172,19 +173,6 @@
 				</div>
 			</div>
 		</div>
-		
-		
-		<!-- <div id="add_waste" style="display: none;">
-			<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-				<span class="areatitle">废弃零件回收箱</span>
-			</div>
-			<div class="ui-widget-content">
-				<table class="condform"></table>
-				<div style="height:36px">
-					<input type="button" class="ui-button" id="updateButton" value="更新" style="float:right;right:2px">
-				</div>
-			</div>
-		</div> -->
 	</div>
 	
 	<input type="hidden" id="hide_service_repair_flg">
@@ -270,11 +258,6 @@ Date.prototype.addDays = function (d) {
 			
 			wastePartialJs.showList([]);
 			
-			$("#scanner_waster_inputer").keypress(function(){
-				if (this.value.length === 11) {
-					wastePartialJs.doStart();
-				}
-			});
 			$("#scanner_waster_inputer").keyup(function(){
 				if (this.value.length >= 11) {
 					wastePartialJs.doStart();
@@ -370,8 +353,8 @@ Date.prototype.addDays = function (d) {
 				}
 				content += "<td class='td-content'>" + item.case_code + "</td>";
 				content += "<td class='td-content'>" + weight + "</td>";
-				if(comment.length > 20){
-					content += "<td class='td-content'>" + comment.substring(0,20) + "...</td>";
+				if(comment.length > 18){
+					content += "<td class='td-content'>" + comment.substring(0,18) + "...</td>";
 				}else{
 					content += "<td class='td-content'>" + comment + "</td>";
 				}
@@ -421,15 +404,15 @@ Date.prototype.addDays = function (d) {
 				$(this).click(function(){
 					var $tr = $(this).closest("tr");
 					
-					$("#label_case_code").text($tr.attr("case_code"));
+					$("#dialog_label_case_code").text($tr.attr("case_code"));
 					var collect_kind = $tr.attr("collect_kind");
 					if(collect_kind == 1){
-						$("#label_collect_kind_name").text("内窥镜");
+						$("#dialog_label_collect_kind_name").text("内窥镜");
 					}else if(collect_kind == 2){
-						$("#label_collect_kind_name").text("周边设备");
+						$("#dialog_label_collect_kind_name").text("周边设备");
 					}
-					$("#update_weight").val($tr.attr("weight"));
-					$("#label_comment").val($tr.attr("comment"));
+					$("#dialog_update_weight").val($tr.attr("weight"));
+					$("#dialog_label_comment").val($tr.attr("comment"));
 					
 					$("#update_case").show();
 					$("#search_case").hide();
@@ -437,7 +420,7 @@ Date.prototype.addDays = function (d) {
 					$("#updateCaseButton").unbind("click").bind("click",function(){
 						var data = {
 							"case_id" : $tr.attr("case_id"),
-							"weight" : $("#update_weight").val().trim()
+							"weight" : $("#dialog_update_weight").val().trim()
 						};
 						wastePartialJs.doAjax('waste_partial_recycle_case.do?method=doUpdateWeight',data,function(resInfo){
 							var searchData = {

@@ -107,11 +107,12 @@ public class WastePartialRecycleCaseAction extends BaseAction {
 
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 		v.add("case_id", v.required("回收箱ID"));
+		v.add("case_code", v.required("装箱编号"));
 		errors = v.validate();
 
 		if (errors.size() == 0) {
 			WastePartialRecycleCaseService service = new WastePartialRecycleCaseService();
-			service.update(form, conn);
+			service.update(form, conn,errors);
 		}
 
 		listResponse.put("errors", errors);
@@ -176,6 +177,39 @@ public class WastePartialRecycleCaseAction extends BaseAction {
 			WastePartialRecycleCaseForm wastePartialRecycleCaseForm = (WastePartialRecycleCaseForm) form;
 
 			service.updatePackageDate(wastePartialRecycleCaseForm.getCase_id(), conn);
+		}
+
+		listResponse.put("errors", errors);
+		returnJsonResponse(response, listResponse);
+
+		log.info("WastePartialRecycleCaseAction.doPackage end");
+	}
+
+	/**
+	 * 废弃
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void doWaste(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response, SqlSessionManager conn) throws Exception {
+		log.info("WastePartialRecycleCaseAction.doPackage start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.add("case_id", v.required("回收箱ID"));
+		v.add("weight", v.required("重量"));
+		v.add("waste_apply_date", v.required("废弃申请日期"));
+		errors = v.validate();
+
+		if (errors.size() == 0) {
+			WastePartialRecycleCaseService service = new WastePartialRecycleCaseService();
+			service.waste(form, conn);
 		}
 
 		listResponse.put("errors", errors);

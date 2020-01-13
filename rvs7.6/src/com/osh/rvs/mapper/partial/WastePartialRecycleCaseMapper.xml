@@ -28,7 +28,32 @@
 	</if>
 	<if test="collect_kind!=null and collect_kind!=''">
 	<![CDATA[
-	AND	collect_kind = #{collect_kind}
+	AND collect_kind = #{collect_kind}
+	]]>
+	</if>
+	<if test="case_code!=null and case_code!=''">
+	<![CDATA[
+	AND case_code LIKE CONCAT('%', #{case_code}, '%')
+	]]>
+	</if>
+	<if test="package_date_start!=null and package_date_start!=''">
+	<![CDATA[
+	AND package_date >= #{package_date_start}
+	]]>
+	</if>
+	<if test="package_date_end!=null and package_date_end!=''">
+	<![CDATA[
+	AND package_date <= #{package_date_end}
+	]]>
+	</if>
+	<if test="waste_apply_date_start!=null and waste_apply_date_start!=''">
+	<![CDATA[
+	AND waste_apply_date >= #{waste_apply_date_start}
+	]]>
+	</if>
+	<if test="waste_apply_date_end !=null and waste_apply_date_end!=''">
+	<![CDATA[
+	AND waste_apply_date <= #{waste_apply_date_end}
 	]]>
 	</if>
 	</where>
@@ -63,8 +88,14 @@
 		waste_partial_recycle_case
 	SET
 		case_code = #{case_code},
-		weight = #{weight},
 		comment = #{comment}
+	]]>
+	<if test="weight!=null and weight!=''">
+	<![CDATA[
+	,weight = #{weight}
+	]]>
+	</if>
+	<![CDATA[
 	WHERE
 		case_id = #{case_id}
 	]]>
@@ -98,11 +129,22 @@
 	AND
 		case_code = #{case_code}
 	]]>
+	<if test="case_id!=null and case_id!=''">
+	<![CDATA[
+	AND case_id <> #{case_id}
+	]]>
+	</if>
 	</select>
 	
-	<select id="updatePackageDate" parameterType="string">
+	<update id="updatePackageDate" parameterType="string">
 	<![CDATA[
 	UPDATE waste_partial_recycle_case SET package_date = CURRENT_DATE WHERE case_id = #{case_id}
 	]]>
-	</select>
+	</update>
+	
+	<update id="updateWaste" parameterType="WastePartialRecycleCaseEntity">
+	<![CDATA[
+	UPDATE waste_partial_recycle_case SET weight = #{weight}, waste_apply_date = #{waste_apply_date} WHERE case_id = #{case_id}
+	]]>
+	</update>
 </mapper>
