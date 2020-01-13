@@ -49,9 +49,35 @@ public class WastePartialRecycleCaseEntity implements Serializable {
 	 */
 	private Date waste_apply_date;
 
+	/**
+	 * 废弃标记
+	 */
 	private Integer waste_flg;
 
+	/**
+	 * 打包标记
+	 */
 	private Integer package_flg;
+
+	/**
+	 * 打包开始日期
+	 */
+	private Date package_date_start;
+
+	/**
+	 * 打包结束日期
+	 */
+	private Date package_date_end;
+
+	/**
+	 * 废弃申请日期开始
+	 */
+	private Date waste_apply_date_start;
+
+	/**
+	 * 废弃申请日期结束
+	 */
+	private Date waste_apply_date_end;
 
 	public String getCase_id() {
 		return case_id;
@@ -123,6 +149,38 @@ public class WastePartialRecycleCaseEntity implements Serializable {
 
 	public void setPackage_flg(Integer package_flg) {
 		this.package_flg = package_flg;
+	}
+
+	public Date getPackage_date_start() {
+		return package_date_start;
+	}
+
+	public void setPackage_date_start(Date package_date_start) {
+		this.package_date_start = package_date_start;
+	}
+
+	public Date getPackage_date_end() {
+		return package_date_end;
+	}
+
+	public void setPackage_date_end(Date package_date_end) {
+		this.package_date_end = package_date_end;
+	}
+
+	public Date getWaste_apply_date_start() {
+		return waste_apply_date_start;
+	}
+
+	public void setWaste_apply_date_start(Date waste_apply_date_start) {
+		this.waste_apply_date_start = waste_apply_date_start;
+	}
+
+	public Date getWaste_apply_date_end() {
+		return waste_apply_date_end;
+	}
+
+	public void setWaste_apply_date_end(Date waste_apply_date_end) {
+		this.waste_apply_date_end = waste_apply_date_end;
 	}
 
 }

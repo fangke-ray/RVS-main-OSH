@@ -50,7 +50,7 @@ public interface WastePartialRecycleCaseMapper {
 	 * @param case_code 装箱编号
 	 * @return
 	 */
-	public WastePartialRecycleCaseEntity getCaseByCode(@Param("case_code") String case_code);
+	public WastePartialRecycleCaseEntity getCaseByCode(@Param("case_code") String case_code, @Param("case_id") String case_id);
 
 	/**
 	 * 更新打包日期
@@ -58,4 +58,11 @@ public interface WastePartialRecycleCaseMapper {
 	 * @param case_id
 	 */
 	public void updatePackageDate(@Param("case_id") String case_id);
+
+	/**
+	 * 废弃
+	 * 
+	 * @param entity
+	 */
+	public void updateWaste(WastePartialRecycleCaseEntity entity);
 }

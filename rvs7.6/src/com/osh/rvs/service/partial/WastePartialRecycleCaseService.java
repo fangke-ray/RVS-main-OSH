@@ -64,7 +64,7 @@ public class WastePartialRecycleCaseService {
 		// 回收箱用途种类
 		Integer collectKind = connd.getCollect_kind();
 
-		WastePartialRecycleCaseEntity entity = dao.getCaseByCode(caseCode);
+		WastePartialRecycleCaseEntity entity = dao.getCaseByCode(caseCode, null);
 		// 装箱编号重复检查
 		if (entity != null) {
 			MsgInfo error = new MsgInfo();
@@ -99,33 +99,27 @@ public class WastePartialRecycleCaseService {
 	 * @param form
 	 * @param conn
 	 */
-	public void update(ActionForm form, SqlSessionManager conn) {
+	public void update(ActionForm form, SqlSessionManager conn, List<MsgInfo> errors) {
 		WastePartialRecycleCaseMapper dao = conn.getMapper(WastePartialRecycleCaseMapper.class);
 
-		WastePartialRecycleCaseEntity entity = new WastePartialRecycleCaseEntity();
-		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		WastePartialRecycleCaseEntity connd = new WastePartialRecycleCaseEntity();
+		BeanUtil.copyToBean(form, connd, CopyOptions.COPYOPTIONS_NOEMPTY);
 
-		dao.update(entity);
-	}
+		// 装箱编号
+		String caseCode = connd.getCase_code();
 
-	/**
-	 * 根据装箱编号查询回收箱
-	 * 
-	 * @param code 装箱编号
-	 * @param conn
-	 * @return
-	 */
-	public WastePartialRecycleCaseForm getCaseByCode(String code, SqlSession conn) {
-		WastePartialRecycleCaseMapper dao = conn.getMapper(WastePartialRecycleCaseMapper.class);
-		WastePartialRecycleCaseEntity entity = dao.getCaseByCode(code);
-
-		WastePartialRecycleCaseForm respForm = null;
+		WastePartialRecycleCaseEntity entity = dao.getCaseByCode(caseCode, connd.getCase_id());
+		// 装箱编号重复检查
 		if (entity != null) {
-			respForm = new WastePartialRecycleCaseForm();
-			BeanUtil.copyToForm(entity, respForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+			MsgInfo error = new MsgInfo();
+			error.setErrcode("dbaccess.recordDuplicated");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordDuplicated", "装箱编号【" + caseCode + "】"));
+			errors.add(error);
 		}
 
-		return respForm;
+		if (errors.size() == 0) {
+			dao.update(connd);
+		}
 	}
 
 	/**
@@ -152,6 +146,21 @@ public class WastePartialRecycleCaseService {
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
 		dao.updateWeight(entity);
+	}
+
+	/**
+	 * 申请废弃
+	 * 
+	 * @param form
+	 * @param conn
+	 */
+	public void waste(ActionForm form, SqlSessionManager conn) {
+		WastePartialRecycleCaseMapper dao = conn.getMapper(WastePartialRecycleCaseMapper.class);
+
+		WastePartialRecycleCaseEntity entity = new WastePartialRecycleCaseEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		dao.updateWaste(entity);
 	}
 
 }

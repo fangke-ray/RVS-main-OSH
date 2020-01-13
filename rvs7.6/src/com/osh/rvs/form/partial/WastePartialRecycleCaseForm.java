@@ -44,6 +44,18 @@ public class WastePartialRecycleCaseForm extends ActionForm implements Serializa
 	@BeanField(title = "打包标记", name = "package_flg", type = FieldType.Integer)
 	private String package_flg;
 
+	@BeanField(title = "打包开始日期", name = "package_date_start", type = FieldType.Date)
+	private String package_date_start;
+
+	@BeanField(title = "打包结束日期", name = "package_date_end", type = FieldType.Date)
+	private String package_date_end;
+
+	@BeanField(title = "废弃申请日期开始", name = "waste_apply_date_start", type = FieldType.Date)
+	private String waste_apply_date_start;
+
+	@BeanField(title = "废弃申请日期结束", name = "waste_apply_date_end", type = FieldType.Date)
+	private String waste_apply_date_end;
+
 	public String getCase_id() {
 		return case_id;
 	}
@@ -114,6 +126,38 @@ public class WastePartialRecycleCaseForm extends ActionForm implements Serializa
 
 	public void setWaste_flg(String waste_flg) {
 		this.waste_flg = waste_flg;
+	}
+
+	public String getPackage_date_start() {
+		return package_date_start;
+	}
+
+	public void setPackage_date_start(String package_date_start) {
+		this.package_date_start = package_date_start;
+	}
+
+	public String getPackage_date_end() {
+		return package_date_end;
+	}
+
+	public void setPackage_date_end(String package_date_end) {
+		this.package_date_end = package_date_end;
+	}
+
+	public String getWaste_apply_date_start() {
+		return waste_apply_date_start;
+	}
+
+	public void setWaste_apply_date_start(String waste_apply_date_start) {
+		this.waste_apply_date_start = waste_apply_date_start;
+	}
+
+	public String getWaste_apply_date_end() {
+		return waste_apply_date_end;
+	}
+
+	public void setWaste_apply_date_end(String waste_apply_date_end) {
+		this.waste_apply_date_end = waste_apply_date_end;
 	}
 
 }
