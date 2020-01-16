@@ -11,6 +11,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -96,10 +98,45 @@ public class WaittingTimeReportService {
 		}
 
 
-		
+	
 		List<WaittingTimeReportEntity> rList = new ArrayList<WaittingTimeReportEntity>();
-		if(material_ids.size() > 0){
-			rList = dao.search(material_ids);
+		int length = material_ids.size();
+		int limit = 10000;
+		if(length > 0){
+			if(length > limit){
+				Map<Integer,WaittingTimeReportEntity> cacheMap = new HashMap<Integer, WaittingTimeReportEntity>();
+				
+				int times = length % limit == 0 ? length / limit : length / limit + 1;
+				for(int index = 1;index <= times;index++){
+					int fromIndex = limit * (index - 1);
+					int toIndex = 0;
+					if(index == times){
+						toIndex = length;
+					}else{
+						toIndex = limit * index;
+					}
+					
+					List<String> subList = material_ids.subList(fromIndex, toIndex);
+					List<WaittingTimeReportEntity> cacheList = dao.search(subList);
+					for(WaittingTimeReportEntity cacheEntity : cacheList){
+						Integer level = cacheEntity.getLevel();
+						
+						if(cacheMap.containsKey(level)){
+							WaittingTimeReportEntity mergeEntity = merge(cacheMap.get(level), cacheEntity);
+							cacheMap.put(level, mergeEntity);
+						}else{
+							cacheMap.put(level, cacheEntity);
+						}
+					}
+				}
+				
+				Iterator<Integer> iterator =  cacheMap.keySet().iterator();
+				while (iterator.hasNext()) {
+					rList.add(cacheMap.get(iterator.next()));
+				}
+			}else{
+				rList = dao.search(material_ids);
+			}
 			req.getSession().setAttribute("material_ids", material_ids);
 		}
 		
@@ -340,6 +377,110 @@ public class WaittingTimeReportService {
 	
 	}
 
+	private WaittingTimeReportEntity merge(WaittingTimeReportEntity prev,WaittingTimeReportEntity next){
+		WaittingTimeReportEntity entity = new WaittingTimeReportEntity();
+		
+		Integer prev_number = prev.getNumber();//数量
+		
+		Integer prev_wait_partial_distrubute_time = prev.getWait_partial_distrubute_time();//等待零件发放时间
+		if(prev_wait_partial_distrubute_time == null) prev_wait_partial_distrubute_time = 0;
+		
+		Integer prev_desc_work_time = prev.getDesc_work_time();//分解作业时间
+		if(prev_desc_work_time == null) prev_desc_work_time = 0;
+		
+		Integer prev_desc_wait_time = prev.getDesc_wait_time();//分解等待时间
+		if(prev_desc_wait_time == null) prev_desc_wait_time = 0;
+		
+		Integer prev_desc_drying_time = prev.getDesc_drying_time();//分解烘干时间
+		if(prev_desc_drying_time == null) prev_desc_drying_time = 0;
+		
+		Integer prev_ns_work_time = prev.getNs_work_time();//NS作业时间
+		if(prev_ns_work_time == null) prev_ns_work_time = 0;
+		
+		Integer prev_ns_wait_time = prev.getNs_wait_time();//NS等待时间
+		if(prev_ns_wait_time == null) prev_ns_wait_time = 0;
+		
+		Integer prev_ns_drying_time = prev.getNs_drying_time();//NS烘干时间
+		if(prev_ns_drying_time == null) prev_ns_drying_time = 0;
+		
+		Integer prev_com_work_time = prev.getCom_work_time();//总组作业时间
+		if(prev_com_work_time == null) prev_com_work_time = 0;
+		
+		Integer prev_com_wait_time = prev.getCom_wait_time();//总组等待时间
+		if(prev_com_wait_time == null) prev_com_wait_time = 0;
+		
+		Integer prev_com_drying_time = prev.getCom_drying_time();//总组干时间
+		if(prev_com_drying_time == null) prev_com_drying_time = 0;
+		
+		Integer prev_wait_bo_partial_time = prev.getWait_bo_partial_time();//等待BO零件时间
+		if(prev_wait_bo_partial_time == null) prev_wait_bo_partial_time = 0;
+		
+		Integer prev_exception_break_time = prev.getException_break_time();//异常中断时间
+		if(prev_exception_break_time == null) prev_exception_break_time = 0;
+		
+		Integer prev_total_work_time = prev.getTotal_work_time();//总维修周期
+		if(prev_total_work_time == null) prev_total_work_time = 0;
+		
+		Integer next_number = next.getNumber();//数量
+		
+		Integer next_wait_partial_distrubute_time = next.getWait_partial_distrubute_time();//等待零件发放时间
+		if(next_wait_partial_distrubute_time == null) next_wait_partial_distrubute_time = 0;
+		
+		Integer next_desc_work_time = next.getDesc_work_time();//分解作业时间
+		if(next_desc_work_time == null) next_desc_work_time = 0;
+		
+		Integer next_desc_wait_time = next.getDesc_wait_time();//分解等待时间
+		if(next_desc_wait_time == null) next_desc_wait_time = 0;
+		
+		Integer next_desc_drying_time = next.getDesc_drying_time();//分解烘干时间
+		if(next_desc_drying_time == null) next_desc_drying_time = 0;
+		
+		Integer next_ns_work_time = next.getNs_work_time();//NS作业时间
+		if(next_ns_work_time == null) next_ns_work_time = 0;
+		
+		Integer next_ns_wait_time = next.getNs_wait_time();//NS等待时间
+		if(next_ns_wait_time == null) next_ns_wait_time = 0;
+		
+		Integer next_ns_drying_time = next.getNs_drying_time();//NS烘干时间
+		if(next_ns_drying_time == null) next_ns_drying_time = 0;
+		
+		Integer next_com_work_time = next.getCom_work_time();//总组作业时间
+		if(next_com_work_time == null) next_com_work_time = 0;
+		
+		Integer next_com_wait_time = next.getCom_wait_time();//总组等待时间
+		if(next_com_wait_time == null) next_com_wait_time = 0;
+		
+		Integer next_com_drying_time = next.getCom_drying_time();//总组干时间
+		if(next_com_drying_time == null) next_com_drying_time = 0;
+		
+		Integer next_wait_bo_partial_time = next.getWait_bo_partial_time();//等待BO零件时间
+		if(next_wait_bo_partial_time == null) next_wait_bo_partial_time = 0;
+		
+		Integer next_exception_break_time = next.getException_break_time();//异常中断时间
+		if(next_exception_break_time == null) next_exception_break_time = 0;
+		
+		Integer next_total_work_time = next.getTotal_work_time();//总维修周期
+		if(next_total_work_time == null) next_total_work_time = 0;
+		
+		entity.setLevel(prev.getLevel());
+		entity.setNumber(prev_number + next_number);
+		entity.setWait_partial_distrubute_time(prev_wait_partial_distrubute_time + next_wait_partial_distrubute_time);
+		entity.setDesc_work_time(prev_desc_work_time + next_desc_work_time);
+		entity.setDesc_wait_time(prev_desc_wait_time + next_desc_wait_time);
+		entity.setDesc_drying_time(prev_desc_drying_time + next_desc_drying_time);
+		entity.setNs_work_time(prev_ns_work_time + next_ns_work_time);
+		entity.setNs_wait_time(prev_ns_wait_time + next_ns_wait_time);
+		entity.setNs_drying_time(prev_ns_drying_time + next_ns_drying_time);
+		entity.setCom_work_time(prev_com_work_time + next_com_work_time);
+		entity.setCom_wait_time(prev_com_wait_time + next_com_wait_time);
+		entity.setCom_drying_time(prev_com_drying_time + next_com_drying_time);
+		entity.setWait_bo_partial_time(prev_wait_bo_partial_time + next_wait_bo_partial_time);
+		entity.setException_break_time(prev_exception_break_time + next_exception_break_time);
+		entity.setTotal_work_time(prev_total_work_time + next_total_work_time);
+		
+		return entity;
+	}
+	
 	public String createExcel(ActionForm form,HttpServletRequest req,SqlSession conn) throws Exception{
 		WaittingTimeReportEntity entity = new WaittingTimeReportEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
