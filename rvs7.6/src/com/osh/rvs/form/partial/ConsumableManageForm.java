@@ -185,6 +185,10 @@ public class ConsumableManageForm extends ActionForm implements Serializable{
 	/* 调整负责人 */
 	@BeanField(title = "调整负责人", name = "operator_name", type = FieldType.String)
 	private String operator_name;
+	
+	/* 危化品标记 */
+	@BeanField(title = "危化品标记", name = "hazardous_flg", type = FieldType.Integer)
+	private String hazardous_flg;
 
 	public String getSearch_page() {
 		return search_page;
@@ -545,4 +549,13 @@ public class ConsumableManageForm extends ActionForm implements Serializable{
 	public void setDescription(String description) {
 		this.description = description;
 	}
+
+	public String getHazardous_flg() {
+		return hazardous_flg;
+	}
+
+	public void setHazardous_flg(String hazardous_flg) {
+		this.hazardous_flg = hazardous_flg;
+	}
+	
 }

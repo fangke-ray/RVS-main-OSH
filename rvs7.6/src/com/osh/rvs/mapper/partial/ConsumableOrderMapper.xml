@@ -52,27 +52,22 @@
 			,p.code
 			,p.name as description
 			,cod.order_quantity
-		]]>
-		<if test="sent == 0">
 			,cm.benchmark
 			,cm.safety_lever
 			,cm.available_inventory
 			,cm.on_passage
-		</if>
+			,cm.hazardous_flg
 		FROM 
 			consumable_order co
 		JOIN 
 			consumable_order_detail cod ON co.consumable_order_key = cod.consumable_order_key
 		JOIN 
 			partial p ON cod.partial_id = p.partial_id
-		<if test="sent == 0">
 		JOIN
 			consumable_manage cm ON p.partial_id = cm.partial_id
-		</if>
-		<![CDATA[ 
 		WHERE
 			co.consumable_order_key = #{consumable_order_key}
-		ORDER BY p.code
+		ORDER BY cm.hazardous_flg DESC,p.code
 		]]>
 	</select>
 

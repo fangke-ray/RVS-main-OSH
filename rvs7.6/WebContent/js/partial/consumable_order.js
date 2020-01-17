@@ -349,17 +349,21 @@ var page_order = {
 			var one = detail_list[i];
 
 			$("#o_order_no").text(one.order_no);
-			content = content + "<tr>"
-							+ 	"<td class='td-content'>"
-							+		"<label>" + one.code + "</label>"
-							+   "</td>"
-							+ 	"<td class='td-content'>"
-							+		"<label>" + (one.description || "") + "</label>"
-							+   "</td>"
-							+ 	"<td class='td-content'>"
-							+		"<label>" + one.order_quantity + "</label>"
-							+   "</td>"
-							+ "</tr>";
+					content += "<tr>";
+					content += "<td class='td-content'>";
+					if(one.hazardous_flg == 1){
+						content +=	"<label style='color:red;'>" + one.code + "</label>";
+					}else{
+						content +=	"<label>" + one.code + "</label>";
+					}
+					content +=   "</td>";
+					content += 	"<td class='td-content'>";
+					content +=		"<label>" + (one.description || "") + "</label>";
+					content +=   "</td>";
+					content += 	"<td class='td-content'>";
+					content +=		"<label>" + one.order_quantity + "</label>";
+					content +=   "</td>";
+					content += "</tr>";
 		}
 
 		$("#pop_window_order_edit tbody").append(content);
@@ -380,27 +384,30 @@ var page_order = {
 			var one = detail_list[i];
 
 			$("#o_order_no").text(one.order_no);
-			content = content + "<tr partial_id='" + one.partial_id + "' db_flg='" + one.db_flg + "'>"
-							+ 	"<td class='td-content'>"
-							+		"<label>" + one.code + "</label>"
-							+   "</td>"
-							+ 	"<td class='td-content'>"
-							+		"<label>" + (one.description || "") + "</label>"
-							+   "</td>"
-							+ 	"<td class='td-content'>"
-							+		"<input type='number' value='" + one.order_quantity 
-							+			"' min='0'></input>"
-							+   "</td>"
-							+ 	"<td class='td-content'>"
-							+		"<label>" + one.benchmark + '/' + one.safety_lever + "</label>"
-							+   "</td>"
-							+ 	"<td class='td-content'>"
-							+		"<label>" + one.available_inventory + '+' + one.on_passage + "</label>"
-							+   "</td>"
-							+ 	"<td class='td-content'>"
-							+		"<input type='button' value='-'></input>"
-							+   "</td>"
-							+ "</tr>";
+				content += "<tr partial_id='" + one.partial_id + "' db_flg='" + one.db_flg + "'>";
+				content += 	"<td class='td-content'>";
+				if(one.hazardous_flg == 1){
+					content += "<label style='color:red;'>" + one.code + "</label>";
+				}else{
+					content += "<label>" + one.code + "</label>";
+				}
+				content += 	"</td>";
+				content += 	"<td class='td-content'>";
+				content += 		"<label>" + (one.description || "") + "</label>";
+				content += 	"</td>";
+				content += 	"<td class='td-content'>";
+				content += 		"<input type='number' value='" + one.order_quantity + "' min='0'></input>";
+				content += 	"</td>";
+				content += 	"<td class='td-content'>";
+				content += 		"<label>" + one.benchmark + '/' + one.safety_lever + "</label>";
+				content += 	"</td>";
+				content += 	"<td class='td-content'>";
+				content += 		"<label>" + one.available_inventory + '+' + one.on_passage + "</label>";
+				content += 	"</td>";
+				content += 	"<td class='td-content'>";
+				content += 		"<input type='button' value='-'></input>";
+				content += 	"</td>";
+				content += "</tr>";
 		}
 
 		$("#pop_window_order_edit tbody").append(content);
