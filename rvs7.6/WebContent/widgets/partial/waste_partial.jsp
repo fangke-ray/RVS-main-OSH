@@ -114,10 +114,10 @@
 					</tr>
 					<tr>
 						<td class='ui-state-default td-title'>用途种类</td>
-						<td class="td-content" id="add_collect_kind">
-							<input type="radio" name="collect_kind" id="add_collect_kind_all" value="" class="ui-widget-content" checked/><label for="add_collect_kind_all">(无)</label>
-							<input type="radio" name="collect_kind" id="add_collect_kind_endo" value="1" class="ui-widget-content" /><label for="add_collect_kind_endo">内窥镜</label>
-							<input type="radio" name="collect_kind" id="add_collect_kind_perl" value="2" class="ui-widget-content" /><label for="add_collect_kind_perl">周边设备</label>
+						<td class="td-content" id="add_widget_collect_kind">
+							<input type="radio" name="collect_kind" id="add_widget_collect_kind_all" value="" class="ui-widget-content" checked/><label for="add_widget_collect_kind_all">(无)</label>
+							<input type="radio" name="collect_kind" id="add_widget_collect_kind_endo" value="1" class="ui-widget-content" /><label for="add_widget_collect_kind_endo">内窥镜</label>
+							<input type="radio" name="collect_kind" id="add_widget_collect_kind_perl" value="2" class="ui-widget-content" /><label for="add_widget_collect_kind_perl">周边设备</label>
 						</td>
 					</tr>
 					<tr>
@@ -206,13 +206,13 @@ Date.prototype.addDays = function (d) {
 		"init" : function () {
 			$("#waste_content .ui-button").button();
 			
-			$("#add_collect_kind").buttonset();
-			$("#add_collect_kind_all").attr("checked","checked").trigger("change");
+			$("#add_widget_collect_kind").buttonset();
+			$("#add_widget_collect_kind_all").attr("checked","checked").trigger("change");
 			
 			$("#addCaseButton").click(function(){
 				$("#add_case input[type='text']").val("");
 				$("#add_case textarea").val("");
-				$("#add_collect_kind_all").attr("checked","checked").trigger("change");  
+				$("#add_widget_collect_kind_all").attr("checked","checked").trigger("change");  
 				
 				$("#add_case").show();
 				$("#search_case").hide();
@@ -234,7 +234,7 @@ Date.prototype.addDays = function (d) {
 			$("#insertCaseButton").click(function(){
 				var data = {
 					"case_code" : $("#add_case_code").val(),
-					"collect_kind" : $("#add_collect_kind input:checked").val(),
+					"collect_kind" : $("#add_widget_collect_kind input:checked").val(),
 					"weight" : $("#add_weight").val(),
 					"comment" : $("#add_comment").val()
 				};
@@ -380,11 +380,18 @@ Date.prototype.addDays = function (d) {
 			$("#search_case input.package").each(function(){
 				$(this).click(function(){
 					var $tr = $(this).closest("tr");
-					var warnData = "确定将装箱编号为【" + $tr.attr("case_code") + "】箱子打包。";
+					var warnData = "确定将装箱编号为【" + $tr.attr("case_code") + "】箱子打包。<br>";
+					warnData+="<table class='condform'>";
+					warnData+="<tr>";
+					warnData+='<td class="ui-state-default td-title">重量</td>';
+					warnData+='<td class="td-content"><input type="text" class="ui-widget-content" id="dialog_package_update_weight" value="' +  $tr.attr("weight") + '">(kg)</td>';
+					warnData+="</tr>";
+					warnData+="</table>";
 					
 					warningConfirm(warnData,function(){
 						var data = {
-							"case_id" : $tr.attr("case_id")
+							"case_id" : $tr.attr("case_id"),
+							"weight" : $("#dialog_package_update_weight").val()
 						};
 						wastePartialJs.doAjax('waste_partial_recycle_case.do?method=doPackage',data,function(resInfo){
 							var searchData = {

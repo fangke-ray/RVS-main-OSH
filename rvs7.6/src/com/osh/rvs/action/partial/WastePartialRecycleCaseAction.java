@@ -168,15 +168,13 @@ public class WastePartialRecycleCaseAction extends BaseAction {
 		Map<String, Object> listResponse = new HashMap<String, Object>();
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
-		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ALL);
-		v.only("case_id");
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.add("case_id", v.required("回收箱 ID"));
 		errors = v.validate();
 
 		if (errors.size() == 0) {
 			WastePartialRecycleCaseService service = new WastePartialRecycleCaseService();
-			WastePartialRecycleCaseForm wastePartialRecycleCaseForm = (WastePartialRecycleCaseForm) form;
-
-			service.updatePackageDate(wastePartialRecycleCaseForm.getCase_id(), conn);
+			service.updatePackageDate(form, conn);
 		}
 
 		listResponse.put("errors", errors);

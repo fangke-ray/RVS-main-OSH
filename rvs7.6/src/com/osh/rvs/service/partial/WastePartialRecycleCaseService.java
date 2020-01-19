@@ -127,12 +127,16 @@ public class WastePartialRecycleCaseService {
 	/**
 	 * 打包
 	 * 
-	 * @param caseId 回收箱ID
+	 * @param form
 	 * @param conn
 	 */
-	public void updatePackageDate(String caseId, SqlSessionManager conn) {
+	public void updatePackageDate(ActionForm form, SqlSessionManager conn) {
 		WastePartialRecycleCaseMapper dao = conn.getMapper(WastePartialRecycleCaseMapper.class);
-		dao.updatePackageDate(caseId);
+		
+		WastePartialRecycleCaseEntity entity = new WastePartialRecycleCaseEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		
+		dao.updatePackageDate(entity);
 	}
 
 	/**

@@ -136,9 +136,9 @@
 	</if>
 	</select>
 	
-	<update id="updatePackageDate" parameterType="string">
+	<update id="updatePackageDate" parameterType="WastePartialRecycleCaseEntity">
 	<![CDATA[
-	UPDATE waste_partial_recycle_case SET package_date = CURRENT_DATE WHERE case_id = #{case_id}
+	UPDATE waste_partial_recycle_case SET package_date = CURRENT_DATE,weight = #{weight} WHERE case_id = #{case_id}
 	]]>
 	</update>
 	

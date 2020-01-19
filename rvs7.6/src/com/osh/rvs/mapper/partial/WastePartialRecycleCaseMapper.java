@@ -57,7 +57,7 @@ public interface WastePartialRecycleCaseMapper {
 	 * 
 	 * @param case_id
 	 */
-	public void updatePackageDate(@Param("case_id") String case_id);
+	public void updatePackageDate(WastePartialRecycleCaseEntity entity);
 
 	/**
 	 * 废弃

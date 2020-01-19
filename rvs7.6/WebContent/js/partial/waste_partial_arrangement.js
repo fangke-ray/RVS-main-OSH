@@ -213,7 +213,7 @@ var page_case = {
 				    {name:'case_code',index:'case_code',width:30},
 					{name:'collect_kind',index:'collect_kind',width:30,formatter : 'select',editoptions:{value : "1:内窥镜;2:周边设备"}},
 					{name:'package_date',index:'package_date',width:30,align:'center'},
-					{name:'weight',index:'weight',width:30,align:'right',formatter:"number",formatoptions:{suffix:' kg',defaultValue:'-'}},
+					{name:'weight',index:'weight',width:30,align:'right',formatter:"number",formatoptions:{suffix:' kg',defaultValue:'-',decimalPlaces:1}},
 					{name:'waste_apply_date',index:'waste_apply_date',width:30,align:'center'},
 					{name:'comment',index:'comment',width:200}
 				],
