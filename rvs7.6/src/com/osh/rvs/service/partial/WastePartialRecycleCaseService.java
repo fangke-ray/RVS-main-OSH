@@ -78,6 +78,8 @@ public class WastePartialRecycleCaseService {
 			if (collectKind == 1) {
 				entity = new WastePartialRecycleCaseEntity();
 				entity.setCollect_kind(collectKind);
+				entity.setPackage_flg(1);
+				entity.setWaste_flg(1);
 				List<WastePartialRecycleCaseEntity> list = dao.search(entity);
 				if (list.size() == 1) {
 					MsgInfo error = new MsgInfo();
