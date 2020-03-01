@@ -135,14 +135,7 @@ $(function() {
 	var skipPosition = $("#skip_position").val(); // "00000000019";
 	$("#sendbutton").disable();
 	if (section_id != "00000000012") {
-		// checkProcess(skipPosition);
-		if (skipPosition == "00000000019") {
-			$("#sendbutton").val("241工位开始");
-		} else if (skipPosition == "00000000023") {
-			$("#sendbutton").val("261工位开始");
-		} else {
-			$("#sendbutton").val("341工位开始");
-		}
+		$("#sendbutton").val($("#skip_position").attr("process_code") + "工位开始");
 	}
 
 	$("#sendbutton").click(function(){

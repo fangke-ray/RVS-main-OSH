@@ -212,32 +212,35 @@ public class PositionPanelAction extends BaseAction {
 
 			user.setGroup_position_id(null);
 
-			String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
+			String special_forwards = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
 
-			if (special_forward == null) {
+			if (special_forwards == null) {
 				// 迁移到页面
 				actionForward = mapping.findForward(FW_INIT);
 			} else {
-				if (special_forward.indexOf("peripheral") >= 0) {
+				String[] arrSpecialForward = special_forwards.split(";");
+
+				if (matchforward(arrSpecialForward, "peripheral") != null) {
 					req.setAttribute("peripheral", true);
 				}
 
-				if ("result".equals(special_forward)) {
+				if (matchforward(arrSpecialForward, "decom") != null) {
+					String decom = matchforward(arrSpecialForward, "decom");
+					String skipPosition = decom.replaceAll(".*decom\\[(.*)\\].*", "$1");
+					req.setAttribute("skip_process_code", skipPosition);
+					req.setAttribute("skip_position", ReverseResolution.getPositionByProcessCode(skipPosition, conn));
+				}
+
+				if (matchforward(arrSpecialForward, "result") != null) {
 					actionForward = mapping.findForward("result");
 					req.setAttribute("oManageNo", service.getManageNo(position_id,conn));
-				} else if ("simple".equals(special_forward)) {
+				} else if (matchforward(arrSpecialForward, "simple") != null) {
 					actionForward = mapping.findForward("simple");
-				} else if ("snout".equals(special_forward)) {
+				} else if (matchforward(arrSpecialForward, "snout") != null) {
 					actionForward = mapping.findForward("snout");
-				} else if (special_forward.indexOf("use_snout") >= 0) {
-					special_forward = special_forward.replaceAll(".*decom\\[(.*)\\].*", "$1");
-					String skipPosition = ReverseResolution.getPositionByProcessCode(special_forward, conn);
-					req.setAttribute("skip_position", skipPosition);
+				} else if (matchforward(arrSpecialForward, "use_snout") != null) {
 					actionForward = mapping.findForward("usesnout");
-				} else if (special_forward.indexOf("decom") >= 0) {
-					special_forward = special_forward.replaceAll(".*decom\\[(.*)\\].*", "$1");
-					String skipPosition = ReverseResolution.getPositionByProcessCode(special_forward, conn);
-					req.setAttribute("skip_position", skipPosition);
+				} else if (matchforward(arrSpecialForward, "decom") != null) {
 					actionForward = mapping.findForward("decom");
 				} else {
 					// 迁移到页面
@@ -251,6 +254,15 @@ public class PositionPanelAction extends BaseAction {
 		session.setAttribute(RvsConsts.SESSION_USER, user);
 
 		log.info("PositionPanelAction.init end");
+	}
+
+	private String matchforward(String[] arrSpecialForward, String page) {
+		for (String specialForward : arrSpecialForward) {
+			if (page.equals(specialForward) || specialForward.matches(page + "\\[.*\\]")) {
+				return specialForward;
+			}
+		}
+		return null;
 	}
 
 	/**
