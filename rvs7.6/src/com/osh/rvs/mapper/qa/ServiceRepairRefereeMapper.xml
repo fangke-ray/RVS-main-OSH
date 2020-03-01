@@ -145,7 +145,7 @@
 			<if test="qa_referee_time!=null and qa_referee_time!='' ">
 				<![CDATA[
 				  answer_in_deadline = (
-				  	case (round((f_getworkdays(QA_RECEPTION_TIME, current_timestamp) * 24) + (f_diffworktime(QA_RECEPTION_TIME, current_timestamp) * 8)) - 0.00000001) div 24
+				  	case (round(-(f_getworkdays(current_timestamp, QA_RECEPTION_TIME) * 24) + (f_diffworktime(QA_RECEPTION_TIME, current_timestamp) * 8)) - 0.00000001) div 24
 				        when 0 then 2
 				        when 1 then 1
 				        ELSE 0
@@ -179,7 +179,7 @@
 				srm.qa_reception_time,
 				srm.rc_mailsend_date,
 				srm.rc_ship_assign_date,
-				cast((f_getworkdays(srm.qa_reception_time, current_timestamp) * 8 
+				cast((- f_getworkdays(current_timestamp, srm.qa_reception_time) * 8 
 					+ f_diffworktime(srm.qa_reception_time, current_timestamp)) as SIGNED) as answer_in_deadline
 			FROM
 				service_repair_manage srm	

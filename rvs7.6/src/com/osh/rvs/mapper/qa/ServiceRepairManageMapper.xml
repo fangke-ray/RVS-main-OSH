@@ -279,7 +279,7 @@
 		</if>
 		<if test="answer_in_deadline==1">
 			<![CDATA[
-				AND srm.answer_in_deadline=1 or srm.answer_in_deadline=2
+				AND (srm.answer_in_deadline=1 or srm.answer_in_deadline=2)
 			]]>
 		</if>
 		<if test="answer_in_deadline==0 ">

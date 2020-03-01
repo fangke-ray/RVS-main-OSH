@@ -188,7 +188,7 @@ public class RvsUtils {
 		}
 		return iHolis;
 	}
-	public boolean isHoliday(Date date, SqlSession conn) {
+/*	public boolean isHoliday(Date date, SqlSession conn) {
 		Calendar cal = Calendar.getInstance();
 		cal.setTime(date);
 
@@ -213,7 +213,7 @@ public class RvsUtils {
 		} finally {
 			if (conncreated && conn != null) conn.close();
 		}
-	}
+	}*/
 
 	/**
 	 * 用时(分钟)转换为小时+分格式。
@@ -235,8 +235,10 @@ public class RvsUtils {
 			return null;
 		else {
 			// UTF-8全角三字节
-			return "^" + modelName.replaceAll("[\\{\\(\\[｛【「『（]", "[^A-Z0-9]{1,3}")
-					.replaceAll("[\\}\\)\\]｝】」』）]", "[^A-Z0-9]{0,3}")
+			return "^" + modelName.replaceAll("[\\{\\(\\[｛【「『（]", "【")
+					.replaceAll("[\\}\\)\\]｝】」』）]", "】")
+					.replaceAll("【", "[^A-Z0-9]{1,3}")
+					.replaceAll("】", "[^A-Z0-9]{0,3}")
 					.replaceAll("[  　]", "[  　]{0,1}") + "$";
 		}
 	}
