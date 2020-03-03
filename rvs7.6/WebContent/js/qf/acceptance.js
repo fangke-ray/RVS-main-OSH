@@ -11,29 +11,7 @@ var customers = {};
 var curpagenum;
 var ocmOptions = {};
 
-var reception_import = function() {
-	var data = {};
-	var rowids = $("#uld_list").jqGrid("getGridParam", "selarrrow");
-	for (var i in rowids) {
-		var rowdata = $("#uld_list").getRowData(rowids[i]);
-		data["materials.sorc_no[" + i + "]"] = rowdata["sorc_no"];
-		data["materials.esas_no[" + i + "]"] = rowdata["esas_no"];
-		data["materials.model_id[" + i + "]"] = rowdata["model_id"];
-		data["materials.model_name[" + i + "]"] = rowdata["model_name"];
-		data["materials.serial_no[" + i + "]"] = rowdata["serial_no"];
-		data["materials.ocm[" + i + "]"] = rowdata["ocm"];
-		data["materials.ocm_rank[" + i + "]"] = rowdata["ocm_rank"];
-		data["materials.ocm_deliver_date[" + i + "]"] = rowdata["ocm_deliver_date"];
-		data["materials.customer_name[" + i + "]"] = rowdata["customer_name"];
-		data["materials.agreed_date[" + i + "]"] = rowdata["agreed_date_o"];
-		data["materials.level[" + i + "]"] = rowdata["level"];
-		data["materials.package_no[" + i + "]"] = rowdata["package_no"];
-		data["materials.storager[" + i + "]"] = rowdata["storager"];
-		data["materials.direct_flg[" + i + "]"] = rowdata["direct_flg"];
-		data["materials.service_repair_flg[" + i + "]"] = rowdata["service_repair_flg"];
-		data["materials.fix_type[" + i + "]"] = rowdata["fix_type"];
-		data["materials.selectable[" + i + "]"] = rowdata["selectable"];
-	}
+var reception_import = function(rowids, data) {
 	// Ajax提交
 	$.ajax({
 		beforeSend: ajaxRequestType, 
@@ -464,7 +442,7 @@ var printTicket=function() {
 		var rowdata = $("#imp_list").getRowData(rowids[i]);
 		selectedRows.push(rowdata["material_id"]);
 		
-		if (rowdata["fix_type"] == "3") {
+		if (rowdata["fix_type"] == "3" || rowdata["fix_type"] == "4") {
 			continue;
 		}
 		data["materials.material_id[" + index + "]"] = rowdata["material_id"];
@@ -568,7 +546,7 @@ var enablebuttons2 = function() {
 		var notaccepted = true;
 		for (var i in rowids) {
 			var data = $("#imp_list").getRowData(rowids[i]);
-			if ((data["sterilized"] != "0" && data["fix_type"] != "3") || data["doreception_time"].trim() == "") {
+			if ((data["sterilized"] != "0" && data["fix_type"] != "3" && data["fix_type"] != "4") || data["doreception_time"].trim() == "") {
 				flag = false;
 				break;
 			}
@@ -706,7 +684,7 @@ function acceptted_list(){
 					// 型号登记有效期标记
 					var avaliable_end_date_flg = rowdata["avaliable_end_date_flg"];
 					
-					if (rowdata["sterilized"] != "0" && rowdata["fix_type"] != "3") {
+					if (rowdata["sterilized"] != "0" && rowdata["fix_type"] != "3" && rowdata["fix_type"] != "4") {
 						jthis.find("tr#" + dataIds[i] + " td").addClass("waitTicket");
 					}
 					
@@ -816,10 +794,38 @@ $(function() {
 	});
 
 	$("#uploadbutton").click(function() {
-		afObj.applyProcess(104, this, uploadfile, arguments);
+		uploadfile();
+		// afObj.applyProcess(104, this, uploadfile, arguments);
 	});
 	$("#importbutton").click(function() {
-		afObj.applyProcess(104, this, reception_import, arguments);
+		var fix_type = "";
+		var data = {};
+		var rowids = $("#uld_list").jqGrid("getGridParam", "selarrrow");
+		for (var i in rowids) {
+			var rowdata = $("#uld_list").getRowData(rowids[i]);
+			data["materials.sorc_no[" + i + "]"] = rowdata["sorc_no"];
+			data["materials.esas_no[" + i + "]"] = rowdata["esas_no"];
+			data["materials.model_id[" + i + "]"] = rowdata["model_id"];
+			data["materials.model_name[" + i + "]"] = rowdata["model_name"];
+			data["materials.serial_no[" + i + "]"] = rowdata["serial_no"];
+			data["materials.ocm[" + i + "]"] = rowdata["ocm"];
+			data["materials.ocm_rank[" + i + "]"] = rowdata["ocm_rank"];
+			data["materials.ocm_deliver_date[" + i + "]"] = rowdata["ocm_deliver_date"];
+			data["materials.customer_name[" + i + "]"] = rowdata["customer_name"];
+			data["materials.agreed_date[" + i + "]"] = rowdata["agreed_date_o"];
+			data["materials.level[" + i + "]"] = rowdata["level"];
+			data["materials.package_no[" + i + "]"] = rowdata["package_no"];
+			data["materials.storager[" + i + "]"] = rowdata["storager"];
+			data["materials.direct_flg[" + i + "]"] = rowdata["direct_flg"];
+			data["materials.service_repair_flg[" + i + "]"] = rowdata["service_repair_flg"];
+			data["materials.fix_type[" + i + "]"] = fix_type =rowdata["fix_type"];
+			data["materials.selectable[" + i + "]"] = rowdata["selectable"];
+		}
+		if ("4" === fix_type) {
+			reception_import(rowids, data);
+		} else {
+			afObj.applyProcess(104, this, reception_import, [rowids, data]);
+		}
 	});
 	$("#manualbutton").click(function() {
 		afObj.applyProcess([103, 104], this, showInput, [0,1]);
@@ -939,7 +945,9 @@ function load_list(){
 					} else if (rData["fix_type"] == "2") {
 						comment += " 单元";
 					} else if (rData["fix_type"] == "3") {
-						comment += " 备品";
+						comment += " CDS备品";
+					} else if (rData["fix_type"] == "4") {
+						comment += " 协助RC CDS品";
 					}
 					return comment.trim();
 				}
@@ -1212,7 +1220,7 @@ function doDisinfection(){
 					}
 					$(this).dialog("close");
 				},
-				"关闭" : function() {
+				"都无需测漏" : function() {
 					$(this).dialog("close");
 				}
 			},

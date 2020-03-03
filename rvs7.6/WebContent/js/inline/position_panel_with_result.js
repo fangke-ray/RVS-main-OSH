@@ -96,7 +96,9 @@ var remapworking = function(workingPfs) {
 		if (waiting.operate_result == 5) {
 			waiting_html +=	'<div class="material_flags"><div class="package">箱</div></div>';
 		} else if (waiting.fix_type == 3) {
-			waiting_html +=	'<div class="material_flags"><div class="rc">备</div></div>';
+			waiting_html +=	'<div class="material_flags"><div class="spare">备</div></div>';
+		} else if (waiting.fix_type == 4) {
+			waiting_html +=	'<div class="material_flags"><div class="rc">协</div></div>';
 		}								
 		waiting_html +=	'</div>' + '<div class="dm_select"></div>';
 		waiting_html +=	'</div>';
@@ -277,10 +279,12 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 				if (reason == "通箱") {
 					waiting_html +=	'<div class="material_flags"><div class="package">箱</div></div>';
 				} else if (block_status == 3) {
-					waiting_html +=	'<div class="material_flags"><div class="rc">备</div></div>';
+					waiting_html +=	'<div class="material_flags"><div class="spare">备</div></div>';
+				} else if (block_status == 4) {
+					waiting_html +=	'<div class="material_flags"><div class="rc">协</div></div>';
 				}
 				waiting_html +=	'</div>';
-				if (block_status == 3 || reason == "通箱") {
+				if (block_status == 3 || block_status == 4 || reason == "通箱") {
 					waiting_html += '<div class="click_start"><input type="button" value="》开始"></div>';
 				}
 				waiting_html +=	'</div>';
@@ -388,10 +392,17 @@ $(function() {
 	doInit();
 
 	if ($("#g_process_code").val() == "131") {
-	} else {
-		$("#rcbutton, #packagebutton").show();
+		$("#rcbutton").show();
 		$("#rcbutton").on("click",function(){
-			doStartAll("rc", 112);
+			doStartAll("rc", null);
+		});
+	} else {
+		$("#rcbutton, #sparebutton, #packagebutton").show();
+		$("#rcbutton").on("click",function(){
+			doStartAll("rc", null);
+		});
+		$("#sparebutton").on("click",function(){
+			doStartAll("spare", 112);
 		});
 		$("#packagebutton").on("click",function(){
 			doStartAll("package", 113);
@@ -495,7 +506,9 @@ var doStart=function(materialId){
 	if (materialId) {
 		data["material_id"] = materialId;
 
-		if (processType == 111) {
+		if ($(".waiting#w_" + materialId + " .rc").length > 0) {
+			processType = null; // 协助RC CDS
+		} else if (processType == 111) {
 			if (materialId.indexOf("_5") >= 0) {
 				processType = 113; // 镜箱消毒
 			} else {
@@ -580,6 +593,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 var doFinish=function(){
 	var pcs_inputs = {};
 	var pcs_inputs_rcs = {};
+	var pcs_inputs_spares = {};
 	var pcs_inputs_package = {};
 	var pcs_count = 0;
 
@@ -598,6 +612,8 @@ var doFinish=function(){
 
 		if ($wk.find(".rc").length > 0) {
 			pcs_inputs_rcs[wk_id] = pcs_input;
+		} else if ($wk.find(".spare").length > 0) {
+			pcs_inputs_spares[wk_id] = pcs_input;
 		} else if ($wk.find(".package").length > 0) {
 			pcs_inputs_package[wk_id] = pcs_input;
 		} else {
@@ -605,6 +621,9 @@ var doFinish=function(){
 		}
 	});
 	if (!$.isEmptyObject(pcs_inputs)) {
+		pcs_count++;
+	}
+	if (!$.isEmptyObject(pcs_inputs_spares)) {
 		pcs_count++;
 	}
 	if (!$.isEmptyObject(pcs_inputs_rcs)) {
@@ -634,10 +653,14 @@ var doFinish=function(){
 	            "备品" : function() {
 	                $(this).dialog("close");
 	                if ($("#g_process_code").val() == "131") {
-		                afObj.applyProcess(122, this, doFinish_ajax, [pcs_inputs_rcs]);
+		                afObj.applyProcess(122, this, doFinish_ajax, [pcs_inputs_spares]);
 	                } else {
-		                afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_rcs]);
+		                afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_spares]);
 	                }
+	            },
+	            "协助RC品" : function() {
+	                $(this).dialog("close");
+	                doFinish_ajax(pcs_inputs_rcs);
 	            },
 	            "通箱" : function() {
 	                $(this).dialog("close");
@@ -652,10 +675,12 @@ var doFinish=function(){
             afObj.applyProcess(111, this, doFinish_ajax, [pcs_inputs]);
         }
 	} else if (!$.isEmptyObject(pcs_inputs_rcs)) {
+		doFinish_ajax(pcs_inputs_rcs);
+	} else if (!$.isEmptyObject(pcs_inputs_spares)) {
         if ($("#g_process_code").val() == "131") {
-            afObj.applyProcess(122, this, doFinish_ajax, [pcs_inputs_rcs]);
+            afObj.applyProcess(122, this, doFinish_ajax, [pcs_inputs_spares]);
         } else {
-            afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_rcs]);
+            afObj.applyProcess(112, this, doFinish_ajax, [pcs_inputs_spares]);
         }
 	} else if (!$.isEmptyObject(pcs_inputs_package)) {
 		afObj.applyProcess(113, this, doFinish_ajax, [pcs_inputs_package]);
@@ -720,8 +745,10 @@ var doStartAll = function(wk_type, processType) {
 		}
 	});
 	if (material_ids.length == 0) {
-		if (wk_type == "rc") {
+		if (wk_type == "spare") {
 			errorPop("没有待作业备品，请选择其他作业对象。");
+		} else if (wk_type == "rc") {
+			errorPop("没有待作业协助RC CDS品，请选择其他作业对象。");
 		} else {
 			errorPop("没有待作业通箱，请选择其他作业对象。");
 		}
@@ -733,7 +760,11 @@ var doStartAll = function(wk_type, processType) {
 
 	$("#scanner_inputer").attr("value", "");
 
-	afObj.applyProcess(processType, this, doStartAllPost, [data]);
+	if (processType == null) {
+		doStartAllPost(data);
+	} else {
+		afObj.applyProcess(processType, this, doStartAllPost, [data]);
+	}
 };
 
 var doStartAllPost = function(data) {

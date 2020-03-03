@@ -3,6 +3,7 @@ package com.osh.rvs.service.qf;
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import com.osh.rvs.common.FseBridgeUtil;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.qf.AcceptanceMapper;
@@ -32,7 +34,6 @@ import com.osh.rvs.service.ProductionFeatureService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
-import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
@@ -46,12 +47,13 @@ public class AcceptanceService {
 	 * 建立维修对象信息
 	 * @param newId
 	 * @param session
+	 * @param needId 
 	 * @param conn
 	 * @param errors
 	 * @throws NumberFormatException
 	 * @throws Exception
 	 */
-	public void insert(ActionForm form, HttpSession session, SqlSession conn, List<MsgInfo> errors) throws NumberFormatException, Exception {
+	public String insert(ActionForm form, boolean needId, SqlSession conn, List<MsgInfo> errors) throws NumberFormatException, Exception {
 
 		MaterialEntity insertBean = new MaterialEntity();
 		BeanUtil.copyToBean(form, insertBean, CopyOptions.COPYOPTIONS_NOEMPTY);
@@ -63,6 +65,13 @@ public class AcceptanceService {
 
 		AcceptanceMapper dao = conn.getMapper(AcceptanceMapper.class);
 		dao.insertMaterial(insertBean);
+
+		if (needId) {
+			CommonMapper cmapper = conn.getMapper(CommonMapper.class);
+			return cmapper.getLastInsertID();
+		}
+
+		return null;
 	}
 
 	/**
@@ -113,7 +122,7 @@ public class AcceptanceService {
 	 * @param errors
 	 * @throws Exception
 	 */
-	public void batchinsert(Map<String, String[]> parameterMap,HttpSession session,
+	public void batchinsert(Map<String, String[]> parameterMap, HttpSession httpSession,
 			SqlSessionManager conn, List<MsgInfo> errors) throws Exception {
 
 		List<MaterialForm> materialForms = new AutofillArrayList<MaterialForm>(MaterialForm.class);
@@ -172,8 +181,18 @@ public class AcceptanceService {
 
 		MaterialService mservice = new MaterialService();
 
+		boolean isAidRc = false;
+
 		// 检查每个Form
 		for (MaterialForm materialForm : materialForms) {
+			isAidRc = "4".equals(materialForm.getFix_type());
+
+			String cdsTypeName = materialForm.getOcm_rank(); 
+			if (isAidRc) {
+				materialForm.setOcm_rank(null);
+				materialForm.setProcessing_position(cdsTypeName);
+			}
+
 			Validators v = BeanUtil.createBeanValidators(materialForm, BeanUtil.CHECK_TYPE_ALL);
 			v.delete("level", "ocm");
 			v.add("ocm", v.integerType());
@@ -187,22 +206,33 @@ public class AcceptanceService {
 			}
 
 			// 对比客户ID
-			String ocm = materialForm.getOcm();
-			String value = CodeListUtils.getValue("material_ocm", ocm);
+//			String ocm = materialForm.getOcm();
+//			String value = CodeListUtils.getValue("material_ocm", ocm);
 
 			mservice.checkRepeatNo("", materialForm, conn, errors);
 
-			if ("OCM-SHRC".equals(value)) {
-				materialForm.setAm_pm("1");
-			} else {
+//			if ("OCM-SHRC".equals(value)) {
+//				materialForm.setAm_pm("1");
+//			} else {
 				materialForm.setAm_pm("2");
-			}
+//			}
+		}
+
+		Date aidRcAcceptStartAt = null;
+		LoginData user = null;
+		if (isAidRc) {
+			aidRcAcceptStartAt = (Date) httpSession.getAttribute("AidRcAcceptStartAt");
+			user = (LoginData) httpSession.getAttribute(RvsConsts.SESSION_USER);
 		}
 
 		// 放入数据库
 		if (errors.size() == 0) {
 			for (MaterialForm materialForm : materialForms) {
-				insert(materialForm, session, conn, errors);
+				String material_id = insert(materialForm, isAidRc, conn, errors);
+				if (isAidRc && material_id != null) {
+					// 自动受理完成
+					acceptComplete(material_id, aidRcAcceptStartAt, user, materialForm.getProcessing_position(), conn);
+				}
 			}
 		}
 	}
@@ -347,4 +377,57 @@ public class AcceptanceService {
 		return dao.loadOgz();
 	}
 
+	/**
+	 * 自动受理完成
+	 * 
+	 * @param material_id
+	 * @param httpSession
+	 * @param processing_position
+	 * @param conn
+	 * @throws Exception 
+	 */
+	private void acceptComplete(String material_id, Date aidRcAcceptStartAt ,LoginData user,
+			String processing_position, SqlSessionManager conn) throws Exception {
+		String nextPosition = null;
+		if ("灭菌".equals(processing_position)) {
+			nextPosition = "00000000011";
+		} else if ("消毒".equals(processing_position)) {
+			nextPosition = "00000000010";
+		}
+
+		if (aidRcAcceptStartAt == null) {
+			aidRcAcceptStartAt = new Date();
+		}
+
+		// 开始受理
+		ProductionFeatureMapper mapper = conn.getMapper(ProductionFeatureMapper.class);
+		ProductionFeatureEntity entity = new ProductionFeatureEntity();
+		entity.setMaterial_id(material_id);
+		entity.setPosition_id(RvsConsts.POSITION_ACCEPTANCE);
+		entity.setPace(0);
+		entity.setSection_id("00000000009");
+		entity.setAction_time(aidRcAcceptStartAt);
+		entity.setOperator_id(user.getOperator_id());
+		entity.setOperate_result(RvsConsts.OPERATE_RESULT_WORKING);
+		entity.setRework(0);
+		mapper.insertProductionFeature(entity);
+
+		Date aidRcAcceptEndAt = new Date();
+
+		// 完成受理
+		entity.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+		entity.setUse_seconds(new Long(
+				(aidRcAcceptEndAt.getTime() - aidRcAcceptStartAt.getTime()) / 1000).intValue());
+		mapper.finishProductionFeature(entity);
+
+		// 开始消毒/灭菌等待
+		if (nextPosition != null) {
+			entity.setPosition_id(nextPosition);
+			entity.setAction_time(null);
+			entity.setOperator_id(null);
+			entity.setOperate_result(RvsConsts.OPERATE_RESULT_NOWORK_WAITING);
+			entity.setRework(0);
+			mapper.insertProductionFeature(entity);
+		}
+	}
 }

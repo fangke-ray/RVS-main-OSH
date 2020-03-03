@@ -2925,10 +2925,12 @@ public class UploadService {
 	 * @param conn
 	 * @param errors
 	 * @param msgs
+	 * @param httpSession 
 	 * @return
 	 * @throws Exception 
 	 */
-	public List<MaterialForm> readSparesFile(String fileName, SqlSession conn, List<MsgInfo> errors, List<MsgInfo> msgs) throws Exception {
+	public List<MaterialForm> readSparesFile(String fileName, SqlSession conn, 
+			List<MsgInfo> errors, List<MsgInfo> msgs, HttpSession httpSession) throws Exception {
 		InputStream in = null;
 		List<MaterialForm> retList = new ArrayList<MaterialForm>();
 
@@ -2950,83 +2952,19 @@ public class UploadService {
 			}
 			// 不是备品文件
 			int coloumNum = row.getPhysicalNumberOfCells();
-			if (coloumNum != 6 || (!"型号".equals(getCellStringValue(row.getCell(0)))
-					|| !"机身号".equals(getCellStringValue(row.getCell(1))))) {
+			if (coloumNum == 6 && ("型号".equals(getCellStringValue(row.getCell(0)))
+					&& "机身号".equals(getCellStringValue(row.getCell(1))))) {
+				readSpareFile(sheet, conn, errors, retList);
+			} else if (coloumNum == 9 && "协助灭菌记录表".equals(getCellStringValue(row.getCell(0)))) {
+				readAidRcFile(sheet, conn, errors, retList);
+				httpSession.setAttribute("AidRcAcceptStartAt", new Date());
+			} else {
 				MsgInfo e = new MsgInfo();
 				e.setErrcode("notSparesFile");
 				errors.add(e);
 				return null;
 			}
 
-			// 在数据库里存在并且outline_time为空的维修对象
-			MaterialMapper mDao = conn.getMapper(MaterialMapper.class);
-			List<MaterialEntity> modelidList = mDao.searchMaterialByOutlineTime();
-
-			String lineNo = "";
-			for (int iRow = 1; iRow <= sheet.getLastRowNum(); iRow++) {
-				lineNo = "第" + (iRow + 1) + "行";
-				row = sheet.getRow(iRow);
-				if (row != null) {
-					String model_name = getCellStringValue(row.getCell(0));
-					String serial_no = getCellStringValue(row.getCell(1));
-					
-					if (CommonStringUtil.isEmpty(model_name) && CommonStringUtil.isEmpty(serial_no)) {
-						continue;
-					} else if (CommonStringUtil.isEmpty(model_name) || CommonStringUtil.isEmpty(serial_no)) {
-						MsgInfo info = new MsgInfo();
-						info.setErrcode("validator.required");
-						if (CommonStringUtil.isEmpty(model_name)) { 
-							info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", lineNo
-									+ "型号"));
-						} else {
-							info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", lineNo
-									+ "机身号"));
-						}
-						errors.add(info);
-						continue;
-					}
-
-					String model_id = ReverseResolution.getModelByName(model_name, conn);
-					if (model_id == null) {
-						MsgInfo info = new MsgInfo();
-						info.setErrcode("model.notExist");
-						info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("model.notExist", model_name));
-						errors.add(info);
-						continue;
-					}
-					
-					if (serial_no.length() > 20) {
-						MsgInfo info = new MsgInfo();
-						info.setErrcode("validator.invalidParam.invalidMaxLengthValue");
-						info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", lineNo
-								+ "机身号", "20"));
-						errors.add(info);
-						continue;
-					}  
-
-					// 判断RVS中是否已经存在
-					boolean check = false;
-					for (int j = 0; j < modelidList.size(); j++) {
-						MaterialEntity checkEntity = modelidList.get(j);
-						if (model_id.equals(checkEntity.getModel_id()) && serial_no.equals(checkEntity.getSerial_no())) {
-							check = true;
-							break;
-						}
-					}
-					if (check) {
-						continue;
-					}
-					
-					MaterialForm lineform = new MaterialForm();
-					lineform.setMaterial_id("Line" + iRow);
-					lineform.setModel_id(model_id);
-					lineform.setModel_name(model_name);
-					lineform.setSerial_no(serial_no);
-					lineform.setFix_type("3");
-					
-					retList.add(lineform);					
-				}
-			}
 		} catch (Exception e) {
 			log.error(e.getMessage(), e);
 		} finally {
@@ -3040,4 +2978,154 @@ public class UploadService {
 
 		return retList;
 	}
+
+	/**
+	 * 读取备品文档
+	 * 
+	 * @param sheet
+	 * @param conn
+	 * @param errors
+	 * @param retList
+	 */
+	private void readSpareFile(HSSFSheet sheet, SqlSession conn, List<MsgInfo> errors, List<MaterialForm> retList) {
+
+		// 在数据库里存在并且outline_time为空的维修对象
+		MaterialMapper mDao = conn.getMapper(MaterialMapper.class);
+		List<MaterialEntity> modelidList = mDao.searchMaterialByOutlineTime();
+
+		HSSFRow row = null;
+
+		String lineNo = "";
+		for (int iRow = 1; iRow <= sheet.getLastRowNum(); iRow++) {
+			lineNo = "第" + (iRow + 1) + "行";
+			row = sheet.getRow(iRow);
+			if (row != null) {
+				String model_name = getCellStringValue(row.getCell(0));
+				String serial_no = getCellStringValue(row.getCell(1));
+
+				String model_id = checkModelAndSerialNo(lineNo, model_name, serial_no, conn, errors);
+				if (model_id == null) continue;
+
+				// 判断RVS中是否已经存在
+				boolean check = false;
+				for (int j = 0; j < modelidList.size(); j++) {
+					MaterialEntity checkEntity = modelidList.get(j);
+					if (model_id.equals(checkEntity.getModel_id()) && serial_no.equals(checkEntity.getSerial_no())) {
+						check = true;
+						break;
+					}
+				}
+				if (check) {
+					continue;
+				}
+				
+				MaterialForm lineform = new MaterialForm();
+				lineform.setMaterial_id("Line" + iRow);
+				lineform.setModel_id(model_id);
+				lineform.setModel_name(model_name);
+				lineform.setSerial_no(serial_no);
+				lineform.setFix_type("3");
+				
+				retList.add(lineform);					
+			}
+		}
+	}
+
+	/**
+	 * 读取协助RC文档
+	 * 
+	 * @param sheet
+	 * @param conn
+	 * @param errors
+	 * @param retList
+	 */
+	private void readAidRcFile(HSSFSheet sheet, SqlSession conn,
+			List<MsgInfo> errors, List<MaterialForm> retList) {
+		// 在数据库里存在并且outline_time为空的维修对象
+		MaterialMapper mDao = conn.getMapper(MaterialMapper.class);
+		List<MaterialEntity> materialList = mDao.searchMaterialByOutlineTime();
+
+		HSSFRow row = null;
+
+		Set<String> modelSerialSet = new HashSet<String>();
+		for (MaterialEntity checkEntity : materialList) {
+			modelSerialSet.add(checkEntity.getModel_id() + "&&&" + checkEntity.getSerial_no());
+		}
+
+		String lineNo = "";
+		for (int iRow = 2; iRow <= sheet.getLastRowNum(); iRow++) {
+			row = sheet.getRow(iRow);
+			lineNo = "第" + getCellStringValue(row.getCell(0)) + "行";
+			if (row != null) {
+				String ocm = getCellStringValue(row.getCell(3));
+				String model_name = getCellStringValue(row.getCell(4));
+				String serial_no = getCellStringValue(row.getCell(5));
+				// CDS类型
+				String cds_type_name = getCellStringValue(row.getCell(6));
+
+				String model_id = checkModelAndSerialNo(lineNo, model_name, serial_no, conn, errors);
+				if (model_id == null) continue;
+
+				// 判断RVS中是否已经存在
+				boolean check = modelSerialSet.contains(model_id + "&&&" + serial_no);
+
+				if (check) {
+					continue;
+				}
+
+				String ocm_code = CodeListUtils.getKeyByValue("material_ocm", ocm, null);
+
+				MaterialForm lineform = new MaterialForm();
+				lineform.setMaterial_id("Line" + iRow);
+				lineform.setOcm(ocm_code);
+				lineform.setOcm_rank(cds_type_name);
+				lineform.setModel_id(model_id);
+				lineform.setModel_name(model_name);
+				lineform.setSerial_no(serial_no);
+				lineform.setFix_type("4");
+
+				retList.add(lineform);
+			}
+		}
+	}
+
+	private String checkModelAndSerialNo(String lineNo, String model_name, String serial_no, SqlSession conn, List<MsgInfo> errors) {
+		if (CommonStringUtil.isEmpty(model_name) && CommonStringUtil.isEmpty(serial_no)) {
+			return null;
+		} else if (CommonStringUtil.isEmpty(model_name) || CommonStringUtil.isEmpty(serial_no)) {
+			MsgInfo info = new MsgInfo();
+			info.setErrcode("validator.required");
+			if (CommonStringUtil.isEmpty(model_name)) { 
+				info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", lineNo
+						+ "型号"));
+			} else {
+				info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", lineNo
+						+ "机身号"));
+			}
+			errors.add(info);
+			return null;
+		}
+
+		String model_id = ReverseResolution.getModelByName(model_name, conn);
+		if (model_id == null) {
+			MsgInfo info = new MsgInfo();
+			info.setErrcode("model.notExist");
+			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("model.notExist", model_name));
+			errors.add(info);
+			return null;
+		}
+		
+		if (serial_no.length() > 20) {
+			MsgInfo info = new MsgInfo();
+			info.setErrcode("validator.invalidParam.invalidMaxLengthValue");
+			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", lineNo
+					+ "机身号", "20"));
+			errors.add(info);
+			return null;
+		}
+
+		return model_id;
+	}
+
+
 }

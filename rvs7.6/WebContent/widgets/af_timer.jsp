@@ -371,10 +371,15 @@ var setProdText = function(type_code, from) {
 	}
 	var $afProd = $afTimer.find(".prod");
 	$afProd.text(type_name);
-	var linec = parseInt($afProd.height() / parseInt($afProd.css("lineHeight")));
+	var iLineHeight = parseInt($afProd.css("lineHeight"));
+	if (isNaN(iLineHeight)) {
+		iLineHeight = parseInt($afProd.css("fontSize")) + 4;
+	}
+	var linec = parseInt($afProd.height() / iLineHeight);
+
 	$afProd.attr("line", linec);
 	if (linec > 1) {
-		linec = parseInt($afProd.height() / parseInt($afProd.css("lineHeight")));
+		linec = parseInt($afProd.height() / iLineHeight);
 		$afProd.attr("line", linec);
 	}
 	$afTimer.attr({"type_code": type_code, "from": from});
@@ -774,6 +779,11 @@ var showWastePartialList = function(){
 
 return {
 	applyProcess : function(process_type_code, call_obj, call_method, call_params) {
+		if (process_type_code == null) {
+			call_method.apply(call_obj, call_params);
+			return;
+		}
+
 		if (isClosed) {
 			if ($afTimer.data("is_manager") != true) {
 				errorPop("您已下班，当天不能再处理需要计时的作业。");

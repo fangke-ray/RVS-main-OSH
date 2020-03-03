@@ -476,6 +476,13 @@ color: rgb(0, 48, 0);
 
 .tube-liquid .material_flags .rc
 {
+background-color: #00C462;
+border:1px solid gray;
+color: #fff;
+}
+
+.tube-liquid .material_flags .spare
+{
 background-color: #0074E8;
 border:1px solid gray;
 color: #fff;

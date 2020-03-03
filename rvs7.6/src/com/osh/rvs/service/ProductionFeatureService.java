@@ -424,7 +424,7 @@ public class ProductionFeatureService {
 
 		// 固定流程工位 (有特殊界面的不列在内)
 		if ("00000000010".equals(position_id) || "00000000011".equals(position_id)) { // 消毒灭菌
-			if (mEntity.getFix_type() == 3) {
+			if (mEntity.getFix_type() == 3 || mEntity.getFix_type() == 4) {
 				// outline_time设成当前时间（业务处理全部结束了）
 				mDao.updateMaterialOutlineTime(material_id);
 				return null;

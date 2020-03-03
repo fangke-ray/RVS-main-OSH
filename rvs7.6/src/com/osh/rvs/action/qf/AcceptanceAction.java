@@ -160,7 +160,7 @@ public class AcceptanceAction extends BaseAction {
 
 		if (errors.size() == 0) {
 			if ("".equals(id) || id == null) {
-				service.insert(form, req.getSession(), conn, errors);
+				service.insert(form, false, conn, errors);
 			} else {
 				service.update(form, req.getSession(), conn, errors);
 			}

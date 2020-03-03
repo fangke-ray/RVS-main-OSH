@@ -83,7 +83,7 @@ public class UploadAction extends BaseAction {
 			if (errors.size() == 1 && "notSummaryFile".equals(errors.get(0).getErrcode())) {
 				// 备品文件导入
 				errors.clear();
-				readList = uService.readSparesFile(tempfilename, conn, errors, infoes);
+				readList = uService.readSparesFile(tempfilename, conn, errors, infoes, req.getSession());
 			}
 
 			if (errors.size() == 1 && "notSparesFile".equals(errors.get(0).getErrcode())) {

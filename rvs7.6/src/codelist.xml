@@ -37,6 +37,7 @@
 		<value code="1">流水线</value>
 		<value code="2">单元</value>
 		<value code="3">CDS备品</value>
+		<value code="4">协助RC CDS品</value>
 	</codelist>
 
 	<codelist name="material_service_repair">
