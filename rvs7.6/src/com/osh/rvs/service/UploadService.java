@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -2996,6 +2997,8 @@ public class UploadService {
 		HSSFRow row = null;
 
 		String lineNo = "";
+		Map<String, List<Integer>> duplicateInFile = new HashMap<String, List<Integer>>();
+
 		for (int iRow = 1; iRow <= sheet.getLastRowNum(); iRow++) {
 			lineNo = "第" + (iRow + 1) + "行";
 			row = sheet.getRow(iRow);
@@ -3018,7 +3021,13 @@ public class UploadService {
 				if (check) {
 					continue;
 				}
-				
+
+				String duplicateKey = model_id + "#" + serial_no;
+				if (!duplicateInFile.containsKey(duplicateKey)) {
+					duplicateInFile.put(duplicateKey, new ArrayList<Integer>());
+				}
+				duplicateInFile.get(duplicateKey).add(retList.size());
+
 				MaterialForm lineform = new MaterialForm();
 				lineform.setMaterial_id("Line" + iRow);
 				lineform.setModel_id(model_id);
@@ -3027,6 +3036,22 @@ public class UploadService {
 				lineform.setFix_type("3");
 				
 				retList.add(lineform);					
+			}
+		}
+
+		for (List<Integer> duplicateList : duplicateInFile.values()) {
+			if (duplicateList.size() > 1) {
+				for (int i = 0; i < duplicateList.size(); i++) {
+					if (i > 0) {
+						MaterialForm lineform = retList.get(duplicateList.get(i));
+						String serialNo = lineform.getSerial_no();
+						String appendix = "_" + i;
+						if (serialNo.length() + appendix.length() > 20) {
+							serialNo = serialNo.substring(0, 20 - appendix.length());
+						}
+						lineform.setSerial_no(serialNo + appendix);
+					}
+				}
 			}
 		}
 	}
