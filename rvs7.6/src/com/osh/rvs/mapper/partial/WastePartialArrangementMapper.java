@@ -19,4 +19,6 @@ public interface WastePartialArrangementMapper {
 	public void insert(WastePartialArrangementEntity entity);
 
 	public Integer getMaxPartByMaterialId(@Param("material_id") String material_id);
+
+	public void removeRecord(WastePartialArrangementEntity entity);
 }

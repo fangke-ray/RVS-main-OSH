@@ -104,5 +104,10 @@
 	SELECT MAX(part) FROM waste_partial_arrangement WHERE material_id = #{material_id}
 	]]>
 	</select>
-	
+
+	<delete id="removeRecord" parameterType="WastePartialArrangementEntity">
+	<![CDATA[
+	DELETE FROM waste_partial_arrangement WHERE material_id = #{material_id} AND part = #{part}
+	]]>
+	</delete>
 </mapper>

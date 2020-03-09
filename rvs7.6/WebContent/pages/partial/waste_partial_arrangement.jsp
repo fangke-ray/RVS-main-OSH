@@ -44,7 +44,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<div style="border-bottom: 0;" class="ui-widget-content">
 						<div id="infoes" class="ui-buttonset">
 							<input type="radio" name="infoes" class="ui-button ui-corner-up" id="page_arrangement_tab" value="page_arrangement">
-							<label for="page_arrangement_tab">废弃零件整理</label>
+							<label for="page_arrangement_tab">废弃零件整理记录</label>
 							<input type="radio" name="infoes" class="ui-button ui-corner-up" id="page_case_tab" value="page_case">
 							<label for="page_case_tab">废弃零件回收箱</label>
 						</div>
@@ -79,12 +79,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										<tr>
 											<td class="ui-state-default td-title">收集日期</td>
 											<td class="td-content">
-												<input type="text" id="search_arr_collect_time_start" class="ui-widget-content" readonly="readonly">起<br>
+												<input type="text" id="search_arr_collect_time_start" class="ui-widget-content" value="${default_collect_time_start}" readonly="readonly">起<br>
 												<input type="text" id="search_arr_collect_time_end" class="ui-widget-content" readonly="readonly">止
 											</td>
 											<td class="ui-state-default td-title">装箱编号</td>
 											<td class="td-content">
 												<input type="text" id="search_arr_case_code" class="ui-widget-content">
+											</td>
+											<td class="ui-state-default td-title"></td>
+											<td class="td-content">
 											</td>
 										</tr>
 									</tbody>
@@ -92,6 +95,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 								<div style="height:44px;">
 									<input class="ui-button" id="arr_resetbutton" value="清除" style="float:right;right:2px" type="button">
 									<input class="ui-button" id="arr_searchbutton" value="检索" style="float:right;right:2px" type="button">
+									<input type="hidden" id="arr_isleader" value="${isleader}">
 								</div>
 							</form>
 						</div>
@@ -99,7 +103,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="areaencloser"></div>
 						
 						<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-							<span class="areatitle">废弃零件整理一览</span>
+							<span class="areatitle">废弃零件整理记录一览</span>
 							<a target="_parent" role="link" href="javascript:void(0)" class="areacloser">
 								<span class="ui-icon ui-icon-circle-triangle-n"></span>
 							</a>
@@ -139,10 +143,17 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 												</td>
 											</tr>
 											<tr>
-												<td class="ui-state-default td-title">废弃日期</td>
+												<td class="ui-state-default td-title">废弃申请日期</td>
 												<td class="td-content" >
 													<input type="text" id="search_case_waste_apply_date_start" class="ui-widget-content" readonly="readonly">起<br>
 													<input type="text" id="search_case_waste_apply_date_end" class="ui-widget-content" readonly="readonly">止
+												</td>
+												<td class="ui-state-default td-title">应用状态</td>
+												<td class="td-content" id="search_use_state" colspan="3">
+													<input type="radio" name="use_state" id="search_use_state_all" value="" class="ui-widget-content" checked/><label for="search_use_state_all">(全部)</label>
+													<input type="radio" name="use_state" id="search_use_state_collecting" value="1" class="ui-widget-content" /><label for="search_use_state_collecting">收集中</label>
+													<input type="radio" name="use_state" id="search_use_state_wait_to_apply" value="2" class="ui-widget-content" /><label for="search_use_state_wait_to_apply">未申请废弃</label>
+													<input type="radio" name="use_state" id="search_use_state_applied" value="3" class="ui-widget-content" /><label for="search_use_state_applied">已申请废弃</label>
 												</td>
 											</tr>
 										</tbody>

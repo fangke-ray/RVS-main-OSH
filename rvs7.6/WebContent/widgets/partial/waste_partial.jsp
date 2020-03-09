@@ -31,6 +31,9 @@
 	padding:.2em .6em;
 }
 
+#waster_partial_list tr.newest > td {
+	background-color: greenyellow;
+}
 </style>
 
 <div class="ui-helper-clearfix" id="waste_content">
@@ -258,7 +261,7 @@ Date.prototype.addDays = function (d) {
 			
 			wastePartialJs.showList([]);
 			
-			$("#scanner_waster_inputer").keyup(function(){
+			$("#scanner_waster_inputer").keyup(function(evt){
 				if (this.value.length >= 11) {
 					wastePartialJs.doStart();
 				}
@@ -334,7 +337,22 @@ Date.prototype.addDays = function (d) {
 					pginput : false,
 					recordpos : 'left',
 					viewsortcols : [true, 'vertical', true],
-					gridComplete:function(){
+					gridComplete:function() {
+						var lastCollectTime = null;
+						var ldata = $("#waster_partial_list").jqGrid('getGridParam', 'data');
+
+						if (ldata && ldata.length) {
+							for (var i in ldata) {
+								
+								if (lastCollectTime == null || lastCollectTime < ldata[i]["collect_time"]) {
+									lastCollectTime = ldata[i]["collect_time"];
+								}
+							}
+							lastCollectTime = (lastCollectTime + "").substring(11);
+							$("#waster_partial_list td[aria\\-describedby='waster_partial_list_collect_time']")
+								.filter(function(){return this.innerText == lastCollectTime})
+								.closest("tr").addClass("newest");
+						}
 					}
 				});
 			}
@@ -384,7 +402,7 @@ Date.prototype.addDays = function (d) {
 					warnData+="<table class='condform'>";
 					warnData+="<tr>";
 					warnData+='<td class="ui-state-default td-title">重量</td>';
-					warnData+='<td class="td-content"><input type="text" class="ui-widget-content" id="dialog_package_update_weight" value="' +  $tr.attr("weight") + '">(kg)</td>';
+					warnData+='<td class="td-content"><input type="text" class="ui-widget-content" id="dialog_package_update_weight" value="' +  $tr.attr("weight") + '" style="text-align:right;">(kg)</td>';
 					warnData+="</tr>";
 					warnData+="</table>";
 					
@@ -448,7 +466,8 @@ Date.prototype.addDays = function (d) {
 			var scandata = {
 				"material_id" : $("#scanner_waster_inputer").val()
 			};
-			
+			$("#scanner_waster_inputer").val("");
+
 			$.ajax({
 				beforeSend : ajaxRequestType,
 				async : true,

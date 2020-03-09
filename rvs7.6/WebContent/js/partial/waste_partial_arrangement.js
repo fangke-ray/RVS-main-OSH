@@ -38,7 +38,6 @@ function showList(search_page) {
 
 var page_arrangement = {
 	"servicePath" : "waste_partial_arrangement.do",
-	
 	"init" : function(){
 		setReferChooser($("#hidden_model_id") , $("#search_model_id_referchooser"));
 		
@@ -96,14 +95,36 @@ var page_arrangement = {
 			$("#arrangementlist").jqGrid().clearGridData();
 			$("#arrangementlist").jqGrid('setGridParam', {data : listdata}).trigger("reloadGrid", [{current : false}]);
 		} else {
+			$("#arrangementlist")
+				.on("mouseover", ".ui-inline-del", function(){
+					$(this).addClass('ui-state-hover');
+				})
+				.on("mouseout", ".ui-inline-del", function(){
+					$(this).removeClass('ui-state-hover');
+				})
+				.on("click", ".ui-inline-del", function(){
+					var $tr = $(this).closest("tr");
+					var materialId = $tr.find("td[aria\\-describedby='arrangementlist_material_id']").text();
+					var omrNotifiNo = $tr.find("td[aria\\-describedby='arrangementlist_omr_notifi_no']").text();
+					var part = $tr.find("td[aria\\-describedby='arrangementlist_part']").text();
+					warningConfirm("是否要删除维修品" + omrNotifiNo + "回收部分" + part + "的整理记录？"
+						, function(){
+							page_arrangement.removeRecord(materialId, part);						
+						}, null
+						,"删除确认");
+				});
 			$("#arrangementlist").jqGrid({
 				data : listdata,
 				height : 461,
 				width : 990,
 				rowheight : 23,
 				datatype : "local",
-				colNames : ['修理单号','型号','机身号','回收部分','收集时间','操作者','装箱编号'],
+				colNames : ['', 'material_id', '修理单号','型号','机身号','回收部分','收集时间','操作者','装箱编号'],
 				colModel : [
+					{name:'del_button',index:'del_button',width:6,hidden:$("#arr_isleader").val() === "false",align:'center', formatter : function(){
+						return '<div title="删除所选记录" class="ui-pg-div ui-inline-del"><span class="ui-icon ui-icon-trash"></span></div>';
+					}},
+					{name:'material_id',index:'material_id',hidden:true},
 					{name:'omr_notifi_no',index:'omr_notifi_no',width:40},
 					{name:'model_name',index:'model_name',width:50},
 					{name:'serial_no',index:'serial_no',width:35},
@@ -129,6 +150,33 @@ var page_arrangement = {
 				}
 			});
 		}
+	},
+	"removeRecord" : function(material_id, part){
+		var data = {material_id: material_id, part: part};
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : page_arrangement.servicePath + '?method=doRemoveRecord',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function(xhrObj){
+				var resInfo;
+				try {
+					resInfo = $.parseJSON(xhrObj.responseText);
+					if (resInfo.errors.length > 0) {
+						// 共通出错信息框
+						treatBackMessages(null, resInfo.errors);
+					} else {
+						page_arrangement.findit();
+					}
+				} catch (e) {
+				}
+			}
+		});
 	}
 };
 
@@ -136,7 +184,7 @@ var page_case = {
 	"servicePath" : "waste_partial_recycle_case.do",
 	
 	"init" : function(){
-		$("#search_case_collect_kind").buttonset();
+		$("#search_case_collect_kind, #search_use_state").buttonset();
 		
 		$("#search_case_package_date_start,#search_case_package_date_end,#search_case_waste_apply_date_start,#search_case_waste_apply_date_end,#waste_update_waste_apply_date").datepicker({
 			showButtonPanel : true,
@@ -147,6 +195,7 @@ var page_case = {
 		$("#case_resetbutton").click(function(){
 			$("#searchcaseform input[type='text']").val("");
 			$("#add_collect_kind_all").attr("checked","checked").trigger("change");
+			$("#search_use_state_all").attr("checked","checked").trigger("change");
 		});
 		
 		$("#case_searchbutton").click(function(){
@@ -154,6 +203,7 @@ var page_case = {
 		});
 		
 		$("#waste_apply_button").disable().click(page_case.doWaste);
+		$("#search_use_state_wait_to_apply").attr("checked","checked").trigger("change");
 		
 		$("#canclecasebutton,#update_case_area span.ui-icon.ui-icon-circle-triangle-w").click(function(){
 			$("#search_case_area").show();
@@ -170,7 +220,15 @@ var page_case = {
 			"waste_apply_date_start" : $("#search_case_waste_apply_date_start").val(),
 			"waste_apply_date_end" : $("#search_case_waste_apply_date_end").val()
 		};
-		
+
+		if ($("#search_use_state_collecting").attr("checked") === "checked") {
+			data["package_flg"] = "1"; // 未打包
+		} else if ($("#search_use_state_wait_to_apply").attr("checked") === "checked") {
+			data["waste_flg"] = "1"; // 未申请废弃
+		} else if ($("#search_use_state_applied").attr("checked") === "checked") {
+			data["waste_flg"] = "-1"; // 已申请废弃
+		}
+
 		$.ajax({
 			beforeSend : ajaxRequestType,
 			async : true,
@@ -265,7 +323,7 @@ var page_case = {
 			$("#waste_update_weight").val(rowData.weight.replace("kg","").trim()).removeClass("errorarea-single");
 		}
 		$("#waste_update_waste_apply_date").val(year + "/" + month + "/" + date).removeClass("errorarea-single");
-		
+
 		$("#waste_dialog").dialog({
 			resizable : false,
 			modal : true,

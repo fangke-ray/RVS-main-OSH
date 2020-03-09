@@ -71,4 +71,15 @@ public class WastePartialArrangementService {
 		Integer part = dao.getMaxPartByMaterialId(materialId);
 		return part;
 	}
+
+	public void removeRecord(
+			WastePartialArrangementForm wastePartialArrangementForm,
+			SqlSessionManager conn) {
+		WastePartialArrangementMapper mapper = conn.getMapper(WastePartialArrangementMapper.class);
+
+		WastePartialArrangementEntity entity = new WastePartialArrangementEntity();
+		BeanUtil.copyToBean(wastePartialArrangementForm, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		mapper.removeRecord(entity);
+	}
 }

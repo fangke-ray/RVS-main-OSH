@@ -1,6 +1,7 @@
 package com.osh.rvs.action.partial;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,8 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.partial.WastePartialArrangementForm;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.partial.WastePartialArrangementService;
@@ -25,6 +28,7 @@ import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.validator.Validators;
 
 /**
@@ -43,6 +47,12 @@ public class WastePartialArrangementAction extends BaseAction {
 		ModelService modelService = new ModelService();
 		String mReferChooser = modelService.getOptions(conn);
 		request.setAttribute("mReferChooser", mReferChooser);
+
+		String defaultCollectTimeStart = DateUtil.toString(new Date(), "yyyy/MM/" + "01");
+		request.setAttribute("default_collect_time_start", defaultCollectTimeStart);
+
+		LoginData user = (LoginData) request.getSession().getAttribute(RvsConsts.SESSION_USER);
+		request.setAttribute("isleader", user.getPrivacies().contains(RvsConsts.PRIVACY_FACT_MATERIAL));
 
 		actionForward = mapping.findForward(FW_INIT);
 
@@ -155,4 +165,27 @@ public class WastePartialArrangementAction extends BaseAction {
 		log.info("WastePartialArrangementAction.doInsert end");
 	}
 
+	public void doRemoveRecord(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response, SqlSessionManager conn) throws Exception {
+		log.info("WastePartialArrangementAction.doRemoveRecord start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		WastePartialArrangementForm wastePartialArrangementForm = (WastePartialArrangementForm) form;
+
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.add("material_id", v.required("维修品ID"));
+		v.add("part", v.required("回收部分"));
+		errors = v.validate();
+
+		if (errors.size() == 0) {
+			WastePartialArrangementService service = new WastePartialArrangementService();
+			service.removeRecord(wastePartialArrangementForm, conn);
+		}
+
+		listResponse.put("errors", errors);
+		returnJsonResponse(response, listResponse);
+
+		log.info("WastePartialArrangementAction.doRemoveRecord end");
+	}
 }

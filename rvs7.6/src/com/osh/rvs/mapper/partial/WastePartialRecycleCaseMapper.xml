@@ -21,6 +21,11 @@
 	AND waste_apply_date IS NULL
 	]]>
 	</if>
+	<if test="waste_flg==-1">
+	<![CDATA[
+	AND waste_apply_date IS NOT NULL
+	]]>
+	</if>
 	<if test="package_flg==1">
 	<![CDATA[
 	AND package_date IS NULL
