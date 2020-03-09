@@ -40,6 +40,11 @@
     	operator op
     ON prEx.operator_id=op.operator_id
 ]]>
+    <if test="procedure eq 1">
+    	JOIN
+			pause_feature pause ON pause.operator_id = prEx.operator_id AND reason = 72
+			AND pause.material_id = prEx.material_id and pause.position_id = pr.position_id
+    </if>
     <where>
   	pr.position_id in (select position_id from position where line_id='15')
     and ma.break_back_flg = 0
@@ -101,6 +106,9 @@
         		and ma.direct_flg=#{direct_flg}
         </if>
     </where>
+    <if test="procedure eq 1">
+    	GROUP BY ma.material_id
+    </if>
      ORDER BY   pr.finish_time DESC;
 </select>
 </mapper>

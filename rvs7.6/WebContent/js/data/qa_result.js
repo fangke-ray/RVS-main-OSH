@@ -56,7 +56,8 @@ var findit = function() {
 		"fix_type":$("#search_fix_id").data("post"),
 		"service_repair_flg":$("#search_repair_id").data("post"),
 		"direct_flg":$("#search_direct_id").data("post"),
-		"operator_id":$("#search_person_id").data("post")
+		"operator_id":$("#search_person_id").data("post"),
+		"procedure" :$("#search_procedure").data("post")
 	}
 
 // Ajax提交
@@ -92,6 +93,8 @@ var reset = function() {
 	$("#search_repair_id").val("").trigger("change").data("post", "");
 	$("#search_direct_id").val("").trigger("change").data("post", "");
 	$("#search_person_id").val("").data("post","");
+	$("#search_procedure").data("post","");
+	$("#search_procedure_0").attr("checked", true).trigger("change");
 };
 
 //页面加载完毕需要进行的操作
@@ -109,6 +112,8 @@ $(function() {
 			$(this).parent().parent().next().hide("blind");
 		}
 	});
+
+	$("#search_procedure").buttonset();
 
 	$("#search_category_id, #search_section_id,#search_person_id").select2Buttons();
 //	$("#search_fix_id").select2Buttons();
@@ -140,6 +145,7 @@ $(function() {
         $("#search_repair_id").data("post",$("#search_repair_id").val());
         $("#search_direct_id").data("post",$("#search_direct_id").val());
         $("#search_person_id").data("post",$("#search_person_id").val());
+        $("#search_procedure").data("post",$("#search_procedure input:checked").val());
 		findit();//检索开始并提交给后台
 	});
 

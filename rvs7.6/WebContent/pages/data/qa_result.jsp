@@ -57,7 +57,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<tr>
 							<td class="ui-state-default td-title" rowspan="3">维修对象机种</td>
 							
-							<td class="td-content" rowspan="3">
+							<td class="td-content" rowspan="3" colspan="3">
 							<select name="category_id" id="search_category_id" class="ui-widget-content">${cOptions}</select></td>
 							
 							
@@ -68,29 +68,33 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 								<input type="text" class="ui-widget-content" readonly="readonly">
 								<input type="hidden" name="model_id" id="search_model_id">
 							</td>
-							<td class="ui-state-default td-title">维修课室</td>
-							<td class="td-content">
-								<select name="section_id" id="search_section_id" class="ui-widget-content">${sOptions}</select>
-							</td>
-							</tr>
+						</tr>
 						<tr>
 						    <td class="ui-state-default td-title">机身号</td>
-						    
 							<td class="td-content"><input type="text" id="search_serialno" maxlength="20" class="ui-widget-content"></td>
-						    
-						    <td class="ui-state-default td-title" rowspan="2" >出检人员</td>
-						    
-							<td class="td-content" rowspan="2">
-								<select name="operation_id" id="search_person_id" class="ui-widget-content">${sOperations}</select>
-							</td>
-								
-										
 						</tr>
 						<tr>
 						    
 						    <td class="ui-state-default td-title">修理单号</td>
 							<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content"></td>
-			
+						</tr>
+						<tr>
+						    <td class="ui-state-default td-title" rowspan="2">出检人员</td>
+						    
+							<td class="td-content" rowspan="2" colspan="3">
+								<select name="operation_id" id="search_person_id" class="ui-widget-content">${sOperations}</select>
+							</td>
+							<td class="ui-state-default td-title">维修课室</td>
+							<td class="td-content">
+								<select name="section_id" id="search_section_id" class="ui-widget-content">${sOptions}</select>
+							</td>
+						</tr>
+						<tr>
+						    <td class="ui-state-default td-title">作业实现</td>
+							<td class="td-content" id="search_procedure">
+								<input type="radio" name="procedure" id="search_procedure_0" value="0" checked><label for="search_procedure_0">(不选)</label>
+								<input type="radio" name="procedure" id="search_procedure_1" value="1"><label for="search_procedure_1">测漏、水电气检查</label>
+							</td>
 						</tr>
 						<tr>
 							<td class="ui-state-default td-title">受理日期</td>

@@ -35,6 +35,8 @@ public class QaResultEntity implements Serializable {
 	private String direct_flg;// 直送
 	private String material_id;//维修对象ID
 
+	private Integer procedure;// 作业实现
+
 	public String getCategory_id() {
 		return category_id;
 	}
@@ -217,5 +219,13 @@ public class QaResultEntity implements Serializable {
 
 	public void setProcess_code(String process_code) {
 		this.process_code = process_code;
+	}
+
+	public Integer getProcedure() {
+		return procedure;
+	}
+
+	public void setProcedure(Integer procedure) {
+		this.procedure = procedure;
 	}
 }

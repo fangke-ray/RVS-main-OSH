@@ -80,6 +80,9 @@ public class QaResultForm extends ActionForm implements Serializable {
 	@BeanField(title="维修对象ID",name="material_id")
 	private String material_id;//维修对象ID
 
+	@BeanField(title = "作业实现", name = "procedure", type = FieldType.Integer)
+	private String procedure;
+
 	public String getCategory_id() {
 		return category_id;
 	}
@@ -262,6 +265,14 @@ public class QaResultForm extends ActionForm implements Serializable {
 
 	public void setProcess_code(String process_code) {
 		this.process_code = process_code;
+	}
+
+	public String getProcedure() {
+		return procedure;
+	}
+
+	public void setProcedure(String procedure) {
+		this.procedure = procedure;
 	}
 
 }
