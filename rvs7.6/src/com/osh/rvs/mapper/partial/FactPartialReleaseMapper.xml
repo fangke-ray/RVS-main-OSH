@@ -58,6 +58,7 @@
 	</select>
 
 	<select id="getTodayPartialOrderEdit" resultType="FactPartialReleaseEntity" parameterType="String">
+	<![CDATA[
 		SELECT omr_notifi_no, mdl.name as model_name, ma.level, sum(quantity) as quantity 
 		FROM 
 		`fact_partial_release` fpr
@@ -74,10 +75,12 @@
 		af_pf.operator_id = #{operator_id}
 		and (af_pf.action_time > current_date OR af_pf.operator_id = 00000000000)
 		and fpr.spec_kind = 0
+		and (#{operator_id} <> 00000000000 OR ma.outline_time is null OR ma.outline_time > current_date)
 		GROUP BY
 		ma.material_id
 		ORDER BY omr_notifi_no
 		;
+	]]>
 	</select>
 
 	<select id="countPartialOrderEditInAfpf" resultType="int" parameterType="String">
