@@ -13,6 +13,7 @@ var selwip = "";
 var findit = function() {
 	var data = {
 		"sorc_no" : $("#cond_sorc_no").data("post"),
+		"category_id" : $("#cond_category_id").val() && $("#cond_category_id").val().toString(),
 		"model_id" : $("#cond_model_id").data("post"),
 		"serial_no" : $("#cond_serial_no").data("post"),
 		"esas_no" : $("#cond_esas_no").data("post"),
@@ -415,7 +416,7 @@ var showInput=function() {
 $(function() {
 	$("input.ui-button").button();
 	$("#cond_direct_flg").buttonset();
-	$("#cond_level").select2Buttons();
+	$("#cond_level,#cond_category_id").select2Buttons();
 
 	$("a.areacloser").hover(function() {$(this).addClass("ui-state-hover");
 		}, function() {$(this).removeClass("ui-state-hover");});
@@ -460,6 +461,7 @@ $(function() {
 	// 清空检索条件
 	$("#resetbutton").click(function() {
 		// hidden reset
+		$("#cond_category_id").val("").trigger("change");
 		$("#cond_sorc_no").val("");
 		$("#cond_model_id").val("");
 		$("#cond_model_name").val("");
@@ -610,16 +612,16 @@ function search_handleComplete(xhrobj, textStatus) {
 					width : 992,
 					rowheight : 23,
 					datatype : "local",
-					colNames : ['', '修理单号', 'ESAS No.', '型号 ID', '型号', '机身号', '等级', '受理时间','返还要求','备注', 'WIP货架位置','','','','','wip_overceed'],
+					colNames : ['', '修理单号', '机种', '型号 ID', '型号', '机身号', '等级', '受理时间','返还要求','备注', 'WIP货架位置','','','','','wip_overceed'],
 					colModel : [{name:'material_id',index:'material_id', hidden:true},
 							{
 								name : 'sorc_no',
 								index : 'sorc_no',
-								width : 105
+								width : 95
 							}, {
-								name : 'esas_no',
-								index : 'esas_no',
-								width : 50
+								name : 'category_name',
+								index : 'category_name',
+								width : 60
 							}, {
 								name : 'model_id',
 								index : 'model_id',

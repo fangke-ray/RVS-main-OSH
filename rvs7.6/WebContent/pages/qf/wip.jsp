@@ -60,21 +60,23 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<table class="condform">
 						<tbody>
 							<tr>
-								<td class="ui-state-default td-title">修理单号</td>
-								<td class="td-content"><input type="text" name="sorc_no" id="cond_sorc_no" maxlength="15" class="ui-widget-content"></td>
+								<td class="ui-state-default td-title" rowspan="2">维修对象机种</td>
+								<td class="td-content" rowspan="2" colspan="3">
+									<select name="category_id" id="cond_category_id" class="ui-widget-content" multiple>${cOptions}</select>
+								</td>
 								<td class="ui-state-default td-title">维修对象型号</td>
 								<td class="td-content">
 									<input type="text" class="ui-widget-content" readonly="readonly" name="model_name" id="cond_model_name">
 									<input type="hidden" name="model_id" id="cond_model_id">
 								</td>
+							</tr>
+							<tr>
 								<td class="ui-state-default td-title">机身号</td>
 								<td class="td-content"><input type="text" name="serial_no" id="cond_serial_no" maxlength="20" class="ui-widget-content"></td>
 							</tr>
 							<tr>
-								<td class="ui-state-default td-title">ESAS No.</td>
-								<td class="td-content">
-									<input type="text" name="esas_no" id="cond_esas_no" maxlength="7" class="ui-widget-content">
-								</td>
+								<td class="ui-state-default td-title">修理单号</td>
+								<td class="td-content"><input type="text" name="sorc_no" id="cond_sorc_no" maxlength="15" class="ui-widget-content"></td>
 								<td class="ui-state-default td-title">受理时间</td>
 								<td class="td-content">
 									<input type="text" name="reception_time_start" id="cond_reception_time_start" maxlength="10" class="ui-widget-content">起

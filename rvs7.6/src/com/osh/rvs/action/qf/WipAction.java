@@ -20,6 +20,7 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.qa.ServiceRepairManageMapper;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.CategoryService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProductionFeatureService;
@@ -55,6 +56,10 @@ public class WipAction extends BaseAction {
 			SqlSession conn) throws Exception {
 
 		log.info("WipAction.init start");
+
+		CategoryService categoryService = new CategoryService();
+		String cOptions = categoryService.getOptions(conn);
+		req.setAttribute("cOptions", cOptions);
 
 		String mReferChooser = modelService.getOptions(conn);
 		req.setAttribute("mReferChooser", mReferChooser);

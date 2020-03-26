@@ -12,7 +12,8 @@
 				coalesce(a.omr_notifi_no, a.sorc_no) as sorc_no,
 				a.esas_no,
 				a.model_id,
-				(select name from model where model_id = a.model_id) as model_name,
+				mdl.category_name,
+				mdl.name as model_name,
 				a.serial_no,
 				a.level,
 				a.direct_flg,
@@ -24,9 +25,13 @@
 				a.break_back_flg,
 				a.wip_date <= date_add(current_date, interval -2 month) as operate_result
 			FROM Material a
+			JOIN v_model mdl ON a.model_id = mdl.model_id
 		]]>
 		<where>
 			wip_location IS NOT NULL
+			<if test="category_id!= null and category_id!= ''">
+				and mdl.category_id in (${category_id})
+			</if>
 			<if test="model_id!= null and model_id!= ''">
 				and a.model_id = #{model_id}
 			</if>
