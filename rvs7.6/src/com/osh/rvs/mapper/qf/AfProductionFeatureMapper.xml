@@ -108,10 +108,15 @@
 		JOIN material ma
 		on pospf.material_id = ma.material_id
 	]]>
+		<if test="division eq 1"><!-- 不要协助CDS品 -->
+	<![CDATA[
+		and ma.fix_type <> 4
+	]]>
+		</if> 
 		<if test="division eq 2"><!-- 只要维修品 -->
 		and ma.fix_type in (1, 2)
 		</if> 
-		<if test="division eq 2"><!-- 只要备品 -->
+		<if test="division eq 3"><!-- 只要备品 -->
 		and ma.fix_type = 3
 		</if> 
 	<![CDATA[

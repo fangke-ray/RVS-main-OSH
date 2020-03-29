@@ -287,6 +287,7 @@ public class AcceptFactService {
 		switch (productionType) {
 		case "102" : // 维修品实物受理/测漏
 		case "105" : // 备品实物受理/测漏
+		case "141" : // 备品实物受理/测漏
 		case "211" : // 零件收货
 			// 现场不统计
 			return null;
