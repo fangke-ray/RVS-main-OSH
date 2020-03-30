@@ -5,7 +5,7 @@
 </head>
 <script>
 $(function() {
-	$("a").attr("target", "_parent");
+	$("#modelmenuarea a").attr("target", "_parent");
 	var accordion_idx = $("#accordion h3").index($("#accordion h3:contains('" + $("#linkto").val() + "')"));
 	if (accordion_idx < 0) accordion_idx = 0;
 	$("#accordion" ).accordion({active: accordion_idx});

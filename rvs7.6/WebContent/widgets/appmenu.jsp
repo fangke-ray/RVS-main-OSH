@@ -45,7 +45,7 @@ var getPositionWork = function(position_id, px){
 };
 
 $(function() {
-	$("a").attr("target", "_parent");
+	$("a").not("[target]").attr("target", "_parent");
 
 	var accordion_idx = $("#accordion h3").index($("#accordion h3:contains('" + $("#linkto").val() + "')"));
 	if (accordion_idx < 0) accordion_idx = 0;
@@ -174,6 +174,7 @@ $(function() {
 	<div>
 		        <a href="filing.do">维修作业归档</a><br>
 		        <a href="operatorProduction.do?method=monthly">SORC 月报</a><br>
+		        <a href="procedureManual.do">作业要领书</a><br>
 		        <a href="daily_work_sheet.do">工作记录表</a><br>
 		        <a href="worktime_analysis.do">工时分析</a><br>
 		        <a href="productivity.do">生产效率</a><br>

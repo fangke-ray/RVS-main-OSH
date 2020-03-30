@@ -1469,8 +1469,14 @@
 				validate="false">
 				<forward name="init" path="/pages/partial/waste_partial_arrangement.jsp"/>
 		</action>
-		
+
+		<!-- 作业要领书 -->
+		<action path="/procedureManual" type="com.osh.rvs.action.report.ProcedureManualAction" parameter="method" validate="false">
+			<forward name="init" path="/pages/report/procedure_manual.jsp" />
+			<forward name="success" path="/pages/report/procedure_manual.jsp" />
+		</action>
 		<!-- rvs 八期end -->
+
 
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->
