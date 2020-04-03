@@ -836,8 +836,11 @@ public class AcceptFactService {
 			writableConn.startManagedSession();
 			// 切换作业
 			AcceptFactService afService = new AcceptFactService();
-			afService.switchTo(null, true, production_type, operator_id, true, writableConn);
-			writableConn.commit();
+			Date switchedStart = afService.switchTo(null, true, production_type, operator_id, true, writableConn);
+			if (switchedStart != null) {
+				writableConn.commit();
+				fingerOperatorRefresh(user.getOperator_id());
+			}
 		} catch (Exception e) {
 			if (writableConn!= null && writableConn.isManagedSessionStarted()) {
 				writableConn.rollback();

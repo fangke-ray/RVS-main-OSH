@@ -241,7 +241,19 @@ public class PauseFeatureService {
 		}
 		String rt = PauseFeatureService.getPauseReason().get(reasonCode);
 		if (CommonStringUtil.isEmpty(rt)) {
-			return CodeListUtils.getValue("pause_reason", reasonCode);
+			Map<String, Map<String, String>> prigm = PauseFeatureService.getPauseReasonIndirectGroupMap();
+			for (String prigk : prigm.keySet()) {
+				if (prigm.get(prigk).containsKey(reasonCode)) {
+					rt = prigm.get(prigk).get(reasonCode);
+					break;
+				}
+			}
+
+			if (CommonStringUtil.isEmpty(rt)) {
+				return CodeListUtils.getValue("pause_reason", reasonCode);
+			} else {
+				return rt;
+			}
 		} else {
 			return rt;
 		}

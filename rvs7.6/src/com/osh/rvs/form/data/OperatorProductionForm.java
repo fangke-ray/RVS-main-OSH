@@ -107,7 +107,7 @@ public class OperatorProductionForm extends ActionForm {
 	}
 	
 	public String getReasonText() {
-		if (reason != null) {
+		if (reason != null && !"0".equals(reason)) {
 			return PauseFeatureService.getPauseReasonByCode(reason);
 		}
 		return reasonText;
