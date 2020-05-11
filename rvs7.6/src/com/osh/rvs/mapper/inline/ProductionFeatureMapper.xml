@@ -71,6 +71,8 @@
 				not a.ticket_flg as sterilized, b.finish_time, a.bound_out_ocm ,
 				a.scheduled_expedited, tcs.location as wip_location,
 				CASE
+					WHEN a.fix_type in (3,4) THEN
+						-1
 					WHEN a.level IN (1,2,3,56,57,59) THEN 
 						CASE
 							WHEN (SELECT avaliable_end_date FROM model_level_set WHERE model_id = a.model_id AND level = a.level) < CURRENT_DATE THEN 0

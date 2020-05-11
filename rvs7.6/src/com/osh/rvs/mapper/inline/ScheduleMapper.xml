@@ -200,11 +200,11 @@
 			</if>
 			<if test="bo_flg!=null and bo_flg == 2">
 				and max(b.bo_flg = 2) = 1
-				and coalesce(max(b.bo_flg in (1,9,8)), 0) = 0
+				and coalesce(max(b.bo_flg in (1,9,8,7)), 0) = 0
 			</if>
 			<if test="bo_flg!=null and bo_flg == 0">
 				and max(b.bo_flg = 0) = 1
-				and coalesce(max(b.bo_flg in (1,2,9,8)), 0) = 0
+				and coalesce(max(b.bo_flg in (1,2,9,8,7)), 0) = 0
 			</if>
 			<if test="support_date!= null">
 				<if test="arrival_plan_date_start!=null and arrival_plan_date_start!='' ">
@@ -328,7 +328,7 @@
 			CASE
 				WHEN max(mpd.bo_flg = 1) = 1
 				THEN 1
-				WHEN max(mpd.bo_flg in (8, 9)) = 1
+				WHEN max(mpd.bo_flg in (7, 8, 9)) = 1
 				THEN 9
 				WHEN max(mpd.bo_flg = 2) = 1
 				THEN 2

@@ -54,9 +54,10 @@ width: 1248px;
 }
 .alertCell {
 	background-color : #FFC000;
+	color: white;
 }
 </style>
-<title>现品</title>
+<title>投线管理</title>
 </head>
 <body class="outer">
 

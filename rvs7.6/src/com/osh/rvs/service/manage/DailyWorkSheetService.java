@@ -23,7 +23,9 @@ public class DailyWorkSheetService {
 					// 文件名字
 					fileMap.put("fileName", filename);
 					// 文件生成时间
-					fileMap.put("fileDayTime",filename.replaceAll(".*(\\d{4}\\-\\d{2}\\-\\d{2}).*", "$1"));
+					String dString = filename.replaceAll(".*(\\d{4}\\-\\d{2}\\-\\d{2}).*", "$1");
+					if (dString.length() > 10) dString =  filename.replaceAll(".*(\\d{4}\\-\\d{2}).*", "$1");
+					fileMap.put("fileDayTime", dString);
 					File readfile = new File(filepath + "\\confirm\\" + filename);
 					if (readfile.exists()) {
 						fileMap.put("confirmfilename", filename);

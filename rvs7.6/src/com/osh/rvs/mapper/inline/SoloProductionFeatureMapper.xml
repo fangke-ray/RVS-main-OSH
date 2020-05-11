@@ -9,6 +9,7 @@
 		<![CDATA[ 
 			SELECT
 				spr.position_id,
+				spr.section_id,
 				spr.serial_no,
 				spr.model_id,
 				COALESCE(spr.model_name, m.name) as model_name,
@@ -161,7 +162,8 @@
 			pcs_comments = #{pcs_comments},
 			finish_time = current_timestamp
 		WHERE serial_no = #{serial_no}
-		AND pace = #{pace};
+		AND pace = #{pace}
+		AND position_id = #{position_id};
 		]]>
 	</update>
 

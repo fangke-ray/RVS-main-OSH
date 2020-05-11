@@ -115,14 +115,13 @@ public class MaterialFactService {
 					|| "光学视管".equals(resultBean.getCategory_name())) {
 				MaterialPartialForm mp = mps.loadMaterialPartial(conn, resultBean.getMaterial_id(), null);
 				if (mp == null) {
-					resultForm.setImg_operate_result("未订购零件");
-					resultForm.setCcd_operate_result("");
+					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "未订购零件"));
 				} else if ("0".equals(mp.getBo_flg()) || "2".equals(mp.getBo_flg())){
-					resultForm.setImg_operate_result("已订购零件");
-					resultForm.setCcd_operate_result("零件到达");
+					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "已订购零件"));
+					resultForm.setCcd_operate_result(getBr(resultForm.getCcd_operate_result(), "零件到达"));
 				} else {
-					resultForm.setImg_operate_result("已订购零件");
-					resultForm.setCcd_operate_result("缺零件");
+					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "已订购零件"));
+					resultForm.setCcd_operate_result(getBr(resultForm.getCcd_operate_result(), "缺零件"));
 				}
 			}
 			lResultForm.add(resultForm);
@@ -638,6 +637,13 @@ public class MaterialFactService {
 		mfMapper.assginCCDChange(material_id);
 	}
 
+	private String getBr(String exist_result, String addi_message) {
+		if(CommonStringUtil.isEmpty(exist_result)) {
+			return addi_message;
+		}
+		return exist_result + "\n" + addi_message;
+	}
+
 	public List<MaterialForm> getInlinePlan(SqlSession conn) {
 		MaterialFactMapper mfMapper = conn.getMapper(MaterialFactMapper.class);
 		List<MaterialForm> resultForm = new ArrayList<MaterialForm>();
@@ -867,4 +873,5 @@ public class MaterialFactService {
 		}
 		return cacheName;
 	}
+
 }

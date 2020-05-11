@@ -117,7 +117,7 @@ var enablebuttons3 = function(rowids){
 		var flag_img = true; //没有画像
 		var flag_ccd = true;//没有CCD
 		var scheduled_expedited = false;
-		
+
 		var img_operate_result;
 //		var ccd_operate_result;
 
@@ -125,22 +125,23 @@ var enablebuttons3 = function(rowids){
 			var data = $("#list").getRowData(rowids[i]);
 			var level = data["level"];
 //			if (level == 9 || level == 91 || level == 92 ||level == 93) {
-			if (f_isLightFix(level) || f_isPeripheralFix(level)) {
+			if (f_isLightFix(level) || f_isPeripheralFix(level) || level == 1) {
 				flag_ccd = false;
 			}
 
-			if (data["img_check"] != "0") {
+			if (flag_img && data["img_check"] != "0") {
 				flag_img = false;
 				img_operate_result = data["img_operate_result"];
 			}
-			if (data["ccd_change"] != "0") {
+			if (flag_ccd && data["ccd_change"] != "0") {
 				flag_ccd = false;
 //				ccd_operate_result = data["ccd_operate_result"];
 			}
-			if (data["scheduled_expedited"] != "0") {
+			if (!scheduled_expedited && data["scheduled_expedited"] != "0") {
 				scheduled_expedited = true;
 			}
-			if (f_isPeripheralFix(level)) {
+			if (flag_img && 
+				(f_isPeripheralFix(level) || data["category_name"] == "光学视管")) {
 				flag_img = false;
 			}
 		}
@@ -167,7 +168,7 @@ var enablebuttons3 = function(rowids){
 			var level = data["level"];
 //			if (level == 9 || level == 91 || level == 92 ||level == 93) {
 			if (f_isLightFix(level) || 
-				f_isPeripheralFix(level)) {
+				f_isPeripheralFix(level) || data["category_name"] == "光学视管") {
 				if (data["agreed_date"] == null || data["agreed_date"].trim() == "") {
 					$("#inlinebutton").disable();
 				} else {
@@ -177,7 +178,7 @@ var enablebuttons3 = function(rowids){
 
 			else if (data["agreed_date"] == null || data["agreed_date"].trim() == "") { // 没有同意日
 				$("#inlinebutton").disable();
-			} else if (flag_img && flag_ccd) { //都不存在
+			} else if (flag_img) { //都不存在
 				$("#inlinebutton").enable();
 //			} else if (flag_img && !flag_ccd) { //没有有画像有CCD，判断CCD状态
 //				if (ccd_operate_result == "完成" || ccd_operate_result == "中断") {
@@ -186,7 +187,7 @@ var enablebuttons3 = function(rowids){
 //					$("#inlinebutton").disable();
 //				}
 			} else if (!flag_img){ //没有有CCD有画像，判断画像状态
-				if (img_operate_result == "完成") {
+				if (img_operate_result && img_operate_result.indexOf("完成") >= 0) {
 					$("#inlinebutton").enable();
 				} else {
 					$("#inlinebutton").disable();
@@ -1122,23 +1123,27 @@ function initGrid() {
 						$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_unrepair_flg']").addClass("alertCell");
 					}
 
-					if (img_operate_result != "完成") {
-						var material_id = rowdata["material_id"];
-						var wip_date = rowdata["inline_time"];
-						for (var iDatum in srcData) {
-							var srcDatum = srcData[iDatum];
-							if (srcDatum.material_id == material_id) {
-								wip_date = srcDatum.inline_time;
-								break;
+					var img_completed = img_operate_result && (img_operate_result.indexOf("完成") >= 0);
+
+					if (!img_completed) {
+						if (!f_isPeripheralFix(rowdata.level) && rowdata["category_name"] != "光学视管") {
+							var material_id = rowdata["material_id"];
+							var wip_date = rowdata["inline_time"];
+							for (var iDatum in srcData) {
+								var srcDatum = srcData[iDatum];
+								if (srcDatum.material_id == material_id) {
+									wip_date = srcDatum.inline_time;
+									break;
+								}
 							}
-						}
-						if (wip_date) {
-							$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_wip_location']").addClass("alertCell");
+							if (wip_date) {
+								$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_wip_location']").addClass("alertCell");
+							}
 						}
 					}
 					if (!vagreed_date
 //						|| (ccd_operate_result != "" && ccd_operate_result!="完成")
-						|| (img_operate_result != "" && img_operate_result!="完成")) {
+						|| (img_operate_result != "" && !img_completed)) {
 						$("#list tr#" + dataIds[i] + " td").not(".alertCell").css("background-color", "#EEEEEE");
 					} else {
 						if (new Date(vagreed_date).getTime() < leverDates.nege2)

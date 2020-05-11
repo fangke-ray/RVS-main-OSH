@@ -47,6 +47,7 @@ public class MaterialFactEntity implements Serializable {
 	private Integer service_repair_flg;
 
 	private Integer quotation_first;
+	private Date quotation_time;
 
 	public String getSection_id() {
 		return section_id;
@@ -251,6 +252,12 @@ public class MaterialFactEntity implements Serializable {
 	}
 	public void setCategory_name(String category_name) {
 		this.category_name = category_name;
+	}
+	public Date getQuotation_time() {
+		return quotation_time;
+	}
+	public void setQuotation_time(Date quotation_time) {
+		this.quotation_time = quotation_time;
 	}
 	
 	

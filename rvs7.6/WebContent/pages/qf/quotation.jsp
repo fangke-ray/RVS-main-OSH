@@ -256,6 +256,7 @@ if (peripheral!=null && peripheral) {
 									显示要领书
 									<div class="ui-widget-content" style="z-index:2;position:absolute;display:none;top: -120%;width:300px;">
 										<a target="_blank" href="/docs/manual/E204解析要领书.pdf" class="ui-button">E204解析要领书.pdf</a>
+										<br>
 										<a target="_blank" href="/docs/manual/开关不良解析要领书.pdf" class="ui-button">开关不良解析要领书.pdf</a>
 									</div>
 								</div>

@@ -56,7 +56,6 @@ public class MaterialFactForm extends ActionForm {
 	private String ccd_change;//CCD盖玻璃更换
 	private String img_operate_result;//存在画面检查
 	private String ccd_operate_result;//存在CCD盖玻璃更换
-	
 	@BeanField(title="课室", name="section_id", type = FieldType.String)
 	private String section_id;
 	@BeanField(title="维修流程模板ID", name="pat_id")
@@ -77,6 +76,9 @@ public class MaterialFactForm extends ActionForm {
 
 	@BeanField(title = "返修标记", name = "service_repair_flg", type = FieldType.Integer)
 	private String service_repair_flg;
+
+	@BeanField(title = "报价日期", name = "quotation_time", type = FieldType.DateTime)
+	private String quotation_time;
 
 	public String getSection_id() {
 		return section_id;
@@ -300,5 +302,11 @@ public class MaterialFactForm extends ActionForm {
 	}
 	public void setCategory_name(String category_name) {
 		this.category_name = category_name;
+	}
+	public String getQuotation_time() {
+		return quotation_time;
+	}
+	public void setQuotation_time(String quotation_time) {
+		this.quotation_time = quotation_time;
 	}
 }

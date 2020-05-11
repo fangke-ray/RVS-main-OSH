@@ -5,7 +5,7 @@
 
 <select id="searchQaResult" resultType="QaResultEntity" parameterType="QaResultEntity">
 <![CDATA[
-    SELECT     
+    SELECT 
         ma.material_id,
         coalesce(ma.omr_notifi_no, ma.sorc_no) as sorc_no,
         ma.serial_no,
@@ -14,7 +14,7 @@
         mo.name as model_name,
         pr.finish_time,
         pr.operate_result,
-        op.name as operation_name,
+        group_concat(distinct op.name) as operation_name,
         ma.fix_type,
         ma.service_repair_flg,
         ma.direct_flg,
@@ -106,9 +106,7 @@
         		and ma.direct_flg=#{direct_flg}
         </if>
     </where>
-    <if test="procedure eq 1">
-    	GROUP BY ma.material_id
-    </if>
-     ORDER BY   pr.finish_time DESC;
+   	GROUP BY ma.material_id, pr.finish_time
+    ORDER BY pr.finish_time DESC;
 </select>
 </mapper>

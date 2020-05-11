@@ -91,7 +91,7 @@ $(function(){
 	/*投线*/
 	$("#linebutton").click(function(){
 		$("#choosebutton").show();
-		$("#monthdownbutton").hide();
+//		$("#monthdownbutton").hide();
 		$("#monthshowbutton").hide();
 		if ($("#hidden_is_inline").val()) {
 			$("#exd_list").jqGrid('showCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
@@ -105,7 +105,7 @@ $(function(){
 	/*受理*/
 	$("#acceptbutton").click(function(){
 		$("#choosebutton").show();
-		$("#monthdownbutton").hide();
+//		$("#monthdownbutton").hide();
 		$("#monthshowbutton").hide();
 		if ($("#hidden_is_accept").val()) {
 			$("#exd_list").jqGrid('showCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
@@ -118,7 +118,7 @@ $(function(){
 	/*灭菌*/
 	$("#disinfectionbutton").click(function(){
 		$("#choosebutton").show();
-		$("#monthdownbutton").hide();
+//		$("#monthdownbutton").hide();
 		$("#monthshowbutton").hide();
 		if ($("#hidden_is_disinfection").val()) {
 			$("#exd_list").jqGrid('showCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
@@ -131,7 +131,7 @@ $(function(){
 	/*消毒*/
 	$("#disinfectbutton").click(function(){
 		$("#choosebutton").show();
-		$("#monthdownbutton").show();
+//		$("#monthdownbutton").show();
 		$("#monthshowbutton").hide();
 		if ($("#hidden_is_disinfect").val()) {
 			$("#exd_list").jqGrid('showCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
@@ -144,7 +144,7 @@ $(function(){
 	/*计划*/
 	$("#plancombutton").click(function(){
 		$("#choosebutton").show();
-		$("#monthdownbutton").hide();
+//		$("#monthdownbutton").hide();
 		$("#monthshowbutton").hide();
 		$("#exd_list").jqGrid('hideCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
 		nowPage = "report_schedule";
@@ -153,7 +153,7 @@ $(function(){
 	/*出货*/
 	$("#shipmentbutton").click(function(){
 		$("#choosebutton").show();
-		$("#monthdownbutton").hide();
+//		$("#monthdownbutton").hide();
 		$("#monthshowbutton").hide();
 		if ($("#hidden_is_shipment").val()) {
 			$("#exd_list").jqGrid('showCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
@@ -167,7 +167,7 @@ $(function(){
 	//未修理
 	$("#unrepairebutton").click(function(){
 		$("#choosebutton").show();
-		$("#monthdownbutton").hide();
+//		$("#monthdownbutton").hide();
 		$("#monthshowbutton").hide();
 		$("#exd_list").jqGrid('hideCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
 		nowPage = "report_unrepaire";
@@ -177,7 +177,7 @@ $(function(){
 	//先端回收
 	$("#snoutbutton").click(function(){
 		$("#choosebutton").hide();
-		$("#monthdownbutton").hide();
+//		$("#monthdownbutton").hide();
 		$("#monthshowbutton").show();
 		$("#exd_list").jqGrid('hideCol', ["confirmfilename", "upload"]).jqGrid('setGridWidth', '990');
 		nowPage = "report_snout";

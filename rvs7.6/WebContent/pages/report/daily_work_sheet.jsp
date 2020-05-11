@@ -115,7 +115,7 @@
 							</table>
 							<div style="height: 44px">
 								<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default" id="choosebutton" value="选择" role="button" aria-disabled="false" style="float: right; right: 2px">
-								<input type="button" class="ui-button ui-widget ui-state-default" id="monthdownbutton" value="下载月报表" role="button" aria-disabled="false" style="float: right; right: 2px;display:none;">
+								<!--input type="button" class="ui-button ui-widget ui-state-default" id="monthdownbutton" value="下载月报表" role="button" aria-disabled="false" style="float: right; right: 2px;display:none;"-->
 								<input type="button" class="ui-button" id="monthshowbutton" value="显示月报表" role="button" style="float: right; right: 2px;display:none;">
 							</div>
 						</div>

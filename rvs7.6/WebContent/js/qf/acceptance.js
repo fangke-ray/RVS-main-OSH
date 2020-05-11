@@ -908,7 +908,7 @@ function load_list(){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处','同意时间','同意日', '等级'
+			colNames:['', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处','同意时间','同意日','level','等级'
 			          , '通箱编号', '仓储人员', '', '', '', '备注', '选择式报价','','',''],
 			colModel:[
 				{name:'material_id',index:'material_id', hidden:true},
@@ -922,7 +922,8 @@ function load_list(){
 					return rData["agreed_date"];
 				}},
 				{name:'agreed_date',index:'agreed_date', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'m-d'}},
-				{name:'level',index:'level', width:35, align:'center', formatter:'select', editoptions:{value:"1:S1;2:S2;3:S3;6:A;7:B;8:C;9:D"}},
+				{name:'level',index:'level', hidden:true},
+				{name:'levelName',index:'levelName', width:35, align:'center'},
 				{name:'package_no',index:'package_no', width:50},
 				{name:'storager',index:'storager', width:50},
 				{name:'direct_flg',index:'direct_flg', hidden:true},
