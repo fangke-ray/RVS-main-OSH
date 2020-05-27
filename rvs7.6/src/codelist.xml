@@ -24,6 +24,7 @@
 
 	<codelist name="qa_category_kind">
 		<value code="0">内窥镜</value>
+		<value code="6">光学视管</value>
 		<value code="7">周边设备</value>
 	</codelist>
 
