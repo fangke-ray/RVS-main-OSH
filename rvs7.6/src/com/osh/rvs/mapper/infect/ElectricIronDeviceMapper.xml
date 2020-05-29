@@ -19,47 +19,47 @@
 		    dm.position_id,
 		    p.process_code as position_name
 		FROM
-		    electric_iron_device eid
-		        LEFT JOIN
-		    devices_manage dm ON eid.manage_id = dm.devices_manage_id
-				LEFT JOIN 
+			electric_iron_device eid
+		JOIN
+			devices_manage dm ON eid.manage_id = dm.devices_manage_id
+		JOIN 
 			devices_type dy on dy.devices_type_id = dm.devices_type_id
-		        LEFT JOIN
-		    section s ON dm.section_id = s.section_id
-		        LEFT JOIN
-		    position p ON dm.position_id = p.position_id
+		LEFT JOIN
+			section s ON dm.section_id = s.section_id
+		LEFT JOIN
+	    		position p ON dm.position_id = p.position_id
    	]]>
    	<where>
-   		1 = 1
-   		<if test="manage_id!=null and manage_id!=''">
-				<![CDATA[
-					AND	eid.manage_id =#{manage_id}
-				]]>
+		1 = 1
+		<if test="manage_id!=null and manage_id!=''">
+			<![CDATA[
+				AND	eid.manage_id =#{manage_id}
+			]]>
 		</if>
 		<if test="devices_type_id!=null and devices_type_id!=''">
-				<![CDATA[
-					AND	dy.devices_type_id =#{devices_type_id}
-				]]>
+			<![CDATA[
+				AND	dy.devices_type_id =#{devices_type_id}
+			]]>
 		</if>
 		<if test="seq!=null and seq!=''">
-				<![CDATA[
-					AND	eid.seq =#{seq}
-				]]>
+			<![CDATA[
+				AND	eid.seq =#{seq}
+			]]>
 		</if>
 		<if test="kind!=null and kind!=''">
-				<![CDATA[
-					AND	eid.kind =#{kind}
-				]]>
+			<![CDATA[
+				AND	eid.kind =#{kind}
+			]]>
 		</if>
 		<if test="section_id!=null and section_id!=''">
-				<![CDATA[
-					AND	dm.section_id =#{section_id}
-				]]>
+			<![CDATA[
+				AND	dm.section_id =#{section_id}
+			]]>
 		</if>
 		<if test="position_id!=null and position_id!=''">
-				<![CDATA[
-					AND	dm.position_id =#{position_id}
-				]]>
+			<![CDATA[
+				AND	dm.position_id =#{position_id}
+			]]>
 		</if>
    	</where>
    	order by eid.manage_id, eid.seq

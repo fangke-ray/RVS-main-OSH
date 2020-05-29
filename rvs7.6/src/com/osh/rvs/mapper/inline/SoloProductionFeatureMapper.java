@@ -19,7 +19,7 @@ public interface SoloProductionFeatureMapper {
 	public List<SoloProductionFeatureEntity> searchSoloProductionFeature(SoloProductionFeatureEntity pfBean);
 
 	public List<SoloProductionFeatureEntity> getSnoutsByModel(String model_id);
-	public List<ProductionFeatureEntity> findUsedSnoutsByMaterial(String material_id);
+	public List<ProductionFeatureEntity> findUsedSnoutsByMaterial(@Param("material_id") String material_id, @Param("position_id")  String from_position_id);
 	public String findUsedSnoutsBySnouts(String serial_no);
 	/** 新建 */
 	public void insert(SoloProductionFeatureEntity pfBean) throws Exception;
@@ -30,11 +30,11 @@ public interface SoloProductionFeatureMapper {
 	public void finishOnOperator(SoloProductionFeatureEntity entity) throws Exception;
 	// public void normalBreak(SoloProductionFeatureEntity entity) throws Exception;
 
-	public void use(String serial_no) throws Exception;
-	public void unuse(String serial_no) throws Exception;
+	public void use(ProductionFeatureEntity pfBean) throws Exception;
+	public void unuse(@Param("serial_no") String serial_no, @Param("position_id")  String from_position_id) throws Exception;
 
 	public void useto(ProductionFeatureEntity pfBean) throws Exception;
-	public void unuseto(@Param("material_id") String material_id, @Param("rework") String rework) throws Exception;
+	public void unuseto(@Param("material_id") String material_id, @Param("rework") String rework, @Param("position_id")  String from_position_id) throws Exception;
 
 	public void leaderuseto(ProductionFeatureEntity pfBean) throws Exception;
 
@@ -47,7 +47,7 @@ public interface SoloProductionFeatureMapper {
 
 	public List<SnoutEntity> searchSnouts(SnoutEntity condition);
 
-	public void deleteSnouts(@Param("model_id") String model_id, @Param("serial_no") String serial_no) throws Exception;
+	public void deleteSnouts(@Param("position_id") String position_id, @Param("model_id") String model_id, @Param("serial_no") String serial_no) throws Exception;
 
 	public Integer getMaxPace(SoloProductionFeatureEntity pfBean);
 

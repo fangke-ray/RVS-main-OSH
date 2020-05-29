@@ -252,7 +252,14 @@ public class AlarmMesssageService {
 	public AlarmMesssageEntity getBreakAlarmMessage(String material_id, String position_id, SqlSession conn) {
 		AlarmMesssageMapper dao = conn.getMapper(AlarmMesssageMapper.class);
 
-		AlarmMesssageEntity amEntity = dao.getBreakAlarmMessage(material_id, position_id);
+		List<AlarmMesssageEntity> alarms = dao.getBreakAlarmMessage(material_id, position_id);
+		if (alarms.size() == 0) {
+			return null;
+		}
+		if (alarms.size() != 1) {
+			logger.error("alarms:" + alarms.size());
+		}
+		AlarmMesssageEntity amEntity = alarms.get(0);
 
 		return amEntity;
 	}
@@ -317,9 +324,24 @@ public class AlarmMesssageService {
 		BeanUtil.copyToBean(form, condBean, CopyOptions.COPYOPTIONS_NOEMPTY);
 		AlarmMesssageMapper dao = conn.getMapper(AlarmMesssageMapper.class);
 
-		List<AlarmMesssageEntity> amEntities = dao.searchAlarmMessages(condBean);
+		try {
+			List<AlarmMesssageEntity> amEntities = new ArrayList<AlarmMesssageEntity>();
+			if (condBean.getReason() == null) {
+				amEntities.addAll(dao.searchAlarmMessages(condBean));
+//				amEntities.addAll(dao.searchAlarmMessagesFromSolo(condBean));
+//			} else if (condBean.getReason() == RvsConsts.WARNING_REASON_BREAK_SOLO){
+//				amEntities = dao.searchAlarmMessagesFromSolo(condBean);
+			} else {
+				amEntities = dao.searchAlarmMessages(condBean);
+			}
 
-		BeanUtil.copyToFormList(amEntities, ret, CopyOptions.COPYOPTIONS_NOEMPTY, AlarmMesssageForm.class);
+			BeanUtil.copyToFormList(amEntities, ret, CopyOptions.COPYOPTIONS_NOEMPTY, AlarmMesssageForm.class);
+		} catch (Exception e) {
+			logger.error(e.getMessage());
+			MsgInfo arg0 = new MsgInfo();
+			arg0.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.search.timeout"));
+			errors.add(arg0);
+		}
 
 		return ret;
 	}
@@ -363,11 +385,12 @@ public class AlarmMesssageService {
 
 		Integer amReason = entity.getReason();
 
-		if (RvsConsts.WARNING_REASON_BREAK.equals(amReason)) {
+		switch(amReason) {
+		case RvsConsts.WARNING_REASON_BREAK : {
 			// 取得原因
 			PauseFeatureEntity pauseEntity = dao.getBreakOperatorMessageByID(alarm_messsage_id);
 			if (pauseEntity == null) {
-				pauseEntity = dao.getBreakOperatorMessage(entity.getOperator_id(), entity.getMaterial_id(),entity.getPosition_id());
+				pauseEntity = dao.getBreakOperatorMessage(entity.getOperator_id(), entity.getMaterial_id(), entity.getPosition_id());
 			}
 
 			if (pauseEntity != null) {
@@ -391,16 +414,25 @@ public class AlarmMesssageService {
 			} else {
 				form.setComment("(不明)");
 			}
-			
-		} else if (RvsConsts.WARNING_REASON_INLINE_LATE.equals(amReason)) {
+			break;
+		}
+		case RvsConsts.WARNING_REASON_INLINE_LATE : {
 			form.setComment("请确认是何原因还未投线。"); // TODO 请确认XXX(同意日期mom-dad)是何原因还未投线。
-		} else if (RvsConsts.WARNING_REASON_QAFORBID.equals(amReason)) {
+			break;
+		} 
+		case RvsConsts.WARNING_REASON_QAFORBID : {
 			form.setComment("由于品保终检不合格被退回，请知晓并及时处理！");
-		} else if (RvsConsts.WARNING_REASON_PARTIAL_ON_POISTION.equals(amReason)) {
+			break;
+		}
+		case RvsConsts.WARNING_REASON_PARTIAL_ON_POISTION : {
 			form.setComment(entity.getSection_name() + "的" + entity.getProcess_code() + "工位零件签收清点发生异常。请前去确认！");
-		} else if (RvsConsts.WARNING_REASON_INFECT_ERROR.equals(amReason)) {
+			break;
+		}
+		case RvsConsts.WARNING_REASON_INFECT_ERROR : {
 			form.setComment(entity.getSection_name() + "的" + entity.getProcess_code() + "工位发生点检错误。请前去确认！");
-		} else if (RvsConsts.WARNING_REASON_WAITING_OVERFLOW.equals(amReason)) {
+			break;
+		}
+		case RvsConsts.WARNING_REASON_WAITING_OVERFLOW : {
 			// 取得等待区上线数
 			String overflow = "0";
 			String position_id = entity.getPosition_id();
@@ -409,6 +441,8 @@ public class AlarmMesssageService {
 			}
 			form.setComment(entity.getSection_name() + "的" + entity.getProcess_code() + "工位的仕挂数已经超过" + overflow +
 					"，请知晓并及时处理！");
+			break;
+		}
 		}
 
 		form.setLevel(CodeListUtils.getValue("alarm_level", form.getLevel()));
@@ -435,7 +469,7 @@ public class AlarmMesssageService {
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void closebreak(HttpServletRequest req, SqlSession conn) throws Exception {
+	public void closebreak(HttpServletRequest req, SqlSessionManager conn) throws Exception {
 		// 取得用户信息
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
@@ -807,14 +841,35 @@ public class AlarmMesssageService {
 			sendation.setSendation_id(user.getOperator_id());
 			sendation.setResolve_time(new Date());
 
-			AlarmMesssageMapper amDao = conn.getMapper(AlarmMesssageMapper.class);
-			int me = amDao.countAlarmMessageSendation(sendation);
-			if (me <= 0) {
-				// 没有发给处理者的信息时（代理线长），新建一条
-				amDao.createAlarmMessageSendation(sendation);
-			} else {
-				amDao.updateAlarmMessageSendation(sendation);
+			replaceAlarmMessageSendation(sendation, conn);
+		}
+	}
+
+	public void replaceAlarmMessageSendation(AlarmMesssageSendationEntity sendation, SqlSessionManager conn) throws Exception {
+		replaceAlarmMessageSendation(sendation, conn, null);
+	}
+	public void replaceAlarmMessageSendation(AlarmMesssageSendationEntity sendation, SqlSessionManager conn
+			, List<String> triggerList) throws Exception {
+		AlarmMesssageMapper amDao = conn.getMapper(AlarmMesssageMapper.class);
+		int me = amDao.countAlarmMessageSendation(sendation);
+
+		if (me <= 0) {
+			// 没有发给处理者的信息时（如代理线长），新建一条
+			amDao.createAlarmMessageSendation(sendation);
+		} else {
+			amDao.updateAlarmMessageSendation(sendation);
+		}
+
+		if (triggerList != null) {
+			String noticeString = "http://localhost:8080/rvspush/trigger/postMessage/";
+			List<AlarmMesssageSendationEntity> sendations = amDao.getBreakAlarmMessageSendation(sendation.getAlarm_messsage_id());
+			for (AlarmMesssageSendationEntity sendto : sendations) {
+				noticeString += (sendto.getSendation_id() + "/");
 			}
+			for (int i = sendations.size(); i < 3; i++) {
+				noticeString += "0/";
+			}
+			triggerList.add(noticeString);
 		}
 	}
 
@@ -873,31 +928,5 @@ public class AlarmMesssageService {
 		return amId;
 	}
 
-	public void replaceAlarmMessageSendation(AlarmMesssageSendationEntity sendation, SqlSessionManager conn) throws Exception {
-		replaceAlarmMessageSendation(sendation, conn, null);
-	}
-	public void replaceAlarmMessageSendation(AlarmMesssageSendationEntity sendation, SqlSessionManager conn
-			, List<String> triggerList) throws Exception {
-		AlarmMesssageMapper amDao = conn.getMapper(AlarmMesssageMapper.class);
-		int me = amDao.countAlarmMessageSendation(sendation);
 
-		if (me <= 0) {
-			// 没有发给处理者的信息时（如代理线长），新建一条
-			amDao.createAlarmMessageSendation(sendation);
-		} else {
-			amDao.updateAlarmMessageSendation(sendation);
-		}
-
-		if (triggerList != null) {
-			String noticeString = "http://localhost:8080/rvspush/trigger/postMessage/";
-			List<AlarmMesssageSendationEntity> sendations = amDao.getBreakAlarmMessageSendation(sendation.getAlarm_messsage_id());
-			for (AlarmMesssageSendationEntity sendto : sendations) {
-				noticeString += (sendto.getSendation_id() + "/");
-			}
-			for (int i = sendations.size(); i < 3; i++) {
-				noticeString += "0/";
-			}
-			triggerList.add(noticeString);
-		}
-	}
 }

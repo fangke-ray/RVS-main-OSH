@@ -17,9 +17,7 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.form.qf.FactMaterialForm;
-import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.qf.DeliveryOrderService;
 import com.osh.rvs.service.qf.FactMaterialService;
 

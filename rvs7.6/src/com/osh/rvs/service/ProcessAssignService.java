@@ -326,9 +326,9 @@ public class ProcessAssignService {
 	public List<String> getFirstPositionIds(String template_id, SqlSession conn) {
 		return getFirstPositionIds(template_id, "" + RvsConsts.PROCESS_ASSIGN_LINE_BASE, conn);
 	}
-	public List<String> getFirstPositionIds(String template_id, String line_id, SqlSession conn) {
+	public List<String> getFirstPositionIds(String template_id, String pas_line_id, SqlSession conn) {
 		ProcessAssignMapper mapper = conn.getMapper(ProcessAssignMapper.class);
-		List<String> ret = mapper.getFirstPosition(template_id, line_id);
+		List<String> ret = mapper.getFirstPosition(template_id, pas_line_id);
 		List<String> lines = new ArrayList<String> ();
 		for (String pos_id : ret) {
 			if (pos_id.length() >= 7) {

@@ -120,7 +120,7 @@ public class StandardWorkTimeService {
 	}
 
 	private String formatMinute(String levelOverLine) {
-		if ("-1".equals(levelOverLine)) {
+		if (levelOverLine == null || "-1".equals(levelOverLine)) {
 			return "未设定";
 		}
 		return levelOverLine + " 分钟";

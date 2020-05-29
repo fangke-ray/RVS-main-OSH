@@ -16,7 +16,9 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.jacob.com.ComThread;
+import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.XlsUtil;
 import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.service.MaterialService;
@@ -62,10 +64,13 @@ public class PcsTemplateAction extends BaseAction {
 		req.setAttribute("jacob", jacobStatus);
 
 		actionForward = mapping.findForward(FW_INIT);	
+
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 		ModelService service = new ModelService();
 		String mReferChooser = service.getOptions(conn);
 		/*型号*/
 		req.setAttribute("mReferChooser", mReferChooser);	
+		req.setAttribute("isAdmin", user.getPrivacies().contains(RvsConsts.PRIVACY_ADMIN));	
 
 		log.info("PcsTemplateAction.init end");
 	}
@@ -151,7 +156,9 @@ public class PcsTemplateAction extends BaseAction {
 
 		MaterialService service = new MaterialService();			;
 
-		callbackResponse.put("tempFile", service.getPcsesBlankXls(modelName, conn));
+		String tag = req.getParameter("tag");
+
+		callbackResponse.put("tempFile", service.getPcsesBlankXls(modelName, conn, (tag == null)));
 
 		returnJsonResponse(res, callbackResponse);
 		log.info("PcsTemplateAction.makeTemplateFiles end");

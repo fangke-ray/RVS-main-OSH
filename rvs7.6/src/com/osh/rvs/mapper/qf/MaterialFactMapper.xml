@@ -179,7 +179,7 @@
 				WHEN
 					ma.inline_time is not null THEN 0
 				WHEN
-					ma.level not in (9,56,57,58,91,92,93,96,97,98) THEN 0
+					ma.level not in (9,56,57,58,59,91,92,93,96,97,98,99) THEN 0
 				WHEN
 					not exists (select 1 from material_partial where material_id = ma.material_id)
 				THEN 1

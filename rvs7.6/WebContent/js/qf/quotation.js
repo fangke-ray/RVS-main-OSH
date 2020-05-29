@@ -591,7 +591,11 @@ var treatStart = function(resInfo) {
 
 	}
 
-	$("#confirmbutton, #wipconfirmbutton").enable();
+	if (resInfo.workstauts == "4") {
+		$("#confirmbutton, #wipconfirmbutton").disable();
+	} else {
+		$("#confirmbutton, #wipconfirmbutton").enable();
+	}
 
 	if (resInfo.peripheralData && resInfo.peripheralData.length > 0) {
 		showPeripheral(resInfo);

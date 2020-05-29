@@ -981,6 +981,20 @@
 		]]>
 	</select>
 
+	<select id="getInlineScheduled" resultType="MaterialEntity">
+		<![CDATA[
+			SELECT material_id, omr_notifi_no, agreed_date, scheduled_date FROM material where inline_time is not null and outline_time is null;
+		]]>
+	</select>
+
+	<update id="updateScheduledDate" parameterType="MaterialEntity">
+		<![CDATA[ 
+			UPDATE Material SET
+			scheduled_date = #{scheduled_date}
+			where material_id = #{material_id}
+		]]>
+	</update>
+
 	<!--outline_time设成当前时间  -->
 	<update id="updateMaterialOutlineTime" parameterType="String">
 		<![CDATA[

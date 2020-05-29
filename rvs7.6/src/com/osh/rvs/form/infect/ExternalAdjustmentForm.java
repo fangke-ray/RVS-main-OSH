@@ -99,7 +99,7 @@ public class ExternalAdjustmentForm extends ActionForm implements Serializable {
 	@BeanField(title = "管理等级", name = "manage_level", type = FieldType.Integer)
 	private String manage_level;// 管理等级
 	
-	@BeanField(title = "类型", name = "object_type", type = FieldType.Integer,notNull=true,primaryKey=true)
+	@BeanField(title = "类型", name = "object_type", type = FieldType.Integer,notNull=true)
 	private String object_type;//类型
 	
 	@BeanField(title = "治具管理ID", name = "tools_manage_id", type = FieldType.String)

@@ -17,7 +17,6 @@ import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.form.master.PartialForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.mapper.data.MaterialMapper;

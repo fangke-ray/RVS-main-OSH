@@ -303,15 +303,15 @@ public class PcsUtils {
 				if (xmlfile.exists()) {
 					if (xmlfile.isFile()) {
 
-						if (lightFix) {
-							String lightFilename = filename.replaceAll("\\\\xml", "\\\\_lightmedium\\\\xml");
-							File lxmlfile = new File(lightFilename);
-							if (lxmlfile.exists()) {
-								if (lxmlfile.isFile()) {
-									xmlfile = lxmlfile;
-								}
-							}
-						}
+//						if (lightFix) {
+//							String lightFilename = filename.replaceAll("\\\\xml", "\\\\_lightmedium\\\\xml");
+//							File lxmlfile = new File(lightFilename);
+//							if (lxmlfile.exists()) {
+//								if (lxmlfile.isFile()) {
+//									xmlfile = lxmlfile;
+//								}
+//							}
+//						}
 
 						BufferedReader input = null;
 						try {
@@ -1700,15 +1700,15 @@ public class PcsUtils {
 				}
 
 				if (filename != null) {
-					if (lightFix) {
-						String lightFilename = filename.replaceAll("\\\\xml", "\\\\_lightmedium\\\\xml");
-						File lxmlfile = new File(lightFilename);
-						if (lxmlfile.exists()) {
-							if (lxmlfile.isFile()) {
-								filename = lightFilename;
-							}
-						}
-					}
+//					if (lightFix) {
+//						String lightFilename = filename.replaceAll("\\\\xml", "\\\\_lightmedium\\\\xml");
+//						File lxmlfile = new File(lightFilename);
+//						if (lxmlfile.exists()) {
+//							if (lxmlfile.isFile()) {
+//								filename = lightFilename;
+//							}
+//						}
+//					}
 
 					ret.put(lineName + pace, filename.replaceAll("\\\\xml\\\\", "\\\\excel\\\\").replaceAll(ext, xls_ext));
 				}
@@ -1752,8 +1752,8 @@ public class PcsUtils {
 
 		List<String> hasBlank = new ArrayList<String>();
 
-		boolean isLightFix = "9".equals(level.substring(0, 1)); 
-		boolean isPrepheral = "5".equals(level.substring(0, 1)); 
+		boolean isLightFix = RvsUtils.isLightFix(level);
+		boolean isPrepheral = RvsUtils.isPeripheral(level);
 
 		// 对于每次返工
 		for (int iRework = 0, factRework = 0; iRework <= reworkCount; iRework++) {
@@ -1923,7 +1923,7 @@ public class PcsUtils {
 											} else if ("-1".equals(sInput)) {
 												Dispatch cell = xls.Locate("@#"+pcid+"??");
 												if (cell != null) {
-													xls.SetCellBackGroundColor(cell, "255");
+													XlsUtil.SetCellBackGroundColor(cell, "255");
 													Dispatch font = xls.GetCellFont(cell);
 													Dispatch.put(font, "Color", "16777215"); // FFFFFF
 												}
@@ -1952,9 +1952,9 @@ public class PcsUtils {
 												// if 611
 												if (pcid.indexOf("N611") >= 0) {
 													Dispatch cell = xls.Locate("@#"+pcid+"??");
-													if (cell != null)  xls.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+													if (cell != null)  XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 													cell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
-													if (cell != null) xls.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+													if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 												} else {
 													xls.Replace("@#"+pcid+"??", NOCARE);
 												}
@@ -2085,9 +2085,9 @@ public class PcsUtils {
 										// if 611
 										if (pcid.indexOf("N611") >= 0) {
 											Dispatch cell = xls.Locate("@#"+pcid+"??");
-											if (cell != null) xls.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+											if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 											cell = xls.Locate("@#"+pcid.replaceAll("EN", "ED")+"??");
-											if (cell != null) xls.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+											if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 										}
 										xls.Replace("@#"+pcid+"??", NOCARE);
 										Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED")+"??");
@@ -2105,7 +2105,7 @@ public class PcsUtils {
 									String FoundValue = null;
 									if (cell != null) FoundValue = Dispatch.get(cell, "Value").toString();
 									while (FoundValue != null) {
-										xls.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+										XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 										xls.SetValue(cell, "发生返工");
 										cell = xls.Locate(Xkey);
 										if (cell == null) {
@@ -2127,7 +2127,7 @@ public class PcsUtils {
 										Dispatch cell = xls.Locate("@#"+pcid+"??");
 										if (cell != null) {
 											xls.SetValue(cell, UNQUALIFIED);
-											xls.SetCellBackGroundColor(cell, "255"); 
+											XlsUtil.SetCellBackGroundColor(cell, "255"); 
 											Dispatch font = xls.GetCellFont(cell);
 											Dispatch.put(font, "Color", "16777215"); // FFFFFF
 										}
@@ -2178,14 +2178,14 @@ public class PcsUtils {
 				// String compareValue = "ZZZ$$$Z$";
 				while (FoundValue != null) {
 					if (FoundValue.indexOf("@#EC") < 0 && FoundValue.indexOf("@#LC") < 0 && FoundValue.indexOf("@#GI") < 0) {
-						xls.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+						XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 						if (FoundValue.indexOf("@#EN611") < 0 && FoundValue.indexOf("@#EI611") < 0 && FoundValue.indexOf("@#ER611") < 0) {
 							hasBlank.add(FoundValue);
 						}
 					} else {
 						if (FoundValue.indexOf("@#EC") >= 0 && FoundValue.indexOf("@#EC000") < 0 
 								&& FoundValue.trim().length() <= 12) {
-							xls.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+							XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 						}
 					}
 					if (FoundValue.replaceAll("@#\\w{2}\\d{7}", "").equals(FoundValue)) {
@@ -2201,7 +2201,7 @@ public class PcsUtils {
 						FoundValue = Dispatch.get(cell, "Value").toString();
 					}
 				}
-				// xls.Replace("@#?????????", "");
+				xls.Replace("@#?????????", "");
 
 				xls.SaveCloseExcel(false);
 				tempMap.put(pcsName, cachePath);
@@ -2290,7 +2290,7 @@ public class PcsUtils {
 	 * @return
 	 * @throws IOException
 	 */
-	public static String toTemplatesXls(Map<String, String> srcPcses, String modelName, String cachePath, SqlSession conn) throws IOException {
+	public static String toTemplatesXls(Map<String, String> srcPcses, String modelName, String cachePath, boolean setBlank, SqlSession conn) throws IOException {
 
 		if (srcPcses == null) return null;
 
@@ -2305,22 +2305,26 @@ public class PcsUtils {
 			String cacheFile = cachePath + pcsName + ".xls";
 			FileUtils.copyFile(new File(specify), new File(cacheFile));
 
-			XlsUtil xls = new XlsUtil(cacheFile);
-			xls.SelectActiveSheet();
+			if (setBlank) {
+				
+				XlsUtil xls = new XlsUtil(cacheFile);
+				xls.SelectActiveSheet();
 
-			// GM
-			xls.Replace("@#GM???????", modelName);
-			xls.Replace("@#EI???????", "　　　");
-			xls.Replace("@#ER???????", "　");
-			xls.Replace("@#LI???????", "　　　");
-			xls.Replace("@#LR???????", "　");
-			xls.Replace("@#EM???????", "　不需确认　合格　不合格");
+				// GM
+				xls.Replace("@#GM???????", modelName);
+				xls.Replace("@#EI???????", "　　　");
+				xls.Replace("@#ER???????", "　");
+				xls.Replace("@#LI???????", "　　　");
+				xls.Replace("@#LR???????", "　");
+				xls.Replace("@#EM???????", "　不需确认　合格　不合格");
 
 
-			// 清除没赋值的标签
-			xls.Replace("@#?????????", "");
+				// 清除没赋值的标签
+				xls.Replace("@#?????????", "");
 
-			xls.SaveCloseExcel(false);
+				xls.SaveCloseExcel(false);
+			}
+
 			tempMap.put(pcsName, cacheFile);
 		}
 

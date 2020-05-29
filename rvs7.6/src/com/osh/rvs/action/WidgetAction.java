@@ -291,7 +291,7 @@ public class WidgetAction extends BaseAction {
 			if (mBean.getInline_time() == null) { // 尚未投线
 				if (mBean.getLevel() == null) {
 					req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level", null, "(未定)", false));
-				} else if (mBean.getLevel()==56 || mBean.getLevel()==57 || mBean.getLevel()==58 || mBean.getLevel()==59) {
+				} else if (RvsUtils.isPeripheral(mBean.getLevel())) {
 					req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_peripheral", null, "(未定)", false));
 					req.setAttribute("hasDecom", false);
 				} else {
@@ -304,7 +304,7 @@ public class WidgetAction extends BaseAction {
 //					if (mBean.getLevel()==9 || mBean.getLevel()==91 || mBean.getLevel()==92 || mBean.getLevel()==93) {
 					if (isLightFix) {
 						req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_light", null, null, false));
-					} else if (mBean.getLevel()==56 || mBean.getLevel()==57 || mBean.getLevel()==58 || mBean.getLevel()==59) {
+					} else if (RvsUtils.isPeripheral(mBean.getLevel())) {
 						req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_peripheral", null, null, false));
 						req.setAttribute("hasDecom", false);
 					} else {

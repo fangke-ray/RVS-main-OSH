@@ -219,6 +219,6 @@ group by dm.section_id, dm.position_id
 	</select>
 
     <select id="getSeqItemsByTorsionSetting" resultType="String" parameterType="String">
-		SELECT seq FROM rvsdb.torsion_device where manage_id = #{manage_id};
+		SELECT seq FROM torsion_device where manage_id = #{manage_id};
 	</select>
 </mapper>

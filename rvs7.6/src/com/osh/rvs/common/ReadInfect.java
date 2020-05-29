@@ -20,6 +20,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.log4j.Logger;
@@ -33,6 +34,7 @@ import org.xml.sax.SAXException;
 import com.osh.rvs.bean.master.DeviceCheckItemEntity;
 import com.osh.rvs.mapper.master.CheckFileManageMapper;
 
+import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.mybatis.SqlSessionFactorySingletonHolder;
 import framework.huiqing.common.util.copy.DateUtil;
 
@@ -215,7 +217,7 @@ public class ReadInfect {
 //			}
 
 			instance.convert("D:\\rvs\\DeviceInfection\\xml\\QR-B31003-5TEST.xml", 
-					"D:\\rvs\\DeviceInfection\\xml\\QR-B31003-5TEST.html", "100", conn); // ids[i]
+					"D:\\rvs\\DeviceInfection\\xml\\QR-B31003-5TEST.html", "100", conn, new ArrayList<MsgInfo>()); // ids[i]
 			
 			
 			conn.commit();
@@ -233,12 +235,14 @@ public class ReadInfect {
 		}
 	}
 
-	public void convert(String fromfile, String tofile, String check_file_manage_id, SqlSessionManager conn) {
+	public void convert(String fromfile, String tofile, String check_file_manage_id, SqlSession conn, List<MsgInfo> errors) {
 		// Defines a factory API
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 
 		String tablecontents = "";
 		Map<String,String> referItems = new HashMap<String,String>();
+		float countWidth = 0; // 每日点检时默认大宽度
+
 		try {
 			// DocumentBuilderFactoryからDocumentBuilderインスタンスを取得
 			DocumentBuilder db = dbf.newDocumentBuilder();
@@ -260,6 +264,7 @@ public class ReadInfect {
 				if (!findDefault) {
 					if ("Default".equalsIgnoreCase(styleid)) {
 						// 生成Default css
+						@SuppressWarnings("unused")
 						NodeList borders = ((Element)style).getElementsByTagName("Borders");
 
 						findDefault = true;
@@ -336,6 +341,7 @@ public class ReadInfect {
 				for (int k=0;k<ispan;k++,columnswidthcount++) {
 					columnswidth[columnswidthcount] = width;
 					if (width > 0) {
+						countWidth += width;
 						columnswidthnotsetted[columnswidthcount] = true;
 					}
 				}
@@ -373,7 +379,7 @@ public class ReadInfect {
 				//System.out.println("row:>>"+irow+">>cells"+rowcells.getLength());
 
 				List<ShiftData> shifts = new ArrayList<ShiftData>();
-				for (int irowcell = 0; irowcell<rowcells.getLength(); irowcell++, irowcellExact++) {  // 单元格的循环
+				for (int irowcell = 0; irowcell<rowcells.getLength(); irowcell++, irowcellExact++) {  // 一行中单元格的循环
 					Element rowcell = (Element)rowcells.item(irowcell);
 
 					if (irowcellExact >= sheetcols) break;
@@ -431,7 +437,7 @@ public class ReadInfect {
 					String cellText = getTextData(rowcell);
 
 					// 解析标识符
-					cellText = transTagInfect(cellText, referItems, check_file_manage_id, mapper);
+					cellText = transTagInfect(cellText, referItems, check_file_manage_id, mapper, errors);
 
 					// 需要换行的保存
 					if (cellText.indexOf("shift='1'") >= 0) {
@@ -442,7 +448,7 @@ public class ReadInfect {
 						Integer cycle_type = Integer.parseInt(cellText.replaceAll(".*cycle_type='(\\d+)'.*", "$1"));
 						int shiftCount = 0;
 						switch (cycle_type) {
-						case 1: shiftCount = 31;break;
+						case 1: shiftCount = 31;countWidth = 0;break;
 						case 2: shiftCount = 5;break;
 						case 3: shiftCount = 12;break;
 						case 4: shiftCount = 2;break;
@@ -640,6 +646,12 @@ public class ReadInfect {
 			output.write("<style>td{font-size:12px;}.HC{text-align:center}.HL{text-align:left}.HR{text-align:right}");
 			output.write(".VT{valign:top}.VC{valign:middle}.VB{valign:bottom}");
 			output.write(".WT{white-space:normal; word-break:break-all; overflow:hidden;}.IT{width:1em;}.IT span{width:1em;letter-spacing: 1em;}");
+			// 页面宽度
+			if (countWidth > 0 && countWidth <= 1100) {
+				output.write(".tcs_sheet table {min-width: 1100px;}");
+			} else if (countWidth > 1100 && countWidth < 1280) {
+				output.write(".tcs_sheet table {min-width: " + countWidth + "px;}");
+			}
 
 			String styleHtml = "";
 			for (String stylekey : styleclasses.keySet()) {
@@ -683,7 +695,9 @@ public class ReadInfect {
 	}
 
 	// 解析标识符
-	private static String transTagInfect(String cellText, Map<String, String> referItems, String check_file_manage_id, CheckFileManageMapper mapper) {
+	private static String transTagInfect(String cellText, Map<String, String> referItems, String check_file_manage_id, 
+			CheckFileManageMapper mapper, List<MsgInfo> errors) {
+
 		if ("".equals(cellText) || cellText.indexOf("#") < 0) return cellText;
 		// 管理编号
 		cellText = cellText.replaceAll("#G\\[MANAGENO#" , "<manageNo/>");
@@ -774,7 +788,7 @@ public class ReadInfect {
 							System.out.print("Timing\t");
 							itemEntity.setTrigger_state(3);
 						} else {
-							// itemEntity.setTrigger_state(0);
+							throw new Exception("输入项目格式不正确");
 						}
 						while (index < tag.length()) {
 							String vValue = getOfAct(tag, index);
@@ -844,6 +858,8 @@ public class ReadInfect {
 					} else if (tag.startsWith("T")) {
 						// 单元格中的跳动
 						itemEntity.setTab(Integer.parseInt(tag.substring(1)));
+					} else {
+						throw new Exception("不合法的标签：" + cellText);
 					}
 				}
 				itemEntity.setCheck_file_manage_id(check_file_manage_id);
@@ -854,6 +870,10 @@ public class ReadInfect {
 				cellText = cellText.replaceAll(replaceTag, itemEntity.toXmlTag());
 			} catch (Exception e) {
 				_logger.error("解析"+cellText+"时发生错误:" + e.getMessage(), e);
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("sheet_file_name");
+				error.setErrmsg("解析"+cellText+"时发生错误:" + e.getMessage());
+				errors.add(error);
 			}
 			System.out.println(cellText);
 		}
@@ -1192,23 +1212,6 @@ public class ReadInfect {
 
     	return text.replaceAll("<(.+?)>", "&lt;$1&gt;").replaceAll(" ", "&nbsp;").replaceAll("\n", "<br>").replaceAll("T00:00:00\\.000", "");
     }
-
-	private class ContentDataEntity {
-		private String model_name;
-		private String manage_no;
-		private Date point_date;
-		private String date_ymd;
-
-		private void setDate(Date date) {
-			if (date == null) return;
-			point_date.setTime(date.getTime());
-			date_ymd = DateUtil.toString(date, "yyyy 年 MM 月 dd 日");
-		}
-
-		public String toString() {
-			return "Manage no :" + manage_no + " @ " + date_ymd;
-		}
-	}
 
 	private class ShiftData {
 		private String content;

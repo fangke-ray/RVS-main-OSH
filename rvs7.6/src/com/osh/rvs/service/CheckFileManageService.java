@@ -1,5 +1,6 @@
 package com.osh.rvs.service;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -44,6 +45,7 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class CheckFileManageService {
 	
 	private static Logger log = Logger.getLogger(CheckFileManageService.class);
+
 	/**
 	 * 检索
 	 * 
@@ -95,7 +97,7 @@ public class CheckFileManageService {
 		CheckFileManageEntity entity = new CheckFileManageEntity();
 		// 复制表单数据到对象
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
-		
+
 		Integer access_place=entity.getAccess_place();
 		if(access_place!=2){//日常/使用前    归档周期没意义
 			entity.setCycle_type(0);//归档周期
@@ -109,6 +111,7 @@ public class CheckFileManageService {
 
 		CheckFileManageMapper dao = conn.getMapper(CheckFileManageMapper.class);
 		dao.insert(entity);
+
 	}
 
 	/**
@@ -184,7 +187,7 @@ public class CheckFileManageService {
 			xls = null;
 
 			ReadInfect ri = new ReadInfect();
-			ri.convert(fileNameXml, fileNameXml.replaceAll("\\.xml$", ".html"), checkFileManageForm.getCheck_file_manage_id(), conn);
+			ri.convert(fileNameXml, fileNameXml.replaceAll("\\.xml$", ".html"), checkFileManageForm.getCheck_file_manage_id(), conn, errors);
 
 			return fileNameWithoutExt;
 		}else{
@@ -200,17 +203,17 @@ public class CheckFileManageService {
 	 * @param error
 	 * @returns rename
 	 */
-	public boolean checkIdIsCurrent(ActionForm form, SqlSession conn, List<MsgInfo> errors){
+	public String checkIdIsCurrent(ActionForm form, SqlSession conn, List<MsgInfo> errors){
 		CheckFileManageEntity entity = new CheckFileManageEntity();
 		// 复制表单数据到对象
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
-		CheckFileManageMapper dao = conn.getMapper(CheckFileManageMapper.class);
+		CheckFileManageMapper mapper = conn.getMapper(CheckFileManageMapper.class);
 
-		String currentID=dao.checkIdIsCurrent(entity);
+		String currentID = mapper.checkIdIsCurrent(entity);
 
 		if(!CommonStringUtil.isEmpty(currentID)){//不为空
 			if(!currentID.equals(entity.getCheck_file_manage_id())){//不是当前ID
-				int result=dao.checkManageCodeIsExist(entity);
+				int result = mapper.checkManageCodeIsExist(entity);
 
 				if(result>=1){//存在
 					MsgInfo error = new MsgInfo();
@@ -220,11 +223,12 @@ public class CheckFileManageService {
 					errors.add(error);
 				}
 			} else {
-				return false;
+				return null;
 			}
 		}
 
-		return true;
+		CheckFileManageEntity org = mapper.getByKey(entity.getCheck_file_manage_id());
+		return org.getCheck_manage_code();
 	}
 	
 	/**
@@ -233,11 +237,18 @@ public class CheckFileManageService {
 	 * @param request
 	 * @param conn
 	 */
-	public void update(ActionForm form, HttpServletRequest request, SqlSessionManager conn,String fileName){
+	public boolean update(ActionForm form, HttpServletRequest request, SqlSessionManager conn, String fileName){
 		CheckFileManageEntity entity = new CheckFileManageEntity();
 		// 复制表单数据到对象
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
-		
+
+		boolean needResample = false;
+		CheckFileManageMapper mapper = conn.getMapper(CheckFileManageMapper.class);
+		// 取得现有
+		if (entity.getCheck_file_manage_id() != null) {
+			
+		}
+
 		Integer access_place=entity.getAccess_place();
 		if(access_place!=2){//日常/使用前    归档周期没意义
 			entity.setCycle_type(0);//归档周期
@@ -249,8 +260,9 @@ public class CheckFileManageService {
 		entity.setUpdated_by(operator_id);
 		entity.setSheet_file_name(fileName);
 		
-		CheckFileManageMapper dao = conn.getMapper(CheckFileManageMapper.class);
-		dao.update(entity);
+		mapper.update(entity);
+
+		return needResample;
 	}
 
 	/**
@@ -297,5 +309,25 @@ public class CheckFileManageService {
 				break;
 			}
 		}
+	}
+
+	/**
+	 * 重命名页面模板
+	 * @param needRename
+	 * @param form
+	 */
+	public void rename(String orgCheckManageCode, ActionForm form) {
+		CheckFileManageForm checkFileManageForm = (CheckFileManageForm) form;
+
+		String orgfileNameXml = PathConsts.BASE_PATH
+				+ PathConsts.DEVICEINFECTION + "\\xml\\"
+				+ orgCheckManageCode + ".xml";
+
+		String fileNameXml = PathConsts.BASE_PATH
+				+ PathConsts.DEVICEINFECTION + "\\xml\\"
+				+ checkFileManageForm.getCheck_manage_code() + ".xml";
+
+		new File(orgfileNameXml).renameTo(new File(fileNameXml));
+		new File(orgfileNameXml.replaceAll("\\.xml$", ".html")).renameTo(new File(fileNameXml.replaceAll("\\.xml$", ".html")));
 	}
 }

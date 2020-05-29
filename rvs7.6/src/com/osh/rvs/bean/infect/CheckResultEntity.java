@@ -45,6 +45,8 @@ public class CheckResultEntity implements Serializable {
 
 	private Integer cycle_type;
 	private String object_type;
+	// 特定设备工具种类
+	private Integer specialized;
 
 	public String getManage_id() {
 		return manage_id;
@@ -183,6 +185,12 @@ public class CheckResultEntity implements Serializable {
 	}
 	public void setObject_type(String object_type) {
 		this.object_type = object_type;
+	}
+	public Integer getSpecialized() {
+		return specialized;
+	}
+	public void setSpecialized(Integer specialized) {
+		this.specialized = specialized;
 	}
 
 }

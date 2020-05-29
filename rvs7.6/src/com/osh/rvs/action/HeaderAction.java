@@ -311,12 +311,12 @@ public class HeaderAction extends BaseAction {
 
 	private String getReasonMessage(AlarmMesssageEntity alarmsEntity) {
 		Integer reason = alarmsEntity.getReason();
-		if (RvsConsts.WARNING_REASON_BREAK == reason) {
-			return "发生了不良中断。";
-		} else if (RvsConsts.WARNING_REASON_QAFORBID.equals(reason)) {
-			return "最终检查不合格。";
-		} else if (RvsConsts.WARNING_REASON_WAITING_OVERFLOW.equals(reason)) {
-			return "工位仕挂超过上限。";
+		switch(reason) {
+		case RvsConsts.WARNING_REASON_BREAK : return "发生了不良中断。"; 
+		case RvsConsts.WARNING_REASON_QAFORBID : return "最终检查不合格。"; 
+		case RvsConsts.WARNING_REASON_WAITING_OVERFLOW : return "工位仕挂超过上限。"; 
+		case RvsConsts.WARNING_REASON_POSITION_OVERTIME : return "工位作业时间超出标准。"; 
+		case RvsConsts.WARNING_REASON_INFECT_ERROR : return "点检不通过需处理。"; 
 		}
 		return "";
 	}

@@ -60,6 +60,7 @@ public class QuotationAction extends BaseAction {
 	private static String WORK_STATUS_WORKING = "1";
 	private static String WORK_STATUS_PERIPHERAL_WORKING = "4";
 	private static String WORK_STATUS_PAUSING = "2";
+	private static String WORK_STATUS_PERIPHERAL_PAUSING = "5";
 
 	private PositionPanelService ppService = new PositionPanelService();
 	private ProductionFeatureService pfService = new ProductionFeatureService();
@@ -92,9 +93,9 @@ public class QuotationAction extends BaseAction {
 
 		req.setAttribute("edit_ocm", CodeListUtils.getSelectOptions("material_ocm", null, null, false));
 		if (isPeripheral) {
-			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_peripheral", null, null, false));
+			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_peripheral", null, "(未选)", false));
 		} else {
-			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_endoscope", null, null, false));
+			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_endoscope", null, "(未选)", false));
 		}
 		req.setAttribute("edit_fix_type", CodeListUtils.getSelectOptions("material_fix_type", null, null, false));
 		req.setAttribute("edit_service_repair_flg", CodeListUtils.getSelectOptions("material_service_repair", null, "", false));
@@ -153,13 +154,17 @@ public class QuotationAction extends BaseAction {
 			callbackResponse.put("workstauts", WORK_STATUS_FORBIDDEN);
 		} else {
 
+			// 判断是否有特殊页面效果
+			String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
+
 			QuotationService qService = new QuotationService();
 			qService.listRefresh(user, callbackResponse, conn);
 	
 			// 设定OCM文字
 			callbackResponse.put("oOptions", CodeListUtils.getGridOptions("material_ocm"));
 			// 设定等级文字
-			if (RvsConsts.POSITION_QUOTATION_P_181.equals(position_id)) {
+			boolean isPeripheral = (special_forward != null && special_forward.indexOf("peripheral") >= 0);
+			if (isPeripheral) {
 				callbackResponse.put("lOptions", CodeListUtils.getGridOptions("material_level_peripheral"));
 			} else {
 				callbackResponse.put("lOptions", CodeListUtils.getGridOptions("material_level_endoscope"));
@@ -178,6 +183,7 @@ public class QuotationAction extends BaseAction {
 				process_code = "151";
 			}
 
+
 			// 设定正常中断选项
 			callbackResponse.put("stepOptions", ppService.getStepOptions(process_code));
 			callbackResponse.put("pauseOptions", PauseFeatureService.getPauseReasonSelectOptions());
@@ -188,12 +194,9 @@ public class QuotationAction extends BaseAction {
 			// 进行中的话
 			if (workingPf != null) {
 				// 取得作业信息
-				qService.getProccessingData(callbackResponse, workingPf.getMaterial_id(), workingPf, user, conn);
+				qService.getProccessingData(callbackResponse, workingPf.getMaterial_id(), user, conn);
 
-				// 判断是否有特殊页面效果
-				String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
-
-				if ("peripheral".equals(special_forward)) {
+				if (isPeripheral) {
 					List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
 
 					// 取得周边设备检查使用设备工具 
@@ -217,9 +220,43 @@ public class QuotationAction extends BaseAction {
 					// 页面设定为编辑模式
 					callbackResponse.put("workstauts", WORK_STATUS_WORKING);
 				}
+
 			} else {
-				// 没有作业中信息
-				callbackResponse.put("workstauts", WORK_STATUS_PREPAIRING);
+				// 暂停中的话
+				// 判断是否有在暂停中的维修对象
+				ProductionFeatureEntity pauseingPf = ppService.getPausingPf(user, conn);
+				if (pauseingPf != null) {
+					// 取得作业信息
+					qService.getProccessingData(callbackResponse, pauseingPf.getMaterial_id(), user, conn);
+
+					if (isPeripheral) {
+						List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
+
+						// 取得周边设备检查使用设备工具 
+						boolean infectFinishFlag = ppService.getPeripheralData(pauseingPf.getMaterial_id(), pauseingPf, resultEntities, conn);
+
+						if (resultEntities != null && resultEntities.size() > 0) {
+							callbackResponse.put("peripheralData", resultEntities);
+						}
+
+						if (!infectFinishFlag) {
+							callbackResponse.put("workstauts", WORK_STATUS_PERIPHERAL_PAUSING);
+						} else {
+							// 取得工程检查票
+							PositionPanelService.getPcses(callbackResponse, pauseingPf, user.getLine_id(), conn);
+
+							// 页面设定为编辑模式
+							callbackResponse.put("workstauts", WORK_STATUS_PAUSING);
+						}
+
+					} else {
+						// 页面设定为编辑模式
+						callbackResponse.put("workstauts", WORK_STATUS_PAUSING);
+					}
+				} else {
+					// 准备中
+					callbackResponse.put("workstauts", WORK_STATUS_PREPAIRING);
+				}
 			}
 	
 			CustomerService service = new CustomerService();
@@ -300,7 +337,7 @@ public class QuotationAction extends BaseAction {
 		
 		if (errors.size() == 0) {
 			QuotationService qService = new QuotationService();
-			qService.getProccessingData(detailResponse, material_id, waitingPf, user, conn);
+			qService.getProccessingData(detailResponse, material_id, user, conn);
 
 			// 判断是否有特殊页面效果
 			String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
@@ -391,8 +428,8 @@ public class QuotationAction extends BaseAction {
 				// 制作暂停信息
 				bfService.createPauseFeature(workingPf, req.getParameter("reason"), comments, null, conn);
 	
-				// 根据作业信息生成新的等待作业信息
-				pfService.pauseToNext(workingPf, conn);
+				// 根据作业信息生成新的等待作业信息－－有开始时间（仅作标记用，重开时需要覆盖掉），说明是操作者原因暂停，将由本人重开。
+				pfService.pauseToSelf(workingPf, conn);
 
 				listResponse.put("workstauts", WORK_STATUS_PAUSING);
 			}
@@ -608,7 +645,7 @@ public class QuotationAction extends BaseAction {
 	@Privacies(permit={0})
 	public void doendpause(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("QuotationAction.doendpause start");
-		Map<String, Object> listResponse = new HashMap<String, Object>();
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
@@ -624,7 +661,7 @@ public class QuotationAction extends BaseAction {
 
 		if (errors.size() == 0) {
 			QuotationService qService = new QuotationService();
-			qService.getProccessingData(listResponse, material_id, workwaitingPf, user, conn);
+			qService.getProccessingData(callbackResponse, material_id, user, conn);
 
 			workwaitingPf.setOperate_result(RvsConsts.OPERATE_RESULT_WORKING);
 			pfService.changeWaitProductionFeature(workwaitingPf, conn);
@@ -632,14 +669,24 @@ public class QuotationAction extends BaseAction {
 			// 只要开始做，就结束掉本人所有的暂停信息。
 			bfService.finishPauseFeature(material_id, section_id, user.getPosition_id(), user.getOperator_id(), conn);
 
-			listResponse.put("workstauts", WORK_STATUS_WORKING);
+			List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
+
+			// 取得周边设备检查使用设备工具 
+			boolean infectFinishFlag = ppService.getPeripheralData(material_id, workwaitingPf, resultEntities, conn);
+
+			if (!infectFinishFlag) {
+				callbackResponse.put("workstauts", WORK_STATUS_PERIPHERAL_WORKING);
+			} else {
+				// 页面设定为编辑模式
+				callbackResponse.put("workstauts", WORK_STATUS_WORKING);
+			}
 		}
 
 		// 检查发生错误时报告错误信息
-		listResponse.put("errors", errors);
+		callbackResponse.put("errors", errors);
 
 		// 返回Json格式响应信息
-		returnJsonResponse(res, listResponse);
+		returnJsonResponse(res, callbackResponse);
 
 		log.info("QuotationAction.doendpause end");
 	}

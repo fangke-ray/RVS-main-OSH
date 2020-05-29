@@ -61,7 +61,7 @@
 					) cost_sum
 					on consumable_manage.partial_id = cost_sum.partial_id
 			left join
-				(SELECT partial_id, sum(quantity) as substituted_count_quantity FROM rvsdb.consumable_substitute
+				(SELECT partial_id, sum(quantity) as substituted_count_quantity FROM consumable_substitute
 					where occasion_flg = 1
 					and substitute_time >= #{search_count_period_start}
 					and date(substitute_time) <= #{search_count_period_end}

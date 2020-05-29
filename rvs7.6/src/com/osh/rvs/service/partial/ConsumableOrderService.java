@@ -21,11 +21,9 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 
-import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.partial.ConsumableOrderEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.form.partial.ConsumableManageForm;
-import com.osh.rvs.mapper.master.PartialMapper;
 import com.osh.rvs.mapper.partial.ConsumableOrderMapper;
 
 import framework.huiqing.common.util.copy.BeanUtil;

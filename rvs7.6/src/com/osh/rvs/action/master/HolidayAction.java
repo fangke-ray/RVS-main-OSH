@@ -124,4 +124,25 @@ public class HolidayAction extends BaseAction {
 
 		log.info("HolidayAction.doupdate end");
 	}
+
+	@Privacies(permit={2, 0})
+	public void doFixScheduledDate(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("HolidayAction.doFixScheduledDate start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		// 修改记录表单合法性检查
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// 执行更新
+		service.fixScheduledDate(callbackResponse, conn);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("HolidayAction.doFixScheduledDate end");
+	}
 }

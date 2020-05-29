@@ -137,7 +137,11 @@ public class MaterialService {
 
 		List<MaterialForm> lResultForm = new ArrayList<MaterialForm>();
 		
-		BeanUtil.copyToFormList(lResultBean, lResultForm, null, MaterialForm.class);
+		CopyOptions cos = new CopyOptions();
+		cos.excludeEmptyString();
+		cos.excludeNull();
+		cos.dateConverter(DateUtil.ISO_DATE_PATTERN, "reception_time", "agreed_date", "scheduled_date", "scheduled_date_end", "outline_time", "partial_order_date", "arrival_plan_date");
+		BeanUtil.copyToFormList(lResultBean, lResultForm, cos, MaterialForm.class);
 		
 		return lResultForm;
 	}
@@ -584,6 +588,7 @@ public class MaterialService {
 				ccdls.add(key);
 			}
 		}
+
 		// 如果有先端预制工程检查票
 		if (snouts.size() > 0) {
 			// 检查是否做过301工位
@@ -761,6 +766,7 @@ public class MaterialService {
 			listSheet.setDefaultColumnStyle(13, defaultCell);
 			listSheet.setDefaultColumnStyle(14, defaultCell);
 			listSheet.setDefaultColumnStyle(15, defaultCell);
+			listSheet.setDefaultColumnStyle(16, defaultCell);
 
 			for (int i=0; i < lResultForm.size(); i++) {
 				MaterialForm resultForm = lResultForm.get(i);
@@ -816,7 +822,11 @@ public class MaterialService {
 				cell.setCellValue(resultForm.getScheduled_date());
 
 				cell = row.createCell(12, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getScheduled_date_end());
+				if("9999-12-31".equals(resultForm.getScheduled_date_end())){
+					cell.setCellValue("另行通知");
+				}else{
+					cell.setCellValue(resultForm.getScheduled_date_end());
+				}
 
 				cell = row.createCell(13, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getOutline_time());
@@ -825,7 +835,11 @@ public class MaterialService {
 				cell.setCellValue(resultForm.getPartial_order_date());
 
 				cell = row.createCell(15, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getArrival_plan_date());
+				if("9999-12-31".equals(resultForm.getArrival_plan_date())){
+					cell.setCellValue("未定");
+				}else{
+					cell.setCellValue(resultForm.getArrival_plan_date());
+				}
 
 				cell = row.createCell(16, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getIs_late());
@@ -1054,7 +1068,7 @@ public class MaterialService {
 		}
 	}
 
-	public String getPcsesBlankXls(String modelName, SqlSession conn) {
+	public String getPcsesBlankXls(String modelName, SqlSession conn, boolean setBlank) {
 		String uuid = UUID.randomUUID().toString();
 		Date today = new Date();
 		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + uuid + "\\";
@@ -1073,7 +1087,7 @@ public class MaterialService {
 			Map<String, String> fileTempl = PcsUtils.getXlsContents(showLine, modelName, null, null, false, false, conn);
 
 			try {
-				PcsUtils.toTemplatesXls(fileTempl, modelName, cachePath, conn);
+				PcsUtils.toTemplatesXls(fileTempl, modelName, cachePath, setBlank, conn);
 			} catch (IOException e) {
 				logger.error(e.getMessage(), e);
 			}

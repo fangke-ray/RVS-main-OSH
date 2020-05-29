@@ -14,7 +14,7 @@ public interface AlarmMesssageMapper {
 
 	public void createAlarmMessageSendation(AlarmMesssageSendationEntity sendation) throws Exception;
 
-	public AlarmMesssageEntity getBreakAlarmMessage(@Param("material_id") String material_id, @Param("position_id") String position_id);
+	public List<AlarmMesssageEntity> getBreakAlarmMessage(@Param("material_id") String material_id, @Param("position_id") String position_id);
 	public AlarmMesssageEntity getBreakAlarmMessageByKey(@Param("alarm_messsage_id") String alarm_messsage_id);
 
 	public List<AlarmMesssageEntity> getBreakAlarmMessages(@Param("material_id") String material_id, @Param("position_id") String position_id);
@@ -38,6 +38,7 @@ public interface AlarmMesssageMapper {
 	public int countBreakUnPushedAlarmMessage(String material_id);
 
 	public List<AlarmMesssageEntity> searchAlarmMessages(AlarmMesssageEntity entity);
+	public List<AlarmMesssageEntity> searchAlarmMessagesFromSolo(AlarmMesssageEntity entity);
 
 	/** 工位发生过未解决的点检故障  */
 	public List<AlarmMesssageEntity> searchAlarmMessagesInfect(AlarmMesssageEntity entity);

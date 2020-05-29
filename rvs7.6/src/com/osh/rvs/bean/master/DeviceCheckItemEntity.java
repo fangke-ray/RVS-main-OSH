@@ -11,15 +11,22 @@ public class DeviceCheckItemEntity implements Serializable {
 	 */
 	private static final long serialVersionUID = 8055456003637076713L;
 
+	/** 点检表管理ID */
 	private String check_file_manage_id;
+	/** 项目序号 */
 	private String item_seq;
+	/** 点检周期类别 */
 	private Integer cycle_type;
+	/** 触发限制条件 */
 	private Integer trigger_state;
 	private Date act_refer_time;
 	private String model_relative;
 	private String data_relative;
+	/** 点检方式 */
 	private Integer data_type;
+	/** 数值点检上限 */
 	private BigDecimal upper_limit;
+	/** 数值点检下限 */
 	private BigDecimal lower_limit;
 	private String refer_upper_from;
 	private String refer_lower_from;

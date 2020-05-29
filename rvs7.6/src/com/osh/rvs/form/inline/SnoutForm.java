@@ -49,6 +49,9 @@ public class SnoutForm extends ActionForm implements Serializable {
 	@BeanField(title = "先端头来源机身号", name = "new_serial_no")
 	private String origin_serial_no;
 
+	@BeanField(title = "作业工位", name = "position_id")
+	private String position_id;
+
 	public String getModel_name() {
 		return model_name;
 	}
@@ -159,5 +162,13 @@ public class SnoutForm extends ActionForm implements Serializable {
 
 	public void setOrigin_serial_no(String origin_serial_no) {
 		this.origin_serial_no = origin_serial_no;
+	}
+
+	public String getPosition_id() {
+		return position_id;
+	}
+
+	public void setPosition_id(String position_id) {
+		this.position_id = position_id;
 	}
 }

@@ -21,7 +21,6 @@ import org.apache.log4j.Logger;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
-import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -68,7 +67,7 @@ public class QuotationService {
 		dao.updateMaterial(entity);
 	}
 
-	public void getProccessingData(Map<String, Object> responseBean, String material_id, ProductionFeatureEntity pf,
+	public void getProccessingData(Map<String, Object> responseBean, String material_id, 
 			LoginData user, SqlSession conn) throws Exception {
 		QuotationService service = new QuotationService();
 		// 取得维修对象信息。

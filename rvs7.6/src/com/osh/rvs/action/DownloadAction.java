@@ -34,6 +34,7 @@ public class DownloadAction extends BaseAction {
 	private static String EXT_PDF = ".pdf";
 	private static String EXT_ZIP = ".zip";
 	private static String EXT_EXCEL = ".xls";
+	private static String EXT_EXCEL_OPENXML = ".xlsx";
 	private static String EXT_GIF = ".gif";
 
 	/**
@@ -60,6 +61,8 @@ public class DownloadAction extends BaseAction {
 		}
 		if(fileName.endsWith(EXT_EXCEL)) {
 			contentType = DownloadService.CONTENT_TYPE_EXCEL;
+		} else if (fileName.endsWith(EXT_EXCEL_OPENXML)) {
+			contentType = DownloadService.CONTENT_TYPE_EXCEL_OPENXML;
 		} else if (fileName.endsWith(EXT_GIF)) {
 			contentType = DownloadService.CONTENT_TYPE_GIF;
 		} else if (fileName.endsWith(EXT_PDF)) {

@@ -87,7 +87,8 @@ public class ReadPcs {
 					NodeList alignment = ((Element)style).getElementsByTagName("Alignment");
 					NodeList borders = ((Element)style).getElementsByTagName("Borders");
 					NodeList numberFormat = ((Element)style).getElementsByTagName("NumberFormat");
-					styleidmap.put(styleid, getAlignmentCss(alignment) + getBorderCss(borders) + getNumberFormatCss(numberFormat));
+					NodeList font = ((Element)style).getElementsByTagName("Font");
+					styleidmap.put(styleid, getAlignmentCss(alignment) + getBorderCss(borders) + getNumberFormatCss(numberFormat) + getStrikeThrough(font));
 				}
 			}
 
@@ -248,7 +249,12 @@ public class ReadPcs {
 						data = rowcell.getElementsByTagName("ss:Data");
 						for (int idatum = 0;idatum < data.getLength();idatum++) {
 							Element textdata = (Element) data.item(idatum);
-							cellText += decodeHtmlText(textdata.getTextContent());
+							if (textdata.getElementsByTagName("S").getLength() > 0) {
+								// inner slash
+								cellText += getSsDataContent(textdata);
+							} else {
+								cellText += decodeHtmlText(textdata.getTextContent());
+							}
 						}
 
 						// 解析标识符
@@ -503,7 +509,7 @@ public class ReadPcs {
 
 			output = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(f), "UTF-8"));
 			output.write("<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">");
-			output.write("<style>td{font-size:12px;}.HC{text-align:center}.HL{text-align:left}.HR{text-align:right}");
+			output.write("<style>td{font-size:12px;}.HC{text-align:center}.HL{text-align:left}.HR{text-align:right}.StTh{text-decoration:line-through;}");
 			output.write(".VT{valign:top}.VC{valign:middle}.VB{valign:bottom}");
 			output.write(".WT{white-space:normal; word-break:break-all; overflow:hidden;}.IT{width:1em;}.IT span{width:1em;letter-spacing: 1em;}");
 
@@ -591,12 +597,44 @@ public class ReadPcs {
 		return ret;
 	}
 
+	private static String getSsDataContent(Element textdata) {
+		StringBuffer retContent = new StringBuffer("");
+		NodeList childNodes = textdata.getChildNodes();
+		for (int i = 0; i < childNodes.getLength(); i++) {
+			Element childNode = (Element) childNodes.item(i);
+			
+			String tagName = childNode.getTagName();
+			switch (tagName) {
+			case "S": 
+				retContent.append("<span class=\"StTh\">" + childNode.getTextContent() + "</span>");
+				break;
+			default:
+				retContent.append(childNode.getTextContent());
+			}
+		}
+		return retContent.toString();
+	}
+
 	private static String getNumberFormatCss(NodeList numberFormat) {
 		if (numberFormat != null && numberFormat.getLength() > 0) {
 			NamedNodeMap attributes = numberFormat.item(0).getAttributes();
 			Node ssFormat = attributes.getNamedItem("ss:Format");
 			if (ssFormat != null && "0_);\\(0\\)".equals(ssFormat.getNodeValue())) {
 				return " NBk";
+			} else {
+				return "";
+			}
+		} else {
+			return "";
+		}
+	}
+
+	private static String getStrikeThrough(NodeList font) {
+		if (font != null && font.getLength() > 0) {
+			NamedNodeMap attributes = font.item(0).getAttributes();
+			Node ssStrikeThrough = attributes.getNamedItem("ss:StrikeThrough");
+			if (ssStrikeThrough != null) {
+				return " StTh";
 			} else {
 				return "";
 			}

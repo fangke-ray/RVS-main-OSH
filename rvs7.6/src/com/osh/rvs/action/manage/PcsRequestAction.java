@@ -292,6 +292,16 @@ public class PcsRequestAction extends BaseAction {
 		log.info("PcsRequestAction.getForEdit end");
 	}
 
+	/**
+	 * 编辑依赖
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
 	public void doEdit(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("PcsRequestAction.doEdit start");
 		Map<String, Object> lResponseResult = new HashMap<String, Object>();
@@ -301,10 +311,9 @@ public class PcsRequestAction extends BaseAction {
 		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
 		PcsRequestService service = new PcsRequestService();
 		if (msgErrors.size() == 0) {
-			service.customValidateEdit(form, req.getParameterMap(), req.getSession(), 
-					msgErrors, msgInfos, lResponseResult);
+			service.customValidateEdit(form, req.getSession(), msgInfos);
 			if (msgErrors.size() == 0 && msgInfos.size() == 0) {
-				service.update(form, conn);
+				service.update(form, req.getSession(), conn);
 			}
 		}
 

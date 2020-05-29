@@ -168,7 +168,7 @@ public class PositionProductionAction extends BaseAction {
 		List<PositionProductionForm> lResultForm = positionProductionService.searchByCondition(form, conn);
 		return lResultForm;
 	}
-	
+
 	private List<PositionProductionForm> searchByCondition(ActionForm form, SqlSession conn) {
 		// 检索条件表单合法性检查
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);

@@ -37,6 +37,8 @@ public class SnoutEntity implements Serializable {
 
 	private String origin_omr_notifi_no;
 
+	private String position_id;
+
 	public String getModel_name() {
 		return model_name;
 	}
@@ -155,6 +157,14 @@ public class SnoutEntity implements Serializable {
 
 	public void setOrigin_omr_notifi_no(String origin_omr_notifi_no) {
 		this.origin_omr_notifi_no = origin_omr_notifi_no;
+	}
+
+	public String getPosition_id() {
+		return position_id;
+	}
+
+	public void setPosition_id(String position_id) {
+		this.position_id = position_id;
 	}
 
 }

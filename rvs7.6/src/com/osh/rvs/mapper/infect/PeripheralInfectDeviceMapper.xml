@@ -7,11 +7,11 @@
 		<![CDATA[ 
 		SELECT
 			pid.model_id,
-            pid.seq,
-            m.category_name,
-            m.name as model_type_name,
-            dt.devices_type_id as device_type_id,
-            dt.name as device_type_name,
+		pid.seq,
+		m.category_name,
+		m.name as model_type_name,
+		dt.devices_type_id as device_type_id,
+		dt.name as device_type_name,
 		    pid.model_name,
 		    cg.group
 		FROM
@@ -112,7 +112,7 @@ group by model_id) cg ON pid.model_id = cg.model_id
 			        JOIN
 			    check_file_manage cjm ON cjm.devices_type_id = pid.device_type_id
 			        and (cjm.specified_model_name is null OR cjm.specified_model_name = ''
-			        OR cjm.specified_model_name LIKE CONCAT('%', pid.model_name, '%'))
+			        OR cjm.specified_model_name regexp CONCAT('(^|;)', pid.model_name, '($|;)'))
 			        and cjm.access_place = 9
 			        and cjm.delete_flg = 0
 			        LEFT JOIN

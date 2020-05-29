@@ -11,9 +11,13 @@ import net.arnx.jsonic.JSON;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
 
+import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.master.HolidayMapper;
 
 import framework.huiqing.common.util.copy.DateUtil;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class HolidayService {
 
@@ -94,5 +98,54 @@ public class HolidayService {
 		boolean setHoli = holidays.contains(sDate);
 
 		return (isWeekday && !setHoli) || (!isWeekday && setHoli);
+	}
+
+	public void fixScheduledDate(Map<String, Object> callbackResponse,
+			SqlSessionManager conn) throws Exception {
+		HolidayMapper hMapper = conn.getMapper(HolidayMapper.class);
+		MaterialMapper mMapper = conn.getMapper(MaterialMapper.class);
+
+		List<MaterialEntity> list = mMapper.getInlineScheduled();
+		Map<Long, Long> catchMap = new HashMap<Long, Long>();
+
+		int pushForwardCount = 0;
+		int pushBackwardCount = 0;
+
+		for (MaterialEntity me : list) {
+			Date agreedDate = me.getAgreed_date();
+			long agreedDateGetTime = agreedDate.getTime();
+			if (!catchMap.containsKey(agreedDateGetTime)) {
+				Map<String, Object> cond = new HashMap<String, Object>();
+				cond.put("date", agreedDate);
+				cond.put("interval", RvsConsts.TIME_LIMIT);
+				Date added = hMapper.addWorkdays(cond);
+				catchMap.put(agreedDate.getTime(), added.getTime());
+			}
+
+			Date newScheduleDate = new Date(catchMap.get(agreedDateGetTime));
+
+			int diff = newScheduleDate.compareTo(me.getScheduled_date());
+			if (diff == 0) {
+				continue;
+			} else if (diff > 0) {
+				pushBackwardCount++;
+				me.setScheduled_date(newScheduleDate);
+				mMapper.updateScheduledDate(me);
+			} else if (diff < 0) {
+				pushForwardCount++;
+				me.setScheduled_date(newScheduleDate);
+				mMapper.updateScheduledDate(me);
+			}
+		}
+
+		String retString = "";
+		if (pushForwardCount > 0) {
+			retString += ApplicationMessage.WARNING_MESSAGES.getMessage("info.master.scheduleChangeByHoliday", "" + pushForwardCount , "提前");
+		}
+		if (pushBackwardCount > 0) {
+			retString += ApplicationMessage.WARNING_MESSAGES.getMessage("info.master.scheduleChangeByHoliday", "" + pushBackwardCount , "推迟");
+		}
+
+		callbackResponse.put("accessedMessage", retString);
 	}
 }

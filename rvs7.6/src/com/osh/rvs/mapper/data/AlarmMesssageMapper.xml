@@ -91,7 +91,8 @@
 	<select id="getBreakAlarmMessage" resultType="AlarmMesssageEntity" parameterType="String">
 		<![CDATA[ 
 			SELECT `am`.alarm_messsage_id, `am`.`LEVEL`, `am`.OCCUR_TIME, `am`.REASON, coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, `mdl`.name as MODEL_NAME, `m`.SERIAL_NO,
-			  `l`.NAME as LINE_NAME, `p`.process_code, `p`.position_id, `am`.operator_id, `o`.name as OPERATOR_NAME
+			  `l`.NAME as LINE_NAME, `p`.process_code, `p`.position_id, `am`.operator_id, `o`.name as OPERATOR_NAME,p.name AS position_name,
+			  `am`.REASON in (1, 5, 6, 13) as is_break
 			FROM alarm_messsage am
 			JOIN material m
 			  ON `am`.material_id = `m`.material_id
@@ -106,6 +107,7 @@
 			WHERE `am`.material_id = #{material_id}
 			  AND `am`.position_id = #{position_id}
 			  AND NOT EXISTS (SELECT 1 FROM alarm_messsage_sendation ams WHERE `ams`.`alarm_messsage_id` = `am`.`alarm_messsage_id` AND `ams`.`red_flg` = 1)
+			ORDER BY is_break desc, `am`.OCCUR_TIME
 			;
 		]]>
 	</select>
@@ -221,7 +223,7 @@
 
 	<select id="getBreakOperatorMessageByID" resultType="PauseFeatureEntity" parameterType="String">
 		<![CDATA[ 
-		SELECT `pf`.REASON, `pf`.COMMENTS, `p`.process_code
+		SELECT `pf`.REASON, `pf`.COMMENTS, `p`.position_id, `p`.process_code, `pf`.snout_serial_no
 		FROM pause_feature pf
 		JOIN `position` p ON `pf`.position_id = `p`.position_id
 		WHERE `pf`.ALARM_MESSSAGE_ID = #{alarm_messsage_id}
@@ -298,7 +300,7 @@
 	<select id="searchAlarmMessages" resultType="AlarmMesssageEntity" timeout="55">
 		<![CDATA[ 
 			SELECT am.alarm_messsage_id, am.level, am.reason, am.occur_time,
-			  coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, mdl.name as model_name, o.name as operator_name,
+			  coalesce(m.omr_notifi_no, m.sorc_no) as sorc_no, mdl.name as model_name, m.serial_no, o.name as operator_name,
 			  s.name as section_name, l.name as line_name, p.process_code,
 			  min(ams.resolve_time) as resolve_time, group_concat(osd.name
                 order by resolve_time

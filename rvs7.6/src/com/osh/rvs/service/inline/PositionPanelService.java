@@ -848,7 +848,7 @@ public class PositionPanelService {
 			}
 		}
 		
-		// 如果有先端预制工程检查票
+		// 如果有CCD盖玻璃工程检查票
 		if (ccds.size() > 0) {
 			// 检查是否做过302工位
 			if (!dao.checkPositionDid(material_id, "00000000025", null, null)) {

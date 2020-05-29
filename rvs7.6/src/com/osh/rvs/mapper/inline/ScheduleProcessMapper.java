@@ -7,7 +7,7 @@ import com.osh.rvs.bean.inline.ScheduleEntity;
 public interface ScheduleProcessMapper {
 
 	public List<String> searchMaterialIdsByCondition(ScheduleEntity entity);
-	
+
 	public List<ScheduleEntity> searchMaterialByIds(List<String> ids);
 	
 	public List<ScheduleEntity> searchSchedule(ScheduleEntity entity);

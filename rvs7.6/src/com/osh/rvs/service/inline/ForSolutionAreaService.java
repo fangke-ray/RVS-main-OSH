@@ -67,6 +67,16 @@ public class ForSolutionAreaService {
 
 	private Logger _log = Logger.getLogger(getClass());
 
+	/**
+	 * 
+	 * @param form
+	 * @param req
+	 * @param conn
+	 * @param errors
+	 * @param resolveLevel
+	 * @param getForReport 为报表取得
+	 * @return
+	 */
 	public List<ForSolutionAreaForm> getAreaList(ActionForm form, HttpServletRequest req, SqlSession conn,
 			List<MsgInfo> errors, Integer resolveLevel, boolean getForReport) {
 		List<ForSolutionAreaForm> ret = new ArrayList<ForSolutionAreaForm>();

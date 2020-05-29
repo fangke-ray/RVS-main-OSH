@@ -58,7 +58,11 @@ public class CheckResultFilingAction extends BaseAction {
 		//上传附表--设备名称
 		String dnReferChooser = service.searchDeviceNames(conn);
 		request.setAttribute("dnReferChooser", dnReferChooser);
-		
+	
+		//上传附表--治具名称
+		String jnReferChooser = service.searchJigNames(conn);
+		request.setAttribute("jnReferChooser", jnReferChooser);
+
 		//类型
 		request.setAttribute("sAccessPlace", CodeListUtils.getGridOptions("access_place"));
 		request.setAttribute("goAccessPlace", CodeListUtils.getSelectOptions("access_place", null, ""));
@@ -102,6 +106,7 @@ public class CheckResultFilingAction extends BaseAction {
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 	
 		List<CheckResultFilingForm> returnList=service.searchCheckResultFiling(form, conn);
+		returnList.addAll(service.searchJigCheckResultFiling(form, conn));
 		
 		listResponse.put("errors", errors);
 		listResponse.put("finished", returnList);

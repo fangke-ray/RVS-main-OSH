@@ -232,8 +232,8 @@ public class QualityAssuranceAction extends BaseAction {
 					if (qa_checked) {
 						callbackResponse.put("workstauts", WORK_STATUS_DECIDE);
 	
-						// 取得工程检查票
-						PositionPanelService.getPcsesFinish(callbackResponse, workingPf, conn);
+//						// 取得工程检查票
+//						PositionPanelService.getPcsesFinish(callbackResponse, workingPf, conn);
 					} else {
 						boolean infectFinishFlag = true;
 						if ("peripheral".equals(special_forward)) {
@@ -250,8 +250,8 @@ public class QualityAssuranceAction extends BaseAction {
 							callbackResponse.put("workstauts", WORK_STATUS_PERIPHERAL_WORKING);
 						} else {
 							callbackResponse.put("workstauts", WORK_STATUS_WORKING);
-							// 取得工程检查票
-							getPf(workingPf, qa_checked, isLeader, callbackResponse, conn);
+//							// 取得工程检查票
+//							getPf(workingPf, qa_checked, isLeader, callbackResponse, conn);
 						}
 					}
 				}
@@ -260,6 +260,7 @@ public class QualityAssuranceAction extends BaseAction {
 				MaterialService ms = new MaterialService();
 				ms.getMaterialComment(workingPf.getMaterial_id(), callbackResponse, conn);
 
+				// 取得工程检查票
 				getPf(workingPf, qa_checked, isLeader, callbackResponse, conn);
 			} else {
 				// 暂停中的话
@@ -556,6 +557,12 @@ public class QualityAssuranceAction extends BaseAction {
 			if (!isLeader) {
 				workingPf.setPcs_inputs(req.getParameter("pcs_inputs"));
 				workingPf.setPcs_comments(req.getParameter("pcs_comments"));
+			}
+			if ("{}".equals(workingPf.getPcs_comments())) {
+				workingPf.setPcs_comments(null);
+			}
+			if ("{}".equals(workingPf.getPcs_inputs())) {
+				workingPf.setPcs_inputs(null);
 			}
 
 			pfdao.finishProductionFeature(workingPf);

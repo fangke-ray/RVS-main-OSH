@@ -1184,6 +1184,18 @@ public class RvsUtils {
 				((level== 96 || level == 97 || level == 98));
 		return isMediumFix;
 	}	
+	public static boolean isPeripheral(String level) {
+		boolean isPeripheral = false;
+		if (!CommonStringUtil.isEmpty(level)) {
+			return isPeripheral(Integer.parseInt(level));
+		}
+		return isPeripheral;
+	}
+	public static boolean isPeripheral(Integer level) {
+		boolean isPeripheral = (level != null) &&
+				((level== 56 || level == 57 || level == 59));
+		return isPeripheral;
+	}
 
 	public static void initAll(SqlSession conn) {
 		overLineCache.clear();

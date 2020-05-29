@@ -17,6 +17,8 @@ public class CheckedFileStorageEntity implements Serializable{
 	private String line_id;
 	private String position_id;
 
+	private String specialized;
+
 	public String getCheck_file_manage_id() {
 		return check_file_manage_id;
 	}
@@ -70,5 +72,11 @@ public class CheckedFileStorageEntity implements Serializable{
 	}
 	public void setTemplate_file_name(String template_file_name) {
 		this.template_file_name = template_file_name;
+	}
+	public String getSpecialized() {
+		return specialized;
+	}
+	public void setSpecialized(String specialized) {
+		this.specialized = specialized;
 	}
 }

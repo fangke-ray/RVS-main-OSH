@@ -239,13 +239,13 @@ public class ServiceRepairRefereeAction extends BaseAction{
 						info.setErrcode("info.linework.notInWaiting");
 						msgInfos.add(info);
 					} else {
-						service.createProductionFeature(conn, resultEntity, user.getOperator_id(), 1);
+						service.createProductionFeature(conn, resultEntity, user.getOperator_id(), RvsConsts.OPERATE_RESULT_WORKING);
 						resultForm.setMention(service.getWorkedSteps(resultEntity, conn));
 						listResponse.put("resultForm", resultForm);
 					}
 				}else{
 					//更新受理时间
-					service.createProductionFeature(conn, resultEntity, user.getOperator_id(), 1);
+					service.createProductionFeature(conn, resultEntity, user.getOperator_id(), RvsConsts.OPERATE_RESULT_WORKING);
 					service.updateQareceptionTime(conn, material_id);
 					listResponse.put("resultForm", resultForm);
 				}

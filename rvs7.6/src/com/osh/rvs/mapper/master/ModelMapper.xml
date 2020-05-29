@@ -82,6 +82,9 @@
 			<if test="category_id!= null and category_id!= '' ">
 				AND CATEGORY_ID = #{category_id}
 			</if>
+			<if test="kind!= null and kind!= '' ">
+				AND KIND = #{kind}
+			</if>
 			<if test="feature1!= null and feature1!= '' ">
 				AND FEATURE1 = #{feature1}
 			</if>
@@ -251,6 +254,7 @@
 		    pa.position_id < 9000000
 		and vm.model_id =#{model_id}
 		)
+		group by p.position_id
 		order by  p.process_code asc
 		]]>
 	</select>

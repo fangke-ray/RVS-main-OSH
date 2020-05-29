@@ -1,11 +1,14 @@
 package com.osh.rvs.service.infect;
 
+import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -16,10 +19,12 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.upload.FormFile;
 
 import com.osh.rvs.bean.infect.CheckResultFilingEntity;
+import com.osh.rvs.bean.master.ToolsManageEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.infect.CheckResultFilingForm;
 import com.osh.rvs.mapper.infect.CheckResultFilingMapper;
+import com.osh.rvs.mapper.master.ToolsManageMapper;
 
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -49,7 +54,56 @@ public class CheckResultFilingService {
 
 		return formList;
 	}
-	
+
+	public Collection<? extends CheckResultFilingForm> searchJigCheckResultFiling(
+			ActionForm form, SqlSession conn) {
+
+		List<CheckResultFilingForm> formList = new ArrayList<CheckResultFilingForm>();
+
+		CheckResultFilingForm condForm = (CheckResultFilingForm) form;
+		if (!isEmpty(condForm.getCheck_manage_code())) {
+			if ("QF0601-5".indexOf(condForm.getCheck_manage_code()) < 0) {
+				return formList;
+			}
+		}
+
+		if (!isEmpty(condForm.getSheet_file_name())) {
+			if ("QF0601-5专用工具定期清点保养记录".indexOf(condForm.getSheet_file_name()) < 0) {
+				return formList;
+			}
+		}
+
+		if (!isEmpty(condForm.getAccess_place())) {
+			if (!"2".equals(condForm.getAccess_place())) {
+				return formList;
+			}
+		}
+
+		if (!isEmpty(condForm.getCycle_type())) {
+			if (!"8".equals(condForm.getCycle_type())) {
+				return formList;
+			}
+		}
+
+		if (!isEmpty(condForm.getDevices_type_id())) {
+			return formList;
+		}
+
+		CheckResultFilingForm jigForm = new CheckResultFilingForm();
+
+		jigForm.setCheck_file_manage_id("00000000000");
+		jigForm.setCheck_manage_code("QF0601-5");
+		jigForm.setSheet_file_name("QF0601-5专用工具定期清点保养记录");
+		jigForm.setAccess_place("2");
+		jigForm.setCycle_type("8");
+		jigForm.setName("专用工具");
+		jigForm.setDevices_type_id("00000000000");
+
+		formList.add(jigForm);
+
+		return formList;
+	}
+
 	/**
 	 * 双击点检结果文档一览
 	 * @param form
@@ -77,7 +131,7 @@ public class CheckResultFilingService {
 			   filingDate.setTime(resultFilingEntity.getFiling_date());//获取点检表归档日期
 			   //点检表归档日期转成SORC财年
 			   String strFilingDate = RvsUtils.getBussinessYearString(filingDate);
-			   
+
 			   //对应类型是日常+归档周期是周月
 			   if(resultFilingEntity.getAccess_place()==1 || resultFilingEntity.getCycle_type()==1){
 				   //获取财年中的月份
@@ -126,7 +180,30 @@ public class CheckResultFilingService {
 			return "";
 		}
 	}
-   
+
+	public String searchJigNames(SqlSession conn) {
+		// 取得权限下拉框信息
+		List<String[]> dList = new ArrayList<String[]>();
+
+		ToolsManageMapper dao = conn.getMapper(ToolsManageMapper.class);
+		// 点检表名称list
+		List<ToolsManageEntity> resultBeanList = dao.searchToolsManage(new ToolsManageEntity());
+
+		if (resultBeanList != null && resultBeanList.size() > 0) {
+			for (ToolsManageEntity entity : resultBeanList) {
+				String[] dline = new String[3];
+				dline[0] = entity.getTools_manage_id();
+				dline[2] = entity.getTools_no();
+				dline[1] = entity.getManage_code();
+				dList.add(dline);
+			}
+			String pReferChooser = CodeListUtils.getReferChooser(dList);
+			return pReferChooser;
+		} else {
+			return "";
+		}
+	}
+
    /**
     * 点检表名称List
     * @param conn 数据库会话

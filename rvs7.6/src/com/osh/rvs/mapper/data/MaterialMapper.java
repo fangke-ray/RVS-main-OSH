@@ -157,6 +157,17 @@ public interface MaterialMapper {
 	public List<MaterialEntity> searchMaterialByOutlineTime();
 
 	/**
+	 * 取得在线计划出货日
+	 * @param material_id
+	 */
+	public List<MaterialEntity> getInlineScheduled();
+	/**
+	 * 更新计划出货日
+	 * @param material_id
+	 */
+	public void updateScheduledDate(MaterialEntity entity);
+
+	/**
 	 * outline_time设成当前时间
 	 */
 	public void updateMaterialOutlineTime(@Param("material_id") String material_id);	

@@ -254,13 +254,15 @@ public class CheckFileManageAction extends BaseAction {
 		}
 
 		if(errors.size()==0){
-			boolean needRename = service.checkIdIsCurrent(form, conn, errors);
+			String needRename = service.checkIdIsCurrent(form, conn, errors);
 			if(errors.size()==0){
 				String fileName=service.getFile2Local(form, errors, conn);
 				if(errors.size()==0){
 					service.update(form, request, conn,fileName);
-					if (needRename && "".equals(fileName)) {
-						// 修改管理号更名 TODO
+					if ("".equals(fileName)) {
+						if (needRename != null) {
+							service.rename(needRename, form);
+						}
 					}
 				}
 			}

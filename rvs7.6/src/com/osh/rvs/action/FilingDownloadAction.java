@@ -51,7 +51,7 @@ public class FilingDownloadAction extends BaseAction {
 		String filePath =req.getParameter("filePath");
 		
 		//下载的文件名字
-		String strFileName=req.getParameter("fileName");		
+		String strFileName=req.getParameter("fileName");
 		String fileName =new String(strFileName.getBytes("iso-8859-1"),"UTF-8");
 
 		String contentType = "";
@@ -71,7 +71,7 @@ public class FilingDownloadAction extends BaseAction {
 
 		filePath = PathConsts.BASE_PATH + PathConsts.INFECTIONS + filePath+ fileName;
 
-		service.writeFile(res, contentType, fileName, filePath);
+		service.writeFile(res, contentType, strFileName, filePath);
 
 		logger.info("FilingDownloadAction.download end");
 		return null;

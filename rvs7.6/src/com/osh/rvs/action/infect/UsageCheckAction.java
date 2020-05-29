@@ -10,6 +10,7 @@ import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
@@ -120,6 +121,7 @@ public class UsageCheckAction extends BaseAction {
 
 		log.info("UsageCheckAction.doJsinit end");
 	}
+
 	public void search(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSession conn)throws Exception{
 		log.info("UsageCheckAction.search start");
 		
@@ -177,7 +179,8 @@ public class UsageCheckAction extends BaseAction {
 
 		String object_type = request.getParameter("object_type");
 
-		LoginData loginData=(LoginData)request.getSession().getAttribute(RvsConsts.SESSION_USER);
+		HttpSession session = request.getSession();
+		LoginData loginData=(LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		int isLeader = 0;
 		if (loginData.getPrivacies().contains(RvsConsts.PRIVACY_DT_MANAGE)) isLeader = 1;
 		if (loginData.getPrivacies().contains(RvsConsts.PRIVACY_TECHNOLOGY)) isLeader = 2;
@@ -189,6 +192,17 @@ public class UsageCheckAction extends BaseAction {
 		}
 		if (adjustDate == null) {
 			adjustDate = new Date();
+		}
+
+		boolean readOnly = false;
+		if (selectDate != null) {
+			readOnly = true;
+			if (loginData.getPrivacies().contains(RvsConsts.PRIVACY_ADMIN)) {
+				String asOperator = (String) session.getAttribute("as_operator_id");
+				if (asOperator != null) {
+					readOnly = false;
+				}
+			}
 		}
 
 		String content = "";
