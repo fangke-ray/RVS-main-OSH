@@ -537,7 +537,7 @@ public class UploadService {
 	}
 
 	public String readFileName(String uploadMonth, String filepath) {
-		String filename = PathConsts.BASE_PATH + PathConsts.REPORT + "\\" + filepath + "\\" + uploadMonth
+		String filename = PathConsts.BASE_PATH + PathConsts.REPORT + "\\" + filepath.replaceAll("-spare", "") + "\\" + uploadMonth
 				+ "\\confirm\\";
 
 		File fMonthPath = new File(filename);

@@ -65,7 +65,8 @@ $(function(){
             {name : 'upload',index : 'upload',width : 80,align : 'center',
 				formatter : function(value, options, rData){	
 					return "<a style='text-decoration:none;' href='javascript:import_upload_file(\"" +
-					rData['fileDayTime'] +"\");' ><input type='button'value='上传'class='upload-button ui-state-default '></input></a>";
+					rData['fileDayTime'] + "\"" + (rData['fileName'].indexOf('备品') >= 0 ? ', true' : '') +
+					");' ><input type='button'value='上传'class='upload-button ui-state-default '></input></a>";
    			}}],
 		rowNum :20,
 		toppager : false,
@@ -205,7 +206,7 @@ $(function(){
 });
 
 /*上传文件*/ 
-var import_upload_file = function(date) {
+var import_upload_file = function(date, isSpare) {
 	$("#upload_file").hide();
 	$("#upload_file").html("<input name='file' id='make_upload_file' type='file'/>");		
 	$("#upload_file").dialog({
@@ -221,7 +222,7 @@ var import_upload_file = function(date) {
 		},
 		buttons : {
 			"上传":function(){
-				  uploadfile(date);
+				  uploadfile(date, isSpare);
 			}, "关闭" : function(){ $(this).dialog("close"); }
 		}
 		
@@ -307,14 +308,14 @@ var showmonth_handleComplete = function(xhrObj) {
 	}
 }
 
-var uploadfile = function(date) {
+var uploadfile = function(date, isSpare) {
 	// 覆盖层
 panelOverlay++;
 makeWindowOverlay();
 
 // ajax enctype="multipart/form-data"
 $.ajaxFileUpload({
-	url : 'upload.do?method=confirm&filepath=' + nowPage + '&date=' + date, // 需要链接到服务器地址
+	url : 'upload.do?method=confirm&filepath=' + nowPage + (isSpare ? "-spare" : "") + '&date=' + date, // 需要链接到服务器地址
 	secureuri : false,
 	fileElementId : 'make_upload_file', // 文件选择框的id属性
 	dataType : 'json', // 服务器返回的格式

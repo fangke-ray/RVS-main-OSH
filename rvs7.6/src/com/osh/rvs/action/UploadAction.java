@@ -295,14 +295,34 @@ public class UploadAction extends BaseAction {
 		String filepath = uservice.readFileName(uploadDate.substring(0, 4) + uploadDate.substring(5, 7), nameParam);
 
 		try {
+			boolean isSpare = filename.indexOf("备品") >= 0;
+
 			if (nameParam.equals("inline")) {
 				filepath += "内镜投线记录表-";
 			} else if (nameParam.equals("accept")) {
-				filepath += "QR-B31002-59 内镜受理记录表-";
+				if (isSpare) {
+					filepath += "QR-B25002-2 备品受理记录表-";
+				} else {
+					filepath += "QR-B31002-59 内镜受理记录表-";
+				}
+			} else if (nameParam.equals("accept-spare")) {
+				filepath += "QR-B25002-2 备品受理记录表-";
 			} else if (nameParam.equals("sterilize")) {
-				filepath += "QR-B31002-62 内镜EOG灭菌记录表-";
+				if (isSpare) {
+					filepath += "QR-B25002-4 备品灭菌记录表-";
+				} else {
+					filepath += "QR-B31002-62 内镜EOG灭菌记录表-";
+				}
+			} else if (nameParam.equals("sterilize-spare")) {
+				filepath += "QR-B25002-4 备品灭菌记录表-";
 			} else if (nameParam.equals("disinfect")) {
-				filepath += "QR-B31002-60 内镜清洗消毒记录表-";
+				if (isSpare) {
+					filepath += "QR-B25002-3 备品消毒记录表-";
+				} else {
+					filepath += "QR-B31002-60 内镜清洗消毒记录表-";
+				}
+			} else if (nameParam.equals("disinfect-spare")) {
+				filepath += "QR-B25002-3 备品消毒记录表-";
 			} else if (nameParam.equals("schedule")) {
 				filepath += "计划报告书-";
 			} else if (nameParam.equals("shipping")) {
