@@ -979,13 +979,18 @@ var enablebuttons = function() {
 		$("#pxbutton").disable();
 		$("#complannedbutton").next().disable();
 	} else if (rowids.length === 1) {
+		var rowdata = $("#list").getRowData(rowids[0]);
+
 		$("#resignbutton").enable();
 		$("#pausebutton").enable();
 		$("#forbutton").enable();
 		$("#decplannedbutton").enable();
-		$("#nsplannedbutton").enable();
+		if (rowdata["ns_processing_position"]) {
+			$("#nsplannedbutton").enable();
+		} else {
+			$("#nsplannedbutton").disable();
+		}
 		$("#complannedbutton").enable();
-		var rowdata = $("#list").getRowData(rowids[0]);
 		if("未定" == rowdata.com_finish_date) {
 			$("#complannedbutton").next().disable();
 		} else {
@@ -1001,7 +1006,20 @@ var enablebuttons = function() {
 		$("#forbutton").disable();
 		$("#pxbutton").disable();
 		$("#decplannedbutton").enable();
-		$("#nsplannedbutton").enable();
+
+		var hasNS = true;
+		for (var ir in rowids) {
+			var rowdata = $("#list").jqGrid('getRowData', rowids[ir]);
+			if (!rowdata["ns_processing_position"]) {
+				hasNS = false;
+				break;
+			}
+		}
+		if (hasNS) {
+			$("#nsplannedbutton").enable();
+		} else {
+			$("#nsplannedbutton").disable();
+		}
 		$("#complannedbutton").enable();
 		$("#complannedbutton").next().disable();
 	}

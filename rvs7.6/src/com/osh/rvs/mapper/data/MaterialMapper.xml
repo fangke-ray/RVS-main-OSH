@@ -983,7 +983,9 @@
 
 	<select id="getInlineScheduled" resultType="MaterialEntity">
 		<![CDATA[
-			SELECT material_id, omr_notifi_no, agreed_date, scheduled_date FROM material where inline_time is not null and outline_time is null;
+			SELECT material_id, omr_notifi_no, agreed_date, scheduled_date,
+				level, fix_type, scheduled_expedited
+			FROM material where inline_time is not null and outline_time is null;
 		]]>
 	</select>
 

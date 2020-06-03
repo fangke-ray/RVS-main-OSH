@@ -97,7 +97,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<div id="functionarea" class="dwidth-middleright">
 				<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
 					<div id="executes" style="margin-left: 4px; margin-top: 4px;">
+<%
+		String isAdmin = "" + request.getAttribute("isAdmin");
+		if ("true".equals(isAdmin)) {
+%>
+					<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="outputbutton" value="导出空白模板" role="button" aria-disabled="false" style="float: left; right: 2px;">
+					<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="tagbutton" value="导出标签模板" role="button" aria-disabled="false" style="float: left; right: 2px;">
+<%
+		} else {
+%>
 					<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="outputbutton" value="导出" role="button" aria-disabled="false" style="float: left; right: 2px;">
+<%
+		}
+%>
 					</div>
 				</div>
 			</div>	

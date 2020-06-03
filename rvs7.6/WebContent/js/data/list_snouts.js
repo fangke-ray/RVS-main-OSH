@@ -210,7 +210,7 @@ var popSnoutDetail = function(serial_no, sorc_no) {
 	this_dialog.html("");
 	this_dialog.hide();
 	// 导入详细画面
-	this_dialog.load("snouts.do?method=detail&serial_no=" + serial_no , function(responseText, textStatus, XMLHttpRequest) {
+	this_dialog.load("snouts.do?method=detail&position_id=00000000024&serial_no=" + serial_no , function(responseText, textStatus, XMLHttpRequest) {
 		$("#snout_detail_model_id").select2Buttons();
 
 		$("#pcs_detail_pcs_contents input[name^='L'],#pcs_detail_pcs_contents textarea[name^='L']").parent().css("background-color", "#93C3CD");
@@ -294,7 +294,7 @@ var popSnoutDetail = function(serial_no, sorc_no) {
 					this_dialog.dialog("close");
 				},
 				"废弃" : function() {
-					if (confirm("该操作不可恢复，是否真的要废弃？")) {
+					warningConfirm("该操作不可恢复，是否真的要废弃？", function () {
 						$("#process_resign .rework").removeClass("rework");
 						// Ajax提交
 						$.ajax({
@@ -302,7 +302,7 @@ var popSnoutDetail = function(serial_no, sorc_no) {
 							async : true,
 							url : servicePath + '?method=doDelete',
 							cache : false,
-							data : {serial_no: serial_no, model_id : $("#snout_detail_model_id_org").val()},
+							data : {position_id: "00000000024", serial_no: serial_no, model_id : $("#snout_detail_model_id_org").val()},
 							type : "post",
 							dataType : "json",
 							success : ajaxSuccessCheck,
@@ -312,7 +312,7 @@ var popSnoutDetail = function(serial_no, sorc_no) {
 								this_dialog.dialog("close");
 							}
 						});
-					}
+					})
 				}, 
 				"关闭" : function(){ this_dialog.dialog("close"); }
 			}

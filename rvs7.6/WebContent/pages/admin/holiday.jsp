@@ -28,6 +28,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </style>
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
+<script type="text/javascript" src="js/jquery.dialog.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/admin/holiday.js"></script>
@@ -43,6 +44,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<div class="ui-widget-content dwidth-middleright">
 		<div>
 			<div id="calendararea" style="padding : 32px;">
+			</div>
+		</div>
+		<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
+			<div id="executes" style="margin-left:4px;margin-top:4px;">
+				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="recountbutton" value="重新计算纳期" role="button" aria-disabled="false">
 			</div>
 		</div>
 	</div>

@@ -42,6 +42,14 @@ var resetSign = function(xhjObj) {
 	}
 }
 
+var prevzero =function(i) {
+	if (i < 10) {
+		return "0" + i; 
+	} else {
+		return "" + i; 
+	}
+}
+
 $(function() {
 	$("input.ui-button").button();
 
@@ -105,12 +113,32 @@ $(function() {
 	});
 
 	$("#calendararea .ui-datepicker").css("margin", "auto").css("width", "600px");
+
+	$("#recountbutton").click(function(){
+		warningConfirm("确实要根据更新的休假日设置修改在线维修品的纳期吗？", doFixScheduledDate);
+	});
+
+	var doFixScheduledDate = function() {
+		// Ajax提交
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : false,
+			url : servicePath + '?method=doFixScheduledDate',
+			cache : false,
+			data : null,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function(xhrObj) {
+				var resInfo = $.parseJSON(xhrObj.responseText);
+				if (resInfo.accessedMessage) {
+					infoPop(resInfo.accessedMessage);
+				} else {
+					errorPop("并没有维修对象因此纳期改变。");
+				}
+			}
+		});
+	}
 });
 
-var prevzero =function(i) {
-	if (i < 10) {
-		return "0" + i; 
-	} else {
-		return "" + i; 
-	}
-}
