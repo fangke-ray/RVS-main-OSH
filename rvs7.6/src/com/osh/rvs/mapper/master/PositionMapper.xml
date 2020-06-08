@@ -15,9 +15,10 @@
 			UPDATED_BY,
 			UPDATED_TIME,
 			light_worktime_rate,
-			light_division_flg
+			light_division_flg,
+			mapping_position_id
 		FROM V_POSITION
-		WHERE DELETE_FLG = 0
+		WHERE DELETE_FLG <> 1
 		AND POSITION_ID = #{position_id};
 		]]>
 	</select>
@@ -29,10 +30,11 @@
 			LINE_ID,
 			LINE_NAME,
 			PROCESS_CODE,
+			DELETE_FLG,
 			UPDATED_BY,
 			UPDATED_TIME
 		FROM V_POSITION
-		WHERE DELETE_FLG = 0
+		WHERE DELETE_FLG in (0, 2)
 		ORDER BY PROCESS_CODE;
 		]]>
 	</select>
@@ -49,7 +51,7 @@
 		FROM V_POSITION
 		]]>
 		<where>
-			DELETE_FLG = 0
+			DELETE_FLG in (0, 2)
 			<if test="position_id!= null and position_id!= '' ">
 				AND POSITION_ID = #{position_id}
 			</if>
@@ -83,9 +85,9 @@
 	<insert id="insertPosition" parameterType="PositionEntity">
 		<![CDATA[ 
 		INSERT INTO POSITION 
-			(NAME, LINE_ID, PROCESS_CODE, UPDATED_BY, UPDATED_TIME,light_worktime_rate,light_division_flg) 
+			(NAME, LINE_ID, PROCESS_CODE, UPDATED_BY, UPDATED_TIME,light_worktime_rate,light_division_flg,delete_flg) 
 		VALUES 
-			(#{name}, #{line_id}, #{process_code}, #{updated_by}, current_timestamp,#{light_worktime_rate},#{light_division_flg});
+			(#{name}, #{line_id}, #{process_code}, #{updated_by}, current_timestamp,#{light_worktime_rate},#{light_division_flg},#{delete_flg});
 		]]>
 	</insert>
 
@@ -167,5 +169,43 @@
 		DELETE FROM `position_group`
 		WHERE group_position_id = #{group_position_id};
 	</insert>
+
+	<select id="getAllMappingPositions" resultType="PositionEntity">
+		<![CDATA[ 
+			SELECT p1.`position_id`,
+				p1.`mapping_position_id`
+			FROM POSITION p1
+			JOIN POSITION p2 on p1.`mapping_position_id` = p2.`position_id`
+			WHERE 
+			p1.`mapping_position_id` IS NOT NULL
+			AND p1.delete_flg = 0 AND p2.delete_flg <> 1
+			ORDER BY p1.`mapping_position_id`;
+		]]>
+	</select>
+
+	<update id="clearMappingPosition" parameterType="String">
+		<![CDATA[ 
+		UPDATE POSITION 
+			SET mapping_position_id = null
+		WHERE mapping_position_id = #{mapping_position_id};
+		]]>
+	</update>
+
+	<update id="setMappingPosition" parameterType="String">
+		<![CDATA[ 
+		UPDATE POSITION 
+			SET mapping_position_id = #{mapping_position_id}
+		WHERE POSITION_ID = #{position_id};
+		]]>
+	</update>
+
+	<update id="setPositionRevision" parameterType="String">
+		<![CDATA[ 
+		UPDATE POSITION 
+			SET delete_flg = 0
+		WHERE PROCESS_CODE = #{process_code}
+		AND delete_flg = 2;
+		]]>
+	</update>
 
 </mapper>

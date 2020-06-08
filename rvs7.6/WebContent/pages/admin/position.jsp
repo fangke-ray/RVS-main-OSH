@@ -17,6 +17,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 #group_content input[type=number] {
 	width : 60px;
 }
+#mapping_dialog .subform tr {
+	cursor : pointer;
+}
 </style>
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
@@ -121,6 +124,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="ui-state-default td-title">进行分线的工位</td>
 					<td class="td-content" id="input_light_division_flg"></td>
 				</tr>
+				<tr id="mapping_tr">
+					<td class="ui-state-default td-title">中小修理工位映射</td>
+					<td class="td-content">
+						<input type="button" alt="设定映射" value="设定映射" id="mapping_button" class="ui-button">
+						<span id="mapping_span"></span>
+					</td>
+				</tr>
 				<tr>
 					<td class="ui-state-default td-title">虚拟组工位</td>
 					<td class="td-content">
@@ -162,5 +172,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<table class="subform">${pReferChooser}</table>
 </div>
 <div id="confirmmessage"></div>
+<div id="mapping_dialog"></div>
 </body>
 </html>

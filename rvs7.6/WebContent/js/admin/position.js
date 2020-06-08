@@ -78,6 +78,12 @@ $(function() {
 	$("#group_content .group_content_add").click(addGroupContentInput);
 	$("#group_content").on("click", ".group_content_remove", removeGroupContentInput);
 
+	$("#mapping_button").click(setPositionMapping);
+
+	$("#mapping_dialog").on("click", ".subform tr", function(){
+		$(this).toggleClass("ui-state-active");
+	});
+
 	findit();
 });
 
@@ -177,7 +183,7 @@ var update_handleComplete = function(xhrobj, textStatus) {
 	var resInfo = null;
 	try {
 		// 以Object形式读取JSON
-		eval('resInfo =' + xhrobj.responseText);
+		resInfo = $.parseJSON(xhrobj.responseText);
 		if (resInfo.errors.length > 0) {
 			// 共通出错信息框
 			treatBackMessages("#editarea", resInfo.errors);
@@ -252,6 +258,26 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 					}
 				}
 			});
+
+			$("#mapping_tr").show();
+			if (resInfo.positionForm.mapping_position_id) {
+				$("#mapping_span").text(resInfo.positionForm.mapping_position_id)
+					.data("positionMappings", null)
+					.show();
+				$("#mapping_button").hide();
+			} else {
+				
+				$("#mapping_button").show();
+				if (resInfo.positionMappings) {
+					$("#mapping_span").text("已有设置")
+						.data("positionMappings", resInfo.positionMappings)
+						.show();
+				} else {
+					$("#mapping_span").text("")
+						.data("positionMappings", null)
+						.hide();
+				}
+			}
 
 			// 虚拟工位组
 			if (resInfo.positionGroup) {
@@ -443,7 +469,12 @@ var showAdd = function() {
 	$("#input_light_division_flg").buttonset();
 	$("#light_division_flg_all").attr("checked","checked").trigger("change");
 
+	$("#mapping_tr").hide();
+
+	$("#group_content").hide()
+		.find("tbody > tr").remove();
 	$("#label_set_group").text("未设定");
+	$("#set_group_button").val("设定");
 
 	// 前台Validate设定
 	$("#editform").validate({
@@ -508,7 +539,41 @@ var showAdd = function() {
 				dataType : "json",
 				success : ajaxSuccessCheck,
 				error : ajaxError,
-				complete : update_handleComplete
+				complete : function(xhrobj){
+					var resInfo = $.parseJSON(xhrobj.responseText);
+					if (resInfo.errors.length > 0) {
+						// 编辑确认按钮重新有效
+						$("#editbutton").enable();
+						if (resInfo.errors.length === 1 && resInfo.errors[0].errcode === "info.master.position.columnNotUniqueSetTemp") {
+							warningConfirm(resInfo.errors[0].errmsg,
+								function() {
+									data["delete_flg"] = 2;
+									$.ajax({
+										beforeSend : ajaxRequestType,
+										async : true,
+										url : servicePath + '?method=doinsert',
+										cache : false,
+										data : data,
+										type : "post",
+										dataType : "json",
+										success : ajaxSuccessCheck,
+										error : ajaxError,
+										complete : update_handleComplete
+									});
+								}
+							);
+						} else {
+							// 共通出错信息框
+							treatBackMessages("#editarea", resInfo.errors);
+						}
+
+					} else {
+						// 重新查询
+						findit();
+						// 切回一览画面
+						showList();
+					}
+				}
 			});
 		};
 	});
@@ -582,4 +647,96 @@ var removeGroupContentInput = function() {
 	if ($("#group_content > tbody > tr").length == 0) {
 		$("#label_set_group").text("未设定");
 	}
+}
+
+var setPositionMapping = function() {
+	$mappingDialog = $("#mapping_dialog");
+	if (!$mappingDialog.html()) {
+		$mappingDialog.html($("#pReferChooser .subform").clone());
+	} else {
+		$("#mapping_dialog tr.ui-state-active").removeClass("ui-state-active");
+	}
+
+	var positionMappings = $("#mapping_span").data("positionMappings");
+	if (positionMappings) {
+		for (var idx in positionMappings) {
+			$mappingDialog.find("tr:has(.referId:contains('"+positionMappings[idx]+"'))")
+				.addClass("ui-state-active");
+		}
+	}
+	$mappingDialog.dialog({
+		title : $("#input_label_process_code").text() + "工位对应大修理工位列表",
+		height : 640,
+		resizable : false,
+		modal : true,
+		minHeight : 200,
+		buttons : {
+			"确认" : function(){
+				var postData = {"id" : $("#label_edit_id").text()};
+
+				positionMappings = []; 
+
+				$("#mapping_dialog tr.ui-state-active").each(function(i,item){
+					var mappingId = $(item).find(".referId").html();
+					postData["mappings[" + i + "]"] = mappingId;
+					positionMappings.push(mappingId);
+				});
+
+				$("#mapping_span").data("positionMappings", positionMappings);
+	
+				// Ajax提交
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : true,
+					url : servicePath + '?method=domapping',
+					cache : false,
+					data : postData,
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function(xhrObj) {
+						var resInfo = $.parseJSON(xhrObj.responseText);
+						if (resInfo.errors && resInfo.errors.length > 0) {
+							// 共通出错信息框
+							treatBackMessages("#editarea", resInfo.errors);
+						} else {
+							$mappingDialog.dialog("close");
+						}
+					}
+				});
+			},
+			"清除" : function(){
+				warningConfirm("是否要清除" + $("#input_label_process_code").text() + "工位的全部对应关系，使得此工位不能对应大修理的工作岗位？", function(){
+					$("#mapping_span").data("positionMappings", null);
+					var postData = {"id" : $("#label_edit_id").text()};
+
+					// Ajax提交
+					$.ajax({
+						beforeSend : ajaxRequestType,
+						async : true,
+						url : servicePath + '?method=domapping',
+						cache : false,
+						data : postData,
+						type : "post",
+						dataType : "json",
+						success : ajaxSuccessCheck,
+						error : ajaxError,
+						complete : function(xhrObj) {
+							var resInfo = $.parseJSON(xhrObj.responseText);
+							if (resInfo.errors && resInfo.errors.length > 0) {
+								// 共通出错信息框
+								treatBackMessages("#editarea", resInfo.errors);
+							} else {
+								$mappingDialog.dialog("close");
+							}
+						}
+					});					
+				});
+			},
+			"关闭" : function(){
+				$mappingDialog.dialog("close");
+			}
+		}
+	});
 }

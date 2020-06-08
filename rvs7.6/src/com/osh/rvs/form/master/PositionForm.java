@@ -39,6 +39,13 @@ public class PositionForm extends ActionForm {
 	/** 独立小修理工位标记 **/
 	@BeanField(title = "独立小修理工位标记", name = "light_division_flg", type = FieldType.Integer, length = 1)
 	private String light_division_flg;
+	/** 工位 ID */
+	@BeanField(title = "对应中小修工位", name = "mapping_position_id", length = 11)
+	private String mapping_position_id;
+
+	/** 删除标记 **/
+	@BeanField(title = "删除标记", name = "delete_flg", type = FieldType.Integer, length = 1)
+	private String delete_flg;
 
 	/**
 	 * 取得工位 ID
@@ -187,6 +194,22 @@ public class PositionForm extends ActionForm {
 
 	public void setLight_division_flg(String light_division_flg) {
 		this.light_division_flg = light_division_flg;
+	}
+
+	public String getMapping_position_id() {
+		return mapping_position_id;
+	}
+
+	public void setMapping_position_id(String mapping_position_id) {
+		this.mapping_position_id = mapping_position_id;
+	}
+
+	public String getDelete_flg() {
+		return delete_flg;
+	}
+
+	public void setDelete_flg(String delete_flg) {
+		this.delete_flg = delete_flg;
 	}
 
 }

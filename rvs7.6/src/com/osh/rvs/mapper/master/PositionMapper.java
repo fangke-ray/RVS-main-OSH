@@ -2,6 +2,8 @@ package com.osh.rvs.mapper.master;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.PositionGroupEntity;
 
@@ -36,4 +38,11 @@ public interface PositionMapper {
 	public List<PositionGroupEntity> getGroupPositionById(String group_position_id);
 
 	public List<PositionGroupEntity> getAllGroupPositions();
+
+	public List<PositionEntity> getAllMappingPositions();
+
+	public void clearMappingPosition(String mapping_position_id);
+	public void setMappingPosition(@Param("position_id") String position_id, @Param("mapping_position_id") String id);
+
+	public void setPositionRevision(String process_code);
 }

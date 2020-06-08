@@ -55,7 +55,7 @@ public class LightFixAction extends BaseAction {
 		req.setAttribute("kOptions", kOptions);
 
 		PositionService positionService = new PositionService();
-		String pReferChooser = positionService.getOptions(conn);
+		String pReferChooser = positionService.getOptions(conn, false, true);
 		req.setAttribute("pReferChooser", pReferChooser);
 
 		// 取得类别下拉框信息

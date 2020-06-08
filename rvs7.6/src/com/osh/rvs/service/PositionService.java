@@ -40,6 +40,20 @@ public class PositionService {
 	private static Map<String, List<PositionGroupEntity>> groupPositionSubs = null;
 	private static String inlineOptions = null;
 	private static Map<String, PositionEntity> positionEntityCache = new HashMap<String, PositionEntity>();
+	private static Map<String, List<String>> positionMappings = null;
+	private static Map<String, String> positionMappingRevers = null;
+
+	private void clearCaches() {
+		dividePositions = null;
+		groupPositions = null;
+		groupNextPositions = null;
+		groupSubPositions = null;
+		groupPositionSubs = null;
+		inlineOptions = null;
+		positionMappings = null;
+		positionMappingRevers = null;
+		positionEntityCache.clear();
+	}
 
 	/**
 	 * 检索记录列表
@@ -89,7 +103,7 @@ public class PositionService {
 			MsgInfo error = new MsgInfo();
 			error.setComponentid("position_id");
 			error.setErrcode("dbaccess.recordNotExist");
-			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "角色"));
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "工位"));
 			errors.add(error);
 			return null;
 		} else {
@@ -113,7 +127,7 @@ public class PositionService {
 		PositionMapper dao = conn.getMapper(PositionMapper.class);
 		// 表单复制到数据对象
 		PositionEntity conditionBean = new PositionEntity();
-		BeanUtil.copyToBean(positionForm, conditionBean, (new CopyOptions()).include("id", "process_code"));
+		BeanUtil.copyToBean(positionForm, conditionBean, (new CopyOptions()).include("id", "process_code", "delete_flg"));
 
 		if (conditionBean.getProcess_code() != null) {
 			if (!conditionBean.getProcess_code().matches("[0-9][0-9A-Z][0-9A-Z]")) {
@@ -124,13 +138,27 @@ public class PositionService {
 				errors.add(error);
 			} else {
 				List<PositionEntity> resultBean = dao.searchPosition(conditionBean);
-				if (resultBean != null && resultBean.size() > 0 && !resultBean.get(0).getPosition_id().equals(conditionBean.getPosition_id())) {
-					MsgInfo error = new MsgInfo();
-					error.setComponentid("process_code");
-					error.setErrcode("dbaccess.columnNotUnique");
-					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "进度代码",
-							conditionBean.getProcess_code(), "工位"));
-					errors.add(error);
+				if (resultBean != null && resultBean.size() > 0) {
+					if (resultBean.size() == 1 && !resultBean.get(0).getPosition_id().equals(conditionBean.getPosition_id())) {
+						if (conditionBean.getDelete_flg() != null && conditionBean.getDelete_flg() == 2) {
+							// 确定要建立临时工位
+						} else {
+							// 有一个同名时，确定是否建立临时工位
+							MsgInfo error = new MsgInfo();
+							error.setComponentid("process_code");
+							error.setErrcode("info.master.position.columnNotUniqueSetTemp");
+							error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.master.position.columnNotUniqueSetTemp",
+									conditionBean.getProcess_code()));
+							errors.add(error);
+						}
+					} else if (resultBean.size() > 1) {
+						MsgInfo error = new MsgInfo();
+						error.setComponentid("process_code");
+						error.setErrcode("dbaccess.columnNotUnique");
+						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "进度代码",
+								conditionBean.getProcess_code(), "工位"));
+						errors.add(error);
+					}
 				}
 			}
 		}
@@ -160,13 +188,7 @@ public class PositionService {
 		PositionMapper dao = conn.getMapper(PositionMapper.class);
 		dao.insertPosition(insertBean);
 
-		dividePositions = null;
-		groupPositions = null;
-		groupNextPositions = null;
-		groupSubPositions = null;
-		groupPositionSubs = null;
-		inlineOptions = null;
-		positionEntityCache.clear();
+		clearCaches();
 	}
 
 	/**
@@ -193,13 +215,7 @@ public class PositionService {
 		PositionMapper dao = conn.getMapper(PositionMapper.class);
 		dao.updatePosition(updateBean);
 
-		dividePositions = null;
-		groupPositions = null;
-		groupNextPositions = null;
-		groupSubPositions = null;
-		groupPositionSubs = null;
-		inlineOptions = null;
-		positionEntityCache.clear();
+		clearCaches();
 	}
 
 	/**
@@ -215,19 +231,24 @@ public class PositionService {
 		PositionEntity deleteBean = new PositionEntity();
 		BeanUtil.copyToBean(form, deleteBean, null);
 
+		// 取的删除前信息
+		PositionMapper dao = conn.getMapper(PositionMapper.class);
+		deleteBean = dao.getPositionByID(deleteBean.getPosition_id());
+
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		deleteBean.setUpdated_by(user.getOperator_id());
 
 		// 在数据库中逻辑删除记录
-		PositionMapper dao = conn.getMapper(PositionMapper.class);
 		dao.deletePosition(deleteBean);
-		dividePositions = null;
-		groupPositions = null;
-		groupNextPositions = null;
-		groupSubPositions = null;
-		groupPositionSubs = null;
-		inlineOptions = null;
-		positionEntityCache.clear();
+
+		PositionEntity condBean = new PositionEntity();
+		condBean.setProcess_code(deleteBean.getProcess_code());
+		List<PositionEntity> resultBeans = dao.searchPosition(condBean);
+		if (resultBeans.size() > 0) {
+			dao.setPositionRevision(deleteBean.getProcess_code());
+		}
+
+		clearCaches();
 	}
 
 	/**
@@ -249,15 +270,18 @@ public class PositionService {
 	 * @return
 	 */
 	public String getOptions(SqlSession conn) {
-		return getOptions(conn, false);
+		return getOptions(conn, false, false);
 	}
-	public String getOptions(SqlSession conn, boolean showProcessCode) {
+	public String getOptions(SqlSession conn, boolean showProcessCode, boolean showTemp) {
 		List<String[]> lst = new ArrayList<String[]>();
 		
 		List<PositionEntity> allPosition = this.getAllPosition(conn);
 
 		for (PositionEntity position: allPosition) {
 			if (getGroupPositions(conn).contains(position.getPosition_id())) {
+				continue;
+			}
+			if (!showTemp && position.getDelete_flg() != 0) {
 				continue;
 			}
 			String[] p = new String[3];
@@ -543,4 +567,119 @@ public class PositionService {
 		PositionMapper pMapper = conn.getMapper(PositionMapper.class);
 		return pMapper.getGroupPositionById(postionId);
 	}
+
+	/**
+	 * 检查设定
+	 * 
+	 * @param req
+	 * @param conn
+	 * @param errors
+	 */
+	public List<String> checkMapping(HttpServletRequest req, SqlSession conn,
+			List<MsgInfo> errors) {
+		List<String> mappingList = new AutofillArrayList<String> (String.class);
+
+		String id = null;
+
+		Map<String, String[]> parameterMap = req.getParameterMap();
+		for (String parameterKey : parameterMap.keySet()) {
+			if ("id".equals(parameterKey)) {
+				id = parameterMap.get(parameterKey)[0];
+			} else if (parameterKey.startsWith("mappings")) {
+				mappingList.add(parameterMap.get(parameterKey)[0]);
+			}
+		}
+
+		if (mappingList.size() > 0) {
+			Map<String, List<String>> checkPositionMappings = getPositionMappings(conn);
+			Map<String, String> checkPositionMappingRevers = getPositionMappingRevers(conn);
+
+			for (String mappingPosition : mappingList) {
+				if (mappingPosition.equals(id)
+						|| checkPositionMappings.containsKey(mappingPosition)) {
+
+					MsgInfo error = new MsgInfo();
+					error.setComponentid("mapping_position_id");
+					error.setErrcode("info.master.position.setMappingFrom");
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.master.position.setMappingFrom"
+							, getPositionEntityByKey(mappingPosition, conn).getProcess_code()));
+					errors.add(error);
+				} else if (checkPositionMappingRevers.containsKey(mappingPosition)) {
+					if (!(checkPositionMappings.containsKey(id) 
+							&& checkPositionMappings.get(id).contains(mappingPosition))) {
+						MsgInfo error = new MsgInfo();
+						error.setComponentid("mapping_position_id");
+						error.setErrcode("info.master.position.setMappedTo");
+						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.master.position.setMappedTo"
+								, getPositionEntityByKey(mappingPosition, conn).getProcess_code()));
+						errors.add(error);
+					}
+				}
+			}
+		}
+
+		return mappingList;
+	}
+
+	/**
+	 * 设定映射
+	 * 
+	 * @param id
+	 * @param mappingList
+	 * @param conn
+	 */
+	public void mapping(String id, List<String> mappingList,
+			SqlSessionManager conn) {
+		PositionMapper mapper = conn.getMapper(PositionMapper.class);
+
+		mapper.clearMappingPosition(id);
+
+		for (String position_id : mappingList) {
+			mapper.setMappingPosition(position_id, id);
+		}
+
+		clearCaches();
+	}
+
+	/**
+	 * 取得全部中小修工位对应
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public static Map<String, List<String>> getPositionMappings(SqlSession conn) {
+		if (positionMappings == null) {
+			positionMappings = new HashMap<String, List<String>>();
+			positionMappingRevers = new HashMap<String, String>();
+
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionEntity> l = mapper.getAllMappingPositions();
+			for (PositionEntity posMapping : l) {
+				if (!positionMappings.containsKey(posMapping.getMapping_position_id())) {
+					positionMappings.put(posMapping.getMapping_position_id(), new ArrayList<String> ());
+				}
+				positionMappings.get(posMapping.getMapping_position_id()).add(posMapping.getPosition_id());
+				positionMappingRevers.put(posMapping.getPosition_id(), posMapping.getMapping_position_id());
+			}
+		}
+		return positionMappings;
+	}
+	public static Map<String, String> getPositionMappingRevers(SqlSession conn) {
+		if (positionMappingRevers == null) {
+			positionMappings = new HashMap<String, List<String>>();
+			positionMappingRevers = new HashMap<String, String>();
+
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionEntity> l = mapper.getAllMappingPositions();
+			for (PositionEntity posMapping : l) {
+				if (!positionMappings.containsKey(posMapping.getMapping_position_id())) {
+					positionMappings.put(posMapping.getMapping_position_id(), new ArrayList<String> ());
+				}
+				positionMappings.get(posMapping.getMapping_position_id()).add(posMapping.getPosition_id());
+				positionMappingRevers.put(posMapping.getPosition_id(), posMapping.getMapping_position_id());
+			}
+		}
+		return positionMappingRevers;
+	}
+
 }

@@ -259,6 +259,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</table>
 			</div>
 			<div style="float:left;max-width:620px;">
+				<table class="subform" id="grid_edit_favo_positions">
+					<tr>
+						<th class="ui-state-default td-title" colspan="3" style="min-width:180px;">关注工位</th>
+					</tr>
+					<%=request.getAttribute("pReferChooser")%>
+				</table>
+			</div>
+			<div style="float:left;max-width:620px;">
 				<table class="subform" id="grid_edit_af_abilities">
 					<tr>
 						<th class="ui-state-default td-title" colspan="3" style="min-width:160px;">间接作业能力</th>

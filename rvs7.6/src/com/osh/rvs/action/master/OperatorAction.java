@@ -84,7 +84,7 @@ public class OperatorAction extends BaseAction {
 		req.setAttribute("atOptions", atOptions);
 
 		PositionService pService = new PositionService();
-		req.setAttribute("pReferChooser", pService.getOptions(conn));
+		req.setAttribute("pReferChooser", pService.getOptions(conn, false, true));
 
 		AcceptFactService afService = new AcceptFactService();
 		req.setAttribute("afReferChooser", afService.getOptions(conn));

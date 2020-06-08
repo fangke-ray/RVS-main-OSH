@@ -59,7 +59,7 @@ public class PositionAction extends BaseAction {
 		String lOptions = lservice.getOptions(conn);
 		req.setAttribute("lOptions", lOptions);
 
-		req.setAttribute("pReferChooser", service.getOptions(conn, true));
+		req.setAttribute("pReferChooser", service.getOptions(conn, true, true));
 
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
@@ -129,12 +129,18 @@ public class PositionAction extends BaseAction {
 			PositionForm resultForm = service.getDetail(form, conn, errors);
 
 			if (resultForm != null) {
-				List<PositionGroupEntity> positionGroup = service.getGroupPositionById(req.getParameter("id"), conn);
+				String reqId = req.getParameter("id");
+				List<PositionGroupEntity> positionGroup = service.getGroupPositionById(reqId, conn);
 				if (positionGroup.size() > 0) {
 					listResponse.put("positionGroup", positionGroup);
 				}
 				// 查询结果放入Ajax响应对象
 				listResponse.put("positionForm", resultForm);
+
+				if (resultForm.getMapping_position_id() == null) {
+					Map<String, List<String>> positionMappings = PositionService.getPositionMappings(conn);
+					listResponse.put("positionMappings", positionMappings.get(reqId));
+				}
 			}
 		}
 
@@ -263,5 +269,30 @@ public class PositionAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("PositionAction.dodelete end");
+	}
+
+	public void domapping(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("PositionAction.domapping start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		// 删除记录表单合法性检查
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ONLYKEY);
+		List<MsgInfo> errors = v.validate();
+
+		List<String> mappingList = service.checkMapping(req, conn, errors);
+
+		if (errors.size() == 0) {
+			// 执行删除
+			service.mapping(req.getParameter("id"), mappingList, conn);
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("PositionAction.domapping end");
 	}
 }
