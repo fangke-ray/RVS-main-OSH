@@ -73,6 +73,8 @@ public class OperatorForm extends ActionForm {
 	private List<String> main_positions = new AutofillArrayList<String>(String.class);
 	/** 主要担当工位 */
 	private List<String> af_abilities = new AutofillArrayList<String>(String.class);
+	/** 关注工位 */
+	private List<String> notice_positions = new AutofillArrayList<String>(String.class);
 
 	/**
 	 * 取得担当人 ID
@@ -344,5 +346,13 @@ public class OperatorForm extends ActionForm {
 
 	public void setAf_ability(String af_ability) {
 		this.af_ability = af_ability;
+	}
+
+	public List<String> getNotice_positions() {
+		return notice_positions;
+	}
+
+	public void setNotice_positions(List<String> notice_positions) {
+		this.notice_positions = notice_positions;
 	}
 }

@@ -297,8 +297,14 @@
 		FROM OPERATOR_ABILITIES
 		WHERE OPERATOR_ID = #{operator_id}
 		]]>
-		<if test="chief != null and chief != '' ">
-			AND CHIEF = #{chief}
+		<if test="chief eq 0 ">
+			AND CHIEF IN (0, 2)
+		</if>
+		<if test="chief eq 1 ">
+			AND CHIEF IN (1, 3)
+		</if>
+		<if test="chief eq 2 ">
+			AND CHIEF IN (2, 3)
 		</if>
 	</select>
 

@@ -24,6 +24,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
     .myability[star='1']:before {content:'★☆☆☆ ';}
     .myability[star='0']:before {content:'☆☆☆☆ ';}
     #star-select {cursor: pointer;}
+
+	#editform .subform .ui-state-active > .ui-state-highlight:after {
+		content: ' ！';
+		position: absolute;
+		color: coral;
+	}
 </style>
  
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
@@ -259,14 +265,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</table>
 			</div>
 			<div style="float:left;max-width:620px;">
-				<table class="subform" id="grid_edit_favo_positions">
-					<tr>
-						<th class="ui-state-default td-title" colspan="3" style="min-width:180px;">关注工位</th>
-					</tr>
-					<%=request.getAttribute("pReferChooser")%>
-				</table>
-			</div>
-			<div style="float:left;max-width:620px;">
 				<table class="subform" id="grid_edit_af_abilities">
 					<tr>
 						<th class="ui-state-default td-title" colspan="3" style="min-width:160px;">间接作业能力</th>
@@ -278,6 +276,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="editbutton" value="新建" role="button" aria-disabled="false" style="float:left;left:4px;">
 				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="cancelbutton" value="取消" role="button" aria-disabled="false" style="float:left;left:4px;">
 			</div>
+		</div>
 		</form>
 	</div>
 	<div class="ui-state-default ui-corner-bottom areaencloser dwidth-middleright"></div>

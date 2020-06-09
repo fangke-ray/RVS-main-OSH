@@ -110,6 +110,10 @@ public class OperatorService {
 			pResultBeans = dao.getPositionsOfOperator(operator_id, "0");
 			resultForm.setAbilities(pResultBeans);
 
+			// 取得关注工位
+			pResultBeans = dao.getPositionsOfOperator(operator_id, "2");
+			resultForm.setNotice_positions(pResultBeans);
+
 			List<String> afAbilities = dao.getAfAbilitiesOfOperator(operator_id);
 			// 取得间接作业能力
 			resultForm.setAf_abilities(afAbilities);
@@ -272,15 +276,26 @@ public class OperatorService {
 		insertBean.setOperator_id(commonMapper.getLastInsertID());
 
 		// 拥有权限关系插入到数据库中
+		// 关注工位
+		List<String> noticeMainPositions = form.getNotice_positions();
+
 		// 主要工位
 		List<String> insertMainPositions = form.getMain_positions();
 		for (String sPosition_id : insertMainPositions) {
-			dao.insertPositionOfOperator(insertBean.getOperator_id(), sPosition_id, "1");
+			if (noticeMainPositions.contains(sPosition_id)) {
+				dao.insertPositionOfOperator(insertBean.getOperator_id(), sPosition_id, "3");
+			} else {
+				dao.insertPositionOfOperator(insertBean.getOperator_id(), sPosition_id, "1");
+			}
 		}
 		// 可选工位
 		List<String> insertAbilities = form.getAbilities();
 		for (String sPosition_id : insertAbilities) {
-			dao.insertPositionOfOperator(insertBean.getOperator_id(), sPosition_id, "0");
+			if (noticeMainPositions.contains(sPosition_id)) {
+				dao.insertPositionOfOperator(insertBean.getOperator_id(), sPosition_id, "2");
+			} else {
+				dao.insertPositionOfOperator(insertBean.getOperator_id(), sPosition_id, "0");
+			}
 		}
 
 		// 可选间接作业
@@ -327,16 +342,28 @@ public class OperatorService {
 		dao.deleteAfAbiltiesOfOperator(updateBean.getOperator_id());
 
 		// 拥有权限关系插入到数据库中
+		// 关注工位
+		List<String> noticeMainPositions = operatorForm.getNotice_positions();
+
 		// 主要工位
-		List<String> updateMainPositions = operatorForm.getMain_positions();
-		for (String sPosition_id : updateMainPositions) {
-			dao.insertPositionOfOperator(updateBean.getOperator_id(), sPosition_id, "1");
+		List<String> insertMainPositions = operatorForm.getMain_positions();
+		for (String sPosition_id : insertMainPositions) {
+			if (noticeMainPositions.contains(sPosition_id)) {
+				dao.insertPositionOfOperator(updateBean.getOperator_id(), sPosition_id, "3");
+			} else {
+				dao.insertPositionOfOperator(updateBean.getOperator_id(), sPosition_id, "1");
+			}
 		}
 		// 可选工位
-		List<String> updateAbilities = operatorForm.getAbilities();
-		for (String sPosition_id : updateAbilities) {
-			dao.insertPositionOfOperator(updateBean.getOperator_id(), sPosition_id, "0");
+		List<String> insertAbilities = operatorForm.getAbilities();
+		for (String sPosition_id : insertAbilities) {
+			if (noticeMainPositions.contains(sPosition_id)) {
+				dao.insertPositionOfOperator(updateBean.getOperator_id(), sPosition_id, "2");
+			} else {
+				dao.insertPositionOfOperator(updateBean.getOperator_id(), sPosition_id, "0");
+			}
 		}
+
 		// 可选间接作业
 		List<String> updateAfAbilities = operatorForm.getAf_abilities();
 		for (String pType : updateAfAbilities) {

@@ -81,17 +81,83 @@ $(function() {
 	setReferChooser($("#input_position"));
 
 	// 编辑工位
-	$("#grid_edit_positions tr:not(:first)").click(function(){
-		$(this).toggleClass("ui-state-active");
-		var main_referId = $(this).find("td:first-child").text();
-		$("#grid_edit_main_position").find("tr:has(.referId:contains('" + main_referId + "'))").removeClass("ui-state-active");
+	$("#grid_edit_positions tr:not(:first)").click(function(evt){
+		var $tr = $(this);
+
+		var actived = $tr.hasClass("ui-state-active");
+
+		if (actived) {
+			var $evtTarget = $(evt.target);
+			if ($tr.children("td").index($evtTarget) == 2) {
+				var notice = $evtTarget.hasClass("ui-state-highlight");
+
+				if (notice) {
+					$evtTarget.removeClass("ui-state-highlight");
+				} else {
+					if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
+						errorPop("只能选择3个以内的关注工位。");
+					} else {
+						$evtTarget.addClass("ui-state-highlight");
+					}
+				}
+				
+			} else {
+				$tr.removeClass("ui-state-active");
+				$tr.find("td.ui-state-highlight").removeClass("ui-state-highlight");
+			}
+		} else {
+			$tr.addClass("ui-state-active");
+
+			if ($tr.children("td").index($(evt.target)) == 2) {
+				if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
+					errorPop("只能选择3个以内的关注工位。");
+				} else {
+					$evtTarget.addClass("ui-state-highlight");
+				}
+			}
+
+			var main_referId = $tr.find("td:first-child").text();
+			$("#grid_edit_main_position").find("tr:has(.referId:contains('" + main_referId + "'))").removeClass("ui-state-active");
+		}
 	});
-	$("#grid_edit_main_position tr:not(:first)").click(function(){
-//		$("#grid_edit_main_position").find("tr.ui-state-active").removeClass("ui-state-active");
-//		$(this).addClass("ui-state-active");
-		$(this).toggleClass("ui-state-active");
-		var main_referId = $(this).find("td:first-child").text();
-		$("#grid_edit_positions").find("tr:has(.referId:contains('" + main_referId + "'))").removeClass("ui-state-active");
+	$("#grid_edit_main_position tr:not(:first)").click(function(evt){
+		var $tr = $(this);
+
+		var actived = $tr.hasClass("ui-state-active");
+
+		if (actived) {
+			var $evtTarget = $(evt.target);
+			if ($tr.children("td").index($evtTarget) == 2) {
+				var notice = $evtTarget.hasClass("ui-state-highlight");
+
+				if (notice) {
+					$evtTarget.removeClass("ui-state-highlight");
+				} else {
+					if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
+						errorPop("只能选择3个以内的关注工位。");
+					} else {
+						$evtTarget.addClass("ui-state-highlight");
+					}
+				}
+				
+			} else {
+				$tr.removeClass("ui-state-active");
+				$tr.find("td.ui-state-highlight").removeClass("ui-state-highlight");
+			}
+		} else {
+			$tr.addClass("ui-state-active");
+
+			if ($tr.children("td").index($(evt.target)) == 2) {
+				if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
+					errorPop("只能选择3个以内的关注工位。");
+				} else {
+					$evtTarget.addClass("ui-state-highlight");
+				}
+			}
+
+			var main_referId = $tr.find("td:first-child").text();
+			$("#grid_edit_positions").find("tr:has(.referId:contains('" + main_referId + "'))").removeClass("ui-state-active");
+		}
 	});
 	$("#grid_edit_af_abilities tr:not(:first)").click(function(){
 		$(this).toggleClass("ui-state-active");
@@ -286,7 +352,8 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			var positions = resInfo.operatorForm.abilities;
 			var grid_detail_positions = $("#grid_edit_positions");
 
-			grid_detail_positions.find("tr").removeClass("ui-state-active");
+			grid_detail_positions.find("tr").removeClass("ui-state-active")
+				.find(".ui-state-highlight").removeClass("ui-state-highlight");
 
 			for (var iposition in positions) {
 				grid_detail_positions.find("tr:has(.referId:contains('"+positions[iposition]+"'))")
@@ -294,7 +361,8 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			}
 
 			var main_positions = resInfo.operatorForm.main_positions;
-			$("#grid_edit_main_position").find("tr").removeClass("ui-state-active");
+			$("#grid_edit_main_position").find("tr").removeClass("ui-state-active")
+				.find(".ui-state-highlight").removeClass("ui-state-highlight");
 
 			for (var iposition in main_positions) {
 				$("#grid_edit_main_position").find("tr:has(.referId:contains('"+main_positions[iposition]+"'))")
@@ -307,6 +375,14 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			for (var iability in af_abilities) {
 				$("#grid_edit_af_abilities").find("tr:has(.referId:contains('"+af_abilities[iability]+"'))")
 					.addClass("ui-state-active");
+			}
+
+			var notice_positions = resInfo.operatorForm.notice_positions;
+			for (var iposition in notice_positions) {
+				grid_detail_positions.find("tr.ui-state-active:has(.referId:contains('"+positions[iposition]+"')) td:last-child")
+					.addClass("ui-state-highlight");
+				$("#grid_edit_main_position").find("tr.ui-state-active:has(.referId:contains('"+main_positions[iposition]+"')) td:last-child")
+					.addClass("ui-state-highlight");
 			}
 
 			var temp_roles = resInfo.operatorForm.temp_role;
@@ -372,6 +448,10 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 							for (var irole in upd_temp_roles) {
 								data["temp_role[" + irole + "]"] = upd_temp_roles[irole];
 							}
+
+							$("#grid_edit_main_position .ui-state-highlight, #grid_edit_positions .ui-state-highlight").each(function(i,item){
+								data["notice_positions[" + i + "]"] = $(item).prev().prev().html();
+							});
 
 							// Ajax提交
 							$.ajax({
@@ -519,6 +599,9 @@ var showAdd = function() {
 				data["af_abilities[" + i + "]"] = $(item).find(".referId").html();
 			});
 
+			$("#grid_edit_main_position .ui-state-highlight, #grid_edit_positions .ui-state-highlight").each(function(i,item){
+				data["notice_positions[" + i + "]"] = $(item).prev().prev().html();
+			});
 
 			var ist_temp_roles = $("#input_roles_id").val();
 			for (var irole in ist_temp_roles) {
