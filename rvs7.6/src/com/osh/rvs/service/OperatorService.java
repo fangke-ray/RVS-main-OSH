@@ -257,7 +257,7 @@ public class OperatorService {
 	public void insert(OperatorForm form, HttpSession session, SqlSessionManager conn, List<MsgInfo> errors)
 			throws Exception {
 		// 新建自动生成密码 TODO
-		form.setPwd("111111");
+		form.setPwd("111asD");
 
 		// 表单复制到数据对象
 		OperatorEntity insertBean = new OperatorEntity();

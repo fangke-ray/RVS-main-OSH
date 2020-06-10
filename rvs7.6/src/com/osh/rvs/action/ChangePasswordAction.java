@@ -142,6 +142,20 @@ public class ChangePasswordAction extends BaseAction {
 			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "新密码"));
 			errors.add(info);
 		} else {
+			if (new_input.length() < 6 || new_input.length() > 12) {
+				MsgInfo info = new MsgInfo();
+				info.setComponentid("new_input");
+				info.setErrcode("validator.invalidParam.invalidRangedLengthValue");
+				info.setErrmsg("请为新密码输入一个长度在6到12之间的值。");
+				errors.add(info);
+			}
+			if (!new_input.matches("^.*\\d.*$") || !new_input.matches("^.*[A-Za-z].*$")) {
+				MsgInfo info = new MsgInfo();
+				info.setComponentid("new_input");
+				info.setErrcode("validator.regex");
+				info.setErrmsg("新密码至少需要一个半角英文字母及一个数字。");
+				errors.add(info);
+			}
 			if (!new_input.equals(new_confirm)) {
 				MsgInfo info = new MsgInfo();
 				info.setComponentid("new_confirm");

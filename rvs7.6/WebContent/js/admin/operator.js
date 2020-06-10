@@ -688,14 +688,14 @@ var showEdit = function(rid) {
 	// 读取删除行
 	var rowData = $("#list").getRowData(rid);
 	var date = new Date();
-	var newpwd = "" + date.getFullYear() + (date.getMonth() + 1) + date.getDate();
+	var newpwd = "Day" + date.getFullYear() + fillZero(date.getMonth() + 1) + fillZero(date.getDate());
 	var data = {
 		"id" : rowData.id,
 		"pwd" : newpwd,
 		"job_no" : rowData.job_no
 	}
 
-	warningConfirm("你要帮["+encodeText(rowData.name)+"]变更登录密码为："+newpwd+"吗？",
+	warningConfirm("你要帮["+encodeText(rowData.name)+"]变更登录密码为：“"+newpwd+"”吗？",
 		function() {
 			// Ajax提交
 			$.ajax({
