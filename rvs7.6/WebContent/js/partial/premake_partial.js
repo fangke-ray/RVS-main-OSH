@@ -85,12 +85,14 @@ var premake_partial_list = function filed_list(finished){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','','零件编码','型号名称','标配零件'],
+			colNames:['','','型号名称','零件编码','零件说明','数量','标配零件'],
 			colModel:[  
 					 {name:'partial_id',index:'partial_id',hidden:true},
 			         {name:'model_id',index:'model_id',hidden:true},
-			         {name:'code',index:'code',width: 150},
-					 {name:'model_name',index:'model_name',width: 150},
+					 {name:'model_name',index:'model_name',width: 60},
+			         {name:'code',index:'code',width: 40},
+			         {name:'partial_name',index:'partial_name',width: 150},
+			         {name:'quantity',index:'quantity',width: 30, align:'right'},
 					 {name:'standard_flg',index:'standard_flg', width:35, align:'center', formatter:'select', editoptions:{value:"0:否;1:是"}}						
 			],
 			rowNum : 35,
@@ -126,6 +128,7 @@ var showEdit = function(){
 	
 	$("#label_partial_code").text(rowData.code);
 	$("#label_model_name").text(rowData.model_name);
+	$("#update_quantity").val(rowData.quantity);
 	if(rowData.standard_flg==1){
 		$("#update_standard_flg_yes").attr("checked","checked").trigger("change");
 	}else if(rowData.standard_flg==0){
@@ -148,6 +151,7 @@ var showEdit = function(){
 		var data ={
 			"partial_id":rowData.partial_id,
 			"model_id":rowData.model_id,
+			"quantity":$("#update_quantity").val(),
 			"standard_flg":$("#update_standard_flg input[type='radio']:checked").val()
 		};
 		
@@ -184,7 +188,7 @@ var update_handleComplete = function(xhrobj, textStatus) {
 };
 
 var showAdd = function(){
-	$("#insert_partial_id,#insert_partial_code").val("");
+	$("#insert_partial_id,#insert_partial_code,#insert_quantity").val("");
 	$("#insert_model_id").val("").trigger("change");
 	$("#insert_standard_flg_all").attr("checked","checked").trigger("change");
 	
@@ -237,6 +241,7 @@ var showAdd = function(){
 			"partial_id":$("#insert_partial_id").val(),
 			"code":$("#insert_partial_code").val(),
 			"model_id":$("#insert_model_id").val(),
+			"quantity":$("#insert_quantity").val(),
 			"standard_flg":$("#insert_standard_flg input[type='radio']:checked").val()
 		};
 		

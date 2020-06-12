@@ -27,7 +27,11 @@ public class PremakePartialEntity implements Serializable {
 
 	private String code;
 
+	private String partial_name;
+
 	private String model_name;
+
+	private Integer quantity;
 
 	public String getPartial_id() {
 		return partial_id;
@@ -67,6 +71,22 @@ public class PremakePartialEntity implements Serializable {
 
 	public void setModel_name(String model_name) {
 		this.model_name = model_name;
+	}
+
+	public Integer getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(Integer quantity) {
+		this.quantity = quantity;
+	}
+
+	public String getPartial_name() {
+		return partial_name;
+	}
+
+	public void setPartial_name(String partial_name) {
+		this.partial_name = partial_name;
 	}
 
 }

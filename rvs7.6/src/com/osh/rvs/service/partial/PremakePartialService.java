@@ -21,6 +21,9 @@ import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class PremakePartialService {
+	// NS 组件 子零件
+	private static final Integer NS_COMP = 3;
+
 	public List<PremakePartialForm> search(ActionForm form, SqlSession conn) {
 		PremakePartialMapper dao = conn.getMapper(PremakePartialMapper.class);
 
@@ -58,7 +61,16 @@ public class PremakePartialService {
 		// 复制表单数据到对象
 		PremakePartialEntity entity = new PremakePartialEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
-		
+
+		// 数量
+		if (entity.getQuantity() == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setComponentid("quantity");
+			msg.setErrcode("validator.invalidParam.invalidMoreThanZero");
+			msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "“数量”"));
+			errors.add(msg);
+		}
+
 		//零件编码
 		String code = entity.getCode();
 		
@@ -87,7 +99,7 @@ public class PremakePartialService {
 		PremakePartialEntity premakePartialEntity = dao.checkExist(entity);
 		
 		//零件预制记录存在,返回提示信息
-		if(premakePartialEntity!=null){
+		if(premakePartialEntity!=null && premakePartialEntity.getStandard_flg() != PremakePartialService.NS_COMP){
 			MsgInfo msg = new MsgInfo();
 			msg.setComponentid("partial");
 			msg.setErrcode("dbaccess.recordDuplicated");

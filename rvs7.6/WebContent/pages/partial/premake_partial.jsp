@@ -123,6 +123,12 @@
 									</td>
 								</tr>
 								<tr>
+									<td class="ui-state-default td-title">数量</td>
+									<td class="td-content">
+										<input type="number" id="insert_quantity" class="ui-widget-content">
+									</td>
+								</tr>
+								<tr>
 									<td class="ui-state-default td-title">标配零件</td>
 									<td class="td-content">
 										<div id="insert_standard_flg">
@@ -163,6 +169,12 @@
 									<td class="ui-state-default td-title">型号名称</td>
 									<td class="td-content">
 										<label id="label_model_name"></label>
+									</td>
+								</tr>
+								<tr>
+									<td class="ui-state-default td-title">数量</td>
+									<td class="td-content">
+										<input type="number" id="update_quantity" class="ui-widget-content">
 									</td>
 								</tr>
 								<tr>

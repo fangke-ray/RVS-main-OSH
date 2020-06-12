@@ -39,6 +39,12 @@ public class PremakePartialForm extends ActionForm implements Serializable {
 	@BeanField(title = "型号名称", name = "model_name", type = FieldType.String)
 	private String model_name;
 
+	@BeanField(title = "零件描述", name = "partial_name", type = FieldType.String)
+	private String partial_name;
+
+	@BeanField(title = "数量", name = "quantity", type = FieldType.UInteger, notNull = true, length = 2)
+	private String quantity;
+
 	public String getPartial_id() {
 		return partial_id;
 	}
@@ -77,6 +83,22 @@ public class PremakePartialForm extends ActionForm implements Serializable {
 
 	public void setModel_name(String model_name) {
 		this.model_name = model_name;
+	}
+
+	public String getPartial_name() {
+		return partial_name;
+	}
+
+	public void setPartial_name(String partial_name) {
+		this.partial_name = partial_name;
+	}
+
+	public String getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
 	}
 
 }

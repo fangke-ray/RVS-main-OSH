@@ -8,8 +8,10 @@
 				pp.partial_id,
 				pp.model_id,
 				partial.code,
+				partial.name as partial_name,
 				model.name AS model_name,
-				pp.standard_flg
+				pp.standard_flg,
+				pp.quantity
 			FROM
 				premake_partial pp
 			LEFT JOIN
@@ -32,6 +34,11 @@
 					AND model.model_id = #{model_id}
 				]]>
 			</if>
+			<if test="standard_flg == null">
+				<![CDATA[
+					AND (pp.standard_flg = 1 OR pp.standard_flg = 0)
+				]]>
+			</if>
 			<if test="standard_flg!=null and standard_flg==1">
 				<![CDATA[
 					AND pp.standard_flg = 1
@@ -42,6 +49,11 @@
 					AND pp.standard_flg = 0
 				]]>
 			</if>
+			<if test="standard_flg!=null and standard_flg==3">
+				<![CDATA[
+					AND pp.standard_flg = 3
+				]]>
+			</if>
 		</where>
 	</select>
 	
@@ -50,7 +62,8 @@
 			UPDATE
 				premake_partial
 			SET
-				standard_flg = #{standard_flg}
+				standard_flg = #{standard_flg},
+				quantity = #{quantity}
 			WHERE
 				partial_id = #{partial_id}
 			AND
@@ -66,7 +79,7 @@
 	
 	<insert id="insert" parameterType="PremakePartialEntity">
 		<![CDATA[
-			INSERT INTO premake_partial (partial_id,model_id,standard_flg) VALUES (#{partial_id},#{model_id},#{standard_flg})
+			INSERT INTO premake_partial (partial_id,model_id,standard_flg,quantity) VALUES (#{partial_id},#{model_id},#{standard_flg},#{quantity})
 		]]>
 	</insert>
 	
