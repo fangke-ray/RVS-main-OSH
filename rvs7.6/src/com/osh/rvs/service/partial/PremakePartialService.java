@@ -39,14 +39,23 @@ public class PremakePartialService {
 		return returnFormList;
 	}
 
-	public void update(ActionForm form, SqlSessionManager conn) {
+	public void update(ActionForm form, List<MsgInfo> errors, SqlSessionManager conn) {
 		PremakePartialMapper dao = conn.getMapper(PremakePartialMapper.class);
 
 		// 复制表单数据到对象
 		PremakePartialEntity entity = new PremakePartialEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
-		dao.update(entity);
+		// 数量
+		if (entity.getQuantity() == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setComponentid("quantity");
+			msg.setErrcode("validator.invalidParam.invalidMoreThanZero");
+			msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "“数量”"));
+			errors.add(msg);
+		} else {
+			dao.update(entity);
+		}
 	}
 	
 	/**

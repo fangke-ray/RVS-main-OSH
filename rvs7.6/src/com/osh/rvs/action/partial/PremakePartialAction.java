@@ -93,7 +93,7 @@ public class PremakePartialAction extends BaseAction {
 
 		if(errors.size()==0){
 			PremakePartialService service = new PremakePartialService();
-			service.update(form, conn);
+			service.update(form, errors, conn);
 		}
 
 		listResponse.put("errors", errors);
