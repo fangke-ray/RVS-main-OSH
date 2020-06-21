@@ -379,9 +379,9 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 
 			var notice_positions = resInfo.operatorForm.notice_positions;
 			for (var iposition in notice_positions) {
-				grid_detail_positions.find("tr.ui-state-active:has(.referId:contains('"+positions[iposition]+"')) td:last-child")
+				grid_detail_positions.find("tr.ui-state-active:has(.referId:contains('"+notice_positions[iposition]+"')) td:last-child")
 					.addClass("ui-state-highlight");
-				$("#grid_edit_main_position").find("tr.ui-state-active:has(.referId:contains('"+main_positions[iposition]+"')) td:last-child")
+				$("#grid_edit_main_position").find("tr.ui-state-active:has(.referId:contains('"+notice_positions[iposition]+"')) td:last-child")
 					.addClass("ui-state-highlight");
 			}
 
