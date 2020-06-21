@@ -699,7 +699,7 @@ public class MaterialAction extends BaseAction {
 
 	@Privacies(permit={1, 0})
 	public void getFlowchart(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
-		log.info("MaterialAction.getFlowchart start");
+		log.info("MaterialAction.getFlowchart start " + req.getParameter("from"));
 
 		Map<String, Object> listResponse = new HashMap<String, Object>();
 
@@ -790,6 +790,8 @@ public class MaterialAction extends BaseAction {
 			List<MaterialProcessAssignForm> processAssigns = mpas.searchMaterialProcessAssign(form, conn);
 			listResponse.put("mProcessAssigns", processAssigns);
 
+			// 取得中小修理对应工位/流程设定用
+			listResponse.put("positionMapping", mpas.getPositionMappingEntities(conn));
 		}
 
 		// 返回Json格式响应信息

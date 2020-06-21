@@ -2,6 +2,7 @@ package com.osh.rvs.service;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +31,6 @@ import com.osh.rvs.form.master.ProcessAssignForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.inline.MaterialProcessAssignMapper;
 import com.osh.rvs.mapper.master.LightFixMapper;
-import com.osh.rvs.mapper.master.PositionMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -197,6 +197,8 @@ public class MaterialProcessAssignService {
 						 processAssignList.get(icounts).setNext_position_id(value[0]);
 					 } else if ("prev_position_id".equals(column)) {
 						 processAssignList.get(icounts).setPrev_position_id(value[0]);
+					 } else if ("sign_position_id".equals(column)) {
+						 processAssignList.get(icounts).setSign_position_id(value[0]);
 					 }
 				 }
 			 }
@@ -243,7 +245,8 @@ public class MaterialProcessAssignService {
 				if (position_id == null) continue;
 				entity.setMaterial_id(material_id);
 				entity.setLine_id("9000000");
-				entity.setSign_position_id(position_id);
+				if (entity.getSign_position_id() == null) 
+					entity.setSign_position_id(position_id);
 				if (entity.getPrev_position_id() == null)
 					entity.setPrev_position_id("0");
 				if (entity.getNext_position_id() == null)
@@ -503,21 +506,27 @@ public class MaterialProcessAssignService {
 	 * @return
 	 */
 	public String getLightFixFlowByMaterial(String material_id,
-			String now_process_code, SqlSessionManager conn) {
+			String now_process_code, SqlSession conn) {
 		MaterialProcessAssignMapper mapper = conn.getMapper(MaterialProcessAssignMapper.class);
 		ProcessAssignEntity checkedPosition = mapper.getFirstPosition(material_id);
 		if (checkedPosition == null)
 			return null;
 
-		PositionMapper pMapper = conn.getMapper(PositionMapper.class);
+		Map<String, List<String>> positionMappings = PositionService.getPositionMappings(conn);
+
 		String position_id = checkedPosition.getPosition_id();
-		String ret = getProcessInterf(pMapper.getPositionByID(position_id), now_process_code);
+		String ret = getProcessInterf(new PositionService().getPositionEntityByKey(position_id, conn), now_process_code);
 		while (position_id != null) {
 			List<PositionEntity> nextPositions = mapper.getNextPositions(material_id, position_id);
 			if (nextPositions.size() > 0) {
 				for (PositionEntity nextPosition : nextPositions) {
 					ret += " -> " + getProcessInterf(nextPosition, now_process_code);
 					position_id = nextPosition.getPosition_id();
+					if (positionMappings.containsKey(CommonStringUtil.fillChar(position_id, '0', 11, true))) {
+						List<String> mappedProcessCodes = mapper.getSelectedMappings(material_id, position_id);
+						ret += "(" + CommonStringUtil.joinBy(",", 
+								mappedProcessCodes.toArray(new String[mappedProcessCodes.size()])) + ")";
+					}
 				}
 			} else {
 				position_id = null;
@@ -526,6 +535,13 @@ public class MaterialProcessAssignService {
 		return ret;
 	}
 
+	/**
+	 * 取得工位表现格式
+	 * 
+	 * @param position
+	 * @param now_process_code 当前工位
+	 * @return
+	 */
 	private String getProcessInterf(PositionEntity position,
 			String now_process_code) {
 		if (position == null)
@@ -538,12 +554,32 @@ public class MaterialProcessAssignService {
 			}
 		}
 		else {
+			// 当前工位显示下划线
 			if (position.getLight_division_flg() != null && position.getLight_division_flg() == 1) {
 				return "<span style='font-weight:bold; text-decoration: underline;'>" + position.getProcess_code() + "B</span>";
 			} else {
 				return "<span style='font-weight:bold; text-decoration: underline;'>" + position.getProcess_code() + "</span>";
 			}
 		}
+	}
+
+	/**
+	 * 取得中小修理对应工位
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public Map<String, String[]> getPositionMappingEntities(SqlSession conn) {
+		PositionService pService = new PositionService();
+		Map<String, String[]> positionMappingEntities = new HashMap<String, String[]>();
+		Map<String, String> positionMapping = PositionService.getPositionMappingRevers(conn);
+		for (String pId : positionMapping.keySet()) {
+			String[] positionMappingEntity = new String[2];
+			positionMappingEntity[0] = positionMapping.get(pId);
+			positionMappingEntity[1] = pService.getPositionEntityByKey(positionMappingEntity[0], conn).getProcess_code();
+			positionMappingEntities.put(pId.replaceAll("^0+", ""), positionMappingEntity);
+		}
+		return positionMappingEntities;
 	}
 
 }

@@ -61,6 +61,7 @@ var popPostDetail = function(message_id, is_modal){
 */
 var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 	var resInfo = null;
+	console.log("xhrobj.responseText" + xhrobj.responseText.length);
 	try {
 		// 以Object形式读取JSON
 		eval('resInfo =' + xhrobj.responseText);
@@ -71,9 +72,9 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 		} else {
 
 			chosedPos = {};
+			var positionMapping = resInfo.positionMapping;
 
 			if ($("#rework_pat_id").attr("neo")) {
-				$("#rework_pat_id").removeAttr("neo");
 				$("#hdn_pat_id").val(resInfo.pat_id);
 				$("#rework_pat_id").val(resInfo.pat_id).trigger("change");
 			}
@@ -102,6 +103,11 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 							$span.addClass("point");
 							chosedPos[code]=1;
 						}
+					}
+
+					if (positionMapping[code] != null) {
+						$div.attr({ "map_id": positionMapping[code][0] });
+						$span.attr({ "map_code" : positionMapping[code][1] });
 					}
 				});
 
@@ -133,6 +139,7 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 					.after("<div class=\"feature_result\">"+productionFeature.operator_name+"<br>"+productionFeature.finish_time+"</div>");
 			}
 			$("#pa_red div.pos[code="+ parseInt(selectedMaterial.position_id, 10) +"]").find("span").addClass("nogood");
+			$("#pa_red div.pos[map_id="+ selectedMaterial.position_id +"]").find("span").removeClass("suceed").addClass("nogood");
 
 			if (resInfo.isLightFix) {
 				// 小修理不能进行工程内返工
@@ -186,10 +193,23 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 
 					var reworkPositions = $("#pa_red span.rework").parent();
 					if (reworkPositions.length > 0) {
-					for (var iReworkPositions = 0; iReworkPositions<reworkPositions.length; iReworkPositions++) {
-						var reworkPosition = reworkPositions[iReworkPositions];
-						data["rework.positions["+iReworkPositions+"]"] = $(reworkPosition).attr("code");
-					}
+						var positionIdx = 0;
+						var mapIdArr = [];
+						for (var iReworkPositions = 0; iReworkPositions<reworkPositions.length; iReworkPositions++) {
+							var $reworkPosition = $(reworkPositions[iReworkPositions]);
+
+							var map_id = $reworkPosition.attr("map_id");
+							if (map_id) {
+								if (mapIdArr.indexOf(map_id) < 0) {
+									data["rework.positions["+positionIdx+"]"] = map_id;
+									positionIdx ++;
+									mapIdArr.push(map_id);
+								}
+							} else {
+								data["rework.positions["+positionIdx+"]"] = $reworkPosition.attr("code");
+								positionIdx ++;
+							}
+						}
 					}
 
 					// 同时修改维修路径
@@ -198,12 +218,14 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 							data.pat_id = $("#rework_pat_id").val();
 						}
 						if ($("#reworked_y").attr("checked") && !data["rework.positions[0]"]) {
-							data["rework.positions[0]"] = $("#pa_red span.nogood").parent().attr("code");
+							var $reworkPosition = $("#pa_red span.nogood").parent();
+							data["rework.positions[0]"] = $reworkPosition.attr("map_id") || $reworkPosition.attr("code");
 						}
 					} else {
 						// 线长线内必返工位
 						if (!data["rework.positions[0]"]) {
-							data["rework.positions[0]"] = $("#pa_red span.nogood").parent().attr("code");
+							var $reworkPosition = $("#pa_red span.nogood").parent();
+							data["rework.positions[0]"] = $reworkPosition.attr("map_id") || $reworkPosition.attr("code");
 						}
 					}
 
@@ -226,34 +248,98 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 						($("#flowcase div.pos span.point").length > 0
 						&& $("#flowcase div.pos span.rework").not(".point").length > 0)) {
 
+						//工位
 						var count=0;
 						var chainHead = null;
 						var chain = {};
-						var total = $("#flowcase div.pos span").length;
+						var mappedmap = {}, tomap = {};
+						var $checked = $("#flowcase div.pos span").filter(".point, .rework");
+						var total = $checked.length;
+						var mappingCursor = null;
 
-						$("#flowcase div.pos span").each(function(index,ele){
+						$checked.each(function(index,ele){
 							var $span = $(ele);
-							if($span.hasClass("point") || $span.hasClass("rework")){
-								var $posData = $span.parent();
-								var code = $posData.attr("code");
-								if (code != "25") {
-									var item = {code: code};
-									if ($posData.attr("prevcode") == "0" && $posData.parents(".just-multi").length == 0) {
-										chainHead = item;
-									}
-									item["prev"] = getPrevPos($posData);
-									chain[code] = item;
+
+							var $posData = $span.parent();
+							var code = $posData.attr("code");
+							var mappingCode = $posData.attr("map_id");
+							if (code != "25") {
+								var item = {code: code};
+								if ($posData.attr("prevcode") == "0" && $posData.parents(".just-multi").length == 0) {
+									chainHead = item;
 								}
-								data["material_process_assign.position_id[" + count + "]"] = code;
-								if (count > 0) {
-									data["material_process_assign.next_position_id[" + (count-1) + "]"] = code;
-								}
-								if (count < (total - 1)) {
-									data["material_process_assign.prev_position_id[" + (count+1) + "]"] = code;
-								}
-								count++;
+								item["prev"] = getPrevPos($posData);
+								chain[code] = item;
 							}
+							data["material_process_assign.position_id[" + count + "]"] = code;
+
+							if (mappingCursor != mappingCode) {
+								mappingCursor = mappingCode;
+								if (mappingCode && mappedmap[mappingCode] != null) {
+									errorPop("中小修对应工位不能在流程中多次出现，请保持连续的工位对应同一个中小修工位。");
+									return;
+								}
+							}
+
+							if (mappingCode) {
+								if (mappedmap[mappingCode] == null) {
+									mappedmap[mappingCode] = {list : []};
+								}
+								mappedmap[mappingCode].list.push(code);
+								tomap[code] = mappingCode;
+							}
+
+							if (count > 0) {
+								data["material_process_assign.next_position_id[" + (count-1) + "]"] = code;
+							}
+							if (count < (total - 1)) {
+								data["material_process_assign.prev_position_id[" + (count+1) + "]"] = code;
+							}
+							count++;
 						});
+
+						for (var idx = 0; idx < total; idx++) {
+							var code = data["material_process_assign.position_id[" + idx + "]"];
+							if (tomap[code] != null) {
+								var mappingCode = tomap[code];
+								if (mappedmap[mappingCode].prev == null)
+									mappedmap[mappingCode].prev
+										= data["material_process_assign.prev_position_id[" + idx + "]"];
+								data["material_process_assign.prev_position_id[" + idx + "]"] = 0;
+
+								mappedmap[mappingCode].next
+									= data["material_process_assign.next_position_id[" + idx + "]"];
+								data["material_process_assign.next_position_id[" + idx + "]"] = 0;
+					
+								data["material_process_assign.sign_position_id[" + idx + "]"] = mappingCode;
+							}
+						}
+
+						for (var mappingCode in mappedmap) {
+							data["material_process_assign.position_id[" + count + "]"] = mappingCode;
+							data["material_process_assign.prev_position_id[" + count + "]"] = mappedmap[mappingCode].prev || 0;
+							data["material_process_assign.next_position_id[" + count + "]"] = mappedmap[mappingCode].next || 9999999;
+							data["material_process_assign.sign_position_id[" + count + "]"] = mappingCode;
+
+							count++;
+						}
+
+						for (var idx = 0; idx < count; idx++) {
+							var prev = data["material_process_assign.prev_position_id[" + idx + "]"];
+							var next = data["material_process_assign.next_position_id[" + idx + "]"];
+
+							if (prev == null) {
+								data["material_process_assign.prev_position_id[" + idx + "]"] = 0;
+							}else if (tomap[prev] != null) {
+								data["material_process_assign.prev_position_id[" + idx + "]"] = tomap[prev];
+							}
+
+							if (next == null) {
+								data["material_process_assign.next_position_id[" + idx + "]"] = 0;
+							}else if (tomap[next] != null) {
+								data["material_process_assign.next_position_id[" + idx + "]"] = tomap[next];
+							}
+						}
 					}
 
 					// Ajax提交
@@ -301,6 +387,8 @@ var process_resign = function() {
 	// µ¼Èë·µ¹¤»­Ãæ
 	$("#process_resign").load("widget.do?method=rework", function(responseText, textStatus, XMLHttpRequest) {
 
+		console.log("load widget rework" + new Date());
+
 		$("#rework_sorc_no").text(selectedMaterial.sorc_no);
 		$("#rework_model_name").text(selectedMaterial.model_name);
 		$("#rework_serial_no").text(selectedMaterial.serial_no);
@@ -315,7 +403,7 @@ var process_resign = function() {
 			async : true,
 			url : 'material.do?method=getFlowchart',
 			cache : false,
-			data : {material_id : selectedMaterial.material_id},
+			data : {material_id : selectedMaterial.material_id, from : 'message_detail.js'},
 			type : "post",
 			dataType : "json",
 			success : ajaxSuccessCheck,
