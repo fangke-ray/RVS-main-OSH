@@ -544,6 +544,13 @@ ORDER BY pause_reason DESC , operate_result DESC;
 	<select id="checkSnoutOrigin" resultType="MaterialEntity">
 		<![CDATA[ 
 select so.material_id, ma.model_id, so.manage_serial_no as serial_no, ma.omr_notifi_no as sorc_no
+		]]>
+	<if test="material_id!=null and material_id!=''">
+		<![CDATA[ 
+	, exists (select * from solo_production_feature where model_id = ma.model_id and serial_no = so.manage_serial_no and operate_result = 2) as operate_result
+		]]>
+			</if>
+		<![CDATA[ 
 from snout_origin so
 join material ma
 on so.material_id = ma.material_id

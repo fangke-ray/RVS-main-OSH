@@ -178,3 +178,16 @@
 	-webkit-border-radius: 6px;
 	z-index: 9999;
 }
+
+.edgeposition .pos span.suceed[map_code]:after,
+.edgeposition .pos span.point[map_code]:after,
+.edgeposition .pos span.rework[map_code]:after,
+.edgeposition .pos span.nogood[map_code]:after {
+	content: attr(map_code);
+	background-color: #FAD1AF;
+	position:absolute;
+	right: -1.5em;
+	bottom: 0.5em;
+	padding: 0 2px;
+	border-radius: 5px;
+}

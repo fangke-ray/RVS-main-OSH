@@ -18,7 +18,7 @@ public class PcsRequestForm extends ActionForm {
 	private String request_date_start;
 	@BeanField(title = "依赖发布日期E", name = "request_date_end", type = FieldType.Date)
 	private String request_date_end;
-	@BeanField(title = "依赖 DB 号", name = "request_db_no", notNull = true)
+	@BeanField(title = "依赖 DB 号", name = "request_db_no", length = 20, notNull = true)
 	private String request_db_no;
 	@BeanField(title = "依赖描述", name = "description")
 	private String description;

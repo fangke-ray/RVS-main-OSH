@@ -101,7 +101,7 @@
 			AND mpan.material_id = #{material_id}
 
 		WHERE mpa.material_id = #{material_id}
-		AND mpa.prev_position_id = 0;
+		AND mpa.prev_position_id = 0 AND mpa.next_position_id != 0;
 		]]>
 	</select>
 
@@ -200,6 +200,18 @@
 			and pos.line_id = mp.line_id
 			where mpa.material_id = #{material_id}
 			group by pos.line_id
+			;
+		]]>
+	</select>
+
+	<select id="getSelectedMappings" parameterType="String" resultType="String">
+		<![CDATA[
+			select pos.process_code from material_process_assign mps
+			join position pos
+			on mps.position_id = pos.position_id
+			where material_id = #{material_id} and sign_position_id = #{position_id}
+			and next_position_id = 0
+			order by pos.process_code
 			;
 		]]>
 	</select>

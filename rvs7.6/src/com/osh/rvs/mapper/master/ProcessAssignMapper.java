@@ -77,4 +77,6 @@ public interface ProcessAssignMapper {
 
 	public Map<String, Object> getDerivePair(@Param("process_assign_template_id") String pat_id,
 			@Param("derive_kind") String derive_kind);
+
+	public String getDerivedIdByModel(@Param("model_id") String model_id, @Param("derive_kind") String derive_kind);
 }

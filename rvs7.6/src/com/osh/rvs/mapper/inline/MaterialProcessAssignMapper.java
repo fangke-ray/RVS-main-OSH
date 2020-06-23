@@ -52,4 +52,7 @@ public interface MaterialProcessAssignMapper {
 	public List<String> getPartAll(@Param("material_id") String material_id, @Param("line_id") String line_id);
 
 	public List<LineEntity> getWorkedLines(String materialId);
+
+	public List<String> getSelectedMappings(@Param("material_id") String material_id,
+			@Param("position_id") String position_id);
 }

@@ -23,6 +23,7 @@ import com.osh.rvs.form.master.LightFixForm;
 import com.osh.rvs.service.MaterialProcessAssignService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProcessAssignService;
 
 import framework.huiqing.action.BaseAction;
@@ -108,6 +109,9 @@ public class MaterialProcessAssignAction extends BaseAction {
 				if (defaultPatId != null)
 					materialForm.setPat_id(CommonStringUtil.fillChar(defaultPatId, '0', 11, true));
 			}
+
+			// 取得中小修理对应工位/流程设定用
+			callbackResponse.put("positionMapping", service.getPositionMappingEntities(conn));
 		}
 
 //		String category_kind = CodeListUtils.getGridOptions("category_kind");//机种分类

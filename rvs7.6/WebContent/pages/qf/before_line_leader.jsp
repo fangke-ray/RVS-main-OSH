@@ -12,7 +12,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
-<link rel="stylesheet" type="text/css" href="css/flowchart.css">
+<link rel="stylesheet" type="text/css" href="css/flowchart.css?v=3">
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
@@ -26,7 +26,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.flowchart.js"></script>
 <script type="text/javascript" src="js/qf/before_line_leader.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
-
+<script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
 
 <title>现品报价课 受理报价工程</title>
 </head>

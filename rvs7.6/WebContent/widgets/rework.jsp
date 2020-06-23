@@ -16,6 +16,10 @@ $(function() {
 	$("#rework_pat_id").select2Buttons();
 
 	$("#rework_pat_id").change(function(){
+		if ($("#rework_pat_id").attr("neo")) {
+			$("#rework_pat_id").removeAttr("neo");
+			return;
+		}
 
 		$.ajax({
 			beforeSend : ajaxRequestType,
