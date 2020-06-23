@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ComponentSettingMapper">
+
+ 	<select id="getAllComponentSettings" resultType="ComponentSettingEntity">
+		<![CDATA[ 
+		SELECT 
+			cs.model_id ,
+			md.name as model_name, 
+			cs.component_partial_id, 
+			cs.identify_code, 
+			cs.safety_lever
+		from component_setting cs
+		   join model md on md.model_id = cs.model_id
+		order by model_id;
+		]]>
+	</select>
+
+ 	<select id="searchComponentSetting" resultType="ComponentSettingEntity">
+		<![CDATA[ 
+			select 
+				cs.model_id
+                ,vm.CATEGORY_NAME as category_name
+                ,vm.NAME as model_name
+                ,pm.code as component_code
+                ,IFNULL(cs.safety_lever, 0) as safety_lever
+			    ,IFNULL(cm.cnt_partial_step0, 0) as cnt_partial_step0
+			    ,IFNULL(cm.cnt_partial_step1, 0) as cnt_partial_step1
+			    ,IFNULL(cm.cnt_partial_step2, 0) as cnt_partial_step2
+			    ,IFNULL(cm.cnt_partial_step3, 0) as cnt_partial_step3
+                ,ppc.partial_code as partial_code
+			from 
+			    component_setting cs
+				left join 
+                ( select cm1.model_id
+						, sum(if(step=0,1,0)) as cnt_partial_step0
+						, sum(if(step=1,1,0)) as cnt_partial_step1
+						, sum(if(step=2,1,0)) as cnt_partial_step2
+						, sum(if(step=3,1,0)) as cnt_partial_step3
+				  from component_manage cm1 
+                  where cm1.step < 4
+                  group by model_id 
+				) cm on cs.model_id = cm.model_id
+				left join 
+                ( select pp.model_id, group_concat(pm2.code separator ' ') as partial_code
+				  from premake_partial pp
+				  left join partial pm2 on pp.partial_id = pm2.partial_id
+                  where pp.standard_flg = 3
+                  group by model_id 
+				) ppc on ppc.model_id = cs.model_id
+                left join v_model vm on cs.model_id = vm.MODEL_ID
+                left join partial pm on cs.component_partial_id = pm.partial_id
+            order by model_name ASC
+		]]>
+	</select>
+	
+	<!-- 新建页面插入数据 -->
+	<insert id="insertSetting" parameterType="ComponentSettingEntity">
+		<![CDATA[ 
+		INSERT INTO 
+				`component_setting` 
+				(`model_id`, 
+				 `component_partial_id`,
+				  safety_lever,
+				  identify_code) 					
+        VALUES 
+	        	(#{model_id},
+	        	 #{component_partial_id},
+	        	 #{safety_lever},
+				 #{identify_code}
+				 ); 
+		]]>
+	</insert>
+	
+	<select id="searchComponentSettingByModelId" resultType="ComponentSettingEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT 
+			cs.model_id ,
+			md.name as model_name, 
+			cs.component_partial_id, 
+			cs.identify_code, 
+			cs.safety_lever
+		FROM component_setting cs
+		   join model md on md.model_id = cs.model_id
+		WHERE cs.model_id = #{model_id}
+		ORDER BY model_id;
+		]]>
+	</select>
+	
+	<select id="searchComponentSettingByIdentifyCode" resultType="ComponentSettingEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT 
+			cs.model_id ,
+			md.name as model_name, 
+			cs.component_partial_id, 
+			cs.identify_code, 
+			cs.safety_lever
+		FROM component_setting cs
+		   join model md on md.model_id = cs.model_id
+		WHERE cs.identify_code = #{identify_code}
+		ORDER BY model_id;
+		]]>
+	</select>
+	
+	<select id="getSettingDetail" resultType="ComponentSettingEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT 
+			cs.model_id ,
+			md.name as model_name, 
+			cs.component_partial_id, 
+			pm.name as partial_name,
+			pm.code as component_code,
+			cs.identify_code, 
+			cs.safety_lever
+		FROM component_setting cs
+		   join model md on md.model_id = cs.model_id
+		   join partial pm on cs.component_partial_id = pm.partial_id
+		WHERE cs.model_id = #{model_id}
+		ORDER BY model_id;
+		]]>
+	</select>
+	
+	<!-- 修改组件设置_更新 -->
+	<update id="updateSetting" parameterType="ComponentSettingEntity">
+		<![CDATA[ 
+			UPDATE component_setting 
+			SET 
+				safety_lever = #{safety_lever}
+			WHERE model_id = #{model_id}
+		]]>
+	</update>
+	
+	<!-- 修改组件设置_删除 -->
+	<update id="deleteSetting" parameterType="ComponentSettingEntity">
+		<![CDATA[ 
+			DELETE FROM component_setting
+		]]>
+		<where>
+			<if test="model_id!=null and model_id!=''">
+				<![CDATA[
+					AND model_id = #{model_id}
+				]]>
+			</if>
+		</where>
+	</update>
+ </mapper>

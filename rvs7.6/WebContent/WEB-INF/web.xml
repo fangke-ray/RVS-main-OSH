@@ -29,7 +29,7 @@
 	  <init-param>
 	    <description>文件系统根目录</description>
 	    <param-name>BASE_PATH</param-name>
-	    <param-value>E:\rvs</param-value>
+	    <param-value>D:\RVS-main-OSH\RVS</param-value>
 	  </init-param>
 	  <init-param>
 	    <description>带格式的报表对应模板</description>
@@ -150,6 +150,11 @@
         	<display-name>JSPConfiguration</display-name>
             <url-pattern>/pages</url-pattern>
             <el-ignored>false</el-ignored>
+        </jsp-property-group>
+        <jsp-property-group>
+            <url-pattern>*.jsp</url-pattern>
+            <el-ignored>false</el-ignored>
+            <page-encoding>utf-8</page-encoding>
         </jsp-property-group>
     </jsp-config>
 </web-app>

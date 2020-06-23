@@ -85,7 +85,8 @@ $(function() {
 		        <a target="_parent" href="consumable_list.do">消耗品仓库库存一览</a><br>
 		        <a target="_parent" href="consumable_manage.do">消耗品仓库管理记录</a><br>
 		        <a target="_parent" href="consumable_online.do">消耗品在线一览</a><br>
-		        <a target="_parent" href="consumable_supply_record.do">消耗品发放记录</a>
+		        <a target="_parent" href="consumable_supply_record.do">消耗品发放记录</a><br>
+		        <a target="_parent" href="component_manage.do">NS组件库存管理</a>
 		    </div>
 
 		</div>

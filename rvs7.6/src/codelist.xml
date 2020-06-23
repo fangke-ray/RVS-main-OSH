@@ -1292,4 +1292,12 @@
 		<value code="3">入库完</value>
 	</codelist>
 
+	<codelist name="component_step">
+		<value code="0">子零件待入库</value>
+		<value code="1">子零件已入库</value>
+		<value code="2">组装中</value>
+		<value code="3">组装完成</value>
+		<value code="4">已使用</value>
+	</codelist>
+
 </codelist-config>

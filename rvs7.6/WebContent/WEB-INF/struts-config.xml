@@ -124,6 +124,9 @@
 		<form-bean name="FactMaterialForm" type="com.osh.rvs.form.qf.FactMaterialForm"></form-bean>
 		<form-bean name="WastePartialRecycleCaseForm" type="com.osh.rvs.form.partial.WastePartialRecycleCaseForm"></form-bean>
 		<form-bean name="WastePartialArrangementForm" type="com.osh.rvs.form.partial.WastePartialArrangementForm"></form-bean>
+		
+		<form-bean name="componentManageForm" type="com.osh.rvs.form.partial.ComponentManageForm"></form-bean>
+		<form-bean name="componentSettingForm" type="com.osh.rvs.form.partial.ComponentSettingForm"></form-bean>
 	</form-beans>
 
 
@@ -1476,7 +1479,17 @@
 			<forward name="success" path="/pages/report/procedure_manual.jsp" />
 		</action>
 		<!-- rvs 八期end -->
-
+		
+		<!-- NS组件库存管理  -->
+		<action path="/component_manage"
+			type="com.osh.rvs.action.partial.ComponentManageAction"
+			name="componentManageForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/partial/component_manage.jsp" />
+			<forward name="success" path="/pages/partial/component_manage.jsp" />
+		</action>
 
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->

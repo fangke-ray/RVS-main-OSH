@@ -120,4 +120,15 @@ public class PremakePartialService {
 		dao.insert(entity);
 	}
 
+	public void delete(ActionForm form, SqlSessionManager conn) {
+		PremakePartialMapper dao = conn.getMapper(PremakePartialMapper.class);
+
+		// 复制表单数据到对象
+		PremakePartialEntity entity = new PremakePartialEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		entity.setStandard_flg(PremakePartialService.NS_COMP);
+
+		// 删除指定型号ID的NS组件子零件
+		dao.delete(entity);
+	}
 }

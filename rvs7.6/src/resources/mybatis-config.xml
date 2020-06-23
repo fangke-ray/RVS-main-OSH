@@ -140,6 +140,9 @@
 		
 		<typeAlias alias="WastePartialArrangementEntity" type="com.osh.rvs.bean.partial.WastePartialArrangementEntity"/>
 		<typeAlias alias="WastePartialRecycleCaseEntity" type="com.osh.rvs.bean.partial.WastePartialRecycleCaseEntity"/>
+		
+		<typeAlias alias="ComponentManageEntity" type="com.osh.rvs.bean.partial.ComponentManageEntity"/>
+		<typeAlias alias="ComponentSettingEntity" type="com.osh.rvs.bean.partial.ComponentSettingEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -147,7 +150,7 @@
 			<transactionManager type="JDBC" />
 			<dataSource type="POOLED">
 				<property name="driver" value="com.mysql.jdbc.Driver" />
-				<property name="url" value="jdbc:mysql://localhost:3306/rvsdb?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf8" />
+				<property name="url" value="jdbc:mysql://198.198.198.142:3306/rvsdb?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf8" />
 				<property name="username" value="dbma" />
 				<property name="password" value="FEDur7s#" />
 			</dataSource>
@@ -291,5 +294,8 @@
 		<mapper resource="com/osh/rvs/mapper/report/RemainTimeReportMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/equipment/DeviceBackupMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/equipment/DeviceJigRepairRecordMapper.xml"/>
+		
+		<mapper resource="com/osh/rvs/mapper/partial/ComponentManageMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/ComponentSettingMapper.xml"/>
 	</mappers>
 </configuration> 

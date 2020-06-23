@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.ComponentManageMapper">
+
+ 	<select id="searchComponentManage" parameterType="ComponentManageEntity" resultType="ComponentManageEntity">
+		<![CDATA[
+			select distinct
+				cm.component_key
+                ,cm.model_id
+			    ,vm.NAME as model_name
+			    ,cm.origin_material_id
+                ,mm1.omr_notifi_no as origin_omr_notifi_no
+			    ,cm.step
+			    ,CASE
+				    WHEN cm.origin_material_id is null OR cm.origin_material_id = 0
+				    THEN "-"
+					ELSE (select group_concat(partial.code separator ' ')
+							from partial join material_partial_detail	
+								on partial.partial_id = material_partial_detail.partial_id 
+								and status = 8	
+	 						where material_partial_detail.material_id = cm.origin_material_id)
+				 END as partial_code
+			    ,cm.stock_code
+			    ,cm.inline_date
+			    ,cm.serial_no
+			    ,'' as operator_name
+			    ,CASE 
+				 WHEN cm.target_material_id is null
+				 THEN  (select partial.code from partial where cs.component_partial_id = partial.partial_id
+						and cs.model_id = cm.model_id)
+				 ELSE  (select partial.code from partial join material_partial_detail
+				 		on partial.partial_id = material_partial_detail.partial_id and status = 7
+						where material_partial_detail.material_id = cm.target_material_id limit 1)
+				 END as component_code
+			    ,cm.finish_time
+			    ,cm.target_material_id
+                ,mm2.omr_notifi_no as target_omr_notifi_no
+			from 
+				component_manage cm
+                left join v_model vm on cm.model_id = vm.MODEL_ID
+                left join material mm1 on cm.origin_material_id = mm1.material_id
+                left join material mm2 on cm.target_material_id = mm2.material_id
+				left join component_setting cs on cs.model_id = cm.model_id
+				left join partial pm on cs.component_partial_id = pm.partial_id
+            where cm.step <> 9
+			]]>
+
+		    <if test="search_model_id!=null">
+		    	<![CDATA[ and cm.model_id = #{search_model_id}]]>
+		    </if>
+		    <if test="search_component_code!=null">
+				and (exists(
+					select 1
+					from partial 
+					join material_partial_detail
+						on partial.partial_id = material_partial_detail.partial_id and status = 7
+					where material_partial_detail.material_id = cm.target_material_id
+					 and partial.code like CONCAT(#{search_component_code},'%'))
+					 OR 
+					 exists (
+					 select 1 
+					 from component_setting
+					 join partial  
+					 	ON component_setting.component_partial_id = partial.partial_id
+					 where  component_setting.model_id = cm.model_id))
+		    </if>
+		    <if test="search_partial_code!=null">
+		    	and exists (
+		    			select 1 
+		    			from partial 
+		    			join material_partial_detail
+		    			 on partial.partial_id = material_partial_detail.partial_id and status = 8
+		    			where material_partial_detail.material_id = cm.origin_material_id
+		    			  and partial.code like CONCAT(#{search_partial_code},'%'))
+		    					    </if>
+		    <if test="search_serial_no!=null">
+		    	<![CDATA[ and cm.serial_no like CONCAT('%',#{search_serial_no},'%')]]>
+		    </if>
+		    <if test="search_stock_code!=null">
+		    	<![CDATA[ and cm.stock_code like CONCAT('%',#{search_stock_code},'%')]]>
+		    </if>
+		    <if test="search_step_list!=null">
+		    	<![CDATA[ and cm.step in ]]>
+	    		<foreach item="item" collection="search_step_list" index="index" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+		    </if>
+			<if test="search_inline_date_start != null and search_inline_date_start != ''">
+				<![CDATA[
+				and cm.inline_date >= #{search_inline_date_start}
+				]]>
+			</if>
+			<if test="search_inline_date_end != null and search_inline_date_end != ''">
+				<![CDATA[ 
+		   		and cm.inline_date <= #{search_inline_date_end}
+		   		]]>
+			</if>
+			<if test="search_finish_time_start != null and search_finish_time_start != ''">
+				<![CDATA[
+				and cm.finish_time >= #{search_finish_time_start}
+				]]>
+			</if>
+			<if test="search_finish_time_end != null and search_finish_time_end != ''">
+				<![CDATA[ 
+		   		and cm.finish_time <= #{search_finish_time_end}
+		   		]]>
+			</if>
+		    order by step asc, inline_date asc
+ 	</select>
+ 	
+	<!-- 查询输入零件 -->
+   <select id="getAllPartial" resultType="ComponentManageEntity"  >
+		<![CDATA[ 
+			SELECT
+				PARTIAL_ID as partial_id, 
+				NAME as partial_name, 
+				CODE as component_code
+			FROM 
+				PARTIAL	  
+			WHERE
+				code like CONCAT(#{code},'%')
+				ORDER BY CODE
+		]]>
+		
+	</select>
+	
+ </mapper>

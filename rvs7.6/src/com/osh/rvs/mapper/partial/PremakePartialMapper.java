@@ -22,4 +22,6 @@ public interface PremakePartialMapper {
 	public PremakePartialEntity checkExist(PremakePartialEntity entity);
 	
 	public void insert(PremakePartialEntity entity);
+	
+	public void delete(PremakePartialEntity entity);
 }

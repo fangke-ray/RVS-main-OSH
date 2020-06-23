@@ -82,5 +82,33 @@
 			INSERT INTO premake_partial (partial_id,model_id,standard_flg,quantity) VALUES (#{partial_id},#{model_id},#{standard_flg},#{quantity})
 		]]>
 	</insert>
+		
+	<update id="delete" parameterType="PremakePartialEntity">
+		<![CDATA[ 
+			DELETE FROM premake_partial
+		]]>
+		<where>
+			<if test="model_id!=null and model_id!=''">
+				<![CDATA[
+					AND model_id = #{model_id}
+				]]>
+			</if>
+			<if test="standard_flg!=null and standard_flg==1">
+				<![CDATA[
+					AND standard_flg = 1
+				]]>
+			</if>
+			<if test="standard_flg!=null and standard_flg==-1">
+				<![CDATA[
+					AND standard_flg = 0
+				]]>
+			</if>
+			<if test="standard_flg!=null and standard_flg==3">
+				<![CDATA[
+					AND standard_flg = 3
+				]]>
+			</if>
+		</where>
+	</update>
 	
  </mapper>
