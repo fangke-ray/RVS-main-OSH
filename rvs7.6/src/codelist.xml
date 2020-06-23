@@ -1222,7 +1222,7 @@
 		<value code="2">S1 NS 补胶</value>
 		<value code="3">CCD 线更换</value>
 		<value code="4">NS 在前</value>
-		<value code="5">总组单元化</value>
+		<value code="5">NS 组装</value>
 	</codelist>
 
 	<codelist name="process_assign_fix_type">

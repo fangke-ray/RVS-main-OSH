@@ -399,4 +399,10 @@ and position_id in (select position_id from position where line_id = #{line_id} 
 		]]>
 	</select>
 
+	<select id="getDerivedIdByModel" parameterType="String" resultType="String">
+		select process_assign_template_id from process_assign_template 
+		where derive_kind = #{derive_kind} and derive_from_id = 
+			(select default_pat_id from v_model where model_id = #{model_id})
+		order by updated_time desc limit 1;
+	</select>
 </mapper>

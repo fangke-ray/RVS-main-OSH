@@ -278,7 +278,9 @@ public class ProcessAssignService {
 				if (bean.getFix_type() == 0) {
 					codeMapRefer.put(bean.getProcess_assign_template_id(), bean.getName());
 				} else if (bean.getDerive_kind() != null) {
-					codeMapDerived.put(bean.getProcess_assign_template_id(), bean.getName());
+					if (bean.getDerive_kind() != 5) { // NS 组装 非完整流水线流程
+						codeMapDerived.put(bean.getProcess_assign_template_id(), bean.getName());
+					}
 				} else {
 					codeMapNormal.put(bean.getProcess_assign_template_id(), bean.getName());
 				}
