@@ -22,10 +22,12 @@ import org.apache.log4j.Logger;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.master.ModelEntity;
+import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.inline.MaterialCommentMapper;
+import com.osh.rvs.mapper.partial.ComponentSettingMapper;
 import com.osh.rvs.mapper.qf.QuotationMapper;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
@@ -88,6 +90,16 @@ public class QuotationService {
 				ProcessAssignService paService = new ProcessAssignService();
 				responseBean.put("dpResult", 
 						paService.getDerivePair(mEntity.getDefault_pat_id(), "3", conn));
+			}
+		}
+
+		// 判断是否NS组件组装对象
+		ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);
+		List<ComponentSettingEntity> csBeans = csMapper.getAllComponentSettings();
+		for (ComponentSettingEntity csBean : csBeans) {
+			if (csBean.getModel_id().equals(mform.getModel_id())) {
+				responseBean.put("component_setting", csBean.getIdentify_code());
+				break;
 			}
 		}
 
