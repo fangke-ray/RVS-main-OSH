@@ -103,7 +103,7 @@ public interface OperatorMapper {
 	public void insertAfAbilitiesOfOperator(@Param("operator_id") String operator_id, @Param("production_type") String pType);
 	
 	/** 工位关注者  */
-	public List<String> getOperatorByPosition(@Param("position_id") String position_id, @Param("chief") String chief);
+	public List<String> getOperatorByPosition(@Param("positionIds") List<String> positionIds);
 	
 	/** NS 线长  */
 	public List<String> getOperatorByRoleAndLine(@Param("role_id") String role_id, @Param("line_id") String line_id);

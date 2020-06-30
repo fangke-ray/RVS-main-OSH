@@ -30,7 +30,6 @@ import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
-import com.osh.rvs.service.DownloadService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -538,13 +537,21 @@ public class ComponentManageAction extends BaseAction{
 		ComponentSettingEntity settingEntity = new ComponentSettingEntity();
 		BeanUtil.copyToBean(form, settingEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 		List<ComponentSettingForm> list = settingService.searchComponentSettingDetail(settingEntity, conn);
-		// TODO
+		// 型号组件设置判定
 		if (list.size() == 0) {
 			MsgInfo msg = new MsgInfo();
-			msg.setErrmsg("该型号组件设置已被删除。");
+			msg.setErrmsg("该型号组件设置已被删除。无法进行出库。");
 			errors.add(msg);
 		}
 
+		// NS 组件流程取得
+		String derivedId = service.getDerivedId(settingEntity.getModel_id(), conn);
+		if (derivedId == null || derivedId.length() == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("此型号的NS 组件流程不存在。无法进行出库。");
+			errors.add(msg);
+		}
+		
 		// 数据登录
 		if (errors.size() == 0) {
 
@@ -564,17 +571,22 @@ public class ComponentManageAction extends BaseAction{
 			String resultMsg = "子零件已经出库，作为序列号是" + getNewSerialNo + "的NS组件组装作业原料发放。";
 			callbackResponse.put("resultMsg", resultMsg);
 			
+			// PositionId 取得
+			List<String> positionIds = service.getPositionIds(derivedId, conn);
+			
 			// 在（SOLO_PRODUCTION_FEATURE）表新建记录
-			SoloProductionFeatureEntity soloEntity = new SoloProductionFeatureEntity();
-			soloEntity.setModel_id(list.get(0).getModel_id());
-			soloEntity.setModel_name(list.get(0).getModel_name());
-			soloEntity.setSerial_no(getNewSerialNo);
-			service.insertToSoloProductionFeature(soloEntity, conn);
+			for (String positionId : positionIds) {
+				SoloProductionFeatureEntity soloEntity = new SoloProductionFeatureEntity();
+				soloEntity.setPosition_id(positionId);
+				soloEntity.setModel_id(list.get(0).getModel_id());
+				soloEntity.setModel_name(list.get(0).getModel_name());
+				soloEntity.setSerial_no(getNewSerialNo);
+				service.insertToSoloProductionFeature(soloEntity, conn);
+			}
 			
 			// 在（POST_MESSAGE）表新建记录
-			service.insertToPOST(resultMsg, req.getSession(), conn);
+			service.insertToPOST(resultMsg, positionIds, req.getSession(), conn);
 
-			//发送推送
 		}
 		
 		/* 检查错误时报告错误信息 */
@@ -735,8 +747,7 @@ public class ComponentManageAction extends BaseAction{
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
 
-		DownloadService dService = new DownloadService();
-		String filename = dService.printNSInfoTicket(componentBean, conn);
+		String filename = service.printNSInfoTicket(componentBean, conn);
 		callbackResponse.put("tempFile", filename);
 
 		// 检查发生错误时报告错误信息
@@ -767,8 +778,11 @@ public class ComponentManageAction extends BaseAction{
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
 
-		DownloadService dService = new DownloadService();
-		String filename = dService.printNSLabelTicket(componentBean, conn);
+		String filename = service.printNsComponentIdTag(
+				componentBean.getModel_name(),
+				componentBean.getPartial_code(),
+				componentBean.getSerial_no());
+		
 		callbackResponse.put("tempFile", filename);
 
 		// 检查发生错误时报告错误信息

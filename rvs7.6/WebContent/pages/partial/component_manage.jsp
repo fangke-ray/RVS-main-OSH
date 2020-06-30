@@ -204,8 +204,8 @@ tr.addseqTr input {
 								<input id="cancle_button" class="ui-button" value="废弃" role="button" type="button">
 								<% } %>
 								<% if (is107) { %>
-								<input id="print_label_button" class="ui-button" value="NS组件标签打印" role="button" type="button" style="float:right;">
 								<input id="print_info_button" class="ui-button" value="NS组件信息单打印" role="button" type="button" style="float:right;">
+								<input id="print_label_button" class="ui-button" value="NS组件标签打印" role="button" type="button" style="float:right;">
 								<% } %>
 								<div class="clear"></div>
 							</div>

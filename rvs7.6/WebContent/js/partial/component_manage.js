@@ -187,6 +187,7 @@ function showAdd_handleComplete(xhrobj, textStatus) {
 
 var keepSearchData;
 var findit = function(data) {
+
 	if (!data) {
 		keepSearchData = {
 			"search_model_id" : $("#search_model_id").val(),
@@ -228,8 +229,6 @@ var findit = function(data) {
 		error : ajaxError,
 		complete : searchSetting_handleComplete
 	});
-
-    enableButton();
 };
 
 function searchManage_handleComplete(xhrobj){
@@ -395,6 +394,9 @@ function searchSetting_handleComplete(xhrobj){
 			show_search_setting(resInfo.componentSetting);
 		}
 	} catch (e) {};
+
+    enableButton();
+    
 }
 
 
@@ -1127,9 +1129,9 @@ var enableButton = function() {
 	// 权限判定并设置按钮显示
 	var isFact = $('#hidden_isFact').val();
 	if (isFact == "true") {
-		$("#add_button").disable();
-		$("#edit_button").disable();
-		$("#delete_button").disable();
+		$("#add_button").enable();
+		$("#edit_button").enable();
+		$("#delete_button").enable();
 		$("#partial_instock_button").disable();
 		$("#partial_outstock_button").disable();
 		$("#partial_remove_button").disable();
@@ -1148,9 +1150,6 @@ var enableButton = function() {
 	// 选择NS组件库存管理行，并获取行数
 	var rowSetting = $("#component_setting").jqGrid("getGridParam", "selrow");
 	if (rowSetting !=null) {
-		$("#add_button").enable();
-		$("#edit_button").enable();
-		$("#delete_button").enable();
 		$("#add_manage_button").enable();
 	}
 	// 选择NS组件库存管理行，并获取行数
