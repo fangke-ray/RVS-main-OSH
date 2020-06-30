@@ -488,24 +488,23 @@
 		]]>
 	</delete>
 	
-	<select id="getOperatorByPosition" resultType="String" parameterType="String">
+	<select id="getOperatorByPosition" resultType="java.util.Set" parameterType="java.util.Set">
 		<![CDATA[ 
 		SELECT OPERATOR_ID
 		FROM OPERATOR_ABILITIES
-		WHERE position_id = #{position_id}
 		]]>
-		<if test="chief eq 0 ">
-			AND CHIEF IN (0, 2)
-		</if>
-		<if test="chief eq 1 ">
-			AND CHIEF IN (1, 3)
-		</if>
-		<if test="chief eq 2 ">
+		<where>
+		    <if test="positionIds!=null">
+		    	<![CDATA[ position_id in ]]>
+	    		<foreach item="item" collection="positionIds" index="index" open="(" separator="," close=")">
+					#{item}
+				</foreach>
+		    </if>
 			AND CHIEF IN (2, 3)
-		</if>
+		</where>
 	</select>
 		
-	<select id="getOperatorByRoleAndLine" resultType="String" parameterType="String">
+	<select id="getOperatorByRoleAndLine" resultType="java.util.Set" parameterType="String">
 		<![CDATA[ 
 		SELECT OPERATOR_ID
 		FROM OPERATOR

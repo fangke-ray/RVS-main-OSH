@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
 
@@ -18,8 +19,11 @@ import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Image;
+import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.Barcode128;
 import com.itextpdf.text.pdf.BaseFont;
 import com.itextpdf.text.pdf.PdfContentByte;
 import com.itextpdf.text.pdf.PdfPCell;
@@ -37,10 +41,12 @@ import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.PostMessageMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
+import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.mapper.partial.ComponentManageMapper;
 import com.osh.rvs.service.PostMessageService;
 
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.DateUtil;
 
@@ -175,10 +181,9 @@ public class ComponentManageService {
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void insertToSoloProductionFeature(SoloProductionFeatureEntity productionFeatureEntity, SqlSessionManager conn) throws Exception {
+	public void insertToSoloProductionFeature(SoloProductionFeatureEntity productionFeatureEntity,
+			SqlSessionManager conn) throws Exception {
 		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
-		// TODO position_id暂定28. 之后会提供专门的取得方法
-		productionFeatureEntity.setPosition_id("28");
 		// section_id
 		productionFeatureEntity.setSection_id("1");
 		// judge_date
@@ -199,7 +204,8 @@ public class ComponentManageService {
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void insertToPOST(String resultMsg, HttpSession session, SqlSessionManager conn) throws Exception {
+	public void insertToPOST(String resultMsg, List<String> positionIds, 
+			HttpSession session, SqlSessionManager conn) throws Exception {
 		LoginData user = (LoginData)session.getAttribute(RvsConsts.SESSION_USER);
 		
 		PostMessageMapper pmMapper = conn.getMapper(PostMessageMapper.class);
@@ -221,7 +227,7 @@ public class ComponentManageService {
 		OperatorMapper oMapper = conn.getMapper(OperatorMapper.class);
 
 		// 工位关注者
-		List<String> operatorId0 = oMapper.getPositionsOfOperator(POSITION_ID_28, "2");
+		List<String> operatorId0 = oMapper.getOperatorByPosition(positionIds);
 		for (String operatorId : operatorId0) {
 			pmEntity.setReceiver_id(operatorId);
 			pmMapper.createPostMessageSendation(pmEntity);
@@ -235,7 +241,10 @@ public class ComponentManageService {
 		}
 		
 		// 触发http://localhost:8080/rvspush/trigger/in/28/1/0/0
-		RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/in/28/1/0/0");
+		for (String positionId : positionIds) {
+			RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/in/" + positionId + "/1/0/0");
+		}
+		
 	}
 	
 	
@@ -301,7 +310,6 @@ public class ComponentManageService {
 		dao.cancleManage(componentManageEntity);
 	}
 	
-
 	/**
 	 * 取得当前仓库所有库存编号
 	 * @param conn
@@ -310,6 +318,26 @@ public class ComponentManageService {
 	public List<String> getNSStock(SqlSession conn) {
 		ComponentManageMapper dao = conn.getMapper(ComponentManageMapper.class);
 		return dao.getNSStock();
+	}
+	
+	/**
+	 * DerivedId取得
+	 * @param conn
+	 * @return String
+	 */
+	public String getDerivedId(String model_id, SqlSession conn) {
+		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
+		return dao.getDerivedIdByModel(model_id, "5");
+	}
+	
+	/**
+	 * position_id取得
+	 * @param conn
+	 * @return List<String>
+	 */
+	public List<String> getPositionIds(String derivedId, SqlSession conn) {
+		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
+		return dao.getFirstPosition(derivedId, "9000000");
 	}
 	
 	/**
@@ -405,4 +433,123 @@ public class ComponentManageService {
 
 		return filename;
 	}
+
+	
+	/**
+	 * 打印小票单张小票(NS组件信息单)
+	 * @param mBean
+	 * @param conn
+	 * @param operator 
+	 * @return
+	 * @throws Exception
+	 */	
+	public String printNSInfoTicket(ComponentManageEntity component, SqlSession conn) throws Exception {
+
+        Rectangle pageSize = new Rectangle(PageSize.A5.getHeight(), PageSize.A5.getWidth());
+        pageSize.rotate();
+		Document document = new Document(pageSize, 6, 9, 10, 0);
+
+		Date today = new Date();
+		String folder = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM");
+		String filename = UUID.randomUUID().toString() + ".pdf";
+
+		try {
+			PdfWriter pdfWriter = PdfWriter.getInstance(document,
+					new FileOutputStream(folder + "\\" + filename));
+
+			document.open();
+			BaseFont bfChinese = BaseFont.createFont(PathConsts.BASE_PATH + "\\msyh.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
+			Font titleFont = new Font(bfChinese, 22, Font.BOLD);
+
+			float width[] = {0.3f, 0.7f};;//设置每列宽度比例   
+			PdfPTable mainTable = new PdfPTable(width);
+			mainTable.setWidthPercentage(100);
+			mainTable.setHorizontalAlignment(Element.ALIGN_CENTER);
+			mainTable.getDefaultCell().setBorder(PdfPCell.NO_BORDER);
+
+			PdfPCell cell = new PdfPCell(new Paragraph("维修单", titleFont));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			// 这列是空白的
+			cell = new PdfPCell(new Paragraph("", titleFont));
+			cell.setFixedHeight(78);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			cell = new PdfPCell(new Paragraph("组件的条形码", titleFont));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			PdfContentByte cd = pdfWriter.getDirectContent();
+			Barcode128 code128 = new Barcode128();
+			code128.setCode(component.getSerial_no());
+			code128.setBarHeight(70);
+			code128.setSize(22);
+			code128.setFont(null);
+			Image image128 = code128.createImageWithBarcode(cd, null, null);
+			cell = new PdfPCell(image128);
+			cell.setFixedHeight(78);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			cell = new PdfPCell(new Paragraph("机 型 号", titleFont));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			Chunk chModelName = new Chunk(component.getModel_name(), titleFont);
+			int modelNameWidth = component.getModel_name().getBytes().length;
+			if (modelNameWidth >= 13) {
+				chModelName.setHorizontalScaling(1f - (modelNameWidth - 12) * 0.05f);
+			}
+			cell = new PdfPCell(new Paragraph(chModelName));
+			cell.setFixedHeight(78);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			cell = new PdfPCell(new Paragraph("组件零件号", titleFont));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			String partial_code = CommonStringUtil.nullToAlter(component.getPartial_code(), " ");
+			cell = new PdfPCell(new Paragraph(partial_code, titleFont));
+			cell.setFixedHeight(78);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			cell = new PdfPCell(new Paragraph("组件序列号", titleFont));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			cell = new PdfPCell(new Paragraph(component.getSerial_no(), titleFont));
+			cell.setFixedHeight(78);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			mainTable.addCell(cell);
+
+			document.add(mainTable);
+		} catch (DocumentException de) {
+			log.error(de.getMessage(), de);
+			return null;
+		} catch (IOException ioe) {
+			log.error(ioe.getMessage(), ioe);
+			return null;
+		} finally {
+			document.close();
+			document = null;
+		}
+
+		return filename;
+	}
+
 }
