@@ -301,11 +301,12 @@ var detail_handleComplete=function(xhrobj, textStatus){
 
 /*下载*/
 var downExcel = function(fileName,work_period,check_manage_code) {
+	var dlSrc = "filingdownload.do"+"?method=output&filePath=%2F"+work_period +"%2F"+ check_manage_code+"%2F&fileName="+ fileName;
 	if ($("iframe").length > 0) {
-		$("iframe").attr("src", "filingdownload.do"+"?method=output&filePath="+"\\"+work_period +"\\"+ check_manage_code+"\\"+"&fileName="+ fileName);
+		$("iframe").attr("src", dlSrc);
 	} else {
 		var iframe = document.createElement("iframe");
-		iframe.src = "filingdownload.do"+"?method=output&filePath="+"\\"+ work_period+"\\"+check_manage_code+"\\"+"&fileName="+ fileName;
+		iframe.src = dlSrc;
 		iframe.style.display = "none";
 		document.body.appendChild(iframe);
 	}

@@ -583,13 +583,23 @@ var treatStart = function(resInfo) {
 		}
 
 		if (resInfo.qa_rank || resInfo.qa_service_free) {
-			$(".qa_info").show();
+			$("#editform .qa_info").show();
 			$("#edit_qa_level").text(resInfo.qa_rank);
 			$("#edit_service_free").text(resInfo.qa_service_free);
 		} else {
-			$(".qa_info").hide();
+			$("#editform .qa_info").hide();
 		}
 
+		if (resInfo.component_setting) {
+			$("#editform .component_setting").attr("setting", true);
+			if (resInfo.mform.level == 1) {
+				$("#editform .component_setting").show();
+			} else {
+				$("#editform .component_setting").hide();
+			}
+		} else {
+			$("#editform .component_setting").attr("setting", false).hide();
+		}
 	}
 
 	if (resInfo.workstauts == "4") {
@@ -1034,6 +1044,13 @@ $(function() {
 				} else {
 					$("#major_pat_button").closest("tr").hide();
 				}
+			}
+		}
+		if ($("#editform .component_setting").attr("setting") == "true") {
+			if (this.value == 1) {
+				$("#editform .component_setting").show();
+			} else {
+				$("#editform .component_setting").hide();
 			}
 		}
 	});

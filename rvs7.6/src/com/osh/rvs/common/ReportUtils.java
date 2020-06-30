@@ -36,7 +36,8 @@ public class ReportUtils {
 		}
 		fMonthPath = null;
 
-		String outputFile = folder + "\\" + new Date().getTime() + ".xls";
+		String outputFileName = new Date().getTime() + ".xls";
+		String outputFile = folder + "\\" + outputFileName;
 
 		ActiveXComponent xl = new ActiveXComponent("Excel.Application");
 		xl.setProperty("Visible", new Variant(false));
@@ -90,7 +91,7 @@ public class ReportUtils {
 			ComThread.Release();
 		}
 
-		return outputFile;
+		return outputFileName;
 	}
 
 	private static void SetValue(String position, String type, String value) {

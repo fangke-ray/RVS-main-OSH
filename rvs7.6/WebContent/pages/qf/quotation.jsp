@@ -167,6 +167,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 														</label>
 													</td>
 												</tr>
+												<tr class="component_setting">
+													<td class="ui-state-default td-title" colspan=2>此维修品是可进行<span style="color:red;">NS 组件组装</span>的型号</td>
+												</tr>
 												<tr>
 													<td class="ui-state-default td-title">备注</td>
 													<td class="td-content">
