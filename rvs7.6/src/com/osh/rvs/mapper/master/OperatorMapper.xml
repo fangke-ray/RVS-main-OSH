@@ -488,7 +488,7 @@
 		]]>
 	</delete>
 	
-	<select id="getOperatorByPosition" resultType="java.util.Set" parameterType="java.util.Set">
+	<select id="getOperatorByPosition" resultType="String" parameterType="java.util.Set">
 		<![CDATA[ 
 		SELECT OPERATOR_ID
 		FROM OPERATOR_ABILITIES
@@ -504,7 +504,7 @@
 		</where>
 	</select>
 		
-	<select id="getOperatorByRoleAndLine" resultType="java.util.Set" parameterType="String">
+	<select id="getOperatorByRoleAndLine" resultType="String" parameterType="String">
 		<![CDATA[ 
 		SELECT OPERATOR_ID
 		FROM OPERATOR

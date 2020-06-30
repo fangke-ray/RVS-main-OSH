@@ -35,7 +35,6 @@ import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
-import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.PostMessageMapper;
@@ -238,11 +237,6 @@ public class ComponentManageService {
 		for (String operatorId : operatorId2) {
 			pmEntity.setReceiver_id(operatorId);
 			pmMapper.createPostMessageSendation(pmEntity);
-		}
-		
-		// 触发http://localhost:8080/rvspush/trigger/in/28/1/0/0
-		for (String positionId : positionIds) {
-			RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/in/" + positionId + "/1/0/0");
 		}
 		
 	}

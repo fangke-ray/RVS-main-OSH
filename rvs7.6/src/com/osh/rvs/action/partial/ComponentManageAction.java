@@ -586,7 +586,13 @@ public class ComponentManageAction extends BaseAction{
 			
 			// 在（POST_MESSAGE）表新建记录
 			service.insertToPOST(resultMsg, positionIds, req.getSession(), conn);
-
+			
+			conn.commit();
+			
+			// 触发http://localhost:8080/rvspush/trigger/in/28/1/0/0
+			for (String positionId : positionIds) {
+				RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/in/" + positionId + "/1/0/0");
+			}
 		}
 		
 		/* 检查错误时报告错误信息 */
