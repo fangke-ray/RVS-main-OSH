@@ -125,6 +125,7 @@
 		<![CDATA[ 
 			UPDATE component_setting 
 			SET 
+				component_partial_id = #{component_partial_id},
 				safety_lever = #{safety_lever}
 			WHERE model_id = #{model_id}
 		]]>

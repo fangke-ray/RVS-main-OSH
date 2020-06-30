@@ -644,4 +644,23 @@ order by manage_serial_no
 		]]>
 	</update>
 
+	<select id="findPositionByModelAndSerialNo" resultType="SoloProductionFeatureEntity" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+			select spf.position_id
+			from solo_production_feature spf
+			where spf.model_id = #{model_id} 
+			  and spf.operate_result in (1 ,3) 
+			  and spf.serial_no = #{serial_no}
+			  and spf.finish_time is null;
+		]]>
+	</select>
+	
+	<delete id="deleteSoloByModelAndSerialNo" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+			DELETE FROM solo_production_feature
+			WHERE model_id = #{model_id} 
+			  AND serial_no = #{serial_no}
+			  AND finish_time is null;
+		]]>
+	</delete>
 </mapper>

@@ -21,6 +21,7 @@ public class PostMessageService {
 	public static final Integer SORC_TO_OGZ = 18;
 	public static final Integer SORC_TO_OSH = 19;
 	public static final Integer INLINE_LATE = 20;
+	public static final Integer NS_COMPONENT_MANAGE = 30;
 	public static final Integer CONSUMABLE_ORDER_CONFIRM = 42;
 	public static final Integer CONSUMABLE_ORDER_DIRECT = 44;
 	public static final Integer CONSUMABLE_APPLY_COMPLETE = 45;

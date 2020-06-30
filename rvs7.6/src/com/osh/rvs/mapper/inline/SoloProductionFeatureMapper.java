@@ -74,4 +74,10 @@ public interface SoloProductionFeatureMapper {
 
 	/** 新建 */
 	public void forbid(ProductionFeatureEntity pfBean) throws Exception;
+	
+	// 根据型号ID和序列号判定作业是否在执行
+	public List<SoloProductionFeatureEntity> findPositionByModelAndSerialNo(SoloProductionFeatureEntity soloEntity);
+	
+	// 根据型号ID和序列号删除独立工位操作记录（NS组件画面）
+	public void deleteSoloByModelAndSerialNo(SoloProductionFeatureEntity soloEntity);
 }

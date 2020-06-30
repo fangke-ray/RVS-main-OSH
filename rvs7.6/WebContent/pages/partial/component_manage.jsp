@@ -48,6 +48,8 @@ tr.addseqTr input {
 
 <body class="outer" style="align: center;">	
 	<input type="hidden" id="hidden_isFact" value='<%=isFact%>'>
+	<input type="hidden" id="hidden_is105" value='<%=is105%>'>
+	<input type="hidden" id="hidden_is107" value='<%=is107%>'>
 	<div id="update_limit_date_after"></div>
 	<div class="width-full"
 		style="align: center; margin: auto; margin-top: 16px;">
@@ -106,8 +108,8 @@ tr.addseqTr input {
 							<input id="edit_button" class="ui-button" value="修改NS组件机型" role="button" type="button">
 							<input id="delete_button" class="ui-button" value="取消NS组件机型" role="button" type="button">
 							<% } %>
-							<% if (isFact) { %>
-							<input id="add_manage_button" class="ui-button" value="虚拟单号订购子零件" role="button" type="button">
+							<% if (is105) { %>
+							<input id="add_manage_button" class="ui-button" value="虚拟单号订购子零件" role="button" type="button" style="float:right;">
 							<% } %>
 							<div class="clear"></div>
 						</div>
@@ -307,6 +309,8 @@ tr.addseqTr input {
 			</form>
 		</div>
 		
+		<!-- 货架选择画面内容 -->
+		<div id="ns_pop"></div>
 		<div class="clear"></div>
 		</div>
 		
