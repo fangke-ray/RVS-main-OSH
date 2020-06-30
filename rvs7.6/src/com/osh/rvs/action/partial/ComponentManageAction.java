@@ -22,6 +22,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.common.RvsConsts;
@@ -29,6 +30,7 @@ import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
+import com.osh.rvs.service.DownloadService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -406,7 +408,242 @@ public class ComponentManageAction extends BaseAction{
 
 		log.info("ComponentManageAction.doDeleteSetting end");
 	}
-	
+
+	/**
+	 * 组件设置追加处理
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doInsertManage(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doInsertManage start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> errors = v.validate();
+		
+		// 数据登录
+		if (errors.size() == 0) {
+			// 组件库存管理 (component_manage)数据插入
+			service.insertVirtualManage(form, req.getSession(), conn, errors);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doInsertManage end");
+	}
+
+	/**
+	 * 取得NS组件管理表内的所有库存编号
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void getNSempty(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSession conn) throws Exception {
+
+		log.info("ComponentManageAction.getNSempty start");
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		// 执行检索
+		List<String> stocks = service.getNSStock(conn);
+
+		// 查询结果放入Ajax响应对象
+		listResponse.put("heaps", stocks);
+
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", new ArrayList<MsgInfo>());
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("ComponentManageAction.getNSempty end");
+	}
+
+	/**
+	 * 子零件入库处理
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doPartialInstock(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doPartialInstock start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> errors = v.validate();
+
+		// 数据登录
+		if (errors.size() == 0) {
+			
+			ComponentManageEntity updateBean = new ComponentManageEntity();
+			BeanUtil.copyToBean(form, updateBean, null);
+			
+			// 组件库存管理 (component_manage)数据更新
+			// 子零件入库处理
+			service.partialInstock(updateBean, req.getSession(), conn);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doPartialInstock end");
+	}
+
+	/**
+	 * 子零件出库处理
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doPartialOutstock(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doPartialOutstock start");
+
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> errors = v.validate();
+
+		/* 查询 */
+		ComponentSettingEntity settingEntity = new ComponentSettingEntity();
+		BeanUtil.copyToBean(form, settingEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		List<ComponentSettingForm> list = settingService.searchComponentSettingDetail(settingEntity, conn);
+		// TODO
+		if (list.size() == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("该型号组件设置已被删除。");
+			errors.add(msg);
+		}
+
+		// 数据登录
+		if (errors.size() == 0) {
+
+			// 更新数据准备
+			ComponentManageEntity updateBean = new ComponentManageEntity();
+			BeanUtil.copyToBean(form, updateBean, null);
+			
+			// 序列号取得
+			String getNewSerialNo = service.getNewSerialNo(list.get(0).getIdentify_code(), conn);
+			updateBean.setSerial_no(getNewSerialNo);
+
+			// 组件库存管理 (component_manage)数据更新
+			// 子零件出库处理
+			service.partialOutstock(updateBean, req.getSession(), conn);
+
+			// 返回给前台一个消息：“子零件已经出库，作为序列号是”+ （刚才生成的序列号） + “的NS组件组装作业原料发放。”
+			String resultMsg = "子零件已经出库，作为序列号是" + getNewSerialNo + "的NS组件组装作业原料发放。";
+			callbackResponse.put("resultMsg", resultMsg);
+			
+			// 在（SOLO_PRODUCTION_FEATURE）表新建记录
+			SoloProductionFeatureEntity soloEntity = new SoloProductionFeatureEntity();
+			soloEntity.setModel_id(list.get(0).getModel_id());
+			soloEntity.setModel_name(list.get(0).getModel_name());
+			soloEntity.setSerial_no(getNewSerialNo);
+			service.insertToSoloProductionFeature(soloEntity, conn);
+			
+			// 在（POST_MESSAGE）表新建记录
+			service.insertToPOST(resultMsg, req.getSession(), conn);
+
+			//发送推送
+		}
+		
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doPartialOutstock end");
+	}
+
+	/**
+	 * 组件废弃处理
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doCancleManage(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doCancleManage start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> errors = v.validate();
+
+		// 画面数据转换
+		ComponentManageEntity componentBean = new ComponentManageEntity();
+		BeanUtil.copyToBean(form, componentBean, null);
+		
+		// 独立工位操作记录处理条件设置
+		SoloProductionFeatureEntity soloEntity = new SoloProductionFeatureEntity();
+		soloEntity.setModel_id(componentBean.getModel_id());
+		soloEntity.setSerial_no(componentBean.getSerial_no());
+		
+		// 如果step = 2时，查询是否存在独立工位操作记录
+		if ("2".equals(componentBean.getStep())) {
+			String positionId = service.getPosition(soloEntity, conn);
+			if (positionId != null) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("content");
+				error.setErrcode("info.linework.workingRemain");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingRemain", positionId));
+				errors.add(error);
+			}
+		}
+		
+		// 数据更新
+		if (errors.size() == 0) {
+			if ("2".equals(componentBean.getStep())) {
+				service.deleteSoloProductionFeature(soloEntity, conn);
+			}
+			// 组件库存管理 (component_manage)数据更新
+			// 组件废弃处理
+			service.cancleManage(componentBean, conn);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doCancleManage end");
+	}
+
 	/**
 	 * 重复性检查
 	 * @param req
@@ -476,5 +713,69 @@ public class ComponentManageAction extends BaseAction{
 		}
 
 		return rets;
+	}
+	
+	/**
+	 * NS组件信息单打印
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void printNSInfoTicket(ActionMapping mapping, ActionForm form, HttpServletRequest req, 
+			HttpServletResponse res, SqlSession conn) throws Exception{ 
+		log.info("ComponentManageAction.printNSInfoTicket start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		
+		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
+		// 画面数据转换
+		ComponentManageEntity componentBean = new ComponentManageEntity();
+		BeanUtil.copyToBean(form, componentBean, null);
+
+		DownloadService dService = new DownloadService();
+		String filename = dService.printNSInfoTicket(componentBean, conn);
+		callbackResponse.put("tempFile", filename);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", infoes);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("ComponentManageAction.printNSInfoTicket end");
+	}
+
+	/**
+	 * NS组件标签打印
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void printNSLabelTicket(ActionMapping mapping, ActionForm form, HttpServletRequest req, 
+			HttpServletResponse res, SqlSession conn) throws Exception{ 
+		log.info("ComponentManageAction.printNSLabelTicket start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		
+		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
+		// 画面数据转换
+		ComponentManageEntity componentBean = new ComponentManageEntity();
+		BeanUtil.copyToBean(form, componentBean, null);
+
+		DownloadService dService = new DownloadService();
+		String filename = dService.printNSLabelTicket(componentBean, conn);
+		callbackResponse.put("tempFile", filename);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", infoes);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("ComponentManageAction.printNSLabelTicket end");
 	}
 }

@@ -108,6 +108,26 @@
 		    order by step asc, inline_date asc
  	</select>
  	
+ 	<select id="searchComponentManageDetail" parameterType="String" resultType="ComponentManageEntity">
+		<![CDATA[
+			select 
+				cm.component_key
+                ,cm.model_id
+			    ,vm.NAME as model_name
+			    ,cm.origin_material_id
+			    ,cm.step
+			    ,cm.stock_code
+			    ,cm.inline_date
+			    ,cm.serial_no
+			    ,cm.finish_time
+			    ,cm.target_material_id
+			from 
+				component_manage cm
+                left join v_model vm on cm.model_id = vm.MODEL_ID
+            where cm.component_key = #{componentKey}
+			]]>
+ 	</select>
+ 	
 	<!-- 查询输入零件 -->
    <select id="getAllPartial" resultType="ComponentManageEntity"  >
 		<![CDATA[ 
@@ -123,5 +143,116 @@
 		]]>
 		
 	</select>
+		
+	<!-- 新建页面插入数据 -->
+	<insert id="insert" parameterType="ComponentManageEntity">
+		<![CDATA[ 
+		INSERT INTO 
+				component_manage
+				(model_id, 
+				 origin_material_id,
+				  step,
+				  stock_code,
+				  inline_date,
+				  serial_no,
+				  finish_time,
+				  target_material_id) 					
+        VALUES 
+	        	(#{model_id},
+	        	 #{origin_material_id},
+	        	 #{step},
+				 #{stock_code},
+				 #{inline_date},
+				 #{serial_no},
+				 #{finish_time},
+				 #{target_material_id}
+				 ); 
+		]]>
+	</insert>
+		
+	<!-- 修改组件设置_更新 -->
+	<update id="update" parameterType="ComponentManageEntity">
+		<![CDATA[ 
+			UPDATE component_manage SET 
+		]]>
+		<if test="origin_material_id!= null and origin_material_id!= '' ">
+			origin_material_id = #{origin_material_id},
+		</if>
+		<if test="stock_code!= null and stock_code!= '' ">
+			stock_code = #{stock_code},
+		</if>
+		<if test="inline_date!= null and inline_date!= '' ">
+			inline_date = #{inline_date},
+		</if>
+		<if test="serial_no!= null and serial_no!= '' ">
+			serial_no = #{serial_no},
+		</if>
+		<if test="finish_time!= null and finish_time!= '' ">
+			finish_time = #{finish_time},
+		</if>
+		<if test="target_material_id!= null and target_material_id!= '' ">
+			target_material_id = #{target_material_id},
+		</if>
+		<if test="step!= null and step!= '' ">
+			step = #{step},
+		</if>
+		<![CDATA[ 
+			model_id = #{model_id}
+		]]>
+		<where>
+			<![CDATA[ 
+				component_key = #{component_key}
+			]]>
+		</where>
+	</update>
 	
+	<!-- 获取最大序列号-->
+ 	<select id="getNewSerialNo" resultType="String" parameterType="String">
+		<![CDATA[ 
+			SELECT LPAD(IFNULL(max(right(cm.serial_no, 5)), 0)+1, 5, 0)
+			FROM component_manage cm
+			WHERE substring(cm.serial_no, 7, 2) = #{identifyCode};
+		]]>
+	</select>
+	
+	<!-- 子零件入库_更新 -->
+	<update id="partialInstock" parameterType="ComponentManageEntity">
+		<![CDATA[ 
+			UPDATE component_manage SET 
+			stock_code = #{stock_code},
+			step = 1
+			WHERE component_key = #{component_key}
+		]]>
+	</update>
+	
+	<!-- 子零件出库_更新 -->
+	<update id="partialOutstock" parameterType="ComponentManageEntity">
+		<![CDATA[ 
+			UPDATE component_manage SET 
+			stock_code = NULL,
+			step = 2,
+			serial_no = #{serial_no},
+			inline_date = current_date
+			WHERE component_key = #{component_key}
+		]]>
+	</update>
+	
+	<!-- 组件废弃处理 -->
+	<update id="cancleManage" parameterType="ComponentManageEntity">
+		<![CDATA[ 
+			UPDATE component_manage SET 
+			stock_code = NULL,
+			step = 9
+			WHERE component_key = #{component_key}
+		]]>
+	</update>
+	
+	<select id="getNSStock" resultType="String">
+		<![CDATA[ 
+			SELECT
+				stock_code
+			 FROM component_manage
+			 WHERE stock_code IS NOT NULL
+		]]>
+	</select>
  </mapper>

@@ -3,7 +3,7 @@ var strSeqTr = '<tr><td class="td-content"><input type="text" alt="零件代码"
 
 $(function() {
     $("input.ui-button").button();
-    //enableButton();
+    enableButton();
 
 	/* 为每一个匹配的元素的特定事件绑定一个事件处理函数 */
 	$("#searcharea span.ui-icon").bind("click",
@@ -44,12 +44,18 @@ $(function() {
 	
 	/*画面按钮enable、disable*/
 	$("#add_button").click(showAdd);
-	
-	/*画面按钮enable、disable*/
 	$("#edit_button").click(showEdit);
-	
-	/*画面按钮enable、disable*/
 	$("#delete_button").click(showDelete);
+	$("#add_manage_button").click(addManage);
+	
+	$("#partial_instock_button").click(showNSMap);
+	$("#partial_outstock_button").click(partialOutstock);
+	$("#partial_remove_button").click(showNSMap);
+//	$("#component_outstock_button").click(componentOutstock);
+	$("#cancle_button").click(cancleManage);
+	$("#print_label_button").click(printNSLabelTicket);
+	$("#print_info_button").click(printNSInfoTicket);
+	
 });
 
 /** 组件设置追加画面处理 */
@@ -222,9 +228,11 @@ var findit = function(data) {
 		error : ajaxError,
 		complete : searchSetting_handleComplete
 	});
+
+    enableButton();
 };
 
-function searchManage_handleComplete(xhrobj, textStatus){
+function searchManage_handleComplete(xhrobj){
 	var resInfo = null;
 	try {
 		// 以Object形式读取JSON
@@ -237,7 +245,6 @@ function searchManage_handleComplete(xhrobj, textStatus){
 			show_search_manage(resInfo.componentManage, resInfo.inlineDateCheck);
 		}
 	} catch (e) {};
-    //enableButton();
 }
 
 
@@ -261,12 +268,16 @@ function show_search_manage(componentManage, inlineDateCheck) {
 			width : 992,
 			rowheight : 23,
 			datatype : "local",
-			colNames : [ 'component_key', '型号', '订购来源', '进度', '子零件', '库位编号',
+			colNames : [ 'component_key','model_id', '型号', '订购来源', '进度', '子零件', '库位编号',
 					'投入日期', '组件序列号', 
 					'制作者', '组件代码', '组装完成时间','采用'],
 			colModel : [ {
 				name : 'component_key',
 				index : 'component_key',
+				hidden : true
+			}, {
+				name : 'model_id',
+				index : 'model_id',
 				hidden : true
 			}, {
 				name : 'model_name',
@@ -337,8 +348,7 @@ function show_search_manage(componentManage, inlineDateCheck) {
 			recordpos : 'left',
 			hidegrid : false,
 			deselectAfterSort : false,
-//			ondblClickRow : showEdit,
-//			onSelectRow : enableButton,
+			onSelectRow : enableButton,
 			viewsortcols : [ true, 'vertical', true ],
 			gridComplete : function() {
 				var IDS = $("#component_manage").getDataIDs();
@@ -369,26 +379,6 @@ function show_search_manage(componentManage, inlineDateCheck) {
 				}
 			}
 		});
-		var tname=['myac'];
-		//当不是系统管理员和零件管理员时隐藏所有可以修改和更新功能
-		if($("#hidden_isOperator").val()=='other'){
-			$("#component_manage").jqGrid('hideCol',tname);
-			$("#gbox_list").next().hide();
-			$("#list").jqGrid('setGridWidth', '992');
-		}else if($("#hidden_isOperator").val()=='operator'){
-			
-			$(".ui-jqgrid-hbox").before('<div class="ui-widget-content" style="padding:4px;">' +
-					'<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="addbutton" value="新建'+ modelname +'" role="button" aria-disabled="false">' +
-				'</div>');
-
-			$("#addbutton").button();
-			// 追加处理
-			$("#addbutton").click(showAdd);
-
-			$("#list").jqGrid('showCol',tname);
-			$("#addbutton").show();
-			$("#gbox_list").next().show();
-		}
 	}
 }
 
@@ -405,7 +395,6 @@ function searchSetting_handleComplete(xhrobj){
 			show_search_setting(resInfo.componentSetting);
 		}
 	} catch (e) {};
-    //enableButton();
 }
 
 
@@ -497,7 +486,7 @@ function show_search_setting(componentSetting) {
 				var rowData = $("#component_setting").getRowData(row);
 				$("#search_model_id").val(rowData.model_id).trigger("change");
 			},
-//			onSelectRow : enableButton,
+			onSelectRow : enableButton,
 			viewsortcols : [ true, 'vertical', true ],
 			gridComplete : function() {
 				var IDS = $("#component_setting").getDataIDs();
@@ -518,26 +507,6 @@ function show_search_setting(componentSetting) {
 				}
 			}
 		});
-		var tname=['myac'];
-		//当不是系统管理员和零件管理员时隐藏所有可以修改和更新功能
-		if($("#hidden_isOperator").val()=='other'){
-			$("#component_setting").jqGrid('hideCol',tname);
-			$("#gbox_list").next().hide();
-			$("#list").jqGrid('setGridWidth', '992');
-		}else if($("#hidden_isOperator").val()=='operator'){
-			
-			$(".ui-jqgrid-hbox").before('<div class="ui-widget-content" style="padding:4px;">' +
-					'<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="addbutton" value="新建'+ modelname +'" role="button" aria-disabled="false">' +
-				'</div>');
-
-			$("#addbutton").button();
-			// 追加处理
-			$("#addbutton").click(showAdd);
-
-			$("#list").jqGrid('showCol',tname);
-			$("#addbutton").show();
-			$("#gbox_list").next().show();
-		}
 	}
 }
 
@@ -597,6 +566,10 @@ var showEdit = function() {
 	}
 
 	var row = $("#component_setting").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	if (row == null) {
+		errorPop("请选择一条NS组件设置。");
+		return;
+	}
 	var rowData = $("#component_setting").getRowData(row);
 	var data = {
 		"model_id" : rowData.model_id
@@ -812,6 +785,398 @@ var delete_handleComplete = function(xhrobj, textStatus) {
 			findit();
 		}
 	}catch (e) {};
+};
+
+/*新建*/
+var addManage = function() {
+	var is105 = $('#hidden_is105').val();
+	console.log(is105);
+	if (is105 == "false") {
+		return;
+	}
+
+	var row = $("#component_setting").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_setting").getRowData(row);
+	var data = {
+		"model_id" : rowData.model_id
+	};
+
+	warningConfirm("是否要为（（" + encodeText(rowData.model_name) + "）虚拟订购一套子零件？", function() {
+		// Ajax提交
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : servicePath + '?method=doInsertManage',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : addManage_handleComplete
+		});
+	
+	}, null, "新建确认");
+};
+
+var addManage_handleComplete = function(xhrobj, textStatus) {
+	var resInfo = null;
+	try {
+		// 以Object形式读取JSON
+		eval('resInfo =' + xhrobj.responseText);
+		if (resInfo.errors.length > 0) {
+			// 共通出错信息框
+			treatBackMessages("#searcharea", resInfo.errors);
+		} else {
+			findit();
+		}
+	}catch (e) {};
+};
+
+var showNSMap=function() {
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=getNSempty',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj) {
+			var resInfo = null;
+			try {
+				console.log("OK");
+				// 以Object形式读取JSON
+				eval('resInfo =' + xhrobj.responseText);
+				if (resInfo.errors.length > 0) {
+					// 共通出错信息框
+					treatBackMessages(null, resInfo.errors);
+				} else {
+					$("#ns_pop").hide();
+					$("#ns_pop").load("widgets/partial/ns_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
+						 //新增
+				
+						$("#ns_pop").dialog({
+							position : [ 800, 20 ],
+							title : "NS子零件入库选择",
+							width : 1000,
+							show: "blind",
+							height : 640,// 'auto' ,
+							resizable : false,
+							modal : true,
+							minHeight : 200,
+							buttons : {}
+						});
+
+						$("#ns_pop").find("td").addClass("wip-empty");
+						for (var iheap in resInfo.heaps) {
+							$("#ns_pop").find("td[nsid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
+						}
+
+						//$("#wip_pop").css("cursor", "pointer");
+						$("#ns_pop").find(".ui-widget-content").click(function(e){
+							if ("TD" == e.target.tagName) {
+								if (!$(e.target).hasClass("wip-heaped")) {
+									selnsid = $(e.target).attr("nsid");
+									partialInstock(selnsid);
+								}
+							}
+						});
+
+						$("#ns_pop").show();
+					});
+				}
+			} catch (e) {
+				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+						+ e.lineNumber + " fileName: " + e.fileName);
+			};
+		}
+	});
+};
+
+/* 子零件入库处理 */
+var partialInstock = function(selnsid) {
+
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var data = {
+		"component_key" : rowData.component_key,
+		"model_id" : rowData.model_id,
+		"stock_code" : selnsid
+	};
+
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=doPartialInstock',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : partialInstock_handleComplete
+	});
+};
+
+var partialInstock_handleComplete = function(xhrobj, textStatus) {
+	var resInfo = null;
+	try {
+		// 以Object形式读取JSON
+		eval('resInfo =' + xhrobj.responseText);
+		if (resInfo.errors.length > 0) {
+			// 共通出错信息框
+			treatBackMessages("#searcharea", resInfo.errors);
+		} else {
+			$("#ns_pop").dialog('close');	
+			findit();
+		}
+	}catch (e) {};
+};
+
+/* 子零件出库处理 */
+var partialOutstock = function() {
+
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var data = {
+		"component_key" : rowData.component_key,
+		"model_id" : rowData.model_id
+	};
+
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=doPartialOutstock',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : partialOutstock_handleComplete
+	});
+};
+
+var partialOutstock_handleComplete = function(xhrobj, textStatus) {
+	var resInfo = null;
+	try {
+		// 以Object形式读取JSON
+		eval('resInfo =' + xhrobj.responseText);
+		if (resInfo.errors.length > 0) {
+			// 共通出错信息框
+			treatBackMessages("#searcharea", resInfo.errors);
+		} else {
+			infoPop(resInfo.resultMsg, null, "子零件出库");
+			findit();
+		}
+	}catch (e) {};
+};
+
+/*删除*/
+var cancleManage = function(rid) {
+	var isFact = $('#hidden_isFact').val();
+	if (isFact == "false") {
+		return;
+	}
+
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var data = {
+		"component_key" : rowData.component_key,
+		"model_id" : rowData.model_id,
+		"step" : rowData.step,
+		"serial_no" : rowData.serial_no
+	};
+	
+	warningConfirm("是否要为废弃此组件？", function() {
+		// Ajax提交
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : servicePath + '?method=doCancleManage',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : cancleManage_handleComplete
+		});
+	}, null, "废弃确认");
+};
+
+var cancleManage_handleComplete = function(xhrobj) {
+	var resInfo = null;
+	try {
+		// 以Object形式读取JSON
+		eval('resInfo =' + xhrobj.responseText);
+		if (resInfo.errors.length > 0) {
+			// 共通出错信息框
+			treatBackMessages("#searcharea", resInfo.errors);
+		} else {
+			infoPop("组件废弃已经完成。", null, "废弃");
+			findit();
+		}
+	}catch (e) {};
+};
+
+var printNSInfoTicket = function() {
+	
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var model_name = rowData.model_name;
+	var serial_no = rowData.serial_no;
+	var data = {
+		"component_key" : rowData.component_key,
+		"model_id" : rowData.model_id,
+		"model_name" : model_name,
+		"partial_code" : rowData.partial_code,
+		"serial_no" : serial_no
+	};
+
+	// Ajax提交
+	$.ajax({
+		beforeSend: ajaxRequestType, 
+		async: false, 
+		url: servicePath + '?method=printNSInfoTicket', 
+		cache: false, 
+		data: data, 
+		type: "post", 
+		dataType: "json", 
+		success: ajaxSuccessCheck, 
+		error: ajaxError, 
+		complete:  function(xhrobj){
+			var resInfo = null;
+
+			try {
+				// 以Object形式读取JSON
+				eval('resInfo =' + xhrobj.responseText);
+			
+				if (resInfo.errors.length > 0) {
+					// 共通出错信息框
+					treatBackMessages(null, resInfo.errors);
+				} else {
+					var iframe = document.createElement("iframe");
+		            iframe.src = "download.do"+"?method=output&fileName="+ model_name + "-" + serial_no +"-ticket.pdf&filePath=" + resInfo.tempFile;
+		            iframe.style.display = "none";
+		            document.body.appendChild(iframe);
+				}
+			} catch(e) {
+				
+			}
+		}
+	});
+};
+
+var printNSLabelTicket = function() {
+	
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var model_name = rowData.model_name;
+	var serial_no = rowData.serial_no;
+	var data = {
+		"component_key" : rowData.component_key,
+		"model_id" : rowData.model_id,
+		"model_name" : model_name,
+		"partial_code" : rowData.partial_code,
+		"serial_no" : serial_no
+	};
+
+	// Ajax提交
+	$.ajax({
+		beforeSend: ajaxRequestType, 
+		async: false, 
+		url: servicePath + '?method=printNSLabelTicket', 
+		cache: false, 
+		data: data, 
+		type: "post", 
+		dataType: "json", 
+		success: ajaxSuccessCheck, 
+		error: ajaxError, 
+		complete:  function(xhrobj){
+			var resInfo = null;
+
+			try {
+				// 以Object形式读取JSON
+				eval('resInfo =' + xhrobj.responseText);
+			
+				if (resInfo.errors.length > 0) {
+					// 共通出错信息框
+					treatBackMessages(null, resInfo.errors);
+				} else {
+					var iframe = document.createElement("iframe");
+		            iframe.src = "download.do"+"?method=output&fileName="+ model_name + "-" + serial_no +"-ticket.pdf&filePath=" + resInfo.tempFile;
+		            iframe.style.display = "none";
+		            document.body.appendChild(iframe);
+				}
+			} catch(e) {
+				
+			}
+		}
+	});
+};
+
+/*判断修改库存设置，NS组件库存管理按钮enable、disable(当选择了消耗品之后enable；否则是disable)*/
+var enableButton = function() {
+
+	// 权限判定并设置按钮显示
+	var isFact = $('#hidden_isFact').val();
+	if (isFact == "true") {
+		$("#add_button").disable();
+		$("#edit_button").disable();
+		$("#delete_button").disable();
+		$("#partial_instock_button").disable();
+		$("#partial_outstock_button").disable();
+		$("#partial_remove_button").disable();
+		$("#component_outstock_button").disable();
+		$("#cancle_button").disable();
+	}
+	var is105 = $('#hidden_is105').val();
+	if (is105 == "true") {
+		$("#add_manage_button").disable();
+	}
+	var is107 = $('#hidden_is107').val();
+	if (is107 == "true") {
+		$("#print_label_button").disable();
+		$("#print_info_button").disable();
+	}
+	// 选择NS组件库存管理行，并获取行数
+	var rowSetting = $("#component_setting").jqGrid("getGridParam", "selrow");
+	if (rowSetting !=null) {
+		$("#add_button").enable();
+		$("#edit_button").enable();
+		$("#delete_button").enable();
+		$("#add_manage_button").enable();
+	}
+	// 选择NS组件库存管理行，并获取行数
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");
+	if (row !=null) {
+		var rowdata = $("#component_manage").getRowData(row);
+		var step = parseInt(rowdata["step"]);
+		if (step == 0) {
+			$("#partial_instock_button").enable();
+		} 
+		if (step == 1) {
+			$("#partial_outstock_button").enable();
+			$("#partial_remove_button").enable();
+		} 
+		if (step == 3) {
+			$("#partial_remove_button").enable();
+			$("#component_outstock_button").enable();
+		} 
+		if (step < 4) {
+			$("#cancle_button").enable();
+		} 
+		if (step > 2) {
+			$("#print_label_button").enable();
+			$("#print_info_button").enable();
+		} 
+	}
 };
 
 var getSeqTr = function(bean){
