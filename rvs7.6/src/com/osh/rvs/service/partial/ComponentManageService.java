@@ -1,5 +1,7 @@
 package com.osh.rvs.service.partial;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -8,12 +10,26 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
+import com.itextpdf.text.Chunk;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.PostMessageEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.partial.ComponentManageForm;
@@ -32,6 +48,8 @@ public class ComponentManageService {
 	
 	public static final String POSITION_ID_28 = "28";
 	
+	private Logger log = Logger.getLogger(getClass());
+
 	/**
 	 * NS组件库存管理数据检索
 	 * @param componentManageEntity
@@ -292,5 +310,99 @@ public class ComponentManageService {
 	public List<String> getNSStock(SqlSession conn) {
 		ComponentManageMapper dao = conn.getMapper(ComponentManageMapper.class);
 		return dao.getNSStock();
+	}
+	
+	/**
+	 * 打印NS组件标识
+	 * @param model_name 型号
+	 * @param partial_code 组件代号
+	 * @param serial_no 序列号
+	 * @return 临时文件名
+	 * @throws Exception
+	 */	
+	public String printNsComponentIdTag(String model_name, String partial_code,
+			String serial_no) throws Exception {
+
+		Rectangle rect = new Rectangle(85, 42); // 192
+		Document document = new Document(rect, 0, 0, 0, 0);
+
+		Date today = new Date();
+		String folder = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM");
+		String filename = document.getId().toString() + ".pdf";
+
+		try {
+			PdfWriter pdfWriter = PdfWriter.getInstance(document,
+					new FileOutputStream(folder + "\\" + filename));
+
+			document.open();
+
+			PdfContentByte cb = pdfWriter.getDirectContent();
+			cb.setLineWidth(1f);
+			cb.setLineDash(1f, 1f, 0f);
+			cb.moveTo(0, rect.getHeight());
+			cb.lineTo(rect.getWidth(), rect.getHeight());
+			cb.lineTo(rect.getWidth(), 0);
+			cb.lineTo(0, 0);
+			cb.closePath();
+			cb.stroke();
+
+			BaseFont bfChinese = BaseFont.createFont(PathConsts.BASE_PATH + "\\msyh.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
+			Font boldFont = new Font(bfChinese, 10, Font.BOLD);
+			cb.setLineDash(5f);
+			Font slimFont = new Font(bfChinese, 7, Font.NORMAL);
+
+			PdfPTable mainTable = new PdfPTable(1);
+			mainTable.setHorizontalAlignment(Element.ALIGN_CENTER);
+			mainTable.setTotalWidth(rect.getWidth());
+			mainTable.setLockedWidth(true);
+
+			PdfPCell cell = null;
+
+			// 型号
+			Chunk chModelName = new Chunk(model_name, boldFont);
+			int modelNameWidth = model_name.getBytes().length;
+			if (modelNameWidth >= 13) {
+				chModelName.setHorizontalScaling(1f - (modelNameWidth - 12) * 0.05f);
+			}
+
+			cell = new PdfPCell(new Paragraph(chModelName));
+			cell.setFixedHeight(14.5f);
+			cell.setHorizontalAlignment(PdfPTable.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			cell.setBorder(PdfPCell.NO_BORDER);
+			mainTable.addCell(cell);
+
+			// 组件代号
+			cell = new PdfPCell(new Paragraph(partial_code, slimFont));
+			cell.setFixedHeight(11);
+			cell.setPadding(0);
+			cell.setHorizontalAlignment(PdfPTable.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			cell.setBorder(PdfPCell.NO_BORDER);
+			mainTable.addCell(cell);
+
+			// 序列号
+			cell = new PdfPCell(new Paragraph(serial_no, boldFont));
+			cell.setFixedHeight(15f);
+			cell.setHorizontalAlignment(PdfPTable.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			cell.setBorder(PdfPCell.NO_BORDER);
+			mainTable.addCell(cell);
+
+			document.add(mainTable);
+
+		} catch (DocumentException de) {
+			log.error(de.getMessage(), de);
+			return null;
+		} catch (IOException ioe) {
+			log.error(ioe.getMessage(), ioe);
+			return null;
+		} finally {
+			document.close();
+			document = null;
+		}
+
+		return filename;
 	}
 }
