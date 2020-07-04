@@ -241,7 +241,17 @@ public class ComponentManageService {
 		
 	}
 	
-	
+	/**
+	 * 移库
+	 * @param componentBean
+	 * @param conn
+	 */
+	public void moveStock(ComponentManageEntity componentBean,
+			SqlSessionManager conn) {
+		ComponentManageMapper dao = conn.getMapper(ComponentManageMapper.class);
+		dao.update(componentBean);
+	}
+
 	/**
 	 * 序列号生成
 	 * 
@@ -359,10 +369,10 @@ public class ComponentManageService {
 			document.open();
 
 			PdfContentByte cb = pdfWriter.getDirectContent();
-			cb.setLineWidth(1f);
+			cb.setLineWidth(0.5f);
 			cb.setLineDash(1f, 1f, 0f);
-			cb.moveTo(0, rect.getHeight());
-			cb.lineTo(rect.getWidth(), rect.getHeight());
+			cb.moveTo(0, rect.getHeight()-1f);
+			cb.lineTo(rect.getWidth(), rect.getHeight()-1f);
 			cb.lineTo(rect.getWidth(), 0);
 			cb.lineTo(0, 0);
 			cb.closePath();
@@ -545,5 +555,4 @@ public class ComponentManageService {
 
 		return filename;
 	}
-
 }

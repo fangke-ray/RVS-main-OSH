@@ -2,23 +2,34 @@ package com.osh.rvs.service.partial;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
 
+import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.form.partial.ComponentSettingForm;
+import com.osh.rvs.form.partial.PremakePartialForm;
+import com.osh.rvs.mapper.master.PartialMapper;
 import com.osh.rvs.mapper.partial.ComponentSettingMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class ComponentSettingService {
 
@@ -189,4 +200,108 @@ public class ComponentSettingService {
 		// 删除指定型号ID的NS组件子零件
 		dao.deleteSetting(entity);
 	}
+
+	/**
+	 * 重复性检查
+	 * @param req
+	 * @param conn
+	 * @param errors
+	 * @return 
+	 */
+	public List<PremakePartialForm> premakePartialValidateEdit(HttpServletRequest req, SqlSession conn,
+			List<MsgInfo> errors) {
+		List<PremakePartialForm> rets = new AutofillArrayList<>(PremakePartialForm.class);
+
+		String modelId = req.getParameter("model_id");
+
+		Map<String, String[]> parameterMap = req.getParameterMap();
+		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
+
+		// 整理提交数据
+		for (String parameterKey : parameterMap.keySet()) {
+			Matcher m = p.matcher(parameterKey);
+			if (m.find()) {
+				String entity = m.group(1);
+				if ("partial".equals(entity)) {
+					String column = m.group(2);
+					Integer index = Integer.parseInt(m.group(3));
+					rets.get(index).setModel_id(modelId);
+					rets.get(index).setStandard_flg("3");
+					
+					String[] value = parameterMap.get(parameterKey);
+
+					if ("partial_id".equals(column)) {
+						rets.get(index).setPartial_id(value[0]);
+					} else if ("partial_code".equals(column)) {
+						rets.get(index).setCode(value[0]);
+					} else if ("partial_name".equals(column)) {
+						rets.get(index).setPartial_name(value[0]);
+					} else if ("quantity".equals(column)) {
+						rets.get(index).setQuantity(value[0]);
+					}
+				}
+			}
+		}
+
+		if (rets.size() == 0) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("partial_id");
+			error.setErrcode("validator.required.multidetail");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required.multidetail", "NS组件零件"));
+			errors.add(error);
+			return null;
+		}
+
+		// 比对稽核
+		Set<String> checkSet = new HashSet<String>();
+		for (PremakePartialForm ret : rets) {
+			String checkKey = ret.getPartial_id();
+			if (checkSet.contains(checkKey)) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("partial_id");
+				error.setErrcode("info.peripheralInfectDevice.duplicatedInSeq");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.premake.partial.existed", ret.getCode()));
+				errors.add(error);
+				return null;
+			}
+
+			// 加入比对对象
+			checkSet.add(checkKey);
+
+			// 数量
+			if ("0".equals(ret.getQuantity())) {
+				MsgInfo msg = new MsgInfo();
+				msg.setComponentid("quantity");
+				msg.setErrcode("validator.invalidParam.invalidMoreThanZero");
+				msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMoreThanZero", "“数量”"));
+				errors.add(msg);
+			}
+
+			//零件编码
+			String code = ret.getCode();
+
+			/*
+			 * 如果没有选择零件编码,而是手动输入或者复制粘贴
+			 * 则根据零件编码查询零件是否存在,零件不存在返回提示信息
+			 */
+			if(CommonStringUtil.isEmpty(ret.getPartial_id())){
+				PartialMapper partialMapper = conn.getMapper(PartialMapper.class);
+				List<PartialEntity> listPartial = partialMapper.getPartialByCode(code);
+				
+				//零件不存在
+				if(listPartial.size() == 0){				
+					MsgInfo msg = new MsgInfo();
+					msg.setComponentid("partial_id");
+					msg.setErrcode("dbaccess.recordNotExist");
+					msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "零件编码为:" + code));
+					errors.add(msg);
+				}
+				
+				ret.setPartial_id(listPartial.get(0).getPartial_id());
+			}
+		}
+
+		return rets;
+	}
+
 }

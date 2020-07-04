@@ -3,10 +3,11 @@ var strSeqTr = '<tr><td class="td-content"><input type="text" alt="零件代码"
 
 $(function() {
     $("input.ui-button").button();
-    enableButton();
+    enableButtonSetting();
+    enableButtonManage();
 
 	/* 为每一个匹配的元素的特定事件绑定一个事件处理函数 */
-	$("#searcharea span.ui-icon").bind("click",
+	$("#searcharea span.ui-icon,#settingListarea span.ui-icon").bind("click",
 		function() {
 			$(this).toggleClass('ui-icon-circle-triangle-n')
 					.toggleClass('ui-icon-circle-triangle-s');
@@ -25,14 +26,15 @@ $(function() {
 	
     setReferChooser($("#add_model_id"));
 
-	$("#search_inline_date_start,#search_finish_time_start")
+	$("#search_inline_date_start,#search_finish_time_start,#search_inline_date_end,#search_finish_time_end")
 		.datepicker({
 			showButtonPanel : true,
 			dateFormat : "yy/mm/dd",
 			currentText : "今天"
 		});
 	//show_search_manage([]);
-	 findit();
+	findSetting();
+	findit();
 	$("#reset_button").click(function(){
 		$("#searchform input[type!='button'][type!='radio'][id!='filter_l_low'], #searchform textarea").val("");
 		$("#searchform select").val("").trigger("change");
@@ -50,7 +52,9 @@ $(function() {
 	
 	$("#partial_instock_button").click(showNSMap);
 	$("#partial_outstock_button").click(partialOutstock);
-	$("#partial_remove_button").click(showNSMap);
+	$("#partial_move_button").click(function(){
+		showNSMap(true);
+	});
 //	$("#component_outstock_button").click(componentOutstock);
 	$("#cancle_button").click(cancleManage);
 	$("#print_label_button").click(printNSLabelTicket);
@@ -149,7 +153,7 @@ var showAdd = function() {
 					
 					$.ajax({
 						beforeSend : ajaxRequestType,
-						async : true,
+						async : false,
 						url : servicePath + '?method=doinsertSetting',
 						cache : false,
 						data : data,
@@ -181,9 +185,24 @@ function showAdd_handleComplete(xhrobj, textStatus) {
 		treatBackMessages(null, resInfo.errors);
 	} else {
 		$("#pop_window_new").dialog("close");
-	    findit();
+	    findSetting();
 	}
 };
+
+var findSetting = function(data) {
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=searchSetting',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : searchSetting_handleComplete
+	});
+}
 
 var keepSearchData;
 var findit = function(data) {
@@ -216,19 +235,6 @@ var findit = function(data) {
 		error : ajaxError,
 		complete : searchManage_handleComplete
 	});
-	
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : servicePath + '?method=searchSetting',
-		cache : false,
-		data : keepSearchData,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : searchSetting_handleComplete
-	});
 };
 
 function searchManage_handleComplete(xhrobj){
@@ -243,7 +249,9 @@ function searchManage_handleComplete(xhrobj){
 			// 标题修改
 			show_search_manage(resInfo.componentManage, resInfo.inlineDateCheck);
 		}
-	} catch (e) {};
+	} catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
 }
 
 
@@ -263,7 +271,7 @@ function show_search_manage(componentManage, inlineDateCheck) {
 			.trigger("reloadGrid", [ {current : false} ]);
 	} else {
 		$("#component_manage").jqGrid({data : componentManage,
-			height : 701,
+			height : 576,
 			width : 992,
 			rowheight : 23,
 			datatype : "local",
@@ -347,7 +355,7 @@ function show_search_manage(componentManage, inlineDateCheck) {
 			recordpos : 'left',
 			hidegrid : false,
 			deselectAfterSort : false,
-			onSelectRow : enableButton,
+			onSelectRow : enableButtonManage,
 			viewsortcols : [ true, 'vertical', true ],
 			gridComplete : function() {
 				var IDS = $("#component_manage").getDataIDs();
@@ -376,6 +384,7 @@ function show_search_manage(componentManage, inlineDateCheck) {
 						}
 					}
 				}
+				enableButtonManage();
 			}
 		});
 	}
@@ -393,10 +402,9 @@ function searchSetting_handleComplete(xhrobj){
 			// 标题修改
 			show_search_setting(resInfo.componentSetting);
 		}
-	} catch (e) {};
-
-    enableButton();
-    
+	} catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
 }
 
 
@@ -421,7 +429,7 @@ function show_search_setting(componentSetting) {
 			width : 992,
 			rowheight : 23,
 			datatype : "local",
-			colNames : [ 'model_id', '机种', '型号', '组件代码', '子零件<br>代码', '安全库存',
+			colNames : [ 'model_id', '机种', '型号', '组件代码', '子零件代码', '安全库存',
 					'子零件<br>待入库数', '子零件<br>已入库数', '组装中数', '组装完成数'],
 			colModel : [ {
 				name : 'model_id',
@@ -430,7 +438,7 @@ function show_search_setting(componentSetting) {
 			}, {
 				name : 'category_name',
 				index : 'category_name',
-				width : 60
+				width : 40
 			}, {
 				name : 'model_name',
 				index : 'model_name',
@@ -438,36 +446,36 @@ function show_search_setting(componentSetting) {
 			},{
 				name : 'component_code',
 				index : 'component_code',
-				width : 50,
+				width : 40,
 				align : 'center'
 			}, {
 				name : 'partial_code',
 				index : 'partial_code',
-				width : 60
+				width : 120
 			}, {
 				name : 'safety_lever',
 				index : 'safety_lever',
-				width : 60,
+				width : 40,
 				align : 'right'
 			}, {
 				name : 'cnt_partial_step0',
 				index : 'cnt_partial_step0',
-				width : 70,
+				width : 40,
 				align : 'right'
 			},{
 				name : 'cnt_partial_step1',
 				index : 'cnt_partial_step1',
-				width : 70,
+				width : 40,
 				align : 'right'
 			},{
 				name : 'cnt_partial_step2',
 				index : 'cnt_partial_step2',
-				width : 70,
+				width : 40,
 				align : 'right'
 			}, {
 				name : 'cnt_partial_step3',
 				index : 'cnt_partial_step3',
-				width : 70,
+				width : 40,
 				align : 'right'
 			}],
 			rowNum : 20,
@@ -487,8 +495,17 @@ function show_search_setting(componentSetting) {
 				var row = $("#component_setting").jqGrid("getGridParam", "selrow");// 得到选中行的ID
 				var rowData = $("#component_setting").getRowData(row);
 				$("#search_model_id").val(rowData.model_id).trigger("change");
+				$("#searchform input[type!='button'][type!='radio'][id!='filter_l_low'], #searchform textarea").val("");
+				$("#search_step").children("option[value='0'],option[value='1'],option[value='2'],option[value='3']")
+					.attr("selected","selected")
+					.end().trigger("change");
+				findit();
+				window.scrollTo({ 
+					top: $("#searcharea").position().top - 10, 
+				    behavior: "smooth" 
+				});
 			},
-			onSelectRow : enableButton,
+			onSelectRow : enableButtonSetting,
 			viewsortcols : [ true, 'vertical', true ],
 			gridComplete : function() {
 				var IDS = $("#component_setting").getDataIDs();
@@ -507,6 +524,7 @@ function show_search_setting(componentSetting) {
 						$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='component_setting_safety_lever']").addClass("ui-state-highlight");
 					}
 				}
+				enableButtonSetting();
 			}
 		});
 	}
@@ -655,7 +673,9 @@ var showEdit_Complete = function(xhrobj,textStatus){
 			});
 		}
 		
-	} catch (e) {}
+	} catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	}
 };
 
 /*更新consumable_manage表*/
@@ -696,7 +716,7 @@ var update_consumable_manage = function(){
 	}
 	$.ajax({
 			beforeSend : ajaxRequestType,
-			async : true,
+			async : false,
 			url : servicePath + '?method=doUpdateSetting',
 			cache : false,
 			data : data,
@@ -720,7 +740,7 @@ function update_handleComplete(xhrobj, textStatus) {
 		treatBackMessages(null, resInfo.errors);
 	} else {
 		$("#pop_window_edit").dialog("close");
-	    findit();
+	    findSetting();
 	}
 };
 
@@ -743,7 +763,7 @@ var showDelete = function(rid) {
 			// Ajax提交
 			$.ajax({
 				beforeSend : ajaxRequestType,
-				async : true,
+				async : false,
 				url : servicePath + '?method=doDeleteSetting',
 				cache : false,
 				data : data,
@@ -760,7 +780,7 @@ var showDelete = function(rid) {
 			// Ajax提交
 			$.ajax({
 				beforeSend : ajaxRequestType,
-				async : true,
+				async : false,
 				url : servicePath + '?method=doDeleteSetting',
 				cache : false,
 				data : data,
@@ -784,9 +804,11 @@ var delete_handleComplete = function(xhrobj, textStatus) {
 			treatBackMessages("#searcharea", resInfo.errors);
 		} else {
 			infoPop("删除已经完成。", null, "删除");
-			findit();
+			findSetting();
 		}
-	}catch (e) {};
+	}catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
 };
 
 /*新建*/
@@ -803,11 +825,11 @@ var addManage = function() {
 		"model_id" : rowData.model_id
 	};
 
-	warningConfirm("是否要为（（" + encodeText(rowData.model_name) + "）虚拟订购一套子零件？", function() {
+	warningConfirm("是否要为（" + encodeText(rowData.model_name) + "）虚拟订购一套子零件？", function() {
 		// Ajax提交
 		$.ajax({
 			beforeSend : ajaxRequestType,
-			async : true,
+			async : false,
 			url : servicePath + '?method=doInsertManage',
 			cache : false,
 			data : data,
@@ -831,11 +853,14 @@ var addManage_handleComplete = function(xhrobj, textStatus) {
 			treatBackMessages("#searcharea", resInfo.errors);
 		} else {
 			findit();
+			findSetting();
 		}
-	}catch (e) {};
+	}catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
 };
 
-var showNSMap=function() {
+var showNSMap=function(move) {
 	$.ajax({
 		beforeSend : ajaxRequestType,
 		async : true,
@@ -865,12 +890,16 @@ var showNSMap=function() {
 							title : "NS子零件入库选择",
 							width : 1000,
 							show: "blind",
-							height : 640,// 'auto' ,
+							height : 'auto' ,
 							resizable : false,
 							modal : true,
 							minHeight : 200,
 							buttons : {}
 						});
+
+						var row = $("#component_manage").jqGrid("getGridParam", "selrow");
+						var rowData = $("#component_manage").getRowData(row);
+						$(".model_indicate:contains(" + rowData.model_name + ")").addClass("model_match");
 
 						$("#ns_pop").find("td").addClass("wip-empty");
 						for (var iheap in resInfo.heaps) {
@@ -882,7 +911,7 @@ var showNSMap=function() {
 							if ("TD" == e.target.tagName) {
 								if (!$(e.target).hasClass("wip-heaped")) {
 									selnsid = $(e.target).attr("nsid");
-									partialInstock(selnsid);
+									partialInstock(selnsid, move === true);
 								}
 							}
 						});
@@ -891,7 +920,7 @@ var showNSMap=function() {
 					});
 				}
 			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+				console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 						+ e.lineNumber + " fileName: " + e.fileName);
 			};
 		}
@@ -899,7 +928,7 @@ var showNSMap=function() {
 };
 
 /* 子零件入库处理 */
-var partialInstock = function(selnsid) {
+var partialInstock = function(selnsid, move) {
 
 	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
 	var rowData = $("#component_manage").getRowData(row);
@@ -909,22 +938,38 @@ var partialInstock = function(selnsid) {
 		"stock_code" : selnsid
 	};
 
-	// Ajax提交
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : servicePath + '?method=doPartialInstock',
-		cache : false,
-		data : data,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : partialInstock_handleComplete
-	});
+	if (move) {
+		// Ajax提交
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : false,
+			url : servicePath + '?method=doMoveStock',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : moveStock_handleComplete
+		});
+	} else {
+		// Ajax提交
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : false,
+			url : servicePath + '?method=doPartialInstock',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : partialInstock_handleComplete
+		});
+	}
 };
 
-var partialInstock_handleComplete = function(xhrobj, textStatus) {
+var moveStock_handleComplete = function(xhrobj, textStatus) {
 	var resInfo = null;
 	try {
 		// 以Object形式读取JSON
@@ -936,7 +981,26 @@ var partialInstock_handleComplete = function(xhrobj, textStatus) {
 			$("#ns_pop").dialog('close');	
 			findit();
 		}
-	}catch (e) {};
+	} catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
+};
+var partialInstock_handleComplete = function(xhrobj, textStatus) {
+	var resInfo = null;
+	try {
+		// 以Object形式读取JSON
+		eval('resInfo =' + xhrobj.responseText);
+		if (resInfo.errors.length > 0) {
+			// 共通出错信息框
+			treatBackMessages("#searcharea", resInfo.errors);
+		} else {
+			$("#ns_pop").dialog('close');	
+			findit();
+			findSetting();
+		}
+	} catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
 };
 
 /* 子零件出库处理 */
@@ -952,7 +1016,7 @@ var partialOutstock = function() {
 	// Ajax提交
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : true,
+		async : false,
 		url : servicePath + '?method=doPartialOutstock',
 		cache : false,
 		data : data,
@@ -975,8 +1039,11 @@ var partialOutstock_handleComplete = function(xhrobj, textStatus) {
 		} else {
 			infoPop(resInfo.resultMsg, null, "子零件出库");
 			findit();
+			findSetting();
 		}
-	}catch (e) {};
+	}catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
 };
 
 /*删除*/
@@ -999,7 +1066,7 @@ var cancleManage = function(rid) {
 		// Ajax提交
 		$.ajax({
 			beforeSend : ajaxRequestType,
-			async : true,
+			async : false,
 			url : servicePath + '?method=doCancleManage',
 			cache : false,
 			data : data,
@@ -1023,8 +1090,11 @@ var cancleManage_handleComplete = function(xhrobj) {
 		} else {
 			infoPop("组件废弃已经完成。", null, "废弃");
 			findit();
+			findSetting();
 		}
-	}catch (e) {};
+	}catch (e) {
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+	};
 };
 
 var printNSInfoTicket = function() {
@@ -1085,7 +1155,7 @@ var printNSLabelTicket = function() {
 		"component_key" : rowData.component_key,
 		"model_id" : rowData.model_id,
 		"model_name" : model_name,
-		"partial_code" : rowData.partial_code,
+		"partial_code" : rowData.component_code,
 		"serial_no" : serial_no
 	};
 
@@ -1124,34 +1194,18 @@ var printNSLabelTicket = function() {
 };
 
 /*判断修改库存设置，NS组件库存管理按钮enable、disable(当选择了消耗品之后enable；否则是disable)*/
-var enableButton = function() {
+var enableButtonSetting = function() {
 
-	// 权限判定并设置按钮显示
-	var isFact = $('#hidden_isFact').val();
-	if (isFact == "true") {
-		$("#add_button").enable();
-		$("#edit_button").enable();
-		$("#delete_button").enable();
-		$("#partial_instock_button").disable();
-		$("#partial_outstock_button").disable();
-		$("#partial_remove_button").disable();
-		$("#component_outstock_button").disable();
-		$("#cancle_button").disable();
-	}
-	var is105 = $('#hidden_is105').val();
-	if (is105 == "true") {
-		$("#add_manage_button").disable();
-	}
-	var is107 = $('#hidden_is107').val();
-	if (is107 == "true") {
-		$("#print_label_button").disable();
-		$("#print_info_button").disable();
-	}
-	// 选择NS组件库存管理行，并获取行数
+	// 选择NS组件库存一览行，并获取行数
 	var rowSetting = $("#component_setting").jqGrid("getGridParam", "selrow");
 	if (rowSetting !=null) {
-		$("#add_manage_button").enable();
+		$("#edit_button, #delete_button, #add_manage_button").enable();
+	} else {
+		$("#edit_button, #delete_button, #add_manage_button").disable();
 	}
+};
+var enableButtonManage = function() {
+
 	// 选择NS组件库存管理行，并获取行数
 	var row = $("#component_manage").jqGrid("getGridParam", "selrow");
 	if (row !=null) {
@@ -1162,10 +1216,10 @@ var enableButton = function() {
 		} 
 		if (step == 1) {
 			$("#partial_outstock_button").enable();
-			$("#partial_remove_button").enable();
+			$("#partial_move_button").enable();
 		} 
 		if (step == 3) {
-			$("#partial_remove_button").enable();
+			$("#partial_move_button").enable();
 			$("#component_outstock_button").enable();
 		} 
 		if (step < 4) {
@@ -1175,6 +1229,10 @@ var enableButton = function() {
 			$("#print_label_button").enable();
 			$("#print_info_button").enable();
 		} 
+		$("#print_label_button").enable();
+		$("#print_info_button").enable();
+	} else {
+		$("#manage_executes input:button").disable();
 	}
 };
 

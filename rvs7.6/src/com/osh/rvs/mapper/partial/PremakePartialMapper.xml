@@ -83,7 +83,7 @@
 		]]>
 	</insert>
 		
-	<update id="delete" parameterType="PremakePartialEntity">
+	<update id="deleteWithModelAndFlg" parameterType="PremakePartialEntity">
 		<![CDATA[ 
 			DELETE FROM premake_partial
 		]]>

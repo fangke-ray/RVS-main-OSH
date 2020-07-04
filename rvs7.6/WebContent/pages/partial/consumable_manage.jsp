@@ -63,7 +63,7 @@
 	<input type="hidden" id="hidden_isFact" value='<%=isFact%>'>
 	<input type="hidden" id="hidden_isProcess" value='<%=isProcess%>'>
 	<input type="hidden" id="hidden_isApplier" value='<%=isApplier%>'>
-	<div id="update_limit_date_after"></div>
+
 	<div class="width-full" style="align: center; margin: auto; margin-top: 16px;">
 		<div id="basearea" class="dwidth-full" style="margin: auto;">
 			<jsp:include page="/header.do" flush="true">
@@ -74,7 +74,7 @@
 		<div class="ui-widget-panel ui-corner-all width-full" style="align: center; padding-top: 16px;" id="body-2">
 			<div id="body-lft" style="width: 256px; float: left;">
 				<jsp:include page="/appmenu.do?method=pinit" flush="true">
-					<jsp:param name="linkto" value="消耗品管理"/>
+					<jsp:param name="linkto" value="消耗品/组件管理"/>
 				</jsp:include>
 			</div>
 

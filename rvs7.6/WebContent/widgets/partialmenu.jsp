@@ -80,7 +80,7 @@ $(function() {
 			</div>
 <% } %>
 
-		    <h3 style="padding-left:30px;">消耗品管理</h3>
+		    <h3 style="padding-left:30px;">消耗品/组件管理</h3>
 		    <div>
 		        <a target="_parent" href="consumable_list.do">消耗品仓库库存一览</a><br>
 		        <a target="_parent" href="consumable_manage.do">消耗品仓库管理记录</a><br>

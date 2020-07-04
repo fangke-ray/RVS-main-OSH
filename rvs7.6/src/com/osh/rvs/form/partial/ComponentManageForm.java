@@ -43,10 +43,6 @@ public class ComponentManageForm extends ActionForm {
 	@BeanField(title = "组件序列号", name = "serial_no", length = 13)
 	private String serial_no;
 	
-	/** IG蛇管号 */
-	@BeanField(title = "IG蛇管号", name = "ig_coiler_code", length = 7)
-	private String ig_coiler_code;
-	
 	/** 组装完成时间  */
 	@BeanField(title = "组装完成时间", name = "finish_time", type = FieldType.TimeStamp)
 	private String finish_time;
@@ -246,14 +242,6 @@ public class ComponentManageForm extends ActionForm {
 
 	public void setSerial_no(String serial_no) {
 		this.serial_no = serial_no;
-	}
-
-	public String getIg_coiler_code() {
-		return ig_coiler_code;
-	}
-
-	public void setIg_coiler_code(String ig_coiler_code) {
-		this.ig_coiler_code = ig_coiler_code;
 	}
 
 	public String getFinish_time() {

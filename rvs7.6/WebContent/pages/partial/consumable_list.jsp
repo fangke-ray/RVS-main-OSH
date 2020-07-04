@@ -37,42 +37,18 @@
 
 <body class="outer" style="align: center;">	
 	<input type="hidden" id="hidden_isFact" value='<%=isFact%>'>
-	<div id="update_limit_date_after"></div>
-	<div class="width-full"
-		style="align: center; margin: auto; margin-top: 16px;">
+
+	<div class="width-full" style="align: center; margin: auto; margin-top: 16px;">
 		<div id="basearea" class="dwidth-full" style="margin: auto;">
 			<jsp:include page="/header.do" flush="true">
 				<jsp:param name="part" value="2"/>
 			</jsp:include>
-<div class="clear" style="height: 10px;"></div>
-
-<div class="hidemessage" id="hidemessage">
-	<div id="messagecontainner" style="float: left; display: none;">
-		<div id="messagearea">
-			<div
-				class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-right">
-				<span class="areatitle">消息一览</span>
-			</div>
-			<div class="ui-state-default dwidth-right" id="message_contents">
-				<span>没有未处理的警告。</span>
-			</div>
-			<div class="clear"></div>
-		</div>
-	</div>
-</div>
-<div id="process_resign">
-	<div class="hidemenu" id="hidemenu">
-		<div id="menucontainner" style="float: right; display: none;">
-		</div>
-	</div>
-
-</div>
-
+			<div class="clear" style="height: 10px;"></div>
 		</div>
 		<div class="ui-widget-panel ui-corner-all width-full" style="align: center; padding-top: 16px;" id="body-2">
 			<div id="body-lft" style="width: 256px; float: left;">
 				<jsp:include page="/appmenu.do?method=pinit" flush="true">
-					<jsp:param name="linkto" value="消耗品管理"/>
+					<jsp:param name="linkto" value="消耗品/组件管理"/>
 				</jsp:include>
 			</div>
 

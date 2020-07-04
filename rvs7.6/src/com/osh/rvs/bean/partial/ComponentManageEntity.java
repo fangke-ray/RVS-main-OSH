@@ -1,6 +1,7 @@
 package com.osh.rvs.bean.partial;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 public class ComponentManageEntity implements Serializable {
@@ -23,13 +24,11 @@ public class ComponentManageEntity implements Serializable {
 	/** 库位编号 */
 	private String stock_code;	
 	/** 投入日期 */
-	private String inline_date;	
+	private Date inline_date;	
 	/** 组件序列号 */
 	private String serial_no;	
-	/** IG蛇管号 */
-	private String ig_coiler_code;	
 	/** 组装完成时间  */
-	private String finish_time;	
+	private Date finish_time;	
 	/** 采用维修品 ID */
 	private String target_material_id;
 	/** 采用维修品SFDC No. */
@@ -67,16 +66,16 @@ public class ComponentManageEntity implements Serializable {
 	private List<String> search_step_list;
 	
 	/** 投入日期始 */
-	private String search_inline_date_start;
+	private Date search_inline_date_start;
 	
 	/** 投入日期终 */
-	private String search_inline_date_end;
+	private Date search_inline_date_end;
 	
 	/** 组装完成日期始 */
-	private String search_finish_time_start;
+	private Date search_finish_time_start;
 	
 	/** 组装完成日期终 */
-	private String search_finish_time_end;
+	private Date search_finish_time_end;
 	
 	public String getPartial_name() {
 		return partial_name;
@@ -139,10 +138,10 @@ public class ComponentManageEntity implements Serializable {
 	public void setStock_code(String stock_code) {
 		this.stock_code = stock_code;
 	}
-	public String getInline_date() {
+	public Date getInline_date() {
 		return inline_date;
 	}
-	public void setInline_date(String inline_date) {
+	public void setInline_date(Date inline_date) {
 		this.inline_date = inline_date;
 	}
 	public String getSerial_no() {
@@ -151,16 +150,10 @@ public class ComponentManageEntity implements Serializable {
 	public void setSerial_no(String serial_no) {
 		this.serial_no = serial_no;
 	}
-	public String getIg_coiler_code() {
-		return ig_coiler_code;
-	}
-	public void setIg_coiler_code(String ig_coiler_code) {
-		this.ig_coiler_code = ig_coiler_code;
-	}
-	public String getFinish_time() {
+	public Date getFinish_time() {
 		return finish_time;
 	}
-	public void setFinish_time(String finish_time) {
+	public void setFinish_time(Date finish_time) {
 		this.finish_time = finish_time;
 	}
 	public String getTarget_material_id() {
@@ -205,28 +198,28 @@ public class ComponentManageEntity implements Serializable {
 	public void setSearch_step(String search_step) {
 		this.search_step = search_step;
 	}
-	public String getSearch_inline_date_start() {
+	public Date getSearch_inline_date_start() {
 		return search_inline_date_start;
 	}
-	public void setSearch_inline_date_start(String search_inline_date_start) {
+	public void setSearch_inline_date_start(Date search_inline_date_start) {
 		this.search_inline_date_start = search_inline_date_start;
 	}
-	public String getSearch_inline_date_end() {
+	public Date getSearch_inline_date_end() {
 		return search_inline_date_end;
 	}
-	public void setSearch_inline_date_end(String search_inline_date_end) {
+	public void setSearch_inline_date_end(Date search_inline_date_end) {
 		this.search_inline_date_end = search_inline_date_end;
 	}
-	public String getSearch_finish_time_start() {
+	public Date getSearch_finish_time_start() {
 		return search_finish_time_start;
 	}
-	public void setSearch_finish_time_start(String search_finish_time_start) {
+	public void setSearch_finish_time_start(Date search_finish_time_start) {
 		this.search_finish_time_start = search_finish_time_start;
 	}
-	public String getSearch_finish_time_end() {
+	public Date getSearch_finish_time_end() {
 		return search_finish_time_end;
 	}
-	public void setSearch_finish_time_end(String search_finish_time_end) {
+	public void setSearch_finish_time_end(Date search_finish_time_end) {
 		this.search_finish_time_end = search_finish_time_end;
 	}
 	public String getOrigin_omr_notifi_no() {
@@ -258,9 +251,6 @@ public class ComponentManageEntity implements Serializable {
 	}
 	public void setOperator_name(String operator_name) {
 		this.operator_name = operator_name;
-	}
-	public static long getSerialversionuid() {
-		return serialVersionUID;
 	}
 
 }

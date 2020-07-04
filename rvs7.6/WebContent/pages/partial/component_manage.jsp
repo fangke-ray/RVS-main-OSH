@@ -85,7 +85,7 @@ tr.addseqTr input {
 		<div class="ui-widget-panel ui-corner-all width-full" style="align: center; padding-top: 16px;" id="body-2">
 			<div id="body-lft" style="width: 256px; float: left;">
 				<jsp:include page="/appmenu.do?method=pinit" flush="true">
-					<jsp:param name="linkto" value="消耗品管理"/>
+					<jsp:param name="linkto" value="消耗品/组件管理"/>
 				</jsp:include>
 			</div>
 			<!-- 本体  -->
@@ -96,24 +96,27 @@ tr.addseqTr input {
 			
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middleright">
 						<span class="areatitle">NS组件库存一览</span>
+						<a target="_parent" role="link" href="javascript:void(0)" class="HeaderButton areacloser">
+							<span class="ui-icon ui-icon-circle-triangle-n"></span>
+						</a>
 					</div>
 					<table id="component_setting">
 					</table>
 					<div id="component_setting_pager"></div>
 					<div id="confirmmessage"></div>
+					<% if (isFact) { %>
 					<div class="ui-widget-header areabase" style="padding-top: 4px; margin-button: 6px; margin-bottom: 16px;">
 						<div id="executes" style="margin-left: 4px; margin-top: 2px;">
-							<% if (isFact) { %>
 							<input id="add_button" class="ui-button" value="新建NS组件机型" role="button" type="button">
 							<input id="edit_button" class="ui-button" value="修改NS组件机型" role="button" type="button">
 							<input id="delete_button" class="ui-button" value="取消NS组件机型" role="button" type="button">
-							<% } %>
 							<% if (is105) { %>
 							<input id="add_manage_button" class="ui-button" value="虚拟单号订购子零件" role="button" type="button" style="float:right;">
 							<% } %>
 							<div class="clear"></div>
 						</div>
 					</div>
+					<% } %>
 				</div>
 
 				<div id="body-mdl" class="dwidth-middleright" style="margin: auto;">
@@ -162,12 +165,12 @@ tr.addseqTr input {
 									<tr>
 										<td class="ui-state-default td-title">投入日期</td>
 										<td class="td-content">
-											<input type="text" id="search_inline_date_start" class="ui-widget-content" readonly="readonly" value="${first}">起<br>
+											<input type="text" id="search_inline_date_start" class="ui-widget-content" readonly="readonly" value="">起<br>
 											<input type="text" id="search_inline_date_end" class="ui-widget-content" readonly="readonly" value="">止
 										</td>
 										<td class="ui-state-default td-title">组装完成日期</td>
 										<td class="td-content" colspan="3">
-											<input type="text" id="search_finish_time_start" class="ui-widget-content" readonly="readonly" value="${first}">起<br>
+											<input type="text" id="search_finish_time_start" class="ui-widget-content" readonly="readonly" value="">起<br>
 											<input type="text" id="search_finish_time_end" class="ui-widget-content" readonly="readonly" value="">止
 										</td>
 									</tr>
@@ -195,11 +198,11 @@ tr.addseqTr input {
 						<div id="component_manage_pager"></div>
 						<div id="confirmmessage"></div>
 						<div class="ui-widget-header areabase" style="padding-top: 4px; margin-button: 6px; margin-bottom: 16px;">
-							<div id="executes" style="margin-left: 4px; margin-top: 2px;">
+							<div id="manage_executes" style="margin-left: 4px; margin-top: 2px;">
 								<% if (isFact) { %>
 								<input id="partial_instock_button" class="ui-button" value="子零件入库" role="button" type="button">
 								<input id="partial_outstock_button" class="ui-button" value="子零件出库" role="button" type="button">
-								<input id="partial_remove_button" class="ui-button" value="移库" role="button" type="button">
+								<input id="partial_move_button" class="ui-button" value="移库" role="button" type="button">
 								<input id="component_outstock_button" class="ui-button" value="组件出库" role="button" type="button">
 								<input id="cancle_button" class="ui-button" value="废弃" role="button" type="button">
 								<% } %>

@@ -4,12 +4,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +33,6 @@ import com.osh.rvs.service.partial.PremakePartialService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
-import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
@@ -70,9 +65,7 @@ public class ComponentManageAction extends BaseAction{
 		
 		String models = settingService.getComponentSettings(conn);
 		req.setAttribute("models", models);// component_setting表里所有型号
-		Calendar   cal_1=Calendar.getInstance();
-		cal_1.set(Calendar.DAY_OF_MONTH,1);
-		req.setAttribute("first",DateUtil.toString(cal_1.getTime(), DateUtil.DATE_PATTERN));
+
 		/* 分类 */
 		req.setAttribute("Steps", CodeListUtils.getSelectOptions("component_step",null,""));
 		req.setAttribute("gqOptions",CodeListUtils.getGridOptions("component_step"));
@@ -205,7 +198,7 @@ public class ComponentManageAction extends BaseAction{
 		// 预制对象零件List取得
 		List<PremakePartialForm> premakes = null;
 		if (errors.size() == 0) {
-			premakes = this.premakePartialValidateEdit(req, conn, errors);
+			premakes = settingService.premakePartialValidateEdit(req, conn, errors);
 		}
 
 		// 数据登录
@@ -215,7 +208,7 @@ public class ComponentManageAction extends BaseAction{
 			
 			// 预制对象零件 (premake_partial)数据插入
 			for (PremakePartialForm premake : premakes) {
-				premakeService.insert(premake, errors, conn);
+				premakeService.insertDirect(premake, conn);
 			}
 		}
 
@@ -337,7 +330,7 @@ public class ComponentManageAction extends BaseAction{
 		// 预制对象零件List取得
 		List<PremakePartialForm> premakes = null;
 		if (errors.size() == 0) {
-			premakes = this.premakePartialValidateEdit(req, conn, errors);
+			premakes = settingService.premakePartialValidateEdit(req, conn, errors);
 		}
 
 		// 数据登录
@@ -346,11 +339,11 @@ public class ComponentManageAction extends BaseAction{
 			settingService.updateSetting(form, req.getSession(), conn, errors);
 			
 			// 预制对象零件 (premake_partial)数据删除
-			premakeService.delete(premakes.get(0), conn);
+			premakeService.deleteNsCompSubPart(premakes.get(0), conn);
 			
 			// 预制对象零件 (premake_partial)数据插入
 			for (PremakePartialForm premake : premakes) {
-				premakeService.insert(premake, errors, conn);
+				premakeService.insertDirect(premake, conn);
 			}
 		}
 
@@ -396,7 +389,7 @@ public class ComponentManageAction extends BaseAction{
 			settingService.deleteSetting(form, conn);
 			
 			// 预制对象零件 (premake_partial)数据删除
-			premakeService.delete(form, conn);
+			premakeService.deleteNsCompSubPart(form, conn);
 
 		}
 
@@ -525,7 +518,6 @@ public class ComponentManageAction extends BaseAction{
 	public void doPartialOutstock(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSessionManager conn) throws Exception {
 		log.info("ComponentManageAction.doPartialOutstock start");
-
 		/* Ajax反馈对象 */
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 
@@ -533,74 +525,62 @@ public class ComponentManageAction extends BaseAction{
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 		List<MsgInfo> errors = v.validate();
 
-		/* 查询 */
-		ComponentSettingEntity settingEntity = new ComponentSettingEntity();
-		BeanUtil.copyToBean(form, settingEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
-		List<ComponentSettingForm> list = settingService.searchComponentSettingDetail(settingEntity, conn);
-		// 型号组件设置判定
-		if (list.size() == 0) {
-			MsgInfo msg = new MsgInfo();
-			msg.setErrmsg("该型号组件设置已被删除。无法进行出库。");
-			errors.add(msg);
-		}
-
-		// NS 组件流程取得
-		String derivedId = service.getDerivedId(settingEntity.getModel_id(), conn);
-		if (derivedId == null || derivedId.length() == 0) {
-			MsgInfo msg = new MsgInfo();
-			msg.setErrmsg("此型号的NS 组件流程不存在。无法进行出库。");
-			errors.add(msg);
-		}
-		
 		// 数据登录
 		if (errors.size() == 0) {
-
-			// 更新数据准备
+			
 			ComponentManageEntity updateBean = new ComponentManageEntity();
 			BeanUtil.copyToBean(form, updateBean, null);
 			
-			// 序列号取得
-			String getNewSerialNo = service.getNewSerialNo(list.get(0).getIdentify_code(), conn);
-			updateBean.setSerial_no(getNewSerialNo);
-
 			// 组件库存管理 (component_manage)数据更新
-			// 子零件出库处理
+			// 子零件入库处理
 			service.partialOutstock(updateBean, req.getSession(), conn);
-
-			// 返回给前台一个消息：“子零件已经出库，作为序列号是”+ （刚才生成的序列号） + “的NS组件组装作业原料发放。”
-			String resultMsg = "子零件已经出库，作为序列号是" + getNewSerialNo + "的NS组件组装作业原料发放。";
-			callbackResponse.put("resultMsg", resultMsg);
-			
-			// PositionId 取得
-			List<String> positionIds = service.getPositionIds(derivedId, conn);
-			
-			// 在（SOLO_PRODUCTION_FEATURE）表新建记录
-			for (String positionId : positionIds) {
-				SoloProductionFeatureEntity soloEntity = new SoloProductionFeatureEntity();
-				soloEntity.setPosition_id(positionId);
-				soloEntity.setModel_id(list.get(0).getModel_id());
-				soloEntity.setModel_name(list.get(0).getModel_name());
-				soloEntity.setSerial_no(getNewSerialNo);
-				service.insertToSoloProductionFeature(soloEntity, conn);
-			}
-			
-			// 在（POST_MESSAGE）表新建记录
-			service.insertToPOST(resultMsg, positionIds, req.getSession(), conn);
-			
-			conn.commit();
-			
-			// 触发http://localhost:8080/rvspush/trigger/in/28/1/0/0
-			for (String positionId : positionIds) {
-				RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/in/" + positionId + "/1/0/0");
-			}
 		}
-		
+
 		/* 检查错误时报告错误信息 */
 		callbackResponse.put("errors", errors);
 		/* 返回Json格式响应信息 */
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("ComponentManageAction.doPartialOutstock end");
+	}
+
+
+	/**
+	 * 移库
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doMoveStock(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doMoveStock start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> errors = v.validate();
+
+		// 画面数据转换
+		ComponentManageEntity componentBean = new ComponentManageEntity();
+		BeanUtil.copyToBean(form, componentBean, null);
+		
+		// 数据更新
+		if (errors.size() == 0) {
+			// 组件废弃处理
+			service.moveStock(componentBean, conn);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doMoveStock end");
 	}
 
 	/**
@@ -662,77 +642,6 @@ public class ComponentManageAction extends BaseAction{
 		log.info("ComponentManageAction.doCancleManage end");
 	}
 
-	/**
-	 * 重复性检查
-	 * @param req
-	 * @param conn
-	 * @param errors
-	 * @return 
-	 */
-	public List<PremakePartialForm> premakePartialValidateEdit(HttpServletRequest req, SqlSession conn,
-			List<MsgInfo> errors) {
-		List<PremakePartialForm> rets = new AutofillArrayList<>(PremakePartialForm.class);
-
-		String modelId = req.getParameter("model_id");
-
-		Map<String, String[]> parameterMap = req.getParameterMap();
-		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
-
-		// 整理提交数据
-		for (String parameterKey : parameterMap.keySet()) {
-			Matcher m = p.matcher(parameterKey);
-			if (m.find()) {
-				String entity = m.group(1);
-				if ("partial".equals(entity)) {
-					String column = m.group(2);
-					Integer index = Integer.parseInt(m.group(3));
-					rets.get(index).setModel_id(modelId);
-					rets.get(index).setStandard_flg("3");
-					
-					String[] value = parameterMap.get(parameterKey);
-
-					if ("partial_id".equals(column)) {
-						rets.get(index).setPartial_id(value[0]);
-					} else if ("partial_code".equals(column)) {
-						rets.get(index).setCode(value[0]);
-					} else if ("partial_name".equals(column)) {
-						rets.get(index).setPartial_name(value[0]);
-					} else if ("quantity".equals(column)) {
-						rets.get(index).setQuantity(value[0]);
-					}
-				}
-			}
-		}
-
-		if (rets.size() == 0) {
-			MsgInfo error = new MsgInfo();
-			error.setComponentid("partial_id");
-			error.setErrcode("validator.required.multidetail");
-			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required.multidetail", "NS组件零件"));
-			errors.add(error);
-			return null;
-		}
-
-		// 比对稽核
-		Set<String> checkSet = new HashSet<String>();
-		for (PremakePartialForm ret : rets) {
-			String checkKey = ret.getPartial_id();
-			if (checkSet.contains(checkKey)) {
-				MsgInfo error = new MsgInfo();
-				error.setComponentid("partial_id");
-				error.setErrcode("info.peripheralInfectDevice.duplicatedInSeq");
-				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.premake.partial.existed", ret.getCode()));
-				errors.add(error);
-				return null;
-			}
-
-			// 加入比对对象
-			checkSet.add(checkKey);
-		}
-
-		return rets;
-	}
-	
 	/**
 	 * NS组件信息单打印
 	 * @param mapping ActionMapping

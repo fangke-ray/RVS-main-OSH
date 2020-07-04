@@ -65,7 +65,7 @@
 <% } %>
 
 <div class="dwidth-left">
-<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>消耗品管理</h3>
+<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>消耗品/组件管理</h3>
 		    <div class="ui-accordion-content ui-helper-reset ui-widget-content">
 		        <a target="_parent" href="consumable_list.do">消耗品仓库库存一览</a><br>
 		        <a target="_parent" href="consumable_manage.do">消耗品仓库管理记录</a><br>

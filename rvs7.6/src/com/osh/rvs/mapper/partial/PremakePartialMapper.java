@@ -23,5 +23,5 @@ public interface PremakePartialMapper {
 	
 	public void insert(PremakePartialEntity entity);
 	
-	public void delete(PremakePartialEntity entity);
+	public void deleteWithModelAndFlg(PremakePartialEntity entity);
 }

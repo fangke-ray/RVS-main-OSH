@@ -116,11 +116,29 @@ public class PremakePartialService {
 			errors.add(msg);
 			return;
 		}
+
+		if (errors.size() == 0) {
+			dao.insert(entity);
+		}
+	}
+
+	public void insertDirect(ActionForm form, SqlSessionManager conn){
+		PremakePartialMapper dao = conn.getMapper(PremakePartialMapper.class);
 		
+		// 复制表单数据到对象
+		PremakePartialEntity entity = new PremakePartialEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
 		dao.insert(entity);
 	}
 
-	public void delete(ActionForm form, SqlSessionManager conn) {
+	/**
+	 * 删除组装子零件
+	 * 
+	 * @param form
+	 * @param conn
+	 */
+	public void deleteNsCompSubPart(ActionForm form, SqlSessionManager conn) {
 		PremakePartialMapper dao = conn.getMapper(PremakePartialMapper.class);
 
 		// 复制表单数据到对象
@@ -129,6 +147,6 @@ public class PremakePartialService {
 		entity.setStandard_flg(PremakePartialService.NS_COMP);
 
 		// 删除指定型号ID的NS组件子零件
-		dao.delete(entity);
+		dao.deleteWithModelAndFlg(entity);
 	}
 }
