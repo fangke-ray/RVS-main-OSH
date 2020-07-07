@@ -28,7 +28,9 @@
 					(select material_id, occur_times from 
 					    material_partial_detail mpd 
 					WHERE
-					    mpd.waiting_quantity > 0) mpd_core
+					    mpd.waiting_quantity > 0
+					AND
+						mpd.status <> 7) mpd_core
 				group by material_id, occur_times
 				) mpd
 			JOIN 

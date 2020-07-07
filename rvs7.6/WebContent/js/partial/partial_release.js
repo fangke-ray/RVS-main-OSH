@@ -455,6 +455,7 @@ var arrive_partial_list=function(responseList){
 							}
 						}
 						if (subPartDict[rowData.partial_id]) {
+							if (retValue == '消耗品') retValue = "";
 							retValue += '<label class="subPart" for="subPart_'+ rowData.material_partial_detail_key +'">物料组签收</label>';
 						}
 						return retValue;

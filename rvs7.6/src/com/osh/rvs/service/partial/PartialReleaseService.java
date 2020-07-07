@@ -210,7 +210,7 @@ public class PartialReleaseService {
 		String compModelId = null;
 
 		// 追加组装NS组件
-		if (privNsCom > 0) {
+		if (privNsCom >= 0) {
 			// 组装NS组件partial_id
 			String comPartialId = materialPartialDetails.get(privNsCom).getPartial_id();
 
