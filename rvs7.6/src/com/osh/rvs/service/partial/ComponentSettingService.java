@@ -85,7 +85,32 @@ public class ComponentSettingService {
 
 		return lResultForm;
 	}
-	
+
+	/**
+	 * 确认型号是否是NS 组件组装目标型号，并返回值
+	 * @param conn
+	 * @return
+	 */
+	public ComponentSettingForm getComponentSetting(String model_id, SqlSession conn) {
+		
+		ComponentSettingMapper mapper = conn.getMapper(ComponentSettingMapper.class);
+
+		List<ComponentSettingEntity> lResultBeans = mapper.searchComponentSetting();
+		
+		ComponentSettingForm lResultForm = null;
+
+		for (ComponentSettingEntity lResultBean : lResultBeans) {
+			if (model_id.equals(lResultBean.getModel_id())) {
+				lResultForm = new ComponentSettingForm();
+				// 数据对象复制到表单
+				BeanUtil.copyToForm(lResultBean, lResultForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+				break;
+			}
+		}
+
+		return lResultForm;
+	}
+
 	/**
 	 * 组件设置追加
 	 * 
@@ -162,6 +187,17 @@ public class ComponentSettingService {
 		List<ComponentSettingEntity> resultList = settingMapper.getSettingDetail(model_id);
 		BeanUtil.copyToFormList(resultList, resultForm, null, ComponentSettingForm.class);
 		return resultForm;
+	}
+	public ComponentSettingEntity getComponentSettingDetail(
+			String model_id, SqlSession conn) {
+		ComponentSettingMapper settingMapper = conn.getMapper(ComponentSettingMapper.class);
+		List<ComponentSettingEntity> resultList = settingMapper.getSettingDetail(model_id);
+
+		if (resultList.size() == 0) {
+			return null;
+		} else {
+			return resultList.get(0);
+		}
 	}
 
 	/**

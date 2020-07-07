@@ -60,7 +60,7 @@ background-color:white;}
 									<td class="ui-state-default td-title">修理单号</td>
 									<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content"></td>
 									<td class="ui-state-default td-title">零件订购日</td>
-									<td class="td-content"><input name="" id="order_time_start" maxlength="50" class="ui-widget-content" readonly="readonly" type="text">起<br><input name="" id="order_time_end" maxlength="50" class="ui-widget-content" readonly="readonly" type="text">止</td>
+									<td class="td-content"><input name="" id="order_time_start" class="ui-widget-content" readonly="readonly" type="text">起<br><input name="" id="order_time_end" maxlength="50" class="ui-widget-content" readonly="readonly" type="text">止</td>
 									<td class="ui-state-default td-title">BO状态</td>
 									<td class="td-content" id="bo_flg">
 										<input type="radio" name="bo" id="cond_work_procedure_order_template_a" class="ui-widget-content ui-helper-hidden-accessible" value="" checked="checked"><label for="cond_work_procedure_order_template_a" aria-pressed="false">(全)</label>
@@ -154,12 +154,33 @@ background-color:white;}
 				
 				<div class="clear areaencloser"></div>
 				
-				<div id="planned_listarea" class="ui-widget-content">
+				<div id="mpd_listarea" class="ui-widget-content">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
 						<span class="areatitle">零件一览</span>
 						<a target="_parent" role="link" href="javascript:void(0)" class="HeaderButton areacloser">
-							<span class="ui-icon ui-icon-circle-triangle-n"></span>
+							<span class="ui-icon ui-icon-circle-triangle-w"></span>
 						</a>
+					</div>
+					<div id="ns_partial_set">
+						<table class="condform">
+						<tbody>
+							<tr>
+								<td class="ui-state-default td-title">采用组装完成<br>NS 组件</td>
+								<td class="td-content">
+									<label id="label_use_ns_component_code">-</label>
+									<input type="checkbox" id="check_use_ns_component" class="ui-button"><label for="check_use_ns_component">采用</label>
+								</td>
+								<td class="ui-state-default td-title">NS 组件名称</td>
+								<td class="td-content">
+									<label id="label_use_ns_component_name">-</label>
+								</td>
+								<td class="ui-state-default td-title">交付的<br>NS 组件序列号</td>
+								<td class="td-content"
+									<label id="label_use_ns_component_serial_nos">（未交付）</label>
+								</td>
+							</tr>
+						</tbody>
+						</table>
 					</div>
 					<div id="arrive_partial">
 						<table id="arrive_partial_list"></table>

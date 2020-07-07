@@ -17,20 +17,25 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.FactPartialReleaseForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
+import com.osh.rvs.form.partial.PremakePartialForm;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
+import com.osh.rvs.service.partial.ComponentManageService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.FactPartialReleaseService;
 import com.osh.rvs.service.partial.PartialReleaseService;
+import com.osh.rvs.service.partial.PremakePartialService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -108,9 +113,35 @@ public class PartialReleaseAction extends BaseAction {
 		MaterialForm responseForm = service.searchMaterialPartialDetail(form, occur_times, conn);
 		
 		List<MaterialPartialDetailForm>  responseList=service.secrchPartialOfRelease(form, conn);
-		
+
 		listResponse.put("responseForm", responseForm);
 		listResponse.put("responseList", responseList);
+
+		// NS组件判断
+		if ("1".equals(responseForm.getLevel())) {
+			ComponentSettingService csService = new ComponentSettingService();
+			ComponentSettingEntity componentSetting = csService.getComponentSettingDetail(responseForm.getModel_id(), conn);
+			if (componentSetting != null) {
+				listResponse.put("componentSetting", componentSetting);
+				// 判断维修品是否收到组装成品
+				ComponentManageService cmService = new ComponentManageService();
+				listResponse.put("serialNosForThis", 
+						cmService.getSerialNosForTargetMaterial(responseForm.getMaterial_id(), conn));
+
+				// NS 组件 子零件详细数据取得
+				PremakePartialForm premakePartialForm = new PremakePartialForm();
+				premakePartialForm.setModel_id(responseForm.getModel_id());
+				premakePartialForm.setStandard_flg("3");
+
+				PremakePartialService premakePartialService = new PremakePartialService();
+				List<PremakePartialForm> premakePartials = premakePartialService.search(premakePartialForm, conn);
+				listResponse.put("subPartials", premakePartials);
+
+				// 找出列表中的组件并且标记
+				service.checkCompAppended(responseList, listResponse);
+			}
+		}
+
 		listResponse.put("errors", errors);
 
 		// 返回Json格式响应信息
@@ -118,7 +149,7 @@ public class PartialReleaseAction extends BaseAction {
 		
 		log.info("PartialReleaseAction.searchMaterialPartialDetail end");
 	}
-	
+
 	public void doUpdateWaitingQuantityAndStatus(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn) throws Exception{
 		log.info("PartialReleaseAction.doUpdateWaitingQuantity start");
 		
@@ -128,7 +159,8 @@ public class PartialReleaseAction extends BaseAction {
 		List<MsgInfo> errors = v != null ? v.validate(): new ArrayList<MsgInfo>();
 
 		PartialReleaseService service=new PartialReleaseService();
-		
+
+		// 处理标记
 		String flag=request.getParameter("flag");
 
 		if(errors.size()==0){

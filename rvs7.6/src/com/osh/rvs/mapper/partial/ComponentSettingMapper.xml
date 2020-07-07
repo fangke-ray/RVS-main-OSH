@@ -7,7 +7,7 @@
 		SELECT 
 			cs.model_id ,
 			md.name as model_name, 
-			cs.component_partial_id, 
+			cs.component_partial_id,
 			cs.identify_code, 
 			cs.safety_lever
 		from component_setting cs

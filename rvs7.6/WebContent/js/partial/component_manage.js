@@ -293,7 +293,7 @@ function show_search_manage(componentManage, inlineDateCheck) {
 			}, {
 				name : 'origin_omr_notifi_no',
 				index : 'origin_omr_notifi_no',
-				width : 60
+				width : 55
 			}, {
 				name : 'step',
 				index : 'step',
@@ -335,12 +335,12 @@ function show_search_manage(componentManage, inlineDateCheck) {
 				name : 'finish_time',
 				index : 'finish_time',
 				align : 'center',
-						width : 50,
+						width : 55,
 						formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d H\\h'}
 			}, {
 				name : 'target_omr_notifi_no',
 				index : 'target_omr_notifi_no',
-				width : 50,
+				width : 55,
 				align : 'center'
 			}],
 			rowNum : 50,

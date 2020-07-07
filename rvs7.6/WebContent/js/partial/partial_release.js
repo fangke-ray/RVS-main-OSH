@@ -4,6 +4,7 @@ var recept_listdata = {};
 /** 服务器处理路径 */
 var servicePath = "partial_distrubute.do";
 var privacy;
+var subPartDict = {}
 
 $(function(){
 	$("input.ui-button").button();
@@ -13,14 +14,21 @@ $(function(){
 		function (){$(this).removeClass("ui-state-hover");}
 	);
 	
-	$("#body-mdl span.ui-icon").bind("click", function() {
-		$(this).toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
-		if ($(this).hasClass('ui-icon-circle-triangle-n')) {
-			$(this).parent().parent().next().show("blind");
-		} else {
-			$(this).parent().parent().next().hide("blind");
+	$("#body-mdl .ui-widget-header > .HeaderButton > span.ui-icon," +
+			"#body-detail .ui-widget-header > .HeaderButton > span.ui-icon").bind("click", function() {
+		var $areacloserIcon = $(this);
+		if ($areacloserIcon.hasClass('ui-icon-circle-triangle-w')) {
+			$("#resetbutton").trigger("click");
+			return;
 		}
-	});	
+
+		$areacloserIcon.toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
+		if ($areacloserIcon.hasClass('ui-icon-circle-triangle-n')) {
+			$areacloserIcon.parent().parent().next().show("blind");
+		} else {
+			$areacloserIcon.parent().parent().next().hide("blind");
+		}
+	});
 	findit();
 
 	$("#resetbutton").click(function(){
@@ -76,6 +84,8 @@ $(function(){
 	});
 	
 	privacy=$("#privacy").val();
+
+	$("#check_use_ns_component").change(changeNsCompSet);
 });
 
 /*清除检索条件*/
@@ -331,7 +341,23 @@ var search_handleComplete=function(xhrobj, textStatus) {
 			}else{
 				$("#label_arrival_plan_date").text(resInfo.responseForm.arrival_plan_date_start);
 			}
-			
+
+			subPartDict = {};
+			if (resInfo.componentSetting) {
+				$("#ns_partial_set").addClass("needNp").show();
+				$("#label_use_ns_component_code").text(resInfo.componentSetting.component_code || "-")
+					.data("component_partial_id", resInfo.componentSetting.component_partial_id || "");
+				$("#label_use_ns_component_name").text(resInfo.componentSetting.partial_name || "-");
+				$("#label_use_ns_component_serial_nos").text(resInfo.serialNosForThis || "（未交付）");
+
+				for (var i in resInfo.subPartials) {
+					var subPartial = resInfo.subPartials[i];
+					subPartDict[subPartial.partial_id] = subPartial.quantity;
+				}
+			} else {
+				$("#ns_partial_set").removeClass("needNp").hide();
+			}
+
 			arrive_partial_list(resInfo.responseList);
 
 			$("#body-mdl").hide();
@@ -414,19 +440,24 @@ var arrive_partial_list=function(responseList){
 					width:50,
 					align:'center',
 					formatter:function(cellValue,options,rowData){
+						var retValue = ""
 						if(cellValue!=null){
+							
 							if(rowData.waiting_quantity!=0){
 								 if(cellValue < rowData.waiting_quantity){
-								 	return '<label for="append_'+ rowData.material_partial_detail_key +'">现有 '+ cellValue+' </label>';
-								 }
-								
-								return '<label for="append_'+ rowData.material_partial_detail_key +'">现有 '+ cellValue+' </label>' +
+								 	retValue = '<label for="append_'+ rowData.material_partial_detail_key +'">现有 '+ cellValue+' </label>';
+								 } else {
+									retValue = '<label for="append_'+ rowData.material_partial_detail_key +'">现有 '+ cellValue+' </label>' +
 										'<input type="checkbox" value="5" id="append_'+ rowData.material_partial_detail_key +'" name="append"/>';
+								 }
 							}else{
-								return '消耗品';
+								retValue = '消耗品';
 							}
 						}
-						return "";
+						if (subPartDict[rowData.partial_id]) {
+							retValue += '<label class="subPart" for="subPart_'+ rowData.material_partial_detail_key +'">物料组签收</label>';
+						}
+						return retValue;
 					}
 				},
 				{
@@ -514,16 +545,18 @@ var arrive_partial_list=function(responseList){
 					}
 					changevalue();
 					//$pill_parent.append(pill);
+					if ($("#ns_partial_set").hasClass("needNp")) {
+						$("#check_use_ns_component").attr("checked", true).trigger("change");
+					}
 				}
 			}
 		});
 	}
 };
-
 var changevalue = function(rowid,status,e){
 	if (rowid instanceof Array) {
 		// 全选
-		var $inum = $("#arrive_partial_list").find("input[type=number]");
+		var $inum = $("#arrive_partial_list").find("input[type=number]").not("[disabled]");
 		$inum.each(function(){
 			if (status) {
 				$(this).val($(this).attr("total"));
@@ -535,6 +568,9 @@ var changevalue = function(rowid,status,e){
 		});
 	} else {
 		var $inum = $("#arrive_partial_list").find("tr#"+rowid).find("input[type=number]");
+		if ($inum.attr("disabled")) {
+			return;
+		}
 		if (status) {
 			$inum.val($inum.attr("total"));
 //			$("#arrive_partial_list").find("tr#"+rowid).find("input[name=append]").attr("checked",true);
@@ -544,6 +580,51 @@ var changevalue = function(rowid,status,e){
 		}
 	}
 };
+var changeNsCompSet = function(){
+
+	if ($("#ns_partial_set").hasClass("needNp")) {
+
+		var $subParts = $("#arrive_partial_list").find(".subPart");
+
+		if ($("#check_use_ns_component").is(":checked")) {
+			$("#check_use_ns_component").next("label").children("span.ui-button-text").text("采用");
+	
+			$subParts.each(function(){
+				var $td = $(this).parent();
+				var $tr = $td.parent();
+				var partial_id = $tr.children("td[aria\\-describedby='arrive_partial_list_partial_id']").text();
+				var $inpQuantity = $tr.children("td[aria\\-describedby='arrive_partial_list_cur_quantity']").children("input");
+
+				var quantity = subPartDict[partial_id];
+				if (quantity) {
+					$td.children().hide();
+					$td.children(".subPart").show();
+					var nmlVal = $inpQuantity.val() || 0;
+					$inpQuantity.data("nmlVal", nmlVal).val(quantity).disable();
+					$tr.children("td[aria\\-describedby='arrive_partial_list_cb']").children("input").hide();
+				} else {
+					$td.children().hide();
+					$td.children().not(".subPart").show();
+					$inpQuantity.val($inpQuantity.data("nmlVal") || 0).enable();
+					$tr.children("td[aria\\-describedby='arrive_partial_list_cb']").children("input").show();
+				}
+			});
+		} else {
+			$("#check_use_ns_component").next("label").children("span.ui-button-text").text("不采用");
+		
+			$subParts.each(function(){
+				var $td = $(this).parent();
+				var $tr = $td.parent();
+				var $inpQuantity = $tr.children("td[aria\\-describedby='arrive_partial_list_cur_quantity']").children("input");
+	
+				$td.children().hide();
+				$td.children().not(".subPart").show();
+				$inpQuantity.val($inpQuantity.data("nmlVal") || 0).enable();
+				$tr.children("td[aria\\-describedby='arrive_partial_list_cb']").children("input").show();
+			});
+		}
+	}
+}
 
 var changeMaterialStatus=function(flag){
 	var postData={
@@ -553,22 +634,34 @@ var changeMaterialStatus=function(flag){
 	}
 	var iii = 0;
 	$("#arrive_partial_list").find("tr").each(function(idx, ele) {
-		$input = $(ele).find("input[type=number]");
+		var $tr = $(ele);
+		$input = $tr.find("input[type=number]");
 		if ($input && $input.val()) {
-			var ckValue = ($(ele).find("input[name=append]").attr("checked") != null) ? 5 : 0;
+			var ckValue = ($tr.find("input[name=append]").attr("checked") != null) ? 5 : 0;
+			if ($tr.find(".subPart:visible").length > 0) {
+				ckValue = 8; // 物料组子零件签收
+			}
 			var ival = $input.val();
 			var iTotal = $input.attr("total");
 			if (ival.match(/^[0-9]*$/) != null) { // ival.match(/^0*$/) == null && 可以等于0
 				if (ival > iTotal) $input.val(iTotal);
 				if (ival < 0) $input.val(0);
 				postData["exchange.cur_quantity[" + iii + "]"] = $input.val();
-				postData["exchange.material_partial_detail_key[" + iii + "]"] = $(ele).find("td[aria\\-describedby=arrive_partial_list_material_partial_detail_key]").text();
+				postData["exchange.material_partial_detail_key[" + iii + "]"] = $tr.find("td[aria\\-describedby=arrive_partial_list_material_partial_detail_key]").text();
 				postData["exchange.status["+iii+"]"]=ckValue;
 				postData["exchange.partial_id[" + iii + "]"] = $input.parent().parent().find("td[aria\\-describedby='arrive_partial_list_partial_id']").text();
 				iii ++;
 			}
 		};
 	});
+
+	if ($("#check_use_ns_component:visible").is(":checked")) {
+		postData["exchange.cur_quantity[" + iii + "]"] = 1;
+		postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
+		postData["exchange.status["+iii+"]"]=7; // 使用组件
+		postData["exchange.partial_id[" + iii + "]"] = $("#label_use_ns_component_code").data("component_partial_id");
+		postData["exchange.code[" + iii + "]"]=$("#label_use_ns_component_code").text(); // 使用组件名
+	}
 
 	// if (postData["exchange.material_partial_detail_key[0]"] != null)
 	$.ajax({

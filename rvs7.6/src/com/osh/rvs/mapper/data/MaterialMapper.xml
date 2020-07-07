@@ -876,6 +876,7 @@
 				ma.ocm,
 				ma.agreed_date,
 				coalesce(ma.omr_notifi_no, ma.sorc_no) as sorc_no,
+				ma.model_id,
 				mo.name as model_name,
 				ma.serial_no,
 				ma.level,

@@ -257,4 +257,15 @@
 			 WHERE stock_code IS NOT NULL
 		]]>
 	</select>
+
+	<select id="getComponentByTargetMaterial" resultType="String">
+		<![CDATA[ 
+			SELECT 
+				group_concat(cm.serial_no) as serial_no
+			FROM 
+				component_manage cm
+			WHERE
+				target_material_id = #{target_material_id}
+		]]>
+	</select>
  </mapper>

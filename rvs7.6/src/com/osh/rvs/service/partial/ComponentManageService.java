@@ -113,16 +113,13 @@ public class ComponentManageService {
 	 * @param componentManageEntity
 	 * @param conn
 	 */
-	public void insert(ActionForm form, HttpSession session, SqlSessionManager conn)
+	public void insert(ComponentManageEntity insertBean, SqlSessionManager conn)
 			throws Exception {
-		ComponentManageEntity insertBean = new ComponentManageEntity();
-		BeanUtil.copyToBean(form, insertBean, null);
-
 		/* Consumable_manage表插入数据 */
 		ComponentManageMapper dao = conn.getMapper(ComponentManageMapper.class);
 		dao.insert(insertBean);
 	}
-	
+
 	/**
 	 * 子零件入库处理
 	 * 
@@ -335,7 +332,7 @@ public class ComponentManageService {
 	}
 	
 	/**
-	 * position_id取得
+	 * 流程首个position_id取得
 	 * @param conn
 	 * @return List<String>
 	 */
@@ -343,6 +340,18 @@ public class ComponentManageService {
 		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
 		return dao.getFirstPosition(derivedId, "9000000");
 	}
+
+	/**
+	 * 取得已经分配给目标维修品的组建序列号
+	 * @param targetMaterialId
+	 * @param conn
+	 * @return
+	 */
+	public String getSerialNosForTargetMaterial(String targetMaterialId, SqlSession conn) {
+		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
+		return mapper.getComponentByTargetMaterial(targetMaterialId);
+	}
+	
 	
 	/**
 	 * 打印NS组件标识

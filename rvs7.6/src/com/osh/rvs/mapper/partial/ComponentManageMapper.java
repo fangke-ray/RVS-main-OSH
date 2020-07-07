@@ -35,4 +35,6 @@ public interface ComponentManageMapper {
 	
 	/* 取得已有库位编号 */
 	public List<String> getNSStock();
+
+	public String getComponentByTargetMaterial(String target_material_id);
 }

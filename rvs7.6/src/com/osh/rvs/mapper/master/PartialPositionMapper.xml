@@ -116,7 +116,6 @@
       PA.UPDATED_TIME
  </select>
 
-	<!-- 根据code查询出partial_id -->
   <select id="checkPartialPosition" resultType="String" parameterType="PartialPositionEntity">
    <![CDATA[ 
 			SELECT partial_id
