@@ -1369,7 +1369,7 @@ var showFoundry = function(){
 var showPartialRecept = function(resInfo, finish){
 	var $partialconfirmarea = $('#partialconfirmarea');
 	if ($partialconfirmarea.length == 0) {
-		$("body").append("<div id='partialconfirmarea'><table id='partialConfirmList'/></div>");
+		$("body").append("<div id='partialconfirmarea'><table id='partialConfirmList'/><div id='partialConfirmComponent'/></div>");
 		$partialconfirmarea = $('#partialconfirmarea');
 		$("#partialConfirmList").jqGrid({
 			data:{},
@@ -1444,7 +1444,7 @@ var showPartialRecept = function(resInfo, finish){
 					width:20,
 					formatter:'select',
 					align:'center',
-					editoptions:{value:':;1:消耗品'}
+					editoptions:{value:':;1:消耗品;7:组装组件'}
 				},
 				{
 					name:'bom_quantity',
@@ -1508,10 +1508,21 @@ var showPartialRecept = function(resInfo, finish){
 				$("#jqgh_partialConfirmList_cb").hide();
 			}
 		});
-	
 	}
+
 	$("#partialConfirmList").jqGrid().clearGridData();
 	$("#partialConfirmList").jqGrid('setGridParam',{data:resInfo.mpds}).trigger("reloadGrid", [{current:false}]);
+	var strComponent = null;
+	for (var mpdi in resInfo.mpds) {
+		var linepart = resInfo.mpds[mpdi];
+		if (linepart.append == "7") {
+			strComponent = "组件" + linepart.code + "现分配的序列号是：" + linepart.name + "。";
+			break;
+		}
+	}
+	if (strComponent) {
+		$("#partialConfirmComponent").text(strComponent);
+	}
 
 	partial_closer = true;
 	// TODO div infect
@@ -1874,6 +1885,7 @@ var ttime=function(){
 	$("#p_run_cost").text(minuteFormat(t_run_cost));
 	t_run_cost++;
 };
+
 // 暂停中
 var wttime = function(){
 	var minute = Math.floor((new Date().getTime() - p_start_at) / 60000);

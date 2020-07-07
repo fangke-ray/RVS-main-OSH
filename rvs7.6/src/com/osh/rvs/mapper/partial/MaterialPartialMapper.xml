@@ -1324,7 +1324,7 @@
 			where 
 				ma.material_id=#{material_id}
 			and
-				mpd.status != 9
+				mpd.status not in (8, 9)
 			order by
 				mpd.occur_times , mpd.recent_signin_time , pa.code
 		]]>

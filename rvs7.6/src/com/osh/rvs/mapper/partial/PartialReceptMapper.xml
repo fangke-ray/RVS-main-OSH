@@ -95,6 +95,7 @@
 				mpd.partial_id,
 				CASE WHEN mpd.belongs = 2 THEN concat(pa.code , ' *') ELSE pa.code END as `code`,
 				pa.name as partial_name,
+				mpd.waiting_quantity,
 				(mpd.waiting_receive_quantity - mpd.waiting_quantity) as recept_quantity,
 				(mpd.quantity - mpd.waiting_receive_quantity) as cur_quantity,
 				mpd.waiting_receive_quantity,
