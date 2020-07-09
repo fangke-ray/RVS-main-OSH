@@ -1521,5 +1521,34 @@ arrival_plan_date END
 		;
 	]]>
 	</update>
-		
+
+	<select id="getMpdForComponent" resultType="MaterialPartialDetailEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT material_partial_detail_key,mpd.partial_id,part.code,part.name as partial_name,
+				waiting_quantity,quantity,
+				pos.process_code,status,recent_receive_time
+			FROM material_partial_detail mpd
+			join partial part
+				ON mpd.partial_id = part.partial_id
+			left join position pos
+				ON mpd.position_id = pos.position_id
+			where material_id = #{material_id}
+			and status = 7
+			ORDER BY occur_times
+			;
+		]]>
+	</select>
+
+	<update id="updateComponentRelease" parameterType="String">
+		<![CDATA[
+			update 
+				material_partial_detail
+			set
+				waiting_quantity = 0,
+				recent_signin_time = current_timestamp,
+				arrival_plan_date = current_date
+			where 
+				material_partial_detail_key=#{material_partial_detail_key}
+		]]>
+	</update>
 </mapper>

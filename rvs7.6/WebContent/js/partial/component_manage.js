@@ -55,7 +55,7 @@ $(function() {
 	$("#partial_move_button").click(function(){
 		showNSMap(true);
 	});
-//	$("#component_outstock_button").click(componentOutstock);
+	$("#component_outstock_button").click(componentOutstock);
 	$("#cancle_button").click(cancleManage);
 	$("#print_label_button").click(printNSLabelTicket);
 	$("#print_info_button").click(printNSInfoTicket);
@@ -218,7 +218,8 @@ var findit = function(data) {
 			"search_inline_date_start" : $("#search_inline_date_start").val(),
 			"search_inline_date_end" : $("#search_inline_date_end").val(),
 			"search_finish_time_start" : $("#search_finish_time_start").val(),
-			"search_finish_time_end" : $("#search_finish_time_end").val()
+			"search_finish_time_end" : $("#search_finish_time_end").val(),
+			"target_omr_notifi_no" : $("#search_target_omr_notifi_no").val()
 		};
 	} else {
 		keepSearchData = data;
@@ -275,7 +276,7 @@ function show_search_manage(componentManage, inlineDateCheck) {
 			width : 992,
 			rowheight : 23,
 			datatype : "local",
-			colNames : [ 'component_key','model_id', '型号', '订购来源', '进度', '子零件', '库位编号',
+			colNames : [ 'component_key','model_id', '型号', 'origin_material_id', '订购来源', '进度', '子零件', '库位编号',
 					'投入日期', '组件序列号', 
 					'制作者', '组件代码', '组装完成时间','采用'],
 			colModel : [ {
@@ -290,6 +291,10 @@ function show_search_manage(componentManage, inlineDateCheck) {
 				name : 'model_name',
 				index : 'model_name',
 				width : 60
+			}, {
+				name : 'origin_material_id',
+				index : 'origin_material_id',
+				hidden : true
 			}, {
 				name : 'origin_omr_notifi_no',
 				index : 'origin_omr_notifi_no',
@@ -1097,6 +1102,127 @@ var cancleManage_handleComplete = function(xhrobj) {
 	};
 };
 
+var componentOutstock = function() {
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var postData = {
+		model_id : rowData.model_id,
+		origin_material_id : rowData.origin_material_id
+	}
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=getTargetMaterials',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : getTargetMaterials_handleComplete
+	});
+}
+
+var getTargetMaterials_handleComplete = function(xhrobj) {
+	var resInfo = $.parseJSON(xhrobj.responseText);
+	if (resInfo.errors.length > 0) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+	} else {
+		loadTargetMaterials(resInfo.targetMaterials);
+	}
+}
+
+var loadTargetMaterials = function(targetMaterials) {
+	if (targetMaterials.length == 0) {
+		errorPop("线上无此型号的S1级维修品。");
+		return;
+	}
+	var $pop_window = $("#pop_target_materials");
+	if ($pop_window.length == 0) {
+		$(document.body).append("<div id='pop_target_materials'/>");
+		$pop_window = $("#pop_target_materials");
+	}
+	var pop_target_table = "<table id='pop_target_materials_table' class='condform'><tr><th class='ui-state-default'>维修单号</th><th class='ui-state-default'>机身号</th><th class='ui-state-default'>当前位置</th><th class='ui-state-default'>预定使用组件数</th><th class='ui-state-default'>已指定组件序列号</th></tr><tbody>";
+	for (var i in targetMaterials) {
+		var targetMaterial = targetMaterials[i];
+		var package_count = 0;
+		if (targetMaterial.package_no) package_count = targetMaterial.package_no.split(" ").length;
+		pop_target_table += "<tr material_id='" + targetMaterial.material_id + "'>" +
+							"<td class=\"td-content\">" + targetMaterial.sorc_no + "</td>" +
+							"<td class=\"td-content\">" + targetMaterial.serial_no + "</td>" +
+							"<td class=\"td-content\">" + (targetMaterial.processing_position || "-") + "</td>" +
+							"<td class=\"td-content\">" + targetMaterial.operate_result + "</td>" +
+							"<td class=\"td-content\" count='" + package_count + "'>" + (targetMaterial.package_no || "") + "</td>" +
+						"</tr>"
+	}
+	pop_target_table += "</tbody></table>";
+	var $pop_target_table = $(pop_target_table);
+	$pop_target_table.on("click", "tbody td", function(){
+		var $tr = $(this).parent();
+		var material_id = $tr.attr("material_id");
+		var operate_count = $tr.children("td").eq(3).text();
+		var package_count = $tr.children("td").eq(4).attr("count");
+		if (package_count != "0") {
+			if (parseInt(operate_count) - parseInt(package_count) < 1) {
+				warningConfirm("维修品" + $tr.children("td").eq(0) + "已有分配了组件：" + $tr.children("td").eq(4) + "，是否再将此组件也分配给它？"
+					, function(){postComponentOutstock(material_id)});
+			} else {
+				postComponentOutstock(material_id);
+			}
+		} else {
+			postComponentOutstock(material_id);
+		}
+	});
+	$pop_window.html($pop_target_table);
+	$pop_window.dialog({
+		resizable : false,
+		width : '640px',
+		modal : true,
+		title : "选择使用此组件的维修品",
+		buttons : {
+			"取消" : function() {
+				$pop_window.dialog("close");
+			}
+		}
+	})
+}
+var postComponentOutstock = function(material_id) {
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var postData = {
+		"component_key" : rowData.component_key,
+		"target_material_id" : material_id
+	};
+
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=doComponentOutstock',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : componentOutstock_handleComplete
+	});
+}
+
+var componentOutstock_handleComplete = function(xhrobj) {
+	var resInfo = $.parseJSON(xhrobj.responseText);
+	if (resInfo.errors.length > 0) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+	} else {
+		$("#pop_target_materials").dialog("close");
+		findit();
+		findSetting();
+	}
+}
+
 var printNSInfoTicket = function() {
 	
 	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
@@ -1107,7 +1233,7 @@ var printNSInfoTicket = function() {
 		"component_key" : rowData.component_key,
 		"model_id" : rowData.model_id,
 		"model_name" : model_name,
-		"partial_code" : rowData.partial_code,
+		"partial_code" : rowData.component_code,
 		"serial_no" : serial_no
 	};
 
@@ -1134,7 +1260,7 @@ var printNSInfoTicket = function() {
 					treatBackMessages(null, resInfo.errors);
 				} else {
 					var iframe = document.createElement("iframe");
-		            iframe.src = "download.do"+"?method=output&fileName="+ model_name + "-" + serial_no +"-ticket.pdf&filePath=" + resInfo.tempFile;
+		            iframe.src = "download.do"+"?method=output&fileName="+ model_name + "-" + serial_no +"-sheet.pdf&filePath=" + resInfo.tempFile;
 		            iframe.style.display = "none";
 		            document.body.appendChild(iframe);
 				}
@@ -1182,7 +1308,7 @@ var printNSLabelTicket = function() {
 					treatBackMessages(null, resInfo.errors);
 				} else {
 					var iframe = document.createElement("iframe");
-		            iframe.src = "download.do"+"?method=output&fileName="+ model_name + "-" + serial_no +"-ticket.pdf&filePath=" + resInfo.tempFile;
+		            iframe.src = "download.do"+"?method=output&fileName="+ model_name + "-" + serial_no +"-label.pdf&filePath=" + resInfo.tempFile;
 		            iframe.style.display = "none";
 		            document.body.appendChild(iframe);
 				}
@@ -1208,6 +1334,7 @@ var enableButtonManage = function() {
 
 	// 选择NS组件库存管理行，并获取行数
 	var row = $("#component_manage").jqGrid("getGridParam", "selrow");
+	$("#manage_executes input:button").disable();
 	if (row !=null) {
 		var rowdata = $("#component_manage").getRowData(row);
 		var step = parseInt(rowdata["step"]);
@@ -1229,10 +1356,6 @@ var enableButtonManage = function() {
 			$("#print_label_button").enable();
 			$("#print_info_button").enable();
 		} 
-		$("#print_label_button").enable();
-		$("#print_info_button").enable();
-	} else {
-		$("#manage_executes input:button").disable();
 	}
 };
 

@@ -4,7 +4,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.servlet.http.HttpSession;
@@ -30,28 +32,32 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.PostMessageEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
+import com.osh.rvs.bean.partial.ComponentSettingEntity;
+import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.partial.ComponentManageForm;
+import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.PostMessageMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
-import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.mapper.partial.ComponentManageMapper;
+import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.PostMessageService;
+import com.osh.rvs.service.ProcessAssignService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
 
 public class ComponentManageService {
-	
-	public static final String POSITION_ID_28 = "28";
 	
 	private Logger log = Logger.getLogger(getClass());
 
@@ -177,21 +183,30 @@ public class ComponentManageService {
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void insertToSoloProductionFeature(SoloProductionFeatureEntity productionFeatureEntity,
-			SqlSessionManager conn) throws Exception {
+	public void insertToSoloProductionFeature(List<String> positionIds, String model_id,
+			String model_name, String getNewSerialNo, SqlSessionManager conn) throws Exception {
 		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
-		// section_id
-		productionFeatureEntity.setSection_id("1");
-		// judge_date
-		productionFeatureEntity.setJudge_date(null);
-		// #{pace}
-		productionFeatureEntity.setPace(0);
-		// operator_id
-		productionFeatureEntity.setOperator_id("0");
-		// operate_result
-		productionFeatureEntity.setOperate_result(0);
 
-		mapper.insert(productionFeatureEntity);
+		for (String positionId : positionIds) {
+			SoloProductionFeatureEntity productionFeatureEntity = new SoloProductionFeatureEntity();
+			productionFeatureEntity.setPosition_id(positionId);
+			productionFeatureEntity.setModel_id(model_id);
+			productionFeatureEntity.setModel_name(model_name);
+			productionFeatureEntity.setSerial_no(getNewSerialNo);
+
+			// section_id
+			productionFeatureEntity.setSection_id("1");
+			// judge_date
+			productionFeatureEntity.setJudge_date(null);
+			// #{pace}
+			productionFeatureEntity.setPace(0);
+			// operator_id
+			productionFeatureEntity.setOperator_id("0");
+			// operate_result
+			productionFeatureEntity.setOperate_result(0);
+
+			mapper.insert(productionFeatureEntity);
+		}
 	}	
 	
 	/**
@@ -322,26 +337,6 @@ public class ComponentManageService {
 	}
 	
 	/**
-	 * DerivedId取得
-	 * @param conn
-	 * @return String
-	 */
-	public String getDerivedId(String model_id, SqlSession conn) {
-		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
-		return dao.getDerivedIdByModel(model_id, "5");
-	}
-	
-	/**
-	 * 流程首个position_id取得
-	 * @param conn
-	 * @return List<String>
-	 */
-	public List<String> getPositionIds(String derivedId, SqlSession conn) {
-		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
-		return dao.getFirstPosition(derivedId, "9000000");
-	}
-
-	/**
 	 * 取得已经分配给目标维修品的组建序列号
 	 * @param targetMaterialId
 	 * @param conn
@@ -351,7 +346,44 @@ public class ComponentManageService {
 		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
 		return mapper.getComponentByTargetMaterial(targetMaterialId);
 	}
-	
+
+	/**
+	 * 出库检查
+	 * @param form
+	 * @param conn
+	 * @param errors
+	 */
+	public Map<String, String> validateOutstock(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
+		Map<String, String> collectDic = new HashMap<String, String>();
+
+		/* 查询 */
+		ComponentSettingService settingService = new ComponentSettingService();
+		ComponentSettingEntity settingEntity = new ComponentSettingEntity();
+		BeanUtil.copyToBean(form, settingEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		List<ComponentSettingForm> list = settingService.searchComponentSettingDetail(settingEntity, conn);
+		// 型号组件设置判定
+		if (list.size() == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("该型号组件设置已被删除。无法进行出库。");
+			errors.add(msg);
+		} else {
+			collectDic.put("identify_code", list.get(0).getIdentify_code());
+			collectDic.put("model_id", list.get(0).getModel_id());
+			collectDic.put("model_name", list.get(0).getModel_name());
+		}
+
+		// NS 组件流程取得
+		ProcessAssignService paService = new ProcessAssignService();
+		String derivedId = paService.getDerivedId(settingEntity.getModel_id(), "5", true, conn);
+		if (derivedId == null || derivedId.length() == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("此型号的NS 组件流程不存在。无法进行出库。");
+			errors.add(msg);
+		} else {
+			collectDic.put("pat_id", derivedId);
+		}
+		return collectDic;
+	}
 	
 	/**
 	 * 打印NS组件标识
@@ -517,10 +549,10 @@ public class ComponentManageService {
 			mainTable.addCell(cell);
 
 			Chunk chModelName = new Chunk(component.getModel_name(), titleFont);
-			int modelNameWidth = component.getModel_name().getBytes().length;
-			if (modelNameWidth >= 13) {
-				chModelName.setHorizontalScaling(1f - (modelNameWidth - 12) * 0.05f);
-			}
+//			int modelNameWidth = component.getModel_name().getBytes().length;
+//			if (modelNameWidth >= 13) {
+//				chModelName.setHorizontalScaling(1f - (modelNameWidth - 12) * 0.05f);
+//			}
 			cell = new PdfPCell(new Paragraph(chModelName));
 			cell.setFixedHeight(78);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -564,4 +596,65 @@ public class ComponentManageService {
 
 		return filename;
 	}
+
+	/**
+	 * 取得符合的维修品（在线的，同型号S1级别）
+	 * @param model_id
+	 * @param conn
+	 * @return
+	 */
+	public List<MaterialEntity> getTargetMaterials(ComponentManageEntity cond,SqlSession conn) {
+		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
+		return mapper.getTargetMaterials(cond);
+	}
+
+	/**
+	 * 组件入库
+	 * 
+	 * @param componentBean
+	 * @param conn
+	 */
+	public void componentInstock(ComponentManageEntity updateBean,
+			SqlSessionManager conn) {
+		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
+		// 组件入库更新
+		/* Consumable_manage表更新数据 */
+		mapper.componentInstock(updateBean);
+
+	}
+
+	/**
+	 * 组件出库
+	 * 
+	 * @param componentBean
+	 * @param conn
+	 * @return 是否还要做发放
+	 * @throws Exception 
+	 * 
+	 */
+	public String componentOutstock(ComponentManageEntity updateBean,
+			SqlSessionManager conn) throws Exception {
+		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
+		// 组件出库更新
+		/* Consumable_manage表更新数据 */
+		mapper.componentOutstock(updateBean);
+
+		// 零件订单更新
+		MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
+		boolean hit = false;
+		List<MaterialPartialDetailEntity> mpdEntities = mpMapper.getMpdForComponent(updateBean.getTarget_material_id());
+		for (MaterialPartialDetailEntity mpdEntity : mpdEntities) {
+			// 发放时间
+			if (mpdEntity.getRecent_signin_time() == null) {
+				hit = true;
+				// 发放
+				mpMapper.updateComponentRelease(mpdEntity.getMaterial_partial_detail_key());
+				break;
+			}
+		}
+		if (!hit) return "还未为此维修设定需要发放组装组件，并收取订单中的子零件。";
+
+		return null;
+	}
+
 }

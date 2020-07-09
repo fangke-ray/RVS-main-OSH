@@ -105,4 +105,6 @@ public interface MaterialPartialMapper {
 	public int updateBoFlgWithDetailMantains(MaterialPartialEntity entity) throws Exception;
 	public String getBoPartialOfPosition(@Param("material_id") String material_id, @Param("position_id") String position_id);
 	public String getBoPartialOfLineOfPosition(@Param("material_id") String material_id, @Param("position_id") String position_id);
+	public List<MaterialPartialDetailEntity> getMpdForComponent(String material_id);
+	public int updateComponentRelease(String key) throws Exception;
 }

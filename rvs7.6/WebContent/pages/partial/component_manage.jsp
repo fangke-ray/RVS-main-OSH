@@ -22,6 +22,18 @@ tr.addseqTr select,
 tr.addseqTr input {
 	background-color:lightgray;
 }
+#pop_target_materials_table tbody tr td {
+	cursor:pointer;
+}
+#pop_target_materials_table tbody tr td:nth-child(3) {
+	text-align:center;
+}
+#pop_target_materials_table tbody tr td:nth-child(4) {
+	text-align:right;
+}
+#pop_target_materials_table tr:hover td {
+	background-color:#f8bb14;
+}
 </style>
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
@@ -169,9 +181,13 @@ tr.addseqTr input {
 											<input type="text" id="search_inline_date_end" class="ui-widget-content" readonly="readonly" value="">止
 										</td>
 										<td class="ui-state-default td-title">组装完成日期</td>
-										<td class="td-content" colspan="3">
+										<td class="td-content">
 											<input type="text" id="search_finish_time_start" class="ui-widget-content" readonly="readonly" value="">起<br>
 											<input type="text" id="search_finish_time_end" class="ui-widget-content" readonly="readonly" value="">止
+										</td>
+										<td class="ui-state-default td-title">采用维修品单号</td>
+										<td class="td-content">
+											<input class="ui-widget-content" id="search_target_omr_notifi_no" name="target_omr_notifi_no" alt="采用维修品单号" type="text">
 										</td>
 									</tr>
 								</tbody>

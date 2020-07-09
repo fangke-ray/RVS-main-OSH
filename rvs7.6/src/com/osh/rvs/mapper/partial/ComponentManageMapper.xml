@@ -107,6 +107,12 @@
 		   		and cm.finish_time < date_add(#{search_finish_time_end}, interval 1 day)
 		   		]]>
 			</if>
+			<if test="origin_omr_notifi_no != null and origin_omr_notifi_no != ''">
+				<![CDATA[ and mm1.omr_notifi_no like CONCAT('%',#{origin_omr_notifi_no},'%')]]>
+			</if>
+			<if test="target_omr_notifi_no != null and target_omr_notifi_no != ''">
+				<![CDATA[ and mm2.omr_notifi_no like CONCAT('%',#{target_omr_notifi_no},'%')]]>
+			</if>
 		    order by step asc, inline_date asc
  	</select>
  	
@@ -238,7 +244,28 @@
 			WHERE component_key = #{component_key}
 		]]>
 	</update>
+
+	<!-- 组件入库_更新 -->
+	<update id="componentInstock" parameterType="ComponentManageEntity">
+		<![CDATA[ 
+			UPDATE component_manage SET 
+			stock_code = #{stock_code},
+			finish_time = current_timestamp
+			step = 3
+			WHERE serial_no = #{serial_no}
+		]]>
+	</update>
 	
+	<!-- 组件出库_更新 -->
+	<update id="componentOutstock" parameterType="ComponentManageEntity">
+		<![CDATA[ 
+			UPDATE component_manage SET 
+			target_material_id = #{target_material_id},
+			step = 4
+			WHERE component_key = #{component_key}
+		]]>
+	</update>
+
 	<!-- 组件废弃处理 -->
 	<update id="cancleManage" parameterType="ComponentManageEntity">
 		<![CDATA[ 
@@ -268,4 +295,26 @@
 				target_material_id = #{target_material_id}
 		]]>
 	</select>
+
+	<select id="getTargetMaterials" parameterType="ComponentManageEntity" resultType="MaterialEntity">
+		<![CDATA[ 
+		SELECT ma.material_id, ma.omr_notifi_no as sorc_no, ma.serial_no, group_concat(cm.serial_no) as package_no,
+		(select count(1) from material_partial_detail where status = 7 and material_id = ma.material_id) as operate_result,
+		(
+		select group_concat(process_code order by process_code separator ' ') 
+		from production_feature join position on production_feature.position_id = position.position_id
+		where material_id = ma.material_id and finish_time is null
+		) as processing_position
+		FROM material ma
+		LEFT JOIN component_manage cm
+		ON ma.material_id = cm.target_material_id
+		WHERE inline_time is not null AND outline_time is null
+		AND level = 1
+		AND ma.model_id = #{model_id}
+		AND ma.material_id <> #{origin_material_id}
+		GROUP BY ma.material_id
+		;
+		]]>
+	</select>
+
  </mapper>

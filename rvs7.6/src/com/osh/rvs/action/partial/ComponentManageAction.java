@@ -17,6 +17,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
@@ -26,6 +27,7 @@ import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
 import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.PremakePartialService;
@@ -523,15 +525,43 @@ public class ComponentManageAction extends BaseAction{
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 		List<MsgInfo> errors = v.validate();
 
+		// 进行子零件出库数据检查
+		Map<String, String> collectDic = service.validateOutstock(form, conn, errors);
+
 		// 数据登录
 		if (errors.size() == 0) {
 			
 			ComponentManageEntity updateBean = new ComponentManageEntity();
 			BeanUtil.copyToBean(form, updateBean, null);
-			
+
+			// 序列号取得
+			String getNewSerialNo = service.getNewSerialNo(collectDic.get("identify_code"), conn);
+			updateBean.setSerial_no(getNewSerialNo);
+
 			// 组件库存管理 (component_manage)数据更新
-			// 子零件入库处理
+			// 子零件出库处理
 			service.partialOutstock(updateBean, req.getSession(), conn);
+
+			// 返回给前台一个消息：“子零件已经出库，作为序列号是”+ （刚才生成的序列号） + “的NS组件组装作业原料发放。”
+			String resultMsg = "子零件已经出库，作为序列号是" + getNewSerialNo + "的NS组件组装作业原料发放。";
+			callbackResponse.put("resultMsg", resultMsg);
+
+			// PositionId 取得
+			ProcessAssignService paService = new ProcessAssignService();
+			List<String> startPositionIds = paService.getFirstPositionIds(collectDic.get("pat_id"), conn);
+
+			// 在（SOLO_PRODUCTION_FEATURE）表新建记录
+			service.insertToSoloProductionFeature(startPositionIds, collectDic.get("model_id"), collectDic.get("model_name"), getNewSerialNo, conn);
+
+			// 在（POST_MESSAGE）表新建记录
+			service.insertToPOST(resultMsg, startPositionIds, req.getSession(), conn);
+
+			conn.commit();
+
+			// 触发http://localhost:8080/rvspush/trigger/in/28/1/0/0
+			for (String positionId : startPositionIds) {
+				RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/in/" + positionId + "/1/0/0");
+			}
 		}
 
 		/* 检查错误时报告错误信息 */
@@ -641,6 +671,41 @@ public class ComponentManageAction extends BaseAction{
 	}
 
 	/**
+	 * 子零件出库处理
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doComponentOutstock(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doComponentOutstock start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> errors = v.validate();
+
+		// 画面数据转换
+		ComponentManageEntity componentBean = new ComponentManageEntity();
+		BeanUtil.copyToBean(form, componentBean, null);
+
+		// 设定出库
+		service.componentOutstock(componentBean, conn);
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doComponentOutstock end");
+	}
+
+	/**
 	 * NS组件信息单打印
 	 * @param mapping ActionMapping
 	 * @param form 表单
@@ -704,5 +769,38 @@ public class ComponentManageAction extends BaseAction{
 		returnJsonResponse(res, callbackResponse);
 		
 		log.info("ComponentManageAction.printNSLabelTicket end");
+	}
+
+	/**
+	 * 按组件型号选择维修品
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void getTargetMaterials(ActionMapping mapping, ActionForm form, HttpServletRequest req, 
+			HttpServletResponse res, SqlSession conn) throws Exception{ 
+		log.info("ComponentManageAction.getTargetMaterials start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		
+		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
+		// 画面数据转换
+		ComponentManageEntity componentBean = new ComponentManageEntity();
+		BeanUtil.copyToBean(form, componentBean, null);
+
+		List<MaterialEntity> targetMaterials = service.getTargetMaterials(componentBean, conn);
+		
+		callbackResponse.put("targetMaterials", targetMaterials);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", infoes);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("ComponentManageAction.getTargetMaterials end");
 	}
 }
