@@ -22,6 +22,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			window.location.href = "pda_turnover_case_storage.do?method=init";
 		} else if (btn_flg == "tc_shipping") {
 			window.location.href = "pda_turnover_case_shipping.do?method=init";
+		} else if (btn_flg == "comp_out") {
+			window.location.href = "pda_component_outstock.do?method=init";
 		}
 	};
 	function chooseAction(btn_flg) {
@@ -44,7 +46,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<div style="margin-left:20px;margin-top:1px;color:#fff;">
 				你好! <%=user_name %>
 			</div>
-			<div class="button" style="margin:30px auto;width:120px;" onclick="chooseAction('cs')">消耗品处理</div>
+			<div class="button" style="margin:30px auto;width:120px;" onclick="chooseAction('cs')">物料组作业</div>
 		</div>
 		<div class="main">
 		</div>
@@ -56,16 +58,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	} else if (isFact) {
 %>
   <div class="width-full">
-		<div class="header">
+		<div class="header" style="position:relative;">
 			<div style="margin-left:20px;margin-top:1px;color:#fff;">
 				你好! <%=user_name %>
 			</div>
-			<div class="button" style="margin:30px auto;width:120px;" onclick="doAction('supply')">消耗品入库</div>
+			<div class="button button-half" style="position:fixed;margin-left:20px;margin-top:10px;" onclick="doAction('supply')">消耗品入库</div>
+			<div class="button button-half" style="position:fixed;margin-left:160px;margin-top:10px;" onclick="doAction('apply')">消耗品发放</div>
 		</div>
 		<div class="main">
+			<div class="button button-half" style="position:fixed;margin-left:100px;margin-top:-10px;" onclick="doAction('comp_out')">NS 组件出库</div>
 		</div>
-		<div class="bottom" style="position:relative;">
-			<div class="button" style="position:absolute;margin:-20px auto 0 70px;width:120px;" onclick="doAction('apply')">消耗品发放</div>
+		<div class="bottom">
+			<div class="button button-half" style="position:fixed;margin-left:20px;" onclick="doAction('subp_in')">子零件入库</div>
+			<div class="button button-half" style="position:fixed;margin-left:160px;" onclick="doAction('subp_out')">子零件出库</div>
 		</div>
 	</div>
 <%

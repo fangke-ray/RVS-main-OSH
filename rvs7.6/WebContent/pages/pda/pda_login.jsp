@@ -59,8 +59,8 @@
 	<html:form action="/login" method="post">
 		<div class="width-full">
 			<div class="header">
-				<div style="width:50%;padding-top:25px;padding-left:80px;color:#fff;">
-					<h4>RVS 消耗品管理</h4>
+				<div style="width:80%;padding-top:25px;padding-left:80px;color:#fff;">
+					<h4>RVS PDA 管理工具</h4>
 				</div>
 			</div>
 			<div class="main">

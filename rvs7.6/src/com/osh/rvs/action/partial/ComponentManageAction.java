@@ -17,12 +17,12 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
-import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
+import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
@@ -671,7 +671,7 @@ public class ComponentManageAction extends BaseAction{
 	}
 
 	/**
-	 * 子零件出库处理
+	 * 组件出库处理
 	 * 
 	 * @param mapping ActionMapping
 	 * @param form 表单
@@ -792,8 +792,8 @@ public class ComponentManageAction extends BaseAction{
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
 
-		List<MaterialEntity> targetMaterials = service.getTargetMaterials(componentBean, conn);
-		
+		List<MaterialForm> targetMaterials = service.getTargetMaterials(componentBean, conn);
+	
 		callbackResponse.put("targetMaterials", targetMaterials);
 
 		// 检查发生错误时报告错误信息

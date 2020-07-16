@@ -40,6 +40,7 @@ import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.mapper.CommonMapper;
@@ -56,6 +57,7 @@ import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class ComponentManageService {
 	
@@ -603,9 +605,25 @@ public class ComponentManageService {
 	 * @param conn
 	 * @return
 	 */
-	public List<MaterialEntity> getTargetMaterials(ComponentManageEntity cond,SqlSession conn) {
+	public List<MaterialForm> getTargetMaterials(ComponentManageEntity cond,SqlSession conn) {
 		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
-		return mapper.getTargetMaterials(cond);
+
+		List<MaterialEntity> targetMaterialsEntity = mapper.getTargetMaterials(cond);
+
+		List<MaterialForm> targetMaterials = new ArrayList<MaterialForm>();
+		for (MaterialEntity targetMaterial : targetMaterialsEntity) {
+			MaterialForm form = new MaterialForm();
+			BeanUtil.copyToForm(targetMaterial, form, CopyOptions.COPYOPTIONS_NOEMPTY);
+			int package_count = 0;
+			String packageNo = targetMaterial.getPackage_no();
+			if (!CommonStringUtil.isEmpty(packageNo)) {
+				package_count = packageNo.split(",").length;
+			}
+			form.setSelectable("" + package_count);
+
+			targetMaterials.add(form);
+		}
+		return targetMaterials;
 	}
 
 	/**
@@ -655,6 +673,66 @@ public class ComponentManageService {
 		if (!hit) return "还未为此维修设定需要发放组装组件，并收取订单中的子零件。";
 
 		return null;
+	}
+
+	/**
+	 * 检查提交的机身号(也可以是库位号)是否存在
+	 * 
+	 * @param serial_no
+	 * @param errors 
+	 * @param conn
+	 * @return
+	 */
+	public ComponentManageEntity checkSerialNo(String serial_no, List<String> errors, SqlSession conn) {
+		if (serial_no == null 
+				|| (serial_no.length() != 13 && serial_no.length() != 8)) {
+			errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required.singledetail", "组件序列号或库位号"));
+			return null;
+		}
+		if (serial_no.length() == 8) {
+			return checkStockCode(serial_no, "3", errors, conn);
+		}
+
+		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
+		ComponentManageEntity cond = new ComponentManageEntity();
+		cond.setSerial_no(serial_no);
+		List<ComponentManageEntity> results = mapper.searchComponentManageEntity(cond);
+		if (results.size() == 0) {
+			errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "组装完成组件"));
+			return null;
+		}
+		if (!results.get(0).getStep().equals("3")) {
+			errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.component.stepMismatch", "组装完成"));
+			return null;
+		}
+
+		return results.get(0);
+	}
+
+	private ComponentManageEntity checkStockCode(String stock_code, String step, List<String> errors, SqlSession conn) {
+		if (stock_code == null || stock_code.length() != 8) {
+			errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidCode", "库位号"));
+			return null;
+		}
+
+		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
+		ComponentManageEntity cond = new ComponentManageEntity();
+		cond.setStock_code(stock_code);
+		List<ComponentManageEntity> results = mapper.searchComponentManageEntity(cond);
+
+		// 取得组装完成品时
+		if ("3".equals(step)) {
+			if (results.size() == 0) {
+				errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "组装完成组件"));
+				return null;
+			}
+			if (!results.get(0).getStep().equals("3")) {
+				errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.component.stepMismatch", "组装完成"));
+				return null;
+			}
+		}
+
+		return results.get(0);
 	}
 
 }

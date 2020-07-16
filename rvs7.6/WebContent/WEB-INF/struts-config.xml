@@ -1491,6 +1491,25 @@
 			<forward name="success" path="/pages/partial/component_manage.jsp" />
 		</action>
 
+
+		<!-- PDA 组件出库 -->
+		<action path="/pda_component_outstock" type="com.osh.rvs.action.pda.PdaCmptOutstockAction" parameter="method"
+			name="componentManageForm"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_component_outstock.jsp" />
+			<forward name="success" path="/pda_component_outstock_confirm.do?method=init" />
+		</action>
+
+		<!-- PDA 组件出库提交 -->
+		<action path="/pda_component_outstock_confirm" type="com.osh.rvs.action.pda.PdaCmptOutstockCfmAction" parameter="method"
+			name="componentManageForm"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_component_outstock_confirm.jsp" />
+			<forward name="success" path="/pda_component_outstock.do?method=init" />
+		</action>
+		<!-- rvs 八期end -->
+		
+
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->
 

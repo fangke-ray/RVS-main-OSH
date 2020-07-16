@@ -38,6 +38,9 @@ public interface ComponentManageMapper {
 	// 查询数据详细
 	public ComponentManageEntity searchComponentManageDetail(String componentKey);
 
+	// 查询数据Entity
+	public List<ComponentManageEntity> searchComponentManageEntity(ComponentManageEntity ComponentManageEntity);
+
 	/* 组件废弃处理 */
 	public int cancleManage(ComponentManageEntity entity);
 	

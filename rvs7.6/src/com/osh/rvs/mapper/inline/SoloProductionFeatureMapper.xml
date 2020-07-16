@@ -139,7 +139,7 @@
 			#{pace}, 
 			#{operator_id}, 
 			#{operate_result}, 
-			current_timestamp, 
+			CASE WHEN #{operate_result} = 0 THEN NULL ELSE current_timestamp END, 
 			0
 		);
 		]]>

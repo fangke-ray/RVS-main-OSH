@@ -1147,14 +1147,12 @@ var loadTargetMaterials = function(targetMaterials) {
 	var pop_target_table = "<table id='pop_target_materials_table' class='condform'><tr><th class='ui-state-default'>维修单号</th><th class='ui-state-default'>机身号</th><th class='ui-state-default'>当前位置</th><th class='ui-state-default'>预定使用组件数</th><th class='ui-state-default'>已指定组件序列号</th></tr><tbody>";
 	for (var i in targetMaterials) {
 		var targetMaterial = targetMaterials[i];
-		var package_count = 0;
-		if (targetMaterial.package_no) package_count = targetMaterial.package_no.split(" ").length;
 		pop_target_table += "<tr material_id='" + targetMaterial.material_id + "'>" +
 							"<td class=\"td-content\">" + targetMaterial.sorc_no + "</td>" +
 							"<td class=\"td-content\">" + targetMaterial.serial_no + "</td>" +
 							"<td class=\"td-content\">" + (targetMaterial.processing_position || "-") + "</td>" +
 							"<td class=\"td-content\">" + targetMaterial.operate_result + "</td>" +
-							"<td class=\"td-content\" count='" + package_count + "'>" + (targetMaterial.package_no || "") + "</td>" +
+							"<td class=\"td-content\" count='" + targetMaterial.selectable + "'>" + (targetMaterial.package_no || "") + "</td>" +
 						"</tr>"
 	}
 	pop_target_table += "</tbody></table>";

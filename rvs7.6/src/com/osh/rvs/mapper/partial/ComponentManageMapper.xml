@@ -136,6 +136,36 @@
 			]]>
  	</select>
  	
+ 	<select id="searchComponentManageEntity" parameterType="ComponentManageEntity" resultType="ComponentManageEntity">
+		<![CDATA[
+			select 
+				cm.component_key
+                ,cm.model_id
+			    ,vm.NAME as model_name
+			    ,cm.origin_material_id
+			    ,cm.step
+			    ,cm.stock_code
+			    ,cm.inline_date
+			    ,cm.serial_no
+			    ,cm.finish_time
+			    ,cm.target_material_id
+			from 
+				component_manage cm
+                left join v_model vm on cm.model_id = vm.MODEL_ID
+			]]>
+		<where>
+		    <if test="model_id!=null">
+		    	<![CDATA[ and cm.model_id = #{model_id}]]>
+		    </if>
+		    <if test="serial_no!=null">
+		    	<![CDATA[ and cm.serial_no = #{serial_no}]]>
+		    </if>
+		    <if test="stock_code!=null">
+		    	<![CDATA[ and cm.stock_code = #{stock_code}]]>
+		    </if>
+		</where>
+ 	</select>
+
 	<!-- 查询输入零件 -->
    <select id="getAllPartial" resultType="ComponentManageEntity"  >
 		<![CDATA[ 
@@ -146,7 +176,8 @@
 			FROM 
 				PARTIAL	  
 			WHERE
-				code like CONCAT(#{code},'%')
+				delete_flg = 0
+				AND code like CONCAT(#{code},'%')
 				ORDER BY CODE
 		]]>
 		
@@ -261,6 +292,7 @@
 		<![CDATA[ 
 			UPDATE component_manage SET 
 			target_material_id = #{target_material_id},
+			stock_code = NULL,
 			step = 4
 			WHERE component_key = #{component_key}
 		]]>

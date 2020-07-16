@@ -58,6 +58,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				time = setTimeout(function(){
 					document.forms["pdaApplyDetailForm"].action = "pda_apply_detail.do?method=getDetail";
 					document.forms["pdaApplyDetailForm"].submit();
+					clearTimeout(time);
 				},1000);
 			}
 		};

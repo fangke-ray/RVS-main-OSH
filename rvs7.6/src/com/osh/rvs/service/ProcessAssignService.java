@@ -407,4 +407,18 @@ public class ProcessAssignService {
 
 		return CommonStringUtil.joinBy(",", spareStrings.toArray(new String[spareStrings.size()]));
 	}
+
+	/**
+	 * DerivedId取得
+	 * @param conn
+	 * @return String
+	 */
+	public String getDerivedId(String model_id, String derive_type, boolean closeToDeriveType, SqlSession conn) {
+		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
+		String derivedId = dao.getDerivedIdByModel(model_id, derive_type);
+		if (derivedId != null || !closeToDeriveType) {
+			return derivedId;
+		}
+		return dao.getDerivedIdByModel(null, derive_type);
+	}
 }

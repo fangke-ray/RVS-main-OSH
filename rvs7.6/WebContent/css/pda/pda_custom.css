@@ -62,6 +62,12 @@ div.width-full {
 	cursor:pointer;
 }
 
+.button-half{
+	width:100px;
+	height:22px;
+	padding:10px 10px;
+}
+
 .button-small{
 	font-size:12px;
 	height:15px;

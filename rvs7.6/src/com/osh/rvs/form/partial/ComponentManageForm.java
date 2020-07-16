@@ -1,5 +1,8 @@
 package com.osh.rvs.form.partial;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.struts.action.ActionForm;
 
 import framework.huiqing.bean.annotation.BeanField;
@@ -130,7 +133,15 @@ public class ComponentManageForm extends ActionForm {
 	/** 组装完成日期终 */
 	@BeanField(title = "组装完成日期终", name = "search_finish_time_end", type = FieldType.Date)
 	private String search_finish_time_end;
-	
+
+	/**
+	 * 待处理单数
+	 */
+	private String count;
+
+	/** 组件一览 **/
+	private List<ComponentManageForm> cmpt_list = new ArrayList<ComponentManageForm>();
+
 	public String getPartial_name() {
 		return partial_name;
 	}
@@ -382,6 +393,22 @@ public class ComponentManageForm extends ActionForm {
 
 	public void setOperator_name(String operator_name) {
 		this.operator_name = operator_name;
+	}
+
+	public String getCount() {
+		return count;
+	}
+
+	public void setCount(String count) {
+		this.count = count;
+	}
+
+	public List<ComponentManageForm> getCmpt_list() {
+		return cmpt_list;
+	}
+
+	public void setCmpt_list(List<ComponentManageForm> cmpt_list) {
+		this.cmpt_list = cmpt_list;
 	}
 
 }
