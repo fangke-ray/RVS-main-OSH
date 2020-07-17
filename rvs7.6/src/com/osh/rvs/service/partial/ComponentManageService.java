@@ -507,83 +507,167 @@ public class ComponentManageService {
 			document.open();
 			BaseFont bfChinese = BaseFont.createFont(PathConsts.BASE_PATH + "\\msyh.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
 
-			Font titleFont = new Font(bfChinese, 22, Font.BOLD);
+			Font titleFont = new Font(bfChinese, 20, Font.BOLD);
+			Font titleFont11 = new Font(bfChinese, 11, Font.NORMAL);
+			Font titleFont18 = new Font(bfChinese, 18, Font.BOLD);
+			Font titleFont14 = new Font(bfChinese, 14, Font.BOLD);
+			Font titleFont12 = new Font(bfChinese, 12, Font.BOLD);
 
-			float width[] = {0.3f, 0.7f};;//设置每列宽度比例   
+			float width[] = {0.1f, 0.18f, 0.18f, 0.18f, 0.18f, 0.18f};;//设置每列宽度比例   
 			PdfPTable mainTable = new PdfPTable(width);
 			mainTable.setWidthPercentage(100);
 			mainTable.setHorizontalAlignment(Element.ALIGN_CENTER);
-			mainTable.getDefaultCell().setBorder(PdfPCell.NO_BORDER);
 
-			PdfPCell cell = new PdfPCell(new Paragraph("维修单", titleFont));
+			// 第一行 信息单号
+			PdfPCell cell = new PdfPCell(new Paragraph("QR-B31002-150", titleFont11));
+			cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			cell.setFixedHeight(20);
+			cell.setColspan(6);
+			cell.setBorder(0);
+			mainTable.addCell(cell);
+			
+			// 第二行 组装组件信息单
+			cell = new PdfPCell(new Paragraph("组装组件信息单", titleFont18));
+			cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			cell.setFixedHeight(40);
+			cell.setColspan(6);
+			cell.setBorder(0);
+			mainTable.addCell(cell);
+			
+			// 第三行 空白
+			cell = new PdfPCell(new Paragraph("", titleFont18));
+			cell.setFixedHeight(30);
+			cell.setColspan(6);
+			cell.setBorder(0);
+			mainTable.addCell(cell);
+			
+			float width2[] = {0.41f, 0.59f};;//设置每列宽度比例   
+			PdfPTable middleTable = new PdfPTable(width2);
+			middleTable.setWidthPercentage(100);
+			middleTable.setHorizontalAlignment(Element.ALIGN_CENTER);
+			middleTable.getDefaultCell().setBorder(PdfPCell.NO_BORDER);
+
+			// 4-2
+			cell = new PdfPCell(new Paragraph("维修单", titleFont));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
-			// 这列是空白的
+			// 4-3
 			cell = new PdfPCell(new Paragraph("", titleFont));
-			cell.setFixedHeight(78);
+			cell.setFixedHeight(40);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 5-2
 			cell = new PdfPCell(new Paragraph("组件的条形码", titleFont));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 5-3
 			PdfContentByte cd = pdfWriter.getDirectContent();
 			Barcode128 code128 = new Barcode128();
 			code128.setCode(component.getSerial_no());
-			code128.setBarHeight(70);
-			code128.setSize(22);
+			code128.setBarHeight(40);
+			code128.setSize(20);
 			code128.setFont(null);
 			Image image128 = code128.createImageWithBarcode(cd, null, null);
 			cell = new PdfPCell(image128);
-			cell.setFixedHeight(78);
+			cell.setFixedHeight(48);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 6-2
 			cell = new PdfPCell(new Paragraph("机 型 号", titleFont));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 6-3
 			Chunk chModelName = new Chunk(component.getModel_name(), titleFont);
 //			int modelNameWidth = component.getModel_name().getBytes().length;
 //			if (modelNameWidth >= 13) {
 //				chModelName.setHorizontalScaling(1f - (modelNameWidth - 12) * 0.05f);
 //			}
 			cell = new PdfPCell(new Paragraph(chModelName));
-			cell.setFixedHeight(78);
+			cell.setFixedHeight(40);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 7-2
 			cell = new PdfPCell(new Paragraph("组件零件号", titleFont));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 7-3
 			String partial_code = CommonStringUtil.nullToAlter(component.getPartial_code(), " ");
 			cell = new PdfPCell(new Paragraph(partial_code, titleFont));
-			cell.setFixedHeight(78);
+			cell.setFixedHeight(40);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 8-2
 			cell = new PdfPCell(new Paragraph("组件序列号", titleFont));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			mainTable.addCell(cell);
+			middleTable.addCell(cell);
 
+			// 8-3
 			cell = new PdfPCell(new Paragraph(component.getSerial_no(), titleFont));
-			cell.setFixedHeight(78);
+			cell.setFixedHeight(40);
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			middleTable.addCell(cell);
+
+			
+			// 空白
+			cell = new PdfPCell(new Paragraph("", titleFont18));
+			cell.setBorder(0);
+			mainTable.addCell(cell);
+			
+			// 组装组件信息单表
+			cell = new PdfPCell(new Paragraph("", titleFont));
+			cell.setColspan(5);
+			cell.addElement(middleTable);
+			mainTable.addCell(cell);
+			
+			// 第9行 空白
+			cell = new PdfPCell(new Paragraph("", titleFont));
+			cell.setFixedHeight(30);
+			cell.setColspan(6);
+			cell.setBorder(0);
+			mainTable.addCell(cell);
+			
+			// 10-1
+			cell = new PdfPCell(new Paragraph("确认以上信息和实物信息一致。", titleFont12));
+			cell.setHorizontalAlignment(Element.ALIGN_LEFT);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			cell.setFixedHeight(40);
+			cell.setColspan(3);
+			cell.setBorder(0);
+			mainTable.addCell(cell);
+			
+			// 10-2
+			cell = new PdfPCell(new Paragraph("信息确认人", titleFont14));
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 			mainTable.addCell(cell);
-
+			
+			// 10-3
+			cell = new PdfPCell(new Paragraph("", titleFont14));
+			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+			cell.setColspan(2);
+			mainTable.addCell(cell);
+			
 			document.add(mainTable);
 		} catch (DocumentException de) {
 			log.error(de.getMessage(), de);
