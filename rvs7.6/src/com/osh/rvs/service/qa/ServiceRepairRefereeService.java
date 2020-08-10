@@ -1,6 +1,7 @@
 package com.osh.rvs.service.qa;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -142,8 +143,10 @@ public class ServiceRepairRefereeService {
 		dao.updateQisPayout(entity);
 	}
 
-	public void createProductionFeature(SqlSessionManager conn, ServiceRepairManageEntity resultEntity, String operator_id, Integer operate_result) throws Exception {
+	public void createProductionFeature(SqlSessionManager conn, ServiceRepairManageEntity resultEntity, 
+			String operator_id, String section_id, Integer operate_result) throws Exception {
 		SoloProductionFeatureEntity productionFeatureEntity = new SoloProductionFeatureEntity();
+		productionFeatureEntity.setSection_id(section_id);
 		productionFeatureEntity.setPosition_id(JUDGE_POSITION);
 		productionFeatureEntity.setModel_name(resultEntity.getModel_name());
 		productionFeatureEntity.setJudge_date(resultEntity.getRc_mailsend_date());
@@ -285,6 +288,7 @@ public class ServiceRepairRefereeService {
 		mapper.finishOnOperator(productionFeatureEntity);
 
 		productionFeatureEntity.setPace(productionFeatureEntity.getPace() + 1);
+		productionFeatureEntity.setAction_time(new Date());
 		// #{pace}, 
 
 		mapper.insert(productionFeatureEntity);

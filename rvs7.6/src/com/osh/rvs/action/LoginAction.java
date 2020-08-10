@@ -22,6 +22,7 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.inline.MaterialProcessEntity;
+import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.master.LineEntity;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
@@ -31,12 +32,14 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.RedirectRes;
 import com.osh.rvs.form.master.OperatorForm;
 import com.osh.rvs.mapper.master.OperatorMapper;
+import com.osh.rvs.mapper.master.SectionMapper;
 import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.RoleService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.PositionPanelService;
+import com.osh.rvs.service.inline.SoloSnoutService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -209,6 +212,38 @@ public class LoginAction extends BaseAction {
 					&& !workingPf.getLine_id().equals("00000000015")) {
 				loginData.setSection_id(workingPf.getSection_id());
 				loginData.setSection_name(workingPf.getSection_name());
+			}
+		} else if (loginData.getLine_id() != null && loginData.getLine_id().equals("00000000013")) {
+			SoloSnoutService service = new SoloSnoutService();
+			SoloProductionFeatureEntity sworkingPf = service.checkWorkingPfServiceRepair(loginData.getOperator_id(), null, conn);
+			if (sworkingPf != null) {
+				// 有的话切到进行中作业
+				String now_position = sworkingPf.getPosition_id();
+
+				// 平行分线
+				if (sworkingPf.getSection_id() != null && "00000000001".equals(sworkingPf.getSection_id())) {
+					Set<String> dividePositions = PositionService.getDividePositions(conn);
+					if (dividePositions.contains(now_position)) {
+						loginData.setPx("2"); // 固定B线
+					} else {
+						loginData.setPx("0");
+					}
+				}
+
+				loginData.setPosition_id(now_position);
+				PositionService pService = new PositionService();
+				PositionEntity pEntity = pService.getPositionEntityByKey(now_position, conn);
+				loginData.setPosition_name(pEntity.getName());
+				loginData.setProcess_code(pEntity.getProcess_code());
+				loginData.setLine_id(pEntity.getLine_id());
+				loginData.setLine_name(pEntity.getLine_name());
+
+				if (sworkingPf.getSection_id() != null && "00000000001".equals(sworkingPf.getSection_id())) {
+					loginData.setSection_id(sworkingPf.getSection_id());
+					SectionMapper sdao = conn.getMapper(SectionMapper.class);
+					SectionEntity sbeam = sdao.getSectionByID(sworkingPf.getSection_id());
+					loginData.setSection_name(sbeam.getName());
+				}
 			}
 		}
 	}

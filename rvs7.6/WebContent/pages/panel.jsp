@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">7.10.3343.447</p>
+								<p id="nee">8.2.3372.450</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2020年03月09日</p>
+								<p>2020年08月10日</p>
 							</div>
 						</div>
 <%
@@ -186,6 +186,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 %>
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
+								<p>--------------------------------------</p>
+								<p>20/08/10 8.2.3372.450 更新</p>
+								<p>物料: NS 组件订购与库位管理。</p>
+								<p>流水线: NS 组件组装流程/NS 组件签收使用。</p>
 								<p>--------------------------------------</p>
 								<p>20/03/02 7.10.3340.444 更新</p>
 								<p>受理: 协助RC进行CDS功能上线。</p>

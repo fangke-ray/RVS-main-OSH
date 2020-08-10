@@ -184,6 +184,9 @@ var fixleakpause = function(evt, set_object) {
 		$("body.outer").append("<div id='operator_detail_dialog'/>");
 		this_dialog = $("#operator_detail_dialog");
 	}
+
+	$("div#operator_detail_dialog").not(this_dialog).remove();
+
 	this_dialog.hide();
 	this_dialog.load("widget.do?method=pauseWorkreport&s="+new Date().getMilliseconds(), function() {
 		$("#pause-workreport-reason").show();
@@ -229,10 +232,6 @@ var fixleakpause = function(evt, set_object) {
 		}
 
 		popInput(this_dialog, opd_listdata, line_no, cell, set_object);
-
-		if ($("div#operator_detail_dialog").length > 1) {
-			$("div#operator_detail_dialog:eq(0)").remove();// TODO BUG??
-		}
 	});
 };
 

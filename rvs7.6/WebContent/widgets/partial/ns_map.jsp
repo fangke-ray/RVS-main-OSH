@@ -1,5 +1,8 @@
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" isELIgnored="false"%>
 	<style>
+.wip-table {
+	position:relative;
+}
 .wip-table td.ui-state-default {
 	text-align:left;
 }
@@ -8,6 +11,20 @@
 }
 .wip-table td span.model_indicate.model_match {
 	color: darkorange;
+}
+.wip-table td span.model_indicate.model_match {
+	color: darkorange;
+}
+.wip-table.close:after {
+	width: 100%;
+	height: 100%;
+	content: ' ';
+	background: gray;
+	position: absolute;
+	top: 0;
+	left: 0;
+	opacity: 0.6;
+	pointer-events: none;
 }
 	</style>
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">

@@ -514,7 +514,7 @@ var treatStart = function(resInfo) {
 
 	if (!resInfo.finish_check) {
 		$("#material_details td:eq(1)").text(resInfo.mform.model_name).attr("model_id", resInfo.mform.model_id);
-		$("#material_details td:eq(3)").text(resInfo.mform.serial_no);
+		$("#material_details tr:eq(2) > td:eq(1)").text(resInfo.mform.serial_no);
 		$("#edit_sorc_no").val(resInfo.mform.sorc_no);
 		$("#edit_esas_no").val(resInfo.mform.esas_no);
 		$("#edit_ocm").val("").val(resInfo.mform.ocm).trigger("change");

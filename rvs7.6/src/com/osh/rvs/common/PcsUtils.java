@@ -2239,6 +2239,430 @@ public class PcsUtils {
 		return "";
 	}
 
+	/**
+	 * @param srcPcses 相关工程检查票文件 key 显示名 value 文件本地路径
+	 * @param materialId 维修对象ID
+	 * @param modelName
+	 * @param serialNo 组件序列号
+	 * @param folderPath 
+	 * @param conn
+	 * @return
+	 * @throws IOException
+	 */
+	public static String toPdfSnout(Map<String, String> srcPcses, String modelName,
+			String serialNo, String folderPath, SqlSession conn) throws IOException {
+
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+		LeaderPcsInputMapper llDao = conn.getMapper(LeaderPcsInputMapper.class);
+
+		// 取得维修对象返工次数
+		logger.info("reworkCount:1");
+
+		if (srcPcses == null) return null;
+
+		File material = new File(folderPath);
+		if (!material.exists()) {
+			material.mkdirs();
+		}
+
+		List<String> hasBlank = new ArrayList<String>();
+
+		// 对于每次返工
+		logger.info("iRework:0");
+
+		SoloProductionFeatureEntity condition = new SoloProductionFeatureEntity();
+		condition.setSerial_no(serialNo);
+
+		// 取得每次返工中作业记录
+		List<SoloProductionFeatureEntity> pfEntities = dao.searchSoloProductionFeature(condition);
+		ProductionFeatureEntity condEntity = new ProductionFeatureEntity();
+		condEntity.setSerial_no(serialNo);
+
+		List<ProductionFeatureEntity> lpcs = llDao.searchLeaderPcsInput(condEntity);
+
+
+		// 本次替换掉的工位件数
+		boolean bReplacedAtPosition = false;
+
+		Map<String, String> tempMap = new LinkedHashMap<String, String>();
+
+		// Map<String, String> allComments = new HashMap<String, String>();
+		String currentComments = "";
+
+		// 对于每张工检票
+		for (String pcsName : srcPcses.keySet()) {
+			logger.info("pcsName:"+ pcsName);
+
+			String specify = srcPcses.get(pcsName);
+			// 复制一份模板
+			String cacheFilename =  pcsName + new Date().getTime() + ".xls";
+			Date today = new Date();
+			String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + cacheFilename;
+			FileUtils.copyFile(new File(specify), new File(cachePath));
+
+			XlsUtil xls = new XlsUtil(cachePath);
+			xls.SelectActiveSheet();
+
+			// 全体对象
+
+				Map<String, String> lineComments = new HashMap<String, String>();
+
+				// 线长对象
+				if (lpcs !=null && lpcs.size() > 0) {
+					for (ProductionFeatureEntity pf : lpcs) {
+						// 工位代码
+						String line_id = pf.getLine_id();
+						logger.info("line_id"+ line_id);
+
+						String process_code = ""; // TODO 强制判断
+						String process_code2 = null; // TODO 强制判断
+						String process_code3 = null; // TODO 强制判断
+						if("00000000012".equals(line_id)) {
+							process_code = "2??";
+						} else if("00000000013".equals(line_id)) {
+							process_code = "3??";
+						} else if("00000000014".equals(line_id)) {
+							process_code = "4??";  // TODO
+							process_code2 = "5??";
+							process_code3 = "8??";
+						}
+
+						// 判断有本工号的标签
+						if (xls.Hit("@#E?" + process_code + "????") 
+								|| (process_code2 != null && (xls.Hit("@#E?" + process_code2 + "????"))) 
+								|| (process_code3 != null && (xls.Hit("@#E?" + process_code3 + "????"))) 
+								|| xls.Hit("@#L????????")) {
+
+							String sPcs_inputs = pf.getPcs_inputs();
+							if (!CommonStringUtil.isEmpty(sPcs_inputs)) {
+								// 解析输入值
+								@SuppressWarnings("unchecked")
+								Map<String, String> jsonPcs_inputs = JSON.decode(sPcs_inputs, Map.class);
+
+								// 当前工位最新返工
+								logger.info("sPcs_inputs edit:"+ sPcs_inputs);
+
+								// 读入既有值的输入
+								for (String pcid : jsonPcs_inputs.keySet()) {
+									// 输入值
+									String sInput = jsonPcs_inputs.get(pcid);
+									// 类别
+									char sIype = pcid.charAt(1);
+
+									if (!"".equals(sInput)) {
+										switch (sIype) {
+										
+										case 'I': {
+											// 输入：I
+											if (!CommonStringUtil.isEmpty(sInput)) {
+												xls.Replace("@#"+pcid+"??", sInput);
+											}
+											break;
+										}
+										case 'R': {
+											// 单选：R
+											if (!CommonStringUtil.isEmpty(sInput)) {
+												xls.Replace("@#"+pcid+sInput, CHECKED);
+												xls.Replace("@#"+pcid+"??", UNCHECKED);
+											}
+											break;
+										}
+										case 'M': {
+											// 合格确认：M
+											if ("1".equals(sInput)) {
+												xls.Replace("@#"+pcid+"??", CHECKED);
+											} else if ("-1".equals(sInput)) {
+												Dispatch cell = xls.Locate("@#"+pcid+"??");
+												if (cell != null) {
+													XlsUtil.SetCellBackGroundColor(cell, "255");
+													Dispatch font = xls.GetCellFont(cell);
+													Dispatch.put(font, "Color", "16777215"); // FFFFFF
+												}
+												xls.Replace("@#"+pcid+"??", FORBIDDEN);
+											}
+											xls.Replace("@#"+pcid+"??", NOCARE);
+											break;
+										}
+										case 'N': {
+											// 签章：N
+											if ("1".equals(sInput)) {
+												// 按钮
+												Dispatch cell = xls.Locate("@#"+pcid+"??");
+												if (cell != null) {
+													xls.sign(PathConsts.BASE_PATH + PathConsts.IMAGES + "\\sign\\" + pf.getJob_no().toUpperCase(),
+															cell);
+												}
+												xls.Replace("@#"+pcid+"??", ""); // sign
+												Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
+												if (dateCell != null) {
+													xls.SetNumberFormatLocal(dateCell, "m-d;@");
+													xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
+												}
+											} else if ("-1".equals(sInput)) { 
+												// 不做
+												// if 611
+												if (pcid.indexOf("N611") >= 0) {
+													Dispatch cell = xls.Locate("@#"+pcid+"??");
+													if (cell != null)  XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+													cell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
+													if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+												} else {
+													xls.Replace("@#"+pcid+"??", NOCARE);
+												}
+												Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
+												if (dateCell != null) {
+													xls.SetNumberFormatLocal(dateCell, "m-d;@");
+													xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
+												}
+											}
+											break;
+										}
+										}
+									}
+								}
+
+								currentComments = pf.getPcs_comments();
+								if (!CommonStringUtil.isEmpty(currentComments)) {
+									@SuppressWarnings("unchecked")
+									Map<String, String> jsonPcs_comments = JSON.decode(currentComments, Map.class);
+									for (String commentskey : jsonPcs_comments.keySet()) {
+										if (!CommonStringUtil.isEmpty(jsonPcs_comments.get(commentskey))) {
+//											xls.Replace("@#"+commentskey+"??", pf.getOperator_name() + ":" + jsonPcs_comments.get(commentskey) +
+//													"\n@#"+commentskey+"00");
+											if (lineComments.containsKey(commentskey)){
+												lineComments.put(commentskey, lineComments.get(commentskey) + "\n" + pf.getOperator_name() + ":" + jsonPcs_comments.get(commentskey));
+											} else {
+												lineComments.put(commentskey, pf.getOperator_name() + ":" + jsonPcs_comments.get(commentskey));
+											}
+										}
+//										if (!allComments.containsKey(commentskey)) {
+//											allComments.put(commentskey, "");
+//											// GC
+//											xls.Replace("@#"+commentskey+"??", allComments.get(commentskey) + "\n" + pf.getOperator_name() +
+//													"： @#"+commentskey+"??");
+//										}
+									}
+								}
+							}
+						}
+					}
+				}
+
+				for (SoloProductionFeatureEntity pf : pfEntities) {
+					// 工位号
+					String process_code = pf.getProcess_code();
+					if ("612".equals(process_code)) process_code = "611";
+					logger.info("process_code"+ process_code);
+
+					String checkedOverAllProcessCode = checkOverAllExcel(process_code);
+
+					// 判断有本工号的标签
+//					if (xls.Hit("@#E?" + process_code + "????") ||
+//							("400".equals(process_code) && pcsName.startsWith("总")) ) {
+					
+					if (xls.Hit("@#E?" + process_code + "????") || (!checkedOverAllProcessCode.equals(process_code))) {
+	
+						// 如果有本工位的标签，进行替换
+						bReplacedAtPosition = true;
+	
+						String sPcs_inputs = pf.getPcs_inputs();
+						if (!CommonStringUtil.isEmpty(sPcs_inputs)) {
+							// 解析输入值
+							@SuppressWarnings("unchecked")
+							Map<String, String> jsonPcs_inputs = JSON.decode(sPcs_inputs, Map.class);
+	
+							logger.info("sPcs_inputs edit:"+ sPcs_inputs);
+	
+							for (String pcid : jsonPcs_inputs.keySet()) {
+								// 输入值
+								String sInput = jsonPcs_inputs.get(pcid);
+								// 类别
+								char sIype = pcid.charAt(1);
+	
+								switch (sIype) {
+	
+								case 'I': {
+									if (!CommonStringUtil.isEmpty(sInput)) {
+										// 输入：I
+										xls.Replace("@#"+pcid+"??", sInput);
+									}
+									break;
+								}
+								case 'R': {
+									if (!CommonStringUtil.isEmpty(sInput)) {
+										// 单选：R
+										xls.Replace("@#"+pcid+sInput, CHECKED);
+										xls.Replace("@#"+pcid+"??", UNCHECKED);
+									}
+									break;
+								}
+								case 'M': {
+									// 合格确认：M
+									if ("1".equals(sInput)) {
+										xls.Replace("@#"+pcid+"??", CHECKED);
+									} else if ("-1".equals(sInput)) {
+										xls.Replace("@#"+pcid+"??", FORBIDDEN);
+									}
+									xls.Replace("@#"+pcid+"??", NOCARE);
+									break;
+								}
+								case 'N': {
+									// 签章：N
+									if ("1".equals(sInput)) {
+										// 按钮
+										Dispatch cell = xls.Locate("@#"+pcid+"??");
+										if (cell != null) {
+											xls.sign(PathConsts.BASE_PATH + PathConsts.IMAGES + "\\sign\\" + pf.getJob_no().toUpperCase(),
+													cell);
+										}
+										xls.Replace("@#"+pcid+"??", ""); // sign
+										Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED")+"??");
+										if (dateCell != null) {
+											xls.SetNumberFormatLocal(dateCell, "m-d;@");
+											xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
+										}
+									} else if ("-1".equals(sInput)) {
+										// 不做
+										// if 611
+										if (pcid.indexOf("N611") >= 0) {
+											Dispatch cell = xls.Locate("@#"+pcid+"??");
+											if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+											cell = xls.Locate("@#"+pcid.replaceAll("EN", "ED")+"??");
+											if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+										}
+										xls.Replace("@#"+pcid+"??", NOCARE);
+										Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED")+"??");
+										if (dateCell != null) {
+											xls.SetNumberFormatLocal(dateCell, "m-d;@");
+											xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
+										}
+									}
+									break;
+								}
+								case 'X': {
+									// 返工：X
+									String Xkey = "@#"+pcid.substring(0, 5).replaceAll("EX", "EN")+"????";
+									Dispatch cell = xls.Locate(Xkey);
+									String FoundValue = null;
+									if (cell != null) FoundValue = Dispatch.get(cell, "Value").toString();
+									while (FoundValue != null) {
+										XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+										xls.SetValue(cell, "发生返工");
+										cell = xls.Locate(Xkey);
+										if (cell == null) {
+											FoundValue = null;
+										} else {
+											FoundValue = Dispatch.get(cell, "Value").toString();
+										}
+									}
+
+									break;
+								}
+								case 'T': {
+									// 合格确认：M
+									if ("1".equals(sInput)) {
+										xls.Replace("@#"+pcid+"??", QUALIFIED); // sign
+									} else if ("0".equals(sInput)) {
+										xls.Replace("@#"+pcid+"??", NOCARE); // sign
+									} else if ("-1".equals(sInput)) {
+										Dispatch cell = xls.Locate("@#"+pcid+"??");
+										if (cell != null) {
+											xls.SetValue(cell, UNQUALIFIED);
+											XlsUtil.SetCellBackGroundColor(cell, "255"); 
+											Dispatch font = xls.GetCellFont(cell);
+											Dispatch.put(font, "Color", "16777215"); // FFFFFF
+										}
+									}
+									break;
+								}
+								}
+							}
+	
+							// 备注信息
+							currentComments = pf.getPcs_comments();
+							if (!CommonStringUtil.isEmpty(currentComments)) {
+								@SuppressWarnings("unchecked")
+								Map<String, String> jsonPcs_comments = JSON.decode(currentComments, Map.class);
+								for (String commentskey : jsonPcs_comments.keySet()) {
+//									if (!allComments.containsKey(commentskey)) {
+//										allComments.put(commentskey, "");
+										// GC
+									if (!CommonStringUtil.isEmpty(jsonPcs_comments.get(commentskey))) {
+										xls.Replace("@#"+commentskey+"??", jsonPcs_comments.get(commentskey) + "\n@#"+commentskey+"00");
+									}
+//									}
+								}
+							}
+						}
+					}
+				}
+				for (String commentskey : lineComments.keySet()) {
+					String comment = lineComments.get(commentskey);
+					xls.Replace("@#"+commentskey+"??", comment +
+					"\n@#"+commentskey+"00");
+				}
+
+				// 清除没赋值的标签 并且 变灰 14.7.8 edit
+				Dispatch cell = xls.Locate("@#?????????");
+				String FoundValue = null;
+				if (cell != null) FoundValue = Dispatch.get(cell, "Value").toString();
+				// String compareValue = "ZZZ$$$Z$";
+				while (FoundValue != null) {
+					if (FoundValue.indexOf("@#EC") < 0 && FoundValue.indexOf("@#LC") < 0 && FoundValue.indexOf("@#GI") < 0) {
+						XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+						if (FoundValue.indexOf("@#EN611") < 0 && FoundValue.indexOf("@#EI611") < 0 && FoundValue.indexOf("@#ER611") < 0) {
+							hasBlank.add(FoundValue);
+						}
+					} else {
+						if (FoundValue.indexOf("@#EC") >= 0 && FoundValue.indexOf("@#EC000") < 0 
+								&& FoundValue.trim().length() <= 12) {
+							XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+						}
+					}
+					if (FoundValue.replaceAll("@#\\w{2}\\d{7}", "").equals(FoundValue)) {
+						xls.SetValue(cell, "<<<格式错误，无法处理！>>>");
+					} else {
+						xls.SetValue(cell, FoundValue.replaceAll("@#\\w{2}\\d{7}", ""));
+					}
+					// xls.ReplaceInCell(cell, "@#?????????", "");
+					cell = xls.Locate("@#?????????");
+					if (cell == null) {
+						FoundValue = null;
+					} else {
+						FoundValue = Dispatch.get(cell, "Value").toString();
+					}
+				}
+				xls.Replace("@#?????????", "");
+
+				xls.SaveCloseExcel(false);
+				tempMap.put(pcsName, cachePath);
+			}
+
+			// 如果没有替换掉作业记录，就不算实际返工。
+			if (bReplacedAtPosition) {
+				// 放入第factRework次的工程检查票
+				String sheetname = "";
+
+				for (String pcsName : tempMap.keySet()) {
+					String cachePath = tempMap.get(pcsName);
+					XlsUtil xls = new XlsUtil(cachePath);
+					xls.SaveAsPdf(folderPath + "\\" + pcsName + sheetname);
+				}
+			} else {
+				// 不是的就不另存为PDF了
+//				for (String pcsName : tempMap.keySet()) {
+//					XlsUtil xls = tempMap.get(pcsName);
+//					xls.Release();
+//				}
+			}
+		if (hasBlank.size() > 0) {
+			logger.info(serialNo + "有未填项目。");
+		}
+
+		// 工位对象
+		return "";
+	}
+
 	public static void checkMultiPosMap(XlsUtil xls,
 			Map<String, List<String>> multiPosMap) {
 		Dispatch cell = xls.Locate("@#?????????@#?????????");
@@ -2519,7 +2943,7 @@ public class PcsUtils {
 
 			for (SoloProductionFeatureEntity pf : pfEntities) {
 				// 工位代码
-				String process_code = "301";
+				String process_code = pf.getProcess_code();
 				logger.info("process_code"+ process_code);
 
 				boolean isCurrent = process_code.equals(currentProcessCode);

@@ -721,6 +721,15 @@ input.scanner_inputer {
 	box-shadow: 2px 2px 12px #1e5799;
 }
 
+.waiting[serial_no] {
+	width : 400px;
+	box-shadow: 2px 2px 12px #FFDB42;
+	text-align: center;
+}
+.waiting.other_px[serial_no] {
+	left: 80px;
+}
+
 /* 等待区维修品,小画面 */
 .slim .waiting {
 	width : 320px;

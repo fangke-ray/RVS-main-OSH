@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
@@ -33,6 +34,7 @@ import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -94,13 +96,9 @@ public class QuotationService {
 		}
 
 		// 判断是否NS组件组装对象
-		ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);
-		List<ComponentSettingEntity> csBeans = csMapper.getAllComponentSettings();
-		for (ComponentSettingEntity csBean : csBeans) {
-			if (csBean.getModel_id().equals(mform.getModel_id())) {
-				responseBean.put("component_setting", csBean.getIdentify_code());
-				break;
-			}
+		Set<String> nsCompModels = ComponentSettingService.getNsCompModels(conn);
+		if (nsCompModels.contains(mform.getModel_id())) {
+			responseBean.put("component_setting", "csBean.getIdentify_code()");
 		}
 
 		// 取得维修对象的作业标准时间。

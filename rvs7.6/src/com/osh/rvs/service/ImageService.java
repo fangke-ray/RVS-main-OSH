@@ -13,6 +13,10 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 
 import com.osh.rvs.common.PathConsts;
+import com.sun.image.codec.jpeg.ImageFormatException;
+import com.sun.image.codec.jpeg.JPEGCodec;
+import com.sun.image.codec.jpeg.JPEGEncodeParam;
+import com.sun.image.codec.jpeg.JPEGImageEncoder;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.FileUtils;
@@ -211,14 +215,14 @@ public class ImageService {
 //	 * @throws ImageFormatException
 	 * @throws IOException
 	 */
-	public static void saveAsJpeg(String fileName, BufferedImage image, float quality) throws 
+	public static void saveAsJpeg(String fileName, BufferedImage image, float quality) throws ImageFormatException,
 			IOException {
 		FileOutputStream newimage = new FileOutputStream(fileName);
-//		JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(newimage);
-//		JPEGEncodeParam jep = JPEGCodec.getDefaultJPEGEncodeParam(image);
-//		/* 设定压缩质量 */
-//		jep.setQuality(quality, true);
-//		encoder.encode(image, jep);
+		JPEGImageEncoder encoder = JPEGCodec.createJPEGEncoder(newimage);
+		JPEGEncodeParam jep = JPEGCodec.getDefaultJPEGEncodeParam(image);
+		/* 设定压缩质量 */
+		jep.setQuality(quality, true);
+		encoder.encode(image, jep);
 		// encoder.encode(tag);
 		// JPEG格式保存
 		newimage.close();

@@ -656,15 +656,34 @@ var changeMaterialStatus=function(flag){
 		};
 	});
 
-	if ($("#check_use_ns_component:visible").is(":checked")) {
-		postData["exchange.cur_quantity[" + iii + "]"] = 1;
-		postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
-		postData["exchange.status["+iii+"]"]=7; // 使用组件
-		postData["exchange.partial_id[" + iii + "]"] = $("#label_use_ns_component_code").data("component_partial_id");
-		postData["exchange.code[" + iii + "]"]=$("#label_use_ns_component_code").text(); // 使用组件名
+	if ("check" === flag) {
+		warningConfirm("此次判定NS 组件子零件全部无 BO，是否立刻将子零件准备入库？", 
+				function(){
+					if ($("#check_use_ns_component:visible").is(":checked")) {
+						postData["exchange.cur_quantity[" + iii + "]"] = 1;
+						postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
+						postData["exchange.status["+iii+"]"]=7; // 使用组件
+						postData["exchange.partial_id[" + iii + "]"] = $("#label_use_ns_component_code").data("component_partial_id");
+						postData["exchange.code[" + iii + "]"]=$("#label_use_ns_component_code").text(); // 使用组件名
+					}
+					postChangeMaterialStatus(postData);
+				}, 
+				function(){
+					postChangeMaterialStatus(postData);
+				}, "物料组签收确认", "判定后就准备入库", "只判定不入库");
+	} else {
+		if ($("#check_use_ns_component:visible").is(":checked")) {
+			postData["exchange.cur_quantity[" + iii + "]"] = 1;
+			postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
+			postData["exchange.status["+iii+"]"]=7; // 使用组件
+			postData["exchange.partial_id[" + iii + "]"] = $("#label_use_ns_component_code").data("component_partial_id");
+			postData["exchange.code[" + iii + "]"]=$("#label_use_ns_component_code").text(); // 使用组件名
+		}
+		postChangeMaterialStatus(postData);
 	}
+};
 
-	// if (postData["exchange.material_partial_detail_key[0]"] != null)
+var postChangeMaterialStatus = function(postData) {
 	$.ajax({
 		beforeSend : ajaxRequestType,
 		async : false,
@@ -676,8 +695,8 @@ var changeMaterialStatus=function(flag){
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete :completeChange
-	});
-};
+	});	
+}
 
 var completeChange=function(xhrobj, textStatus){
 	var resInfo = null;

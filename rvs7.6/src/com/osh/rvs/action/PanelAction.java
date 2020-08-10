@@ -24,6 +24,7 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.master.LineEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.RoleEntity;
@@ -35,6 +36,7 @@ import com.osh.rvs.mapper.master.SectionMapper;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.RoleService;
 import com.osh.rvs.service.inline.PositionPanelService;
+import com.osh.rvs.service.inline.SoloSnoutService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -180,6 +182,16 @@ public class PanelAction extends BaseAction {
 				msgInfo.setErrcode("info.linework.workingRemain");
 				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingRemain",
 						(workingPf.getSection_name() == null ? "" : workingPf.getSection_name()) + workingPf.getProcess_code() + workingPf.getPosition_name()));
+				errors.add(msgInfo);
+			}
+		} else {
+			SoloSnoutService ssService = new SoloSnoutService();
+			SoloProductionFeatureEntity sworkingPf = ssService.checkWorkingPfServiceRepair(user.getOperator_id(), null, conn);
+			if (sworkingPf != null) {
+				MsgInfo msgInfo = new MsgInfo();
+				msgInfo.setErrcode("info.linework.workingRemain");
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingRemain",
+						(sworkingPf.getProcess_code() + "工位独立流程")));
 				errors.add(msgInfo);
 			}
 		}

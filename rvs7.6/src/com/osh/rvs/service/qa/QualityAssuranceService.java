@@ -1,5 +1,7 @@
 package com.osh.rvs.service.qa;
 
+import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -22,12 +24,15 @@ import org.apache.log4j.Logger;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.master.HolidayMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.partial.ComponentManageService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
@@ -89,6 +94,27 @@ public class QualityAssuranceService {
 			}
 		}
 
+		// 组件
+		if ("1".equals(mform.getLevel())) {
+			Set<String> nsCompModels = ComponentSettingService.getNsCompModels(conn);
+			boolean isNsCompModel = nsCompModels.contains(mform.getModel_id());
+
+			// 生成NS组件检查票
+			if (isNsCompModel) {
+				ComponentManageService cmService = new ComponentManageService();
+				String serialNos = cmService.getSerialNosForTargetMaterial(mform.getMaterial_id(), conn);
+				if (!isEmpty(serialNos)) {
+					String[] serialNoArray = serialNos.split(",");
+					Map<String, String> fileTempl = new HashMap<String, String>();
+					fileTempl.put("", PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\NS 工程\\NS组件组装\\" + mform.getModel_name() + ".xls"); // TODO
+
+					for (int i = 0;i < serialNoArray.length; i++) {
+						PcsUtils.toPdfSnout(fileTempl, mform.getModel_id(), serialNoArray[i], folderPath, conn);
+					}
+					
+				}
+			}
+		}
 	}
 
 	/**

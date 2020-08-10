@@ -290,6 +290,33 @@ WHERE `pf`.POSITION_ID = #{position_id} AND `pf`.material_id = #{material_id} AN
 		]]>
 	</select>
 
+	<select id="checkSoloWorked" resultType="boolean">
+		<![CDATA[ 
+		SELECT COUNT(`pf`.operate_result) > 0
+		FROM PROCESS_ASSIGN pa
+		JOIN SOLO_PRODUCTION_FEATURE pf
+		ON `pf`.POSITION_ID = `pa`.POSITION_ID
+		AND `pf`.operate_result = 2
+		WHERE `pa`.POSITION_ID = #{position_id}
+		AND `pf`.model_id = #{model_id}
+		AND `pf`.serial_no = #{serial_no}
+		AND `pa`.REFER_ID = #{process_assign_template_id}
+		AND `pa`.REFER_TYPE = 1
+		;
+		]]>
+	</select>
+
+	<select id="checkSoloWorking" resultType="int">
+		<![CDATA[ 
+		SELECT count(*)
+		FROM SOLO_PRODUCTION_FEATURE pf
+		WHERE `pf`.POSITION_ID = #{position_id} 
+		AND `pf`.model_id = #{model_id}
+		AND `pf`.serial_no = #{serial_no}
+		AND `pf`.operate_result <> 5 AND `pf`.FINISH_TIME IS NULL ;
+		]]>
+	</select>
+
 	<select id="get20" resultType="int">
 		<![CDATA[ 
 		SELECT COUNT(1) FROM PRODUCTION_FEATURE pf WHERE `pf`.operate_result = 2 AND MATERIAL_ID = #{material_id}  AND `pf`.POSITION_ID IN (17,18,19,26);

@@ -33,6 +33,7 @@ public class WaitingEntity implements Serializable {
 
 	private String position_id;
 	private String process_code;
+	private String fix_type;
 
 	public String getMaterial_id() {
 		return material_id;
@@ -171,5 +172,11 @@ public class WaitingEntity implements Serializable {
 	}
 	public void setProcess_code(String process_code) {
 		this.process_code = process_code;
+	}
+	public String getFix_type() {
+		return fix_type;
+	}
+	public void setFix_type(String fix_type) {
+		this.fix_type = fix_type;
 	}
 }

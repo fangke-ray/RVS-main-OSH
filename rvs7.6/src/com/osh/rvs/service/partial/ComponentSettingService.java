@@ -33,6 +33,8 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class ComponentSettingService {
 
+	private static Set<String> nsCompModels = null;
+
 	/**
 	 * 取得全部型号(参照列表)
 	 * @param conn
@@ -128,8 +130,11 @@ public class ComponentSettingService {
 			insertBean.setSafety_lever(null);
 		}
 		dao.insertSetting(insertBean);
+
+		// 清空型号集
+		nsCompModels = null;
 	}
-	
+
 	/**
 	 * 根据型号ID判定组件是否存在
 	 * 
@@ -235,6 +240,9 @@ public class ComponentSettingService {
 
 		// 删除指定型号ID的NS组件子零件
 		dao.deleteSetting(entity);
+
+		// 清空型号集
+		nsCompModels = null;
 	}
 
 	/**
@@ -340,4 +348,22 @@ public class ComponentSettingService {
 		return rets;
 	}
 
+	/**
+	 * 取得NS 组件组装对应型号
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public static Set<String> getNsCompModels(SqlSession conn) {
+		if (nsCompModels != null) {
+			nsCompModels = new HashSet<String> ();
+
+			ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);
+			List<ComponentSettingEntity> csBeans = csMapper.getAllComponentSettings();
+			for (ComponentSettingEntity csBean : csBeans) {
+				nsCompModels.add(csBean.getModel_id());
+			}
+		}
+		return nsCompModels;
+	}
 }

@@ -237,7 +237,7 @@ public class AlarmMesssageService {
 		AlarmMesssageEntity amEntity = new AlarmMesssageEntity();
 		amEntity.setLevel(RvsConsts.WARNING_LEVEL_NORMAL);
 		amEntity.setLine_id(workingPf.getLine_id());
-		amEntity.setMaterial_id(workingPf.getMaterial_id()); // Serial_no
+		amEntity.setSerial_no(workingPf.getSerial_no()); // Serial_no
 		amEntity.setOperator_id(workingPf.getOperator_id());
 		amEntity.setPosition_id(workingPf.getPosition_id());
 		amEntity.setSection_id(workingPf.getSection_id());

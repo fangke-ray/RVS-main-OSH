@@ -38,6 +38,8 @@ import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.DevicesManageEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.PositionGroupEntity;
+import com.osh.rvs.bean.partial.ComponentSettingEntity;
+import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsUtils;
@@ -53,9 +55,13 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.DevicesManageMapper;
 import com.osh.rvs.mapper.master.ProcessAssignMapper;
+import com.osh.rvs.mapper.partial.ComponentSettingMapper;
+import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
 import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.partial.ComponentManageService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -731,6 +737,7 @@ public class PositionPanelService {
 
 		List<Map<String, String>> pcses = new ArrayList<Map<String, String>>();
 
+		boolean enterCom = false;
 		String[] showLines = {};
 		if (mform.getLevel()==null || mform.getLevel().startsWith("5")) {
 			showLines = new String[1];
@@ -748,12 +755,14 @@ public class PositionPanelService {
 				showLines[0] = "总组工程";
 				showLines[1] = "分解工程";
 				showLines[2] = "NS 工程";
+				enterCom =true;
 			} else if ("00000000015".equals(sline_id)) {
 				showLines = new String[4];
 				showLines[0] = "最终检验";
 				showLines[1] = "分解工程";
 				showLines[2] = "NS 工程";
 				showLines[3] = "总组工程";
+				enterCom =true;
 			}
 		}
 
@@ -767,6 +776,64 @@ public class PositionPanelService {
 					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), pf.getProcess_code(), isLeader ? sline_id : null, conn);
 			fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
 			pcses.add(fileHtml);
+		}
+
+		// 采用NS 组件，得到工程检查票
+		if (enterCom && "1".equals(mform.getLevel())) {
+			// 判断是否NS组件组装对象
+			Set<String> nsCompModels = ComponentSettingService.getNsCompModels(conn);
+			boolean isNsCompModel = nsCompModels.contains(mform.getModel_id());
+
+			if (isNsCompModel) {
+				ComponentManageService cmService = new ComponentManageService();
+				String serialNos = cmService.getSerialNosForTargetMaterial(material_id, conn);
+				if (!isEmpty(serialNos)) {
+					// 有分配
+
+					// 判断组件签收
+					MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
+					List<MaterialPartialDetailEntity> mpdEntities = mpMapper.getMpdForComponent(material_id);
+
+					String[] serialNoArray = serialNos.split(",");
+					for (int i = 0;i < serialNoArray.length; i++) {
+						if (i >= mpdEntities.size()) { // 没有签收组件信息
+							break;
+						}
+						if (mpdEntities.get(i).getRecent_receive_time() == null) { // 没有签收操作
+							break;
+						}
+
+						Map<String, Object> partResponse = new HashMap<String, Object>();
+						SoloProductionFeatureEntity spf = new SoloProductionFeatureEntity();
+						spf.setModel_name(mform.getModel_name());
+						spf.setSerial_no(serialNoArray[i]);
+						spf.setProcess_code(pf.getProcess_code());
+						PositionPanelService.getSoloPcses(partResponse, spf, sline_id, conn);
+
+						List<Map<String, String>> partPcses = (List<Map<String, String>>) partResponse.get("pcses");
+						if (partPcses.size() > 0) {
+							Map<String, String> nsLine = null;
+
+							for (int isl = 0 ; isl < showLines.length; isl++) {
+								if ("NS 工程".equals(showLines[isl])) {
+									nsLine = pcses.get(isl);
+									break;
+								}
+							}
+
+							if (nsLine != null) {
+								for (String pcsName : partPcses.get(0).keySet()) {
+									if (i == 0) {
+										nsLine.put(pcsName, partPcses.get(0).get(pcsName));
+									} else {
+										nsLine.put(pcsName + "(" + i + ")", partPcses.get(0).get(pcsName));
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 
 		listResponse.put("pcses", pcses);
@@ -806,6 +873,88 @@ public class PositionPanelService {
 			pcses.add(fileHtml);
 		}
 
+		// 组件
+		if ("1".equals(mform.getLevel())) {
+			Set<String> nsCompModels = ComponentSettingService.getNsCompModels(conn);
+			boolean isNsCompModel = nsCompModels.contains(mform.getModel_id());
+
+			if (isNsCompModel) {
+				ComponentManageService cmService = new ComponentManageService();
+				String serialNos = cmService.getSerialNosForTargetMaterial(material_id, conn);
+				if (!isEmpty(serialNos)) {
+					// 有分配
+
+					String[] serialNoArray = serialNos.split(",");
+					for (int i = 0;i < serialNoArray.length; i++) {
+
+						Map<String, Object> partResponse = new HashMap<String, Object>();
+						SoloProductionFeatureEntity spf = new SoloProductionFeatureEntity();
+						spf.setModel_name(mform.getModel_name());
+						spf.setSerial_no(serialNoArray[i]);
+						spf.setProcess_code(pf.getProcess_code());
+						PositionPanelService.getSoloPcses(partResponse, spf, null, conn);
+
+						List<Map<String, String>> partPcses = (List<Map<String, String>>) partResponse.get("pcses");
+						if (partPcses.size() > 0) {
+							Map<String, String> nsLine = null;
+
+							for (int isl = 0 ; isl < showLines.length; isl++) {
+								if ("NS 工程".equals(showLines[isl])) {
+									nsLine = pcses.get(isl);
+									break;
+								}
+							}
+
+							if (nsLine != null) {
+								for (String pcsName : partPcses.get(0).keySet()) {
+									if (i == 0) {
+										nsLine.put(pcsName, partPcses.get(0).get(pcsName));
+									} else {
+										nsLine.put(pcsName + "(" + i + ")", partPcses.get(0).get(pcsName));
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		listResponse.put("pcses", pcses);
+	}
+
+	/**
+	 * 取得工程检查票
+	 * @param listResponse
+	 * @param pf
+	 * @param user
+	 * @param conn
+	 */
+	public static void getSoloPcses(Map<String, Object> listResponse, SoloProductionFeatureEntity pf, String sline_id,
+			SqlSession conn) {
+		List<Map<String, String>> pcses = new ArrayList<Map<String, String>>();
+
+		String[] showLines = new String[1];
+		showLines[0] = "NS 工程";
+
+		for (String showLine : showLines) {
+			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, pf.getModel_name(), null, conn);
+
+			Map<String, String> fileTemplSolo = new HashMap<String, String>();
+			for (String key : fileTempl.keySet()) {
+				if (key.contains("NS组件组装")) {
+					fileTemplSolo.put(key, fileTempl.get(key));
+					break;
+				}
+			}
+
+			Map<String, String> fileHtml = PcsUtils.toHtmlSnout(fileTemplSolo,
+					pf.getModel_name(), pf.getSerial_no(), pf.getProcess_code(), null, conn);
+
+			fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
+			pcses.add(fileHtml);
+		}
+
 		listResponse.put("pcses", pcses);
 	}
 
@@ -823,6 +972,7 @@ public class PositionPanelService {
 		List<String> ccds = new ArrayList<String>(); 
 		List<String> eyeLens = new ArrayList<String>(); 
 		List<String> ccdls = new ArrayList<String>(); 
+		List<String> nscomps = new ArrayList<String>(); 
 
 		for (String key : fileTempl.keySet()) {
 			if (key.contains("先端预制")) {
@@ -836,6 +986,9 @@ public class PositionPanelService {
 			}
 			else if (key.contains("CCD线")) { // TODO
 				ccdls.add(key);
+			}
+			else if (key.contains("NS组件组装")) {
+				nscomps.add(key);
 			}
 		}
 		// 如果有先端预制工程检查票
@@ -874,6 +1027,19 @@ public class PositionPanelService {
 			if (!dao.checkPositionDid(material_id, "00000000066", null, null)) {
 				for (String ccdl : ccdls) {
 					fileTempl.remove(ccdl);
+				}
+			}
+		}
+
+		// 如果有NS组件组装工程检查票
+		if (nscomps.size() > 0) {
+			
+			// 检查是否使用过组件
+			ComponentManageService cmService = new ComponentManageService();
+			String serialNos = cmService.getSerialNosForTargetMaterial(material_id, conn);
+			if (isEmpty(serialNos)) {
+				for (String nscomp : nscomps) {
+					fileTempl.remove(nscomp);
 				}
 			}
 		}

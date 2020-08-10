@@ -243,8 +243,11 @@
 					WHEN position_id = 51
 					THEN
 						CONCAT("判定机身号: ", spf.serial_no)
-					ELSE
+					WHEN position_id = 24
+					THEN
 						CONCAT("先端组件号: ", spf.serial_no)
+					ELSE
+						CONCAT("组件序列号: ", spf.serial_no)
 				END as sorc_no,
 				'' as reason,
 				CASE
@@ -309,8 +312,11 @@
 					WHEN position_id = 51
 					THEN
 						CONCAT("判定机身号: ", spf.serial_no)
-					ELSE
+					WHEN position_id = 24
+					THEN
 						CONCAT("先端组件号: ", spf.serial_no)
+					ELSE
+						CONCAT("组件序列号: ", spf.serial_no)
 				END as sorc_no,
 				'' as reason,
 				spf.operate_result

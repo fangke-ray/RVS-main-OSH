@@ -44,8 +44,10 @@ public interface ProcessAssignMapper {
 	public List<PositionEntity> getPrevPositions(@Param("process_assign_template_id") String template_id, @Param("position_id") String trigger_position_id);
 
 	/** 得到本PositionId是否全完成 */
-	public boolean checkWorked(@Param("material_id") String material_id, @Param("position_id") String doing_position_id , @Param("process_assign_template_id") String process_assign_template_id);
+	public boolean checkWorked(@Param("material_id") String material_id, @Param("position_id") String did_position_id , @Param("process_assign_template_id") String process_assign_template_id);
 	public int checkWorking(@Param("material_id") String material_id, @Param("position_id") String doing_position_id , @Param("process_assign_template_id") String process_assign_template_id);
+	public boolean checkSoloWorked(@Param("model_id") String model_id, @Param("serial_no") String serial_no, @Param("position_id") String did_position_id , @Param("process_assign_template_id") String process_assign_template_id);
+	public int checkSoloWorking(@Param("model_id") String model_id, @Param("serial_no") String serial_no, @Param("position_id") String doing_position_id , @Param("process_assign_template_id") String process_assign_template_id);
 
 	/** 所在线的所有关联工位是否都有完成记录 */
 	public boolean getFinishedByLine(@Param("material_id") String material_id, @Param("line_id") String line_id);

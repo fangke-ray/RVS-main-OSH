@@ -65,6 +65,7 @@ import com.osh.rvs.mapper.manage.PcsFixOrderMapper;
 import com.osh.rvs.mapper.master.LineMapper;
 import com.osh.rvs.mapper.master.ModelMapper;
 import com.osh.rvs.mapper.qf.AcceptanceMapper;
+import com.osh.rvs.service.partial.ComponentManageService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -573,6 +574,7 @@ public class MaterialService {
 		List<String> ccds = new ArrayList<String>(); 
 		List<String> lgs = new ArrayList<String>(); 
 		List<String> ccdls = new ArrayList<String>(); 
+		List<String> nscomps = new ArrayList<String>(); 
 
 		for (String key : fileTempl.keySet()) {
 			if (key.contains("先端预制")) {
@@ -586,6 +588,9 @@ public class MaterialService {
 			}
 			else if (key.contains("CCD线")) { // TODO
 				ccdls.add(key);
+			}
+			else if (key.contains("NS组件组装")) {
+				nscomps.add(key);
 			}
 		}
 
@@ -628,6 +633,20 @@ public class MaterialService {
 				}
 			}
 		}
+
+		// 如果有NS组件组装工程检查票
+		if (nscomps.size() > 0) {
+			
+			// 检查是否使用过组件
+			ComponentManageService cmService = new ComponentManageService();
+			String serialNos = cmService.getSerialNosForTargetMaterial(material_id, conn);
+			if (isEmpty(serialNos)) {
+				for (String nscomp : nscomps) {
+					fileTempl.remove(nscomp);
+				}
+			}
+		}
+
 	}
 
 	public void saveLeaderInput(HttpServletRequest req, LoginData user, SqlSessionManager conn) throws Exception {

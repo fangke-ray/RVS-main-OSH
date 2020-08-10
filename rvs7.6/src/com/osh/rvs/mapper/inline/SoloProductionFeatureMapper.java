@@ -62,6 +62,8 @@ public interface SoloProductionFeatureMapper {
 
 	public List<WaitingEntity> getWaitingMaterial(@Param("section_id") String section_id,
 			@Param("position_id") String position_id, @Param("operator_id") String operator_id);
+	public List<WaitingEntity> getWaitingComponents(@Param("section_id") String section_id,
+			@Param("position_id") String position_id, @Param("operator_id") String operator_id);
 
 	public MaterialEntity checkSnoutOrigin(@Param("material_id") String material_id, @Param("manage_serial_no") String serial_no);
 
@@ -80,4 +82,6 @@ public interface SoloProductionFeatureMapper {
 	
 	// 根据型号ID和序列号删除独立工位操作记录（NS组件画面）
 	public void deleteSoloByModelAndSerialNo(SoloProductionFeatureEntity soloEntity);
+
+	public int startProductionFeature(SoloProductionFeatureEntity soloEntity);
 }

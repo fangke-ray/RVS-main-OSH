@@ -599,7 +599,7 @@ public class ComponentManageAction extends BaseAction{
 		
 		// 数据更新
 		if (errors.size() == 0) {
-			// 组件废弃处理
+			// 移库
 			service.moveStock(componentBean, conn);
 		}
 
@@ -706,6 +706,47 @@ public class ComponentManageAction extends BaseAction{
 	}
 
 	/**
+	 * 只入库还没有完成
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void doUpdateStock(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doUpdateStock start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> errors = v.validate();
+
+		// 画面数据转换
+		ComponentManageEntity componentBean = new ComponentManageEntity();
+		BeanUtil.copyToBean(form, componentBean, null);
+
+		List<ComponentManageEntity> l = service.getBySerialNo(componentBean.getSerial_no(), conn);
+		if (l.size() > 0) {
+			componentBean.setComponent_key(l.get(0).getComponent_key());
+			componentBean.setModel_id(l.get(0).getModel_id());
+
+			// 设定库位
+			service.moveStock(componentBean, conn);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doUpdateStock end");
+	}
+
+	/**
 	 * NS组件信息单打印
 	 * @param mapping ActionMapping
 	 * @param form 表单
@@ -755,6 +796,13 @@ public class ComponentManageAction extends BaseAction{
 		// 画面数据转换
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
+
+		if (componentBean.getComponent_key() == null) {
+			List<ComponentManageEntity> l = service.getBySerialNo(componentBean.getSerial_no(), conn);
+			if (l.size() > 0) {
+				componentBean = l.get(0);
+			}
+		}
 
 		String filename = service.printNsComponentIdTag(
 				componentBean.getModel_name(),

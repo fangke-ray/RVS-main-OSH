@@ -180,12 +180,13 @@ public class PartialReceptService {
 			if (mpdEntity.getStatus() == 7) {
 				mpdEntity.setAppend("7");
 				if (mpdEntity.getWaiting_quantity() > 0) {
-					mpdEntity.setName("未分配");
+					// mpdEntity.setName("未分配");
 				} else {
 					ComponentManageService cmService = new ComponentManageService();
 
+					String serialNo = cmService.getSerialNosForTargetMaterial(material_id, conn);
 					// name作为序列号
-					mpdEntity.setName(cmService.getSerialNosForTargetMaterial(material_id, conn));
+					mpdEntity.setName(serialNo);
 				}
 			}
 		}

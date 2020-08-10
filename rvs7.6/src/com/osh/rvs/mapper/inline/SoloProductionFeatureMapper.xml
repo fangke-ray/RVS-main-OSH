@@ -9,6 +9,7 @@
 		<![CDATA[ 
 			SELECT
 				spr.position_id,
+				pos.process_code,
 				spr.section_id,
 				spr.serial_no,
 				spr.model_id,
@@ -26,8 +27,10 @@
 			 FROM SOLO_PRODUCTION_FEATURE spr
 			 LEFT JOIN `MODEL` m
 			 	ON spr.model_id = m.model_id
-			 JOIN `OPERATOR` o
+			 LEFT JOIN `OPERATOR` o
 			 	ON spr.operator_id = o.operator_id
+			 JOIN position pos
+			 	ON spr.position_id = pos.position_id
 		]]>
 		<where>
 			spr.used != 4
@@ -39,6 +42,9 @@
 			</if>
 			<if test="serial_no!=null and serial_no!='' ">
 				and spr.serial_no = #{serial_no}
+			</if>
+			<if test="section_id!= null and section_id!='' ">
+				and spr.section_id = #{section_id}
 			</if>
 			<if test="position_id!= null and position_id!='' ">
 				and spr.position_id = #{position_id}
@@ -139,7 +145,7 @@
 			#{pace}, 
 			#{operator_id}, 
 			#{operate_result}, 
-			CASE WHEN #{operate_result} = 0 THEN NULL ELSE current_timestamp END, 
+			#{action_time}, 
 			0
 		);
 		]]>
@@ -541,6 +547,32 @@ ORDER BY pause_reason DESC , operate_result DESC;
 		]]>
 	</select>
 
+	<select id="getWaitingComponents" resultType="WaitingEntity">
+		<![CDATA[ 
+SELECT 
+    `spf`.model_id,
+    `spf`.model_name,
+    `spf`.serial_no,
+    `spf`.operate_result as waitingat,
+    coalesce(`psf`.reason, 20) as pause_reason,
+    (select inline_date from component_manage where serial_no = `spf`.serial_no) as in_place_time
+FROM
+    solo_production_feature spf
+        LEFT JOIN
+    pause_feature psf ON `spf`.serial_no = `psf`.snout_serial_no
+        AND `psf`.SECTION_ID = `spf`.section_id
+        AND `psf`.POSITION_ID = `spf`.position_id
+        AND `psf`.PAUSE_FINISH_TIME IS NULL
+WHERE
+    `spf`.position_id = #{position_id}
+        AND `spf`.section_id = #{section_id}
+        AND `spf`.finish_time is null
+        AND `spf`.operator_id = 0
+        AND `spf`.operate_result not in (5, 8)
+ORDER BY pause_reason DESC , operate_result DESC, serial_no;
+		]]>
+	</select>
+
 	<select id="checkSnoutOrigin" resultType="MaterialEntity">
 		<![CDATA[ 
 select so.material_id, ma.model_id, so.manage_serial_no as serial_no, ma.omr_notifi_no as sorc_no
@@ -663,4 +695,20 @@ order by manage_serial_no
 			  AND finish_time is null;
 		]]>
 	</delete>
+
+	<!-- 开始作业 -->
+	<update id="startProductionFeature" parameterType="SoloProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE SOLO_PRODUCTION_FEATURE
+			SET OPERATOR_ID = #{operator_id},
+				OPERATE_RESULT = 1,
+				ACTION_TIME = current_timestamp
+		WHERE 
+		    POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND serial_no = #{serial_no}
+		AND pace = #{pace};
+		]]>
+	</update>
+
 </mapper>

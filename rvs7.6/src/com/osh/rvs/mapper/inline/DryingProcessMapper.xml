@@ -9,11 +9,13 @@
 		SELECT
 			section.name AS section_name,
 			position.process_code,
-			CASE 
+			CASE
+				WHEN cm.origin_material_id IS NOT NULL THEN '组件'
 				WHEN so.manage_serial_no IS NOT NULL THEN concat('(源)', ma.omr_notifi_no)
 				ELSE ma.omr_notifi_no
 			END as omr_notifi_no,
 			CASE 
+				WHEN cm.origin_material_id IS NOT NULL THEN cm.serial_no
 				WHEN so.manage_serial_no IS NOT NULL THEN concat('序列:', so.manage_serial_no)
 				ELSE ma.serial_no
 			END as serial_no,
@@ -55,6 +57,9 @@
 		LEFT JOIN snout_origin so
 			ON so.material_id = ma.material_id
 			AND position.position_id = 24
+		LEFT JOIN component_manage cm
+			ON cm.origin_material_id = ma.material_id
+	        AND position.line_id = 13
 	]]>
 		<where>
 			<if test="model_id!=null and model_id!=''">

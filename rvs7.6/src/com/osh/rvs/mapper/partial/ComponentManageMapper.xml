@@ -142,6 +142,7 @@
 				cm.component_key
                 ,cm.model_id
 			    ,vm.NAME as model_name
+			    ,ptl.code as partial_code
 			    ,cm.origin_material_id
 			    ,cm.step
 			    ,cm.stock_code
@@ -151,7 +152,9 @@
 			    ,cm.target_material_id
 			from 
 				component_manage cm
-                left join v_model vm on cm.model_id = vm.MODEL_ID
+                join v_model vm on cm.model_id = vm.MODEL_ID
+                join component_setting cs on cs.model_id = cm.model_id
+                join partial ptl on cs.component_partial_id = ptl.partial_id
 			]]>
 		<where>
 		    <if test="model_id!=null">
@@ -281,7 +284,7 @@
 		<![CDATA[ 
 			UPDATE component_manage SET 
 			stock_code = #{stock_code},
-			finish_time = current_timestamp
+			finish_time = current_timestamp,
 			step = 3
 			WHERE serial_no = #{serial_no}
 		]]>
@@ -330,7 +333,7 @@
 
 	<select id="getTargetMaterials" parameterType="ComponentManageEntity" resultType="MaterialEntity">
 		<![CDATA[ 
-		SELECT ma.material_id, ma.omr_notifi_no as sorc_no, ma.serial_no, group_concat(cm.serial_no) as package_no,
+		SELECT ma.material_id, ma.omr_notifi_no as sorc_no, ma.serial_no, group_concat(cm.serial_no) as package_no, ma.agreed_date,
 		(select count(1) from material_partial_detail where status = 7 and material_id = ma.material_id) as operate_result,
 		(
 		select group_concat(process_code order by process_code separator ' ') 

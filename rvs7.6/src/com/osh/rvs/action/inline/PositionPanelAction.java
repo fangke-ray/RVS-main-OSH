@@ -238,6 +238,11 @@ public class PositionPanelAction extends BaseAction {
 					actionForward = mapping.findForward("simple");
 				} else if (matchforward(arrSpecialForward, "snout") != null) {
 					actionForward = mapping.findForward("snout");
+				} else if (matchforward(arrSpecialForward, "mixed") != null) {
+					actionForward = mapping.findForward("mixed");
+					if (matchforward(arrSpecialForward, "use_snout") != null) {
+						req.setAttribute("useSnout", true);
+					}
 				} else if (matchforward(arrSpecialForward, "use_snout") != null) {
 					actionForward = mapping.findForward("usesnout");
 				} else if (matchforward(arrSpecialForward, "decom") != null) {
@@ -450,8 +455,10 @@ public class PositionPanelAction extends BaseAction {
 
 					} else {
 						List<MaterialPartialDetailForm> pForms = new ArrayList<MaterialPartialDetailForm>();
-						BeanUtil.copyToFormList(wentities, pForms, CopyOptions.COPYOPTIONS_NOEMPTY,
-								MaterialPartialDetailForm.class);
+						CopyOptions copy = new CopyOptions();
+						copy.excludeEmptyString(); copy.excludeNull();
+						copy.fieldRename("name", "line_name");
+						BeanUtil.copyToFormList(wentities, pForms, copy, MaterialPartialDetailForm.class);
 						listResponse.put("mpds", pForms);
 						listResponse.put("workstauts", WORK_STATUS_WAITING_FOR_PARTIAL_RECEIVE);
 					}
@@ -1689,6 +1696,7 @@ public class PositionPanelAction extends BaseAction {
 
 			jsonResponse.put("past_fingers", session.getAttribute(RvsConsts.JUST_FINISHED));
 		}
+
 		// 返回Json格式响应信息
 		returnJsonResponse(res, jsonResponse);
 

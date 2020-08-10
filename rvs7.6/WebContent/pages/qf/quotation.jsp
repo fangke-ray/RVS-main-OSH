@@ -83,6 +83,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 													<td class="ui-state-default td-title">型号<input type="hidden" name="wip_location" id="edit_wip_location"/></td>
 													<td class="td-content"></td>
 												</tr>
+												<tr class="component_setting">
+													<td class="ui-state-highlight td-title" colspan=2>此维修品是可进行<span style="color:red;">NS 组件组装</span>的型号</td>
+												</tr>
 												<tr>
 													<td class="ui-state-default td-title">机身号</td>
 													<td class="td-content"></td>
@@ -166,9 +169,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 														<label id="edit_service_free" class="ui-widget-content">
 														</label>
 													</td>
-												</tr>
-												<tr class="component_setting">
-													<td class="ui-state-default td-title" colspan=2>此维修品是可进行<span style="color:red;">NS 组件组装</span>的型号</td>
 												</tr>
 												<tr>
 													<td class="ui-state-default td-title">备注</td>

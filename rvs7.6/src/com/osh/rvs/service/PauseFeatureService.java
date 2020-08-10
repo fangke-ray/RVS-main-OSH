@@ -119,6 +119,7 @@ public class PauseFeatureService {
 				}
 			}
 		}
+
 		if (snout_serial_no != null) {
 			// 工序必要的暂停结束掉/先端预制用
 			dao.stopPauseFeatureSnout(snout_serial_no, section_id, position_id, finish_operator_id);

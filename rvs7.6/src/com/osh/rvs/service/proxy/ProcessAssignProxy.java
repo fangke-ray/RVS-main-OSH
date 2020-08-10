@@ -18,6 +18,8 @@ public class ProcessAssignProxy {
 	private String pat_id;
 	private String material_section_id;
 	public boolean isLightFix;
+	private String model_id;
+	private String serial_no;
 
 	public ProcessAssignProxy(String material_id, String pat_id, String section_id,
 			boolean isLightFix, SqlSessionManager conn) {
@@ -25,6 +27,8 @@ public class ProcessAssignProxy {
 		this.pat_id = pat_id;
 		this.isLightFix = isLightFix;
 		this.material_section_id = section_id;
+		this.model_id = null;
+		this.serial_no = null;
 
 		if (isLightFix) {
 			lightMapper = conn.getMapper(MaterialProcessAssignMapper.class);
@@ -32,11 +36,27 @@ public class ProcessAssignProxy {
 		heavyMapper = conn.getMapper(ProcessAssignMapper.class);
 	}
 
+	public ProcessAssignProxy(String material_id, String pat_id, String section_id,
+			boolean isLightFix, String model_id, String serial_no, SqlSessionManager conn) {
+		this.material_id = null;
+		this.pat_id = pat_id;
+		this.isLightFix = isLightFix;
+		this.material_section_id = section_id;
+		this.model_id = model_id;
+		this.serial_no = serial_no;
+
+		heavyMapper = conn.getMapper(ProcessAssignMapper.class);
+	}
+
 	public int checkWorking(String position_id) {
 		if (isLightFix) {
-			return heavyMapper.checkWorking(material_id, position_id, null);
+			return heavyMapper.checkWorking(material_id, position_id, null); // checkWorking 与小修理流程无关
 		} else {
-			return heavyMapper.checkWorking(material_id, position_id, pat_id);
+			if (material_id != null) {
+				return heavyMapper.checkWorking(material_id, position_id, pat_id);
+			} else {
+				return heavyMapper.checkSoloWorking(model_id, serial_no, position_id, pat_id);
+			}
 		}
 	}
 
@@ -44,7 +64,11 @@ public class ProcessAssignProxy {
 		if (isLightFix) {
 			return lightMapper.checkWorked(material_id, position_id);
 		} else {
-			return heavyMapper.checkWorked(material_id, position_id, pat_id);
+			if (material_id != null) {
+				return heavyMapper.checkWorked(material_id, position_id, pat_id);
+			} else {
+				return heavyMapper.checkSoloWorked(model_id, serial_no, position_id, pat_id);
+			}
 		}
 	}
 

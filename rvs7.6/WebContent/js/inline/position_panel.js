@@ -1369,7 +1369,7 @@ var showFoundry = function(){
 var showPartialRecept = function(resInfo, finish){
 	var $partialconfirmarea = $('#partialconfirmarea');
 	if ($partialconfirmarea.length == 0) {
-		$("body").append("<div id='partialconfirmarea'><table id='partialConfirmList'/><div id='partialConfirmComponent'/></div>");
+		$("body").append("<div id='partialconfirmarea'><table id='partialConfirmList'/><div id='partialConfirmComponent' class='ui-state-default'/></div>");
 		$partialconfirmarea = $('#partialconfirmarea');
 		$("#partialConfirmList").jqGrid({
 			data:{},
@@ -1499,7 +1499,6 @@ var showPartialRecept = function(resInfo, finish){
 					var bom_quantity = rowData["bom_quantity"];
 					var code = rowData["code"];
 					if(bom_quantity && bom_quantity > 0 && code.indexOf("*") < 0){
-//						pill.jqGrid("setSelection", IDS[i]);
 						pill.find("tr#" + IDS[i] + " td").css("background-color", "lightblue");
 					}
 				}
@@ -1516,12 +1515,21 @@ var showPartialRecept = function(resInfo, finish){
 	for (var mpdi in resInfo.mpds) {
 		var linepart = resInfo.mpds[mpdi];
 		if (linepart.append == "7") {
-			strComponent = "组件" + linepart.code + "现分配的序列号是：" + linepart.name + "。";
+			if (linepart.line_name) {
+				strComponent = "组件 " + linepart.code + " 现分配的序列号是：<span id='partialConfirmTarget'>" + linepart.line_name 
+						+ "</span>。请在右边扫描NS 组件信息单确认：" + "<input class='mpds_iscanner'></input>"; 
+			} else {
+				strComponent = "组件 " + linepart.code + " 现未分配的序列号，还不能对其签收。"; 
+			}
+			;
 			break;
 		}
 	}
 	if (strComponent) {
-		$("#partialConfirmComponent").text(strComponent);
+		$("#partialConfirmComponent").html(strComponent);
+		$("#partialConfirmComponent .mpds_iscanner").on("focus", function(){this.select();});
+	} else {
+		$("#partialConfirmComponent").html("");
 	}
 
 	partial_closer = true;
@@ -1543,7 +1551,21 @@ var showPartialRecept = function(resInfo, finish){
 				reportAndBreak();
 			},
 			"确定":function() {
-				commitPartialConfirm($partialconfirmarea, finish);
+				if ($("#partialConfirmComponent").html()) {
+					if ($("#partialConfirmTarget").length) {
+						var scannerValue = $(".mpds_iscanner").val();
+						if ($("#partialConfirmTarget").text().indexOf(scannerValue) >= 0
+							&& scannerValue.length === 13) {
+							commitPartialConfirm($partialconfirmarea, finish);
+						} else {
+							errorPop("扫描的 NS 组件序列号不符合要求。");
+						}
+					} else {
+						errorPop($("#partialConfirmComponent").text());
+					}
+				} else {
+					commitPartialConfirm($partialconfirmarea, finish);
+				}
 			}
 		},
 		create: function( event, ui ) {

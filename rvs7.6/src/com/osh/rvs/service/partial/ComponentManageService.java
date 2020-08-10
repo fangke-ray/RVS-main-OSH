@@ -522,7 +522,7 @@ public class ComponentManageService {
 			PdfPCell cell = new PdfPCell(new Paragraph("QR-B31002-150", titleFont11));
 			cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			cell.setFixedHeight(20);
+			cell.setFixedHeight(16);
 			cell.setColspan(6);
 			cell.setBorder(0);
 			mainTable.addCell(cell);
@@ -531,14 +531,14 @@ public class ComponentManageService {
 			cell = new PdfPCell(new Paragraph("组装组件信息单", titleFont18));
 			cell.setHorizontalAlignment(Element.ALIGN_LEFT);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-			cell.setFixedHeight(40);
+			cell.setFixedHeight(30);
 			cell.setColspan(6);
 			cell.setBorder(0);
 			mainTable.addCell(cell);
 			
 			// 第三行 空白
 			cell = new PdfPCell(new Paragraph("", titleFont18));
-			cell.setFixedHeight(30);
+			cell.setFixedHeight(16); // 20-8
 			cell.setColspan(6);
 			cell.setBorder(0);
 			mainTable.addCell(cell);
@@ -572,12 +572,12 @@ public class ComponentManageService {
 			PdfContentByte cd = pdfWriter.getDirectContent();
 			Barcode128 code128 = new Barcode128();
 			code128.setCode(component.getSerial_no());
-			code128.setBarHeight(40);
+			code128.setBarHeight(32);
 			code128.setSize(20);
 			code128.setFont(null);
 			Image image128 = code128.createImageWithBarcode(cd, null, null);
 			cell = new PdfPCell(image128);
-			cell.setFixedHeight(48);
+			cell.setFixedHeight(40);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 			middleTable.addCell(cell);
@@ -641,7 +641,7 @@ public class ComponentManageService {
 			
 			// 第9行 空白
 			cell = new PdfPCell(new Paragraph("", titleFont));
-			cell.setFixedHeight(30);
+			cell.setFixedHeight(22); // 30 - 8
 			cell.setColspan(6);
 			cell.setBorder(0);
 			mainTable.addCell(cell);
@@ -777,10 +777,7 @@ public class ComponentManageService {
 			return checkStockCode(serial_no, "3", errors, conn);
 		}
 
-		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
-		ComponentManageEntity cond = new ComponentManageEntity();
-		cond.setSerial_no(serial_no);
-		List<ComponentManageEntity> results = mapper.searchComponentManageEntity(cond);
+		List<ComponentManageEntity> results = getBySerialNo(serial_no, conn);
 		if (results.size() == 0) {
 			errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "组装完成组件"));
 			return null;
@@ -791,6 +788,13 @@ public class ComponentManageService {
 		}
 
 		return results.get(0);
+	}
+
+	public List<ComponentManageEntity> getBySerialNo(String serial_no, SqlSession conn) {
+		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
+		ComponentManageEntity cond = new ComponentManageEntity();
+		cond.setSerial_no(serial_no);
+		return mapper.searchComponentManageEntity(cond);
 	}
 
 	private ComponentManageEntity checkStockCode(String stock_code, String step, List<String> errors, SqlSession conn) {

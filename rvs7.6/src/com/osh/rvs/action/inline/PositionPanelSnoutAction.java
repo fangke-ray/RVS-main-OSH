@@ -177,7 +177,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 		// 取得等待区一览
 		listResponse.put("waitings", sservice.getWaitingMaterial(section_id, user.getPosition_id(),
-				user.getOperator_id(), process_code, conn));
+				user.getOperator_id(), process_code, 1, conn));
 
 		// 先端预制，取得可制作的型号
 		listResponse.put("modelOptions", CodeListUtils.getSelectOptions(RvsUtils.getSnoutModels(conn), "", "(未选择)", false));
@@ -858,6 +858,9 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 		String serial_no = req.getParameter("serial_no");
 		String from_process_code = req.getParameter("process_code");
+		if (from_process_code == null) {
+			from_process_code = "301";
+		}
 
 		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
 		if (CommonStringUtil.isEmpty(serial_no)) {
@@ -871,7 +874,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 		// 先端头线长确认
 		ProductionFeatureService pfService = new ProductionFeatureService();
-		String sGot = pfService.checkLpi(serial_no, "301", conn);
+		String sGot = pfService.checkLpi(serial_no, from_process_code, conn);
 		if (sGot == null) {
 			MsgInfo error = new MsgInfo();
 			error.setComponentid("serial_no");
@@ -914,7 +917,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 			SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
 			// 标准作业时间
-			Integer use_seconds = Integer.valueOf(RvsUtils.getZeroOverLine("_default", null, user, "301")) * 60;
+			Integer use_seconds = Integer.valueOf(RvsUtils.getZeroOverLine("_default", null, user, from_process_code)) * 60;
 
 			ProductionFeatureEntity pfBean = new ProductionFeatureEntity();
 			pfBean.setSerial_no(serial_no);
@@ -985,6 +988,9 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 		String serial_no = req.getParameter("serial_no");
 		String from_process_code = req.getParameter("process_code");
+		if (from_process_code == null) {
+			from_process_code = "301";
+		}
 		String from_position_id = ReverseResolution.getPositionByProcessCode(from_process_code, conn);
 
 		if (errors.size() == 0) {
@@ -992,7 +998,6 @@ public class PositionPanelSnoutAction extends BaseAction {
 			// 取得用户信息
 			HttpSession session = req.getSession();
 			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
-			String this_process_code = user.getProcess_code();
 	
 			// 取得工作中维修对象
 			ProductionFeatureEntity workingPf = service.getWorkingOrSupportingPf(user, conn);

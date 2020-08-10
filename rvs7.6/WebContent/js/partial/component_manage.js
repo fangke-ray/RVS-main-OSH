@@ -888,6 +888,8 @@ var showNSMap=function(move) {
 				} else {
 					$("#ns_pop").hide();
 					$("#ns_pop").load("widgets/partial/ns_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
+						if(!move) $(".wip-table:eq(0)").addClass("close");
+						
 						 //新增
 				
 						$("#ns_pop").dialog({
@@ -904,7 +906,27 @@ var showNSMap=function(move) {
 
 						var row = $("#component_manage").jqGrid("getGridParam", "selrow");
 						var rowData = $("#component_manage").getRowData(row);
-						$(".model_indicate:contains(" + rowData.model_name + ")").addClass("model_match");
+
+						$("#ns_pop").find(".ui-widget-content .wip-table").each(function(){
+							var $model_match = $(this).find(".model_indicate:contains(" + rowData.model_name + ")");
+							if ($model_match.length > 1) {
+								var matchEqaul = false;
+								$model_match.each(function(){
+									if (matchEqaul) return;
+									var modelIndis = this.innerText.split("|");
+									for (var idx in modelIndis) {
+										if (modelIndis[idx] === rowData.model_name) {
+											matchEqaul = true;
+											$model_match = $(this);
+											break;
+										}
+									}
+								});
+								if (!matchEqaul) $model_match = $model_match.eq(0);
+							}
+	
+							$model_match.addClass("model_match");
+						});
 
 						$("#ns_pop").find("td").addClass("wip-empty");
 						for (var iheap in resInfo.heaps) {
@@ -912,11 +934,13 @@ var showNSMap=function(move) {
 						}
 
 						//$("#wip_pop").css("cursor", "pointer");
-						$("#ns_pop").find(".ui-widget-content").click(function(e){
+						$("#ns_pop").find(".ui-widget-content .wip-table").not(".close").click(function(e){
 							if ("TD" == e.target.tagName) {
 								if (!$(e.target).hasClass("wip-heaped")) {
 									selnsid = $(e.target).attr("nsid");
-									partialInstock(selnsid, move === true);
+									if (selnsid) {
+										partialInstock(selnsid, move === true);
+									}
 								}
 							}
 						});
@@ -1144,12 +1168,13 @@ var loadTargetMaterials = function(targetMaterials) {
 		$(document.body).append("<div id='pop_target_materials'/>");
 		$pop_window = $("#pop_target_materials");
 	}
-	var pop_target_table = "<table id='pop_target_materials_table' class='condform'><tr><th class='ui-state-default'>维修单号</th><th class='ui-state-default'>机身号</th><th class='ui-state-default'>当前位置</th><th class='ui-state-default'>预定使用组件数</th><th class='ui-state-default'>已指定组件序列号</th></tr><tbody>";
+	var pop_target_table = "<table id='pop_target_materials_table' class='condform'><tr><th class='ui-state-default'>维修单号</th><th class='ui-state-default'>机身号</th><th class='ui-state-default'>同意日</th><th class='ui-state-default'>当前位置</th><th class='ui-state-default'>预定使用组件数</th><th class='ui-state-default'>已指定组件序列号</th></tr><tbody>";
 	for (var i in targetMaterials) {
 		var targetMaterial = targetMaterials[i];
 		pop_target_table += "<tr material_id='" + targetMaterial.material_id + "'>" +
 							"<td class=\"td-content\">" + targetMaterial.sorc_no + "</td>" +
 							"<td class=\"td-content\">" + targetMaterial.serial_no + "</td>" +
+							"<td class=\"td-content\">" + targetMaterial.agreed_date + "</td>" +
 							"<td class=\"td-content\">" + (targetMaterial.processing_position || "-") + "</td>" +
 							"<td class=\"td-content\">" + targetMaterial.operate_result + "</td>" +
 							"<td class=\"td-content\" count='" + targetMaterial.selectable + "'>" + (targetMaterial.package_no || "") + "</td>" +
@@ -1333,6 +1358,7 @@ var enableButtonManage = function() {
 	// 选择NS组件库存管理行，并获取行数
 	var row = $("#component_manage").jqGrid("getGridParam", "selrow");
 	$("#manage_executes input:button").disable();
+	$("#pcs_button").hide();
 	if (row !=null) {
 		var rowdata = $("#component_manage").getRowData(row);
 		var step = parseInt(rowdata["step"]);
@@ -1353,6 +1379,7 @@ var enableButtonManage = function() {
 		if (step > 2) {
 			$("#print_label_button").enable();
 			$("#print_info_button").enable();
+			$("#pcs_button").enable().show();
 		} 
 	}
 };

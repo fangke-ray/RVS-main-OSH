@@ -165,8 +165,7 @@
 			</if>
 	<![CDATA[ 
 			AND POSITION_ID = #{position_id}
-			AND PAUSE_FINISH_TIME IS NULL
-			AND (REASON BETWEEN 100 and 300 OR REASON BETWEEN 49 and 70);
+			AND PAUSE_FINISH_TIME IS NULL;
 	]]>
 	</update>
 

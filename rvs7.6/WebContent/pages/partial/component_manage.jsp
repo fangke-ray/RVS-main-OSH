@@ -25,10 +25,11 @@ tr.addseqTr input {
 #pop_target_materials_table tbody tr td {
 	cursor:pointer;
 }
-#pop_target_materials_table tbody tr td:nth-child(3) {
+#pop_target_materials_table tbody tr td:nth-child(3),
+#pop_target_materials_table tbody tr td:nth-child(4) {
 	text-align:center;
 }
-#pop_target_materials_table tbody tr td:nth-child(4) {
+#pop_target_materials_table tbody tr td:nth-child(5) {
 	text-align:right;
 }
 #pop_target_materials_table tr:hover td {
@@ -225,6 +226,9 @@ tr.addseqTr input {
 								<% if (is107) { %>
 								<input id="print_info_button" class="ui-button" value="NS组件信息单打印" role="button" type="button" style="float:right;">
 								<input id="print_label_button" class="ui-button" value="NS组件标签打印" role="button" type="button" style="float:right;">
+								<% } %>
+								<% if (isFact || is107) { %>
+								<input id="pcs_button" class="ui-button" value="工程检查票显示" role="button" type="button" style="float:right;">
 								<% } %>
 								<div class="clear"></div>
 							</div>

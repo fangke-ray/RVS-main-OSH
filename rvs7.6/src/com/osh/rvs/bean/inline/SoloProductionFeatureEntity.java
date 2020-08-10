@@ -8,6 +8,7 @@ public class SoloProductionFeatureEntity implements Serializable{
 	private static final long serialVersionUID = 7204433595748489202L;
 
 	private String position_id;
+	private String process_code;
 	private String serial_no;
 	private String model_id;
 	private String model_name;
@@ -32,6 +33,12 @@ public class SoloProductionFeatureEntity implements Serializable{
 	}
 	public void setPosition_id(String position_id) {
 		this.position_id = position_id;
+	}
+	public String getProcess_code() {
+		return process_code;
+	}
+	public void setProcess_code(String process_code) {
+		this.process_code = process_code;
 	}
 	public String getSerial_no() {
 		return serial_no;

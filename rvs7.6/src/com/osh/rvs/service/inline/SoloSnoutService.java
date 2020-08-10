@@ -1,6 +1,9 @@
 package com.osh.rvs.service.inline;
 
+import static framework.huiqing.common.util.CommonStringUtil.joinBy;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -11,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
@@ -22,6 +26,8 @@ import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
+import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.master.ProcessAssignEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsConsts;
@@ -29,12 +35,16 @@ import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.inline.SnoutForm;
 import com.osh.rvs.mapper.CommonMapper;
+import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.data.PostMessageMapper;
 import com.osh.rvs.mapper.inline.LeaderPcsInputMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
+import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.PostMessageService;
+import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.proxy.ProcessAssignProxy;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
@@ -45,7 +55,10 @@ import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class SoloSnoutService {
+	protected static final Logger logger = Logger.getLogger(SoloSnoutService.class);
+
 	private static final Integer SEARCH_STATUS_USED = 4; 
+	private static final String[] WITH_ORIGIN_POSITIONS = {"00000000024"}; 
 
 	/**
 	 * 作业中发生暂停后，产生作业下一步暂停等待信息
@@ -63,12 +76,21 @@ public class SoloSnoutService {
 		// productionFeature.setOperator_id(null);
 		// 状态总是暂停再开
 		productionFeature.setOperate_result(RvsConsts.OPERATE_RESULT_PAUSE);
-		productionFeature.setAction_time(null);
+		productionFeature.setAction_time(new Date());
 		productionFeature.setFinish_time(null);
 		// 其他沿用
 
 		// 作成新等待记录
 		dao.insert(productionFeature);
+	}
+
+	public void breakWork(SoloProductionFeatureEntity productionFeature,
+			SqlSessionManager conn) throws Exception {
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+
+		productionFeature.setOperate_result(RvsConsts.OPERATE_RESULT_BREAK);
+		productionFeature.setUse_seconds(null);
+		dao.breakWork(productionFeature);
 	}
 
 	public void breakToNext(SoloProductionFeatureEntity productionFeature,
@@ -77,8 +99,8 @@ public class SoloSnoutService {
 
 		// Pace
 		productionFeature.setPace(productionFeature.getPace() + 1);
-		// 保持处理者
-		// productionFeature.setOperator_id(null);
+		// (以前为什么要“保持处理者”？)
+		productionFeature.setOperator_id("00000000000");
 		// 状态总是暂停再开
 		productionFeature.setOperate_result(RvsConsts.OPERATE_RESULT_BREAK);
 		productionFeature.setAction_time(null);
@@ -97,6 +119,7 @@ public class SoloSnoutService {
 		mapper.finish(productionFeatureEntity);
 
 		productionFeatureEntity.setPace(productionFeatureEntity.getPace() + 1);
+		productionFeatureEntity.setAction_time(new Date());
 		// #{pace}, 
 
 		mapper.insert(productionFeatureEntity);
@@ -108,6 +131,14 @@ public class SoloSnoutService {
 		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
 
 		mapper.updateToResume(productionFeatureEntity);
+	}
+
+	/**完成
+	 * @throws Exception */
+	public void finish(SoloProductionFeatureEntity productionFeatureEntity, SqlSessionManager conn) throws Exception {
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+		productionFeatureEntity.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+		mapper.finish(productionFeatureEntity);
 	}
 
 	public Integer getTotalTime(SoloProductionFeatureEntity workingPf, SqlSession conn) {
@@ -201,7 +232,40 @@ public class SoloSnoutService {
 		} else {
 			return null;
 		}
-		
+	}
+
+	public SoloProductionFeatureEntity checkWorkingPfServiceRepair(String operator_id, String position_id, SqlSession conn) {
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+		SoloProductionFeatureEntity pfBean = new SoloProductionFeatureEntity();
+		pfBean.setOperator_id(operator_id);
+		pfBean.setPosition_id(position_id);
+		pfBean.setAction_time_null(0);
+		pfBean.setFinish_time_null(1);
+		pfBean.setUsed(0);
+
+		// 判断是否有在进行中的组装对象
+		List<SoloProductionFeatureEntity> result = dao.searchSoloProductionFeature(pfBean);
+		if (result != null && result.size() > 0) {
+			return result.get(0);
+		} else {
+			return null;
+		}
+	}
+
+	public SoloProductionFeatureEntity getCompPositionDetailBean(String serial_no, String section_id, String position_id, SqlSession conn) {
+		SoloProductionFeatureEntity condition = new SoloProductionFeatureEntity();
+		condition.setSerial_no(serial_no);
+		condition.setSection_id(section_id);
+		condition.setPosition_id(position_id);
+		condition.setFinish_time_null(1);
+
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+		List<SoloProductionFeatureEntity> list = dao.searchSoloProductionFeature(condition);
+		if (list != null && list.size() > 0) {
+			return list.get(0);
+		} else {
+			return null;
+		}
 	}
 
 	public String getSnoutPcs(String serial_no, String model_name, SqlSession conn) {
@@ -326,37 +390,58 @@ public class SoloSnoutService {
 	}
 
 	public List<WaitingEntity> getWaitingMaterial(String section_id, String position_id,
-			String operator_id, String process_code, SqlSession conn) {
+			String operator_id, String process_code, Integer px, SqlSession conn) {
 		List<WaitingEntity> ret = null;
 		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
-		ret = mapper.getWaitingMaterial(section_id, position_id, operator_id);
+		if (Arrays.asList(WITH_ORIGIN_POSITIONS).contains(position_id)) {
+			ret = mapper.getWaitingMaterial(section_id, position_id, operator_id);
+		} else {
+			ret = mapper.getWaitingComponents(section_id, position_id, operator_id);
+		}
 
-		for (WaitingEntity we : ret) {
-			if ("0".equals(we.getWaitingat())) we.setWaitingat("未处理");
-			else if ("4".equals(we.getWaitingat()) || "3".equals(we.getWaitingat())) { // 暂停
-				// 工位特殊暂停理由
-				if (we.getPause_reason() != null && we.getPause_reason() >= 70) {
-					if (we.getPause_reason() == 99) {
-						DryingProcessService dpService = new DryingProcessService();
+		// 取得4个工作日前
+		String dateLever = DateUtil.toString(
+				RvsUtils.switchWorkDate(new Date(), -4), DateUtil.ISO_DATE_PATTERN);
 
-						we.setWaitingat("烘干作业");
-						we.setDrying_process(
-								dpService.getDryingProcessByMaterialInPosition(we.getMaterial_id(), position_id, conn));
-					} else {
-						String sReason = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + we.getPause_reason());
-						if (sReason == null) {
-							we.setWaitingat("正常中断流程");
+		if (ret != null) {
+			for (WaitingEntity we : ret) {
+				we.setImbalance(px);
+				we.setFix_type("8");
+				if ("0".equals(we.getWaitingat())) we.setWaitingat("未处理");
+				else if ("4".equals(we.getWaitingat()) || "3".equals(we.getWaitingat())) { // 暂停
+					// 工位特殊暂停理由
+					if (we.getPause_reason() != null && we.getPause_reason() >= 70) {
+						if (we.getPause_reason() == 99) {
+							DryingProcessService dpService = new DryingProcessService();
+	
+							we.setWaitingat("烘干作业");
+							we.setDrying_process(
+									dpService.getDryingProcessByMaterialInPosition(we.getMaterial_id(), position_id, conn));
 						} else {
-							we.setWaitingat(sReason);
+							String sReason = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + we.getPause_reason());
+							if (sReason == null) {
+								we.setWaitingat("正常中断流程");
+							} else {
+								we.setWaitingat(sReason);
+							}
 						}
+	
+					} else {
+						if ("3".equals(we.getWaitingat())) we.setWaitingat("中断等待再开");
+						else we.setWaitingat("中断恢复");
 					}
-
-				} else {
-					if ("3".equals(we.getWaitingat())) we.setWaitingat("中断等待再开");
-					else we.setWaitingat("中断恢复");
 				}
+
+				// 超时判断
+				if (we.getIn_place_time() != null) {
+					if (we.getIn_place_time().compareTo(dateLever) < 0) {
+						we.setOvertime(2);
+					}
+				}
+				
 			}
 		}
+
 		return ret;	
 	}
 
@@ -566,5 +651,194 @@ public class SoloSnoutService {
 
 		BeanUtil.copyToFormList(result, ret, CopyOptions.COPYOPTIONS_NOEMPTY, SnoutForm.class);
 		return ret;
+	}
+
+	public void startProductionFeature(SoloProductionFeatureEntity spfBean, String operator_id,
+			SqlSessionManager conn) {
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+		spfBean.setOperator_id(operator_id);
+		mapper.startProductionFeature(spfBean);
+	}
+
+	public void pauseWaitProductionFeature(
+			SoloProductionFeatureEntity spfBean, SqlSessionManager conn) {
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+		spfBean.setOperate_result(RvsConsts.OPERATE_RESULT_WORKING);
+		dao.pauseWaitProductionFeature(spfBean);
+	}
+
+	public List<String> fingerNextPosition(SoloProductionFeatureEntity workingPf, SqlSessionManager conn, List<String> triggerList, boolean isFact) throws Exception {
+		// 发动工位
+		List<String> nextPositions = new ArrayList<String>();
+
+		// NS 组件流程取得
+		ProcessAssignService paService = new ProcessAssignService();
+		String pat_id = paService.getDerivedId(workingPf.getModel_id(), "5", true, conn);
+
+		ProcessAssignProxy paProxy = new ProcessAssignProxy(null, pat_id, workingPf.getSection_id(), 
+				false, workingPf.getModel_id(), workingPf.getSerial_no(), conn);
+
+		SoloProductionFeatureEntity nPf = new SoloProductionFeatureEntity();
+		nPf.setSection_id(workingPf.getSection_id());
+		nPf.setModel_id(workingPf.getModel_id());
+		nPf.setModel_name(workingPf.getModel_name());
+		nPf.setSerial_no(workingPf.getSerial_no());
+
+		SoloProductionFeatureMapper pfDao = conn.getMapper(SoloProductionFeatureMapper.class);
+
+		List<String> ret = new ArrayList<String>();
+
+		getNext(paProxy, pat_id, workingPf.getPosition_id(), nextPositions);
+
+		// 建立后续工位的初始作业信息
+		for (String nextPosition_id : nextPositions) {
+			nPf.setPosition_id(nextPosition_id);
+			fingerPosition(workingPf.getPosition_id(), nPf, conn, pfDao, paProxy, ret, triggerList, isFact);
+		}
+
+		PositionMapper ps = conn.getMapper(PositionMapper.class);
+		for (int i = 0; i < ret.size(); i++) {
+			String ret_position_id = ret.get(i);
+			if (ret_position_id.indexOf("[") < 0) { 
+				PositionEntity position = ps.getPositionByID(ret_position_id);
+				ret.set(i, "[" + position.getProcess_code() + " " + position.getName() + " B线]"); // B线
+			}
+		}
+
+		return ret;
+	}
+
+	public void fingerPosition(String fromPositionId,
+			SoloProductionFeatureEntity workingPf,
+			SqlSessionManager conn, SoloProductionFeatureMapper pfDao,
+			ProcessAssignProxy paProxy, List<String> retList,
+			List<String> triggerList, boolean isFact) throws Exception {
+
+		if (retList == null) retList = new ArrayList<String> ();
+
+		String fingerPositionId = workingPf.getPosition_id();
+		// 维修对象的课室
+		String section_id = paProxy.getMaterial_section_id();
+		if (section_id == null) { // (投线前) 
+			section_id = workingPf.getSection_id();
+		}
+
+		{ 
+			// 判断得到的工程是否有完成
+			// 有完成，并且其先决也已完成，则由这个工位继续触发
+			if (paProxy.checkWorked(fingerPositionId)) {
+				// 取得先决
+				List<String> prevPositions = new ArrayList<String>();
+
+//				getPrev(paProxy, fingerPositionId, prevPositions);
+
+				if (prevPositions.size() == 0 || !isFact 
+						|| paProxy.getFinishedCountByPositions(prevPositions) == prevPositions.size()) {
+					workingPf.setPosition_id(fingerPositionId);
+					List<String> x = fingerNextPosition(workingPf, conn, triggerList, isFact);
+					if (x!=null) {
+						retList.addAll(x);
+					}
+				}
+			}
+			// 判断得到的工程是否有未完成。
+			else if (paProxy.checkWorking(fingerPositionId) > 0) {
+				// 有的话则不影响原有工作
+				logger.info(fingerPositionId+"工位进行中。");
+			}
+			// 没有完成则判断先决的工位是否都已经结束。
+			else {
+				// 取得先决
+				List<String> prevPositions = new ArrayList<String>();
+
+//				getPrev(paProxy, fingerPositionId, prevPositions);
+
+				logger.info(fingerPositionId+"工位de先决："+prevPositions.size());
+
+				if (prevPositions.size() == 0 || !isFact
+						|| paProxy.getFinishedCountByPositions(prevPositions) == prevPositions.size()) {
+					// 都已经结束生成等待区信息
+					logger.info("组件"+workingPf.getSerial_no()+"进行至"+fingerPositionId+"工位。( " + isFact + ")");
+					SoloProductionFeatureEntity entity = new SoloProductionFeatureEntity();
+
+					entity.setModel_id(workingPf.getModel_id());
+					entity.setModel_name(workingPf.getModel_name());
+					entity.setSerial_no(workingPf.getSerial_no());
+					entity.setPosition_id(fingerPositionId);
+					entity.setPace(0);
+					entity.setSection_id(section_id);
+					entity.setOperator_id("0");
+					entity.setOperate_result(RvsConsts.OPERATE_RESULT_NOWORK_WAITING);
+
+					pfDao.insert(entity);
+
+					if (isFact) {
+						// 通知
+						triggerList.add("http://localhost:8080/rvspush/trigger/in/" + fingerPositionId + "/" 
+				            		+ section_id + "/" + workingPf.getSerial_no() + "/" + (paProxy.isLightFix ? "1" : "0"));
+					}
+
+					logger.info("tranover");
+					retList.add(fingerPositionId);
+				}
+			}
+		}
+	}
+
+	public String getFingerString(String model_id, String serial_no, List<String> fingerList, String stockCode, SqlSession conn, boolean isFact) {
+		String idNo = "(序列号" + serial_no + ")";
+		if (isFact)
+			if (fingerList.size() > 0) {
+				return ApplicationMessage.WARNING_MESSAGES
+					.getMessage("info.transfer.justFinshed", idNo, joinBy(", ", fingerList.toArray(new String[fingerList.size()])));
+			} else {
+				return "您现在处理中的维修对象" + idNo + "完成后请送至NS组件库位" + stockCode + "。";
+			}
+		else {
+			if (fingerList.size() > 0) {
+				return ApplicationMessage.WARNING_MESSAGES
+						.getMessage("info.transfer.justNow", idNo, joinBy(", ", fingerList.toArray(new String[fingerList.size()])));
+			} else {
+				return "您现在处理中的维修对象" + idNo + "完成后请送至NS组件库位。<input type='button' value='指定'><label></label><input type='button' value='打印标签'><input type='button' value='打印信息单'>";
+		}
+		}
+	}
+
+	public void getNext(ProcessAssignProxy paProxy, String pat_id, String position_id, List<String> nextPositions) {
+		// 得到下一个工位
+		List<PositionEntity> nextPositionsByPat = paProxy.getNextPositions(position_id);
+
+		String this_position_id = null;
+		if (nextPositionsByPat.size() > 0) {
+			this_position_id = nextPositionsByPat.get(0).getPosition_id();
+		}
+
+		if (this_position_id == null || ((RvsConsts.PROCESS_ASSIGN_LINE_END+"").equals(this_position_id))) {
+			// 下一个工位是PROCESS_ASSIGN_LINE_END
+			this_position_id = RvsConsts.PROCESS_ASSIGN_LINE_END + "";
+			// 用它自身的Line_id区分
+			ProcessAssignEntity pa = paProxy.getProcessAssign(position_id);
+			if (pa == null) return; // 未设流程时
+
+//			// 所在流程判断是否全部完成
+//			if (paProxy.getFinishedByLine(line_id)) {
+//				// 如果所在流程全部完成，触发流程的下一个工位
+//				getNext(paProxy, material_id, mEntity, pat_id, line_id, level, nextPositions);
+//			}
+		} else {
+			for (PositionEntity nextPosition : nextPositionsByPat) {
+				// 判断每个工位是不是分线名
+				if (Integer.parseInt(nextPosition.getPosition_id()) > RvsConsts.PROCESS_ASSIGN_LINE_BASE) {
+					// 是分线得到分线的由0开始的工位 ,不考虑嵌套分线
+					List<String> positions = paProxy.getPartStart(nextPosition.getPosition_id());
+					for (String position : positions) {
+						nextPositions.add(position);
+					}
+				} else {
+					// 增加单个工位
+					nextPositions.add(nextPosition.getPosition_id());
+				}
+			}
+		}
 	}
 }
