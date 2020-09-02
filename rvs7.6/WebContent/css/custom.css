@@ -89,6 +89,10 @@ div.areabase {
 	valign: center;
 }
 
+#headarea {
+	user-select: none;
+}
+
 /* 宽度设定-全宽容器  */
 div.width-full {
 	width: 1278px;

@@ -128,12 +128,32 @@ public class HeaderAction extends BaseAction {
 		req.setAttribute("userPosition", retPosition);
 
 		// 修理进度信息
+		String message_type = null;
 		String role_id = user.getRole_id();
 		if (RvsConsts.ROLE_LINELEADER.equals(role_id)) {
-			req.setAttribute("message_type", "le");
+			message_type = "le";
 		} else
 		if (RvsConsts.ROLE_OPERATOR.equals(role_id)) {
-			req.setAttribute("message_type", "op");
+			message_type = "op";
+		}
+		if (message_type != null) {
+			req.setAttribute("message_type", message_type);
+
+			// 关注工位
+			List<PositionEntity> positions = user.getPositions();
+			String hasNotice = "";
+			for (PositionEntity position : positions) {
+				if (position.getChief() != null 
+						&& (position.getChief() == 2 || position.getChief() == 3)) {
+					if (position.getLight_division_flg() == 1) {
+						hasNotice += ("<li position_id='" + position.getPosition_id() + "' px=1>" + position.getProcess_code() + " A</li>")
+								+ ("<li position_id='" + position.getPosition_id() + "' px=2>" + position.getProcess_code() + " B</li>");
+					} else {
+						hasNotice += ("<li position_id='" + position.getPosition_id() + "'>" + position.getProcess_code() + "</li>");
+					}
+				}
+			}
+			req.setAttribute("has_notice", hasNotice);
 		}
 
 		String servletPath = req.getServletPath();

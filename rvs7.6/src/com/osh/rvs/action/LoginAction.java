@@ -386,6 +386,8 @@ public class LoginAction extends BaseAction {
 		for (PositionEntity p : oService.getUserPositions(loginData.getOperator_id(), conn)) {
 			if (!p.getPosition_id().equals(loginData.getPosition_id())) {
 				positionsList.add(p);
+			} else {
+				positionsList.get(0).setChief(p.getChief());
 			}
 		}
 

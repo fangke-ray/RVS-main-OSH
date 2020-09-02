@@ -311,7 +311,7 @@
 	<select id="getPositionsOfOperatorNamed" resultType="PositionEntity" parameterType="String">
 		<![CDATA[ 
 		SELECT `oa`.POSITION_ID, `p`.NAME, `p`.PROCESS_CODE, `p`.LINE_ID , `p`.LINE_NAME
-		, `p`.light_division_flg
+		, `p`.light_division_flg, oa.chief 
 		FROM OPERATOR_ABILITIES `oa`
 		JOIN V_POSITION `p`
 			ON `oa`.POSITION_ID = `p`.POSITION_ID
@@ -512,4 +512,5 @@
 		  AND line_id = #{line_id}
 		]]>
 	</select>
+
 </mapper>

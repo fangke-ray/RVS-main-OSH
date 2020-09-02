@@ -33,6 +33,8 @@ public class PositionEntity implements Serializable {
 	/** 映射工位 ID */
 	private String mapping_position_id;
 
+	private Integer chief;
+
 	/**
 	 * 取得工位 ID
 	 * 
@@ -187,5 +189,13 @@ public class PositionEntity implements Serializable {
 
 	public void setMapping_position_id(String mapping_position_id) {
 		this.mapping_position_id = mapping_position_id;
+	}
+
+	public Integer getChief() {
+		return chief;
+	}
+
+	public void setChief(Integer chief) {
+		this.chief = chief;
 	}
 }
