@@ -204,7 +204,7 @@
 		<value code="3">工程超时</value>
 		<value code="4">等待区超量</value>
 		<value code="5">品保不通过</value>
-		<value code="6">中断(先端)</value>
+		<value code="6">中断(组件)</value>
 		<value code="7">投线延迟</value>
 		<value code="8">零件签收异常</value>
 		<value code="9">点检不合格</value>

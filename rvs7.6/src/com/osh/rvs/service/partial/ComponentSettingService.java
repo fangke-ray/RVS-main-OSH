@@ -355,7 +355,7 @@ public class ComponentSettingService {
 	 * @return
 	 */
 	public static Set<String> getNsCompModels(SqlSession conn) {
-		if (nsCompModels != null) {
+		if (nsCompModels == null) {
 			nsCompModels = new HashSet<String> ();
 
 			ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);

@@ -4,7 +4,26 @@
 
  	<select id="searchComponentManage" parameterType="ComponentManageEntity" resultType="ComponentManageEntity">
 		<![CDATA[
-			select distinct
+			select 
+				g.component_key,
+				g.model_id,
+				g.model_name,
+				g.origin_material_id,
+				g.origin_omr_notifi_no,
+				g.step,
+				g.partial_code,
+				g.stock_code,
+				g.inline_date,
+				g.serial_no,
+				g.component_code,
+				g.finish_time,
+				g.target_material_id,
+				g.target_omr_notifi_no,
+				group_concat(distinct pos.process_code) as process_code 
+			from
+
+			(
+			select 
 				cm.component_key
                 ,cm.model_id
 			    ,vm.NAME as model_name
@@ -23,7 +42,6 @@
 			    ,cm.stock_code
 			    ,cm.inline_date
 			    ,cm.serial_no
-			    ,'' as operator_name
 			    ,CASE 
 				 WHEN cm.target_material_id is null
 				 THEN  (select partial.code from partial where cs.component_partial_id = partial.partial_id
@@ -113,7 +131,15 @@
 			<if test="target_omr_notifi_no != null and target_omr_notifi_no != ''">
 				<![CDATA[ and mm2.omr_notifi_no like CONCAT('%',#{target_omr_notifi_no},'%')]]>
 			</if>
-		    order by step asc, inline_date asc
+
+
+		    ) g
+			left join solo_production_feature spf on g.model_id = spf.model_id and g.serial_no = spf.serial_no
+			and spf.finish_time is null
+			left join position pos on spf.position_id = pos.position_id
+			group by g.component_key
+
+			ORDER BY step ASC , inline_date ASC
  	</select>
  	
  	<select id="searchComponentManageDetail" parameterType="String" resultType="ComponentManageEntity">

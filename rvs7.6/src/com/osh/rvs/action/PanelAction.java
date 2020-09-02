@@ -122,6 +122,8 @@ public class PanelAction extends BaseAction {
 					|| user.getPosition_id().equals(RvsConsts.POSITION_QA_P_613)
 					|| user.getPosition_id().equals(RvsConsts.POSITION_QA_P_614)) {
 				actionForward = mapping.findForward("qualityAssurance");
+			} else if (user.getPosition_id().equals("00000000051")) {
+				actionForward = mapping.findForward("serviceRepair");
 			}
 		} else if (RvsConsts.ROLE_QAER.equals(roleId) || RvsConsts.ROLE_QA_MANAGER.equals(roleId)) {
 			actionForward = mapping.findForward("qualityAssurance");

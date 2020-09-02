@@ -477,6 +477,10 @@ var treatPause = function(resInfo) {
 			$("#material_details td:eq(1)").text(resInfo.mform.sorc_no);
 			$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 			$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
+
+			if (resInfo.mform.material_id) {
+				$("#working_detail").show();
+			}
 		}
 
 		posClockObj.setAction(resInfo.action_time);
@@ -498,6 +502,10 @@ var treatPause = function(resInfo) {
 			if (resInfo.pcses && resInfo.pcses.length > 0 && hasPcs) {
 				pcsO.generate(resInfo.pcses);
 			}
+		}
+
+		if (resInfo.mform && !resInfo.mform.material_id) {
+			fillSerialNo();
 		}
 
 		if (typeof(posUseSnoutObj) === "object" && resInfo.mform && resInfo.mform.material_id) 
@@ -544,6 +552,10 @@ var treatStart = function(resInfo) {
 		$("#material_details td:eq(1)").text(resInfo.mform.sorc_no);
 		$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 		$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
+
+		if (resInfo.mform.material_id) {
+			$("#working_detail").show();
+		}
 	}
 
 	posClockObj.setAction(resInfo.action_time);
@@ -632,7 +644,13 @@ var treatStart = function(resInfo) {
 			if (typeof(posUseSnoutObj) === "object" && resInfo.mform.material_id) 
 				posUseSnoutObj.getUsesnout(resInfo.mform.material_id);
 		}
+
+		if (resInfo.mform && !resInfo.mform.material_id) {
+			fillSerialNo();
+		}
+
 	};
+
 };
 
 var refreshCurPositionTime = function(cur_process_code){
@@ -1270,23 +1288,7 @@ var showPartialRecept = function(resInfo, finish){
 	});
 
 	if (resInfo.notMatch) {
-		if ($('div#errstring').length == 0) {
-			$("body").append("<div id='errstring'/>");
-		}
-		$('div#errstring').show();
-		$('div#errstring').html("<span class='errorarea'>您在本工位清点的零件情况与定位设定不符。<br>请确认您的点检结果，或者报告线长处理。</span>");
-		$('div#errstring').dialog({
-			dialogClass : 'ui-error-dialog',
-			modal : true,
-			resizable:false,
-			width : 450,
-			title : "提示信息",
-			buttons :{
-				"关闭":function(){
-					$('div#errstring').dialog("close");
-				}
-			}
-		});
+		errorPop("您在本工位清点的零件情况与定位设定不符。<br>请确认您的点检结果，或者报告线长处理。");
 	}
 }
 

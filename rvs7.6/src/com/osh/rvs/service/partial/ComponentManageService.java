@@ -797,7 +797,7 @@ public class ComponentManageService {
 		return mapper.searchComponentManageEntity(cond);
 	}
 
-	private ComponentManageEntity checkStockCode(String stock_code, String step, List<String> errors, SqlSession conn) {
+	public ComponentManageEntity checkStockCode(String stock_code, String step, List<String> errors, SqlSession conn) {
 		if (stock_code == null || stock_code.length() != 8) {
 			errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidCode", "库位号"));
 			return null;
@@ -818,9 +818,15 @@ public class ComponentManageService {
 				errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.component.stepMismatch", "组装完成"));
 				return null;
 			}
+		} else if ("0".equals(step)) {
+			// 入库时库位不能占用
+			if (results.size() > 0) {
+				errors.add(ApplicationMessage.WARNING_MESSAGES.getMessage("info.wipShelf.notEmpty"));
+				return null;
+			}
 		}
 
-		return results.get(0);
+		return (results.size() > 0 ? results.get(0) : null);
 	}
 
 }

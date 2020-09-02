@@ -47,6 +47,7 @@ tr.addseqTr input {
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
+<script type="text/javascript" src="js/common/pcs_editor.js"></script>
 
 <script type="text/javascript" src="js/partial/component_manage.js"></script>
 <% 

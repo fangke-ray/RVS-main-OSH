@@ -128,7 +128,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="rcbutton" value="协助RC CDS品全部投入" style="float:right;display:none;" role="button" aria-disabled="false">
 					</div>
 					<div class="ui-widget-content dwidth-half" style="height: 215px; overflow-y: auto; overflow-x: hidden;">
-						<div id="waitings" style="margin: 20px;">
+						<div id="waitings" class="waitForStart" style="margin: 20px;">
 						</div>
 					</div>
 				</div>

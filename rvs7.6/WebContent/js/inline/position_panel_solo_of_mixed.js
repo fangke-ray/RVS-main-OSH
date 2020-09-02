@@ -86,7 +86,7 @@ var setCompInstore = function($instore, stock_code){
 	$instore.find("input:button").eq(0).click(showNSMap);
 
 	$printTicketer.click(printNSLabelTicket);
-	$printTicketer.click(printNSInfoSheet);
+	$printSheet.click(printNSInfoSheet);
 }
 
 var showNSMap=function() {
@@ -267,3 +267,10 @@ var printNSInfoSheet = function() {
 		}
 	});
 };
+
+var fillSerialNo = function() {
+	var $codeContainer = $("#pcs_contents input:text[name^=EI361]");
+	if ($codeContainer.length > 0 && !$codeContainer.val()) {
+		$codeContainer.val($("#material_details td:eq(5)").text()).attr("size", "15");
+	}
+}

@@ -106,7 +106,7 @@ public class QualityAssuranceService {
 				if (!isEmpty(serialNos)) {
 					String[] serialNoArray = serialNos.split(",");
 					Map<String, String> fileTempl = new HashMap<String, String>();
-					fileTempl.put("", PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\NS 工程\\NS组件组装\\" + mform.getModel_name() + ".xls"); // TODO
+					fileTempl.put("NS组件组装", PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\excel\\NS 工程\\NS组件组装\\" + mform.getModel_name() + ".xls"); // TODO
 
 					for (int i = 0;i < serialNoArray.length; i++) {
 						PcsUtils.toPdfSnout(fileTempl, mform.getModel_id(), serialNoArray[i], folderPath, conn);

@@ -50,7 +50,9 @@ $(function() {
 	$("#delete_button").click(showDelete);
 	$("#add_manage_button").click(addManage);
 	
-	$("#partial_instock_button").click(showNSMap);
+	$("#partial_instock_button").click(function(){
+		showNSMap(false);
+	});
 	$("#partial_outstock_button").click(partialOutstock);
 	$("#partial_move_button").click(function(){
 		showNSMap(true);
@@ -59,7 +61,8 @@ $(function() {
 	$("#cancle_button").click(cancleManage);
 	$("#print_label_button").click(printNSLabelTicket);
 	$("#print_info_button").click(printNSInfoTicket);
-	
+
+	$("#pcs_button").click(popPcs);
 });
 
 /** 组件设置追加画面处理 */
@@ -276,9 +279,9 @@ function show_search_manage(componentManage, inlineDateCheck) {
 			width : 992,
 			rowheight : 23,
 			datatype : "local",
-			colNames : [ 'component_key','model_id', '型号', 'origin_material_id', '订购来源', '进度', '子零件', '库位编号',
+			colNames : [ 'component_key','model_id', '型号', 'origin_material_id', '订购来源', '子零件', '状态', '组装进展', '库位编号',
 					'投入日期', '组件序列号', 
-					'制作者', '组件代码', '组装完成时间','采用'],
+					'组件代码', '组装完成时间','采用'],
 			colModel : [ {
 				name : 'component_key',
 				index : 'component_key',
@@ -300,6 +303,10 @@ function show_search_manage(componentManage, inlineDateCheck) {
 				index : 'origin_omr_notifi_no',
 				width : 55
 			}, {
+				name : 'partial_code',
+				index : 'partial_code',
+				width : 60
+			}, {
 				name : 'step',
 				index : 'step',
 				width : 70,
@@ -308,9 +315,10 @@ function show_search_manage(componentManage, inlineDateCheck) {
 					value : $("#res_step").val()
 				}
 			}, {
-				name : 'partial_code',
-				index : 'partial_code',
-				width : 60
+				name : 'process_code',
+				index : 'process_code',
+				width : 50,
+				align : 'center'
 			}, {
 				name : 'stock_code',
 				index : 'stock_code',
@@ -325,11 +333,6 @@ function show_search_manage(componentManage, inlineDateCheck) {
 				name : 'serial_no',
 				index : 'serial_no',
 				width : 70
-			}, {
-				name : 'operator_name',
-				index : 'operator_name',
-				width : 70,
-				align : 'left'
 			},
 			{
 				name : 'component_code',
@@ -1130,6 +1133,7 @@ var componentOutstock = function() {
 	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
 	var rowData = $("#component_manage").getRowData(row);
 	var postData = {
+		"component_key" : rowData.component_key,
 		model_id : rowData.model_id,
 		origin_material_id : rowData.origin_material_id
 	}
@@ -1425,3 +1429,53 @@ var getSeqTr = function(bean){
 	}
 }
 
+var popPcs = function(){
+	var this_dialog = $("#pcs_dialog");
+	if (this_dialog.length === 0) {
+		$("body.outer").append("<div id='pcs_dialog'/>");
+		this_dialog = $("#pcs_dialog");
+	}
+
+	this_dialog.html("<div id='pcs_detail_container'><div id='pcs_detail_pcs_pages'></div><div id='pcs_detail_pcs_contents'></div></div>");
+	this_dialog.hide();
+
+	pcsO.init($("#pcs_detail_container"), false);
+
+	var row = $("#component_manage").jqGrid("getGridParam", "selrow");// 得到选中行的ID
+	var rowData = $("#component_manage").getRowData(row);
+	var serial_no = rowData.serial_no;
+	var model_name = rowData.model_name;
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=getPcsDetail',
+		cache : false,
+		data:{
+			"serial_no": serial_no,
+			"model_name": model_name
+		},
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj, textStatus){
+			var resInfo = $.parseJSON(xhrobj.responseText);
+
+			pcsO.generate(resInfo.pcses);
+
+			this_dialog.dialog({
+				title : "组件检查票",
+				width : 1228,
+				height :  600,
+				resizable : false,
+				modal : true,
+				buttons : {
+					"关闭" : function() {
+						this_dialog.dialog("close");
+					}
+				}
+			});
+		}
+	});
+}

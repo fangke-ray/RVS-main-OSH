@@ -45,8 +45,10 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.PostMessageEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.master.LineEntity;
 import com.osh.rvs.bean.master.PcsFixOrderEntity;
+import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.FseBridgeUtil;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
@@ -64,8 +66,11 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.manage.PcsFixOrderMapper;
 import com.osh.rvs.mapper.master.LineMapper;
 import com.osh.rvs.mapper.master.ModelMapper;
+import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.mapper.qf.AcceptanceMapper;
+import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.partial.ComponentManageService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -464,6 +469,7 @@ public class MaterialService {
 
 		int ext = 0;
 
+		boolean enterCom = false;
 		String[] showLines = {};
 
 		if (mform.getLevel() != null && mform.getLevel().startsWith("5")) {
@@ -483,8 +489,10 @@ public class MaterialService {
 					ext = 1;
 				} else if ("00000000014".equals(sline_id)) {
 					ext = 2;
+					enterCom =true;
 				} else if ("00000000015".equals(sline_id)) {
 					ext = 3;
+					enterCom =true;
 				}
 			} else if ("00000000012".equals(sline_id)) {
 				showLines = new String[1];
@@ -497,12 +505,14 @@ public class MaterialService {
 				showLines[0] = "总组工程";
 				showLines[1] = "分解工程";
 				showLines[2] = "NS 工程";
+				enterCom =true;
 			} else if ("00000000015".equals(sline_id)) {
 				showLines = new String[4];
 				showLines[0] = "最终检验";
 				showLines[1] = "分解工程";
 				showLines[2] = "NS 工程";
 				showLines[3] = "总组工程";
+				enterCom =true;
 			}
 		}
 
@@ -519,6 +529,64 @@ public class MaterialService {
 					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), "xyz", (i == ext && isLeader ? sline_id : null), conn);
 			fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
 			pcses.add(fileHtml);
+		}
+
+		// 采用NS 组件，得到工程检查票
+		if (enterCom && "1".equals(mform.getLevel())) {
+			// 判断是否NS组件组装对象
+			Set<String> nsCompModels = ComponentSettingService.getNsCompModels(conn);
+			boolean isNsCompModel = nsCompModels.contains(mform.getModel_id());
+
+			if (isNsCompModel) {
+				ComponentManageService cmService = new ComponentManageService();
+				String serialNos = cmService.getSerialNosForTargetMaterial(material_id, conn);
+				if (!isEmpty(serialNos)) {
+					// 有分配
+
+					// 判断组件签收
+					MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
+					List<MaterialPartialDetailEntity> mpdEntities = mpMapper.getMpdForComponent(material_id);
+
+					String[] serialNoArray = serialNos.split(",");
+					for (int i = 0;i < serialNoArray.length; i++) {
+						if (i >= mpdEntities.size()) { // 没有签收组件信息
+							break;
+						}
+						if (mpdEntities.get(i).getRecent_receive_time() == null) { // 没有签收操作
+							break;
+						}
+
+						Map<String, Object> partResponse = new HashMap<String, Object>();
+						SoloProductionFeatureEntity spf = new SoloProductionFeatureEntity();
+						spf.setModel_name(mform.getModel_name());
+						spf.setSerial_no(serialNoArray[i]);
+						spf.setProcess_code("xyz");
+						PositionPanelService.getSoloPcses(partResponse, spf, sline_id, conn);
+
+						List<Map<String, String>> partPcses = (List<Map<String, String>>) partResponse.get("pcses");
+						if (partPcses.size() > 0) {
+							Map<String, String> nsLine = null;
+
+							for (int isl = 0 ; isl < showLines.length; isl++) {
+								if ("NS 工程".equals(showLines[isl])) {
+									nsLine = pcses.get(isl);
+									break;
+								}
+							}
+
+							if (nsLine != null) {
+								for (String pcsName : partPcses.get(0).keySet()) {
+									if (i == 0) {
+										nsLine.put(pcsName, partPcses.get(0).get(pcsName));
+									} else {
+										nsLine.put(pcsName + "(" + i + ")", partPcses.get(0).get(pcsName));
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 
 		listResponse.put("pcses", pcses);

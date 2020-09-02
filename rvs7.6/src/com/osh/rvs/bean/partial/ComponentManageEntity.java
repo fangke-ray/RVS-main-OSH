@@ -43,6 +43,8 @@ public class ComponentManageEntity implements Serializable {
 	private String partial_code;
 	/** 制作者 */
 	private String operator_name;
+	/** 组装进展工位 */
+	private String process_code;
 	
 	/** 型号 */
 	private String search_model_id;
@@ -251,6 +253,12 @@ public class ComponentManageEntity implements Serializable {
 	}
 	public void setOperator_name(String operator_name) {
 		this.operator_name = operator_name;
+	}
+	public String getProcess_code() {
+		return process_code;
+	}
+	public void setProcess_code(String process_code) {
+		this.process_code = process_code;
 	}
 
 }

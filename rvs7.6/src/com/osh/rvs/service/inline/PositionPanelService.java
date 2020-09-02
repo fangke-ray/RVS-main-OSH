@@ -38,7 +38,6 @@ import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.DevicesManageEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.PositionGroupEntity;
-import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
@@ -55,7 +54,6 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.DevicesManageMapper;
 import com.osh.rvs.mapper.master.ProcessAssignMapper;
-import com.osh.rvs.mapper.partial.ComponentSettingMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
@@ -739,7 +737,11 @@ public class PositionPanelService {
 
 		boolean enterCom = false;
 		String[] showLines = {};
-		if (mform.getLevel()==null || mform.getLevel().startsWith("5")) {
+		if (mform.getLevel()==null) {
+			showLines = new String[2];
+			showLines[0] = "检查卡"; // 181 用
+			showLines[1] = "NS 工程"; // 302 预先CCD盖玻璃时用
+		} else if (mform.getLevel().startsWith("5")) {
 			showLines = new String[1];
 			showLines[0] = "检查卡";
 		} else {

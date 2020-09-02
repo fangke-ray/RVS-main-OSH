@@ -22,6 +22,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			window.location.href = "pda_turnover_case_storage.do?method=init";
 		} else if (btn_flg == "tc_shipping") {
 			window.location.href = "pda_turnover_case_shipping.do?method=init";
+		} else if (btn_flg == "subp_in") {
+			window.location.href = "pda_parts_instock.do?method=init";
+		} else if (btn_flg == "subp_out") {
+			window.location.href = "pda_parts_outstock.do?method=init";
 		} else if (btn_flg == "comp_out") {
 			window.location.href = "pda_component_outstock.do?method=init";
 		}

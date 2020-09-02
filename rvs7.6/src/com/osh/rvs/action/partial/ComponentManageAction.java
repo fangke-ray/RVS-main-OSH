@@ -28,6 +28,7 @@ import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.PremakePartialService;
@@ -766,6 +767,13 @@ public class ComponentManageAction extends BaseAction{
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
 
+		if (componentBean.getComponent_key() == null) {
+			List<ComponentManageEntity> l = service.getBySerialNo(componentBean.getSerial_no(), conn);
+			if (l.size() > 0) {
+				componentBean = l.get(0);
+			}
+		}
+
 		String filename = service.printNSInfoTicket(componentBean, conn);
 		callbackResponse.put("tempFile", filename);
 
@@ -840,6 +848,13 @@ public class ComponentManageAction extends BaseAction{
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
 
+		if (componentBean.getModel_id() == null) {
+			List<ComponentManageEntity> l = service.getBySerialNo(componentBean.getSerial_no(), conn);
+			if (l.size() > 0) {
+				componentBean = l.get(0);
+			}
+		}
+
 		List<MaterialForm> targetMaterials = service.getTargetMaterials(componentBean, conn);
 	
 		callbackResponse.put("targetMaterials", targetMaterials);
@@ -850,5 +865,32 @@ public class ComponentManageAction extends BaseAction{
 		returnJsonResponse(res, callbackResponse);
 		
 		log.info("ComponentManageAction.getTargetMaterials end");
+	}
+
+	/**
+	 * 取得工程检查票
+	 */
+	public void getPcsDetail(ActionMapping mapping, ActionForm form, HttpServletRequest req, 
+			HttpServletResponse res, SqlSession conn) throws Exception{ 
+		log.info("ComponentManageAction.getPcsDetail start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
+
+		String serialNo = req.getParameter("serial_no");
+		String modelName = req.getParameter("model_name");
+
+		SoloProductionFeatureEntity pf = new SoloProductionFeatureEntity();
+		pf.setSerial_no(serialNo);
+		pf.setModel_name(modelName);
+		PositionPanelService.getSoloPcses(callbackResponse, pf, null, conn);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", infoes);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("ComponentManageAction.getPcsDetail end");
 	}
 }

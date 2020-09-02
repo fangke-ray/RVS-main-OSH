@@ -28,6 +28,7 @@ import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.ProcessAssignEntity;
+import com.osh.rvs.bean.partial.ComponentManageEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsConsts;
@@ -44,6 +45,7 @@ import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.PostMessageService;
 import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.proxy.ProcessAssignProxy;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -415,8 +417,17 @@ public class SoloSnoutService {
 							DryingProcessService dpService = new DryingProcessService();
 	
 							we.setWaitingat("烘干作业");
+							String tgMaterial_id = we.getMaterial_id();
+							if (tgMaterial_id == null) {
+								// 取得订购来源
+								ComponentManageService cmService = new ComponentManageService();
+								List<ComponentManageEntity> cmList = cmService.getBySerialNo(we.getSerial_no(), conn);
+								if (cmList.size() > 0) {
+									tgMaterial_id = cmList.get(0).getOrigin_material_id();
+								}
+							}
 							we.setDrying_process(
-									dpService.getDryingProcessByMaterialInPosition(we.getMaterial_id(), position_id, conn));
+									dpService.getDryingProcessByMaterialInPosition(tgMaterial_id, position_id, conn));
 						} else {
 							String sReason = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + we.getPause_reason());
 							if (sReason == null) {

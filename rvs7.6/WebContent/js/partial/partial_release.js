@@ -131,7 +131,7 @@ var search_Complete=function(xhrobj,textStatus){
 			partial_list(resInfo.responseFormList);
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
 
@@ -350,6 +350,12 @@ var search_handleComplete=function(xhrobj, textStatus) {
 				$("#label_use_ns_component_name").text(resInfo.componentSetting.partial_name || "-");
 				$("#label_use_ns_component_serial_nos").text(resInfo.serialNosForThis || "（未交付）");
 
+				if (resInfo.compSelected) {
+					$("#ns_partial_set").addClass("compSelected");
+					$("#check_use_ns_component").disable();
+				} else {
+					$("#check_use_ns_component").enable();
+				}
 				for (var i in resInfo.subPartials) {
 					var subPartial = resInfo.subPartials[i];
 					subPartDict[subPartial.partial_id] = subPartial.quantity;
@@ -546,7 +552,13 @@ var arrive_partial_list=function(responseList){
 					}
 					changevalue();
 					//$pill_parent.append(pill);
-					if ($("#ns_partial_set").hasClass("needNp")) {
+				}
+			},
+			loadComplete:function(){
+				if ($("#ns_partial_set").hasClass("needNp")) {
+					if (Object.keys(subPartDict).length != $("#arrive_partial_list label.subPart").length) {
+						$("#ns_partial_set").removeClass("needNp").hide();
+					} else {
 						$("#check_use_ns_component").attr("checked", true).trigger("change");
 					}
 				}
@@ -656,8 +668,13 @@ var changeMaterialStatus=function(flag){
 		};
 	});
 
+	var nsPartsCollected = $("#ns_partial_set").hasClass("needNp") && !$("#ns_partial_set").hasClass("compSelected") 
+		&& ($(".subPart").closest("tr.ui-state-highlight").length == $(".subPart").closest("tr").length);
+
 	if ("check" === flag) {
-		warningConfirm("此次判定NS 组件子零件全部无 BO，是否立刻将子零件准备入库？", 
+
+		if (nsPartsCollected) {
+			warningConfirm("此次判定NS 组件子零件全部无 BO，是否立刻将子零件准备入库？", 
 				function(){
 					if ($("#check_use_ns_component:visible").is(":checked")) {
 						postData["exchange.cur_quantity[" + iii + "]"] = 1;
@@ -671,8 +688,11 @@ var changeMaterialStatus=function(flag){
 				function(){
 					postChangeMaterialStatus(postData);
 				}, "物料组签收确认", "判定后就准备入库", "只判定不入库");
+		} else {
+			postChangeMaterialStatus(postData);
+		}
 	} else {
-		if ($("#check_use_ns_component:visible").is(":checked")) {
+		if ($("#check_use_ns_component:visible").is(":checked") && !$("#ns_partial_set").hasClass("compSelected")) {
 			postData["exchange.cur_quantity[" + iii + "]"] = 1;
 			postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
 			postData["exchange.status["+iii+"]"]=7; // 使用组件
@@ -711,7 +731,7 @@ var completeChange=function(xhrobj, textStatus){
 			findit();
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
 
@@ -752,7 +772,7 @@ var delete_Complete=function(xhrobj, textStatus){
 			showPartialDetail($("#hide_materialID").val(),$("#hide_occur_times").val(),$("#bo_flg").val());
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
 

@@ -153,6 +153,7 @@ public class ServiceRepairRefereeService {
 		productionFeatureEntity.setSerial_no(resultEntity.getSerial_no());
 		productionFeatureEntity.setOperate_result(operate_result);
 		productionFeatureEntity.setOperator_id(operator_id);
+		productionFeatureEntity.setAction_time(new Date());
 
 		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
 

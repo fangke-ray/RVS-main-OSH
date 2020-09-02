@@ -69,7 +69,10 @@ public class ComponentManageForm extends ActionForm {
 	/** 制作者 */
 	@BeanField(title = "制作者", name = "operator_name")
 	private String operator_name;
-	
+
+	@BeanField(title = "组装进展工位", name = "process_code")
+	private String process_code;
+
 	/** NS组件设置用定义 */
 
 	/** 组件代码 */
@@ -409,6 +412,14 @@ public class ComponentManageForm extends ActionForm {
 
 	public void setCmpt_list(List<ComponentManageForm> cmpt_list) {
 		this.cmpt_list = cmpt_list;
+	}
+
+	public String getProcess_code() {
+		return process_code;
+	}
+
+	public void setProcess_code(String process_code) {
+		this.process_code = process_code;
 	}
 
 }

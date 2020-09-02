@@ -751,7 +751,6 @@ public class PositionPanelAction extends BaseAction {
 		}
 	
 		if (errors.size() == 0) {
-
 			// 开始作业
 			waitingPf.setOperator_id(user.getOperator_id());
 			pfService.startProductionFeature(waitingPf, conn);
@@ -826,7 +825,10 @@ public class PositionPanelAction extends BaseAction {
 
 			} else {
 				List<MaterialPartialDetailForm> pForms = new ArrayList<MaterialPartialDetailForm>();
-				BeanUtil.copyToFormList(wentities, pForms, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialPartialDetailForm.class);
+				CopyOptions copy = new CopyOptions();
+				copy.excludeEmptyString(); copy.excludeNull();
+				copy.fieldRename("name", "line_name");
+				BeanUtil.copyToFormList(wentities, pForms, copy, MaterialPartialDetailForm.class);
 				listResponse.put("mpds", pForms);
 				listResponse.put("workstauts", WORK_STATUS_WAITING_FOR_PARTIAL_RECEIVE);
 			}
@@ -1228,7 +1230,10 @@ public class PositionPanelAction extends BaseAction {
 					} else {
 						// 重新等待零件确认
 						List<MaterialPartialDetailForm> pForms = new ArrayList<MaterialPartialDetailForm>();
-						BeanUtil.copyToFormList(wentities, pForms, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialPartialDetailForm.class);
+						CopyOptions copy = new CopyOptions();
+						copy.excludeEmptyString(); copy.excludeNull();
+						copy.fieldRename("name", "line_name");
+						BeanUtil.copyToFormList(wentities, pForms, copy, MaterialPartialDetailForm.class);
 						listResponse.put("mpds", pForms);
 						listResponse.put("workstauts", WORK_STATUS_WAITING_FOR_PARTIAL_RECEIVE);
 						listResponse.put("notMatch", "1");
@@ -1798,9 +1803,8 @@ public class PositionPanelAction extends BaseAction {
 		boolean isLightFix = RvsUtils.isLightFix(mEntity.getLevel());
 
 		String process_code = user.getProcess_code();
-		if (isLightFix &&
-				(!"331".equals(process_code) && !"242".equals(process_code))
-				&& !"304".equals(process_code)) {
+		if (isLightFix ||
+				(!"331".equals(process_code) && !"242".equals(process_code) && !"304".equals(process_code))) {
 			List<MaterialPartialDetailEntity> wentities = prService
 					.getPartialsForPosition(workingPf.getMaterial_id(), workingPf.getPosition_id(), conn);
 
@@ -1814,16 +1818,36 @@ public class PositionPanelAction extends BaseAction {
 				// 取得作业信息
 				service.getProccessingData(listResponse, workingPf.getMaterial_id(), workingPf, user, conn);
 
-				// 取得工程检查票
-				if (!"simple".equals(special_forward) && !"result".equals(special_forward)) {
-					PositionPanelService.getPcses(listResponse, workingPf, user.getLine_id(), conn);
+				boolean infectFinishFlag = true;
+				if ("peripheral".equals(special_forward)) {
+					List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
+					// 取得周边设备检查使用设备工具 
+					infectFinishFlag = service.getPeripheralData(workingPf.getMaterial_id(), workingPf, resultEntities, conn);
+
+					if (resultEntities != null && resultEntities.size() > 0) {
+						listResponse.put("peripheralData", resultEntities);
+					}
 				}
 
-				listResponse.put("workstauts", WORK_STATUS_WORKING);
+				if (!infectFinishFlag) {
+					listResponse.put("workstauts", WORK_STATUS_PERIPHERAL_WORKING);
+				} else {
+					// 取得工程检查票
+					if (!"simple".equals(special_forward) && !"result".equals(special_forward)) {
+						workingPf.setProcess_code(process_code);
+						PositionPanelService.getPcses(listResponse, workingPf, user.getLine_id(), conn);
+					}
+
+					// 页面设定为编辑模式
+					listResponse.put("workstauts", WORK_STATUS_WORKING);
+				}
 			} else {
 				// 重新等待零件确认
 				List<MaterialPartialDetailForm> pForms = new ArrayList<MaterialPartialDetailForm>();
-				BeanUtil.copyToFormList(wentities, pForms, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialPartialDetailForm.class);
+				CopyOptions copy = new CopyOptions();
+				copy.excludeEmptyString(); copy.excludeNull();
+				copy.fieldRename("name", "line_name");
+				BeanUtil.copyToFormList(wentities, pForms, copy, MaterialPartialDetailForm.class);
 				listResponse.put("mpds", pForms);
 				listResponse.put("workstauts", WORK_STATUS_WAITING_FOR_PARTIAL_RECEIVE);
 				listResponse.put("notMatch", "1");

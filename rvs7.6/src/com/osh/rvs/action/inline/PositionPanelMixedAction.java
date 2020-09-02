@@ -10,6 +10,7 @@ package com.osh.rvs.action.inline;
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,9 +27,9 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.AlarmMesssageEntity;
-import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
+import com.osh.rvs.bean.inline.DryingProcessEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
@@ -559,10 +560,36 @@ public class PositionPanelMixedAction extends BaseAction {
 			PositionPanelService.getSoloPcses(listResponse, pfBean, user.getLine_id(), conn);
 
 			DryingProcessService dpService = new DryingProcessService();
-			if ("true".equals(dryingConfirmed)) {
+
+			// TODO 查不到前台有什么问题，因此先查一下是否有烘干记录
+			// 结束烘干
+			String orginMaterialId = null;
+
+			if (pfBean.getPace() > 0 && !"true".equals(dryingConfirmed)) {
+				ComponentManageService cmService = new ComponentManageService();
+				List<ComponentManageEntity> cmList = cmService.getBySerialNo(serial_no, conn);
+				if (cmList.size() > 0) {
+					orginMaterialId = cmList.get(0).getOrigin_material_id();
+				}
+
+				DryingProcessEntity dpInfo = dpService.getDryingProcessByMaterialInPositionEntity(orginMaterialId, user.getPosition_id() ,conn);
+				if (dpInfo != null) {
+					dryingConfirmed = "true";
+					log.error("Front put wrong state " + orginMaterialId);
+				}
+			}
+
+			if (pfBean.getPace() > 0 && "true".equals(dryingConfirmed)) {
 				// 结束烘干
-				MaterialEntity orginMaterial = sservice.getSnoutOriginBySerialNo(serial_no ,conn);
-				dpService.finishDryingProcess(orginMaterial.getMaterial_id(), user.getPosition_id(), conn);
+				// 取得订购来源
+				if (orginMaterialId == null) {
+					ComponentManageService cmService = new ComponentManageService();
+					List<ComponentManageEntity> cmList = cmService.getBySerialNo(serial_no, conn);
+					if (cmList.size() > 0) {
+						orginMaterialId = cmList.get(0).getOrigin_material_id();
+					}
+				}
+				dpService.finishDryingProcess(orginMaterialId, user.getPosition_id(), conn);
 			}
 
 			// 取得全部烘干任务信息
@@ -583,7 +610,12 @@ public class PositionPanelMixedAction extends BaseAction {
 		mform.setSorc_no("-");
 		listResponse.put("mform", mform);
 
-		listResponse.put("spent_mins", "0");
+		if (pfBean == null || pfBean.getPace() == 0) {
+			listResponse.put("spent_mins", "0");
+		} else {
+			listResponse.put("spent_mins", sservice.getTotalTime(pfBean, conn) / 60);
+		}
+
 		listResponse.put("leagal_overline", RvsUtils.getZeroOverLine(model_name, null, user, user.getProcess_code()));
 
 		// 检查发生错误时报告错误信息

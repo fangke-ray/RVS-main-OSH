@@ -322,18 +322,7 @@ public class PartialReleaseService {
 				String serialNo = cmService.getSerialNosForTargetMaterial(updEntity.getMaterial_id(), conn);
 
 				PartialOrderMapper poMapper = conn.getMapper(PartialOrderMapper.class);
-//				  ( #{material_id},
-//						  	#{smo_item_no},
-//							#{partial_id},
-//							#{occur_times},
-//							#{quantity},
-//							#{price},
-//							#{belongs},
-//							#{position_id},
-//							#{waiting_quantity},
-//							#{waiting_receive_quantity},
-//							#{recent_signin_time},
-//							#{status});
+
 				// 登录组装NS组件
 				updEntity.setPrice(BigDecimal.ZERO);
 				updEntity.setQuantity(updEntity.getCur_quantity());
@@ -447,11 +436,13 @@ public class PartialReleaseService {
 	}
 
 	public void checkBoFlg(ActionForm form, Map<String, String[]> parameterMap,
-			SqlSessionManager conn) {
+			SqlSessionManager conn) throws Exception {
 		boolean loss = false;
 		List<MaterialPartialDetailForm> materialPartialDetails = new AutofillArrayList<MaterialPartialDetailForm>(MaterialPartialDetailForm.class);
 		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
-		
+
+		int privNsCom = -1;
+
 		// 整理提交数据
 		for (String parameterKey : parameterMap.keySet()) {
 			Matcher m = p.matcher(parameterKey);
@@ -464,6 +455,11 @@ public class PartialReleaseService {
 
 					if ("material_partial_detail_key".equals(column)) {
 						materialPartialDetails.get(icounts).setMaterial_partial_detail_key(value[0]);
+					} else if ("status".equals(column)) {
+						materialPartialDetails.get(icounts).setStatus(value[0]);
+						if ("7".equals(value[0])) {
+							privNsCom = icounts;
+						}
 					} else if ("cur_quantity".equals(column)) {
 						materialPartialDetails.get(icounts).setCur_quantity(value[0]);
 						if ("0".equals(value[0])) {
@@ -486,7 +482,14 @@ public class PartialReleaseService {
 
 		// 标记评估发放的零件为无BO
 		PartialReleaseMapper dao=conn.getMapper(PartialReleaseMapper.class);
+
+		boolean hasNSComp = false;
 		for (MaterialPartialDetailForm materialPartialDetail : materialPartialDetails) {
+			if ("7".equals(materialPartialDetail.getStatus())) {
+				hasNSComp = true;
+				continue;
+			}
+
 			MaterialPartialDetailEntity entity = new MaterialPartialDetailEntity();
 			BeanUtil.copyToBean(materialPartialDetail, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
@@ -498,6 +501,73 @@ public class PartialReleaseService {
 				entity.setStatus(1);
 				dao.updateStatusOfReady(entity);
 			}
+		}
+
+		if (hasNSComp && privNsCom >=0 ) {
+
+			// 判断是否分配
+			String compPartialId = parameterMap.get("exchange.partial_id[" + privNsCom + "]")[0];
+			String curQuantity = parameterMap.get("exchange.cur_quantity[" + privNsCom + "]")[0];
+			String materialId = parameterMap.get("material_id")[0];
+			String occur_times = parameterMap.get("occur_times")[0];
+			int iOccur_times = 0;
+			int iCurQuantity = 0;
+			try {
+				iOccur_times = Integer.parseInt(occur_times, 10);
+				iCurQuantity = Integer.parseInt(curQuantity, 10);
+			} catch (Exception e) {
+				
+			}
+			ComponentManageService cmService = new ComponentManageService();
+			MaterialPartialDetailEntity updEntity = new MaterialPartialDetailEntity();
+			String serialNo = cmService.getSerialNosForTargetMaterial(materialId, conn);
+
+			PartialOrderMapper poMapper = conn.getMapper(PartialOrderMapper.class);
+
+			MaterialMapper mMapper = conn.getMapper(MaterialMapper.class);
+			MaterialEntity mBean = mMapper.loadMaterialDetail(materialId);
+			String compModelId = mBean.getModel_id();
+
+			// 登录组装NS组件
+			updEntity.setMaterial_id(materialId);
+			updEntity.setOccur_times(iOccur_times);
+			updEntity.setPrice(BigDecimal.ZERO);
+			updEntity.setQuantity(updEntity.getCur_quantity());
+			updEntity.setBelongs(11); // 组装组件使用
+			updEntity.setPartial_id(compPartialId); // 组装组件使用
+			updEntity.setCur_quantity(iCurQuantity);
+			updEntity.setQuantity(iCurQuantity);
+			updEntity.setStatus(7);
+
+			// 判断零件是否可定位
+			compModelId = mBean.getModel_id();
+			List<MaterialPartialDetailEntity> posRst = poMapper.searchPartialPositionBelongProcessCode(compModelId, compPartialId);
+			if (posRst.size() == 1) {
+				updEntity.setPosition_id(posRst.get(0).getPosition_id());
+			} else {
+//				MsgInfo msg = new MsgInfo();
+//				msg.setErrcode("info.partial.componentLostPosition");
+//				msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.componentLostPosition"
+//						, materialPartialDetails.get(privNsCom).getCode()));
+//				errors.add(msg);
+			}
+
+			if (serialNo == null) { // 无组装成品
+				updEntity.setWaiting_quantity(updEntity.getCur_quantity());
+				
+			} else {
+				updEntity.setWaiting_quantity(0);
+				updEntity.setRecent_signin_time(new Date());
+			}
+			updEntity.setWaiting_receive_quantity(updEntity.getCur_quantity());
+			poMapper.insertDetail(updEntity);
+
+			// 建立待入库子零件
+			ComponentManageEntity newCompSubPart = new ComponentManageEntity();
+			newCompSubPart.setModel_id(compModelId);
+			newCompSubPart.setOrigin_material_id(updEntity.getMaterial_id());
+			newCompSubPart.setStep("0");
+			cmService.insert(newCompSubPart, conn);
 		}
 	}
 
