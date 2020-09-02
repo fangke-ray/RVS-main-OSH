@@ -153,7 +153,7 @@ function search_handleComplete(Xhrobj, textStatus) {
 };
 
 function load_list(listdata){
-	if ($("#gbox_uld_list").length > 0 || listdata.length === 0) {
+	if ($("#gbox_uld_list").length > 0) {
 		$("#uld_list").jqGrid().clearGridData();
 		$("#uld_list").jqGrid('setGridParam',{data:listdata}).trigger("reloadGrid", [{current:false}]);
 	} else {

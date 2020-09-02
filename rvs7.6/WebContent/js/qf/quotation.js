@@ -452,7 +452,11 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 // $("#hide_material_id").val(resInfo.mform.material_id);
 			// 存在进行中作业的时候
 			if(resInfo.workstauts == 1 || resInfo.workstauts == 4) {
+				getMaterialInfo(resInfo);
 				treatStart(resInfo);
+			} else if (resInfo.workstauts == 2 || resInfo.workstauts == 5) {
+				getMaterialInfo(resInfo);
+				treatPause(resInfo);
 			}
 
 			// autocomplete
@@ -487,8 +491,30 @@ var doInit=function(){
 	});
 };
 
-var treatStart = function(resInfo) {
+var treatPause = function(resInfo) {
+	getPeripharalInfo(resInfo);
+	$("#editform table tbody").find("input,select,textarea").disable();
+	$("#continuebutton").show();
+	$("#pausebutton").hide();
+	$("#breakbutton, #stepbutton").disable();
+	$("#confirmbutton, #wipconfirmbutton").disable();
+}
 
+var treatStart = function(resInfo) {
+	getPeripharalInfo(resInfo);
+	$("#editform table tbody").find("input,select,textarea").enable();
+	$("#continuebutton").hide();
+	$("#pausebutton").show();
+	$("#breakbutton, #stepbutton").enable();
+
+	if (resInfo.workstauts == "4") {
+		$("#confirmbutton, #wipconfirmbutton").disable();
+	} else {
+		$("#confirmbutton, #wipconfirmbutton").enable();
+	}
+}
+
+var getMaterialInfo = function(resInfo) {
 	if (resInfo.patState) {
 		$("#major_pat").text(resInfo.patState.pat_name)
 			.attr({
@@ -602,17 +628,18 @@ var treatStart = function(resInfo) {
 		}
 	}
 
-	if (resInfo.workstauts == "4") {
+	if (resInfo.workstauts == 4 || resInfo.workstauts == 5) {
 		$("#confirmbutton, #wipconfirmbutton").disable();
 	} else {
 		$("#confirmbutton, #wipconfirmbutton").enable();
 	}
-
+}
+var getPeripharalInfo = function(resInfo) {
 	if (resInfo.peripheralData && resInfo.peripheralData.length > 0) {
 		showPeripheral(resInfo);
 	}
 
-	if (resInfo.workstauts == 1) {
+	if (resInfo.workstauts == 1 || resInfo.workstauts == 2) {
 		$("#device_details table tbody").find(".manageCode").disable();
 		$("#device_details table tbody").find("input[type=button]").disable();
 		$("#finishcheckbutton").disable();
@@ -621,16 +648,13 @@ var treatStart = function(resInfo) {
 		$("#device_details table tbody").find(".manageCode").trigger("change");
 	}
 
-	if (resInfo.workstauts == 4) {
-		$("#confirmbutton, #wipconfirmbutton").disable();
-		if (hasPcs) {
-			pcsO.clear();
-		};
+	if (resInfo.workstauts == 4 || resInfo.workstauts == 5) {
+		hasPcs && pcsO.clear();
 	} else {
 		// 工程检查票
 		if (resInfo.pcses && resInfo.pcses.length > 0 && hasPcs) {
-			pcsO.generate(resInfo.pcses);
-		};
+			pcsO.generate(resInfo.pcses, true);
+		}
 	};
 }
 
@@ -644,6 +668,7 @@ var doStart_ajaxSuccess=function(xhrobj){
 			// 共通出错信息框
 			treatBackMessages(null, resInfo.errors);
 		} else {
+			getMaterialInfo(resInfo);
 			treatStart(resInfo);
 		}
 	} catch (e) {
@@ -666,6 +691,29 @@ var doStart=function(){
 		beforeSend : ajaxRequestType,
 		async : false,
 		url : servicePath + '?method=doscan',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : doStart_ajaxSuccess
+	});
+};
+
+
+/** 暂停重开 */
+var endPause = function() {
+	// 重新读入刚才暂停的维修对象
+	var data = {
+		material_id : $("#hide_material_id").val()
+	}
+
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=doendpause',
 		cache : false,
 		data : data,
 		type : "post",
@@ -975,11 +1023,14 @@ $(function() {
 	}
 	});
 
+	$("#continuebutton").hide();
+	$("#pausebutton").show();
 	$("#confirmbutton").click(function(){
 		wip_location = "";
 		doFinishConfirm();
 	});
 	$("#pausebutton").click(makePause);
+	$("#continuebutton").click(endPause);
 	$("#stepbutton").click(makeStep);
 	$("#wipconfirmbutton").click(function(){
 		if (this.value == '放入WIP')

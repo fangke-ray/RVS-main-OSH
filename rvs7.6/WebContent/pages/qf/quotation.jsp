@@ -31,7 +31,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.flowchart.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
-<script type="text/javascript" src="js/qf/quotation.js"></script>
+<script type="text/javascript" src="js/qf/quotation.js?v=3373"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
 
@@ -59,7 +59,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<div>
 						<div id="waitarea" class="ui-widget-content" style="float: left;min-height: 250px;">
 							<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-half">
-								<span class="areatitle">暂停区域</span>
+								<span class="areatitle">暂停/中断区域</span>
 							</div>
 							<div id="wtg_list" style="overflow-y: auto;max-height:760px;"></div>
 						</div>
@@ -213,6 +213,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 											<!--input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="breakbutton" value="异常中断" role="button" aria-disabled="false" style="float: right; right: 2px"-->
 											<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="stepbutton" value="正常中断" role="button" aria-disabled="false" style="float: right; right: 2px">
 											<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="pausebutton" value="暂停" role="button" aria-disabled="false" style="float: right; right: 2px">
+											<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="continuebutton" value="重开" role="button" aria-disabled="false" style="float: right; right: 2px;">
 										</div>
 									</form>
 								</div>

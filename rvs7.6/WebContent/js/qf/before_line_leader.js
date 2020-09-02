@@ -1266,7 +1266,9 @@ var showDetail=function(rid) {
 						data.pat_id = "00000000000";
 					}
 					if ($("#major_pat").is(":visible")) {
-						if ($("#major_pat").attr("value") == $("#major_pat").attr("derive_id")) {
+						if (!$("#major_pat").attr("base_id")) {
+							data.pat_id = $("#major_pat").attr("value");
+						} else	if ($("#major_pat").attr("value") == $("#major_pat").attr("derive_id")) {
 							data.pat_id = $("#major_pat").attr("value");
 						}
 					}

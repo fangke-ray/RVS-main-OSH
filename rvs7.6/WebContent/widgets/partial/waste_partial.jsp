@@ -126,7 +126,7 @@
 					<tr>
 						<td class='ui-state-default td-title'>重量</td>
 						<td class="td-content">
-							<input type="text" class="ui-widget-content" id="add_weight">
+							<input type="text" class="ui-widget-content" id="add_weight">(kg)
 						</td>
 					</tr>
 					<tr>

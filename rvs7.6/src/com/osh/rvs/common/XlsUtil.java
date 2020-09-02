@@ -95,6 +95,7 @@ public class XlsUtil {
 					new int[1]).toDispatch();
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
+			Release();
 			throw e;
 		}
 	}
@@ -200,7 +201,7 @@ public class XlsUtil {
 			xl.invoke("Quit", new Variant[] {});
 		} catch (Exception e) {
 			logger.error("========Error:文档转换失败：" + e.getMessage());
-			//SaveCloseExcel(false); // TEST TODO
+			CloseExcel(false);
 			throw e;
 		} finally {
 			Release();
