@@ -64,6 +64,11 @@ public class ForSolutionAreaService {
 
 	public static final Integer ALRAM_POST = 1;
 	public static final Integer ALRAM_RELEASE = 2;
+	public static final Integer REASON_BO_OF_POSITION = 1;
+	private static final Integer REASON_BREAK_OUT = 2;
+	private static final Integer REASON_BREAK_CONFIRMED = 3;
+	public static final Integer REASON_APPEND_PART_ORDER = 4;
+	private static final Integer REASON_QA_FORBID = 5;
 
 	private Logger _log = Logger.getLogger(getClass());
 
@@ -175,7 +180,12 @@ public class ForSolutionAreaService {
 			}
 
 			Integer reason = retBean.getReason();
-			boolean breakType = reason != null && (reason == 2 || reason == 3 || reason == 4 || reason == 5);
+
+			boolean breakType = reason != null 
+					&& (reason == REASON_BREAK_OUT 
+					|| reason == REASON_BREAK_CONFIRMED 
+					|| reason == REASON_APPEND_PART_ORDER 
+					|| reason == REASON_QA_FORBID);
 			if (getForReport && breakType) {
 				AlarmMesssageService service = new AlarmMesssageService();
 				List<AlarmMesssageEntity> messages = 
@@ -254,7 +264,9 @@ public class ForSolutionAreaService {
 		List<ForSolutionAreaEntity> rst = checkBlock(alarmMesssage.getMaterial_id(), alarmMesssage.getPosition_id(), null, conn);
 		if (rst != null) {
 			for (ForSolutionAreaEntity rsa : rst) {
-				if (rsa.getReason() >= 2 && rsa.getReason() <= 4)
+				if (rsa.getReason() == REASON_BREAK_OUT 
+						|| rsa.getReason() == REASON_BREAK_CONFIRMED
+						|| rsa.getReason() == REASON_APPEND_PART_ORDER)
 					return rsa;
 			}
 		}
@@ -283,6 +295,8 @@ public class ForSolutionAreaService {
 		entity.setPosition_id(position_id);
 		entity.setComment(comment);
 		mapper.create(entity);
+
+		if (reason == REASON_BO_OF_POSITION) return; 
 
 		List<String> listOperator = new ArrayList<String>();
 
@@ -451,12 +465,13 @@ public class ForSolutionAreaService {
 		MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
 
 		List<ForSolutionAreaEntity> offlines = mapper.getOfflineOfMaterial(material_id);
+		boolean triggerSent = false;
 
 		// 如果全发放则结束所有待处理
 		for (ForSolutionAreaEntity offline : offlines) {
 
 			Integer reason = offline.getReason();
-			if (reason == 1 || (reason == 4 && occur_times > 1)) {
+			if (reason == REASON_BO_OF_POSITION || (reason == REASON_APPEND_PART_ORDER && occur_times > 1)) {
 
 				// 查看全部该工程零件是否已发放
 				bo_partials = mpMapper.getBoPartialOfLineOfPosition(material_id, offline.getPosition_id());
@@ -491,12 +506,15 @@ public class ForSolutionAreaService {
 					// 推送给所在线长/经理/计划员
 					createEvent(offline.getFor_solution_area_key(), ForSolutionAreaService.ALRAM_RELEASE, listOperator, conn);
 
-					List<String> triggerList = new ArrayList<String>();
-					// 计算预估完成日
-					triggerList.add("http://localhost:8080/rvspush/trigger/expected_finish_time/" + material_id + "/1");
+					if (!triggerSent) {
+						List<String> triggerList = new ArrayList<String>();
+						// 计算预估完成日
+						triggerList.add("http://localhost:8080/rvspush/trigger/expected_finish_time/" + material_id + "/1");
 
-					conn.commit();
-					RvsUtils.sendTrigger(triggerList);
+						conn.commit();
+						RvsUtils.sendTrigger(triggerList);
+						triggerSent = true;
+					}
 				}
 			}
 		}

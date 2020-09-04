@@ -57,6 +57,7 @@ import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.inline.PositionPanelService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -525,6 +526,17 @@ public class MaterialFactService {
 				if ("00000000001".equals(entity.getSection_id())) {
 					pps.notifyPosition(entity.getSection_id(), firstPosition_id, materialId, true);
 				}
+
+				// 小修理判断是否订购零件
+				MaterialPartialService mps = new MaterialPartialService();
+				MaterialPartialForm mp = mps.loadMaterialPartial(conn, materialId, null);
+				if (mp == null || 
+						!("0".equals(mp.getBo_flg()) || "2".equals(mp.getBo_flg()))) {
+					// 否则首工位进入PA
+					ForSolutionAreaService fsoService = new ForSolutionAreaService();
+					fsoService.create(materialId, "零件未到达时投线", ForSolutionAreaService.REASON_BO_OF_POSITION, firstPosition_id, conn, false);
+				}
+
 			} else {
 				// 302指定投线
 				if (entity.getCcd_change() != null && "true".equals(entity.getCcd_change()) ) {

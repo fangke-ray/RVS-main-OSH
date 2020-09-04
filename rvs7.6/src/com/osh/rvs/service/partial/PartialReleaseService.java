@@ -61,7 +61,7 @@ public class PartialReleaseService {
 	 * @return
 	 */
 	public List<MaterialPartialForm> searchMaterialPartialRelease(ActionForm form,HttpServletRequest request,SqlSession conn) {
-		
+
 		MaterialPartialEntity entity=new MaterialPartialEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 		List<MaterialPartialForm> returnFormList=new ArrayList<MaterialPartialForm>();
@@ -391,7 +391,7 @@ public class PartialReleaseService {
 				BeanUtil.copyToBean(form, materialPartialEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 				materialPartialEntity.setBo_flg(boFlg);
 				MaterialPartialMapper materialPartialdao=conn.getMapper(MaterialPartialMapper.class);
-				
+
 				if("big".equals(flag)){
 					materialPartialdao.updateBoFlgAndOrderDate(materialPartialEntity);
 				}else if("small".equals(flag)){

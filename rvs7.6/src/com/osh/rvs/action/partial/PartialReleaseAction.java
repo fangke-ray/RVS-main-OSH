@@ -20,6 +20,7 @@ import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.FactPartialReleaseForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
@@ -152,7 +153,7 @@ public class PartialReleaseAction extends BaseAction {
 
 	public void doUpdateWaitingQuantityAndStatus(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn) throws Exception{
 		log.info("PartialReleaseAction.doUpdateWaitingQuantity start");
-		
+
 		// 对Ajax的响应
 		Map<String,Object> listResponse=new HashMap<String, Object>();
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
@@ -186,13 +187,12 @@ public class PartialReleaseAction extends BaseAction {
 							// 检查工位上BO零件为解除
 							fsoService.solveBo(materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times(), user.getOperator_id(), conn);
 						} else if (materialPartialEntity.getOccur_times() == 1 && isNoBo) {
-//							List<String> triggerList = new ArrayList<String>();
-//							// 计算预估完成日
-//							triggerList.add("http://localhost:8080/rvspush/trigger/expected_finish_time/"
-//									+ materialPartialEntity.getMaterial_id() + "/1");
-	//
-//							conn.commit();
-//							RvsUtils.sendTrigger(triggerList);
+							MaterialService mService = new MaterialService();
+							MaterialEntity mBean = mService.loadMaterialDetailBean(conn, materialPartialEntity.getMaterial_id());
+							if (RvsUtils.isLightFix(mBean.getLevel())) {
+								// 中小修检查全工程BO零件为解除
+								fsoService.solveBo(materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times(), user.getOperator_id(), conn);
+							}
 						}
 
 						if (isNoBo) {

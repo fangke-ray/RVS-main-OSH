@@ -422,7 +422,7 @@ var process_set = function(rowdata) {
 					$('div#errstring').dialog({
 						dialogClass : 'ui-warn-dialog', modal : false, width : 450, title : "提示信息", 
 						buttons : {
-							"此次中小修不需要零件订购" : function() { 
+							"不零件订购投入维修" : function() { 
 								var data = {material_id: material_id}
 								// Ajax提交
 								$.ajax({
@@ -445,7 +445,7 @@ var process_set = function(rowdata) {
 							}
 						}
 					});
-					$('div#errstring').html("<span class='errorarea'>中小修理应当在投线前订购零件，请确认！</span>");
+					$('div#errstring').html("<span class='errorarea'>中小修理应当在投线前订购零件，请确认！<br>如果未订购投线维修品将进入Pending Area。</span>");
 				}
 
 				else {
@@ -1141,9 +1141,20 @@ function initGrid() {
 							}
 						}
 					}
+					// 同意日以外的禁止投线
+					var othForbid = false;
+					if (!f_isLightFix(rowdata.level)) {
+						if (img_operate_result.indexOf("零件") < 0) {
+							othForbid = (img_operate_result != "" && !img_completed);
+						} else {
+							if (rowdata.level != 57) {
+								othForbid = (img_operate_result == "未订购零件") || (rowdata.ccd_operate_result == "缺零件");
+							}
+						}
+					}
+
 					if (!vagreed_date
-//						|| (ccd_operate_result != "" && ccd_operate_result!="完成")
-						|| (img_operate_result != "" && !img_completed)) {
+						|| othForbid) {
 						$("#list tr#" + dataIds[i] + " td").not(".alertCell").css("background-color", "#EEEEEE");
 					} else {
 						if (new Date(vagreed_date).getTime() < leverDates.nege2)
