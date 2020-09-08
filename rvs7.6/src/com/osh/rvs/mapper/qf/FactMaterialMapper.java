@@ -35,4 +35,11 @@ public interface FactMaterialMapper {
 	 * @return
 	 */
 	public List<MaterialEntity> getDeliveryOrderFinished();
+	
+	/**
+	 * 统计完成件数
+	 * @param entity
+	 * @return
+	 */
+	public int countFinished(FactMaterialEntity entity);
 }

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.FactReceptMaterialMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchReceptMaterial" resultType="FactReceptMaterialEntity">
+	<![CDATA[
+		SELECT
+			material_id,
+		    serial_no,
+		    ocm,
+		    direct_flg,
+		    CASE
+		    	WHEN temp_fact_recept >= 1 THEN null
+		    	WHEN ocm = 4 THEN f_addworkdays(reception_time,2)
+		    	ELSE f_addworkdays(reception_time,1)
+		    END AS expect_arrive_time,
+		    model_name,
+		    category_id,
+		    kind,
+		    CASE
+				WHEN temp_fact_recept >=1 then 1
+                ELSE 0
+            END AS fact_recept,
+		    tag_types,
+		    comment
+		FROM
+		(
+		SELECT 
+		    material.material_id,
+		    material.serial_no,
+		    material.ocm,
+		    material.direct_flg,
+		    material.reception_time,
+		    mdl.name AS model_name,
+		    mdl.CATEGORY_ID,
+		    mdl.kind,
+		    SUM(fct.af_pf_key IS NOT NULL AND EXISTS( 
+				SELECT
+					1 
+		        FROM 
+					af_production_feature afpf 
+				WHERE 
+					fct.af_pf_key = afpf.af_pf_key 
+				AND 
+					afpf.production_type = 102)) AS temp_fact_recept,
+		    GROUP_CONCAT(DISTINCT tag.tag_type) AS tag_types,
+		    cmt.comment
+		FROM
+		    material
+		JOIN
+		    v_model mdl ON material.model_id = mdl.model_id
+		LEFT JOIN
+		    fact_material fct ON material.material_id = fct.material_id
+		LEFT JOIN
+		    material_tag tag ON material.material_id = tag.material_id
+		LEFT JOIN
+		    material_comment cmt ON material.material_id = cmt.material_id AND cmt.operator_id = 00000000002
+		WHERE
+		    fix_type IN (1 , 2)
+		AND 
+			break_back_flg = 0
+		AND 
+			inline_time IS NULL
+		AND 
+			wip_date IS NULL
+		AND NOT EXISTS(
+			SELECT 
+				1
+			FROM
+				production_feature
+			WHERE
+				material_id = material.material_id
+			AND 
+				position_id IN (10 , 11)
+			AND 
+				operate_result > 0)
+		GROUP BY
+			material.material_id
+		ORDER BY 
+			model_name,serial_no) temp
+	]]>
+	</select>
+	
+	<insert id="insertFactReceptMaterialTemp" parameterType="FactReceptMaterialEntity">
+	<![CDATA[
+		INSERT INTO fact_recept_material_temp
+		(
+			direct_flg,
+			serial_no,
+			model_id,
+			model_name,
+			af_pf_key,
+			tag_types,
+			tc_location
+		)
+		VALUES
+		(
+			#{direct_flg},
+			#{serial_no},
+			#{model_id},
+			#{model_name},
+			#{af_pf_key},
+			#{tag_types},
+			#{tc_location}
+		)
+	]]>
+	</insert>
+	
+	<select id="searchTemp" resultType="FactReceptMaterialEntity" parameterType="FactReceptMaterialEntity">
+	<![CDATA[
+		SELECT
+			fact_recept_id,
+			direct_flg,
+			serial_no,
+			model_id,
+			model_name,
+			af_pf_key,
+			tag_types,
+			tc_location
+		FROM
+			fact_recept_material_temp
+	]]>
+	<where>
+	<if test="model_id!=null and model_id!=''">
+	<![CDATA[
+		AND model_id = #{model_id}
+	]]>
+	</if>
+	<if test="serial_no!=null and serial_no!=''">
+	<![CDATA[
+		AND serial_no = #{serial_no}
+	]]>
+	</if>
+	</where>
+	<![CDATA[
+		ORDER BY
+			model_name,serial_no
+	]]>
+	</select>
+	
+	<update id="updateFactReceptMaterialTemp" parameterType="FactReceptMaterialEntity">
+	<![CDATA[
+		UPDATE
+			fact_recept_material_temp
+		SET
+			serial_no = #{serial_no},
+			model_id = #{model_id},
+			tag_types = #{tag_types}
+		WHERE
+			fact_recept_id = #{fact_recept_id}
+	]]>
+	</update>
+	
+</mapper>

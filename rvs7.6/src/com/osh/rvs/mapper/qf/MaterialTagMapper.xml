@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.MaterialTagMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<insert id="insert" parameterType="MaterialTagEntity">
+	<![CDATA[
+		INSERT material_tag (material_id,tag_type) VALUES (#{material_id},#{tag_type})
+	]]>
+	</insert>
+	
+	<delete id="deleteByMaterialId" parameterType="string">
+	<![CDATA[
+		DELETE FROM material_tag WHERE material_id = #{material_id}
+	]]>
+	</delete>
+</mapper>

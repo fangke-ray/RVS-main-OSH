@@ -132,4 +132,36 @@
 		pf.operate_result DESC, m.reception_time
 	]]>
 	</select>
+	
+	<select id="countFinished" resultType="int" parameterType="FactMaterialEntity">
+	<![CDATA[
+		SELECT
+			COUNT(material_id)
+		FROM
+			fact_material fm
+		JOIN
+			af_production_feature apf
+		ON
+			fm.af_pf_key = apf.af_pf_key
+		WHERE
+			apf.production_type = #{production_type}
+		AND
+			apf.finish_time IS NOT NULL
+	]]>
+	<if test="operator_id!=null and operator_id!=''">
+	<![CDATA[
+		AND apf.operator_id = #{operator_id}
+	]]>
+	</if>
+	<if test="action_time_start!=null and action_time_start!=''">
+	<![CDATA[
+		AND apf.action_time >= #{action_time_start}
+	]]>
+	</if>
+	<if test="action_time_end!=null and action_time_end!=''">
+	<![CDATA[
+		AND apf.action_time < #{action_time_end}
+	]]>
+	</if>
+	</select>
 </mapper>

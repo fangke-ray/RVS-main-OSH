@@ -143,6 +143,9 @@
 		
 		<typeAlias alias="ComponentManageEntity" type="com.osh.rvs.bean.partial.ComponentManageEntity"/>
 		<typeAlias alias="ComponentSettingEntity" type="com.osh.rvs.bean.partial.ComponentSettingEntity"/>
+		
+		<typeAlias alias="FactReceptMaterialEntity" type="com.osh.rvs.bean.qf.FactReceptMaterialEntity"/>
+		<typeAlias alias="MaterialTagEntity" type="com.osh.rvs.bean.qf.MaterialTagEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -281,6 +284,8 @@
 		<mapper resource="com/osh/rvs/mapper/qf/AfProductionFeatureMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qf/FactMaterialMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qf/SteelWireContainerWashProcessMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/qf/FactReceptMaterialMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/qf/MaterialTagMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/qa/QualityAssuranceMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qa/ServiceRepairManageMapper.xml" />

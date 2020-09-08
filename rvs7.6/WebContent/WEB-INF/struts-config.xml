@@ -127,6 +127,7 @@
 		
 		<form-bean name="componentManageForm" type="com.osh.rvs.form.partial.ComponentManageForm"></form-bean>
 		<form-bean name="componentSettingForm" type="com.osh.rvs.form.partial.ComponentSettingForm"></form-bean>
+		<form-bean name="FactReceptMaterialForm" type="com.osh.rvs.form.qf.FactReceptMaterialForm"></form-bean>
 	</form-beans>
 
 
@@ -1542,6 +1543,18 @@
 			<forward name="init" path="/pages/pda/pda_component_outstock_confirm.jsp" />
 			<forward name="success" path="/pda_component_outstock.do?method=init" />
 		</action>
+		
+		<!-- 维修品实物受理/测漏  -->
+		<action path="/fact_recept_material"
+			type="com.osh.rvs.action.qf.FactReceptMaterialAction"
+			name="FactReceptMaterialForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/qf/fact_recept_material.jsp" />
+			<forward name="success" path="/pages/qf/fact_recept_material.jsp" />
+		</action>
+		
 		<!-- rvs 八期end -->
 		
 
