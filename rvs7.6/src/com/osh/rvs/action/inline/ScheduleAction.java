@@ -40,6 +40,7 @@ import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.UserDefineCodesService;
+import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.inline.ScheduleService;
 import com.osh.rvs.service.qf.WipService;
@@ -467,7 +468,9 @@ public class ScheduleAction extends BaseAction {
 		// 删除未完成的工程进度
 		MaterialProcessService pocessService = new MaterialProcessService();
 		pocessService.removeByBreak(id, conn);
-		// 删除未完成的烘干作业 TODO
+		// 删除未完成的烘干作业
+		DryingProcessService dpService = new DryingProcessService();
+		dpService.stopDryingProcessByMaterial(id, conn);
 
 		WipService wService = new WipService();
 		wService.stop(conn, id);

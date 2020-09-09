@@ -813,7 +813,7 @@ var edit_schedule_popMaterialDetail = function(material_id, break_message_level,
 					}
 					setLabelText(resInfo.materialForm, resInfo.materialPartialFormList, resInfo.processForm, resInfo.timesOptions, material_id);
 				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+					console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 							+ e.lineNumber + " fileName: " + e.fileName);
 				};
 				
@@ -914,7 +914,7 @@ var edit_message_popMaterialDetail = function(material_id, break_message_level, 
 						});
 						$("#nogood_treat").show();
 					} catch (e) {
-						alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+						console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 								+ e.lineNumber + " fileName: " + e.fileName);
 					};
 				}
@@ -934,36 +934,31 @@ var break_plan = function() {
 		id : rowData.material_id
 	}
 
-	$("#confirmmessage").text("未修理返还后，维修对象["+encodeText(rowData.sorc_no)+"]将会退出RVS系统中的显示，直接出货，确认操作吗？");
-	$("#confirmmessage").dialog({
-		resizable : false,
-		modal : true,
-		title : "返还操作确认",
-		buttons : {
-			"确认" : function() {
-				$(this).dialog("close");
+	var warningText = "未修理返还后，维修对象["+encodeText(rowData.sorc_no)+"]将会退出RVS系统中的显示，直接出货，确认操作吗？";
+	if (!rowData.inline_time || !rowData.inline_time.trim()) {
+		warningText = "未修理返还后，维修对象["+encodeText(rowData.sorc_no)+"]将会退出RVS系统中的显示，等待画像检查后出货，确认操作吗？";
+	}
+	if (rowData.levelName && rowData.levelName.charAt(0) === "E") {
+		warningText = "未修理返还后，维修对象["+encodeText(rowData.sorc_no)+"]将会退出RVS系统中的显示，等待不修理处理后出货，确认操作吗？";
+	}
 
-				$.ajax({
-					beforeSend : ajaxRequestType,
-					async : false,
-					url : servicePath + '?method=doStop',
-					cache : false,
-					data : data,
-					type : "post",
-					dataType : "json",
-					success : ajaxSuccessCheck,
-					error : ajaxError,
-					complete : function() {
-						findit();
-					}
-				});	
-			},
-			"取消" : function() {
-				$(this).dialog("close");
+	warningConfirm(warningText, 
+	function() {
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : false,
+			url : servicePath + '?method=doStop',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function() {
+				findit();
 			}
-		}
-	});
-
+		});	
+	}, null, "返还操作确认");
 };
 
 /** 根据条件使按钮有效/无效化 */

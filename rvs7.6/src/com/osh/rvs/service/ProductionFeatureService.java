@@ -461,7 +461,8 @@ public class ProductionFeatureService {
 		} else if ("00000000046".equals(position_id) || "00000000052".equals(position_id) 
 				|| RvsConsts.POSITION_QA_P_613.equals(position_id) || RvsConsts.POSITION_QA_P_614.equals(position_id)) { // 品保
 			nextPositions.add("00000000047");
-		} else if ("00000000015".equals(position_id)) { // 图像检查
+		} else if ("00000000015".equals(position_id)
+				|| RvsConsts.POSITION_PERP_UNREPIAR.equals(position_id)) { // 图像检查 OR 周边不修理返还
 			if (mEntity.getBreak_back_flg() != null && mEntity.getBreak_back_flg() == 2) { // 未修理返还
 				nextPositions.add("00000000047"); // 出货
 			}

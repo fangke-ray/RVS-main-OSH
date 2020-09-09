@@ -277,25 +277,21 @@ var doStop=function() {
 	var rowid = $("#list").jqGrid("getGridParam", "selrow");
 	var rowdata = $("#list").getRowData(rowid);
 
-	$("#confirmmessage").text("未修理返还后，维修对象["+encodeText(rowdata.sorc_no)+"]将会退出RVS系统中的显示，在图象检查后直接出货，确认操作吗？");
-	$("#confirmmessage").dialog({
-		resizable : false,
-		modal : true,
-		title : "返还操作确认",
-		buttons : {
-			"确认" : function() {
-				afObj.applyProcess(242, this, doStopExecute, [rowdata]);
-			},
-			"取消" : function() {
-				$(this).dialog("close");
-			}
-		}
-	});
+	var warningText = "未修理返还后，维修对象["+encodeText(rowdata.sorc_no)+"]将会退出RVS系统中的显示，自动从WIP出库，";
+	if (f_isPeripheralFix(rowdata.level)) {
+		warningText += "在周边设备不修返还后";
+	} else {
+		warningText += "在图象检查后";
+	}
+	warningText += "直接出货，确认操作吗？";
+
+	warningConfirm(warningText, 
+	function() {
+		afObj.applyProcess(242, this, doStopExecute, [rowdata]);
+	}, null, "返还操作确认");
 }
 
 var doStopExecute=function(rowdata) {
-	$("#confirmmessage").dialog("close");
-
 	var data = {material_id : rowdata["material_id"]};
 
 	$.ajax({

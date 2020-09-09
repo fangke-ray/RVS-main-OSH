@@ -27,6 +27,7 @@
 			dp.start_time,
 			dp.end_time,
 			position.position_id,
+			dj.drying_job_id,
 			ma.material_id
 		FROM
 			drying_process dp
@@ -189,5 +190,4 @@ on dod.device_manage_id = usdm.device_manage_id
 			</if>
 		;
 	</select>
-
 </mapper>

@@ -236,7 +236,7 @@ function exportReport() {
 				treatBackMessages("#searcharea", resInfo.errors);
 			} else {
 				var iframe = document.createElement("iframe");
-	            iframe.src = servicePath+"?method=export&filePath=" + resInfo.filePath;
+	            iframe.src = "schedule.do?method=export&filePath=" + resInfo.filePath;
 	            iframe.style.display = "none";
 	            document.body.appendChild(iframe);
 			}
@@ -268,7 +268,7 @@ function exportSchedule() {
 				treatBackMessages("#searcharea", resInfo.errors);
 			} else {
 				var iframe = document.createElement("iframe");
-	            iframe.src = servicePath+"?method=exportSchedule&filePath=" + resInfo.filePath;
+	            iframe.src = "download.do?method=output&fileName=当日计划一览.xls&filePath=" + resInfo.filePath;
 	            iframe.style.display = "none";
 	            document.body.appendChild(iframe);
 			}

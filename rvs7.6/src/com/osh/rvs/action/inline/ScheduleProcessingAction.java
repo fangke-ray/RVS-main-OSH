@@ -8,6 +8,7 @@
 package com.osh.rvs.action.inline;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.ReportMetaData;
 import com.osh.rvs.common.ReportUtils;
 import com.osh.rvs.common.RvsConsts;
@@ -39,6 +41,7 @@ import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.validator.Validators;
 
 public class ScheduleProcessingAction extends BaseAction {
@@ -416,10 +419,13 @@ public class ScheduleProcessingAction extends BaseAction {
 
 	public void export(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 		String filePath = req.getParameter("filePath");
+		Date today = new Date();
+		String folder = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM");
+
 		String fileName = new String("维修对象一览.xls".getBytes("gbk"),"iso-8859-1");
 		
 		DownloadService dservice = new DownloadService();
-		dservice.writeFile(res, DownloadService.CONTENT_TYPE_EXCEL, fileName, filePath);
+		dservice.writeFile(res, DownloadService.CONTENT_TYPE_EXCEL, fileName, folder + "\\" + filePath);
 	}
 
 	public void exportSchedule(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{

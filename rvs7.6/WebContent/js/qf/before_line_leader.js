@@ -34,7 +34,7 @@ var line_expedite = function() {
 			
 				findit();
 			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+				console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 						+ e.lineNumber + " fileName: " + e.fileName);
 			};
 		}
@@ -105,7 +105,7 @@ var treat_nogood = function() {
 					});
 					$("#pop_treat").show();
 				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+					console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 							+ e.lineNumber + " fileName: " + e.fileName);
 				};
 			}
@@ -365,7 +365,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 			}
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
@@ -725,7 +725,7 @@ var doCcdChange = function() {
 						treatBackMessages(null, resInfo.errors);
 					}
 				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+					console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 							+ e.lineNumber + " fileName: " + e.fileName);
 				};
 			}
@@ -850,7 +850,7 @@ var search_handleComplete = function(xhrobj, textStatus) {
 			$("#performance_list").jqGrid('setGridParam', {data : listdata}).trigger("reloadGrid", [{current : false}]);
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
@@ -968,24 +968,25 @@ var doStop=function() {
 	var rowid = $("#performance_list").jqGrid("getGridParam", "selrow");
 	var rowdata = $("#performance_list").getRowData(rowid);
 
-	$("#confirmmessage").text("未修理返还后，维修对象["+encodeText(rowdata.sorc_no)+"]将会退出RVS系统中的显示，" + ( rowdata.processing_position.indexOf("WIP:") >= 0 ? "自动从WIP出库，在图象检查后" : "" )+ "直接出货，确认操作吗？");
-	$("#confirmmessage").dialog({
-		resizable : false,
-		modal : true,
-		title : "返还操作确认",
-		buttons : {
-			"确认" : function() {
-				afObj.applyProcess(242, this, doStopExecute, [rowdata]);
-			},
-			"取消" : function() {
-				$(this).dialog("close");
-			}
-		}
-	});
+	var warningText = "未修理返还后，维修对象["+encodeText(rowdata.sorc_no)+"]将会退出RVS系统中的显示，";
+	if (rowdata.processing_position.indexOf("WIP:") >= 0) {
+		warningText += "自动从WIP出库，";
+	}
+	if (f_isPeripheralFix(rowdata.level)) {
+		warningText += "在周边设备不修返还后";
+	} else {
+		warningText += "在图象检查后";
+	}
+	warningText += "直接出货，确认操作吗？";
+
+	warningConfirm(warningText, 
+	function() {
+		afObj.applyProcess(242, this, doStopExecute, [rowdata]);
+	}, null, "返还操作确认");
 }
 
 var doStopExecute=function(rowdata) {
-	$("#confirmmessage").dialog("close");
+
 	var data = {material_id : rowdata["material_id"]};
 
 	$.ajax({
@@ -1298,7 +1299,7 @@ var showDetail=function(rid) {
 									findits();
 								}
 							} catch(e) {
-									alert("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
+									console.log("name: " + e.name + " message: " + e.message + " lineNumber: " + e.lineNumber + " fileName: " + e.fileName);
 							}
 						}
 					});

@@ -28,6 +28,7 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class DryingProcessService {
 	private static final Integer GET_SELF = 1;
 	private static final Integer GET_LIKEY = 2;
+	private static final Integer STATUS_PROCESSING = 1;
 
 	public List<DryingProcessForm> search(ActionForm form,SqlSession conn){
 		//复制表单数据到对象
@@ -221,5 +222,22 @@ public class DryingProcessService {
 				CodeListUtils.getValue("drying_hardening_condition", dryingProcess.getHardening_condition()));
 
 		return dryingProcess;
+	}
+
+	/**
+	 * 终止维修品维修停止所有烘干
+	 * @param material_id
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void stopDryingProcessByMaterial(String material_id, SqlSessionManager conn) throws Exception {
+		DryingProcessMapper dpMapper = conn.getMapper(DryingProcessMapper.class);
+		DryingProcessEntity materialCondition = new DryingProcessEntity();
+		materialCondition.setMaterial_id(material_id);
+		materialCondition.setStatus(STATUS_PROCESSING);
+		List<DryingProcessEntity> list = dpMapper.search(materialCondition);
+		for (DryingProcessEntity dpEntity : list) {
+			dpMapper.finishProcess(dpEntity);
+		}
 	}
 }

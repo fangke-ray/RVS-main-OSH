@@ -28,6 +28,7 @@ import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -657,6 +658,17 @@ public class ComponentManageAction extends BaseAction{
 		if (errors.size() == 0) {
 			if ("2".equals(componentBean.getStep())) {
 				service.deleteSoloProductionFeature(soloEntity, conn);
+				String orginMaterialId = null;
+				List<ComponentManageEntity> cmList = service.getBySerialNo(componentBean.getSerial_no(), conn);
+				if (cmList.size() > 0) {
+					orginMaterialId = cmList.get(0).getOrigin_material_id();
+				}
+
+				if (orginMaterialId != null) {
+					// 删除未完成的烘干作业
+					DryingProcessService dpService = new DryingProcessService();
+					dpService.stopDryingProcessByMaterial(orginMaterialId, conn);
+				}
 			}
 			// 组件库存管理 (component_manage)数据更新
 			// 组件废弃处理
