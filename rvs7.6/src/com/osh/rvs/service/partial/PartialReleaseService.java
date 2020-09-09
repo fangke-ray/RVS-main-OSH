@@ -55,6 +55,8 @@ import framework.huiqing.common.util.message.ApplicationMessage;
  */
 public class PartialReleaseService {
 	private Logger _log=Logger.getLogger(getClass());
+	private static String STATUS_FOR_NS_COMP = "7";
+
 	/**
 	 * 零件发放维修对象一览
 	 * 
@@ -194,7 +196,7 @@ public class PartialReleaseService {
 						materialPartialDetails.get(icounts).setWaiting_quantity(value[0]);
 					}else if("status".equals(column)){
 						materialPartialDetails.get(icounts).setStatus(value[0]);
-						if ("7".equals(value[0])) {
+						if (STATUS_FOR_NS_COMP.equals(value[0])) {
 							privNsCom = icounts;
 						}
 					}else if("partial_id".equals(column)){
@@ -457,7 +459,7 @@ public class PartialReleaseService {
 						materialPartialDetails.get(icounts).setMaterial_partial_detail_key(value[0]);
 					} else if ("status".equals(column)) {
 						materialPartialDetails.get(icounts).setStatus(value[0]);
-						if ("7".equals(value[0])) {
+						if (STATUS_FOR_NS_COMP.equals(value[0])) {
 							privNsCom = icounts;
 						}
 					} else if ("cur_quantity".equals(column)) {
@@ -485,7 +487,7 @@ public class PartialReleaseService {
 
 		boolean hasNSComp = false;
 		for (MaterialPartialDetailForm materialPartialDetail : materialPartialDetails) {
-			if ("7".equals(materialPartialDetail.getStatus())) {
+			if (STATUS_FOR_NS_COMP.equals(materialPartialDetail.getStatus())) {
 				hasNSComp = true;
 				continue;
 			}
@@ -626,7 +628,7 @@ public class PartialReleaseService {
 		int idx = -1;
 		for (int i = 0; i < responseList.size();i++) {
 			MaterialPartialDetailForm mpd = responseList.get(i);
-			if ("7".equals(mpd.getStatus())) {
+			if (STATUS_FOR_NS_COMP.equals(mpd.getStatus())) {
 				idx = i;
 				break;
 			}

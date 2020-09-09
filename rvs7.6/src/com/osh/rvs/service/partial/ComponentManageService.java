@@ -51,6 +51,7 @@ import com.osh.rvs.mapper.partial.ComponentManageMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.PostMessageService;
 import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.inline.ForSolutionAreaService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CommonStringUtil;
@@ -734,7 +735,7 @@ public class ComponentManageService {
 	 * @throws Exception 
 	 * 
 	 */
-	public String componentOutstock(ComponentManageEntity updateBean,
+	public String componentOutstock(ComponentManageEntity updateBean, LoginData user,
 			SqlSessionManager conn) throws Exception {
 		ComponentManageMapper mapper = conn.getMapper(ComponentManageMapper.class);
 		// 组件出库更新
@@ -751,6 +752,11 @@ public class ComponentManageService {
 				hit = true;
 				// 发放
 				mpMapper.updateComponentRelease(mpdEntity.getMaterial_partial_detail_key());
+
+				// 如果因为组件已经进入PA，自动从PA取出。
+				ForSolutionAreaService fsoService = new ForSolutionAreaService();
+				fsoService.solveBo(updateBean.getTarget_material_id(), 1, user.getOperator_id(), conn);
+
 				break;
 			}
 		}

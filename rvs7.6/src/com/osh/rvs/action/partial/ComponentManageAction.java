@@ -707,8 +707,12 @@ public class ComponentManageAction extends BaseAction{
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
 
+		// 取得用户信息
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
 		// 设定出库
-		service.componentOutstock(componentBean, conn);
+		service.componentOutstock(componentBean, user, conn);
 
 		/* 检查错误时报告错误信息 */
 		callbackResponse.put("errors", errors);

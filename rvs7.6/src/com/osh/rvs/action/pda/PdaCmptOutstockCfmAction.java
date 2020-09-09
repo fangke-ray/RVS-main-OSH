@@ -9,7 +9,9 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.service.partial.ComponentManageService;
 
@@ -56,8 +58,10 @@ public class PdaCmptOutstockCfmAction extends BaseAction {
 		ComponentManageEntity componentBean = new ComponentManageEntity();
 		BeanUtil.copyToBean(form, componentBean, null);
 
+		LoginData user = (LoginData)req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
 		// 设定出库
-		String confirmMessage = service.componentOutstock(componentBean, conn);
+		String confirmMessage = service.componentOutstock(componentBean, user, conn);
 		// 通知信息
 		req.setAttribute("errors", confirmMessage);
 		// 清除表单中的传递
