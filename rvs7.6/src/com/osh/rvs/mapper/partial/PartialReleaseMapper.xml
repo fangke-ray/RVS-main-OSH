@@ -19,6 +19,8 @@
 				CASE 
 				WHEN processed.process_code IS NULL THEN
 					'不在线'
+				WHEN ma.inline_time IS NOT NULL AND processed_ns.process_code IS NOT NULL AND LEFT(processed.process_code, 1) = '1' THEN
+					processed_ns.process_code
 				ELSE
 					trim(concat(coalesce(processed.process_code, ''), ' ', coalesce(processed_ns.process_code, '')))
 				END as process_name

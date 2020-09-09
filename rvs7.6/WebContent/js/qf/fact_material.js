@@ -102,7 +102,7 @@ var showWipEmpty=function(rid) {
 					});
 				}
 			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+				console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 						+ e.lineNumber + " fileName: " + e.fileName);
 			};
 		}
@@ -445,7 +445,7 @@ var process_set = function(rowdata) {
 							}
 						}
 					});
-					$('div#errstring').html("<span class='errorarea'>中小修理应当在投线前订购零件，请确认！<br>如果未订购投线维修品将进入Pending Area。</span>");
+					$('div#errstring').html("<span class='errorarea'>此中小修理品还未订购零件，<br>如果未订购就投线，维修品将进入Pending Area。</span>");
 				}
 
 				else {
@@ -1036,7 +1036,7 @@ var getPositions_handleComplete = function(xhrobj, textStatus) {
 			$("#pa_main").html("");
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
@@ -1231,7 +1231,7 @@ function findexeit(xhrobj, textStatus) {
 				$("#exe_list").jqGrid().clearGridData();
 				$("#exe_list").jqGrid('setGridParam',{data:resInfo.list}).trigger("reloadGrid", [{current:false}]);
 			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+				console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 						+ e.lineNumber + " fileName: " + e.fileName);
 			};
 		}
@@ -1253,7 +1253,7 @@ function search_handleComplete(xhrobj, textStatus) {
 			loadData(resInfo.list);
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 
@@ -1329,7 +1329,7 @@ var showDetail = function(material_id){
 
 					case0();
 				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+					console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 							+ e.lineNumber + " fileName: " + e.fileName);
 				};
 				
