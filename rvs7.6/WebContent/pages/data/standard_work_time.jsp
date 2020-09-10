@@ -65,6 +65,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<div style="height:44px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="referencebutton" value="参考" role="button" aria-disabled="false" style="float:right;right:2px">					
+<%
+		String isAdmin = "" + request.getAttribute("isAdmin");
+		if ("true".equals(isAdmin)) {
+%>
+						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="filebutton" value="导出当前设置下全型号工位" role="button" aria-disabled="false" style="float:right;right:2px">
+<%
+		}
+%>
 					</div>
 				</form>	
 						

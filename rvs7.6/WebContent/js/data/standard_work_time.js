@@ -61,6 +61,45 @@ $(function(){
 		setData();
 		
 	});
+
+	var getFile = function(){
+		// Ajax提交
+		$.ajax({
+			beforeSend: ajaxRequestType, 
+			async: false, 
+			url: servicePath + '?method=getSwtFile', 
+			cache: false, 
+			data: null, 
+			type: "post", 
+			dataType: "json", 
+			success: ajaxSuccessCheck, 
+			error: ajaxError, 
+			complete:  function(xhrobj, textStatus){
+				var resInfo = null;
+	
+				// 以Object形式读取JSON
+				eval('resInfo =' + xhrobj.responseText);
+				var urlSrc = "download.do?method=output&fileName=标准工时导出.xls&filePath=" + resInfo.tempFile;
+			
+				if (resInfo.errors.length > 0) {
+					// 共通出错信息框
+					treatBackMessages(null, resInfo.errors);
+				} else {
+					if ($("iframe").length > 0) {
+						$("iframe").attr("src", urlSrc);
+					} else {
+						var iframe = document.createElement("iframe");
+			            iframe.src = urlSrc;
+			            iframe.style.display = "none";
+			            document.body.appendChild(iframe);
+					}
+				}
+			}
+		});
+	}
+
+	$("#filebutton").click(getFile);
+
 	var setData= function(){
 		var data  = {
 		        model_id : $("#reference_model_id").val(),
@@ -131,5 +170,5 @@ $(function(){
 		
 		$("#edit_value > table > tbody").html(tbodyContent);
 		
-	}	
+	}
 })

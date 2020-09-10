@@ -45,4 +45,6 @@ public interface PositionMapper {
 	public void setMappingPosition(@Param("position_id") String position_id, @Param("mapping_position_id") String id);
 
 	public void setPositionRevision(String process_code);
+
+	public List<PositionEntity> getAllProcessCodeForSwt();
 }

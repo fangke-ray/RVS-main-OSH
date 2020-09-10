@@ -1,21 +1,42 @@
 package com.osh.rvs.service;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.util.CellRangeAddress;
 
 import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.mapper.master.ModelMapper;
+import com.osh.rvs.mapper.master.PositionMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.FileUtils;
+import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class StandardWorkTimeService {
@@ -141,5 +162,239 @@ public class StandardWorkTimeService {
 			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "型号"));
 			errors.add(error);
 		}		
+	}
+
+	/**
+	 * 构造标准工时导出文件
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public String getStandardWorktimeFile(SqlSession conn) {
+		InputStream in = null;
+
+		String cacheName = "SWT " + new Date().getTime() + ".xls";
+		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\" + cacheName;
+		FileUtils.copyFile(PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\标准工时全型号工位Swt.xls", cachePath);
+
+		PositionMapper pMapper = conn.getMapper(PositionMapper.class);
+
+		List<PositionEntity> lProcessCode = pMapper.getAllProcessCodeForSwt();
+
+		String[] levelArray = {"S1","S2","S3","D", "E1","E2"};
+
+		Map<String, Integer> posIdx = new HashMap<String, Integer>();
+		for (int i = 0 ; i < lProcessCode.size(); i++) {
+			posIdx.put(lProcessCode.get(i).getProcess_code(), i);
+		}
+		Map<String, Integer> levelIdx = new HashMap<String, Integer>();
+		for (int i = 0 ; i < levelArray.length; i++) {
+			levelIdx.put(levelArray[i], i);
+		}
+
+		String sql = " select mdl.MODEL_ID, CATEGORY_NAME, mdl.name as MODEL_NAME, level, pos.process_code, mdl.KIND"
+		+ " from model_level_set mn"
+		+ " join v_model mdl on mn.model_id = mdl.model_id"
+		+ " join process_assign pa on mdl.default_pat_id = pa.refer_id and pa.refer_type = 1"
+		+ " join v_position pos on ((pa.position_id = pos.position_id or (pa.position_id = 32 and pos.process_code in (302,303, 304))) "
+		+ " and (level != 1 or pos.line_id != 13))"
+		+ " where mn.avaliable_end_date > current_date and mn.level != 0"
+		+ " order by mdl.KIND, CATEGORY_ID, MODEL_NAME, mn.level, pos.line_id, pos.process_code;";
+
+		try {
+			in = new FileInputStream(cachePath);
+			HSSFWorkbook work = new HSSFWorkbook(in);
+			HSSFSheet sheetMaterial = work.getSheetAt(0);
+
+			HSSFCellStyle titleCellBlue = work.createCellStyle();
+			titleCellBlue.setFillForegroundColor(HSSFColor.PALE_BLUE.index);
+			titleCellBlue.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
+			titleCellBlue.setVerticalAlignment((short)1);
+			titleCellBlue.setBorderTop((short)1);
+			titleCellBlue.setBorderBottom((short)1);
+			titleCellBlue.setBorderRight((short)1);
+
+			HSSFCellStyle titleCellBold = work.createCellStyle();
+			titleCellBold.setFillForegroundColor(HSSFColor.LIGHT_CORNFLOWER_BLUE.index);
+			titleCellBold.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
+			titleCellBold.setBorderTop((short)1);
+			titleCellBold.setBorderBottom((short)1);
+			titleCellBold.setBorderRight((short)1);
+			HSSFFont fontBold = work.createFont();
+			fontBold.setBoldweight(HSSFFont.BOLDWEIGHT_BOLD);
+			fontBold.setFontHeight((short) 240);
+			titleCellBold.setFont(fontBold);
+
+			HSSFCellStyle titleCellContent = work.createCellStyle();
+			titleCellContent.setVerticalAlignment((short)1);
+			titleCellContent.setBorderTop((short)1);
+			titleCellContent.setBorderBottom((short)1);
+			titleCellContent.setBorderRight((short)1);
+
+			HSSFRow rowLine = sheetMaterial.getRow(0);
+			HSSFRow rowPosition = sheetMaterial.getRow(1);
+			HSSFRow rowProcessCd = sheetMaterial.getRow(2);
+
+			sheetMaterial.setDefaultColumnStyle(0, titleCellContent);
+
+			sheetMaterial.setDefaultColumnStyle(1, titleCellContent);
+
+			sheetMaterial.setDefaultColumnStyle(2, titleCellContent);
+
+			Integer linestartIndex = null;
+			String nowLinename = null;
+
+			for (int i = 0 ; i < lProcessCode.size(); i++) {
+				PositionEntity posBean = lProcessCode.get(i);
+
+				sheetMaterial.setColumnWidth(3 + i, (int) (256*14.25+184));
+				sheetMaterial.setDefaultColumnStyle(3 + i, titleCellContent);
+
+				HSSFCell cell = null;
+
+				String processCode = posBean.getProcess_code();
+				if ("571".equals(processCode) || "572".equals(processCode) || "811".equals(processCode)) {
+					cell = rowLine.createCell(3 + i);
+					cell.setCellValue(posBean.getName());
+					cell.setCellStyle(titleCellBlue);
+
+					cell = rowPosition.createCell(3 + i);
+					cell.setCellStyle(titleCellBlue);
+
+					sheetMaterial.addMergedRegion(new CellRangeAddress(0, 1, 3 + i, 3 + i));
+
+					if (nowLinename != null) {
+						sheetMaterial.addMergedRegion(new CellRangeAddress(0, 0, 3 + linestartIndex, 3 + i - 1));
+
+						nowLinename = null;
+					}
+				} else {
+					cell = rowLine.createCell(3 + i);
+					cell.setCellValue(posBean.getLine_name());
+					cell.setCellStyle(titleCellBlue);
+
+					cell = rowPosition.createCell(3 + i);
+					cell.setCellValue(posBean.getName());
+					cell.setCellStyle(titleCellBlue);
+
+					if (nowLinename == null) {
+						nowLinename = posBean.getLine_name();
+						linestartIndex = i;
+					} else if (!nowLinename.equals(posBean.getLine_name())) {
+						sheetMaterial.addMergedRegion(new CellRangeAddress(0, 0, 3 + linestartIndex, 3 + i - 1));
+
+						nowLinename = posBean.getLine_name();
+						linestartIndex = i;
+					}
+				}
+
+				cell = rowProcessCd.createCell(3 + i);
+				cell.setCellValue(posBean.getProcess_code());
+				cell.setCellType(HSSFCell.CELL_TYPE_STRING);
+				cell.setCellStyle(titleCellBold);
+			}
+
+			Statement sm = conn.getConnection().createStatement();
+
+			ResultSet ds = sm.executeQuery(sql);
+
+			int iRow = 2;
+			StringBuffer key = new StringBuffer("");
+
+			Set<String> cc = RvsUtils.getCcdModels(conn);
+			Set<String> cl = RvsUtils.getCcdLineModels(conn);
+
+			while (ds.next()) {
+				iRow = xlist(ds, lProcessCode, posIdx, sheetMaterial, iRow, key, cc, cl);
+			}
+
+			// 保存文件
+			FileOutputStream fileOut = new FileOutputStream(cachePath);
+			work.write(fileOut);
+			fileOut.close();
+
+		} catch (Exception e) {
+			logger.error(e.getMessage(), e);
+		} finally {
+
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					logger.error(e.getMessage(), e);
+				}
+			}
+		}
+
+		return cacheName;
+	}
+
+	private int xlist(ResultSet ds, List<PositionEntity> lProcessCode, Map<String, Integer> posIdx, 
+			HSSFSheet sheetMaterial, int iRow, StringBuffer keyBf, Set<String> cc, Set<String> cl) throws Exception {
+		int retRow = iRow;
+
+		String categoryName = ds.getString("CATEGORY_NAME");
+		String modelName = ds.getString("MODEL_NAME");
+		String level = "" + ds.getString("level");
+		String levelName = CodeListUtils.getValue("material_level", level);
+		String processCode = ds.getString("process_code");
+
+		String modelId = ds.getString("MODEL_ID");
+
+		if (posIdx.get(processCode) == null) {
+			return iRow;
+		}
+
+		if (!(modelName + "|" + level).equals(keyBf.toString())) {
+			retRow = iRow + 1;
+			keyBf.setLength(0);
+			keyBf.append(modelName + "|" + level);
+		}
+
+		if (sheetMaterial.getRow(retRow) == null) {
+			HSSFRow row = sheetMaterial.createRow(retRow);
+			HSSFCell cell = row.createCell(0);
+			cell.setCellValue(categoryName);
+			cell = row.createCell(1);
+			cell.setCellValue(modelName);
+			cell = row.createCell(2);
+			cell.setCellValue(levelName);
+			for (int i = 0; i < lProcessCode.size(); i++) {
+				cell = row.createCell(3 + i);
+				cell.setCellValue("-");
+			}
+			logger.info(retRow + " modelName " + modelName);
+		}
+
+		if (cc.contains(modelId)) {
+			setCell(sheetMaterial, retRow, posIdx, "302", modelName, categoryName, level);
+		}
+
+		if ("D".equals(level)) {
+			setCell(sheetMaterial, retRow, posIdx, "303", modelName, categoryName, level);
+		}
+
+		if (cl.contains(modelId)) {
+			setCell(sheetMaterial, retRow, posIdx, "304", modelName, categoryName, level);
+		}
+
+		setCell(sheetMaterial, retRow, posIdx, processCode, modelName, categoryName, level);
+
+		return retRow;
+	}
+
+	private void setCell(HSSFSheet sheetMaterial, int retRow, Map<String, Integer> posIdx, String processCode,
+			String modelName, String categoryName, String level) throws Exception {
+		int idx = posIdx.get(processCode);
+
+		HSSFRow row = sheetMaterial.getRow(retRow);
+		HSSFCell cell = row.createCell(3 + idx);
+
+		String lever = RvsUtils.getLevelOverLine(modelName, categoryName, level, null, processCode);
+		if ("-1".equals(lever)) {
+			cell.setCellValue("无设定");
+		} else {
+			cell.setCellValue(Integer.parseInt(lever));
+		}
 	}
 }

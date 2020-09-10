@@ -1,20 +1,31 @@
 package com.osh.rvs.action.data;
+import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
+
+import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.form.master.ModelForm;
+import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.StandardWorkTimeService;
+
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class StandardWorkTimeAction extends BaseAction {
 
@@ -30,7 +41,6 @@ public class StandardWorkTimeAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 
 		log.info("StandardWorkTimeAction.init start");		
@@ -44,8 +54,12 @@ public class StandardWorkTimeAction extends BaseAction {
 		/*等级*/
 		req.setAttribute("sMaterial_level_inline", CodeListUtils.getSelectOptions("material_level_inline",null,""));
 
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		req.setAttribute("isAdmin", user.getPrivacies().contains(RvsConsts.PRIVACY_ADMIN));	
+
 		log.info("StandardWorkTimeAction.init end");
 	}
+
 	/**
 	 * 标准工时参考
 	 * @param mapping
@@ -89,5 +103,33 @@ public class StandardWorkTimeAction extends BaseAction {
        	ajaxResponse.put("errors", errors);
 	    returnJsonResponse(res, ajaxResponse);
 		log.info("StandardWorkTimeAction.changeRank.end");
+	}
+
+	/**
+	 * 制造标准工时导出文件
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void getSwtFile(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSession conn)
+			throws Exception {
+		log.info("StandardWorkTimeAction.getSwtFile start");
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		callbackResponse.put("errors", errors);
+
+		StandardWorkTimeService service = new StandardWorkTimeService();
+
+
+		callbackResponse.put("tempFile", service.getStandardWorktimeFile(conn));
+
+		returnJsonResponse(res, callbackResponse);
+		log.info("StandardWorkTimeAction.getSwtFile end");
 	}
 }
