@@ -5,8 +5,6 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,10 +16,10 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
-import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
+import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.form.qf.FactMaterialForm;
@@ -31,15 +29,12 @@ import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
-import com.osh.rvs.service.ProductionFeatureService;
-import com.osh.rvs.service.qf.AcceptanceService;
 import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.FactReceptMaterialService;
 import com.osh.rvs.service.qf.MaterialTagService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
-import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -65,8 +60,6 @@ public class FactReceptMaterialAction extends BaseAction {
 	/** 维修对象属性标签 **/
 	private MaterialTagService materialTagService = new MaterialTagService();
 	private FactReceptMaterialService factReceptMaterialService = new FactReceptMaterialService();
-	private ProductionFeatureService featureService = new ProductionFeatureService();
-	private AcceptanceService acceptanceService = new AcceptanceService();
 	
 	/**
 	 * 画面初始表示处理
@@ -184,75 +177,8 @@ public class FactReceptMaterialAction extends BaseAction {
 		
 		if(errors.size() == 0){
 			FactReceptMaterialForm factReceptMaterialForm = (FactReceptMaterialForm)form;
-			String materialID = factReceptMaterialForm.getMaterial_id();
-			
-			//现品维修对象作业
-			FactMaterialForm factMaterialForm = new FactMaterialForm();
-			factMaterialForm.setMaterial_id(materialID);
-			factMaterialForm.setProduction_type("102");
-			//查询当前维修对象有没有做过（维修品实物受理/测漏）
-			List<FactMaterialForm> fMaterialList =  factMaterialService.search(factMaterialForm, conn);
-			if(fMaterialList.size() == 0){
-				//新建现品维修对象作业
-				factMaterialForm.setAf_pf_key(productionForm.getAf_pf_key());
-				factMaterialService.insert(factMaterialForm, conn);
-			}
-			
-			Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
-			List<MaterialTagForm> pageList = new AutofillArrayList<MaterialTagForm>(MaterialTagForm.class);
-			Map<String, String[]> parameters = req.getParameterMap();
-			String tagTypes = "";
-			
-			for (String parameterKey : parameters.keySet()) {
-				Matcher m = p.matcher(parameterKey);
-				if (m.find()) {
-					String entity = m.group(1);
-					if ("material_tag".equals(entity)) {
-						String column = m.group(2);
-						int icounts = Integer.parseInt(m.group(3));
-						String[] value = parameters.get(parameterKey);
-						if ("tag_type".equals(column)) {
-							pageList.get(icounts).setTag_type(value[0]);
-							tagTypes += value[0] + ",";
-						}
-						pageList.get(icounts).setMaterial_id(materialID);
-					}
-				}
-			}
-			
-			//维修对象属性标签
-			materialTagService.deleteByMaterialId(materialID, conn);
-			for(MaterialTagForm materialTagForm : pageList){
-				materialTagService.insert(materialTagForm, conn);
-			}
-			
-			//维修对象属性标签
-			if(tagTypes.contains("4")){//消毒
-				// 发送至消毒
-				ProductionFeatureEntity entity = new ProductionFeatureEntity();
-				entity.setMaterial_id(materialID);
-				entity.setPosition_id("10");
-				entity.setSection_id(user.getSection_id());
-				entity.setPace(0);
-				entity.setOperate_result(0);
-				entity.setRework(0);
-				entity.setOperator_id(user.getOperator_id());
-				featureService.insert(entity, conn);
-				// 发送完毕后，受理时间覆盖导入时间
-				acceptanceService.updateFormalReception(new String[]{materialID}, conn);
-			} else if(tagTypes.contains("5")){//灭菌
-				ProductionFeatureEntity entity = new ProductionFeatureEntity();
-				entity.setMaterial_id(materialID);
-				entity.setPosition_id("11");
-				entity.setPace(0);
-				entity.setSection_id(user.getSection_id());
-				entity.setOperate_result(0);
-				entity.setRework(0);
-				entity.setOperator_id(user.getOperator_id());
-				featureService.insert(entity, conn);
-				// 发送完毕后，受理时间覆盖导入时间
-				acceptanceService.updateFormalReception(new String[]{materialID}, conn);
-			}
+			factReceptMaterialForm.setAf_pf_key(productionForm.getAf_pf_key());
+			factReceptMaterialService.updateMaterial(factReceptMaterialForm, req, errors, conn);
 		}
 		
 		// 检查发生错误时报告错误信息
@@ -303,41 +229,7 @@ public class FactReceptMaterialAction extends BaseAction {
 			errors = v.validate();
 			
 			if(errors.size() == 0){
-				FactReceptMaterialForm factReceptMaterialForm = (FactReceptMaterialForm)form;
-				String factReceptId = factReceptMaterialForm.getFact_recept_id();
-				
-				if(CommonStringUtil.isEmpty(factReceptMaterialForm.getModel_id())){
-					////找不到型号，型号ID设为00000000000
-					factReceptMaterialForm.setModel_id("00000000000");
-				}
-				
-				//material重复check
-				String existId1 = materialService.checkModelSerialNo(factReceptMaterialForm, conn);
-				if (existId1 != null) {
-					MsgInfo info = new MsgInfo();
-					info.setErrcode("dbaccess.columnNotUnique");
-					info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "型号 + 机身号", factReceptMaterialForm.getModel_id() +","+ factReceptMaterialForm.getSerial_no(), "维修对象"));
-					errors.add(info);
-				}
-				
-				if(errors.size() == 0){
-					if(!"00000000000".equals(factReceptMaterialForm.getModel_id()) && !factReceptMaterialForm.getSerial_no().startsWith("临")){
-						//临时表重复check
-						List<FactReceptMaterialForm> list = factReceptMaterialService.searchFactReceptMaterialTemp(factReceptMaterialForm, conn);
-						//型号机身号不能重复
-						if(list.size() == 1 && !factReceptId.equals(list.get(0).getFact_recept_id())){
-							MsgInfo info = new MsgInfo();
-							info.setErrcode("dbaccess.columnNotUnique");
-							info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "型号 + 机身号", factReceptMaterialForm.getModel_name() +","+ factReceptMaterialForm.getSerial_no(), "维修对象"));
-							errors.add(info);
-						}
-					}
-					
-					if(errors.size() == 0){
-						//更新临时表fact_recept_material_temp
-						factReceptMaterialService.updateFactReceptMaterialTemp(factReceptMaterialForm, conn);
-					}
-				}
+				factReceptMaterialService.updateFactReceptTemp(form, errors, conn);
 			}
 		}
 		
@@ -488,7 +380,12 @@ public class FactReceptMaterialAction extends BaseAction {
 					}
 					
 					if(errors.size() == 0){
-						materialService.insert(factReceptMaterialForm, conn);
+						MaterialForm materialForm = new MaterialForm();
+						materialForm.setModel_id(factReceptMaterialForm.getModel_id());
+						materialForm.setSerial_no(factReceptMaterialForm.getSerial_no());
+						materialForm.setFix_type("1");
+
+						materialService.insert(materialForm, conn);
 						CommonMapper cDao = conn.getMapper(CommonMapper.class);
 						String insertId = cDao.getLastInsertID();
 						

@@ -154,4 +154,22 @@
 	]]>
 	</update>
 	
+	<select id="getFactReceptTemp" parameterType="string" resultType="FactReceptMaterialEntity">
+	<![CDATA[
+		SELECT
+			fact_recept_id,
+			direct_flg,
+			serial_no,
+			model_id,
+			model_name,
+			af_pf_key,
+			tag_types,
+			tc_location
+		FROM
+			fact_recept_material_temp
+		WHERE
+			fact_recept_id = #{fact_recept_id}
+	]]>
+	</select>
+	
 </mapper>

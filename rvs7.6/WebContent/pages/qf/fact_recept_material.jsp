@@ -132,17 +132,24 @@ div.hidden{
 
 .item-container{
 	display: inline-block;
-	width: 270px;
+	width: 48%;
 	height: 100px;
-	margin: 4px 1px;
+	margin: 5px 4px;
 	background-color: #00B5B5;
 	border-radius: 10px;
-	font-size: 1.3rem;
+	font-size: 1.5rem;
 	font-weight:400;
 	color: #ffffff;
 	box-shadow: 0 2px rgba(0, 0, 0, 0.2);
 	transition: all 0.1s ease 0s;
 	box-sizing:border-box;
+}
+
+@media (min-width: 992px) {
+  .item-container{
+  	font-size: 1.3rem;
+  	width: 32%;
+  }
 }
 
 .item-container.less{
@@ -158,36 +165,35 @@ div.hidden{
 }
 
 .item-container .item-sub-container{
-	float:left;
-	height: 100%;
+	height: 50px;
+	line-height: 50px;
 }
 
-.item-container .item-sub-container::before{
+.item-container .item-sub-container::after{
 	content: '';
 	display: table;
 	clear: both;
 }
-.item-container .item-sub-container:first-child{
-	width: 75%;
-}
-
-.item-container .item-sub-container:last-child{
-	width: 25%;
-}
 
 .item-container .item-sub-container .item{
-	height: 50px;
-	line-height: 50px;
-	padding:3px;
+	display: inline-block;
+	margin-left: 4px;
+}
+
+.item-container .item-sub-container:last-child .item:nth-child(1){
+	float: left;
+}
+
+.item-container .item-sub-container:last-child .item:nth-child(n+2){
+	float: right;
+	margin-right:4px;
+	width: 45px;
+	height: 45px;
 }
 
 .item-container .item-sub-container .item.date{
 	font-size: 1rem;
-}
-
-.item-container  .item-sub-container[item='1'] .item{
-	height: 100px;
-	line-height: 100px;
+	vertical-align: text-bottom;
 }
 
 .td-content.tag-type span{
@@ -240,8 +246,8 @@ div.hidden{
 	left: 0;
 	font-size: 1rem;
 	color: #db4865;
-	display: none;
 	white-space:nowrap;
+	transition: all .2s ease 0s; 
 }
 
 .tip.moveOutTop{
@@ -421,12 +427,6 @@ div.hidden{
 					</td>
 				</tr>
 				<tr>
-					<td class="td-content" colspan="2">
-						<div class="btn" id="edit_recept_btn">完成实物受理</div>
-						<div class="btn" id="edit_leak_btn">完成实物受理及测漏</div>
-					</td>
-				</tr>
-				<tr>
 					<td class="ui-state-default td-title">故障说明</td>
 					<td class="td-content">
 						<label id="edit_comment"></label>
@@ -463,12 +463,6 @@ div.hidden{
 						<span class="animal" id="add_animal" alt="动物试验"></span>
 					</td>
 				</tr>
-				<tr>
-					<td class="td-content" colspan="2">
-						<div class="btn" id="add_recept_btn">完成实物受理</div>
-						<div class="btn" id="add_leak_btn">完成实物受理及测漏</div>
-					</td>
-				</tr>
 			</table>
 		</div>
 	</div>
@@ -498,12 +492,6 @@ div.hidden{
 						<span class="disinfect" id="temp_edit_disinfect" alt="消毒"></span>
 						<span class="sterilize" id="temp_edit_sterilize" alt="灭菌"></span>
 						<span class="animal" id="temp_edit_animal" alt="动物试验"></span>
-					</td>
-				</tr>
-				<tr>
-					<td class="td-content" colspan="2">
-						<div class="btn" id="temp_edit_recept_btn">完成实物受理</div>
-						<div class="btn" id="temp_edit_leak_btn">完成实物受理及测漏</div>
 					</td>
 				</tr>
 			</table>

@@ -285,7 +285,7 @@ td.td-content textarea{
 .list-group-item {
 	position: relative;
 	display: block;
-	padding: 0.5rem 1.25rem;
+	padding: .5rem .5rem;
 	border-bottom: 1px solid rgba(0, 0, 0, 0.125);
 }
 
@@ -294,7 +294,7 @@ td.td-content textarea{
 }
 
 .list-group-sub-item {
-	margin-left:10px;
+	padding-left:10px;
 }
 
 .calculator{
@@ -398,6 +398,11 @@ td.td-content textarea{
 
 .leak.checked{
 	background: url(../images/leak-checked.png) no-repeat 100% 100%;
+	background-size:cover;
+}
+
+.leak.waitting{
+	background: url(../images/leak-waitting.png) no-repeat 100% 100%;
 	background-size:cover;
 }
 

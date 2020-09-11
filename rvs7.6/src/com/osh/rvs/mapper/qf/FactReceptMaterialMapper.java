@@ -2,6 +2,8 @@ package com.osh.rvs.mapper.qf;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
 
 public interface FactReceptMaterialMapper {
@@ -14,5 +16,7 @@ public interface FactReceptMaterialMapper {
 	public List<FactReceptMaterialEntity> searchTemp(FactReceptMaterialEntity entity);
 
 	public void updateFactReceptMaterialTemp(FactReceptMaterialEntity entity);
+
+	public FactReceptMaterialEntity getFactReceptTemp(@Param("fact_recept_id") String fact_recept_id);
 
 }
