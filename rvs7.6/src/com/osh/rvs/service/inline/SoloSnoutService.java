@@ -808,7 +808,8 @@ public class SoloSnoutService {
 		else {
 			if (fingerList.size() > 0) {
 				return ApplicationMessage.WARNING_MESSAGES
-						.getMessage("info.transfer.justNow", idNo, joinBy(", ", fingerList.toArray(new String[fingerList.size()])));
+						.getMessage("info.transfer.justNow", idNo, joinBy(", ", fingerList.toArray(new String[fingerList.size()])))
+						+ "<input type='button' value='打印信息单'>";
 			} else {
 				return "您现在处理中的维修对象" + idNo + "完成后请送至NS组件库位。<input type='button' value='指定'><label></label><input type='button' value='打印标签'><input type='button' value='打印信息单'>";
 		}

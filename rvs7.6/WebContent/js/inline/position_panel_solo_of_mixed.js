@@ -76,16 +76,23 @@ var doStartComp_ajaxSuccess = function(xhrobj, textStatus, postData){
 };
 
 var setCompInstore = function($instore, stock_code){
-	var $printTicketer = $instore.find("input:button").button().eq(1);
-	if (!stock_code) $printTicketer.disable();
-	
-	var $printSheet = $instore.find("input:button").button().eq(2);
-	if (!stock_code) $printSheet.disable();
+	var $printTicketer, $printSheet;
 
-	$instore.find("label").addClass("instockCode").text(stock_code || "");
-	$instore.find("input:button").eq(0).click(showNSMap);
+	var $instoreButtons = $instore.find("input:button").button();
 
-	$printTicketer.click(printNSLabelTicket);
+	if ($instoreButtons.length >= 3) {
+		$printTicketer = $instoreButtons.eq(1);
+		if (!stock_code) $printTicketer.disable();
+		$printTicketer.click(printNSLabelTicket);
+
+		$instore.find("label").addClass("instockCode").text(stock_code || "");
+		$instoreButtons.eq(0).click(showNSMap);
+
+		$printSheet = $instoreButtons.eq(2);
+	} else {
+		$printSheet = $instoreButtons.eq(0);
+	}
+
 	$printSheet.click(printNSInfoSheet);
 }
 
