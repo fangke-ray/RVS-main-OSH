@@ -86,6 +86,7 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
 	<% if(links.get("wash")) { %>
 				<a href="steel_wire_container_wash_process.do">物料加工记录</a><br>
 	<% } %>
+				<a href="fact_recept_material.do">维修品实物受理/测漏</a><br>
     </div>
 </div>
 <% } %>

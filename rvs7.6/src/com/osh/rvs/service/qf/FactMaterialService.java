@@ -102,4 +102,15 @@ public class FactMaterialService {
 
 		return 1;
 	}
+	
+	public int countFinished(ActionForm form,SqlSession conn){
+		FactMaterialMapper dao = conn.getMapper(FactMaterialMapper.class);
+		
+		FactMaterialEntity entity = new FactMaterialEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		
+		int count = dao.countFinished(entity);
+		
+		return count;
+	}
 }
