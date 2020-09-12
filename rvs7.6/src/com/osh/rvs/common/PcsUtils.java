@@ -34,11 +34,13 @@ import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.PcsRequestEntity;
 import com.osh.rvs.mapper.infect.PeripheralInfectDeviceMapper;
 import com.osh.rvs.mapper.inline.LeaderPcsInputMapper;
+import com.osh.rvs.mapper.inline.MaterialProcessAssignMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.ModelMapper;
 import com.osh.rvs.mapper.master.PcsRequestMapper;
 import com.osh.rvs.service.MaterialProcessAssignService;
+import com.osh.rvs.service.PositionService;
 
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
@@ -405,7 +407,12 @@ public class PcsUtils {
 		boolean isLightFix = !CommonStringUtil.isEmpty(level) && "9".equals(level.substring(0, 1)); 
 		boolean isPrepheral = !CommonStringUtil.isEmpty(level) && "5".equals(level.substring(0, 1)); 
 
-		currentProcessCode = checkOverAll(currentProcessCode);
+		// 当前可填写工位映射
+		if (isLightFix) {
+			currentProcessCode = checkInLightProcessGroup(currentProcessCode, materialId, conn);
+		} else { // TODO 其实在OSH没有用了
+			currentProcessCode = checkOverAll(currentProcessCode);
+		}
 
 		Pattern pCurrentProcessCode = Pattern.compile("<pcinput.*?scope=\"E\".*?position=\""+currentProcessCode+"\".*?/>");
 
@@ -463,6 +470,8 @@ public class PcsUtils {
 
 				// 本作业对象中有替换成功的项目
 				boolean hasCurrent = false;
+
+				// ================= 已填项目 start ======================
 
 				// 线长对象
 				if (lpcs !=null && lpcs.size() > 0) {
@@ -596,7 +605,13 @@ public class PcsUtils {
 					if (currentProcessCode != null && currentProcessCode.indexOf("\\d") >= 0) {
 						isCurrent = processCode.matches(currentProcessCode);
 					}
-					processCode = checkOverAll(processCode);
+					// if (currentProcessCodeOrg)
+					// 当前可填写工位映射
+					if (isLightFix) {
+						processCode = checkInLightProcessGroup(processCode, materialId, conn);
+					} else { // TODO 其实在OSH没有用了
+						processCode = checkOverAll(processCode);
+					}
 
 					Pattern pProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"E\" type=\"\\w\" position=\"" + processCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
 					Matcher mProcessCode = pProcessCode.matcher(specify);
@@ -859,6 +874,8 @@ public class PcsUtils {
 					// 所在工位有备注 TODO
 				} // for 工位
 
+				// ================= 已填项目 end ======================
+
 				// 如果是最高的返工，文件中还有本工位没有替换掉的
 				if (bNewest && currentProcessCode != null) {
 
@@ -882,14 +899,20 @@ public class PcsUtils {
 						// 输入：I
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"I\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
 								"<input type=\"text\" name=\"$1\" value=\"\"/>");
-						if (isLightFix) {
+						if (isLightFix) { // NS检查票内中小修理不选等级等内容
 							specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}311\\d{2})\\d{2}\" scope=\"E\" type=\"R\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
 									UNCHECKED);
 							specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}331\\d{2})\\d{2}\" scope=\"E\" type=\"R\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
 									UNCHECKED);
 						}
+
+						int subGroupIdx = (currentProcessCode.indexOf("(") >= 0 ? 3 : 2);
+
+						logger.info("subGroupIdx:" + subGroupIdx);
+						logger.info("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"R\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>");
+						
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"R\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
-								"<input type=\"radio\" name=\"$1\" value=\"$2\"/>");
+								"<input type=\"radio\" name=\"$1\" value=\"$" + subGroupIdx + "\"/>");
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"M\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
 								"<input type=\"radio\" name=\"$1\" id=\"$1_0\" value=\"0\" checked/><label for=\"$1_0\">不需确认</label>" +
 								"<input type=\"radio\" name=\"$1\" id=\"$1_y\" value=\"1\"/><label for=\"$1_y\">合格</label>" +
@@ -908,13 +931,15 @@ public class PcsUtils {
 					// 线长空格
 					if (leaderLineId != null) {
 
+						int subGroupIdx = (currentProcessCode.indexOf("(") >= 0 ? 4 : 3);
+
 						// 输入：I
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"L\" type=\"I\" position=\"(000|" + currentProcessCode + ")\" name=\"\\d{2}\" sub=\"\\d{2}\"/>", // TODO 000 -》line code
 								"<input type=\"text\" name=\"$1\" value=\"\"/>");
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"L\" type=\"R\" position=\"(000|" + currentProcessCode + ")\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
-								"<input type=\"radio\" name=\"$1\" value=\"$3\"/>");
+								"<input type=\"radio\" name=\"$1\" value=\"$" + subGroupIdx + "\"/>");
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"L\" type=\"M\" position=\"(000|" + currentProcessCode + ")\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
-								"<input type=\"checkbox\" name=\"$1\" value=\"$3\"/>");
+								"<input type=\"checkbox\" name=\"$1\" value=\"$" + subGroupIdx + "\"/>");
 						// 按钮
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"L\" type=\"N\" position=\"(000|" + currentProcessCode + ")\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
 								"<input type=\"radio\" name=\"$1\" id=\"$1_0\" value=\"\" checked></input><label for=\"$1_0\">撤消</label>" +
@@ -1082,6 +1107,37 @@ public class PcsUtils {
 		}
 		// 工位对象
 		return htmlPcses;
+	}
+	private static String checkInLightProcessGroup(String currentProcessCode,
+			String materialId, SqlSession conn) {
+		String positionId = ReverseResolution.getPositionByProcessCode(currentProcessCode, conn);
+		if (!PositionService.getPositionMappings(conn).containsKey(positionId)) {
+			return currentProcessCode;
+		}
+
+		MaterialProcessAssignMapper mapper = conn.getMapper(MaterialProcessAssignMapper.class);
+		List<String> mappedProcessCodes = mapper.getSelectedMappings(materialId, positionId);
+		if (mappedProcessCodes.isEmpty()) {
+			return currentProcessCode;
+		} else {
+			return "(" + CommonStringUtil.joinBy("|",
+					mappedProcessCodes.toArray(new String[mappedProcessCodes.size()])) + ")";
+		}
+	}
+	private static List<String> checkInLightProcess(String currentProcessCode,
+			String materialId, SqlSession conn) {
+		String positionId = ReverseResolution.getPositionByProcessCode(currentProcessCode, conn);
+		if (!PositionService.getPositionMappings(conn).containsKey(positionId)) {
+			return null;
+		}
+
+		MaterialProcessAssignMapper mapper = conn.getMapper(MaterialProcessAssignMapper.class);
+		List<String> mappedProcessCodes = mapper.getSelectedMappings(materialId, positionId);
+		if (mappedProcessCodes.isEmpty()) {
+			return null;
+		} else {
+			return mappedProcessCodes;
+		}
 	}
 	/**
 	 * 工程单元维修匹配
@@ -2013,13 +2069,21 @@ public class PcsUtils {
 					if ("612".equals(process_code)) process_code = "611";
 					logger.info("process_code"+ process_code);
 
-					String checkedOverAllProcessCode = checkOverAllExcel(process_code);
+					// 当前可填写工位映射
+					String checkedOverAllProcessCode = "";
+					String lightProcess = null;
+					if (isLightFix) {
+						lightProcess = checkInLightProcessGroup(currentProcessCode, materialId, conn);
+					} else { // TODO 其实在OSH没有用了
+						checkedOverAllProcessCode = checkOverAllExcel(currentProcessCode);
+					}
 
 					// 判断有本工号的标签
 //					if (xls.Hit("@#E?" + process_code + "????") ||
 //							("400".equals(process_code) && pcsName.startsWith("总")) ) {
 					
-					if (xls.Hit("@#E?" + process_code + "????") || (!checkedOverAllProcessCode.equals(process_code))) {
+					if (xls.Hit("@#E?" + process_code + "????") || (!checkedOverAllProcessCode.equals(process_code))
+							|| (lightProcess != null && lightProcess.contains(process_code)) ) {
 	
 						// 如果有本工位的标签，进行替换
 						bReplacedAtPosition = true;

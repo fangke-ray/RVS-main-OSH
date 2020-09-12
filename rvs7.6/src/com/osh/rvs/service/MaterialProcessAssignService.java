@@ -516,6 +516,11 @@ public class MaterialProcessAssignService {
 
 		String position_id = checkedPosition.getPosition_id();
 		String ret = getProcessInterf(new PositionService().getPositionEntityByKey(position_id, conn), now_process_code);
+		if (positionMappings.containsKey(CommonStringUtil.fillChar(position_id, '0', 11, true))) {
+			List<String> mappedProcessCodes = mapper.getSelectedMappings(material_id, position_id);
+			ret += "(" + CommonStringUtil.joinBy(",", 
+					mappedProcessCodes.toArray(new String[mappedProcessCodes.size()])) + ")";
+		}
 		while (position_id != null) {
 			List<PositionEntity> nextPositions = mapper.getNextPositions(material_id, position_id);
 			if (nextPositions.size() > 0) {

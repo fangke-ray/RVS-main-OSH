@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">8.2.3372.450</p>
+								<p id="nee">8.3.3382.459</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2020年08月10日</p>
+								<p>2020年09月14日</p>
 							</div>
 						</div>
 <%
@@ -186,6 +186,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 %>
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
+								<p>--------------------------------------</p>
+								<p>20/09/14 8.3.3382.459 更新</p>
+								<p>流水线: 总组流水线改造（中小修单元化）</p>
+								<p>系统管理: 标准工时全型号工位列表导出</p>
+								<p>报价/出货/流水线: 周边未修理返回流程追加</p>
+								<p>流水线: 中小修零件未齐投线进入PA。</p>
+								<p>流水线: 关注工位页面顶部提示。</p>
 								<p>--------------------------------------</p>
 								<p>20/08/10 8.2.3372.450 更新</p>
 								<p>物料: NS 组件订购与库位管理。</p>

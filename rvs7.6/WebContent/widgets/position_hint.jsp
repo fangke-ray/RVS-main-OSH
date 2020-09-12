@@ -187,7 +187,7 @@ ${has_notice}
 if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js");
 
 $(".noticePositions li").click(function(){
-	getPositionWork(this.getAttribute("position_id"), this.getAttribute("px"));
+	getPositionWork(this.getAttribute("position_id"), this.getAttribute("px") || "0");
 });
 var refreshNotice = function(list){
 	$(".noticePositions li").attr({"cnt": 0, "stat": 'free'});

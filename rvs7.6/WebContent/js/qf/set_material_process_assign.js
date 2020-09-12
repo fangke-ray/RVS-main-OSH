@@ -322,7 +322,7 @@ var update_material_process_assign=function(){
 			var mappingCode = tomap[code];
 			if (mappedmap[mappingCode].prev == null)
 				mappedmap[mappingCode].prev
-					= data["material_process_assign.prev_position_id[" + idx + "]"];
+					= data["material_process_assign.prev_position_id[" + idx + "]"] || 0;
 			data["material_process_assign.prev_position_id[" + idx + "]"] = 0;
 
 			mappedmap[mappingCode].next

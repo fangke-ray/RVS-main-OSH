@@ -21,8 +21,10 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.mapper.data.AlarmMesssageMapper;
+import com.osh.rvs.mapper.inline.MaterialProcessAssignMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.mapper.partial.PartialReceptMapper;
+import com.osh.rvs.service.PositionService;
 
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -159,7 +161,21 @@ public class PartialReceptService {
 	public List<MaterialPartialDetailEntity> getPartialsForPosition(
 			String material_id, String position_id, SqlSession conn, boolean passSnout) {
 		PartialReceptMapper mapper = conn.getMapper(PartialReceptMapper.class);
-		List<MaterialPartialDetailEntity> ret = mapper.getPartialDetailByPosition(material_id, position_id);
+
+		// 映射工位
+		List<MaterialPartialDetailEntity> ret = null;
+		if (PositionService.getPositionMappings(conn).containsKey(position_id)) {
+			ret = mapper.getPartialDetailByPosition(material_id, position_id);
+
+			MaterialProcessAssignMapper mpaMapper = conn.getMapper(MaterialProcessAssignMapper.class);
+			List<String> selectedMappingsIds = mpaMapper.getSelectedMappingsId(material_id, position_id);
+			for (String selectedMappingsId : selectedMappingsIds) {
+				ret.addAll(mapper.getPartialDetailByPosition(material_id, selectedMappingsId));
+			}
+		} else {
+			ret = mapper.getPartialDetailByPosition(material_id, position_id);
+		}
+
 		boolean completed = true;
 		for (MaterialPartialDetailEntity mpdEntity: ret) {
 			if (mpdEntity.getWaiting_receive_quantity() > 0) {

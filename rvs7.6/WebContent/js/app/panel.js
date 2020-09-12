@@ -75,7 +75,7 @@ var changePosition_complete = function(xhrobj) {
 			checkedLine = $("#lines").find("input:checked").val();
 
 			// 可能影响菜单，需即时刷新
-			$("#body-lft").load("appmenu.do",
+			$("#body-lft").load("appmenu.do?t=" + new Date().getMilliseconds(),
 				function(responseText, textStatus, XMLHttpRequest) {
 			});
 		}

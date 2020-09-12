@@ -55,4 +55,6 @@ public interface MaterialProcessAssignMapper {
 
 	public List<String> getSelectedMappings(@Param("material_id") String material_id,
 			@Param("position_id") String position_id);
+	public List<String> getSelectedMappingsId(@Param("material_id") String material_id,
+			@Param("position_id") String position_id);
 }

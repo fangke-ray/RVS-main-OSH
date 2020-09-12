@@ -113,12 +113,14 @@ public class ReverseResolution {
 
 	public static String getPositionByProcessCode(String process_code, SqlSession conn) {
 		if (CommonStringUtil.isEmpty(process_code)) return null;
-		boolean ownConn = false;
-		if (conn == null) {
-			conn = getTempConn();
-			ownConn = true;
-		}
+
 		if (!positionRever.containsKey(process_code)) {
+			boolean ownConn = false;
+			if (conn == null) {
+				conn = getTempConn();
+				ownConn = true;
+			}
+
 			PositionEntity condition = new PositionEntity();
 			condition.setProcess_code(process_code);
 			PositionMapper dao = conn.getMapper(PositionMapper.class);
@@ -127,11 +129,12 @@ public class ReverseResolution {
 				positionRever.put(process_code, position.get(0).getPosition_id());
 				logger.info("Get " + process_code + " is :" + position.get(0).getPosition_id());
 			}
-		}
-		if (ownConn) {
-			logger.info("Connnection close");
-			conn.close();
-			conn = null;
+
+			if (ownConn) {
+				logger.info("Connnection close");
+				conn.close();
+				conn = null;
+			}
 		}
 		return positionRever.get(process_code);
 	}

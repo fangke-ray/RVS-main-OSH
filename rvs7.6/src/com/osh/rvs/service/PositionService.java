@@ -19,6 +19,7 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.PositionGroupEntity;
+import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.PositionForm;
 import com.osh.rvs.mapper.CommonMapper;
@@ -40,8 +41,8 @@ public class PositionService {
 	private static Map<String, List<PositionGroupEntity>> groupPositionSubs = null;
 	private static String inlineOptions = null;
 	private static Map<String, PositionEntity> positionEntityCache = new HashMap<String, PositionEntity>();
-	private static Map<String, List<String>> positionMappings = null;
-	private static Map<String, String> positionMappingRevers = null;
+	private static Map<String, List<String>> positionMappings = null; // (中小修)映射工位指向(大修)来源工位
+	private static Map<String, String> positionMappingRevers = null; // (大修)来源工位指向(中小修)映射工位
 
 	private void clearCaches() {
 		dividePositions = null;
@@ -53,6 +54,7 @@ public class PositionService {
 		positionMappings = null;
 		positionMappingRevers = null;
 		positionEntityCache.clear();
+		ReverseResolution.positionRever.clear();
 	}
 
 	/**
