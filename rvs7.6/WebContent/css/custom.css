@@ -1122,3 +1122,10 @@ span.textlink {
 	text-align:left;
 	width: 94%;
 }
+@keyframes twinkling{
+	0%{opacity:0;}
+	100%{opacity:1;}
+}
+.twinkling_on {
+	animation: twinkling 1s infinite ease-in-out;
+}

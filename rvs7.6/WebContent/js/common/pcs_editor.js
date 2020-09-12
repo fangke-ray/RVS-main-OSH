@@ -92,6 +92,11 @@ var pcsO = {
 			}
 		}
 		this.$pcs_pages.html(tabs).buttonset();
+		if (pcsO.forQa) {
+			this.$pcs_pages.find(".ui-button-text").filter(function(idx, ele){
+				return ($(ele).text().indexOf("NS组件组装") >= 0);
+			}).addClass("twinkling_on");
+		}
 		this.$pcs_contents.html(contents);
 		this.$pcs_pages.find("input").click(function(){
 			$("#pcscombutton").enable();
