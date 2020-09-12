@@ -31,8 +31,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</tr>
 				<tr>
 				   	<td class="ui-state-default td-title">提要</td>
-					<td class="td-content">
-						<textarea  id="textarea_mention" name="mention" alt="提要" class="ui-widget-content"/>
+					<td class="td-content" colspan="3">
+						<textarea  id="textarea_mention" name="mention" alt="提要" class="ui-widget-content" cols="80"/>
 					</td>
 				</tr>
 				

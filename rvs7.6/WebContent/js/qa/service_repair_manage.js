@@ -1031,7 +1031,7 @@ var showedit_accept = function(xhrobj, textStatus) {// 点击受理按钮触发D
 			height: 'auto',
 			show: "blind",
 			modal : true,
-			title : "QIS品受理",
+			title : "QIS/入库新品/新品零件/保修期 不良品受理",
 			buttons : {
 				"确认" : function() {
 					if ($("#accept_Manage").valid()) {

@@ -40,6 +40,7 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.qa.ServiceRepairManageForm;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.qa.ServiceRepairManageMapper;
+import com.osh.rvs.service.partial.ComponentManageService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -703,7 +704,6 @@ public class ServiceRepairManageService {
 		// 维修对象信息
 		entity.setMaterial_id(material_id);
 
-
 		// 查询维修对象信息
 		List<MaterialEntity> sList=mapper.getRecept(entity);
 		if (sList.size() == 1) {
@@ -723,6 +723,65 @@ public class ServiceRepairManageService {
 				if (qa_material_ids.size() == 1) {
 					mapper.updateMaterialId(material_id, qa_material_ids.get(0));
 					return;
+				}
+			}
+
+			// 查询6个月内最近上次维修
+			if (mEntity.getService_repair_flg() == 1 || mEntity.getService_repair_flg() == 2) {
+				// 6个月前
+				Calendar sixMonthAgo = Calendar.getInstance();
+				//sixMonthAgo.add(Calendar.MONTH, -6);
+				sixMonthAgo.add(Calendar.YEAR, -6);
+
+				// 按机身号与型号查找维修历史
+				ServiceRepairManageEntity condition = new ServiceRepairManageEntity();
+				condition.setModel_name(mEntity.getModel_name());
+				condition.setSerial_no(mEntity.getSerial_no());
+				List<MaterialEntity> list = mapper.getMaterialIds(condition);
+
+				MaterialEntity lastHitMaterial = null; 
+				for (MaterialEntity hitMaterial : list) {
+					if (hitMaterial.getOutline_time() != null
+						&& hitMaterial.getOutline_time().after(sixMonthAgo.getTime())) {
+						if (material_id.equals(hitMaterial.getMaterial_id())) {
+							break;
+						}
+						lastHitMaterial = hitMaterial;
+					}
+				}
+				// 找到则把上次修理信息加入到提要
+				if (lastHitMaterial != null) {
+					String mention = "";
+					String lastHitServiceRepairText = "普通";
+					if (lastHitMaterial.getService_repair_flg() != null) {
+						lastHitServiceRepairText = lastHitMaterial.getService_repair_flg() == 1 ? "保内返回" : (lastHitMaterial.getService_repair_flg() == 2 ? "QIS" : "普通");
+					}
+					mention += "上次" + lastHitServiceRepairText
+							+ "维修，于" + DateUtil.toString(lastHitMaterial.getOutline_time(), DateUtil.ISO_DATE_PATTERN)
+							+ (lastHitMaterial.getBreak_back_flg() == 2 ? "返还" : "完成")
+							+ "。";
+
+//					if (!"普通".equals(lastHitServiceRepairText)){
+//						ServiceRepairManageEntity pentity = new ServiceRepairManageEntity();
+//						pentity.setMaterial_id(lastHitMaterial.getMaterial_id());
+//						// 查询此次维修的判定
+//						List<MaterialEntity> pList=mapper.getRecept(pentity);
+//						if (pList.size() == 1 && pList.get(0).getService_free_flg() != null) {
+//							mention += "\n判定为" + CodeListUtils.getValue("service_free_flg", "" + pList.get(0).getService_free_flg()) + "。";
+//						}
+//					}
+
+					// 查询此次维修有没有使用组件
+					ComponentManageService cmSerivce = new ComponentManageService();
+					String serialNos = cmSerivce.getSerialNosForTargetMaterial(lastHitMaterial.getMaterial_id(), conn);
+					if (!isEmpty(serialNos)) {
+						mention += "\n使用NS组装组件(" + serialNos + ")。";
+					}
+
+//					ALTER TABLE `rvsdb`.`service_repair_manage` 
+//					CHANGE COLUMN `mention` `mention` VARCHAR(64) NULL DEFAULT NULL COMMENT '提要' ;
+					if (mention.length() > 64) mention = mention.substring(0, 64);
+					entity.setMention(mention);
 				}
 			}
 			

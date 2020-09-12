@@ -18,7 +18,7 @@
 		]]>
 	</select>
 
-	<select id="insertServiceRepairManage" parameterType="ServiceRepairManageEntity">
+	<insert id="insertServiceRepairManage" parameterType="ServiceRepairManageEntity">
 		<![CDATA[ 
 		INSERT INTO `service_repair_manage`
 			(MATERIAL_ID,
@@ -59,9 +59,9 @@
 			#{comment},
 			#{mention});
 		]]>
-	</select>
+	</insert>
 
-	<select id="insertServiceRepairPastMaterial" parameterType="ServiceRepairManageEntity">
+	<insert id="insertServiceRepairPastMaterial" parameterType="ServiceRepairManageEntity">
 		<![CDATA[ 
 		INSERT INTO `service_repair_past_material`
 			(MODEL_NAME,
@@ -82,7 +82,7 @@
 			#{inline_date},
 			#{outline_date});
 		]]>
-	</select>
+	</insert>
 	
 	<select id="getModelNameAutoCompletes" resultType="String">
 		<![CDATA[ 
@@ -453,7 +453,11 @@ and rc_mailsend_date=#{rc_mailsend_date};
 	<![CDATA[
 		SELECT 
 			ma.material_id,
-			ma.reception_time
+			ma.omr_notifi_no as sorc_no,
+			ma.reception_time,
+			ma.break_back_flg,
+			ma.service_repair_flg,
+			ma.outline_time
 		FROM 
 			material ma
 		LEFT JOIN
@@ -464,6 +468,9 @@ and rc_mailsend_date=#{rc_mailsend_date};
 			mo.name=#{model_name}
 		AND
 			ma.serial_no=#{serial_no}
+		AND (ma.break_back_flg = 0 OR ma.inline_time IS NOT null)
+		ORDER BY outline_time is null, outline_time
+		;
 	]]>
 	</select>
 	
