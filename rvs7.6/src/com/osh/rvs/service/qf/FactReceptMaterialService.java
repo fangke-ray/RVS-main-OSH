@@ -17,12 +17,13 @@ import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.form.data.MaterialTagForm;
 import com.osh.rvs.form.qf.FactMaterialForm;
 import com.osh.rvs.form.qf.FactReceptMaterialForm;
-import com.osh.rvs.form.qf.MaterialTagForm;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.qf.AcceptanceMapper;
 import com.osh.rvs.mapper.qf.FactReceptMaterialMapper;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ProductionFeatureService;
 
 import framework.huiqing.bean.message.MsgInfo;

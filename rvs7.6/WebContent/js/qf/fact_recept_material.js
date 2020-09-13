@@ -114,9 +114,31 @@ $(function() {
         $("#toggleBtn").prop("checked", false);
     }
 
+    //型号导航滚动事件
+    var scrollByModel = function(modelName, fromInitial) {
+        let el = $("#" + activeTab + "_tab").find("li[data-value='" + modelName + "']").get(0);
+
+        let currentScroll;
+        if (activeTab == "undirect") {
+            currentScroll = undirectObj.scroll;
+        } else if (activeTab == "direct") {
+            currentScroll = directObj.scroll;
+        } else if (activeTab == "perl") {
+            currentScroll = perlObj.scroll;
+        }
+
+        currentScroll.scrollToElement(el, 400, true, true, IScroll.utils.ease.quadratic);
+        if (!fromInitial) $("#model_nav").removeClass("active");
+    }
+
+    // 型号不点收起
+    var closeModelNavTO = null; 
+    var closeModelNav = function(){$("#model_nav").removeClass("active")};
+
     //字母导航
     $("#letter_nav > li").hammer().on("tap", function() {
         clearLetterActive();
+        clearTimeout(closeModelNavTO);
 
         let $this = $(this);
         let letter = $this.attr("data-value");
@@ -131,28 +153,49 @@ $(function() {
             arrModels = perlModelMap.get(letter);
         }
 
+        let currentScroll;
+        if (activeTab == "undirect") {
+            currentScroll = undirectObj.scroll;
+        } else if (activeTab == "direct") {
+            currentScroll = directObj.scroll;
+        } else if (activeTab == "perl") {
+            currentScroll = perlObj.scroll;
+        }
+
         if (letter == NO_TEXT) {
             let el = $("#" + activeTab + "_tab").find("li[data-value='" + letter + "']").get(0);
-
-            let currentScroll;
-            if (activeTab == "undirect") {
-                currentScroll = undirectObj.scroll;
-            } else if (activeTab == "direct") {
-                currentScroll = directObj.scroll;
-            } else if (activeTab == "perl") {
-                currentScroll = perlObj.scroll;
-            }
 
             currentScroll.scrollToElement(el, 400, true, true, IScroll.utils.ease.quadratic);
         } else {
             if (arrModels.length > 0) {
+            	let firstModelNameOfLetter = null;
                 let content = "";
                 for (let modelName of arrModels) {
                     if (modelName != NO_TEXT) {
                         content += '<li data-value="' + modelName + '">' + modelName + '</li>';
                     }
+                    if (firstModelNameOfLetter == null) firstModelNameOfLetter = modelName;
                 }
                 $("#model_nav").addClass("active").find("ul").html(content);
+                closeModelNavTO = setTimeout(closeModelNav, 2500);
+
+                // 当前字母不在显示位置时，滚动到第一个型号
+                let initialShowing = false;
+
+                $(currentScroll.wrapper).find(".list-group-item").each(function(idx, ele){
+                	if (initialShowing) {
+                		return;
+                	}
+                	let modelDataValue = $(ele).attr("data-value");
+                	if (modelDataValue && modelDataValue.charAt(0) === letter) {
+                		var positionTop = $(ele).position().top;
+                		if (positionTop > 0 && positionTop < 520) {
+                			initialShowing = true;
+                		}
+                	}
+                });
+
+                if (!initialShowing) scrollByModel(firstModelNameOfLetter, true);
             }
         }
     });
@@ -189,19 +232,7 @@ $(function() {
         $(this).removeAttr("hold");
 
         let modelName = $(this).attr("data-value");
-        let el = $("#" + activeTab + "_tab").find("li[data-value='" + modelName + "']").get(0);
-
-        let currentScroll;
-        if (activeTab == "undirect") {
-            currentScroll = undirectObj.scroll;
-        } else if (activeTab == "direct") {
-            currentScroll = directObj.scroll;
-        } else if (activeTab == "perl") {
-            currentScroll = perlObj.scroll;
-        }
-
-        currentScroll.scrollToElement(el, 400, true, true, IScroll.utils.ease.quadratic);
-        $("#model_nav").removeClass("active");
+        scrollByModel(modelName);
     });
 
     $(".btn.reset").each(function(index,ele){
@@ -212,6 +243,11 @@ $(function() {
 	    	$("#" + $(this).attr("for")).val("");
 	    });
     });
+
+    // 退出本页面
+    $("#exitToPanel").hammer().on("tap", function(){
+    	document.location.href = "panel.do";
+    })
 });
 
 function findit() {
@@ -457,7 +493,7 @@ function setList(id, list, tempList) {
             } else if (arrTagTypes.includes('3')) { //做完测漏
                 	content += '<div class="item"><div class="leak checked"></div></div>';
             } else {
-            		content += '<div class="item"><div class="leak"></div></div>';
+            		content += '<div class="item"><div></div></div>';
             }
 
             content += '</div>';
@@ -519,7 +555,7 @@ function filterSerialNO(serialNo) {
     if (!serialNo) {
         $("#" + activeTab + "_tab").find(".item-container").each(function(i, item) {
             let $this = $(this);
-            if ($this.hasClass("scaleOut")) {
+            if ($this.is(":hidden")) {
                 $this.show().removeClass("scaleOut").addClass("scaleIn");
                 setTimeout(function() {
                     $this.removeClass("scaleIn");
@@ -527,17 +563,19 @@ function filterSerialNO(serialNo) {
             }
         });
     } else {
-        $("#" + activeTab + "_tab").find(".item-container").each(function(i, item) {
+		let patternSerialNo = new RegExp( "(^|\\D)"+serialNo, "");
+
+    	$("#" + activeTab + "_tab").find(".item-container").each(function(i, item) {
             let $this = $(this);
             let value = $this.attr("serial_no");
 
             //不匹配
-            if (!value.includes(serialNo)) {
+            if (!value.match(patternSerialNo)) {
                 $this.removeClass("scaleOut scaleIn").addClass("scaleOut");
                 setTimeout(function() {
                     $this.hide();
                 }, 300);
-            } else { //匹配
+            } else { //匹配 数字内容首部一致
                 if ($this.hasClass("scaleOut")) {
                     $this.show().removeClass("scaleOut").addClass("scaleIn");
                     setTimeout(function() {
@@ -676,8 +714,10 @@ function showEditDialog(initData) {
                     postData["material_tag.tag_type[" + index + "]"] = "1"; //动物试验
                 }
 
-                index++;
-    			postData["material_tag.tag_type[" + index + "]"] = "2"; //要做测漏还没做
+    			if($("#edit_leak").hasClass("checked")){
+    				index++;
+    				postData["material_tag.tag_type[" + index + "]"] = "2"; //要做测漏还没做
+    			}
 
     			if ($("#edit_disinfect").hasClass("checked")) {
                     index++;
@@ -1538,8 +1578,6 @@ function showPerlEditDialog(initData) {
         } else {
             if (!$(this).hasClass("checked")) {
                 $(this).addClass("checked");
-            } else {
-                $(this).removeClass("checked");
             }
         }
 

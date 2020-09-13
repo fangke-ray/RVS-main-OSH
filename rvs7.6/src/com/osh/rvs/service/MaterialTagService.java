@@ -1,10 +1,10 @@
-package com.osh.rvs.service.qf;
+package com.osh.rvs.service;
 
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
 
-import com.osh.rvs.bean.qf.MaterialTagEntity;
-import com.osh.rvs.mapper.qf.MaterialTagMapper;
+import com.osh.rvs.bean.data.MaterialTagEntity;
+import com.osh.rvs.mapper.data.MaterialTagMapper;
 
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;

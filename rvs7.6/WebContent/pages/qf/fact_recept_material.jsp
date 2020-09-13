@@ -223,7 +223,33 @@ div.hidden{
 .error{
 	color: #dc0800;
 }
-
+@font-face {
+	font-family: 'icomoon';
+	src:url('css/fonts/icomoon.eot');
+	src:url('css/fonts/icomoon.eot?#iefix') format('embedded-opentype'),
+		url('css/fonts/icomoon.svg#icomoon') format('svg'),
+		url('css/fonts/icomoon.woff') format('woff'),
+		url('css/fonts/icomoon.ttf') format('truetype');
+	font-weight: normal;
+	font-style: normal;
+}
+#exitToPanel {
+	width: 5em;
+	height: 5em;
+	position: absolute;
+	background-color: #09127a;
+	top: 1em;
+	right: 0.5em;
+	border-radius: 2.25em;
+	text-align: center;
+	cursor: pointer;
+}
+#exitToPanel > span{
+	color: yellow;
+	font-size: 3em;
+	line-height: 1.8;
+	font-family: 'icomoon';
+}
 @-webkit-keyframes moveOutTop {
 	0%{-webkit-transform:scale(0);opacity: 0;}
 	50%{-webkit-transform:scale(2) translateY(-30px);opacity: 1;}
@@ -402,7 +428,9 @@ div.hidden{
 			<div id="test"></div>
 		</div>
 	</div>
-	
+
+	<div id="exitToPanel"><span>F</span></div>
+
 	<div style="display: none;" id="edit_dialog">
 		<div class="ui-widget-content">
 			<table class="condform" style="width: 99%;">

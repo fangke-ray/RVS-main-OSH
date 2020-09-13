@@ -1,8 +1,8 @@
-package com.osh.rvs.mapper.qf;
+package com.osh.rvs.mapper.data;
 
 import org.apache.ibatis.annotations.Param;
 
-import com.osh.rvs.bean.qf.MaterialTagEntity;
+import com.osh.rvs.bean.data.MaterialTagEntity;
 
 public interface MaterialTagMapper {
 	public void insert(MaterialTagEntity entity);

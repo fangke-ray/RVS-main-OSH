@@ -42,4 +42,5 @@ public interface FactMaterialMapper {
 	 * @return
 	 */
 	public int countFinished(FactMaterialEntity entity);
+	public int countTempFinished(FactMaterialEntity entity);
 }

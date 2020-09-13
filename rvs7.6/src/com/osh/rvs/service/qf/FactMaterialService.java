@@ -102,14 +102,20 @@ public class FactMaterialService {
 
 		return 1;
 	}
-	
+
+	/**
+	 * 当日完成实物受理件数
+	 * @param form
+	 * @param conn
+	 * @return
+	 */
 	public int countFinished(ActionForm form,SqlSession conn){
 		FactMaterialMapper dao = conn.getMapper(FactMaterialMapper.class);
 		
 		FactMaterialEntity entity = new FactMaterialEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 		
-		int count = dao.countFinished(entity);
+		int count = dao.countFinished(entity) + dao.countTempFinished(entity);
 		
 		return count;
 	}

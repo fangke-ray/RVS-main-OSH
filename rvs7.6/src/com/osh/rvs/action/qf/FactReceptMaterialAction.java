@@ -18,20 +18,20 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
-import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.form.data.MaterialTagForm;
 import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.form.qf.FactMaterialForm;
 import com.osh.rvs.form.qf.FactReceptMaterialForm;
-import com.osh.rvs.form.qf.MaterialTagForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.HolidayService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.FactReceptMaterialService;
-import com.osh.rvs.service.qf.MaterialTagService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -130,8 +130,9 @@ public class FactReceptMaterialAction extends BaseAction {
 		//当天完成单数
 		int todayFinishedNum = factMaterialService.countFinished(factMaterialForm, conn);
 		callbackResponse.put("todayFinishedNum", todayFinishedNum);
-		
-		String nextDay = RvsUtils.getNextWorkday(conn);
+
+		HolidayService hService = new HolidayService();
+		String nextDay = hService.addWorkdays(start.getTime(), 1, conn);
 		callbackResponse.put("nextDay", nextDay);
 		
 		// 检查发生错误时报告错误信息

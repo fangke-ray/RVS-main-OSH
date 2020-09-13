@@ -1,4 +1,4 @@
-package com.osh.rvs.form.qf;
+package com.osh.rvs.form.data;
 
 import java.io.Serializable;
 

@@ -145,7 +145,7 @@
 		<typeAlias alias="ComponentSettingEntity" type="com.osh.rvs.bean.partial.ComponentSettingEntity"/>
 		
 		<typeAlias alias="FactReceptMaterialEntity" type="com.osh.rvs.bean.qf.FactReceptMaterialEntity"/>
-		<typeAlias alias="MaterialTagEntity" type="com.osh.rvs.bean.qf.MaterialTagEntity"/>
+		<typeAlias alias="MaterialTagEntity" type="com.osh.rvs.bean.data.MaterialTagEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -153,7 +153,7 @@
 			<transactionManager type="JDBC" />
 			<dataSource type="POOLED">
 				<property name="driver" value="com.mysql.jdbc.Driver" />
-				<property name="url" value="jdbc:mysql://198.198.198.142:3306/rvsdb?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf8" />
+				<property name="url" value="jdbc:mysql://localhost:3306/rvsdb?autoReconnect=true&amp;useUnicode=true&amp;characterEncoding=utf8" />
 				<property name="username" value="dbma" />
 				<property name="password" value="FEDur7s#" />
 			</dataSource>
@@ -192,6 +192,7 @@
 		<mapper resource="com/osh/rvs/mapper/data/PositionProductionMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/data/PostMessageMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/data/QaResultMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/data/MaterialTagMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/infect/CheckResultFilingMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/infect/CheckResultMapper.xml"/>
@@ -285,7 +286,6 @@
 		<mapper resource="com/osh/rvs/mapper/qf/FactMaterialMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qf/SteelWireContainerWashProcessMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/qf/FactReceptMaterialMapper.xml"/>
-		<mapper resource="com/osh/rvs/mapper/qf/MaterialTagMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/qa/QualityAssuranceMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qa/ServiceRepairManageMapper.xml" />

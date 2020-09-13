@@ -1,4 +1,4 @@
-package com.osh.rvs.bean.qf;
+package com.osh.rvs.bean.data;
 
 import java.io.Serializable;
 

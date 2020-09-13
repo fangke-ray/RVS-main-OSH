@@ -1,4 +1,4 @@
-@CHARSET "UTF-8";
+﻿@CHARSET "UTF-8";
 
 * {
 	outline: 0;
@@ -295,6 +295,10 @@ td.td-content textarea{
 
 .list-group-sub-item {
 	padding-left:10px;
+}
+
+.list-group-item.non-visible {
+	line-height:0;
 }
 
 .calculator{

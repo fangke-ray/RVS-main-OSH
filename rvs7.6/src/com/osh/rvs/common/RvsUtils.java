@@ -34,7 +34,6 @@ import org.apache.ibatis.session.TransactionIsolationLevel;
 import org.apache.log4j.Logger;
 
 import com.osh.rvs.bean.LoginData;
-import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.HolidayMapper;
 import com.osh.rvs.mapper.master.ModelMapper;
 
@@ -1207,12 +1206,5 @@ public class RvsUtils {
 		countdownCache.clear();
 
 		unproceedPermitCache.clear();;
-	}
-	
-	/**下一个工作日**/
-	public static String getNextWorkday(SqlSession conn){
-		CommonMapper dao = conn.getMapper(CommonMapper.class);
-		Date date = dao.getNextWorkday();
-		return DateUtil.toString(date, DateUtil.DATE_PATTERN);
 	}
 }

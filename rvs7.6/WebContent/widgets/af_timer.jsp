@@ -233,6 +233,7 @@
 <ul id="af_abilities_group"></ul>
 <ul id="af_abilities">
 </ul>
+<div class="af_state_tool" for="102">▲</div>
 <div class="af_state_tool" for="221">▲</div>
 <div class="af_state_tool" for="164">▲</div>
 </div>
@@ -323,7 +324,9 @@ var setProcessForm = function(processForm){
 		"is_working": processForm.is_working
 	});
 
-	if (type_code == "221" || type_code == "164") {
+	if (processForm.is_working === "1" && (type_code == "102" || type_code == "221")) {
+		$(".af_state_tool[for='" + type_code + "']").show();
+	} else if (processForm.is_working === "0" && (type_code == "164")) {
 		$(".af_state_tool[for='" + type_code + "']").show();
 	} else {
 		$(".af_state_tool").hide();
@@ -424,6 +427,8 @@ var stateTool = function(){
 	
 	if($afTimer.data("is_working") == "1"){
 		switch(type_code) {
+			case "102" : document.location.href = "fact_recept_material.do";
+				break;
 			case "221" : showPartialOrderList();
 				break;
 		}
@@ -444,11 +449,21 @@ var stateTool = function(){
 	var af_clockTo = null;
 	var isClosed = false;
 
+	var supportTouch = "ontouchend" in document;
+	var touchEvents = {"start":"mousedown", "end":"mouseup", "move": "mousemove"};
+	if (supportTouch) {
+		touchEvents = {"start":"touchstart", "end":"touchend", "move": "touchmove"};
+	    //禁止滑动页面
+	    document.addEventListener('touchmove', function(e) {
+	        e.preventDefault();
+	    }, { capture: false, passive: false });
+	}
+
 	$afHolder
-	.bind("mousedown", function(evt){
+	.bind(touchEvents["start"], function(evt){
 		$afTimer.attr("moving", true);
-		af_dragged = true;saf_xM = af_xM = evt.pageX;saf_yM = af_yM = evt.pageY;} )
-	.bind("mouseup", function(){
+		af_dragged = true;saf_xM = af_xM = (evt.pageX || evt.originalEvent.touches[0].pageX);saf_yM = af_yM = (evt.pageY || evt.originalEvent.touches[0].pageY);} )
+	.bind(touchEvents["end"], function(){
 		setInpagePos();
 		if (Math.abs(af_xM - saf_xM) < 10 && Math.abs(af_yM - saf_yM) < 10 && !swtiching) {
 			if ($afTimer.attr("switch") === "no") {
@@ -467,11 +482,14 @@ var stateTool = function(){
 		localStorage.setItem("aft_r", $afTimer.css("right"));
 		localStorage.setItem("aft_t", $afTimer.css("top"));
 	});
-	$("body")
-	.bind("mousemove", function(evt){
+
+	var touchMoveFunc = function(evt){
 		if (af_dragged) {
-			if (evt.pageX > document.documentElement.clientWidth - 20 ||
-				evt.pageX < 20) {
+			var evtPageX = (evt.pageX || evt.originalEvent.touches[0].pageX);
+			var evtPageY = (evt.pageY || evt.originalEvent.touches[0].pageY);
+
+			if (evtPageX > document.documentElement.clientWidth - 20 ||
+				evtPageX < 20) {
 				af_dragged = false;
 			}
 
@@ -481,22 +499,28 @@ var stateTool = function(){
 			}
 
 			if (af_dragged) {
-				var xD = evt.pageX - af_xM;
-				var yD = evt.pageY - af_yM;
+				var xD = evtPageX - af_xM;
+				var yD = evtPageY - af_yM;
 
 				var nRight = parseInt($afTimer.css("right")) - xD;
 				var nTop = parseInt($afTimer.css("top")) + yD;
+
 				if (nRight < -20) nRight = -20;
 				if (nTop < -20) nTop = -20;
 
 				$afTimer.css("right", nRight + "px");
 				$afTimer.css("top", nTop + "px");
 
-				af_xM = evt.pageX;
-				af_yM = evt.pageY;
+				af_xM = evtPageX;
+				af_yM = evtPageY;
 			}
 		}
-	} );
+	}
+	if (supportTouch) {
+		$afHolder.bind(touchEvents["move"], touchMoveFunc);
+	} else {
+		$("body").bind(touchEvents["move"], touchMoveFunc);
+	}
 
 	$("#af_abilities_group").on("click", "li", function(){
 		var group = $(this).attr("group");

@@ -10,11 +10,5 @@
 		SELECT LAST_INSERT_ID();
 		]]>
 	</select>
-	
-	<select id="getNextWorkday" resultType="java.util.Date">
-	<![CDATA[ 
-		SELECT F_ADDWORKDAYS(CURRENT_DATE(),1)
-	]]>
-	</select>
 
 </mapper>
