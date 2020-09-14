@@ -806,8 +806,8 @@ function filed_list(finished_list_data){
 			pagerpos: 'right',
 			ondblClickRow : function(rid, iRow, iCol, e) {
                 var rowData =  $("#list").jqGrid('getRowData', rid);
-                
-                if($("#judge_status").val()=="partialManager"){ //  Remove at 15.11.10 : && rowData.bo_flg == 8
+
+                if($("#submit_button:visible").length == 1){ //  Remove at 15.11.10 : && rowData.bo_flg == 8
                      showOrderDetail();
                 }
             },

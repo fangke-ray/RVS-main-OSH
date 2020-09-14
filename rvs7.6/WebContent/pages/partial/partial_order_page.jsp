@@ -81,8 +81,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<input type="hidden" id="oMateriaLevel" value="${oMateriaLevel }">
 
 		<div class="ui-widget-header areabase" style="padding-top:4px; width:992px;margin-button:6px;margin-bottom: 16px;">
-<% if (isPartialManager) { %>
-				  <input type="button" class="ui-button-primary ui-button" id="submit_button" value="提交" role="button" aria-disabled="false" style="float: right; right: 2px">   
+<% if (isPartialManager || isXianpin) { %>
+		 <input type="button" class="ui-button-primary ui-button" id="submit_button" value="提交" role="button" aria-disabled="false" style="float: right; right: 2px">   
 <% } %>   
      </div>
 </div>
@@ -180,6 +180,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 				<div class="ui-widget-header areabase"style="width:992px;padding-top:4px;margin-top:0px;">
 				    <div id="executes" style="margin-left:4px;margin-top:3px;">
+<% if (isPartialManager) { %>
 					<input type="button" id="compartment_additional_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="分室追加分类" role="button" style="margin-left:6px;">
 
 					<input type="button" id="offer_additional_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="报价追加分类" role="button" style="margin-left:6px;">
@@ -187,10 +188,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<input type="button" id="decomposition_additional_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="分解追加分类" role="button" style="margin-left:6px;">
 
 					<input type="button" id="ns_additional_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="NS追加分类" role="button" style="margin-left:6px;">
+<%}%>
                     
 					<input type="button" id="come_back_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="返回" role="button" style="float:right;margin-right:6px;">
-<% if (isPartialManager) { %>
+<% if (isPartialManager || isXianpin) { %>
 					<input type="button" id="confirm_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="确定" role="button" style="float:right;margin-right:6px;">
+<%}%>
+<% if (isPartialManager) { %>
 					<input type="button" id="cancel_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="取消导入数据" role="button" style="float:right;margin-right:6px;">
 <%}%>
 				   </div>
