@@ -1055,7 +1055,7 @@ public class PositionPanelAction extends BaseAction {
 			// 中断警报序号
 			String alarm_messsage_id = null;
 
-			if (iReason <= 20) { // 异常中断
+			if (iReason <= AlarmMesssageService.REASON_CODE_BREAK_ULIMIT) { // 异常中断
 				// 制作中断警报
 				AlarmMesssageService amservice = new AlarmMesssageService();
 				AlarmMesssageEntity amEntity = amservice.createBreakAlarmMessage(workingPf);
@@ -1100,7 +1100,7 @@ public class PositionPanelAction extends BaseAction {
 				pfService.pauseToNext(workingPf, conn);
 
 				// 通知 TODO
-			} else if (iReason <= 20) { // 不良中断
+			} else if (iReason <= AlarmMesssageService.REASON_CODE_BREAK_ULIMIT) { // 不良中断
 				// 作业信息状态改为，中断
 				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_BREAK);
 				workingPf.setUse_seconds(null);

@@ -60,6 +60,7 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class AlarmMesssageService {
 
 	private Logger logger = Logger.getLogger(getClass());
+	public static final int REASON_CODE_BREAK_ULIMIT = 39;
 
 	/**
 	 * 建立警报信息

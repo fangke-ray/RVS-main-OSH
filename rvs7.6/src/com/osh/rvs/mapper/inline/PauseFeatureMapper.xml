@@ -76,7 +76,7 @@
 			</if>
 	<![CDATA[ 
 			AND PAUSE_FINISH_TIME IS NULL
-			AND REASON < 20;
+			AND REASON <= 39;
 	]]>
 	</update>
 

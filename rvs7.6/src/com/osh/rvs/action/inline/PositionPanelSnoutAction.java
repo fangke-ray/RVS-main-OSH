@@ -633,7 +633,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 				String alarm_messsage_id = null;
 
-				if (iReason <= 20) {
+				if (iReason <= AlarmMesssageService.REASON_CODE_BREAK_ULIMIT) {
 					// 制作中断警报
 					AlarmMesssageService amservice = new AlarmMesssageService();
 					AlarmMesssageEntity amEntity = amservice.createSoloBreakAlarmMessage(workingPf);
@@ -665,7 +665,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 					sservice.breakToNext(soloWorkingPf, conn);
 
 					// 通知 TODO
-				} else if (iReason <= 20) { // 不良中断
+				} else if (iReason <= AlarmMesssageService.REASON_CODE_BREAK_ULIMIT) { // 不良中断
 					// 作业信息状态改为，中断
 					soloWorkingPf.setOperate_result(RvsConsts.OPERATE_RESULT_BREAK);
 					soloWorkingPf.setUse_seconds(null);

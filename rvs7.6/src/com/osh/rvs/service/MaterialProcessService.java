@@ -150,18 +150,25 @@ public class MaterialProcessService {
 
 		boolean comLine = "00000000014".equals(lineId);
 		if (midLightFix) {
-			// 小修理默认B线
-			if ("03".equals(kind) && comLine) { // 纤维镜总组
+			if (comLine) {
+				// 小修理总组默认C线
 				return PX_C;
 			} else {
-				if (comLine) {
-					if (("02".equals(kind) || "04".equals(kind)) && comLine) { // 细镜总组
-						return PX_B_OF_2;
-					}
-					return PX_B_OF_1;
-				}
+				// 小修理默认B线
 				return PX_B;
 			}
+//			// 小修理默认B线
+//			if ("03".equals(kind) && comLine) { // 纤维镜总组
+//				return PX_C;
+//			} else {
+//				if (comLine) {
+//					if (("02".equals(kind) || "04".equals(kind)) && comLine) { // 细镜总组
+//						return PX_B_OF_2;
+//					}
+//					return PX_B_OF_1;
+//				}
+//				return PX_B;
+//			}
 		} else {
 			// 大修理
 			if (isImbalance) {

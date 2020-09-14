@@ -799,7 +799,7 @@ public class PositionPanelMixedAction extends BaseAction {
 
 				String alarm_messsage_id = null;
 
-				if (iReason <= 20) {
+				if (iReason <= AlarmMesssageService.REASON_CODE_BREAK_ULIMIT) {
 					// 制作中断警报
 					AlarmMesssageService amservice = new AlarmMesssageService();
 					AlarmMesssageEntity amEntity = amservice.createSoloBreakAlarmMessage(workingPf);
@@ -829,7 +829,7 @@ public class PositionPanelMixedAction extends BaseAction {
 					sservice.breakToNext(soloWorkingPf, conn);
 
 					// 通知 TODO
-				} else if (iReason <= 20) { // 不良中断
+				} else if (iReason <= AlarmMesssageService.REASON_CODE_BREAK_ULIMIT) { // 不良中断
 					// 作业信息状态改为，中断
 					soloWorkingPf.setOperator_id(user.getOperator_id());
 					soloWorkingPf.setSection_id(user.getSection_id());

@@ -137,24 +137,26 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 				var productionFeature = resInfo.result[iresult];
 				$("#pa_red div.pos[code="+ parseInt(productionFeature.position_id, 10) +"]").find("span").addClass("suceed")
 					.after("<div class=\"feature_result\">"+productionFeature.operator_name+"<br>"+productionFeature.finish_time+"</div>");
+				$("#pa_red div.pos[map_id="+ productionFeature.position_id +"]").find("span.point").addClass("suceed")
+					.after("<div class=\"feature_result\">"+productionFeature.operator_name+"<br>"+productionFeature.finish_time+"</div>");
 			}
 			$("#pa_red div.pos[code="+ parseInt(selectedMaterial.position_id, 10) +"]").find("span").addClass("nogood");
-			$("#pa_red div.pos[map_id="+ selectedMaterial.position_id +"]").find("span").removeClass("suceed").addClass("nogood");
+			$("#pa_red div.pos[map_id="+ selectedMaterial.position_id +"]").find("span.point").removeClass("suceed").addClass("nogood");
 
-			if (resInfo.isLightFix) {
-				// 小修理不能进行工程内返工
-				if ($("#rework_pat_id").length > 0) {
-					$("#pa_red span").click(function() {
-						var mespan = $(this);
-		
-						if (mespan.hasClass("rework")) {
-							mespan.removeClass("rework");
-						} else {
-							mespan.addClass("rework");
-						}
-					});
-				}
-			} else {
+//			if (resInfo.isLightFix) {
+//				// 小修理不能进行工程内返工
+//				if ($("#rework_pat_id").length > 0) {
+//					$("#pa_red span").click(function() {
+//						var mespan = $(this);
+//		
+//						if (mespan.hasClass("rework")) {
+//							mespan.removeClass("rework");
+//						} else {
+//							mespan.addClass("rework");
+//						}
+//					});
+//				}
+//			} else {
 				$("#pa_red span.suceed").click(function() {
 					var mespan = $(this);
 	
@@ -164,7 +166,7 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 						mespan.addClass("rework");
 					}
 				});
-			}
+//			}
 
 			if (callback) callback();
 		}
