@@ -32,6 +32,18 @@
 		]]>
 	</select>
 
+	<select id="getLightPositionsByMaterial" parameterType="String" resultType="String">
+		<![CDATA[
+			select distinct polf.position_id 
+            from material_light_fix mlf
+			JOIN light_fix lf
+			ON mlf.light_fix_id = lf.light_fix_id
+            join position_of_light_fix polf
+            on lf.light_fix_id = polf.light_fix_id
+			 where material_id = #{material_id}
+		]]>
+	</select>
+
 	<select id="searchMaterialProcessAssign" parameterType="MaterialProcessAssignEntity" resultType="MaterialProcessAssignEntity">
 		<![CDATA[
 			select
@@ -173,22 +185,23 @@
 	<select id="getPartStart" resultType="String">
 		<![CDATA[ 
 		SELECT position_id FROM material_process_assign p
-		WHERE material_id = #{material_id} AND line_id = #{line_id} AND prev_position_id = 0;
+		WHERE material_id = #{material_id} AND line_id = #{line_id} AND prev_position_id = 0 AND next_position_id <> 0;
 		]]>
 	</select>
 
 	<select id="getPartAll" resultType="String">
 		<![CDATA[ 
 		SELECT position_id FROM material_process_assign p
-		WHERE material_id = #{material_id} AND line_id = #{line_id};
+		WHERE material_id = #{material_id} AND line_id = #{line_id}
+		AND NOT (PREV_POSITION_ID = 0 AND NEXT_POSITION_ID = 0);
 		]]>
 	</select>
 
 	<select id="getWorkedLines" parameterType="String" resultType="LineEntity">
 		<![CDATA[
 			select mpa.material_id, pos.line_id, 
-			count(mpa.position_id) = count(pf.position_id) as inline_flg,
-			mp.finish_date as name
+				count(mpa.position_id) = count(pf.position_id) as inline_flg,
+				mp.finish_date as name
 			from material_process_assign mpa
 			join position pos
 			on mpa.position_id = pos.position_id
@@ -200,6 +213,7 @@
 			on mpa.material_id = mp.material_id
 			and pos.line_id = mp.line_id
 			where mpa.material_id = #{material_id}
+		    and not (mpa.prev_position_id = 0 AND mpa.next_position_id = 0)
 			group by pos.line_id
 			;
 		]]>

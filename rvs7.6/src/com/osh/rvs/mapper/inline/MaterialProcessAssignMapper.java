@@ -28,8 +28,11 @@ public interface MaterialProcessAssignMapper {
 	//新建维修对象独有修理流程
 	public void insertMaterialProcessAssign(MaterialProcessAssignEntity entity)throws Exception;
 
-	// 维修对象已选择流程项目 
+	// 维修对象已选择修理内容
 	public String getLightFixesByMaterial(String material_id);
+
+	// 维修对象已选择修理内容的全工位
+	public List<String> getLightPositionsByMaterial(String material_id);
 
 	public List<ProcessAssignEntity> getProcessAssignByMaterialID(
 			String material_id);

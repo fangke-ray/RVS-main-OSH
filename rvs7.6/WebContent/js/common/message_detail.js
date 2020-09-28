@@ -93,6 +93,8 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 					// 增加303工位选择  
 					$("#pa_red").prepend('<div class="edgeposition"><div class="just"><div code="60" posid="60" nextcode="0" prevcode="0" class="pos"><span>303 LG 玻璃更换</span></div></div>');
 
+				var light_positions = resInfo.light_positions;
+
 				$("#pa_red div.pos").each(function(index,ele){
 					var $div = $(ele);
 					var code = $div.attr("code");
@@ -102,6 +104,17 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 						if(code == obj.position_id && !$span.hasClass("suceed")){
 							$span.addClass("point");
 							chosedPos[code]=1;
+							break;
+						}
+					}
+					if (chosedPos[code] != 1) {
+						var fillCode = fillZero(code, 11);
+						for(var i=0;i<light_positions.length;i++){
+							if(fillCode == light_positions[i] && !$span.hasClass("suceed")){
+								$span.addClass("point");
+								chosedPos[code]=1;
+								break;
+							}							
 						}
 					}
 
@@ -143,20 +156,20 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 			$("#pa_red div.pos[code="+ parseInt(selectedMaterial.position_id, 10) +"]").find("span").addClass("nogood");
 			$("#pa_red div.pos[map_id="+ selectedMaterial.position_id +"]").find("span.point").removeClass("suceed").addClass("nogood");
 
-//			if (resInfo.isLightFix) {
+			if (resInfo.isLightFix) {
 //				// 小修理不能进行工程内返工
 //				if ($("#rework_pat_id").length > 0) {
-//					$("#pa_red span").click(function() {
-//						var mespan = $(this);
-//		
-//						if (mespan.hasClass("rework")) {
-//							mespan.removeClass("rework");
-//						} else {
-//							mespan.addClass("rework");
-//						}
-//					});
+					$("#pa_red span").click(function() {
+						var mespan = $(this);
+		
+						if (mespan.hasClass("rework")) {
+							mespan.removeClass("rework");
+						} else {
+							mespan.addClass("rework");
+						}
+					});
 //				}
-//			} else {
+			} else {
 				$("#pa_red span.suceed").click(function() {
 					var mespan = $(this);
 	
@@ -166,7 +179,7 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 						mespan.addClass("rework");
 					}
 				});
-//			}
+			}
 
 			if (callback) callback();
 		}

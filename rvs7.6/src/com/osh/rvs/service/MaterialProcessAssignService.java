@@ -499,6 +499,19 @@ public class MaterialProcessAssignService {
 	}
 
 	/**
+	 * 取得维修对象已选择修理内容的全工位（包括当前流程用的和不用的），返工时切换参考流程用
+	 * 
+	 * @param material_id
+	 * @param conn
+	 * @return
+	 */
+	public List<String> getLightPositionsByMaterial(String material_id,
+			SqlSession conn) {
+		MaterialProcessAssignMapper mapper = conn.getMapper(MaterialProcessAssignMapper.class);
+		return mapper.getLightPositionsByMaterial(material_id);
+	}
+
+	/**
 	 * 取得完整小修理流程
 	 * @param material_id
 	 * @param now_process_code

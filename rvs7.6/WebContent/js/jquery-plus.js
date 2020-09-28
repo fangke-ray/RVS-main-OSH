@@ -111,7 +111,13 @@ var infoPop = function(infoData, closeToFocus, title) {
  * Ajax通信失敗時の処理
  */
 var ajaxError = function(xhrobj, status, e) {
-
+	if (xhrobj.status == 504) {
+		warningConfirm("处理超时，请刷新页面后确认操作是否成功提交。"
+		, function(){}
+		, function(){location.reload();}
+		, "处理超时", "之后刷新", "立刻刷新");
+		$('div#warningstring .ui-warn-dialog').removeClass('.ui-warn-dialog').addClass(".ui-error-dialog");
+	}
 //	if ($('#pagecontent').length > 0) {
 //		window.location.hash = "#error";
 //	} else {

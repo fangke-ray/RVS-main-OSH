@@ -773,6 +773,9 @@ public class MaterialAction extends BaseAction {
 			if (!isEmpty(lightFixStr)) {
 				String light_fix_content = "小修理的修理内容是：" + lightFixStr;
 				listResponse.put("light_fix_content", light_fix_content);
+
+				List<String> light_positions = mpas.getLightPositionsByMaterial(material_id, conn);
+				listResponse.put("light_positions", light_positions);
 			}
 
 			Set<String> ccdModels = RvsUtils.getCcdModels(conn);
@@ -790,7 +793,7 @@ public class MaterialAction extends BaseAction {
 			List<MaterialProcessAssignForm> processAssigns = mpas.searchMaterialProcessAssign(form, conn);
 			listResponse.put("mProcessAssigns", processAssigns);
 
-			// 取得中小修理对应工位/流程设定用
+			// 取得中小修理映射工位/流程设定用
 			listResponse.put("positionMapping", mpas.getPositionMappingEntities(conn));
 		}
 
