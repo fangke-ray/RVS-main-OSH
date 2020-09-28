@@ -1789,8 +1789,8 @@ public class PcsUtils {
 	 * @throws IOException
 	 */
 	public static String toPdf(Map<String, String> srcPcses, String materialId, String sorcNo, String modelName,
-			String serialNo, String level, String currentProcessCode, String folderPath, SqlSession conn) throws IOException {
-		logger.info("getXmlContents for material=" + materialId + " currentProcessCode=" + currentProcessCode);
+			String serialNo, String level, String currentProcessCode9, String folderPath, SqlSession conn) throws IOException {
+		logger.info("getXmlContents for material=" + materialId + " currentProcessCode=" + currentProcessCode9);
 
 		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 		LeaderPcsInputMapper llDao = conn.getMapper(LeaderPcsInputMapper.class);
@@ -2073,17 +2073,26 @@ public class PcsUtils {
 					String checkedOverAllProcessCode = "";
 					String lightProcess = null;
 					if (isLightFix) {
-						lightProcess = checkInLightProcessGroup(currentProcessCode, materialId, conn);
+						lightProcess = checkInLightProcessGroup(process_code, materialId, conn);
 					} else { // TODO 其实在OSH没有用了
-						checkedOverAllProcessCode = checkOverAllExcel(currentProcessCode);
+						checkedOverAllProcessCode = checkOverAllExcel(process_code);
 					}
 
 					// 判断有本工号的标签
 //					if (xls.Hit("@#E?" + process_code + "????") ||
 //							("400".equals(process_code) && pcsName.startsWith("总")) ) {
-					
-					if (xls.Hit("@#E?" + process_code + "????") || (!checkedOverAllProcessCode.equals(process_code))
-							|| (lightProcess != null && lightProcess.contains(process_code)) ) {
+					boolean hit = !isLightFix && !checkedOverAllProcessCode.equals(process_code);
+					if (!hit) {
+						hit = xls.Hit("@#E?" + process_code + "????");
+					}
+					if (!hit && lightProcess != null && !lightProcess.equals(process_code)) {
+						String testStr =  lightProcess.replaceAll("\\(", "").replaceAll("\\)", "");
+						for (String majorProcessCode : testStr.split("\\|")) {
+							hit = xls.Hit("@#E?" + majorProcessCode + "????");
+							if (hit) break;
+						}
+					}
+					if (hit) {
 	
 						// 如果有本工位的标签，进行替换
 						bReplacedAtPosition = true;
