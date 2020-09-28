@@ -441,4 +441,37 @@ and position_id in (select position_id from position where line_id = #{line_id} 
 		order by updated_time desc limit 1;
 		]]>
 	</select>
+
+	<select id="evalLastPositions" parameterType="ProcessAssignEntity" resultType="ProcessAssignEntity">
+		<![CDATA[
+			select pa.refer_id, pa.position_id from process_assign_template t
+			join process_assign pa
+			on pa.refer_id = t.process_assign_template_id
+			where t.delete_flg = 0
+			and (pa.next_position_id = 9999999 OR pa.next_position_id = 0)
+			and (t.derive_kind is null OR t.derive_kind not in (4, 5))
+		]]>
+		<if test="line_id!= null and line_id!= '' ">
+		<![CDATA[
+			and pa.line_id = #{line_id}
+		]]>
+		</if>
+		<if test="refer_id!= null and refer_id!= '' ">
+		<![CDATA[
+			and pa.refer_id = #{refer_id}
+		]]>
+		</if>
+	</select>
+
+	<delete id="deleteProcessEndPosition">
+		DELETE FROM `process_end_position`;
+	</delete>
+
+	<insert id="insertProcessEndPosition" parameterType="String">
+		INSERT INTO `process_end_position`
+		(`position_id`)
+		VALUES
+		(#{position_id});
+	</insert>
+
 </mapper>

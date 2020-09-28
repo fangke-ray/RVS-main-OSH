@@ -2,8 +2,10 @@ package com.osh.rvs.service;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,7 +18,6 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
-import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.master.ProcessAssignEntity;
 import com.osh.rvs.bean.master.ProcessAssignTemplateEntity;
 import com.osh.rvs.common.PathConsts;
@@ -25,7 +26,6 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.ProcessAssignForm;
 import com.osh.rvs.form.master.ProcessAssignTemplateForm;
 import com.osh.rvs.mapper.CommonMapper;
-import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.ProcessAssignMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -36,6 +36,8 @@ import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class ProcessAssignService {
+	private static final String FLOW_MAIN = "9000000";
+
 	private static Logger logger = Logger.getLogger(ProcessAssignService.class);
 
 	private static Map<String, Boolean> hasNsMap = new HashMap<String, Boolean>(); 
@@ -59,11 +61,6 @@ public class ProcessAssignService {
 				S1PASSES = new Integer[0];
 			}
 		}
-	}
-
-	public void insert(ProductionFeatureEntity entity, SqlSession conn) {
-		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
-		dao.insertProductionFeature(entity);
 	}
 
 	public List<ProcessAssignTemplateForm> searchTemplate(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
@@ -148,6 +145,9 @@ public class ProcessAssignService {
 			e.setRefer_type(1);
 			dao.insertProcessAssign(e);
 		}
+
+		// 取得所有流程的最终工位
+		evalLastPositions(conn);
 	}
 
 	public void delete(ActionForm form, HttpSession session, SqlSessionManager conn, List<MsgInfo> errors)
@@ -161,6 +161,9 @@ public class ProcessAssignService {
 
 		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
 		dao.deleteProcessAssignTemplate(updateBean);
+
+		// 取得所有流程的最终工位
+		evalLastPositions(conn);
 	}
 
 	public void update(ActionForm form, Map<String, String[]> parameterMap, HttpSession session,
@@ -222,6 +225,9 @@ public class ProcessAssignService {
 
 			hasNsMap.remove(refer_id);
 		}
+
+		// 取得所有流程的最终工位
+		evalLastPositions(conn);
 	}
 
 	public List<Map<String, String>> getInlinePositions(SqlSession conn) {
@@ -420,5 +426,64 @@ public class ProcessAssignService {
 			return derivedId;
 		}
 		return dao.getDerivedIdByModel(null, derive_type);
+	}
+
+	private static Set<String> lastFLowPositions = null;
+
+	/**
+	 * 取得所有流程的最终工位
+	 * 
+	 * @param conn
+	 */
+	private static void evalLastPositions(SqlSessionManager conn) {
+		if (lastFLowPositions == null) {
+			lastFLowPositions = new HashSet<String> ();
+		}
+		synchronized (lastFLowPositions) {
+			lastFLowPositions.clear();
+
+			ProcessAssignMapper mapper = conn.getMapper(ProcessAssignMapper.class);
+			ProcessAssignEntity condi = new ProcessAssignEntity();
+			condi.setLine_id(FLOW_MAIN);
+			List<ProcessAssignEntity> listMain = mapper.evalLastPositions(condi);
+
+			// 流程结束的是分支线的列表
+			List<ProcessAssignEntity> endParts = new ArrayList<ProcessAssignEntity>();
+
+			// 记录所有主流程上的结束工位
+			for (ProcessAssignEntity pae : listMain) {
+				if (pae.getPosition_id().length() >= FLOW_MAIN.length()) { // 所以这个表里position_id不是zerofill的
+					endParts.add(pae);
+				} else {
+					lastFLowPositions.add(CommonStringUtil.fillChar(pae.getPosition_id(), '0', 11, true));
+				}
+			}
+
+			// 查找流程结束的是分支线
+			for (ProcessAssignEntity endPart : endParts) {
+				List<ProcessAssignEntity> listPart = mapper.evalLastPositions(endPart);
+				// 记录所有结尾分支线上的结束工位
+				for (ProcessAssignEntity pae : listPart) {
+					lastFLowPositions.add(CommonStringUtil.fillChar(pae.getPosition_id(), '0', 11, false));
+				}
+			}
+
+			// 清除维修结束工位表
+			mapper.deleteProcessEndPosition();
+			// 插入维修结束工位表
+			for (String position_id : lastFLowPositions) {
+				mapper.insertProcessEndPosition(position_id);
+			}
+		}
+	}
+
+	/*
+		取得维修结束工位
+	 */
+	public static Set<String> getLastFLowPositions(SqlSessionManager conn) {
+		if (lastFLowPositions == null) {
+			evalLastPositions(conn);
+		}
+		return lastFLowPositions;
 	}
 }

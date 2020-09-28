@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.ibatis.session.SqlSession;
@@ -488,6 +489,9 @@ public class ProductionFeatureService {
 //			}
 
 		} else { // 维修流程上
+
+			Set<String> lastFlowPositions = ProcessAssignService.getLastFLowPositions(conn);
+
 			if ("00000000020".equals(position_id)) { // 零件订购
 // 2期进行后取消 2014/1/9
 //				//if (isFact) {
@@ -505,11 +509,12 @@ public class ProductionFeatureService {
 			} else
 
 			if (!isLightFix && (
-					"00000000041".equals(position_id) || "00000000045".equals(position_id) 
-					|| "00000000049".equals(position_id) || "00000000050".equals(position_id) 
-					|| RvsConsts.POSITION_811.equals(position_id) || RvsConsts.POSITION_470.equals(position_id)
-					|| RvsConsts.POSITION_461.equals(position_id) || RvsConsts.POSITION_481.equals(position_id)
-					|| RvsConsts.POSITION_462.equals(position_id) || RvsConsts.POSITION_572.equals(position_id)
+					lastFlowPositions.contains(position_id)
+//					"00000000041".equals(position_id) || "00000000045".equals(position_id) 
+//					|| "00000000049".equals(position_id) || "00000000050".equals(position_id) 
+//					|| RvsConsts.POSITION_811.equals(position_id) || RvsConsts.POSITION_470.equals(position_id)
+//					|| RvsConsts.POSITION_461.equals(position_id) || RvsConsts.POSITION_481.equals(position_id)
+//					|| RvsConsts.POSITION_462.equals(position_id) || RvsConsts.POSITION_572.equals(position_id)
 					)
 				) { // 总组Over TODO
 				if (isFact) {

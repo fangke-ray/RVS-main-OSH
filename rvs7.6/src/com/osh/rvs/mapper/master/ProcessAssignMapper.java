@@ -81,4 +81,11 @@ public interface ProcessAssignMapper {
 			@Param("derive_kind") String derive_kind);
 
 	public String getDerivedIdByModel(@Param("model_id") String model_id, @Param("derive_kind") String derive_kind);
+
+	/** 获取所有流程的最终工位 */
+	public List<ProcessAssignEntity> evalLastPositions(ProcessAssignEntity condi);
+
+	public void deleteProcessEndPosition();
+
+	public void insertProcessEndPosition(String position_id);
 }
