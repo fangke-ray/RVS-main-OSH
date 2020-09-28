@@ -33,6 +33,7 @@ import com.osh.rvs.form.RedirectRes;
 import com.osh.rvs.form.master.OperatorForm;
 import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.master.SectionMapper;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PositionService;
@@ -179,6 +180,17 @@ public class LoginAction extends BaseAction {
 		loginData.setPrivacies(getPrivacies(loginData.getRole_id(), conn));
 		setPositions(loginData, conn);
 		setAfAbilities(loginData, conn);
+
+		// 判断直接作业人员可代工间接作业
+		if ((RvsConsts.WORK_COUNT_FLG_DIRECT + "").equals(loginData.getWork_count_flg())) {
+			if (loginData.getAfAbilities().size() > 0) {
+				loginData.setShift_work(true);
+			}
+			AcceptFactService service = new AcceptFactService();
+			if (service.getUnFinishEntity(loginData.getOperator_id(), conn) != null) {
+				loginData.setWork_count_flg("" + RvsConsts.WORK_COUNT_FLG_INDIRECT);
+			}
+		}
 
 		// 判断有没有进行中作业
 		// 取得当前作业中作业信息

@@ -296,6 +296,18 @@ public class QuotationAction extends BaseAction {
 		// 取得用户信息
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		// 代工间接人员时禁止开始直接人员作业
+		if (user.getShift_work()) {
+			if (user.getWork_count_flg().equals(""+RvsConsts.WORK_COUNT_FLG_INDIRECT)) {
+				MsgInfo msgInfo = new MsgInfo();
+				msgInfo.setComponentid("operator_id");
+				msgInfo.setErrcode("info.indirectwork.shifted2Indirect");
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.indirectwork.shifted2Indirect"));
+				errors.add(msgInfo);
+			}
+		}
+
 		String position_id = user.getPosition_id();
 		String process_code = user.getProcess_code();
 		String section_id = user.getSection_id();
@@ -304,24 +316,26 @@ public class QuotationAction extends BaseAction {
 		// 判断维修对象在等待区，并返回这一条作业信息
 		ProductionFeatureEntity waitingPf = null;
 
-		boolean join151And161 = "00000000013".equals(position_id) || "00000000014".equals(position_id);
-		if (join151And161) {
-			user.setSection_id("9");// 报价物料课
-			user.setPosition_id("00000000013");
-			user.setProcess_code("151");
+		if (errors.size() == 0) {
+			boolean join151And161 = "00000000013".equals(position_id) || "00000000014".equals(position_id);
+			if (join151And161) {
+				user.setSection_id("9");// 报价物料课
+				user.setPosition_id("00000000013");
+				user.setProcess_code("151");
 
-			waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
+				waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
 
-			// 直送报价
-			if (waitingPf == null) {
-				user.setPosition_id("00000000014");
-				user.setProcess_code("161");
-				errors = new ArrayList<MsgInfo>();
-				// 判断维修对象在等待区，并返回这一条作业信息
+				// 直送报价
+				if (waitingPf == null) {
+					user.setPosition_id("00000000014");
+					user.setProcess_code("161");
+					errors = new ArrayList<MsgInfo>();
+					// 判断维修对象在等待区，并返回这一条作业信息
+					waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
+				}
+			} else {
 				waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
 			}
-		} else {
-			waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
 		}
 
 		if(errors.size() == 0){
@@ -655,6 +669,17 @@ public class QuotationAction extends BaseAction {
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		String section_id = user.getSection_id();
+
+		// 代工间接人员时禁止开始直接人员作业
+		if (user.getShift_work()) {
+			if (user.getWork_count_flg().equals(""+RvsConsts.WORK_COUNT_FLG_INDIRECT)) {
+				MsgInfo msgInfo = new MsgInfo();
+				msgInfo.setComponentid("operator_id");
+				msgInfo.setErrcode("info.indirectwork.shifted2Indirect");
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.indirectwork.shifted2Indirect"));
+				errors.add(msgInfo);
+			}
+		}
 
 		// 得到暂停的维修对象，返回这一条作业信息
 		ProductionFeatureEntity workwaitingPf = ppService.checkPausingMaterialId(material_id, user, errors, conn);

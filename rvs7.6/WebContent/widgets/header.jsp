@@ -83,6 +83,24 @@ background-size: 10px 60px;*/
 	color:white;
 	background-color:rgb(228,178,64);
 }
+#shift_wcf {
+	width: 6em;
+	height: 2em;
+	background: white;
+	padding: 2px 6px;
+	border-radius: 2px;
+	cursor:pointer;
+}
+#shift_wcf:before {
+	content: '直接人员';
+	background: greenyellow;
+	color: darkgreen;
+}
+#shift_wcf[shifted]:before {
+	content: '间接人员';
+	background: aqua;
+	color: darkblue;
+}
 </style>
 
 	<% String sMessageType = (String)request.getAttribute("message_type"); %>
@@ -103,6 +121,9 @@ background-size: 10px 60px;*/
 			<div style="height:29px;line-height:29px;float:right;margin-right: 16px;">
 				<span style="color:white;font-size:14px;">您好! ${userdata.name}${userdata.role_name}。</span>
 				<span style="color:white;font-size:14px;cursor:pointer;" id="userPosition">${userPosition}</span>
+				${(userdata.shift_work) ? '<span id="shift_wcf"'
+							.concat((userdata.work_count_flg eq '6') ? ' shifted' : '')
+							.concat('></span>') : ''}
 			</div>
 			${(needMessageBox eq "1") ? '<div class="clear menulink icon-bell">提示信息<span class="littleball">0</span>条</div>' : ''}
 <% if (sMessageType != null) {  %>
@@ -312,6 +333,32 @@ $(function() {
 		if (txt && txt.indexOf("工位") >= 0) {
 			window.location.href = "position_panel.do";
 		}
+	});
+
+	$("#shift_wcf").click(function(){
+		if ($("#af_timer").attr("from") === "a") {
+			errorPop("需要先结束当前" + $("#af_timer .prod").text() + "作业。");
+			return;
+		}
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : headerServicePath + '?method=shiftWcf',
+			cache : false,
+			data : null,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function(xhjObj){
+				var resInfo = $.parseJSON(xhjObj.responseText);
+				if (resInfo.errors && resInfo.errors.length > 0) {
+					treatBackMessages(null, resInfo.errors);
+				} else {
+					window.location.reload();
+				}
+			}
+		});
 	});
 
 	refreshMes();

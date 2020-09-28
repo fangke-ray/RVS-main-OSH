@@ -38,6 +38,8 @@ public class LoginData extends BaseUserBean {
 
 	private String group_position_id;
 
+	private boolean shift_work = false;
+
 	public String getLine_id() {
 		return line_id;
 	}
@@ -149,5 +151,11 @@ public class LoginData extends BaseUserBean {
 	}
 	public void setAfAbilities(List<PositionEntity> afAbilities) {
 		this.afAbilities = afAbilities;
+	}
+	public boolean getShift_work() {
+		return shift_work;
+	}
+	public void setShift_work(boolean shift_work) {
+		this.shift_work = shift_work;
 	}
 }

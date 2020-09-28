@@ -24,17 +24,22 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.AlarmMesssageEntity;
 import com.osh.rvs.bean.data.PostMessageEntity;
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.HolidayService;
 import com.osh.rvs.service.PostMessageService;
+import com.osh.rvs.service.inline.PositionPanelService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.DateUtil;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 
 public class HeaderAction extends BaseAction {
@@ -376,6 +381,8 @@ public class HeaderAction extends BaseAction {
 		// Ajax响应对象
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
 		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 
 		String post_message_id = req.getParameter("post_message_id");
@@ -392,4 +399,49 @@ public class HeaderAction extends BaseAction {
 		log.info("HeaderAction.doReadPostMessage end");
 	}
 
+	public void shiftWcf(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("HeaderAction.shiftWcf start");
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		if (user.getWork_count_flg().equals("" + RvsConsts.WORK_COUNT_FLG_DIRECT)) {
+			// 判断是否完成直接作业
+			PositionPanelService service = new PositionPanelService();
+			ProductionFeatureEntity ret = service.getWorkingOrSupportingPf(user, conn);
+			if (ret != null) {
+				MsgInfo msg = new MsgInfo();
+				msg.setErrcode("info.linework.workingRemain");
+				msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES
+						.getMessage("info.linework.workingRemain", ret.getProcess_code()));
+				errors.add(msg);
+			} else {
+				user.setWork_count_flg("" + RvsConsts.WORK_COUNT_FLG_INDIRECT);
+			}
+		} else {
+			// 判断是否完成直接作业
+			AcceptFactService service = new AcceptFactService();
+			AfProductionFeatureEntity ret = service.getUnFinishEntity(user.getOperator_id(), conn);
+			if (ret != null) {
+				MsgInfo msg = new MsgInfo();
+				msg.setErrcode("info.indirectwork.workingRemain");
+				msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES
+						.getMessage("info.indirectwork.workingRemain", 
+								AcceptFactService.typeMap.get("" + ret.getProduction_type())));
+				errors.add(msg);
+			} else {
+				user.setWork_count_flg("" + RvsConsts.WORK_COUNT_FLG_DIRECT);
+			}
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("HeaderAction.shiftWcf end");
+	}
 }

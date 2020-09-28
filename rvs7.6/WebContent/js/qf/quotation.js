@@ -96,7 +96,11 @@ var makePauseDialog = function(jBreakDialog) {
 						dataType : "json",
 						success : ajaxSuccessCheck,
 						error : ajaxError,
-						complete : doFinish_ajaxSuccess
+						complete : function(xhr, status) {
+							jBreakDialog.dialog("close");
+							var resInfo = $.parseJSON(xhr.responseText)
+							treatPause(resInfo);
+						}
 					});
 				}
 			}, "关闭" : function(){ $(this).dialog("close"); }
