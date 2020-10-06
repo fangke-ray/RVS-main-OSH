@@ -246,7 +246,8 @@
 	]]>
 	</if>
 	<![CDATA[
-			coalesce(mp.scheduled_date, m.scheduled_date) as scheduled_date_inline
+			coalesce(mp.scheduled_date, m.scheduled_date) as scheduled_date_inline,
+			mt.tag_type is not null as anml_exp
 		FROM production_feature pf
 		JOIN material m
 			ON `pf`.material_id = `m`.material_id
@@ -263,6 +264,8 @@
 				AND `psf`.POSITION_ID = `pf`.position_id
 		LEFT JOIN production_assign pa
 			ON pf.material_id = pa.material_id AND pf.position_id = pa.position_id
+		LEFT JOIN material_tag mt
+			ON `m`.material_id = mt.material_id AND tag_type = 1
 	]]>
 	<if test="group_position_id!= null and group_position_id!= '' ">
 	<![CDATA[
@@ -325,7 +328,8 @@
 			m.level in (9,91,92,93,96,97,98,99) as light_fix,
 			date_format(m.scheduled_date, '%m-%d') as scheduled_monthday,
 			pos.position_id, pos.process_code,
-			coalesce(mp.scheduled_date, m.scheduled_date) as scheduled_date_inline
+			coalesce(mp.scheduled_date, m.scheduled_date) as scheduled_date_inline,
+			mt.tag_type is not null as anml_exp
 		FROM production_feature pf
 		JOIN material m
 			ON `pf`.material_id = `m`.material_id
@@ -339,6 +343,8 @@
 			ON `mp`.line_id = pos.line_id
 				AND `mp`.material_id = `m`.material_id
 		JOIN position_group pg ON pos.position_id = pg.next_position_id
+		LEFT JOIN material_tag mt
+			ON `m`.material_id = mt.material_id AND tag_type = 1
 		WHERE `pg`.group_position_id = #{group_position_id}
 			AND `pf`.section_id = #{section_id}
 			AND `pf`.action_time is null

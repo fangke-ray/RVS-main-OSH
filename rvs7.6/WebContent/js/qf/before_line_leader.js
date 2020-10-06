@@ -141,7 +141,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 					rowheight : 23,
 					datatype : "local",
 					colNames : ['修理单号', '型号', '机身号', '条码参照', '不良', '等级', '处理对策', '受理日期', '报价日期', '客户同意', '优先报价', '位置', '状态', '备注',
-						'position', 'esas_no', 'direct_flg', 'fix_type', 'service_repair_flg', 'model_id', 'selectable', 'ts', '', '', '', '' ,'','','vip','scheduled_expedited', '直送区域'],
+						'position', 'esas_no', 'direct_flg', 'fix_type', 'service_repair_flg', 'model_id', 'selectable', 'anml_exp', 'ts', '', '', '', '' ,'','','vip','scheduled_expedited', '直送区域'],
 					colModel : [{
 								name : 'sorc_no',
 								index : 'sorc_no',
@@ -251,6 +251,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 								index : 'selectable',
 								hidden : true
 							},
+							{name:'anml_exp',index:'anml_exp', hidden:true},
 							{name:'ticket_flg',index:'ticket_flg', hidden:true},
 							{name:'ocm',index:'ocm', hidden:true},
 							{name:'ocm_rank',index:'ocm_rank', hidden:true},
@@ -619,6 +620,8 @@ function doQuotationCommentChange(){
 					$("#edit_material_comment").val(resInfo.material_comment);
 				}
 			} catch(e) {
+				console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
+						+ e.lineNumber + " fileName: " + e.fileName);
 			}
 		}
 	});	
@@ -782,9 +785,9 @@ var doMove = function() {
 					//this_dialog.css("cursor", "pointer");
 					this_dialog.find(".ui-widget-content").click(function(e){
 						if ("TD" == e.target.tagName) {
-							if (!$(e.target).hasClass("wip-heaped")) {
-								doChangeLocation($(e.target).attr("wipid"));
-								this_dialog.dialog("close");
+							var $td = $(e.target);
+							if (!$td.hasClass("wip-heaped")) {
+								doChangeLocation($td.attr("wipid"), $td.is("[anml_exp]"));
 							}
 						}
 					});
@@ -802,15 +805,25 @@ var doMove = function() {
 					});
 				}
 			} catch(e) {
-				
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
+				+ e.lineNumber + " fileName: " + e.fileName);
 			}
 		}
 	});
 }
 
-var doChangeLocation = function(wip_location) {
+var doChangeLocation = function(wip_location, isAnml_exp) {
 	var rowid = $("#performance_list").jqGrid("getGridParam", "selrow");
 	var rowdata = $("#performance_list").getRowData(rowid);
+
+	if (rowdata.anml_exp == "1" && !isAnml_exp) {
+		errorPop("请将动物实验用维修品放入专门库位。")
+		return;
+	} else if (rowdata.anml_exp != "1" && isAnml_exp) {
+		errorPop("请不要将普通维修品放入动物实验用专门库位。")
+		return;
+	}
+	$("#wip_pop").dialog("close");
 
 	var data = {material_id : rowdata.material_id ,wip_location : wip_location};
 
@@ -904,8 +917,9 @@ var doResystem=function() {
 		$("#service_repair").val(rowdata["service_repair_flg"]).trigger("change");
 		$("#edit_serialno").val(rowdata["serial_no"]);
 		$("#selectable").val(rowdata["selectable"]).trigger("change");
+		$("#edit_anml_exp").val(rowdata["anml_exp"]).trigger("change");
 
-		$("#direct,#service_repair,#fix_type,#selectable,#edit_ocm,#edit_level,#edit_storager").select2Buttons();
+		$("#direct,#service_repair,#fix_type,#selectable,#edit_anml_exp,#edit_ocm,#edit_level,#edit_storager").select2Buttons();
 		$("#referchooser_edit").html( $("#model_refer1").html());
 		setReferChooser($("#edit_modelname"), $("#referchooser_edit"));
 		$(".ui-button[value='清空']").button();
@@ -1148,7 +1162,9 @@ var showDetail=function(rid) {
 
 		$("#service_repair").val(rowData.service_repair_flg);
 		$("#fix_type").val(rowData.fix_type);
-		$("#selectable").val(rowData.selectable);
+		$("#selectable").val(rowData.selectable).trigger("change");
+		$("#edit_anml_exp").val(rowData.anml_exp || "0").trigger("change");
+
 		$("#edit_customer_name").val(rowData.customer_name); 
 		$("#edit_ocm").val(rowData.ocm); 
 		$("#edit_ocm_rank").val(rowData.ocm_rank); 
@@ -1166,7 +1182,7 @@ var showDetail=function(rid) {
 			$("#edit_bound_out_ocm").parents("tr").hide();
 		}
 
-		$("#direct,#service_repair,#fix_type,#selectable,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm").select2Buttons();
+		$("#direct,#service_repair,#fix_type,#selectable,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm,#edit_anml_exp").select2Buttons();
 
 		$("#direct").change(function(){
 			if (this.value == 1) {
@@ -1247,7 +1263,8 @@ var showDetail=function(rid) {
 						"direct_flg":$("#direct").val() == "" ? "0" : $("#direct").val(),
 						"service_repair_flg":$("#service_repair").val(),
 						"fix_type":$("#fix_type").val(),
-						"selectable":$("#selectable").val()
+						"selectable":$("#selectable").val(),
+						"anml_exp":$("#edit_anml_exp").val()
 					}
 					// 直送
 					if ($("#direct").val() == 1) {

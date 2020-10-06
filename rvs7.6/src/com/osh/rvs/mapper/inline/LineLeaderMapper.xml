@@ -210,7 +210,8 @@
 				`ppf1`.position_id as category_id,
 				`m`.bound_out_ocm,
 				coalesce(`m`.pat_id, mdl.default_pat_id) as pat_id,
-				pat.name as section_name
+				pat.name as section_name,
+				mt.tag_type is not null as anml_exp
 			FROM material m
 			JOIN v_model mdl
 				ON `m`.model_id = `mdl`.model_id
@@ -242,8 +243,10 @@
 				ON `m`.material_id = `srm`.material_id
 			LEFT JOIN customer `c`
 				ON `m`.customer_id = `c`.customer_id
-			 LEFT JOIN process_assign_template pat
-			 	ON coalesce(`m`.pat_id, mdl.default_pat_id) = pat.process_assign_template_id 
+			LEFT JOIN process_assign_template pat
+			 	ON coalesce(`m`.pat_id, mdl.default_pat_id) = pat.process_assign_template_id
+			LEFT JOIN material_tag mt
+				ON `m`.material_id = mt.material_id AND tag_type = 1
 			WHERE `m`.inline_time IS NULL AND outline_time IS NULL
 			AND break_back_flg = 0
 		]]>

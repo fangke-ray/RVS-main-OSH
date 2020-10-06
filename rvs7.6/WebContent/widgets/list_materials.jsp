@@ -67,10 +67,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						</td>
 					</tr>
 					<tr style="display:none;">
-						<td class="ui-state-default td-title">ESAS No.</td>
-						<td class="td-content"><input type="text" name="esas_no" id="search_esas_no" maxlength="8" class="ui-widget-content"></td>
-						<td class="ui-state-default td-title">维修等级</td>
-						<td class="td-content">
+						<td class="ui-state-default td-title" rowspan="2">ESAS No.</td>
+						<td class="td-content" rowspan="2"><input type="text" name="esas_no" id="search_esas_no" maxlength="8" class="ui-widget-content"></td>
+						<td class="ui-state-default td-title" rowspan="2">维修等级</td>
+						<td class="td-content" rowspan="2">
 							<select name="search_level" id="search_level" class="ui-widget-content" multiple>
 								${lOptions}
 							</select>
@@ -82,6 +82,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							<input type="radio" name="direct_flg" id="direct_flg_y" class="ui-widget-content" value="1"><label for="direct_flg_y">直送</label>
 							<br/>
 							<input type="checkbox" name="direct_rapid" id="direct_rapid" class="ui-widget-content" value="1"><label for="direct_rapid">直送快速</label>
+						</td>
+					</tr>
+					<tr style="display:none;">
+						<td class="ui-state-default td-title">动物实验用</td>
+						<td class="td-content" id="anml_exp_set">
+							<input type="radio" name="anml_exp" id="anml_exp_a" class="ui-widget-content" checked="true" value=""><label for="anml_exp_a">全部</label>
+							<input type="radio" name="anml_exp" id="anml_exp_y" class="ui-widget-content" value="1"><label for="anml_exp_y">动物实验用</label>
 						</td>
 					</tr>
 					<tr style="display:none;">

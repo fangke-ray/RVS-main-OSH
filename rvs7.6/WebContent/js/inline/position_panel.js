@@ -71,11 +71,12 @@ var makeBreakDialog = function(jBreakDialog) {
 					}
 
 					if (parseInt($("#break_reason").val()) > 70 && $("#pcs_contents input").length > 0) {
-						if ($('div#errstring').length == 0) {
-							$("body").append("<div id='errstring'/>");
+						var $break_confirm = $('div#break_confirm');
+						if ($break_confirm.length == 0) {
+							$("body").append("<div id='break_confirm'/>");
+							$break_confirm = $('div#break_confirm');
 						}
-						$('div#errstring').show();
-						$('div#errstring').dialog({
+						$break_confirm.dialog({
 							dialogClass : 'ui-warn-dialog',
 							modal : true,
 							width : 450,
@@ -108,14 +109,14 @@ var makeBreakDialog = function(jBreakDialog) {
 											};
 										}
 									});
-									$('div#errstring').dialog("close");
+									$break_confirm.dialog("close");
 								},
 								"取消":function(){
-									$('div#errstring').dialog("close");
+									$break_confirm.dialog("close");
 								}
 							}
 						});
-						$('div#errstring').html("<span class='errorarea'>请确定与您作业相关的工程检查票项目已经输入或点检。</span>");
+						$break_confirm.html("<span class='errorarea'>请确定与您作业相关的工程检查票项目已经输入或点检。</span>");
 					} else {
 						// Ajax提交
 						$.ajax({
@@ -619,7 +620,13 @@ var treatPause = function(resInfo) {
 	$("#p_rate div:animated").stop();
 
 	if (resInfo) {
-		$("#material_details td:eq(0) input:hidden").val(resInfo.mform.material_id);
+		var $hidden_id = $("#material_details td:eq(0) input:hidden");
+		$hidden_id.val(resInfo.mform.material_id);
+		$("#anml_attendtion").remove();
+		if (resInfo.mform.anml_exp) {
+			$hidden_id.before("<attendtion id='anml_attendtion'></attendtion>");
+		}
+
 		$("#material_details td:eq(1)").text(resInfo.mform.sorc_no);
 		$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 		$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
@@ -696,7 +703,14 @@ var treatStart = function(resInfo) {
 		$("#stepbutton").show();
 	}
 
-	$("#material_details td:eq(0) input:hidden").val(resInfo.mform.material_id); // $("#pauseo_material_id").
+	var $hidden_id = $("#material_details td:eq(0) input:hidden");
+	$hidden_id.val(resInfo.mform.material_id);
+	$("#anml_attendtion").remove();
+	if (resInfo.mform.anml_exp) {
+		infoPop("请注意此维修品是动物实验用。");
+		$hidden_id.before("<attendtion id='anml_attendtion'></attendtion>");
+	}
+
 	$("#material_details td:eq(1)").text(resInfo.mform.sorc_no);
 	$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 	$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
@@ -1139,8 +1153,8 @@ var expeditedColor = function(expedited, today, reason) {
 	return ' tube-gray'; // 普通 
 }
 
-var getFlags = function(expedited, direct_flg, light_fix,reworked, imbalance) {
-	if (expedited || direct_flg || light_fix || reworked || imbalance) {
+var getFlags = function(expedited, direct_flg, light_fix,reworked, imbalance, anml_exp) {
+	if (expedited || direct_flg || light_fix || reworked || imbalance || anml_exp) {
 		var retDiv = "<div class='material_flags'>";
 		if (expedited >= 20) retDiv += "<div class='rapid_direct_flg'><span>直送快速</span></div>";
 		else {
@@ -1156,6 +1170,9 @@ var getFlags = function(expedited, direct_flg, light_fix,reworked, imbalance) {
 		}
 		if (imbalance == 2) {
 			retDiv += "<div class='b_flg group_up'>▲</div>"; // ↑
+		}
+		if (anml_exp == 1) {
+			retDiv += "<div class='rapid_direct_flg anml_exp'><span>动物实验</span></div>"
 		}
 		retDiv += "</div>";
 		return retDiv;
@@ -1772,7 +1789,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 			$("#hidden_workstauts").val(resInfo.workstauts);
 			if (resInfo.workstauts == 2 || resInfo.workstauts == 5) {
 				treatPause(resInfo);
-			} else if (xhrobj.status == 200){
+			} else if (xhrobj.status == 200) {
 				$("#scanner_inputer").attr("value", "");
 				$("#material_details").hide();
 				$(".other_px_change_button").enable();
@@ -1833,6 +1850,8 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 				} else {
 					$("#comments_sidebar").hide();
 				}
+
+				checkAnmlAlert();
 			}
 		}
 	} catch (e) {
@@ -2005,7 +2024,7 @@ var getWaitingHtml = function(waitings, other) {
 							' id="w_' + waiting.material_id + '">' +
 							'<div class="tube-liquid' + expeditedColor(waiting.expedited, waiting.today, reason)  + '">'
 								+ getTubeBody(waiting) 
-								+ getFlags(waiting.expedited, waiting.direct_flg, waiting.light_fix, waiting.reworked, waiting.imbalance) +
+								+ getFlags(waiting.expedited, waiting.direct_flg, waiting.light_fix, waiting.reworked, waiting.imbalance, waiting.anml_exp) +
 								getBlock(waiting.block_status) +
 								// getInPlaceTime(waiting.in_place_time) +   
 								getDryingTime(waiting.drying_process) +   
@@ -2468,4 +2487,11 @@ var saveLeakDataCallback = function(data){
 var formatDatetime = function(d){
 	return d.getFullYear() + "/" +　fillZero(d.getMonth() + 1) + "/" + fillZero(d.getDate())
 		+ " " + fillZero(d.getHours()) + ":" + fillZero(d.getMinutes()) + ":" + fillZero(d.getSeconds());
+}
+
+var checkAnmlAlert = function() {
+	if ($("#anml_attendtion").length > 0) {
+		errorPop("刚才结束或中断作业的维修品为动物实验用。<br>如果之后要处理普通维修品的话，请确认：<br>" +
+				"	１．台面等作业环境是否了清洁消毒。<br>	２．使用过设备工具与治具的是否了清洁消毒。<br>	３．双手是否了清洁消毒。");
+	}
 }

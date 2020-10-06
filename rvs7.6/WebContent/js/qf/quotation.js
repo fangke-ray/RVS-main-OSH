@@ -134,8 +134,20 @@ var pop_wip = function(call_back, resInfo){
 		//$("#quotation_pop").css("cursor", "pointer");
 		quotation_pop.find(".ui-widget-content").click(function(e){
 			if ("TD" == e.target.tagName) {
-				if (!$(e.target).hasClass("wip-heaped")) {
-					wip_location = $(e.target).attr("wipid");
+				var $td = $(e.target);
+				if (!$td.hasClass("wip-heaped")) {
+					wip_location = $td.attr("wipid");
+					var putAnml_exp = $("#anml_attendtion").length > 0;
+					var isAnml_exp = $td.is("[anml_exp]");
+
+					if (putAnml_exp && !isAnml_exp) {
+						errorPop("请将动物实验用维修品放入专门库位。")
+						return;
+					} else if (!putAnml_exp && isAnml_exp) {
+						errorPop("请不要将普通维修品放入动物实验用专门库位。")
+						return;
+					}
+
 					call_back();
 					quotation_pop.dialog("close");
 				}
@@ -370,7 +382,7 @@ var paused_list = function(paused) {
 							(waiting.agreed_date ? 'tube-green' : 'tube-gray') +
 							'">' +
 								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.model_name + ' | ' + waiting.serial_no +
-								getFlags(waiting.quotation_first, waiting.scheduled_expedited, waiting.direct_flg, waiting.light_fix, waiting.service_repair_flg) +
+								getFlags(waiting.quotation_first, waiting.scheduled_expedited, waiting.direct_flg, waiting.light_fix, waiting.service_repair_flg, waiting.anml_exp) +
 							'</div>' +
 						'</div>';
 		subCount++;
@@ -587,6 +599,12 @@ var getMaterialInfo = function(resInfo) {
 
 		$("#partake").append("#" + resInfo.mform.selectable);
 
+		$("#anml_attendtion").remove();
+		if (resInfo.mform.anml_exp) {
+			infoPop("请注意此维修品是动物实验用。");
+			$("#edit_direct_flg").before("<p id='anml_attendtion'></p>");
+		}
+
 		$("#direct_rapid").removeAttr("checked");
 		if (resInfo.mform.direct_flg != 1) {
 		//	$("table.condform tr:last").hide();
@@ -777,6 +795,8 @@ var doFinish_ajaxSuccess=function(xhrobj, textStatus, postData){
 				//$("#pauseo_edit").hide;
 				//$("#pauseo_edit").hide;
 				$("#break_dialog").dialog("close");
+			} else {
+				checkAnmlAlert();
 			}
 		}
 	} catch (e) {
@@ -1230,7 +1250,7 @@ function load_list(listdata){
 			colModel:[
 				{name:'reception_time',index:'reception_time', width:70, align:'center',
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}},
-				{name:'sorc_no',index:'sorc_no', width:105},
+				{name:'sorc_no',index:'sorc_no', width:80},
 				{name:'esas_no',index:'esas_no', width:50, align:'center'},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_id', width:125},
@@ -1240,8 +1260,8 @@ function load_list(listdata){
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d', newformat: 'm-d'}},
 				{name:'quotation_first',index:'quotation_first', width:35, align:'center', formatter: 'select', editoptions:{value: "0:;1:优先"}},
 				{name:'level',index:'level', width:35, align:'center', formatter: 'select', editoptions:{value: lOptions}},
-				{name:'fix_type',index:'fix_type', width:100, formatter : function(value, options, rData){
-					return rData['remark'];
+				{name:'fix_type',index:'fix_type', width:125, formatter : function(value, options, rData){
+					return rData['remark'] + (rData['anml_exp'] == '1' ? " 动物实验用" : "");
 				}}//formatter: 'select', editoptions:{value: tOptions}}
 			],
 			rowNum: 20,
@@ -1263,8 +1283,8 @@ function load_list(listdata){
 
 };
 
-var getFlags = function(over_time, expedited, direct_flg, light_fix, f_service_repair_flg) {
-	if (over_time || expedited || direct_flg || light_fix) {
+var getFlags = function(over_time, expedited, direct_flg, light_fix, f_service_repair_flg, anml_exp) {
+	if (over_time || expedited || direct_flg || light_fix || anml_exp) {
 		var retDiv = "<div class='material_flags'>";
 		if (f_service_repair_flg > 0) {
 			var f = f_service_repair_flg >= 10;
@@ -1290,6 +1310,9 @@ var getFlags = function(over_time, expedited, direct_flg, light_fix, f_service_r
 		if (over_time == 1) {
 			retDiv += "<div class='over_time'>超</div>";
 		}
+		if (anml_exp == 1) {
+			retDiv += "<div class='rapid_direct_flg anml_exp'><span>动物实验</span></div>"
+		}
 		
 		retDiv += "</div>";
 		return retDiv;
@@ -1306,4 +1329,11 @@ var createCommentOptions = function(comments){
 		sRet += "<option value='" + comment + "'>" + comment + "</option>";
 	}
 	return sRet;
+}
+
+var checkAnmlAlert = function() {
+	if ($("#anml_attendtion").length > 0) {
+		errorPop("刚才结束或中断作业的维修品为动物实验用。<br>如果之后要处理普通维修品的话，请确认：<br>" +
+				"	１．台面等作业环境是否了清洁消毒。<br>	２．使用过设备工具与治具的是否了清洁消毒。<br>	３．双手是否了清洁消毒。");
+	}
 }

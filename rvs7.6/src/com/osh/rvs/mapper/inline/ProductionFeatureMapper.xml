@@ -91,7 +91,8 @@
 							WHEN (SELECT MIN(avaliable_end_date) FROM model_level_set WHERE model_id = a.model_id) < dy.avaliable_date THEN 1
 							ELSE 2
 						END
-				END AS avaliable_end_date_flg
+				END AS avaliable_end_date_flg,
+				mt.tag_type is not null as anml_exp
 			FROM material a
 			LEFT JOIN production_feature b
 				ON a.material_id = b.material_id
@@ -102,6 +103,8 @@
 				ON a.customer_id = c.customer_id
 			LEFT JOIN turnover_case_storage tcs ON a.material_id = tcs.material_id
 			JOIN (select date_add(current_date, interval 15 day) as avaliable_date) dy 
+			LEFT JOIN material_tag mt
+				ON a.material_id = mt.material_id AND tag_type = 1
 			WHERE a.break_back_flg = 0
 and a.inline_time is null -- [SpeedUp]
 			and not exists (

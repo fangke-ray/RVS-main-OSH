@@ -163,7 +163,7 @@ var showLoadInput=function(rid) {
 			currentText : "今天"
 		});
 
-		$("#direct,#service_repair,#fix_type,#selectable,#edit_ocm,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm").select2Buttons();
+		$("#direct,#service_repair,#fix_type,#selectable,#edit_anml_exp,#edit_ocm,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm").select2Buttons();
 
 		setReferChooser($("#edit_modelname"));
 		$(".ui-button[value='清空']").button();
@@ -285,9 +285,10 @@ var showInput=function(rid, manual) {
 			}
 			$("#direct_rapid").trigger("change");
 
-			$("#service_repair").val(rowData.service_repair_flg);
-			$("#fix_type").val(rowData.fix_type);
-			$("#selectable").val(rowData.selectable);
+			$("#service_repair").val(rowData.service_repair_flg).trigger("change");
+			$("#fix_type").val(rowData.fix_type).trigger("change");
+			$("#selectable").val(rowData.selectable).trigger("change");
+			$("#edit_anml_exp").val(rowData.anml_exp || "0").trigger("change");
 			$("#edit_bound_out_ocm").val(rowData.bound_out_ocm);
 		}
 
@@ -297,7 +298,7 @@ var showInput=function(rid, manual) {
 			currentText : "今天"
 		});
 
-		$("#direct,#service_repair,#fix_type,#selectable,#edit_ocm,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm").select2Buttons();
+		$("#direct,#service_repair,#fix_type,#selectable,#edit_anml_exp,#edit_ocm,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm").select2Buttons();
 
 		$("#direct").change(function(){
 			
@@ -342,7 +343,8 @@ var showInput=function(rid, manual) {
 						"direct_flg":$("#direct").val() == "" ? "0" : $("#direct").val(),
 						"service_repair_flg":$("#service_repair").val(),
 						"fix_type":$("#fix_type").val(),
-						"selectable":$("#selectable").val()
+						"selectable":$("#selectable").val(),
+						"anml_exp":$("#edit_anml_exp").val()
 					}
 
 					// 直送
@@ -425,7 +427,6 @@ var showInput=function(rid, manual) {
 		});
 		$("#uld_listedit").show();
 	});
-
 };
 
 /**
@@ -612,7 +613,7 @@ function acceptted_list(){
 			datatype: "local",
 			colNames:['受理对象ID','导入时间','受理时间', '修理单号', '型号 ID', '型号' , '机身号','委托处ID','委托处','同意日', 
 			'等级ID', '等级','通箱编号', '受理人员ID','受理人员', '仓储人员', '备注', '直送', '返修标记', '流水类型','消毒灭菌ID', '选择式报价'
-			,'ocm_rank','customer_name','vip','scheduled_expedited','ocm_deliver_date', '直送区域', '通箱位置','avaliable_end_date_flg'],
+			,'anml_exp','ocm_rank','customer_name','vip','scheduled_expedited','ocm_deliver_date', '直送区域', '通箱位置','avaliable_end_date_flg'],
 			colModel:[
 				{name:'material_id',index:'material_id', hidden:true},
 				{name:'reception_time',index:'reception_time', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d H:i'}},
@@ -635,6 +636,9 @@ function acceptted_list(){
 					if(rData.avaliable_end_date_flg == 0 || rData.break_back_flg == 1){
 						value += "型号终止";
 					} 
+					if (rData['anml_exp'] == '1') {
+						value +=  " 动物实验用";
+					}
 					return value;
 				}},
 				{name:'direct_flg',index:'direct_flg', hidden:true},
@@ -642,6 +646,7 @@ function acceptted_list(){
 				{name:'fix_type',index:'fix_type', hidden:true},
 				{name:'sterilized',index:'sterilized', hidden:true},
 				{name:'selectable',index:'selectable', hidden:true},
+				{name:'anml_exp',index:'anml_exp', hidden:true},
 				{name:'ocm_rank',index:'ocm_rank', hidden:true},
 				{name:'customer_name',index:'customer_name', hidden:true},
 				{name:'quotation_first',index:'quotation_first', hidden:true},
@@ -909,7 +914,7 @@ function load_list(){
 			rowheight: 23,
 			datatype: "local",
 			colNames:['', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处','同意时间','同意日','level','等级'
-			          , '通箱编号', '仓储人员', '', '', '', '备注', '选择式报价','','',''],
+			          , '通箱编号', '仓储人员', '', '', '', '备注', '选择式报价','anml_exp','','',''],
 			colModel:[
 				{name:'material_id',index:'material_id', hidden:true},
 				{name:'sorc_no',index:'sorc_no', width:105},
@@ -950,10 +955,14 @@ function load_list(){
 					} else if (rData["fix_type"] == "4") {
 						comment += " 协助RC CDS品";
 					}
+					if (rData['anml_exp'] == '1') {
+						comment += " 动物实验用";
+					}
 					return comment.trim();
 				}
 				},
 				{name:'selectable',index:'selectable', hidden:true},
+				{name:'anml_exp',index:'anml_exp', hidden:true},
 				{name:'ocm_rank',index:'ocm_rank', hidden:true},
 				{name:'customer_name',index:'customer_name', hidden:true},
 				{name:'ocm_deliver_date',index:'ocm_deliver_date', hidden:true}

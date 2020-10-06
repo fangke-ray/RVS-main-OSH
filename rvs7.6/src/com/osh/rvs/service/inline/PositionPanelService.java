@@ -57,6 +57,7 @@ import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -573,7 +574,7 @@ public class PositionPanelService {
 			String position_id = singlePositionId;
 			if (position_id == null) position_id = we.getPosition_id();
 
-			String process_code = singlePositionId;
+			String process_code = singleProcessCode;
 			if (process_code == null) process_code = we.getProcess_code();
 
 			if ("0".equals(we.getWaitingat())) we.setWaitingat("未处理");
@@ -1093,6 +1094,14 @@ public class PositionPanelService {
 		// 取得维修对象信息。
 		MaterialForm mform = this.getMaterialInfo(material_id, conn);
 		mform.setOperate_result(String.valueOf(pf.getOperate_result()));
+
+		// 动物内镜用
+		MaterialTagService mtServcie = new MaterialTagService();
+		List<Integer> mtList = mtServcie.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
+		if (mtList != null && mtList.size() > 0) {
+			mform.setAnml_exp("true");
+		}
+
 		listResponse.put("mform", mform);
 
 		// 取得维修对象在本工位作业信息。 TODO v2
@@ -1427,7 +1436,7 @@ public class PositionPanelService {
 				// 限制
 				retComments += ""+
 						DateUtil.toString(ab, DateUtil.ISO_DATE_PATTERN)+"的工作日报不完整，将限制工作。"
-								+ "请[lickonclick='javascript:opd_pop(null, null, \"" + DateUtil.toString(ab, DateUtil.DATE_PATTERN) + "\")'>进行补充]。\n";
+								+ "请[lickid='opd_loader_refill'onclick='javascript:opd_pop(null, null, \"" + DateUtil.toString(ab, DateUtil.DATE_PATTERN) + "\")'>进行补充]。\n";
 			}
 		}
 		return retComments;

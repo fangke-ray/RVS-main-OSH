@@ -180,6 +180,9 @@ public class MaterialForm extends ActionForm {
 	@BeanField(title = "环序号", name = "ring_code", type = FieldType.String, length = 6)
 	private String ring_code;
 
+	@BeanField(title = "动物实验用", name = "anml_exp", type = FieldType.Integer, length = 1)
+	private String anml_exp;
+
 	public String getCategory_id() {
 		return category_id;
 	}
@@ -868,6 +871,14 @@ public class MaterialForm extends ActionForm {
 
 	public void setRing_code(String ring_code) {
 		this.ring_code = ring_code;
+	}
+
+	public String getAnml_exp() {
+		return anml_exp;
+	}
+
+	public void setAnml_exp(String anml_exp) {
+		this.anml_exp = anml_exp;
 	}
 
 }

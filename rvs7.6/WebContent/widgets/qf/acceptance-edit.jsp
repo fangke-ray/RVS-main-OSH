@@ -151,6 +151,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<option value="0">(普通)</option>
 						<option value="1">选择式报价</option>
 					</select>
+					<select id="edit_anml_exp" class="ui-widget-content">
+						<option value="0">(普通)</option>
+						<option value="1">动物实验用</option>
+					</select>
+					<label id="label_anml_exp"></label>
 				</td>
 				</tr>
 				<tr>

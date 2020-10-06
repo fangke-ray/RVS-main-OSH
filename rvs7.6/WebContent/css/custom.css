@@ -448,6 +448,7 @@ border:1px solid gray;
 color: rgb(0, 48, 0);
 overflow-x: hidden;
 position: relative;
+top: 0px;
 }
 
 .tube-liquid .material_flags .light_fix
@@ -469,6 +470,13 @@ color: rgb(0, 48, 0);
 background-color: rgb(247, 9, 9);
 border:1px solid gray;
 color: rgb(255, 255, 56);
+}
+
+.tube-liquid .material_flags .anml_exp
+{
+background-color: rgb(255, 242, 208);
+border:1px solid rgb(170, 120, 0);
+color: rgb(212, 148, 0);
 }
 
 .tube-liquid .material_flags .service_repair_flg

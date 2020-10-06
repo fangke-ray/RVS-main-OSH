@@ -31,6 +31,7 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.master.HolidayMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 
@@ -129,6 +130,14 @@ public class QualityAssuranceService {
 		// 取得维修对象信息。
 		MaterialForm mform = getMaterialInfo(material_id, conn);
 		listResponse.put("mform", mform);
+
+		// 动物内镜用
+		MaterialTagService mtServcie = new MaterialTagService();
+		List<Integer> mtList = mtServcie.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
+		if (mtList != null && mtList.size() > 0) {
+			mform.setAnml_exp("true");
+		}
+
 		if (mform.getQa_check_time() == null) {
 			return false;
 		} else {
@@ -163,6 +172,10 @@ public class QualityAssuranceService {
 			}
 			if (waiting.getService_repair_flg() != null) {
 				comment += CodeListUtils.getValue("material_service_repair", ""+waiting.getService_repair_flg());
+			}
+			if (waiting.getAnml_exp() != null && waiting.getAnml_exp() == 1) {
+				comment += " 动物实验用";
+				comment = comment.trim();
 			}
 			waitingsForm.setStatus(comment);
 			waitingsForms.add(waitingsForm);

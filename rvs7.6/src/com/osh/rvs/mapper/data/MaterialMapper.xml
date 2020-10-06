@@ -313,6 +313,10 @@
 			<if test="fix_type != null and fix_type != '' ">
 				and a.fix_type = #{fix_type}
 			</if>
+			<if test="anml_exp eq 1 ">
+				and EXISTS 
+					(SELECT tag_type FROM material_tag WHERE material_id = a.material_id AND tag_type = 1)
+			</if>
 			<if test="scheduled_date_start!= null or scheduled_date_end!= null or complete_date_start!= null or complete_date_end!= null">
 				<![CDATA[
 				and EXISTS (

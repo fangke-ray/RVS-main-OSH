@@ -1,4 +1,10 @@
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" isELIgnored="false"%>
+<style>
+.shelf_model td[anml_exp] {
+	border-color : #AA7700;
+	border-radius : 20%;
+}
+</style>
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
 		<span class="areatitle">WIP区域一览</span>
 	</div>
@@ -621,11 +627,11 @@
 </tr>
 <tr>
 <td wipid="8A9">9</td>
-<td wipid="8B9">9</td>
-<td wipid="8C9">9</td>
-<td wipid="8D9">9</td>
-<td wipid="8E9">9</td>
-<td wipid="8F9">9</td>
+<td wipid="8B9" anml_exp>9</td>
+<td wipid="8C9" anml_exp>9</td>
+<td wipid="8D9" anml_exp>9</td>
+<td wipid="8E9" anml_exp>9</td>
+<td wipid="8F9" anml_exp>9</td>
 </tr>
 			</table>
 		</div>
@@ -705,12 +711,12 @@
 <td wipid="9F8">8</td>
 </tr>
 <tr>
-<td wipid="9A9">9</td>
-<td wipid="9B9">9</td>
-<td wipid="9C9">9</td>
-<td wipid="9D9">9</td>
-<td wipid="9E9">9</td>
-<td wipid="9F9">9</td>
+<td wipid="9A9" anml_exp>9</td>
+<td wipid="9B9" anml_exp>9</td>
+<td wipid="9C9" anml_exp>9</td>
+<td wipid="9D9" anml_exp>9</td>
+<td wipid="9E9" anml_exp>9</td>
+<td wipid="9F9" anml_exp>9</td>
 </tr>
 </tr>
 			</table>
@@ -1270,13 +1276,13 @@
 <td wipid="16G9">9</td>
 </tr>
 <tr>
-<td wipid="16A10">10</td>
-<td wipid="16B10">10</td>
-<td wipid="16C10">10</td>
-<td wipid="16D10">10</td>
-<td wipid="16E10">10</td>
-<td wipid="16F10">10</td>
-<td wipid="16G10">10</td>
+<td wipid="16A10" anml_exp>10</td>
+<td wipid="16B10" anml_exp>10</td>
+<td wipid="16C10" anml_exp>10</td>
+<td wipid="16D10" anml_exp>10</td>
+<td wipid="16E10" anml_exp>10</td>
+<td wipid="16F10" anml_exp>10</td>
+<td wipid="16G10" anml_exp>10</td>
 </tr>
 			</table>
 		</div>

@@ -399,6 +399,9 @@
 		<value code="43">黑龙江</value>
 		<value code="80">西南备品中心</value>
 		<value code="81">华东备品中心</value>
+		<value code="86">北京C-TEC</value>
+		<value code="87">上海C-TEC</value>
+		<value code="88">广州C-TEC</value>
 	</codelist>
 
 	<codelist name="material_direct_area">
@@ -433,6 +436,9 @@
 		<value code="43">黑龙江</value>
 		<value code="80">西南备品中心</value>
 		<value code="81">华东备品中心</value>
+		<value code="86">北京C-TEC</value>
+		<value code="87">上海C-TEC</value>
+		<value code="88">广州C-TEC</value>
 	</codelist>
 
 	<codelist name="echelon_code">

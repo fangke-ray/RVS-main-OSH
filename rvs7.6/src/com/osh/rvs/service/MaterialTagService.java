@@ -1,5 +1,8 @@
 package com.osh.rvs.service;
 
+import java.util.List;
+
+import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
 
@@ -16,6 +19,9 @@ import framework.huiqing.common.util.copy.CopyOptions;
  * @date 2020-9-2 上午11:18:15
  */
 public class MaterialTagService {
+
+	public static final Integer TAG_ANIMAL_EXPR = 1;
+
 	/**
 	 * 新建
 	 * 
@@ -40,5 +46,39 @@ public class MaterialTagService {
 	public void deleteByMaterialId(String materialId, SqlSessionManager conn) {
 		MaterialTagMapper dao = conn.getMapper(MaterialTagMapper.class);
 		dao.deleteByMaterialId(materialId);
+	}
+
+	/**
+	 * 确认后删除/新增维修对象标签
+	 * 
+	 * @param material_id 维修品 ID
+	 * @param tag_type 标签
+	 * @param checked 提交勾选
+	 * @param conn
+	 */
+	public void updataTagByMaterialId(String material_id, Integer tag_type, boolean checked, SqlSessionManager conn) {
+		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
+
+		List<Integer> result = mapper.checkTagByMaterialId(material_id, tag_type + "");
+
+		if (checked) {
+			// 不存在则插入
+			if (result == null || result.size() == 0) {
+				MaterialTagEntity entity = new MaterialTagEntity();
+				entity.setMaterial_id(material_id);
+				entity.setTag_type(tag_type);
+				mapper.insert(entity);
+			}
+		} else {
+			// 存在则删除
+			if (result != null && result.size() > 0) {
+				mapper.deleteTagByMaterialId(material_id, tag_type + "");
+			}
+		}
+	}
+
+	public List<Integer> checkTagByMaterialId(String material_id, Integer tag_type, SqlSession conn) {
+		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
+		return mapper.checkTagByMaterialId(material_id, tag_type + "");
 	}
 }

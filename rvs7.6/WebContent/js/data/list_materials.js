@@ -40,7 +40,8 @@ var findit = function(data) {
 			"ocm_shipping_date_start":$("#search_ocm_shipping_date_start").val(),
 			"ocm_shipping_date_end":$("#search_ocm_shipping_date_end").val(),
 			"ocm":$("#search_ocm").val(),
-			"fix_type":$("#search_fix_type").val()
+			"fix_type":$("#search_fix_type").val(),
+			"anml_exp":$("#anml_exp_set input:checked").val()
 		};
 	} else {
 		keepSearchData = data;
@@ -91,6 +92,9 @@ var reset = function() {
 	$("#search_ocm_shipping_date_start").val("");
 	$("#search_ocm_shipping_date_end").val("");
 	$("#search_fix_type").val("").trigger("change");
+	
+	$("#anml_exp_set input").removeAttr("checked");
+	$("#anml_exp_set input:eq(0)").attr("checked", true).trigger("change");
 };
 
 var downResult = function() {
@@ -126,8 +130,7 @@ var downResult = function() {
 $(function() {
 	
 	$("input.ui-button").button();
-	$("#completed_set").buttonset();
-	$("#direct_set").buttonset();
+	$("#completed_set, #direct_set, #anml_exp_set").buttonset();
 
 	$("#searchbutton").addClass("ui-button-primary");
 	$("#searchbutton").click(function() {

@@ -45,6 +45,7 @@ import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
@@ -486,7 +487,7 @@ public class LineLeaderService {
 			entity.setCustomer_id(cservice.getCustomerStudiedId(entity.getCustomer_name(), entity.getOcm(), conn));
 		}
 		dao.updateMaterial(entity);
-		
+
 		MaterialForm materialForm = (MaterialForm)form;
 		
 		String level = materialForm.getLevel();//等级
@@ -512,7 +513,13 @@ public class LineLeaderService {
 				mService.removeComment(entity.getMaterial_id(), "00000000001", conn);
 			}
 		}
-		
+
+		// 标签更新
+		if (entity.getAnml_exp() != null) {
+			MaterialTagService mtService = new MaterialTagService();
+			mtService.updataTagByMaterialId(entity.getMaterial_id(), MaterialTagService.TAG_ANIMAL_EXPR, entity.getAnml_exp() == 1, conn);
+		}
+
 		// FSE 数据同步
 		try{
 			FseBridgeUtil.toUpdateMaterial(entity.getMaterial_id(), "ll_update");

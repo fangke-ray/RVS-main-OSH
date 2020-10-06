@@ -95,6 +95,9 @@ var doFinish = function(type) {
 				$("#scanner_container").show();
 				$("#devicearea").hide();
 				$("#pcsarea").hide();
+
+				checkAnmlAlert();
+
 				doInit();
 			}
 		});
@@ -128,6 +131,9 @@ var doForbid = function(type) {
 					$("#scanner_container").show();
 					$("#devicearea").hide();
 					$("#pcsarea").hide();
+
+					checkAnmlAlert();
+
 					doInit();
 				}
 			});
@@ -522,8 +528,15 @@ var treatStart = function(resInfo) {
 	$("#pcsarea").show();
 
 	var mform = resInfo.mform;
+	$("#anml_attendtion").remove();
 	if (mform) {
-		$("#pauseo_material_id").val(mform.material_id);
+		var $hidden_id = $("#pauseo_material_id");
+		$hidden_id.val(mform.material_id);
+		if (mform.anml_exp) {
+			infoPop("请注意此维修品是动物实验用。");
+			$hidden_id.before("<attendtion id='anml_attendtion'></attendtion>");
+		}
+
 		$("#show_model_name").text(mform.model_name);
 		$("#show_serial_no").text(mform.serial_no);
 		$("#show_sorc_no").text(mform.sorc_no);
@@ -849,11 +862,7 @@ var makeStepDialog = function(jBreakDialog) {
 					}
 					
 					if (parseInt($("#break_reason").val()) > 70 && $("#pcs_contents input").length > 0) {
-						if ($('div#errstring').length == 0) {
-							$("body").append("<div id='errstring'/>");
-						}
-						$('div#errstring').show();
-						$('div#errstring').dialog({
+						jBreakDialog.dialog({
 							dialogClass : 'ui-warn-dialog',
 							modal : true,
 							width : 450,
@@ -879,16 +888,18 @@ var makeStepDialog = function(jBreakDialog) {
 											$("#pcsarea").hide();
 											doInit();
 											jBreakDialog.dialog("close");
+
+											checkAnmlAlert();
 										}
 									});
-									$('div#errstring').dialog("close");
+									jBreakDialog.dialog("close");
 								},
 								"取消":function(){
-									$('div#errstring').dialog("close");
+									jBreakDialog.dialog("close");
 								}
 							}
 						});
-						$('div#errstring').html("<span class='errorarea'>请确定与您作业相关的工程检查票项目已经输入或点检。</span>");
+						jBreakDialog.html("<span class='errorarea'>请确定与您作业相关的工程检查票项目已经输入或点检。</span>");
 					} else {
 						// Ajax提交
 						$.ajax({
@@ -909,6 +920,8 @@ var makeStepDialog = function(jBreakDialog) {
 								$("#pcsarea").hide();
 								doInit();
 								jBreakDialog.dialog("close");
+
+								checkAnmlAlert();
 							}
 						});
 					}
@@ -929,4 +942,11 @@ var createCommentOptions = function(comments){
 		sRet += "<option value='" + comment + "'>" + comment + "</option>";
 	}
 	return sRet;
+}
+
+var checkAnmlAlert = function() {
+	if ($("#anml_attendtion").length > 0) {
+		errorPop("刚才结束或中断作业的维修品为动物实验用。<br>如果之后要处理普通维修品的话，请确认：<br>" +
+				"	１．台面等作业环境是否了清洁消毒。<br>	２．使用过设备工具与治具的是否了清洁消毒。<br>	３．双手是否了清洁消毒。");
+	}
 }

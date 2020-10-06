@@ -16,4 +16,25 @@
 		DELETE FROM material_tag WHERE material_id = #{material_id}
 	]]>
 	</delete>
+
+	<select id="checkTagByMaterialId" parameterType="string" resultType="Integer">
+	<![CDATA[
+		SELECT tag_type FROM material_tag 
+		WHERE material_id = #{material_id}
+	]]>
+	<if test="tag_type!=null and tag_type!=''">
+	<![CDATA[
+		AND tag_type = #{tag_type}
+	]]>
+	</if>
+	;
+	</select>
+
+	<delete id="deleteTagByMaterialId" parameterType="string">
+	<![CDATA[
+		DELETE FROM material_tag 
+		WHERE material_id = #{material_id}
+		AND tag_type = #{tag_type};
+	]]>
+	</delete>
 </mapper>

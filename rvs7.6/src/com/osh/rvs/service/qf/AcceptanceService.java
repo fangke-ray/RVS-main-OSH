@@ -30,6 +30,7 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.qf.AcceptanceMapper;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ProductionFeatureService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -282,7 +283,7 @@ public class AcceptanceService {
 	 * @param errors
 	 * @throws Exception 
 	 */
-	public void update(ActionForm form, HttpSession session, SqlSession conn, List<MsgInfo> errors) throws Exception {
+	public void update(ActionForm form, HttpSession session, SqlSessionManager conn, List<MsgInfo> errors) throws Exception {
 		CustomerService cservice = new CustomerService();
 
 		MaterialEntity insertBean = new MaterialEntity();
@@ -294,6 +295,13 @@ public class AcceptanceService {
 
 		AcceptanceMapper dao = conn.getMapper(AcceptanceMapper.class);
 		dao.updateMaterial(insertBean);
+
+		// 标签更新
+		if (insertBean.getAnml_exp() != null) {
+			MaterialTagService mtService = new MaterialTagService();
+			mtService.updataTagByMaterialId(insertBean.getMaterial_id(), MaterialTagService.TAG_ANIMAL_EXPR, insertBean.getAnml_exp() == 1, conn);
+		}
+
 	}
 
 	/**

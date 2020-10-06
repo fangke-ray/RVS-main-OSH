@@ -23,15 +23,14 @@ import org.apache.log4j.Logger;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.master.ModelEntity;
-import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.inline.MaterialCommentMapper;
-import com.osh.rvs.mapper.partial.ComponentSettingMapper;
 import com.osh.rvs.mapper.qf.QuotationMapper;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -117,6 +116,12 @@ public class QuotationService {
 
 		String otherComment = mapper.getMaterialComments(material_id, user.getOperator_id());
 		materialForm.setScheduled_manager_comment(otherComment);
+
+		MaterialTagService mtServcie = new MaterialTagService();
+		List<Integer> mtList = mtServcie.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
+		if (mtList != null && mtList.size() > 0) {
+			materialForm.setAnml_exp("true");
+		}
 
 		return materialForm;
 	}

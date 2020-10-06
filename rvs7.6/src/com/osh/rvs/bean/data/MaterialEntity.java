@@ -116,6 +116,8 @@ public class MaterialEntity implements Serializable {
 	//环序号
 	private String ring_code;
 
+	private Integer anml_exp;
+
 	public String getCategory_id() {
 		return category_id;
 	}
@@ -782,6 +784,14 @@ public class MaterialEntity implements Serializable {
 
 	public void setRing_code(String ring_code) {
 		this.ring_code = ring_code;
+	}
+
+	public Integer getAnml_exp() {
+		return anml_exp;
+	}
+
+	public void setAnml_exp(Integer anml_exp) {
+		this.anml_exp = anml_exp;
 	}
 	
 }
