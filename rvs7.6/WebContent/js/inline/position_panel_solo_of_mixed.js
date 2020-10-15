@@ -6,7 +6,7 @@ var doStartComp=function(evt, chosedData){
 		var leak = $(".opd_re_comment").attr("leak");
 		if((leak && leak != "0") && !header_today_holiday 
 			&& new Date().getTime() - pause_start_time.getTime() > 120000) {
-			errorPop("之前的暂停时间没有填写作业或等待类别，请先填写后开始作业。");
+			errorPop(WORKINFO.needFillBreak);
 			return;
 		}
 	}

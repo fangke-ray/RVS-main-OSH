@@ -59,11 +59,11 @@ var makeBreakDialog = function(jBreakDialog) {
 							data.device_manage_id = $drying_job_tr.children("td[device_manage_id]").attr("device_manage_id");
 							data.slot = jBreakDialog.find(".slot_select").val();
 							if (!data.slot && jBreakDialog.find(".slot_select option").length > 0) {
-								errorPop("请选择烘干作业的库位。");
+								errorPop(WORKINFO.chooseDryingProcessStock);
 								return;	
 							}
 						} else {
-							errorPop("请选择烘干作业的内容。");
+							errorPop(WORKINFO.chooseDryingProcess);
 							return;	
 						}
 					}
@@ -344,7 +344,7 @@ var endPause = function() {
 		var leak = $(".opd_re_comment").attr("leak");
 		if((leak && leak != "0") && !header_today_holiday 
 			&& new Date().getTime() - pause_start_time.getTime() > 120000) {
-			errorPop("之前的暂停时间没有填写作业或等待类别，请先填写后开始作业。");
+			errorPop(WORKINFO.needFillBreak);
 			return;
 		}
 	}
@@ -771,7 +771,7 @@ var doStart=function(evt, chosedData){
 		var leak = $(".opd_re_comment").attr("leak");
 		if((leak && leak != "0") && !header_today_holiday 
 			&& new Date().getTime() - pause_start_time.getTime() > 120000) {
-			errorPop("之前的暂停时间没有填写作业或等待类别，请先填写后开始作业。");
+			errorPop(WORKINFO.needFillBreak);
 			return;
 		}
 	}

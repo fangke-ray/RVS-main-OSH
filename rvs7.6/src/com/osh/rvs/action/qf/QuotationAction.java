@@ -107,6 +107,8 @@ public class QuotationAction extends BaseAction {
 		String paOptions = paService.getGroupOptions("", conn);
 		req.getSession().setAttribute("paOptions", paOptions);
 
+		req.setAttribute("WORKINFO", ppService.getWorkInfo());
+
 		log.info("QuotationAction.init end");
 	}
 

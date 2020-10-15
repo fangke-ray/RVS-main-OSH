@@ -61,11 +61,11 @@ var makeBreakDialog = function(jBreakDialog) {
 							data.device_manage_id = $drying_job_tr.children("td[device_manage_id]").attr("device_manage_id");
 							data.slot = jBreakDialog.find(".slot_select").val();
 							if (!data.slot && jBreakDialog.find(".slot_select option").length > 0) {
-								errorPop("请选择烘干作业的库位。");
+								errorPop(WORKINFO.chooseDryingProcessStock);
 								return;	
 							}
 						} else {
-							errorPop("请选择烘干作业的内容。");
+							errorPop(WORKINFO.chooseDryingProcess);
 							return;	
 						}
 					}
@@ -116,7 +116,7 @@ var makeBreakDialog = function(jBreakDialog) {
 								}
 							}
 						});
-						$break_confirm.html("<span class='errorarea'>请确定与您作业相关的工程检查票项目已经输入或点检。</span>");
+						$break_confirm.html("<span class='errorarea'>" + WORKINFO.confirmPcsWhenBreak + "</span>");
 					} else {
 						// Ajax提交
 						$.ajax({
@@ -414,7 +414,7 @@ var endPause = function() {
 		var leak = $(".opd_re_comment").attr("leak");
 		if((leak && leak != "0") && !header_today_holiday 
 			&& new Date().getTime() - pause_start_time.getTime() > 179999) {
-			errorPop("之前的暂停时间没有填写作业或等待类别，请先填写后开始作业。");
+			errorPop(WORKINFO.needFillBreak);
 			return;
 		}
 	}
@@ -492,7 +492,7 @@ var douse = function(serial_no) {
 	var data = {serial_no : serial_no};
 	// 检查是否第一个
 	if (!(serial_no == $("#snouts tr.firstMatchSnout .referId").text())) {
-		warningConfirm("您选择的不是该型号最早完成的先端组件，继续吗？"
+		warningConfirm(WORKINFO.confirmSelectFirstSnout
 		, function(){douse_send(data);}
 		);
 	} else {
@@ -706,8 +706,8 @@ var treatStart = function(resInfo) {
 	var $hidden_id = $("#material_details td:eq(0) input:hidden");
 	$hidden_id.val(resInfo.mform.material_id);
 	$("#anml_attendtion").remove();
-	if (resInfo.mform.anml_exp) {
-		infoPop("请注意此维修品是动物实验用。");
+	if (resInfo.mform.anml_exp && $("#manualdetailarea").length > 0) { // 虚拟工位不显
+		infoPop(WORKINFO.animalExpNotice);
 		$hidden_id.before("<attendtion id='anml_attendtion'></attendtion>");
 	}
 
@@ -1266,7 +1266,7 @@ $(function() {
 		var snout_origin = this.value;
 		this.value = "";
 		var serial_no = $("#snouts .originId:contains(" + snout_origin + ")").parent().children(".referId").text();
-		if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop("该先端来源相关的先端头不可使用。");
+		if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop(WORKINFO.abnormalSnoutOrigin);
 	}
 	});
 	$("#snout_origin").keyup(function(){
@@ -1274,7 +1274,7 @@ $(function() {
 		var snout_origin = this.value;
 		this.value = "";
 		var serial_no = $("#snouts .originId:contains(" + snout_origin + ")").parent().children(".referId").text();
-		if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop("该先端来源相关的先端头不可使用。");
+		if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop(WORKINFO.abnormalSnoutOrigin);
 	}
 	});
 	}
@@ -1679,7 +1679,7 @@ var doStart=function(){
 		var leak = $(".opd_re_comment").attr("leak");
 		if((leak && leak != "0") && !header_today_holiday 
 			&& new Date().getTime() - pause_start_time.getTime() > 179999) {
-			errorPop("之前的暂停时间没有填写作业或等待类别，请先填写后开始作业。");
+			errorPop(WORKINFO.needFillBreak);
 			return;
 		}
 	}
@@ -1868,7 +1868,7 @@ var doFinish=function(evt, hr){
 	}
 
 	if (empty) {
-		errorPop("请填写完所有的工程检查票选项后，再完成本工位作业。");
+		errorPop(WORKINFO.pcsCheck);
 	}
 
 	if (!empty) {
@@ -2491,7 +2491,6 @@ var formatDatetime = function(d){
 
 var checkAnmlAlert = function() {
 	if ($("#anml_attendtion").length > 0) {
-		errorPop("刚才结束或中断作业的维修品为动物实验用。<br>如果之后要处理普通维修品的话，请确认：<br>" +
-				"	１．台面等作业环境是否了清洁消毒。<br>	２．使用过设备工具与治具的是否了清洁消毒。<br>	３．双手是否了清洁消毒。");
+		errorPop(WORKINFO.animalExpClean);
 	}
 }

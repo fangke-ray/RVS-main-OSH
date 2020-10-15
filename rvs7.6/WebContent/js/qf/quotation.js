@@ -601,7 +601,7 @@ var getMaterialInfo = function(resInfo) {
 
 		$("#anml_attendtion").remove();
 		if (resInfo.mform.anml_exp) {
-			infoPop("请注意此维修品是动物实验用。");
+			infoPop(WORKINFO.animalExpNotice);
 			$("#edit_direct_flg").before("<p id='anml_attendtion'></p>");
 		}
 
@@ -1333,7 +1333,6 @@ var createCommentOptions = function(comments){
 
 var checkAnmlAlert = function() {
 	if ($("#anml_attendtion").length > 0) {
-		errorPop("刚才结束或中断作业的维修品为动物实验用。<br>如果之后要处理普通维修品的话，请确认：<br>" +
-				"	１．台面等作业环境是否了清洁消毒。<br>	２．使用过设备工具与治具的是否了清洁消毒。<br>	３．双手是否了清洁消毒。");
+		errorPop(WORKINFO.animalExpClean);
 	}
 }

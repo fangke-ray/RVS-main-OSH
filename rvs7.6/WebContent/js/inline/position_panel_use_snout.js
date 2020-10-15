@@ -137,7 +137,7 @@ var douse = function(serial_no) {
 	var data = {serial_no : serial_no};
 	// 检查是否第一个
 	if (!(serial_no == $sReferChooser.find("tr.firstMatchSnout .referId").text())) {
-		warningConfirm("您选择的不是该型号最早完成的先端组件，继续吗？"
+		warningConfirm(WORKINFO.confirmSelectFirstSnout
 		, function(){douse_send(data);}
 		);
 	} else {
@@ -342,7 +342,7 @@ return {
 			var snout_origin = this.value;
 			this.value = "";
 			var serial_no = $("#snouts .originId:contains(" + snout_origin + ")").parent().children(".referId").text();
-			if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop("该先端来源相关的先端头不可使用。");
+			if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop(WORKINFO.abnormalSnoutOrigin);
 		}
 		});
 		$scanSnout.keyup(function(){
@@ -350,7 +350,7 @@ return {
 			var snout_origin = this.value;
 			this.value = "";
 			var serial_no = $("#snouts .originId:contains(" + snout_origin + ")").parent().children(".referId").text();
-			if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop("该先端来源相关的先端头不可使用。");
+			if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop(WORKINFO.abnormalSnoutOrigin);
 		}
 		});
 

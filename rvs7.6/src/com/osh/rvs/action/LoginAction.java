@@ -181,14 +181,15 @@ public class LoginAction extends BaseAction {
 		setPositions(loginData, conn);
 		setAfAbilities(loginData, conn);
 
-		// 判断直接作业人员可代工间接作业
-		if ((RvsConsts.WORK_COUNT_FLG_DIRECT + "").equals(loginData.getWork_count_flg())) {
+		// 判断直接作业人员可代工间接作业(目前限定报价组)
+		if (!(RvsConsts.WORK_COUNT_FLG_INDIRECT + "").equals(loginData.getWork_count_flg())
+				&& "00000000011".equals(loginData.getLine_id())) {
 			if (loginData.getAfAbilities().size() > 0) {
 				loginData.setShift_work(true);
-			}
-			AcceptFactService service = new AcceptFactService();
-			if (service.getUnFinishEntity(loginData.getOperator_id(), conn) != null) {
-				loginData.setWork_count_flg("" + RvsConsts.WORK_COUNT_FLG_INDIRECT);
+				AcceptFactService service = new AcceptFactService();
+				if (service.getUnFinishEntity(loginData.getOperator_id(), conn) != null) {
+					loginData.setWork_count_flg("" + RvsConsts.WORK_COUNT_FLG_INDIRECT);
+				}
 			}
 		}
 

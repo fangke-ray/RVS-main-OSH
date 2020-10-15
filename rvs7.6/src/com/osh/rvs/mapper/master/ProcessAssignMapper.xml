@@ -444,9 +444,12 @@ and position_id in (select position_id from position where line_id = #{line_id} 
 
 	<select id="evalLastPositions" parameterType="ProcessAssignEntity" resultType="ProcessAssignEntity">
 		<![CDATA[
-			select pa.refer_id, pa.position_id from process_assign_template t
+			select pa.refer_id, pa.position_id, pos.mapping_position_id as sign_position_id
+			from process_assign_template t
 			join process_assign pa
 			on pa.refer_id = t.process_assign_template_id
+			join position pos
+			on pa.position_id = pos.position_id
 			where t.delete_flg = 0
 			and (pa.next_position_id = 9999999 OR pa.next_position_id = 0)
 			and (t.derive_kind is null OR t.derive_kind not in (4, 5))

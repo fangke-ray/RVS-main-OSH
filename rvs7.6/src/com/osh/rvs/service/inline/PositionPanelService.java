@@ -1711,4 +1711,27 @@ public class PositionPanelService {
 		}
 		return breakOptions;
 	}
+
+	/**
+	 * 取得工作页面统一用消息
+	 * 
+	 * @return
+	 */
+	public String getWorkInfo() {
+		String varWorkInfo = "var WORKINFO={";
+		varWorkInfo += "confirmPcsWhenBreak : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmPcsWhenBreak") + "\",";
+		varWorkInfo += "pcsCheck : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.pcsCheck") + "\",";
+		varWorkInfo += "needFillBreak : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.needFillBreak") + "\",";
+		varWorkInfo += "chooseDryingProcessStock : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.chooseDryingProcessStock") + "\",";
+		varWorkInfo += "confirmPcsWhenBreak : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.chooseDryingProcess") + "\",";
+		varWorkInfo += "chooseDryingProcess : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmPcsWhenBreak") + "\",";
+		varWorkInfo += "confirmSelectFirstSnout : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmSelectFirstSnout") + "\",";
+		varWorkInfo += "abnormalSnoutOrigin : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.abnormalSnoutOrigin") + "\",";
+		varWorkInfo += "animalExpNotice : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.animalExpNotice") + "\",";
+		varWorkInfo += "animalExpClean : \""
+				+ CommonStringUtil.decodeHtmlText(ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.animalExpClean"))
+				+ "\"";
+		varWorkInfo += "};";
+		return varWorkInfo;
+	}
 }

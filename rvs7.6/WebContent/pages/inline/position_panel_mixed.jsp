@@ -157,7 +157,9 @@ boolean useSnout = (request.getAttribute("useSnout") == null ? false : true);
 <script type="text/javascript" src="js/inline/position_panel_solo_of_mixed.js"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
-
+<script type="text/javascript">
+${WORKINFO}
+</script>
 <title>欢迎登录RVS系统</title>
 </head>
 <body class="outer">

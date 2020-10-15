@@ -34,7 +34,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/qf/quotation.js?v=3373"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
-
+<script type="text/javascript">
+${WORKINFO}
+</script>
 <title>报价</title>
 </head>
 <body class="outer">

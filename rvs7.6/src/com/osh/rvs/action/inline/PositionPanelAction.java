@@ -159,6 +159,8 @@ public class PositionPanelAction extends BaseAction {
 			return;
 		}
 
+		req.setAttribute("WORKINFO", service.getWorkInfo());
+
 		String pxLevel = user.getPx();
 		if ("4".equals(pxLevel)) pxLevel = "0"; // 超级员工不分线
 		String process_code = user.getProcess_code();

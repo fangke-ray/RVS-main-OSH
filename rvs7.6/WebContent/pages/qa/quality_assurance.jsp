@@ -32,7 +32,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/common/pcs_editor.js"></script>
 <script type="text/javascript" src="js/qa/quality_assurance.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
-
+<script type="text/javascript">
+${WORKINFO}
+</script>
 <title>${qs_position_name}</title>
 <%
 	String privacy = (String) request.getAttribute("privacy");

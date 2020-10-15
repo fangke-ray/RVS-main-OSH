@@ -127,6 +127,8 @@ public class QualityAssuranceAction extends BaseAction {
 		}
 		req.setAttribute("privacy", privacy);
 
+		req.setAttribute("WORKINFO", ppService.getWorkInfo());
+
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 

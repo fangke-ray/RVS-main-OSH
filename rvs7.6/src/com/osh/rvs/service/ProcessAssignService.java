@@ -456,6 +456,9 @@ public class ProcessAssignService {
 					endParts.add(pae);
 				} else {
 					lastFLowPositions.add(CommonStringUtil.fillChar(pae.getPosition_id(), '0', 11, true));
+					if (pae.getSign_position_id() != null) {
+						lastFLowPositions.add(pae.getSign_position_id());
+					}
 				}
 			}
 
@@ -465,6 +468,9 @@ public class ProcessAssignService {
 				// 记录所有结尾分支线上的结束工位
 				for (ProcessAssignEntity pae : listPart) {
 					lastFLowPositions.add(CommonStringUtil.fillChar(pae.getPosition_id(), '0', 11, false));
+					if (pae.getSign_position_id() != null) {
+						lastFLowPositions.add(pae.getSign_position_id());
+					}
 				}
 			}
 
