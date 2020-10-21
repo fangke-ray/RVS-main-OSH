@@ -186,7 +186,7 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	@BeanField(title = "质量信息单号", name = "quality_info_no", length = 20)
 	private String quality_info_no;
 
-	@BeanField(title = "QIS发送单号", name = "qis_invoice_no", length = 23)
+	@BeanField(title = "QIS发送单号", name = "qis_invoice_no", length = 32)
 	private String qis_invoice_no;
 
 	@BeanField(title = "QIS发送日期", name = "qis_invoice_date", type = FieldType.Date)

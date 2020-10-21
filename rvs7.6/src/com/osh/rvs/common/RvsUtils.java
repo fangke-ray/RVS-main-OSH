@@ -669,6 +669,22 @@ public class RvsUtils {
 	}
 
 	/**
+	 * 新年度规则（FY格式）
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public static String getFYBussinessYearString(Calendar date) {
+		int adjustYear = date.get(Calendar.YEAR);
+		int adjustMonth = date.get(Calendar.MONTH);
+		
+		if (adjustMonth >= Calendar.APRIL) {
+			adjustYear++;
+		}
+		return "FY" + adjustYear;
+	}
+
+	/**
 	* 取得期起始时间
 	*/
 	public static String getBussinessStartYear(Calendar date) {
