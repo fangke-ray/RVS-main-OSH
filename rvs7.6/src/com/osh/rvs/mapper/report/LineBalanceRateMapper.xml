@@ -39,7 +39,8 @@
 		    	(pf.operate_result = 2 OR pf.operate_result = 6)
 				AND pf.finish_time >= #{finish_time_start}
 		        AND pf.finish_time < DATE_ADD(#{finish_time_end},INTERVAL 1 MONTH)
-				AND p.process_code not in ('200','251','252','301','302','303','321','400')
+				AND p.process_code not in ('200','252','301','302','303','321','400')
+				AND p.special_page IS NULL
 	]]>
 	<if test="process_codes!=null and process_codes!=''">
 	<![CDATA[

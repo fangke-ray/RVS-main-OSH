@@ -263,7 +263,7 @@ public class LineLeaderAction extends BaseAction {
 
 		LoginData loginData = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 
-		if ("00000000020".equals(position_id)) {
+		if ("00000000109".equals(position_id)) { // 新241工位
 			// “零件订购”工位线长处理
 			service.partialResolve(material_id, model_name, loginData.getSection_id(), position_id, conn, loginData);
 			// 触发之后工位
@@ -281,7 +281,7 @@ public class LineLeaderAction extends BaseAction {
 			MaterialMapper mDao = conn.getMapper(MaterialMapper.class);
 			mDao.updateMaterialNsPartial(material_id);
 
-			// 试图触发251工位
+			// 试图触发241工位
 			ProductionFeatureService pfService = new ProductionFeatureService();
 			ProductionFeatureEntity fsPf = new ProductionFeatureEntity();
 
@@ -291,7 +291,7 @@ public class LineLeaderAction extends BaseAction {
 			rework = ppDao.getReworkCount(material_id);
 
 			fsPf.setMaterial_id(material_id);
-			fsPf.setPosition_id("00000000020"); // 251工位
+			fsPf.setPosition_id("00000000109"); // 新241工位
 			fsPf.setRework(rework); // 返工号
 			fsPf.setSection_id(loginData.getSection_id());
 			// 指定251工位开始(关联检查)

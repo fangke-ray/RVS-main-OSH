@@ -1,6 +1,6 @@
 var listdata = {};
 var servicePath = "lineLeader.do";
-var orderPos = "251";
+var orderPos = "241";
 var receivePos = "252";
 var position_counts = {};
 var selectedMaterial = {};

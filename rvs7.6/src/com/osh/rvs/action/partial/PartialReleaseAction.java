@@ -229,8 +229,16 @@ public class PartialReleaseAction extends BaseAction {
 								}
 							}
 
+							List<String> triggerList = new ArrayList<String> ();
 							// 零件发放者完成321工位
-							service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, conn);
+							service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+							// 零件发放者完成252工位
+							service.finishDecPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+
+							if (triggerList.size() > 0) {
+								conn.commit();
+								RvsUtils.sendTrigger(triggerList);
+							}
 						}
 					} else {
 						// 检查工位上BO零件为解除

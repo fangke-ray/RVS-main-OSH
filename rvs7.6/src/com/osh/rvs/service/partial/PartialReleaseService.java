@@ -589,32 +589,33 @@ public class PartialReleaseService {
 		return respFormList;
 	}
 
-	public void finishNsPartialRelease(String material_id, LoginData user, SqlSessionManager conn) throws Exception {
+	public void finishNsPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
+		finishPartialRelease(material_id, "00000000027", user, triggerList, conn);
+	}
+
+	public void finishDecPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
+		finishPartialRelease(material_id, "00000000021", user, triggerList, conn);
+	}
+
+	public void finishPartialRelease(String material_id, String position_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
 		// 检查工位等待存在
 		ProductionFeatureService pfService = new ProductionFeatureService();
 
 		ProductionFeatureEntity workingPf = new ProductionFeatureEntity();
 		workingPf.setMaterial_id(material_id);
-		workingPf.setPosition_id("00000000027");
+		workingPf.setPosition_id(position_id);
 		workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_NOWORK_WAITING);
 		workingPf = pfService.searchProductionFeatureOne(workingPf, conn);
 
 		if (workingPf != null) {
 			// 自动完成
 			LineLeaderService lService = new LineLeaderService();
-			lService.partialResolve(material_id, null, workingPf.getSection_id(), "00000000027", conn, user);
+			lService.partialResolve(material_id, null, workingPf.getSection_id(), position_id, conn, user);
 
-			List<String> triggerList = new ArrayList<String>();
-		
 			workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
 
 			// 触发之后工位
 			pfService.fingerNextPosition(material_id, workingPf, conn, triggerList);
-
-			if (triggerList.size() > 0) {
-				conn.commit();
-				RvsUtils.sendTrigger(triggerList);
-			}
 		}
 	}
 

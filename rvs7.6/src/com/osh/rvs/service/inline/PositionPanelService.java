@@ -340,7 +340,7 @@ public class PositionPanelService {
 					errors.add(msgInfo);
 				} else {
 					String process_code = user.getProcess_code();
-					if ("251".equals(process_code) || "252".equals(process_code) || "321".equals(process_code) || "400".equals(process_code)) { // 代线长工位不按次序
+					if ("241".equals(process_code) || "252".equals(process_code) || "321".equals(process_code) || "400".equals(process_code)) { // 代线长工位不按次序
 //					} else if (scan.getExpedited() >= 10) { // 本身是计划加急 
 //					} else if (!"0".equals(scan.getWaitingat())) { // 中断的无关
 //					} else if (scan.getExpedited() != null && scan.getExpedited() > 0) {
@@ -1431,7 +1431,7 @@ public class PositionPanelService {
 				// 限制
 				retComments += ""+
 						DateUtil.toString(ab, DateUtil.ISO_DATE_PATTERN)+"的工作日报不完整。"
-								+ "请[lickonclick='javascript:opd_pop(null, null, \"" + DateUtil.toString(ab, DateUtil.DATE_PATTERN) + "\")'>进行补充]。\n";
+								+ "请[lickid='opd_loader_refill'onclick='javascript:opd_pop(null, null, \"" + DateUtil.toString(ab, DateUtil.DATE_PATTERN) + "\")'>进行补充]。\n";
 			} else {
 				// 限制
 				retComments += ""+
@@ -1693,7 +1693,7 @@ public class PositionPanelService {
 	public String getBreakOptions(String process_code) {
 		String breakOptions = "";
 		if ("121".equals(process_code) || "131".equals(process_code)
-				|| "171".equals(process_code) || "251".equals(process_code)
+				|| "171".equals(process_code) || "241".equals(process_code)
 				|| "252".equals(process_code)) { // TODO 正规化，不会中断的
 		} else {
 			// 设定异常中断选项

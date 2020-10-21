@@ -222,14 +222,14 @@
 				v_model.name AS model_name,
 				ma.serial_no,
 				ma.level,
-				v_position.process_code,
+				position.process_code,
 				MIN(pf.action_time) AS action_time,
 				MAX(pf.finish_time) AS finish_time,
 				CEIL(MAX(pf.use_seconds)/60) AS use_seconds,
 				GROUP_CONCAT(DISTINCT operator.name SEPARATOR ' ') AS operator_name,
 				v_model.category_name,
 				section.name AS section_name,
-				v_position.line_name
+				line.line_name
 			FROM
 			    production_feature pf
 			JOIN
@@ -241,9 +241,13 @@
 			ON
 				v_model.model_id = ma.model_id
 			JOIN
-				v_position
+				position
 			ON
-				v_position.position_id = pf.position_id
+				position.position_id = pf.position_id
+			JOIN
+				line
+			ON
+				position.line_id = line.line_id
 			JOIN
 				operator
 			ON
@@ -253,7 +257,9 @@
 			ON
 				section.section_id = pf.section_id
 			WHERE
-				v_position.process_code NOT IN('251','252','321','400')
+				position.process_code NOT IN('252','321','400')
+			AND
+				position.special_page IS NULL
 			AND
 				pf.finish_time >= #{finish_time_start}
 			AND	
@@ -266,7 +272,7 @@
 		</if>
 		<if test="line_id!=null and line_id!=''">
 		<![CDATA[
-			AND v_position.line_id = #{line_id}
+			AND position.line_id = #{line_id}
 		]]>
 		</if>
 		<![CDATA[

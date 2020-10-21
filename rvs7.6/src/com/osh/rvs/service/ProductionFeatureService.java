@@ -561,7 +561,7 @@ public class ProductionFeatureService {
 //			if (!isLightFix && "00000000022".equals(position_id)) { // 试图触发400 不要5.18
 //				nextPositions.add("00000000032");
 //			} else
-			if (!isLightFix && "00000000023".equals(position_id)) { // fenjieOver TODO
+			if (!isLightFix && "00000000110".equals(position_id)) { // fenjieOver TODO
 				if (isFact) {
 					mpService.finishMaterialProcess(material_id, "00000000012", triggerList, conn);
 
@@ -606,24 +606,24 @@ public class ProductionFeatureService {
 			} else
 
 			if (!isLightFix && "00000000026".equals(position_id)) { // 主动触发251
-				// NS 线长提交零件订购单
-				mDao.updateMaterialNsPartial(material_id);
-
-				// 试图触发251工位
-				ProductionFeatureService pfService = new ProductionFeatureService();
-				ProductionFeatureEntity fsPf = new ProductionFeatureEntity();
-
-				ProductionFeatureMapper ppDao = conn.getMapper(ProductionFeatureMapper.class);
-				// 本工位作业状态等待的记录中取得Rework
-				int rework = 0;
-				rework = ppDao.getReworkCount(material_id);
-
-				fsPf.setMaterial_id(material_id);
-				fsPf.setPosition_id("00000000020"); // 251工位
-				fsPf.setRework(rework); // 返工号
-				fsPf.setSection_id(workingPf.getSection_id());
-				// 指定251工位开始(关联检查)
-				pfService.fingerSpecifyPosition(material_id, false, fsPf, triggerList, conn);
+//				// NS 线长提交零件订购单
+//				mDao.updateMaterialNsPartial(material_id);
+//
+//				// 试图触发251工位
+//				ProductionFeatureService pfService = new ProductionFeatureService();
+//				ProductionFeatureEntity fsPf = new ProductionFeatureEntity();
+//
+//				ProductionFeatureMapper ppDao = conn.getMapper(ProductionFeatureMapper.class);
+//				// 本工位作业状态等待的记录中取得Rework
+//				int rework = 0;
+//				rework = ppDao.getReworkCount(material_id);
+//
+//				fsPf.setMaterial_id(material_id);
+//				fsPf.setPosition_id("00000000020"); // 251工位
+//				fsPf.setRework(rework); // 返工号
+//				fsPf.setSection_id(workingPf.getSection_id());
+//				// 指定251工位开始(关联检查)
+//				pfService.fingerSpecifyPosition(material_id, false, fsPf, triggerList, conn);
 			}
 
 			 // 维修流程参照

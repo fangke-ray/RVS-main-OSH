@@ -94,7 +94,7 @@ public class MaterialProcessAssignAction extends BaseAction {
 				String defaultPatId = null;
 				if (level == null) level = materialForm.getLevel();
 				if (RvsUtils.isMediumFix(level)) {
-					if (mEntity != null) defaultPatId = "00000000048"; // 中修理默认使用 TODO
+					if (mEntity != null) defaultPatId = mEntity.getDefault_pat_id(); // 中修理默认使用大修理参照
 				} else {
 					if (mEntity != null && mEntity.getDefault_pat_id() != null) {
 						 // 小修理默认使用NS 在前流程

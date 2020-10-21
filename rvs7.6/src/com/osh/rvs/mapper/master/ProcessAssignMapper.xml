@@ -208,7 +208,7 @@
 			AND `pa`.REFER_TYPE = 1
 			AND `p`.DELETE_FLG = 0
 			AND `p`.LINE_ID = #{line_id}
-			AND `p`.PROCESS_CODE not in ('251,','252','321','400')
+			AND `p`.special_page is null
 		ORDER BY (`p`.PROCESS_CODE like '5%') DESC, `p`.PROCESS_CODE;
 		]]>
 	</select>
