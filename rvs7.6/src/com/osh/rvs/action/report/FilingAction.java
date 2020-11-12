@@ -87,6 +87,8 @@ public class FilingAction extends BaseAction {
 			req.setAttribute("editor", "true");
 		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
 			req.setAttribute("editor", "line");
+		} else if (privacies.contains(RvsConsts.PRIVACY_QA_MANAGER)) {
+			req.setAttribute("editor", "qa");
 		} else {
 			req.setAttribute("editor", "false");
 		}
@@ -115,7 +117,7 @@ public class FilingAction extends BaseAction {
 		listResponse.put("finished", finishedForms);
 
 		// 检查发生错误时报告错误信息
-		listResponse.put("errors", new ArrayList<MsgInfo>());
+		listResponse.put("errors", msgInfos);
 
 		// 返回Json格式响应信息
 		returnJsonResponse(res, listResponse);
@@ -168,5 +170,34 @@ public class FilingAction extends BaseAction {
 		returnJsonResponse(res, listResponse);
 
 		log.info("FilingAction.dofiling end");
+	}
+
+	/**
+	 * 查询临时生成的周边报价归档
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={1, 0})
+	public void searchPerlTemp(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+
+		log.info("FilingAction.searchPerlTemp start");
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		MaterialService service = new MaterialService();
+		List<MaterialForm> finishedForms = service.searchPerlTempFiling(conn);
+		listResponse.put("finished", finishedForms);
+
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("FilingAction.searchPerlTemp end");
 	}
 }

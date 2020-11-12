@@ -178,8 +178,12 @@ public class MaterialService {
 			lResultBean = dao.searchMaterialFiling(conditionBean);
 //		}
 
-		List<MaterialForm> lResultForm = new ArrayList<MaterialForm>();
+		return checkFileExist(lResultBean);
+	}
 
+	private List<MaterialForm> checkFileExist(List<MaterialEntity> lResultBean) {
+		List<MaterialForm> lResultForm = new ArrayList<MaterialForm>();
+		
 		for (MaterialEntity resultBean : lResultBean) {
 			MaterialForm result = new MaterialForm();
 			// 判断归档文件是否真的存在
@@ -1338,5 +1342,18 @@ public class MaterialService {
 			Map<String, Object> callbackResponse, SqlSession conn) {
 		MaterialCommentMapper mapper = conn.getMapper(MaterialCommentMapper.class);
 		callbackResponse.put("material_comment", mapper.getMaterialComments(material_id, null));
+	}
+
+	/**
+	 * 为维修品归档画面-提供已经报价完成时的周边设备临时检查票
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public List<MaterialForm> searchPerlTempFiling(SqlSession conn) {
+		MaterialMapper mapper = conn.getMapper(MaterialMapper.class);
+		List<MaterialEntity> retEntites = mapper.searchMaterialPerlTempFiling();
+
+		return checkFileExist(retEntites);
 	}
 }

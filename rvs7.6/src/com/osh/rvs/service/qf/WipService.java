@@ -1,5 +1,6 @@
 package com.osh.rvs.service.qf;
 
+import java.io.File;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.common.FseBridgeUtil;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
@@ -34,6 +36,7 @@ import com.osh.rvs.service.partial.PartialOrderManageService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
+import framework.huiqing.common.util.BaseConst;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.IntegerConverter;
@@ -288,7 +291,7 @@ public class WipService {
 
 			// 如果是周边设备则归档 V6
 			if ("07".equals(mBean.getKind()) && mBean.getFix_type() == 1) {
-				// 如果进行过181则认定为归档 TODO
+
 				QualityAssuranceMapper qaMapper = conn.getMapper(QualityAssuranceMapper.class);
 				mBean.setQa_check_time(new Date());
 				mBean.setOutline_time(null);
@@ -305,16 +308,22 @@ public class WipService {
 				entity.setRework(0);
 				pfDao.insertProductionFeature(entity);
 
-				// 推送归档
-				try {
-					URL url = new URL("http://localhost:8080/rvs/download.do?method=file&material_id=" + material_id);
-					url.getQuery();
-					URLConnection urlconn = url.openConnection();
-					urlconn.setReadTimeout(1); // 不等返回
-					urlconn.connect();
-					urlconn.getContentType(); // 这个就能触发
-				} catch (Exception e) {
-					_logger.error("Failed", e);
+				String sorcNo = mBean.getSorc_no();
+				String path = PathConsts.BASE_PATH + PathConsts.PCS + "\\" + 
+					("OMRN-" + sorcNo + "________").substring(0, 8) + "\\" + sorcNo;
+				if (!new File(path).exists()) {
+					// 如果进行过181则认定为归档 TODO
+					// 推送归档
+					try {
+						URL url = new URL("http://localhost:8080/rvs/download.do?method=file&material_id=" + material_id);
+						url.getQuery();
+						URLConnection urlconn = url.openConnection();
+						urlconn.setReadTimeout(1); // 不等返回
+						urlconn.connect();
+						urlconn.getContentType(); // 这个就能触发
+					} catch (Exception e) {
+						_logger.error("Failed", e);
+					}
 				}
 			} else {
 				// 出货
@@ -328,7 +337,7 @@ public class WipService {
 				entity.setRework(0);
 				pfDao.insertProductionFeature(entity);
 			}
-		} else {
+		} else { // 如果完成测漏
 			if (mBean.getInline_time() == null) {
 				// 图象检查
 				ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
@@ -348,7 +357,7 @@ public class WipService {
 				entity.setOperate_result(0);
 				entity.setRework(rework + 1);
 				pfDao.insertProductionFeature(entity);
-			} else {
+			} else { // 已投线
 				// 出货
 				ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
 				ProductionFeatureEntity entity = new ProductionFeatureEntity();

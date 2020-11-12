@@ -982,7 +982,7 @@
 	<!--outline_time为空的维修对象  -->
 	<select id="searchMaterialByOutlineTime" resultType="MaterialEntity">
 		<![CDATA[
-			 select model_id,serial_no from material where outline_time is null
+			 select model_id,serial_no from material where outline_time is null and break_back_flg in (0, 2);
 		]]>
 	</select>
 
@@ -1010,4 +1010,21 @@
 			where material_id = #{material_id}
 		]]>
 	</update>
+
+	<select id="searchMaterialPerlTempFiling" resultType="MaterialEntity">
+		<![CDATA[
+		select material_id, reception_time, agreed_date, omr_notifi_no, -1 as break_back_flg,
+		omr_notifi_no as sorc_no,
+		ma.model_id, mdl.name as model_name, serial_no, level
+		from material ma 
+		join model mdl
+		on ma.model_id = mdl.model_id
+		where break_back_flg = 0
+		and outline_time is null
+		and qa_check_time is null
+		and level in (55, 56, 57, 59)
+		and exists (select 1 from production_feature where material_id = ma.material_id and position_id = 00000000064 and operate_result = 2)
+		]]>
+	</select>
+
 </mapper>

@@ -2,6 +2,8 @@ package com.osh.rvs.action.qf;
 
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -876,6 +878,23 @@ public class QuotationAction extends BaseAction {
 					materialProcessAssignMapper.deleteMaterialProcessAssign(entity.getMaterial_id());
 					// 删除小修理流程说明
 					mservice.removeComment(entity.getMaterial_id(), "00000000001", conn);
+				}
+			}
+
+			// 周边检查卡先归档一次
+			if (RvsUtils.isPeripheral(level)) {
+				conn.commit();
+
+				// 推送归档
+				try {
+					URL url = new URL("http://localhost:8080/rvs/download.do?method=file&material_id=" + materialForm.getMaterial_id());
+					url.getQuery();
+					URLConnection urlconn = url.openConnection();
+					urlconn.setReadTimeout(1); // 不等返回
+					urlconn.connect();
+					urlconn.getContentType(); // 这个就能触发
+				} catch (Exception e) {
+					log.error("Failed", e);
 				}
 			}
 

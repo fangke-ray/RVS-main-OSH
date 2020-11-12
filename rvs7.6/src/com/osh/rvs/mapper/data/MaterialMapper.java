@@ -170,5 +170,7 @@ public interface MaterialMapper {
 	/**
 	 * outline_time设成当前时间
 	 */
-	public void updateMaterialOutlineTime(@Param("material_id") String material_id);	
+	public void updateMaterialOutlineTime(@Param("material_id") String material_id);
+
+	public List<MaterialEntity> searchMaterialPerlTempFiling();	
 }

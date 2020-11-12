@@ -33,6 +33,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <% 
 	String editor = (String) request.getAttribute("editor");
 	boolean isEditor = ("true").equals(editor);
+	boolean isQaer = ("qa").equals(editor);
 %>
 	<div class="width-full" style="align: center; margin: auto; margin-top: 16px;">
 		<div id="basearea" class="dwidth-full" style="margin: auto;">
@@ -100,6 +101,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchbutton" value="检索" role="button" aria-disabled="false" style="float:right;right:2px">
 						<input type="hidden" id="h_date_start" value="${scheduled_date_start}">
 						<input id="isEditor" type="hidden" value="<%=editor%>" />
+<% if (isQaer) { %>
+						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchperltempbutton" value="显示周边设备报价结果" role="button" aria-disabled="false" style="float:right;right:2px">
+<% } %>
 						<input id="sLevel" type="hidden" value="${sLevel}">
 					</div>
 				</form>

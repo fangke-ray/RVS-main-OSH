@@ -152,6 +152,22 @@ var findit = function() {
 	});
 };
 
+var findperltemp = function(){
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=searchPerlTemp',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : doInit_ajaxSuccess
+	});
+}
+
 var reset = function() {
 	$("#search_category_id").val("").trigger("change").data("post", "");
 	$("#txt_modelname").val("").data("post", "");
@@ -220,6 +236,8 @@ $(function() {
 		findit();
 	});
 
+	$("#searchperltempbutton").click(findperltemp)
+
 	setReferChooser($("#search_modelname"), $("#model_refer"), $("#search_category_id"));
 
 	$("#resetbutton").click(function() {
@@ -268,7 +286,7 @@ function filed_list(){
 //						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'H:i'}
 //				},
 				{name:'sorc_no',index:'sorc_no', width:105},
-				{name:'break_back_flg',index:'break_back_flg',formatter:'select',editoptions:{value:"0:修理完成;2:未修理返还"}, align : 'center', width:40},
+				{name:'break_back_flg',index:'break_back_flg',formatter:'select',editoptions:{value:"0:修理完成;2:未修理返还;-1:修理未完成"}, align : 'center', width:40},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_id', width:125},
 				{name:'serial_no',index:'serial_no', width:50, align:'center'},
