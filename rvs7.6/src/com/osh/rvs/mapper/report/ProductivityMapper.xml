@@ -16,7 +16,8 @@
 			        (select 
 			        	DATE_FORMAT(outline_time, '%Y%m') as outline_date
 				    from material
-				    where break_back_flg = 0) as m
+				    where break_back_flg = 0
+				    and fix_type in (1,2)) as m
 			    where
 		            m.outline_date >= #{start_date}
 		            and m.outline_date <= #{end_date}

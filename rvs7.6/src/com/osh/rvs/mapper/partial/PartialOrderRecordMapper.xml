@@ -27,6 +27,8 @@
 		on b.model_id = c.model_id and b.level=c.level
 	]]>
 	<where>
+        b.fix_type in (1, 2)
+        and (b.break_back_flg = 0 or (b.break_back_flg = 2 and inline_time is not null))
 			<if test="category_id != null and category_id != ''">
 				and exists (
 					select 1 from model where model.model_id = b.model_id and model.category_id in('${category_id}')

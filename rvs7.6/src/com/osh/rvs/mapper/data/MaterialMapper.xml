@@ -928,8 +928,9 @@
 				material
 			where
 				reception_time >= #{reception_time_start}
-				and date(reception_time) <= #{reception_time_end}
+				and reception_time <= date_add(#{reception_time_end}, INTERVAL 1 day)
 				and break_back_flg in(0,2)
+				and fix_type in (1,2)
 				and model_id=#{model_id}
 				and level=#{level}
 		]]>
@@ -944,7 +945,7 @@
 				material
 			where
 				reception_time >= #{reception_time_start}
-				and date(reception_time) <= #{reception_time_end}
+				and reception_time <= date_add(#{reception_time_end}, INTERVAL 1 day)
 				and unrepair_flg <> 1
 				and break_back_flg = 0
 				and agreed_date is not null

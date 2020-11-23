@@ -94,7 +94,7 @@
 	</select>
 	
 	<select id="searchInlineMaterial" resultType="MaterialFactEntity">
-		<![CDATA[ 
+	<![CDATA[ 
 		SELECT 
 			a.material_id,
 			coalesce(omr_notifi_no, sorc_no) as sorc_no,
@@ -110,7 +110,7 @@
 			a.wip_location,
 			(select count(1) from production_feature where material_id = a.material_id and position_id = 16) as unrepair_flg, -- 开拆
 			a.inline_time
-		 from material a where date(a.inline_time) = curdate()
+		 from material a where a.inline_time >= curdate()
 	]]>
 		
 	</select>

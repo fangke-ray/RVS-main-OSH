@@ -6,11 +6,13 @@
 		</cache -->
 
 	<select id="getFinalInspectPassRate" parameterType="java.util.Date" resultType="decimal">
+	<![CDATA[ 
 		select round(sum(operate_result = 2) / count(1) * 100, 2) 
 		from production_feature pf where 
-		position_id in (46, 52, 65)
-		and date(pf.finish_time) = #{count_date}
+		position_id in (select position_id where line_id = 15)
+		and pf.finish_time >= #{count_date} and pf.finish_time < date_add(#{count_date}, INTERVAL 1 day)
 		and operate_result in (2,6);
+	]]>
 	</select>
 
 	<select id="getIntimeCompleteRate" parameterType="java.util.Date" resultType="decimal">
