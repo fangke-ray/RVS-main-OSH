@@ -58,6 +58,13 @@ public class FactReceptMaterialForm extends ActionForm implements Serializable {
 
 	private String flag;
 
+	@BeanField(title = "查询范围", name = "search_range", type = FieldType.Integer, length = 1)
+	private String search_range;
+
+	/** 通箱库位 **/
+	@BeanField(title = "通箱库位", name = "tc_location", type = FieldType.String)
+	private String tc_location;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -176,6 +183,22 @@ public class FactReceptMaterialForm extends ActionForm implements Serializable {
 
 	public void setAf_pf_key(String af_pf_key) {
 		this.af_pf_key = af_pf_key;
+	}
+
+	public String getSearch_range() {
+		return search_range;
+	}
+
+	public void setSearch_range(String search_range) {
+		this.search_range = search_range;
+	}
+
+	public String getTc_location() {
+		return tc_location;
+	}
+
+	public void setTc_location(String tc_location) {
+		this.tc_location = tc_location;
 	}
 
 }

@@ -7,6 +7,7 @@
  */
 package com.osh.rvs.action.master;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -426,5 +427,34 @@ public class ModelAction extends BaseAction {
 		
 		log.info("ModelAction.doChangeEchelon end");
 	}
-	
+
+	/**
+	 * 型号快查取得
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={1, 0})
+	public void getModelDictionary(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+
+		log.info("ModelAction.getModelDictionary start");
+		// Ajax回馈对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		// 检索条件表单合法性检查
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		callbackResponse.put("modelDict", service.getModelDictionary(conn));
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ModelAction.getModelDictionary end");
+	}
 }

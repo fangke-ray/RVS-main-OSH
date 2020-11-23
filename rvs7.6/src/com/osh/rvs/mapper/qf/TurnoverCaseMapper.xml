@@ -22,7 +22,8 @@
 		tcs.`execute`,
 		ma.direct_flg,
 		ma.break_back_flg,
-		tcs.location
+		tcs.location,
+		tcs.anml_exp
 		FROM turnover_case_storage tcs
 		LEFT JOIN material ma ON tcs.material_id = ma.material_id
 		LEFT JOIN model mdl on ma.model_id = mdl.model_id
@@ -95,7 +96,7 @@
 	<select id="getEntityByLocation" resultType="TurnoverCaseEntity">
 		<![CDATA[ 
 			SELECT
-				shelf, location, `execute`, material_id
+				`key`, shelf, location, `execute`, material_id
 			FROM turnover_case_storage
 			WHERE location = #{location}
 		]]>
@@ -219,4 +220,93 @@ LIMIT 1;
 			AND material_id IS NULL
 		]]>
 	</select>
+
+	<select id="getMostSpacialShelf" resultType="String" parameterType="int">
+		<![CDATA[ 
+	SELECT shelf from
+	(SELECT shelf, case when shelf = 'Z3' then 1 else sum(material_id is null) end as cnt FROM turnover_case_storage
+		]]>
+	<where>
+		AND anml_exp = 0
+		<if test="kind neq 06 and kind neq 738">
+			AND shelf not in ('Z1', 'Z2', 'Z3', 'Z4', 'M', 'N')
+		</if>
+		<if test="kind eq 06">
+			AND shelf in ('Z1', 'Z2', 'Z3')
+		</if>
+		<if test="kind eq 738">
+			AND shelf in ('Z4')
+		</if>
+
+		<if test="shelfs != null and shelfs.size>0">
+			AND shelf not in 
+			<foreach item="shelf" collection="shelfs" open="(" separator="," close=")">
+				#{shelf}
+			</foreach>
+		</if>
+	</where>
+		<![CDATA[ 
+	group by shelf
+	order by cnt desc, shelf
+	limit 1) a
+	;
+		]]>
+	</select>
+
+	<select id="getAllSpaceShelf" resultType="TurnoverCaseEntity" parameterType="String">
+		SELECT location, execute
+		FROM turnover_case_storage
+	<where>
+		material_id is null AND anml_exp = 0
+		and shelf = #{shelf}
+		<if test="kind neq 06 and kind neq 738">
+			AND shelf not in ('Z1', 'Z2', 'Z3', 'Z4', 'M', 'N')
+		</if>
+		<if test="kind eq 06">
+			AND shelf in ('Z1', 'Z2', 'Z3')
+		</if>
+		<if test="kind eq 738">
+			AND shelf in ('Z4')
+		</if>
+	</where>
+    </select>
+
+	<update id="setToPrepare" parameterType="String">
+		<![CDATA[ 
+		UPDATE turnover_case_storage SET execute = 9
+		WHERE `key` = #{key}; 
+		]]>
+	</update>
+
+	<update id="setToLocation" parameterType="String">
+		<![CDATA[ 
+		UPDATE turnover_case_storage 
+		SET execute = 0,
+		material_id = #{material_id},
+		storage_time = null
+		WHERE `location` = #{location}; 
+		]]>
+	</update>
+
+	<select id="gerPreprintedLocations" resultType="TurnoverCaseEntity" parameterType="String">
+		SELECT shelf, location,
+		CASE 
+			when shelf in ('Z1', 'Z2', 'Z3') then 1
+			when shelf in ('Z4') then 2
+			when shelf in ('M', 'N') then 3
+			else 0
+		END as direct_flg
+		FROM turnover_case_storage
+		WHERE execute = 9
+		ORDER by location
+    </select>
+
+	<select id="getAnimalExpLocations" resultType="TurnoverCaseEntity" parameterType="String">
+		SELECT shelf, location
+		FROM turnover_case_storage
+		where anml_exp = 1
+		and material_id is null
+		and not exists (select 1 from fact_recept_material_temp where tc_location = location)
+		ORDER by location
+    </select>
 </mapper>

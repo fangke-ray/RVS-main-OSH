@@ -730,4 +730,85 @@ public class ModelService {
 		}
 		return kindOfModel.get(modelId);
 	}
+
+	/**
+	 * 设定型号快查字典
+	 * @param conn
+	 * @return
+	 */
+	public Map<String, Map<String, List<ModelEntity>>> getModelDictionary(SqlSession conn) {
+		ModelMapper dao = conn.getMapper(ModelMapper.class);
+
+		List<ModelEntity> lResultBean = dao.getAllModel();
+
+		Map<String, Map<String, List<ModelEntity>>> ret = new HashMap<String, Map<String, List<ModelEntity>>>();
+
+		Map<String, List<ModelEntity>> endoscopeDict = new HashMap<String, List<ModelEntity>>();
+		Map<String, List<ModelEntity>> periphralDict = new HashMap<String, List<ModelEntity>>();
+		ret.put("endoscope", endoscopeDict);
+		ret.put("peripheral", periphralDict);
+
+		for (ModelEntity resultBean : lResultBean) {
+			switch(resultBean.getKind()) {
+			case "08":
+			case "09":
+				break;
+			case "07":
+				putDict(periphralDict, resultBean);
+				break;
+			default:
+				putDict(endoscopeDict, resultBean);
+			}
+		}
+		return ret;
+	}
+
+	/**
+	 * 存放快查
+	 * 
+	 * @param dict
+	 * @param resultBean
+	 */
+	private void putDict(Map<String, List<ModelEntity>> dict,
+			ModelEntity resultBean) {
+		ModelEntity item = new ModelEntity();
+		item.setModel_id(resultBean.getModel_id());
+		item.setCategory_id(resultBean.getCategory_id());
+		String name = resultBean.getName()
+				.replaceAll("　", " ").replace("（", "(").replace("）", ")")
+				.toUpperCase();
+		item.setName(name);
+
+		if (name.charAt(0) >= 255) {
+			if (!dict.containsKey("汉")) {
+				dict.put("汉", new ArrayList<ModelEntity>());
+			}
+			dict.get("汉").add(item);
+			return;
+		}
+		if (name.length() >= 2) {
+			if (name.charAt(1) >= 255) {
+				if (!dict.containsKey("汉")) {
+					dict.put("汉", new ArrayList<ModelEntity>());
+				}
+				dict.get("汉").add(item);
+				return;
+			}
+
+			String index2 = name.substring(0, 2);
+			if (!dict.containsKey(index2)) {
+				dict.put(index2, new ArrayList<ModelEntity>());
+			}
+			dict.get(index2).add(item);
+
+			if (name.length() >= 3) {
+				String index3 = name.substring(0, 3);
+				if (!dict.containsKey(index3)) {
+					dict.put(index3, new ArrayList<ModelEntity>());
+				}
+				dict.get(index3).add(item);
+			}
+		}
+	}
+	
 }

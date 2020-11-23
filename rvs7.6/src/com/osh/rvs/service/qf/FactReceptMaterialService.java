@@ -39,10 +39,21 @@ public class FactReceptMaterialService {
 	private ProductionFeatureService featureService = new ProductionFeatureService();
 	private AcceptanceService acceptanceService = new AcceptanceService();
 	
-	public List<FactReceptMaterialForm> searchReceptMaterial(SqlSession conn) {
+	public List<FactReceptMaterialForm> searchReceptMaterial(String search_range, SqlSession conn) {
 		FactReceptMaterialMapper dao = conn.getMapper(FactReceptMaterialMapper.class);
 
-		List<FactReceptMaterialEntity> list = dao.searchReceptMaterial();
+		List<FactReceptMaterialEntity> list = dao.searchReceptMaterial(search_range);
+
+		List<FactReceptMaterialForm> respList = new ArrayList<FactReceptMaterialForm>();
+		BeanUtil.copyToFormList(list, respList, CopyOptions.COPYOPTIONS_NOEMPTY, FactReceptMaterialForm.class);
+
+		return respList;
+	}
+
+	public List<FactReceptMaterialForm> searchReceptSpareMaterial(SqlSession conn) {
+		FactReceptMaterialMapper dao = conn.getMapper(FactReceptMaterialMapper.class);
+
+		List<FactReceptMaterialEntity> list = dao.searchReceptSpareMaterial();
 
 		List<FactReceptMaterialForm> respList = new ArrayList<FactReceptMaterialForm>();
 		BeanUtil.copyToFormList(list, respList, CopyOptions.COPYOPTIONS_NOEMPTY, FactReceptMaterialForm.class);

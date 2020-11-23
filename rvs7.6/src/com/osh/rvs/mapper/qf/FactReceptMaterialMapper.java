@@ -8,7 +8,9 @@ import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
 
 public interface FactReceptMaterialMapper {
 	/** 查询受理维修品 **/
-	public List<FactReceptMaterialEntity> searchReceptMaterial();
+	public List<FactReceptMaterialEntity> searchReceptMaterial(@Param("search_range") String search_range);
+
+	public List<FactReceptMaterialEntity> searchReceptSpareMaterial();
 
 	/** 新建临时维修品实物受理/测漏 **/
 	public void insertFactReceptMaterialTemp(FactReceptMaterialEntity entity);

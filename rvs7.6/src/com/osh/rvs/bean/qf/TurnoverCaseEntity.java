@@ -33,6 +33,8 @@ public class TurnoverCaseEntity implements Serializable {
 	private String omr_notifi_no;
 	private Integer break_back_flg;
 
+	private Integer anml_exp;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -169,4 +171,15 @@ public class TurnoverCaseEntity implements Serializable {
 		this.break_back_flg = break_back_flg;
 	}
 
+	public Integer getAnml_exp() {
+		return anml_exp;
+	}
+
+	public void setAnml_exp(Integer anml_exp) {
+		this.anml_exp = anml_exp;
+	}
+
+	public String toString() {
+		return location;
+	}
 }

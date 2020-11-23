@@ -31,6 +31,7 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
+import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.qf.FactMaterialForm;
@@ -42,8 +43,10 @@ import com.osh.rvs.service.DownloadService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.UserDefineCodesService;
 import com.osh.rvs.service.qf.AcceptanceService;
 import com.osh.rvs.service.qf.FactMaterialService;
+import com.osh.rvs.service.qf.TurnoverCaseService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
@@ -532,5 +535,142 @@ public class AcceptanceAction extends BaseAction {
 		returnJsonResponse(res, listResponse);
 		log.info("CustomerAction.getAutoComplete end");
 	}
+
+	/**
+	 * 取得空闲的通箱库位一览信息
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={107})
+	public void getTcLoad(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("AcceptanceAction.getTcLoad start");
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		TurnoverCaseService service = new TurnoverCaseService();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// 查询预计的入库位信息
+		try {
+			UserDefineCodesService udcService = new UserDefineCodesService();
+			String prePrintFormal = udcService.searchUserDefineCodesValueByCode("TC_PREPRINT_FORMAL", conn);
+			String prePrintEndoeye = udcService.searchUserDefineCodesValueByCode("TC_PREPRINT_ENDOEYE", conn);
+			String prePrintUdi = udcService.searchUserDefineCodesValueByCode("TC_PREPRINT_UDI", conn);
+
+			int iPrePrintFormal = 25;
+			int iPrePrintEndoeye = 2;
+			int iPrePrintUdi = 10;
+			try {
+				iPrePrintFormal = Integer.parseInt("" + prePrintFormal);
+				iPrePrintEndoeye = Integer.parseInt("" + prePrintEndoeye);
+				iPrePrintUdi = Integer.parseInt("" + prePrintUdi);
+			} catch (NumberFormatException e) {
+			}
+
+			List<TurnoverCaseEntity> nextLocations = service.getEmptyLocations("0", iPrePrintFormal, conn);
+			List<TurnoverCaseEntity> nextEndoeyeLocations = service.getEmptyLocations("06", iPrePrintEndoeye, conn);
+			List<TurnoverCaseEntity> nextUdiLocations = service.getEmptyLocations("738", iPrePrintUdi, conn);
+
+			listResponse.put("iPrePrintFormal", iPrePrintFormal);
+			listResponse.put("iPrePrintEndoeye", iPrePrintEndoeye);
+			listResponse.put("iPrePrintUdi", iPrePrintUdi);
+
+			listResponse.put("nextLocations", nextLocations);
+			listResponse.put("nextEndoeyeLocations", nextEndoeyeLocations);
+			listResponse.put("nextUdiLocations", nextUdiLocations);
+		} catch (Exception e) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("location");
+			error.setErrmsg("剩余空闲的通箱库位已经不足。请先处理出库。");
+			errors.add(error);
+		}
+
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+		log.info("AcceptanceAction.getTcLoad end");
+	}
+
+	@Privacies(permit={107})
+	public void regainTcLabels(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("AcceptanceAction.regainTcLabels start");
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		TurnoverCaseService service = new TurnoverCaseService();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String kind = req.getParameter("kind");
+		String count = req.getParameter("count");
+
+		int iCount = 5;
+
+		try {
+			iCount = Integer.parseInt("" + count);
+		} catch (NumberFormatException e) {
+		}
+
+		// 查询预计的入库位信息
+		try {
+			switch (kind) {
+			case "formal" : {
+				List<TurnoverCaseEntity> nextLocations = service.getEmptyLocations("0", iCount, conn);
+				listResponse.put("nextLocations", nextLocations);
+				break;
+			}
+			case "endoeye" : {
+				List<TurnoverCaseEntity> nextLocations = service.getEmptyLocations("06", iCount, conn);
+				listResponse.put("nextLocations", nextLocations);
+				break;
+			}
+			case "udi" : {
+				List<TurnoverCaseEntity> nextLocations = service.getEmptyLocations("738", iCount, conn);
+				listResponse.put("nextLocations", nextLocations);
+				break;
+			}
+			}
+		} catch (Exception e) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("location");
+			error.setErrmsg("剩余空闲的通箱库位已经不足。请先处理出库。");
+			errors.add(error);
+		}
+
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+		log.info("AcceptanceAction.regainTcLabels end");
+	}
 	
+	@Privacies(permit = { 107 })
+	public void doPrintTcLabels(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("AcceptanceAction.printTcLabels start");
+		// Ajax回馈对象
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+
+		String labels = req.getParameter("labels");
+		TurnoverCaseService service = new TurnoverCaseService();
+
+		String path = service.printLabels(labels);
+
+		String passMessage = service.setToPrepare(labels, conn);
+		
+		cbResponse.put("path", path);
+		cbResponse.put("passMessage", passMessage);
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+		cbResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+		log.info("AcceptanceAction.printTcLabels end");
+	}
+
 }

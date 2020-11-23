@@ -99,20 +99,20 @@ public class AcceptanceService {
 		entity.setUse_seconds(use_seconds);
 		pfService.insertAcceptance(entity, conn);
 
-		// 获取通箱位置
-		MaterialService mService = new MaterialService();
-		MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, newId);
+//		// 获取通箱位置
+//		MaterialService mService = new MaterialService();
+//		MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, newId);
 
-		// 放通箱
-		String kind = mEntity.getKind();
-		// UDI
-		if ("06".equals(kind) && RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
-			kind = "UDI";
-		}
-		if (mEntity.getFix_type() != null && mEntity.getFix_type() != 3) { // 备品通箱不入库也不消毒通箱(备品必须单都包含通箱信息)
-			triggerList.add("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
-					+ "/" + kind + "/" + mEntity.getFix_type() + "/" + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
-		}
+//		// 放通箱
+//		String kind = mEntity.getKind();
+//		// UDI
+//		if ("06".equals(kind) && RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
+//			kind = "UDI";
+//		}
+//		if (mEntity.getFix_type() != null && mEntity.getFix_type() != 3) { // 备品通箱不入库也不消毒通箱(备品必须单都包含通箱信息)
+//			triggerList.add("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
+//					+ "/" + kind + "/" + mEntity.getFix_type() + "/" + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
+//		}
 	}
 
 	/**

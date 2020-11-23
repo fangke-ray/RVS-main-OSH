@@ -845,15 +845,12 @@ $(function() {
 	});
 
 	$("#disinfectionbutton").click(doDisinfection);
-	$("#sterilizationbutton").click(doSterilization);
+
+	// $("#sterilizationbutton").click(doSterilization);
 	$("#returnbutton").click(doReturn);
 	$("#resetbutton").click(function() {
 		listdata = {};
 		load_list();
-	});
-
-	$("#tcStorageButton").click(function() {
-		afObj.applyProcess(106, this, showStoragePlan, arguments);
 	});
 
 	load_list();
@@ -1257,51 +1254,51 @@ function doDisinfection(){
 	}
 }
 
-function doSterilization(){
-	var rowids = $("#imp_list").jqGrid("getGridParam","selarrrow");
-	var ids = [];
-	var comm = "";
-
-	for (var i in rowids) {
-		var rowdata = $("#imp_list").getRowData(rowids[i]);
-		ids[ids.length] = rowdata["material_id"];
-		var t_direct = rowdata["direct_flg"];
-		if (t_direct == 1) {
-			if (!rowdata["bound_out_ocm"]) {
-				comm += (rowdata["model_name"] + "/" + rowdata["serial_no"] + "\n");
-			}
-		}
-	}
-
-	if (comm) {
-		var $jthis = $("#confirmmessage");
-		$jthis.text("请为以下直送品：\n" + comm + "选择直送区域。");
-		$jthis.dialog({
-			resizable : false,
-			dialogClass : 'ui-warn-dialog', 
-			modal : true,
-			title : "直送区域确认",
-			buttons : {
-				"关闭" : function() {
-					$jthis.dialog("close");
-				}
-			}
-		});
-	} else {
-		$.ajax({
-			data : {ids:ids.join(",")},
-			url: servicePath + "?method=doSterilization",
-			async: false, 
-			beforeSend: ajaxRequestType, 
-			success: ajaxSuccessCheck, 
-			error: ajaxError, 
-			type : "post",
-			complete : function(){
-				loadImpListData();
-			}
-		});	
-	}
-}
+//function doSterilization(){
+//	var rowids = $("#imp_list").jqGrid("getGridParam","selarrrow");
+//	var ids = [];
+//	var comm = "";
+//
+//	for (var i in rowids) {
+//		var rowdata = $("#imp_list").getRowData(rowids[i]);
+//		ids[ids.length] = rowdata["material_id"];
+//		var t_direct = rowdata["direct_flg"];
+//		if (t_direct == 1) {
+//			if (!rowdata["bound_out_ocm"]) {
+//				comm += (rowdata["model_name"] + "/" + rowdata["serial_no"] + "\n");
+//			}
+//		}
+//	}
+//
+//	if (comm) {
+//		var $jthis = $("#confirmmessage");
+//		$jthis.text("请为以下直送品：\n" + comm + "选择直送区域。");
+//		$jthis.dialog({
+//			resizable : false,
+//			dialogClass : 'ui-warn-dialog', 
+//			modal : true,
+//			title : "直送区域确认",
+//			buttons : {
+//				"关闭" : function() {
+//					$jthis.dialog("close");
+//				}
+//			}
+//		});
+//	} else {
+//		$.ajax({
+//			data : {ids:ids.join(",")},
+//			url: servicePath + "?method=doSterilization",
+//			async: false, 
+//			beforeSend: ajaxRequestType, 
+//			success: ajaxSuccessCheck, 
+//			error: ajaxError, 
+//			type : "post",
+//			complete : function(){
+//				loadImpListData();
+//			}
+//		});	
+//	}
+//}
 
 
 /*

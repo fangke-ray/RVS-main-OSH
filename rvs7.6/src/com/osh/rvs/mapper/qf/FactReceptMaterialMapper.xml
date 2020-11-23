@@ -19,12 +19,13 @@
 		    END AS expect_arrive_time,
 		    model_name,
 		    category_id,
-		    kind,
+		    (select kind from category where category_id = temp.category_id) as kind,
 		    CASE
 				WHEN temp_fact_recept >=1 then 1
                 ELSE 0
             END AS fact_recept,
 		    tag_types,
+		    location As tc_location,
 		    comment
 		FROM
 		(
@@ -36,7 +37,9 @@
 		    material.reception_time,
 		    mdl.name AS model_name,
 		    mdl.CATEGORY_ID,
-		    mdl.kind,
+		]]>
+		<if test="search_range eq 1">
+		<![CDATA[
 		    SUM(fct.af_pf_key IS NOT NULL AND EXISTS( 
 				SELECT
 					1 
@@ -46,18 +49,29 @@
 					fct.af_pf_key = afpf.af_pf_key 
 				AND 
 					afpf.production_type = 102)) AS temp_fact_recept,
+		]]>
+		</if>
+		<if test="search_range eq 2">
+		<![CDATA[
+		    0 AS temp_fact_recept,
+		]]>
+		</if>
+		<![CDATA[
 		    GROUP_CONCAT(DISTINCT tag.tag_type) AS tag_types,
+            tcs.location,
 		    cmt.comment
 		FROM
 		    material
 		JOIN
-		    v_model mdl ON material.model_id = mdl.model_id
+		    model mdl ON material.model_id = mdl.model_id
 		LEFT JOIN
 		    fact_material fct ON material.material_id = fct.material_id
 		LEFT JOIN
 		    material_tag tag ON material.material_id = tag.material_id
 		LEFT JOIN
 		    material_comment cmt ON material.material_id = cmt.material_id AND cmt.operator_id = 00000000002
+		LEFT JOIN 
+			turnover_case_storage tcs on material.material_id = tcs.material_id
 		WHERE
 		    fix_type IN (1 , 2)
 		AND 
@@ -66,6 +80,9 @@
 			inline_time IS NULL
 		AND 
 			wip_date IS NULL
+	]]>
+	<if test="search_range eq 1">
+	<![CDATA[
 		AND NOT EXISTS(
 			SELECT 
 				1
@@ -77,13 +94,23 @@
 				position_id IN (10 , 11)
 			AND 
 				operate_result > 0)
+	]]>
+	</if>
+	<if test="search_range eq 2">
+	<![CDATA[
+		AND (
+			fct.af_pf_key IS NULL
+		)
+	]]>
+	</if>
+	<![CDATA[
 		GROUP BY
 			material.material_id
 		ORDER BY 
 			model_name,serial_no) temp
 	]]>
 	</select>
-	
+
 	<insert id="insertFactReceptMaterialTemp" parameterType="FactReceptMaterialEntity">
 	<![CDATA[
 		INSERT INTO fact_recept_material_temp
@@ -108,25 +135,53 @@
 		)
 	]]>
 	</insert>
-	
+
+	<select id="searchReceptSpareMaterial" resultType="FactReceptMaterialEntity">
+	SELECT 
+        material.material_id,
+	    material.serial_no,
+	    mdl.name AS model_name,
+	    (select kind from category where category_id = mdl.category_id) as kind,
+	    1 AS temp_fact_recept,
+	    1 AS fact_recept
+    FROM
+        material
+    JOIN model mdl ON material.model_id = mdl.model_id
+    LEFT JOIN material_tag tag ON material.material_id = tag.material_id
+    WHERE
+        fix_type = 3
+    AND break_back_flg = 0
+    AND outline_time IS NULL
+    AND NOT EXISTS( SELECT 
+	        1
+	    FROM
+	        production_feature
+	    WHERE
+	        material_id = material.material_id
+        AND position_id IN (10 , 11)
+        AND operate_result not in (0, 5))
+    ORDER BY model_name, serial_no
+   	</select>
+
 	<select id="searchTemp" resultType="FactReceptMaterialEntity" parameterType="FactReceptMaterialEntity">
 	<![CDATA[
 		SELECT
 			fact_recept_id,
 			direct_flg,
 			serial_no,
-			model_id,
+			frmt.model_id,
+			category_id,
 			model_name,
 			af_pf_key,
 			tag_types,
 			tc_location
 		FROM
-			fact_recept_material_temp
+			fact_recept_material_temp frmt join model mdl on frmt.model_id = mdl.model_id
 	]]>
 	<where>
 	<if test="model_id!=null and model_id!=''">
 	<![CDATA[
-		AND model_id = #{model_id}
+		AND frmt.model_id = #{model_id}
 	]]>
 	</if>
 	<if test="serial_no!=null and serial_no!=''">
@@ -148,7 +203,9 @@
 		SET
 			serial_no = #{serial_no},
 			model_id = #{model_id},
-			tag_types = #{tag_types}
+			model_name = #{model_name},
+			tag_types = #{tag_types},
+			tc_location = #{tc_location}
 		WHERE
 			fact_recept_id = #{fact_recept_id}
 	]]>

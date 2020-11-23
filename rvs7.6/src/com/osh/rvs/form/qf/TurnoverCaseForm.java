@@ -55,6 +55,9 @@ public class TurnoverCaseForm extends ActionForm implements Serializable {
 	@BeanField(title = "维修状态", name = "break_back_flg", type = FieldType.Integer, length = 1)
 	private String break_back_flg;
 
+	@BeanField(title = "动物实验用", name = "anml_exp", type = FieldType.Integer, length = 1)
+	private String anml_exp;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -189,6 +192,14 @@ public class TurnoverCaseForm extends ActionForm implements Serializable {
 
 	public void setBreak_back_flg(String break_back_flg) {
 		this.break_back_flg = break_back_flg;
+	}
+
+	public String getAnml_exp() {
+		return anml_exp;
+	}
+
+	public void setAnml_exp(String anml_exp) {
+		this.anml_exp = anml_exp;
 	}
 
 }

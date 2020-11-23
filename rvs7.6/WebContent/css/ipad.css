@@ -378,62 +378,76 @@ td.td-content textarea{
 }
 
 .animal{
-	background: url(../images/animal.png)  no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/animal.png)  no-repeat 100% 100%;
+	background-size:cover; */
 	display:inline-block;
 	width:44px;
 	height:44px;
 	position: relative;
+	float: right;
+	border-radius: 4px;
 }
 
 .animal.checked{
-	background: url(../images/animal-checked.png) no-repeat;
-	background-size:cover;
+	/* background: url(../images/animal-checked.png) no-repeat;
+	background-size:cover; */
 }
 
 .leak{
-	background: url(../images/leak.png) no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/leak.png) no-repeat 100% 100%;
+	background-size:cover; */
 	display:inline-block;
 	width:44px;
 	height:44px;
 	position: relative;
+	float: left;
+	border-radius: 4px;
 }
 
 .leak.checked{
-	background: url(../images/leak-checked.png) no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/leak-checked.png) no-repeat 100% 100%;
+	background-size:cover; */
 }
 
 .leak.waitting{
-	background: url(../images/leak-waitting.png) no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/leak-waitting.png) no-repeat 100% 100%;
+	background-size:cover; */
 }
 
 .disinfect{
-	background: url(../images/disinfect.png) no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/disinfect.png) no-repeat 100% 100%;
+	background-size:cover; */
 	display:inline-block;
 	width:44px;
 	height:44px;
 	position: relative;
+	border-top-left-radius: 4px;
+	border-bottom-left-radius: 4px;
 }
 
+td.tag-type > .disinfect{
+	margin-left: 30%!important;
+}
 .disinfect.checked{
-	background: url(../images/disinfect-checked.png) no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/disinfect-checked.png) no-repeat 100% 100%;
+	background-size:cover; */
 }
 
 .sterilize{
-	background: url(../images/sterilize.png) no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/sterilize.png) no-repeat 100% 100%;
+	background-size:cover; */
 	display:inline-block;
 	width:44px;
 	height:44px;
 	position: relative;
+	border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px;
+}
+td.tag-type > .sterilize {
+	margin-left: -4px;
 }
 
 .sterilize.checked{
-	background: url(../images/sterilize-checked.png) no-repeat 100% 100%;
-	background-size:cover;
+	/* background: url(../images/sterilize-checked.png) no-repeat 100% 100%;
+	background-size:cover; */
 }

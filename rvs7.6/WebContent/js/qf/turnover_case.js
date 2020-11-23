@@ -374,7 +374,7 @@ var fillList = function(){
 			width : 992,
 			rowheight : 23,
 			datatype : "local",
-			colNames : ['', '库位位置', '修理单号', '维修状态', '型号 ID', '型号', '机身号', '等级', '发送地', '存入时间','计划','直送'],
+			colNames : ['', '库位位置', '修理单号', '维修状态', '型号 ID', '型号', '机身号', '等级', '发送地', '存入时间','计划','直送','动物实验用'],
 			colModel : [{name:'material_id',index:'material_id', hidden:true}, {
 						name : 'location',
 						index : 'location',
@@ -423,6 +423,10 @@ var fillList = function(){
 						name : 'direct_flg',
 						index : 'direct_flg',
 						width : 50, align : 'center', formatter:'select', editoptions:{value:"1:直送;2:直送快速;0:"}
+					}, {
+						name : 'anml_exp',
+						index : 'anml_exp',
+						width : 50, align : 'center', formatter:'select', editoptions:{value:"1:√"}
 					}
 	
 			],

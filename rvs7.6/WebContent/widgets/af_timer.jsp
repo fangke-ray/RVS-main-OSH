@@ -479,7 +479,9 @@ var stateTool = function(){
 		}
 		$afTimer.removeAttr("moving");
 		af_dragged = false;
-		localStorage.setItem("aft_r", $afTimer.css("right"));
+		var aft_r = $afTimer.css("right");
+		if (aft_r === "auto") aft_r = 0;
+		localStorage.setItem("aft_r", aft_r);
 		localStorage.setItem("aft_t", $afTimer.css("top"));
 	});
 

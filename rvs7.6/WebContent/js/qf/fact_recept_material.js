@@ -22,16 +22,24 @@ var servicePath = "fact_recept_material.do";
 
 //当前选中Tab
 let activeTab;
+// 按键相应范围
+let inputArea = "page";
 
 // 用来判断滚动容器是否正在滚动中
 let isScrolling = false;
 
+//字母导航用
 let undirectModelMap = new Map();
 let directModelMap = new Map();
 let perlModelMap = new Map();
+let spareModelMap = new Map();
 
+/** 机种ENDOEYE ID **/
+const CATEGORY_ENDOEYE_ID = "00000000016"; // TODO
+/** 机种光学识管ID **/
+const CATEGORY_UDI_ID = "00000000055"; // TODO
 /** 机种摄像头ID **/
-const CATEGORY_CAMERA_ID = "00000000024";
+const CATEGORY_CAMERA_ID = "00000000024"; // TODO
 const NO_TEXT = "无";
 
 $(function() {
@@ -57,9 +65,72 @@ $(function() {
         }
     }, false);
 
+	document.onkeydown=function(event){
+		var e = event || window.event || arguments.callee.caller.arguments[0];
+		if (e && e.keyCode) {
+			console.log(inputArea + "_" + e.keyCode);
+			if (inputArea === "page") {
+				switch(event.keyCode) {
+				     case 8:
+				     	$(".calculator #clear").trigger("release");
+				        break;
+				     case 27:
+				     	$(".calculator #clearAll").trigger("release");
+				        break;
+				     case 48:
+				     case 49:
+				     case 50:
+				     case 51:
+				     case 52:
+				     case 53:
+				     case 54:
+				     case 55:
+				     case 56:
+				     case 57:
+				     	var numkey = event.keyCode - 48;
+				     	$(".calculator span[value=" + numkey + "]").trigger("release");
+				     	break;
+				}
+			} else if (inputArea === "keyboard") {
+				switch(event.keyCode) {
+				     case 8:
+				     	$("#model_keyboard span:contains('删字')").trigger("release");
+				        break;
+				     case 27:
+				     	$("#model_keyboard span:contains('清除')").trigger("release");
+				     	break;
+				     case 32:
+				     	$("#model_keyboard_space").trigger("release");
+				     	break;
+				     case 48: case 49: case 50: case 51: case 52: case 53: case 54: case 55: case 56: case 57: {
+				     	var numkey = event.keyCode - 48;
+				     	$("#model_keyboard span:contains('" + numkey + "')").trigger("release");
+				     	break;
+				     }
+	                 // 65 ~ 90
+				     case 65:case 66:case 67:case 68:case 69:case 70:case 71:case 72:case 73:case 74:case 75:case 76:case 77:case 78:case 79:case 80:case 81:case 82:case 83:case 84:case 85:case 86:case 87:case 88:case 89:case 90: {
+				     	var abfkey = String.fromCharCode(event.keyCode);
+				     	$("#model_keyboard span:contains('" + abfkey + "')").trigger("release");
+				     	break;
+				     }
+				}
+			}
+			// 173 -
+			
+			if (inputArea !== "input" && event.keyCode == 8) {
+				return false;
+			} else if (inputArea !== "page" && event.keyCode == 27) {
+				event.preventDefault();
+				console.log("MEMEMEME");
+				return false;
+			}
+		}
+	}; 
+
     undirectObj.init();
     directObj.init();
     perlObj.init();
+    spareObj.init();
 
     //Tab切换
     $("#production_type").find(".btn").each(function(i, item) {
@@ -86,8 +157,6 @@ $(function() {
     //默认选中非直送
     $("#undirect").trigger("tap");
 
-    findit();
-
     //switch开关控制
     $(".switch-container > span").hammer().on("tap", function() {
         let $outerContainer = $(this).closest(".switch");
@@ -96,10 +165,12 @@ $(function() {
             $innerContainer.css("margin-left", "-" + $(this).outerWidth() + "px");
             $outerContainer.removeClass("switch-on").addClass("switch-off");
             $("#toggleBtn").prop("checked", false);
+            findit();
         } else {
             $innerContainer.css("margin-left", "0px");
             $outerContainer.removeClass("switch-off").addClass("switch-on");
             $("#toggleBtn").prop("checked", true);
+            findit();
         }
     });
 
@@ -114,6 +185,8 @@ $(function() {
         $("#toggleBtn").prop("checked", false);
     }
 
+    findit();
+
     //型号导航滚动事件
     var scrollByModel = function(modelName, fromInitial) {
         let el = $("#" + activeTab + "_tab").find("li[data-value='" + modelName + "']").get(0);
@@ -125,6 +198,8 @@ $(function() {
             currentScroll = directObj.scroll;
         } else if (activeTab == "perl") {
             currentScroll = perlObj.scroll;
+        } else if (activeTab == "spare") {
+        	currentScroll = spareObj.scroll;
         }
 
         currentScroll.scrollToElement(el, 400, true, true, IScroll.utils.ease.quadratic);
@@ -151,6 +226,8 @@ $(function() {
             arrModels = directModelMap.get(letter);
         } else if (activeTab == "perl") {
             arrModels = perlModelMap.get(letter);
+        } else if (activeTab == "spare") {
+            arrModels = spareModelMap.get(letter);
         }
 
         let currentScroll;
@@ -160,6 +237,8 @@ $(function() {
             currentScroll = directObj.scroll;
         } else if (activeTab == "perl") {
             currentScroll = perlObj.scroll;
+        } else if (activeTab == "spare") {
+        	currentScroll = spareObj.scroll;
         }
 
         if (letter == NO_TEXT) {
@@ -247,8 +326,55 @@ $(function() {
     // 退出本页面
     $("#exitToPanel").hammer().on("tap", function(){
     	document.location.href = "panel.do";
-    })
-});
+    });
+
+    // 取得全型号
+    $.ajax({
+        beforeSend: ajaxRequestType,
+        async: true,
+        url: 'model.do?method=getModelDictionary',
+        cache: false,
+        data: null,
+        type: "post",
+        dataType: "json",
+        success: ajaxSuccessCheck,
+        error: ajaxError,
+        complete: function(xhrobj, textStatus) {
+        	var resInfo = $.parseJSON(xhrobj.responseText);
+        	gModelDict = resInfo.modelDict;
+        }
+    });
+
+    //型号键盘
+    $("#model_keyboard span").hammer().on("touch", function() {
+        $(this).attr("hold", true);
+    }).on("release", function(ev) {
+        $(this).removeAttr("hold");
+        switch(this.innerText) {
+        	case "":{
+        		filterIdx+=" "; break;
+        	}
+        	case "汉":{
+        		filterIdx="汉"; break;
+        	}
+        	case "清除":{
+        		filterIdx=""; break;
+        	}
+        	case "删字":{
+        		filterIdx = filterIdx.substring(0, filterIdx.length - 1); break;
+        	}
+        	case "关闭":{
+        		$("#model_keyboard_pop").hide();
+        		inputArea = "input";
+        		break;
+        	}
+        	default : {
+        		filterIdx+=this.innerText;
+        	}
+        }
+        filterSelModel();
+    });
+}); // End of $(function()
 
 function findit() {
     $.ajax({
@@ -256,7 +382,7 @@ function findit() {
         async: true,
         url: servicePath + '?method=search',
         cache: false,
-        data: null,
+        data: {search_range : ($("#search_switch").hasClass("switch-off") ? 2 : 1)},
         type: "post",
         dataType: "json",
         success: ajaxSuccessCheck,
@@ -298,9 +424,15 @@ function findit() {
                         }
                     }
 
+                    let arrSpareList = [];
+                    if (resInfo.spareMaterialList) {
+                    	arrSpareList = resInfo.spareMaterialList;
+                    }
+
                     setList("undirect_scroll", arrUnDirectList, tempUnDirectList);
                     setList("direct_scroll", arrDirectList, tempDirectList);
                     setList("perl_scroll", arrPerlList, []);
+                    setList("spare_scroll", arrSpareList, []);
                     toggleLetter();
 
                     $("#today_num").text(resInfo.todayFinishedNum);
@@ -329,10 +461,197 @@ function findit() {
                         }
                     }
                     $("#nextday_num").text(nextNum);
+
+                    setPreprintedLocations(resInfo.preprintedLocations, resInfo.animalExpLocations);
                 }
             } catch (e) {};
         }
     });
+}
+
+var gPreprintedLocations = {};
+var setPreprintedLocations = function(preprintedLocations, animalExpLocations) {
+	gPreprintedLocations["normal"] = [];
+	gPreprintedLocations["endoeye"] = [];
+	gPreprintedLocations["udi"] = [];
+	gPreprintedLocations["animal"] = [];
+
+	for (var i in preprintedLocations) {
+		var preprintedLocation = preprintedLocations[i];
+		switch (preprintedLocation.direct_flg) {
+			case 0 :
+			gPreprintedLocations["normal"].push(preprintedLocation.location); break;
+			case 1 :
+			gPreprintedLocations["endoeye"].push(preprintedLocation.location); break;
+			case 2 :
+			gPreprintedLocations["udi"].push(preprintedLocation.location); break;
+		}
+	}
+
+	if (animalExpLocations) {
+		for (var i in animalExpLocations) {
+			gPreprintedLocations["animal"].push(animalExpLocations[i].location);
+		}
+	}
+	var info = "", infoAn = "";
+
+	if (gPreprintedLocations["normal"].length == 0) {
+		info += "普通内窥镜的通箱标签预打印已用完。\n";
+	}
+	if (gPreprintedLocations["endoeye"].length == 0) {
+		info += "Endoeye的通箱标签预打印已用完。\n";
+	}
+	if (gPreprintedLocations["udi"].length == 0) {
+		info += "光学视管的通箱标签预打印已用完。\n";
+	}
+	if (gPreprintedLocations["animal"].length == 0) {
+		infoAn = "已经没有动物实验用周转箱库位，请确认。";
+	}
+
+	if (info && info.length) {
+		infoPop(info + "请预先打印一批。");
+	}
+	if (infoAn && infoAn.length) {
+		infoPop(infoAn);
+	}
+}
+
+var modelDictionary = {};
+let gModelDict = {};
+let filterIdx = "";
+
+function selectModel($target, type) {
+
+	var $modelKeyboard = $("#model_keyboard_pop");
+	var cssZIndex = $target.closest(".ui-dialog").css("zIndex");
+	if (cssZIndex) {
+		cssZIndex = parseInt(cssZIndex) + 1;
+	} else {
+		cssZIndex = 1001;
+	}
+	$modelKeyboard.data("type", type);
+	filterIdx = "";
+	inputArea = "keyboard";
+	$modelKeyboard.css("zIndex", cssZIndex).show();
+
+    //型号选择
+    $("#model_list").html("")
+    	.off("release").hammer().on("release", function(evt) {
+    	var targetName = evt.target.tagName;
+    	var $selModel = null;
+    	if (targetName === "SPAN") {
+    		$selModel = $(evt.target);
+    	} else if (targetName === "H") {
+    		$selModel = $(evt.target).parent();
+    	} else {
+    		return;
+    	}
+    	$modelKeyboard.hide();
+    	inputArea = "input";
+    	$target.text($selModel.text())
+    		.next("input:hidden")
+    		.val($selModel.attr("model_id"))
+    		.attr("category_id", $selModel.attr("category_id"))
+    		.trigger("change");
+    });
+}
+
+function filterSelModel() {
+	var doClear = false;
+	if (!filterIdx) {
+		doClear = true;
+	} else {
+		if (filterIdx.length < 2) {
+			if (filterIdx !== "汉") {
+				doClear = true;
+			}
+		}
+	}
+
+	if (doClear) {
+		$("#model_list").html("");
+	} else {
+		var type = $("#model_keyboard_pop").data("type");
+		var dct = gModelDict[type];
+
+		if (filterIdx.length < 4) {
+			var modelList = dct[filterIdx];
+			if (modelList) {
+				var modelHtml = "";
+				for (var modelIdx in modelList) {
+					var model = modelList[modelIdx];
+					modelHtml += "<span model_id='" + model.model_id + "' category_id='" + model.category_id + "'><h>" 
+					 + model.name.substring(0, filterIdx.length)
+					 + "</h>" + decodeText(model.name.substring(filterIdx.length)) + "</span>";
+				}
+				$("#model_list").html(modelHtml);
+			} else {
+				if (dct[filterIdx.substring(0,2) + "-"]) {
+					aimaiMatch(dct, filterIdx, 2);
+				} else {
+					$("#model_list").html("");
+				}
+			}
+		} else {
+			aimaiMatch(dct, filterIdx, 3);
+		}
+	}
+}
+
+function aimaiMatch(dct, filterIdx, fcount) {
+	
+	var modelList = dct[filterIdx.substring(0, fcount)];
+	if (fcount == 3 && !modelList) {
+		fcount = 2;
+		modelList = dct[filterIdx.substring(0, fcount)];
+	}
+	if (modelList) {
+		var modelHtml = "";
+		var filterLength = filterIdx.length;
+		var filterWord = filterIdx.match(/[\w]/g);
+		var wordMatch = filterWord && (filterWord.length == filterLength);
+		for (var modelIdx in modelList) {
+			var model = modelList[modelIdx];
+			var modelName = model.name;
+			if (modelName.length < filterLength) {
+				continue;
+			}
+			if (modelName.substring(0, filterLength) === filterIdx) {
+				modelHtml += "<span model_id='" + model.model_id + "' category_id='" + model.category_id + "'><h>" 
+				 + model.name.substring(0, filterLength)
+				 + "</h>" + model.name.substring(filterLength) + "</span>";
+				continue;
+			}
+			if (wordMatch) {
+				var namePart = modelName.substring(fcount);
+				var matchIn = {}, mDcount = false;
+				for (var j = fcount; j < filterLength; j++) {
+					var hitIdx = namePart.indexOf(filterIdx.charAt(j));
+					if (hitIdx >= 0) {
+						matchIn[hitIdx] = 1;
+					} else {
+						mDcount = true;
+					}
+				}
+				if (Object.keys(matchIn).length > 0 && !mDcount) {
+					var concatPart = "";
+					for (var it in namePart) {
+						if (matchIn[it]) {
+							concatPart += "<h>" + namePart[it] + "</h>"; 
+						} else {
+							concatPart += decodeText(namePart[it]);
+						}
+					}
+					modelHtml += "<span model_id='" + model.model_id + "' category_id='" + model.category_id + "'><h>" 
+					 + model.name.substring(0, fcount)
+					 + "</h>" + concatPart + "</span>";
+				}
+			}
+		}
+		$("#model_list").html(modelHtml);
+	} else {
+		$("#model_list").html("");
+	}
 }
 
 //字母导航自动切换
@@ -344,6 +663,8 @@ function toggleLetter() {
         map = directModelMap;
     } else if (activeTab == "perl") {
         map = perlModelMap;
+    } else if (activeTab == "spare") {
+        map = spareModelMap;
     }
 
     $("#letter_nav li").each((index, li) => {
@@ -412,6 +733,9 @@ function setList(id, list, tempList) {
         case "perl": //其他（周边）
             setLetterMap(arrModelName, perlModelMap);
             break;
+        case "spare": //备品
+            setLetterMap(arrModelName, spareModelMap);
+            break;
         default:
             break;
     }
@@ -473,8 +797,11 @@ function setList(id, list, tempList) {
                 }
             }
 
-            content += '<div class="' + classs + '" material_id="' + (obj.material_id || '') + '" fact_recept_id="' + (obj.fact_recept_id || '') + '" serial_no="' + obj.serial_no + '" model_name="' + (obj.model_name || '') + '" tag_types="' +
-                (obj.tag_types || '') + '" comment="' + (obj.comment || '') + '" category_id="' + obj.category_id + '" model_id="' + (obj.model_id || '') + '">';
+            content += '<div class="' + classs + '" material_id="' + (obj.material_id || '') + '" fact_recept_id="' + (obj.fact_recept_id || '') + 
+            	'" serial_no="' + obj.serial_no + '" model_name="' + (obj.model_name || '') + '" tag_types="' + (obj.tag_types || '') +
+            	'" comment="' + (obj.comment || '') + '" category_id="' + obj.category_id + '" model_id="' + (obj.model_id || '') + '"' +
+            	(obj.tc_location ? (' tc_location="' + obj.tc_location + '"') : '') +
+            	'">';
 	            content += '<div class="item-sub-container">';
 	            	content += '<div class="item">' + obj.serial_no + '</div>';
             	content += '</div>';
@@ -489,9 +816,11 @@ function setList(id, list, tempList) {
             }
 
             if (arrTagTypes.includes('2')) { //要做测漏还未做
-                	content += '<div class="item"><div class="leak waitting"></div></div>';
-            } else if (arrTagTypes.includes('3')) { //做完测漏
                 	content += '<div class="item"><div class="leak checked"></div></div>';
+            } else if (arrTagTypes.includes('3')) { //做完测漏
+                	content += '<div class="item"><div class="leak done"></div></div>';
+            } else if (obj.fact_recept == "1" && obj.kind != 7) { //不用测漏
+                	content += '<div class="item"><div class="leak pass"></div></div>';
             } else {
             		content += '<div class="item"><div></div></div>';
             }
@@ -587,8 +916,27 @@ function filterSerialNO(serialNo) {
     }
 
     setTimeout(function() {
-        scrollRefresh();
+    	filterModelName();
     }, 300);
+
+    setTimeout(function() {
+        scrollRefresh();
+    }, 330);
+
+}
+
+function filterModelName() {
+	$("#" + activeTab + "_tab li.list-group-item")
+		.removeClass("empty")
+		.children("span").addClass("h5")
+		.end()
+		.each(function(idx, ele){
+			var $ele = $(ele);
+			if ($ele.find(".item-container:visible").length == 0) {
+				$ele.addClass("empty")
+					.children("span").removeClass("h5");
+			}
+		});
 }
 
 //容器重新渲染
@@ -599,6 +947,8 @@ function scrollRefresh() {
         directObj.scroll.refresh();
     } else if (activeTab == "perl") {
         perlObj.scroll.refresh();
+    } else if (activeTab == "spare") {
+    	spareObj.scroll.refresh();
     }
 }
 
@@ -610,20 +960,24 @@ function showEditDialog(initData) {
 
     let arrTagTypes = initData.tag_types.split(",");
 
-    if (arrTagTypes.includes('2') || arrTagTypes.includes('3')) {
+    $("#edit_leak").removeClass("checked").removeClass("done");
+    if (arrTagTypes.includes('2')) {
         $("#edit_leak").addClass("checked");
-    } else {
-        $("#edit_leak").removeClass("checked");
+    } else if (arrTagTypes.includes('3')) {
+    	$("#edit_leak").addClass("done");
     }
     //消毒
     arrTagTypes.includes('4') ? $("#edit_disinfect").addClass("checked") : $("#edit_disinfect").removeClass("checked");
     //灭菌
     arrTagTypes.includes('5') ? $("#edit_sterilize").addClass("checked") : $("#edit_sterilize").removeClass("checked");
-    //动物试验
+    //动物实验
     arrTagTypes.includes('1') ? $("#edit_animal").addClass("checked") : $("#edit_animal").removeClass("checked");
 
     //故障说明
     $("#edit_comment").html(decodeText(initData.comment));
+
+    //周转箱库位
+    $("#edit_tc_location").html(initData.tc_location || "");
 
     // 绑定事件
     if (!arrTagTypes.includes('3')) {
@@ -683,7 +1037,7 @@ function showEditDialog(initData) {
     			let index = -1;
     			if ($("#edit_animal").hasClass("checked")) {
                     index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物试验
+                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物实验
                 }
 
                 index++;
@@ -711,7 +1065,7 @@ function showEditDialog(initData) {
     			let index = -1;
     			if ($("#edit_animal").hasClass("checked")) {
                     index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物试验
+                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物实验
                 }
 
     			if($("#edit_leak").hasClass("checked")){
@@ -740,7 +1094,7 @@ function showEditDialog(initData) {
     			let index = -1;
     			if ($("#edit_animal").hasClass("checked")) {
                     index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物试验
+                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物实验
                 }
 
                 index++;
@@ -768,7 +1122,7 @@ function showEditDialog(initData) {
     			let index = -1;
     			if ($("#edit_animal").hasClass("checked")) {
                     index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物试验
+                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物实验
                 }
 
     			if($("#edit_leak").hasClass("checked")){
@@ -784,6 +1138,10 @@ function showEditDialog(initData) {
                     postData["material_tag.tag_type[" + index + "]"] = "5"; //灭菌
                 }
 
+                if (!initData.tc_location) {
+			    	postData.tc_location = $("#edit_tc_location").html();
+			    }
+
                 updateMaterial(postData);
     		}
     	};
@@ -797,7 +1155,7 @@ function showEditDialog(initData) {
     			let index = -1;
     			if ($("#edit_animal").hasClass("checked")) {
                     index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物试验
+                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物实验
                 }
 
                 index++;
@@ -811,20 +1169,34 @@ function showEditDialog(initData) {
                     postData["material_tag.tag_type[" + index + "]"] = "5"; //灭菌
                 }
 
+                if (!initData.tc_location) {
+			    	postData.tc_location = $("#edit_tc_location").html();
+			    }
+
                 updateMaterial(postData);
     		}
     	}
+    }
+
+    $("#edit_tc_location").off();
+    if (!initData.tc_location) {
+	    $("#edit_tc_location").hammer().on("tap", function() {
+	    	chooseTcLocation(initData.category_id, $("#edit_tc_location"));
+	    });
     }
 
     buttons["取消"] = function() {
     	$(this).dialog("close");
     }
 
+    inputArea = "input";
     let $dialog = $("#edit_dialog").dialog({
         position: ['center', 50],
         title: title,
         width: 550,
+        closeOnEscape:false,
         height: 'auto',
+        close: function(){inputArea = "page";},
         resizable: false,
         modal: true,
         buttons: buttons
@@ -844,6 +1216,10 @@ function showEditDialog(initData) {
 
         if (!$("#edit_sterilize").hasClass("checked") && !$("#edit_disinfect").hasClass("checked")) {
             errorData += "请选择【消毒】或者【灭菌】";
+        }
+
+        if (!$("#edit_tc_location").html()) {
+        	errorData += "<br>请指定周转箱标签库位。";
         }
 
         if (errorData) {
@@ -875,6 +1251,8 @@ function showEditDialog(initData) {
                         treatBackMessages("", resInfo.errors);
                     } else {
                         findit();
+                        filterSerialNO($("#screen").text());
+                        
                         $dialog.dialog("close");
                     }
                 } catch (e) {};
@@ -883,27 +1261,64 @@ function showEditDialog(initData) {
     }
 }
 
+var chooseTcLocation = function(category_id, $target) {
+	var preprintedLocations = null;
+
+	switch(category_id) {
+		case CATEGORY_ENDOEYE_ID : preprintedLocations = gPreprintedLocations["endoeye"]; break; 
+		case CATEGORY_UDI_ID : preprintedLocations = gPreprintedLocations["udi"]; break;
+		default : preprintedLocations = gPreprintedLocations["normal"];
+	}
+
+	var $tcLocationCoverery = $("#tc_location_pop");
+	if ($tcLocationCoverery.length == 0) {
+		$(document.body).append("<div id='tc_location_pop'/>")
+		$tcLocationCoverery = $("#tc_location_pop");
+		$tcLocationCoverery.on("click", function(e){
+			if (e.target.className.indexOf("tc_location") >= 0) {
+				$target.text(e.target.innerText);
+        		$("body > .overlay").remove();
+				$tcLocationCoverery.hide();
+			} else {
+        		$("body > .overlay").remove();
+				$tcLocationCoverery.hide();
+			}
+		})
+	}
+
+	var tcLocationHtml = "";
+	for (var i in preprintedLocations) {
+		tcLocationHtml += "<span class='tc_location'>" + preprintedLocations[i] + "</span>"
+	}
+	$(window).overlay();
+	$("body > .overlay").css("zIndex", 1050);
+	$tcLocationCoverery.html(tcLocationHtml).css("zIndex", 1051).show();
+}
+
 //直送/非直送临时编辑弹窗
 function showTempEditDialog(initData) {
 	//初期值表示
-    $("#temp_edit_model_name").val(initData.model_name).disable();
-    $("#temp_edit_model_id").val(initData.model_id).next(".error").html("");
+    $("#temp_edit_model_name").text(initData.model_name);
+    $("#temp_edit_model_id").val(initData.model_id);
     $("#temp_serial_no").val(initData.serial_no).disable();
 
     let arrTagTypes = initData.tag_types.split(",");
 
-    if (arrTagTypes.includes('2') || arrTagTypes.includes('3')) {
-        $("#temp_edit_leak").addClass("checked");
-    } else {
-        $("#temp_edit_leak").removeClass("checked");
+    $("#edit_leak").removeClass("checked").removeClass("done");
+    if (arrTagTypes.includes('2')) {
+        $("#edit_leak").addClass("checked");
+    } else if (arrTagTypes.includes('3')) {
+    	$("#edit_leak").addClass("done");
     }
 
     //消毒
     arrTagTypes.includes('4') ? $("#temp_edit_disinfect").addClass("checked") : $("#temp_edit_disinfect").removeClass("checked");
     //灭菌
     arrTagTypes.includes('5') ? $("#temp_edit_sterilize").addClass("checked") : $("#temp_edit_sterilize").removeClass("checked");
-    //动物试验
+    //动物实验
     arrTagTypes.includes('1') ? $("#temp_edit_animal").addClass("checked") : $("#temp_edit_animal").removeClass("checked");
+
+    $("#temp_edit_tc_location").text(initData.tc_location || "");
 
     // 绑定事件
     if (!arrTagTypes.includes('3')) {
@@ -947,13 +1362,13 @@ function showTempEditDialog(initData) {
     });
 
     $("#temp_edit_model_name").off("blur").on("blur", function() {
-        let model_name = $(this).val().trim();
+        let model_name = $(this).text().trim();
         if (model_name) {
             checkModelName(model_name, function(modelForm) {
                 if (modelForm.kind == "07") {
                     $("#temp_edit_model_id").val("").next(".error").html("");
                     $dialog.next().find(".ui-dialog-buttonset button:nth-last-child(n+2)").disable();
-                    infoPop("请到其他页面操作。");
+                    infoPop("请到\"其他\"页面操作。");
                 } else {
                     $("#temp_edit_model_id").val(modelForm.id).next(".error").html("");
                     $dialog.next().find(".ui-dialog-buttonset button:nth-last-child(n+2)").enable();
@@ -968,12 +1383,24 @@ function showTempEditDialog(initData) {
         }
     });
 
+    $("#temp_edit_model_name").off("tap")
+		.hammer().on("tap", function(){
+		selectModel($("#temp_edit_model_name"), "endoscope");
+	});
+
     $("#tempRandomBtn").hammer().off().on("touch", function() {
         $(this).attr("hold", true);
     }).on("release", function() {
         $(this).removeAttr("hold");
         $("#" + $(this).attr("for")).val(randomSerialNo());
     });
+
+    $("#temp_edit_tc_location").off();
+    if (!initData.tc_location) {
+	    $("#temp_edit_tc_location").hammer().on("tap", function() {
+	    	chooseTcLocation(initData.category_id, $("#temp_edit_tc_location"));
+	    });
+    }
 
     let title = "";
     initData.direct_flg == 1 ? title = "直送" : title = "非直送";
@@ -985,14 +1412,14 @@ function showTempEditDialog(initData) {
     		if(tempAddValidate()){
     			let postData = {
     				"fact_recept_id" : initData.fact_recept_id,
-                    "model_name": $("#temp_edit_model_name").val().trim(),
+                    "model_name": $("#temp_edit_model_name").text().trim(),
                     "model_id": $("#temp_edit_model_id").val().trim(),
                     "serial_no": $("#temp_serial_no").val().trim()
                 };
 
                 let types = new Array();
                 if ($("#temp_edit_animal").hasClass("checked")) {
-                    types.push("1"); //动物试验
+                    types.push("1"); //动物实验
                 }
 
                 types.push("3"); //完成测漏
@@ -1011,14 +1438,14 @@ function showTempEditDialog(initData) {
     	buttons["更改"] = function(){
     		let postData = {
 				"fact_recept_id" : initData.fact_recept_id,
-                "model_name": $("#temp_edit_model_name").val().trim(),
+                "model_name": $("#temp_edit_model_name").text().trim(),
                 "model_id": $("#temp_edit_model_id").val().trim(),
                 "serial_no": $("#temp_serial_no").val().trim()
             };
 
             let types = new Array();
             if ($("#temp_edit_animal").hasClass("checked")) {
-                types.push("1"); //动物试验
+                types.push("1"); //动物实验
             }
 
             types.push("2"); //等待测漏
@@ -1029,20 +1456,21 @@ function showTempEditDialog(initData) {
                 types.push("5"); //灭菌
             }
             postData["tag_types"] = types.join();
+			postData.tc_location = $("#temp_edit_tc_location").html();
 
             updateFactReceptTemp(postData);
     	};
     	buttons["完成测漏"] = function(){
     		let postData = {
 				"fact_recept_id" : initData.fact_recept_id,
-                "model_name": $("#temp_edit_model_name").val().trim(),
+                "model_name": $("#temp_edit_model_name").text().trim(),
                 "model_id": $("#temp_edit_model_id").val().trim(),
                 "serial_no": $("#temp_serial_no").val().trim()
             };
 
             let types = new Array();
             if ($("#temp_edit_animal").hasClass("checked")) {
-                types.push("1"); //动物试验
+                types.push("1"); //动物实验
             }
 
             types.push("3"); //完成测漏
@@ -1053,21 +1481,22 @@ function showTempEditDialog(initData) {
                 types.push("5"); //灭菌
             }
             postData["tag_types"] = types.join();
+			postData.tc_location = $("#temp_edit_tc_location").html();
 
             updateFactReceptTemp(postData);
     	}
     } else {
-    	buttons["完成实物受理"] = function(){
+    	buttons["更改"] = function(){
     		let postData = {
 				"fact_recept_id" : initData.fact_recept_id,
-                "model_name": $("#temp_edit_model_name").val().trim(),
+                "model_name": $("#temp_edit_model_name").text().trim(),
                 "model_id": $("#temp_edit_model_id").val().trim(),
                 "serial_no": $("#temp_serial_no").val().trim()
             };
 
             let types = new Array();
             if ($("#temp_edit_animal").hasClass("checked")) {
-                types.push("1"); //动物试验
+                types.push("1"); //动物实验
             }
 
             if ($("#temp_edit_leak").hasClass("checked")) {
@@ -1082,19 +1511,21 @@ function showTempEditDialog(initData) {
 
             postData["tag_types"] = types.join();
 
+			postData.tc_location = $("#temp_edit_tc_location").html();
+
             updateFactReceptTemp(postData);
     	};
-    	buttons["完成实物受理及测漏"] = function(){
+    	buttons["完成测漏"] = function(){
     		let postData = {
 				"fact_recept_id" : initData.fact_recept_id,
-                "model_name": $("#temp_edit_model_name").val().trim(),
+                "model_name": $("#temp_edit_model_name").text().trim(),
                 "model_id": $("#temp_edit_model_id").val().trim(),
                 "serial_no": $("#temp_serial_no").val().trim()
             };
 
             let types = new Array();
             if ($("#temp_edit_animal").hasClass("checked")) {
-                types.push("1"); //动物试验
+                types.push("1"); //动物实验
             }
 
             types.push("3"); //完成测漏
@@ -1107,6 +1538,8 @@ function showTempEditDialog(initData) {
 
             postData["tag_types"] = types.join();
 
+			postData.tc_location = $("#temp_edit_tc_location").html();
+
             updateFactReceptTemp(postData);
     	}
     }
@@ -1115,11 +1548,13 @@ function showTempEditDialog(initData) {
     	$(this).dialog("close");
     }
 
+    inputArea = "input";
     let $dialog = $("#temp_edit_dialog").dialog({
         position: ['center', 50],
         title: title,
         width: 550,
         height: 'auto',
+        close: function(){inputArea = "page";},
         resizable: false,
         modal: true,
         buttons:buttons
@@ -1143,6 +1578,10 @@ function showTempEditDialog(initData) {
         if (!$("#temp_edit_sterilize").hasClass("checked") && !$("#temp_edit_disinfect").hasClass("checked")) {
             errorData += "请选择【消毒】或者【灭菌】";
         }
+        if (!$("#temp_edit_tc_location").html()) {
+        	errorData += "<br>请指定周转箱库位的标签。";
+        }
+
         if (errorData) {
             errorPop(errorData);
             return false;
@@ -1187,8 +1626,8 @@ function showTempEditDialog(initData) {
  **/
 function showAddDialog(direct_flg) {
     //初始化
-    $("#add_model_name").val("").disable();
-    $("#add_model_id").val("").next(".error").html("");
+    $("#add_model_name").text("");
+    $("#add_model_id").val("").attr("category_id", "").next(".error").html("");
     $("#add_serial_no").val("").disable();
     $("#add_dialog td.tag-type > *").removeClass("checked");
 
@@ -1250,6 +1689,13 @@ function showAddDialog(direct_flg) {
         }
     });
 
+    $("#add_model_name").off("tap")
+    	.hammer().on("tap", function(){
+    		selectModel($("#add_model_name"), "endoscope");
+    	});
+
+    $("#add_tc_location").text("");
+
     $("#randomBtn").hammer().off().on("touch", function() {
         $(this).attr("hold", true);
     }).on("release", function() {
@@ -1260,11 +1706,14 @@ function showAddDialog(direct_flg) {
     let title = "";
     direct_flg == 1 ? title = "直送" : title = "非直送";
 
+    inputArea = "input";
     let $dialog = $("#add_dialog").dialog({
         position: ['center', 50],
         title: title,
         width: 550,
+        closeOnEscape:false,
         height: 'auto',
+        close: function(){inputArea = "page";},
         resizable: false,
         modal: true,
         buttons: {
@@ -1272,7 +1721,7 @@ function showAddDialog(direct_flg) {
             	if (addValidate()) {
             		let postData = {
                         "direct_flg": direct_flg,
-                        "model_name": $("#add_model_name").val().trim(),
+                        "model_name": $("#add_model_name").text().trim(),
                         "model_id": $("#add_model_id").val().trim(),
                         "serial_no": $("#add_serial_no").val().trim(),
                         "flag": "0" //维修对象
@@ -1280,7 +1729,7 @@ function showAddDialog(direct_flg) {
 
                     let types = new Array();
                     if ($("#add_animal").hasClass("checked")) {
-                        types.push("1"); //动物试验
+                        types.push("1"); //动物实验
                     }
 
                     if($("#add_leak").hasClass("checked")){
@@ -1294,6 +1743,7 @@ function showAddDialog(direct_flg) {
                     }
 
                     postData["tag_types"] = types.join();
+                    postData.tc_location = $("#add_tc_location").html();
 
                     addFactReceptMaterial(postData);
             	}
@@ -1302,7 +1752,7 @@ function showAddDialog(direct_flg) {
             	if (addValidate()) {
             		let postData = {
                         "direct_flg": direct_flg,
-                        "model_name": $("#add_model_name").val().trim(),
+                        "model_name": $("#add_model_name").text().trim(),
                         "model_id": $("#add_model_id").val().trim(),
                         "serial_no": $("#add_serial_no").val().trim(),
                         "flag": "0" //维修对象
@@ -1310,7 +1760,7 @@ function showAddDialog(direct_flg) {
 
                     let types = new Array();
                     if ($("#add_animal").hasClass("checked")) {
-                        types.push("1"); //动物试验
+                        types.push("1"); //动物实验
                     }
 
                     types.push("3"); //完成测漏
@@ -1322,6 +1772,7 @@ function showAddDialog(direct_flg) {
                     }
 
                     postData["tag_types"] = types.join();
+                    postData.tc_location = $("#add_tc_location").html();
 
  					addFactReceptMaterial(postData);
             	}
@@ -1335,6 +1786,16 @@ function showAddDialog(direct_flg) {
     $dialog.next().find(".ui-dialog-buttonset button:eq(1)").hide();
     $("#add_model_name").enable();
     $("#add_serial_no").enable();
+
+    $("#add_tc_location").off();
+    $("#add_tc_location").hammer().on("tap", function() {
+    	var category_id = $("#add_model_id").attr("category_id");
+    	if (category_id) {
+	    	chooseTcLocation(category_id, $("#add_tc_location"));
+    	} else {
+    		errorPop("请先确定机种。");
+    	}
+    });
 
     //必须验证
     function addValidate() {
@@ -1388,7 +1849,7 @@ function showAddDialog(direct_flg) {
 //其他（周边）新建弹窗
 function showPerlAddDialog() {
     //初始化
-    $("#perl_add_model_name").val("").disable();
+    $("#perl_add_model_name").text("");
     $("#perl_add_model_id").val("").next(".error").html("");
     $("#perl_add_serial_no").val("").disable();
     $("#perl_add_dialog td.tag-type > *").removeClass("checked");
@@ -1427,7 +1888,7 @@ function showPerlAddDialog() {
                     $("#perl_add_model_id").val("").next(".error").html("");
                     $dialog.next().find(".ui-dialog-buttonset button:eq(0)").disable();
                     $("#perl_add_sterilize").show();
-                    infoPop(model_name + "不是周边型号。");
+                    infoPop(model_name + "不是周边设备型号。");
                 } else {
                     $("#perl_add_model_id").val(modelForm.id).next(".error").html("");
                     $dialog.next().find(".ui-dialog-buttonset button:eq(0)").enable();
@@ -1450,18 +1911,35 @@ function showPerlAddDialog() {
         }
     });
 
+    $("#perl_add_model_name").off("tap")
+		.hammer().on("tap", function(){
+		selectModel($("#perl_add_model_name"), "peripheral");
+	});
+	$("#perl_add_model_id").off("change")
+		.on("change", function(){
+			var category_id = this.getAttribute("category_id");
+            if (category_id == CATEGORY_CAMERA_ID) { //摄像头
+                $("#perl_add_sterilize").show(); //可以选择灭菌
+            } else { //摄像头以外
+                $("#perl_add_sterilize").hide().removeClass("checked"); //不能选择灭菌
+            }
+    })
+
+    inputArea = "input";
     let $dialog = $("#perl_add_dialog").dialog({
         position: ['center', 50],
         title: "其他",
         width: 550,
+        closeOnEscape:false,
         height: 'auto',
         resizable: false,
+        close: function(){inputArea = "page";},
         modal: true,
         buttons: {
             "确定": function() {
                 if (perlAddValidate()) {
                     let postData = {
-                        "model_name": $("#perl_add_model_name").val().trim(),
+                        "model_name": $("#perl_add_model_name").text().trim(),
                         "model_id": $("#perl_add_model_id").val().trim(),
                         "serial_no": $("#perl_add_serial_no").val().trim(),
                         "flag": "1" //周边
@@ -1515,7 +1993,7 @@ function showPerlAddDialog() {
     function perlAddValidate() {
         var errorData = "";
 
-        if (!$("#perl_add_model_name").val().trim()) {
+        if (!$("#perl_add_model_name").text().trim()) {
             errorData += "请输入型号的值<br>";
         }
         if (!$("#perl_add_serial_no").val().trim()) {
@@ -1525,11 +2003,11 @@ function showPerlAddDialog() {
         //摄像头以外
         if ($("#perl_add_sterilize").is(':hidden')) {
             if (!$("#perl_add_disinfect").hasClass("checked")) {
-                errorData += "请选择消毒<br>";
+                errorData += "请选择【消毒】<br>";
             }
         } else { //摄像头
             if (!$("#perl_add_disinfect").hasClass("checked") && !$("#perl_add_sterilize").hasClass("checked")) {
-                errorData += "请选择消毒或者灭菌<br>";
+                errorData += "请选择【消毒】或者【灭菌】<br>";
             }
         }
 
@@ -1594,13 +2072,16 @@ function showPerlEditDialog(initData) {
         blinkTip($(this));
     });
 
+    inputArea = "input";
     let $dialog = $("#perl_edit_dialog").dialog({
         position: ['center', 50],
         title: "其他",
         width: 550,
+        closeOnEscape:false,
         height: 'auto',
         resizable: false,
         modal: true,
+        close: function(){inputArea = "page";},
         buttons: {
             "确定": function() {
                 if (perlEditValidate(initData)) {
@@ -1638,6 +2119,7 @@ function showPerlEditDialog(initData) {
                                     treatBackMessages("", resInfo.errors);
                                 } else {
                                     findit();
+                                    filterSerialNO($("#screen").text());
                                     $dialog.dialog("close");
                                 }
                             } catch (e) {};
@@ -1727,7 +2209,7 @@ function randomSerialNo() {
 }
 
 function blinkTip($target){
-	$target.html("");
+	$target.find("span").remove();
 	let $span = $("<span class='tip'>" + $target.attr("alt") + "</span>");
 	$target.append($span);
 	setTimeout(function(){
@@ -1738,7 +2220,7 @@ function blinkTip($target){
 
 		$span[0].addEventListener("transitionend",function(){
 			$span.remove();
-			$target.html("");
+			// $target.html("");
 		});
 	},10);
 }
@@ -1819,6 +2301,7 @@ let undirectObj = {
             });
         }
 
+        $("#undirectAddBtn").hide();
         $("#undirectAddBtn").hammer().on("touch", function() {
             $(this).attr("hold", true);
         }).on("release", function() {
@@ -1847,7 +2330,7 @@ let directObj = {
         //容器滚动结束
         directObj.scroll.on("scrollEnd", () => isScrolling = false);
 
-         //解决事件捕获绑定的Hammer.js 事件不能被PC端所识别
+        //解决事件捕获绑定的Hammer.js 事件不能被PC端所识别
         if(browser.versions.mobile || browser.versions.ios || browser.versions.android || 
             browser.versions.iPhone || browser.versions.iPad){
             $(document).hammer().on("touch", "#direct_scroll .item-container", function() {
@@ -1984,4 +2467,22 @@ let perlObj = {
             showPerlAddDialog();
         });
     }
+}
+
+let spareObj = {
+	"scroll": "",
+	"init": function() {
+		spareObj.scroll = new IScroll('#spare_scroll', {	
+            bounceEasing: "quadratic",	
+            bounceTime: 300	
+        });
+
+        //容器滚动开始	
+        spareObj.scroll.on("scrollStart", () => {	
+            clearLetterActive();	
+            isScrolling = true;	
+        });	
+        //容器滚动结束	
+        spareObj.scroll.on("scrollEnd", () => isScrolling = false);	
+	}
 }

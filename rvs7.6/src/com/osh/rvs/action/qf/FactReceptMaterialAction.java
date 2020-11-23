@@ -16,6 +16,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
@@ -32,6 +33,7 @@ import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.FactReceptMaterialService;
+import com.osh.rvs.service.qf.TurnoverCaseService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -60,7 +62,10 @@ public class FactReceptMaterialAction extends BaseAction {
 	/** 维修对象属性标签 **/
 	private MaterialTagService materialTagService = new MaterialTagService();
 	private FactReceptMaterialService factReceptMaterialService = new FactReceptMaterialService();
-	
+
+	private static final String SEARCH_RANGE_WAITING = "2";
+	private static final String SEARCH_RANGE_TODAY_ALL = "1";
+
 	/**
 	 * 画面初始表示处理
 	 * 
@@ -97,9 +102,16 @@ public class FactReceptMaterialAction extends BaseAction {
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
-		List<FactReceptMaterialForm> materialList = factReceptMaterialService.searchReceptMaterial(conn);
+		String search_range = req.getParameter("search_range");
+
+		List<FactReceptMaterialForm> materialList = factReceptMaterialService.searchReceptMaterial(search_range, conn);
 		callbackResponse.put("materialList", materialList);
-		
+
+		if (SEARCH_RANGE_TODAY_ALL.equals(search_range)) {
+			List<FactReceptMaterialForm> spareMaterialList = factReceptMaterialService.searchReceptSpareMaterial(conn);
+			callbackResponse.put("spareMaterialList", spareMaterialList);
+		}
+
 		List<FactReceptMaterialForm> tempList = factReceptMaterialService.searchFactReceptMaterialTemp(form, conn);
 		callbackResponse.put("tempList", tempList);
 		
@@ -123,7 +135,16 @@ public class FactReceptMaterialAction extends BaseAction {
 		factMaterialForm.setProduction_type("102");
 		factMaterialForm.setAction_time_start(DateUtil.toString(start.getTime(), DateUtil.DATE_PATTERN));
 		factMaterialForm.setAction_time_end(DateUtil.toString(end.getTime(), DateUtil.DATE_PATTERN));
-		
+
+		// 取得预打印通箱库位
+		TurnoverCaseService tcServive = new TurnoverCaseService();
+		List<TurnoverCaseEntity> preprintedLocations = tcServive.gerPreprintedLocations(conn);
+		callbackResponse.put("preprintedLocations", preprintedLocations);
+
+		// 取得动物实验内镜可用库位
+		List<TurnoverCaseEntity> animalExpLocations = tcServive.getAnimalExpLocations(conn);
+		callbackResponse.put("animalExpLocations", animalExpLocations);
+
 		if (!privacies.contains(RvsConsts.PRIVACY_LINE)) {
 			factMaterialForm.setOperator_id(user.getOperator_id());
 		}
@@ -178,8 +199,16 @@ public class FactReceptMaterialAction extends BaseAction {
 		
 		if(errors.size() == 0){
 			FactReceptMaterialForm factReceptMaterialForm = (FactReceptMaterialForm)form;
-			factReceptMaterialForm.setAf_pf_key(productionForm.getAf_pf_key());
-			factReceptMaterialService.updateMaterial(factReceptMaterialForm, req, errors, conn);
+			// 通箱库位
+			if (!CommonStringUtil.isEmpty(factReceptMaterialForm.getTc_location())) {
+				TurnoverCaseService tcService = new TurnoverCaseService();
+				tcService.checkAndSetToLocation(factReceptMaterialForm.getMaterial_id(), factReceptMaterialForm.getTc_location(), errors, conn);
+			}
+
+			if (errors.size() == 0){
+				factReceptMaterialForm.setAf_pf_key(productionForm.getAf_pf_key());
+				factReceptMaterialService.updateMaterial(factReceptMaterialForm, req, errors, conn);
+			}
 		}
 		
 		// 检查发生错误时报告错误信息

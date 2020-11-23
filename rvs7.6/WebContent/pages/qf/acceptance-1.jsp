@@ -22,6 +22,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
 <script type="text/javascript" src="js/qf/turnover_case_common.js"></script>
 <script type="text/javascript" src="js/qf/acceptance.js"></script>
+<script type="text/javascript" src="js/qf/acceptance_tc.js"></script>
 <style>
 .waitTicket {
 	background-color : #0070C0;
@@ -196,9 +197,10 @@ $("#ogzbutton").click(function(){
 						<input type="button" class="ui-button" id="printbutton" value="打印小票" />
 						<input type="button" class="ui-button" id="acceptancebutton" value="实行受理" />
 						<input type="button" class="ui-button" id="returnbutton" value="未修理返还" />
-						<input type="button" class="ui-button" id="disinfectionbutton" value="进行消毒" />
-						<input type="button" class="ui-button" id="sterilizationbutton" value="进行灭菌" />
+						<input type="button" class="ui-button" id="disinfectionbutton" value="进行消毒或灭菌" />
+						<!-- input type="button" class="ui-button" id="sterilizationbutton" value="进行灭菌" /-->
 						<input type="button" class="ui-button-primary ui-button" id="outbutton" value="报表导出" role="button" aria-disabled="false" style="float: right; right: 2px">
+						<input type="button" class="ui-button" id="tcPrintButton" value="预打印通箱标记" role="button" aria-disabled="false" style="float: right; right: 2px">
 					</div>
 				</div>
 			</div>

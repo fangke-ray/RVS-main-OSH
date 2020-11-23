@@ -1,9 +1,16 @@
 package com.osh.rvs.service.qf;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,18 +20,34 @@ import org.apache.http.nio.client.HttpAsyncClient;
 import org.apache.http.nio.reactor.IOReactorException;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.Rectangle;
+import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.PdfContentByte;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
 import com.osh.rvs.mapper.qf.TurnoverCaseMapper;
 
+import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.copy.DateUtil;
 
 public class TurnoverCaseService {
+	Logger _log = Logger.getLogger(TurnoverCaseService.class);
 
 	public List<TurnoverCaseForm> searchTurnoverCase(ActionForm form,
 			SqlSession conn) {
@@ -77,6 +100,8 @@ public class TurnoverCaseService {
 			}
 			mapper.putin(updEntity);
 		}
+
+		checkExcepted(location);
 	}
 
 	public void warehousing(SqlSessionManager conn, String location) {
@@ -164,11 +189,25 @@ public class TurnoverCaseService {
 		return lcf;
 	}
 
+	/**
+	 * 计划入库
+	 * 
+	 * @param conn
+	 * @param location
+	 */
 	public void checkStorage(SqlSessionManager conn, String location) {
 		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
 		mapper.checkStorage(location);
+
+		checkExcepted(location);
 	}
 
+	/**
+	 * 计划入库
+	 * 
+	 * @param conn
+	 * @param location
+	 */
 	public List<String> checkStorage(SqlSessionManager conn,
 			Map<String, String[]> parameterMap) {
 		List<String> locations = new AutofillArrayList<String> (String.class); 
@@ -192,6 +231,8 @@ public class TurnoverCaseService {
 		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
 		for (String location : locations) {
 			mapper.checkStorage(location);
+
+			checkExcepted(location);
 		}
 
 		return locations;
@@ -278,6 +319,13 @@ public class TurnoverCaseService {
 		return lcf;
 	}
 
+	/**
+	 * 手动放入
+	 * 
+	 * @param location
+	 * @param material_id
+	 * @param conn
+	 */
 	public void putinManual(String location, String material_id, SqlSessionManager conn) {
 		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
 		TurnoverCaseEntity entity = new TurnoverCaseEntity();
@@ -286,6 +334,116 @@ public class TurnoverCaseService {
 		entity.setExecute(1);
 		entity.setStorage_time(new Date());
 		mapper.putin(entity);
+
+		checkExcepted(location);
+	}
+
+	private static final String KIND_ENDOEYE = "06";
+	private static final String KIND_UDI = "738";
+
+	private static Set<String> locationSets = new HashSet<String>();
+
+	// 当天已经排入的货架
+	private static List<String> mappedShelfsForCurrent = new ArrayList<String>();
+	// 当天已经排除的货架<货架号, 最后标记的库位号>
+	private static Map<String, String> exceptedShelfsForCurrent = new HashMap<String, String>();
+
+
+	/**
+	 * 连续取得空置的通箱库位
+	 * 
+	 * @param kind 6 = Endoeye
+	 * @param count 取得数量
+	 * @param conn
+	 * @return
+	 * @throws Exception 
+	 */
+	public List<TurnoverCaseEntity> getEmptyLocations(String kind, int count,
+			SqlSession conn) throws Exception {
+		List<TurnoverCaseEntity> ret = new ArrayList<TurnoverCaseEntity>();
+
+		List<String> exceptShelfs = new ArrayList<String> ();
+		for (String mappedShelf : mappedShelfsForCurrent) {
+			// 从已排的货架中取得库位
+			ret.addAll(getEmptyLocationsInShelf(kind, mappedShelf, conn));
+			if (ret.size() >= count) break;
+		}
+
+		while (ret.size() < count) {
+			// 计算最空的并且排库位
+			try {
+				ret.addAll(getEmptyLocationEval(kind, conn, exceptShelfs));
+			} catch (TurnOvercaseException e) {
+				break;
+			}
+		}
+
+		if (ret.size() > count) {
+			ret = ret.subList(0, count);
+		}
+
+		return ret;
+	}
+
+	private List<TurnoverCaseEntity> getEmptyLocationEval(
+			String kind, SqlSession conn, List<String> exceptShelfs) throws Exception {
+		Calendar now = Calendar.getInstance();
+		now.add(Calendar.HOUR, -10); // 10点以前按前一天预计的
+		String todayString = DateUtil.toString(now.getTime(), DateUtil.DATE_PATTERN);
+
+		boolean isEndoeye = kind.equals(KIND_ENDOEYE);
+		boolean isUdi = kind.equals(KIND_UDI);
+
+		if (!locationSets.contains(todayString)) {
+			locationSets.add(todayString); // 当天重排
+			mappedShelfsForCurrent.clear();
+			exceptedShelfsForCurrent.clear();
+		}
+
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+		List<TurnoverCaseEntity> result = new ArrayList<TurnoverCaseEntity>();
+
+		if (!isEndoeye && !isUdi) {
+			// 取得非Endoeye
+			String mostSpacialShelf = mapper.getMostSpacialShelf(01, null, mappedShelfsForCurrent);
+			if (mostSpacialShelf == null) throw new TurnOvercaseException("递归安排也无法找到库位！");
+			mappedShelfsForCurrent.add(mostSpacialShelf);
+
+			result = getEmptyLocationsInShelf(kind, mostSpacialShelf, conn);
+
+			if (!result.isEmpty()) exceptedShelfsForCurrent.put(mostSpacialShelf, result.get(result.size() - 1).getLocation());
+		}
+
+		else if (isEndoeye) {
+			// 取得Endoeye
+			String mostSpacialShelf = mapper.getMostSpacialShelf(06, null, mappedShelfsForCurrent);
+			if (mostSpacialShelf == null) throw new TurnOvercaseException("递归安排也无法找到库位！");
+			mappedShelfsForCurrent.add(mostSpacialShelf);
+
+			result = getEmptyLocationsInShelf(kind, mostSpacialShelf, conn);
+
+			if (!result.isEmpty()) exceptedShelfsForCurrent.put(mostSpacialShelf, result.get(result.size() - 1).getLocation());
+		}
+
+		else if (isUdi) {
+			// 取得UDI
+			String mostSpacialShelf = mapper.getMostSpacialShelf(738, null, mappedShelfsForCurrent); // 738 = UDI
+			if (mostSpacialShelf == null) throw new TurnOvercaseException("递归安排也无法找到库位！");
+			mappedShelfsForCurrent.add(mostSpacialShelf);
+
+			result = getEmptyLocationsInShelf(kind, mostSpacialShelf, conn);
+
+			if (!result.isEmpty()) exceptedShelfsForCurrent.put(mostSpacialShelf, result.get(result.size() - 1).getLocation());
+		}
+
+		return result;
+	}
+
+	public List<TurnoverCaseEntity> getEmptyLocationsInShelf(String kind, String mappedShelf, SqlSession conn) {
+		List<TurnoverCaseEntity> ret = new ArrayList<TurnoverCaseEntity>();
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+		ret = mapper.getAllSpaceShelf(kind, mappedShelf);
+		return ret;
 	}
 
 	public TurnoverCaseEntity checkEmptyLocation(String location,
@@ -305,6 +463,197 @@ public class TurnoverCaseService {
 		} finally {
 			Thread.sleep(80);
 			httpclient.shutdown();
+		}
+	}
+
+	/**
+	 * 打印生成
+	 * 
+	 * @param labels
+	 * @return
+	 */
+	public String printLabels(String labels) {
+
+		Rectangle rect = new Rectangle(110, 85); //120, 90
+		Document document = new Document(rect, 2, 2, 0, 0);
+
+		Date today = new Date();
+		String folder = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM");
+		String filename = UUID.randomUUID().toString() + ".pdf";
+
+		String[] labelArr = labels.split(";");
+
+		try {
+			PdfWriter pdfWriter = PdfWriter.getInstance(document,
+					new FileOutputStream(folder + "\\" + filename));
+			document.open();
+			BaseFont bfChinese = BaseFont.createFont(PathConsts.BASE_PATH + "\\msyh.ttf", BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+
+			Font detailFont = new Font(bfChinese, 28, Font.BOLD);
+
+			for (int i = 0; i < labelArr.length - 1; i++) {
+				String location = labelArr[i];
+
+				drawBorder(pdfWriter, rect);
+
+				addPage(document, location, detailFont);
+
+				document.newPage();
+			}
+			String location = labelArr[labelArr.length - 1];
+
+			drawBorder(pdfWriter, rect);
+			addPage(document, location, detailFont);
+
+		} catch (DocumentException de) {
+			_log.error(de.getMessage(), de);
+			return null;
+		} catch (IOException ioe) {
+			_log.error(ioe.getMessage(), ioe);
+			return null;
+		} finally {
+			document.close();
+			document = null;
+		}
+
+		return filename;
+	}
+
+	private void drawBorder(PdfWriter pdfWriter, Rectangle rect) {
+		PdfContentByte cb = pdfWriter.getDirectContent();
+		cb.setLineWidth(10.5f);
+		cb.moveTo(0, rect.getHeight()-1f);
+		cb.lineTo(rect.getWidth(), rect.getHeight()-1f);
+		cb.lineTo(rect.getWidth(), 0);
+		cb.lineTo(0, 0);
+		cb.closePath();
+		cb.stroke();
+	}
+
+	private void addPage(Document document, String location, Font detailFont) throws DocumentException {
+		PdfPTable mainTable = new PdfPTable(1);
+
+		mainTable.setHorizontalAlignment(Element.ALIGN_CENTER);
+		mainTable.setTotalWidth(110);
+		mainTable.setLockedWidth(true);
+		mainTable.getDefaultCell().setBorder(PdfPCell.NO_BORDER);
+		PdfPCell cell = new PdfPCell(new Paragraph(location, detailFont));
+		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+		cell.setPaddingTop(25.0f);
+		cell.setPaddingBottom(30.0f);
+		mainTable.addCell(cell);
+
+		document.add(mainTable);
+	}
+
+	/**
+	 * 检查是否要清除当日计划列表的库位
+	 * 
+	 * @param location
+	 */
+	private void checkExcepted(String location) {
+		if (exceptedShelfsForCurrent.containsValue(location)) {
+			for (String shelf : exceptedShelfsForCurrent.keySet()) {
+				if (exceptedShelfsForCurrent.get(shelf).equals(location)) {
+					exceptedShelfsForCurrent.remove(shelf);
+					mappedShelfsForCurrent.remove(shelf);
+					break;
+				}
+			}
+		}
+	}
+
+	/**
+	 * 标记为预打印的库位
+	 * 
+	 * @param labels
+	 * @param conn
+	 * @return
+	 */
+	public String setToPrepare(String labels, SqlSessionManager conn) {
+		String message = "";
+
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+
+		String[] labelArr = labels.split(";");
+
+		for (String location : labelArr) {
+			TurnoverCaseEntity entity = mapper.getEntityByLocation(location);
+			Integer exe = entity.getExecute();
+			if (entity.getMaterial_id() != null) {
+				message += location + "已经分配<br>";
+			} else {
+				if (exe != null && exe == 9) {
+					message += location + "已经打印过<br>";
+				} else {
+					mapper.setToPrepare(entity.getKey());
+				}
+			}
+		}
+
+		return message;
+	}
+
+	/**
+	 * 取得预打印通箱库位
+	 */
+	public List<TurnoverCaseEntity> gerPreprintedLocations(SqlSession conn) {
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+
+		List<TurnoverCaseEntity> preEntity = mapper.gerPreprintedLocations();
+
+		return preEntity;
+	}
+
+	public List<TurnoverCaseEntity> getAnimalExpLocations(SqlSession conn) {
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+
+		List<TurnoverCaseEntity> preEntity = mapper.getAnimalExpLocations();
+
+		return preEntity;
+	}
+
+	/**
+	 * 库位设定给维修品
+	 * 
+	 * @param material_id
+	 * @param location
+	 * @param errors
+	 * @param conn
+	 */
+	public void checkAndSetToLocation(String material_id, String location,
+			List<MsgInfo> errors, SqlSessionManager conn) {
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+
+		TurnoverCaseEntity condition = new TurnoverCaseEntity();
+		condition.setMaterial_id(material_id);
+		List<TurnoverCaseEntity> ret = mapper.searchTurnoverCase(condition);
+		if (ret.size() > 0) {
+			MsgInfo error = new MsgInfo();
+			error.setErrmsg("此维修品已经加入库位，请退出编辑框重新操作。");
+			errors.add(error);
+		}
+
+		condition.setMaterial_id(null);
+		condition.setLocation(location);
+		ret = mapper.searchTurnoverCase(condition);
+		if (ret.size() == 0) {
+			MsgInfo error = new MsgInfo();
+			error.setErrmsg("库位不存在。");
+			errors.add(error);
+		} else {
+			TurnoverCaseEntity loc = ret.get(0);
+			if (loc.getExecute() == null || loc.getExecute() != 9) {
+				MsgInfo error = new MsgInfo();
+				error.setErrmsg("此库位没有打印标签，或者已经被使用，请重新选择。");
+				errors.add(error);
+			}
+		}
+
+		// 指定库位
+		if (errors.size() == 0) {
+			mapper.setToLocation(location, material_id);
 		}
 	}
 
