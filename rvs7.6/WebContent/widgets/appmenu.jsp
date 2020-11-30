@@ -122,6 +122,7 @@ $(function() {
 		        <a href="positionProduction.do">工位</a><br>
 		        <a href="operatorProduction.do">工时</a><br>
 		        <a href="alarmMessage.do">警报</a><br>
+		        <a href="new_phenomenon.do">不良现象</a><br>
 	<% if(links.get("nsline")) { %>
 		        <a href="snouts.do">先端组件</a><br>
 	<% } %>

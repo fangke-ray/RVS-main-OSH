@@ -34,6 +34,8 @@ public class AlarmMesssageEntity implements Serializable {
 	private String resolver_name;
 	private Date resolve_time;
 
+	private Integer kind;
+
 	// List<AlarmMesssageSendationEntity> sendation = new ArrayList
 
 	public String getAlarm_messsage_id() {
@@ -179,5 +181,11 @@ public class AlarmMesssageEntity implements Serializable {
 	}
 	public void setPosition_name(String position_name) {
 		this.position_name = position_name;
+	}
+	public Integer getKind() {
+		return kind;
+	}
+	public void setKind(Integer kind) {
+		this.kind = kind;
 	}
 }

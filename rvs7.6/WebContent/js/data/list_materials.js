@@ -175,7 +175,7 @@ $(function() {
 	initGrid();
 	
 	findit();
-	
+
 });
 
 function initGrid() {
@@ -205,12 +205,12 @@ function initGrid() {
 				if ("9999/12/31" == a) {
 					return "另行通知";
 				}
-				
+
 				if (a) {
 					var d = new Date(a);
 					return mdTextOfDate(d);
 				}
-				
+
 				return "";
 			}},
 			{name:'outline_time',index:'outline_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
@@ -220,12 +220,12 @@ function initGrid() {
 				if ("9999-12-31" == a || "9999/12/31" == a) {
 					return "未定";
 				}
-				
+
 				if (a) {
 					var d = new Date(a);
 					return mdTextOfDate(d);
 				}
-				
+
 				return "";
 			}},
 			{name:'is_late',index:'is_late', width:20},
@@ -322,7 +322,7 @@ var ticket = function(material_id) {
 			try {
 				// 以Object形式读取JSON
 				eval('resInfo =' + xhrobj.responseText);
-			
+
 				if (resInfo.errors.length > 0) {
 					// 共通出错信息框
 					treatBackMessages(null, resInfo.errors);

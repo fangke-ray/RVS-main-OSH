@@ -128,6 +128,8 @@
 		<form-bean name="componentManageForm" type="com.osh.rvs.form.partial.ComponentManageForm"></form-bean>
 		<form-bean name="componentSettingForm" type="com.osh.rvs.form.partial.ComponentSettingForm"></form-bean>
 		<form-bean name="FactReceptMaterialForm" type="com.osh.rvs.form.qf.FactReceptMaterialForm"></form-bean>
+
+		<form-bean name="newPhenomenonForm" type="com.osh.rvs.form.manage.NewPhenomenonForm"></form-bean>
 	</form-beans>
 
 
@@ -1556,7 +1558,18 @@
 		</action>
 		
 		<!-- rvs 八期end -->
-		
+
+		<!-- 不良新现象  -->
+		<action path="/new_phenomenon"
+			type="com.osh.rvs.action.manage.NewPhenomenonAction"
+			name="newPhenomenonForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/manage/new_phenomenon.jsp" />
+			<forward name="success" path="/pages/manage/new_phenomenon.jsp" />
+			<forward name="detail" path="/widgets/manage/nogood_phenomenon_detail.jsp" />
+		</action>		
 
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->

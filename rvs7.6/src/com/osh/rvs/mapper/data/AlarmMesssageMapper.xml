@@ -118,12 +118,12 @@
 		<![CDATA[ 
 			SELECT `am`.material_id, `am`.alarm_messsage_id, `am`.`LEVEL`, `am`.OCCUR_TIME, `am`.REASON, 
 			coalesce(m.omr_notifi_no, m.sorc_no) as SORC_NO, 
-			`mdl`.name as MODEL_NAME, `m`.SERIAL_NO,
+			`mdl`.name as MODEL_NAME, `m`.SERIAL_NO, `mdl`.kind as kind,
 			  `l`.NAME as LINE_NAME, `p`.process_code, `p`.position_id, `am`.operator_id, `o`.name as OPERATOR_NAME, `s`.name as section_name, `p`.name as position_name
 			FROM alarm_messsage am
 			LEFT JOIN material m
 			  ON `am`.material_id = `m`.material_id
-			LEFT JOIN model mdl
+			LEFT JOIN v_model mdl
 			  ON `m`.model_id = `mdl`.model_id
 			LEFT JOIN line l
 			  ON `am`.line_id = `l`.line_id

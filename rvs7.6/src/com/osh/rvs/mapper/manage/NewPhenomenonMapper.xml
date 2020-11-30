@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.NewPhenomenonMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="getNewPhenomenon" resultType="NewPhenomenonEntity" parameterType="String">
+		<![CDATA[
+			select 
+				ma.omr_notifi_no,
+			    ma.material_id,
+				np.alarm_message_id as `key`,
+				np.location_group_desc,
+				np.location_desc,
+				np.description,
+				np.return_status,
+				am.occur_time,
+				ln.name as line_name,
+				op.name as operator_name,
+				op_d.name as determine_operator_name,
+				np.last_determine_date,
+				np.return_status
+			from nogood_phenomenon np
+			join alarm_messsage am
+			on np.alarm_message_id = am.alarm_messsage_id
+			join material ma
+			on am.material_id = ma.material_id
+			join line ln
+			on am.line_id = ln.line_id
+			join operator op
+			on np.operator_id = op.operator_id
+			LEFT join operator op_d
+			on np.determine_operator_id = op_d.operator_id
+			where np.alarm_message_id = #{key};
+		]]>
+	</select>
+
+	<select id="searchNewPhenomenons" resultType="NewPhenomenonEntity" parameterType="String">
+		<![CDATA[
+			select 
+				np.alarm_message_id as `key`,
+				ma.omr_notifi_no,
+			    ma.material_id,
+                mdl.category_name,
+                ma.serial_no,
+                am.occur_time,
+                ln.name as line_name,
+				np.location_group_desc,
+				np.location_desc,
+				np.description,
+				op.name as operator_name,
+				op_d.name as determine_operator_name,
+                np.last_determine_date,
+				np.return_status
+			from nogood_phenomenon np
+			join alarm_messsage am
+			on np.alarm_message_id = am.alarm_messsage_id
+			join material ma
+			on am.material_id = ma.material_id
+            join v_model mdl
+            on ma.MODEL_ID = mdl.MODEL_ID
+            join line ln
+            on am.line_id = ln.line_id
+			join operator op
+			on np.operator_id = op.operator_id
+			left join operator op_d
+			on np.determine_operator_id = op_d.operator_id
+		]]>
+		<where>
+		<if test="omr_notifi_no!= null and omr_notifi_no!='' ">
+			and omr_notifi_no like CONCAT('%', #{omr_notifi_no}, '%')
+		</if>
+		<if test="kind!=null and kind!='' ">
+			 and mdl.kind = #{kind}
+		</if>
+		<if test="occur_time_start!=null and occur_time_start!='' ">
+		<![CDATA[
+			 and am.occur_time >= #{occur_time_start}
+		]]>
+		</if>
+		<if test="occur_time_end!=null and occur_time_end!='' ">
+		<![CDATA[
+			 and am.occur_time < date_add(#{occur_time_end}, interval 1 day)
+		]]>
+		</if>
+		<if test="line_id!=null and line_id!='' ">
+			 and am.line_id = #{line_id}
+		</if>
+		<if test="description!=null and description!='' ">
+			 and (
+			 	np.location_group_desc like CONCAT('%', #{description}, '%')
+			 	OR
+			 	np.location_desc like CONCAT('%', #{description}, '%')
+			 	OR
+			 	np.description like CONCAT('%', #{description}, '%')
+			 )
+		</if>
+		<if test="last_determine_date_start!=null and last_determine_date_start!='' ">
+		<![CDATA[
+			 and np.last_determine_date >= #{last_determine_date_start}
+		]]>
+		</if>
+		<if test="last_determine_date_end!=null and last_determine_date_end!='' ">
+		<![CDATA[
+			 and np.last_determine_date < date_add(#{last_determine_date_end}, interval 1 day)
+		]]>
+		</if>
+		<if test="return_status!=null and return_status!='' ">
+			 and np.return_status = 'OK'
+		</if>
+		</where>
+		<![CDATA[
+			;
+		]]>
+	</select>
+
+	<select id="getAllLocations" resultType="NewPhenomenonEntity">
+		select distinct
+			np.location_group_desc,
+			np.location_desc
+		from nogood_phenomenon np
+		join alarm_messsage am
+			on np.alarm_message_id = am.alarm_messsage_id
+		join material ma
+			on am.material_id = ma.material_id
+		join v_model mdl
+			on ma.model_id = mdl.model_id
+		where not mdl.kind = 07
+		order by location_group_desc, location_desc
+	</select>
+
+	<insert id="insert" parameterType="NewPhenomenonEntity">
+		<![CDATA[
+			INSERT INTO `nogood_phenomenon`
+			(`alarm_message_id`,
+			`location_group_desc`,
+			`location_desc`,
+			`description`,
+			`operator_id`)
+			VALUES
+			(#{key},
+			#{location_group_desc},
+			#{location_desc},
+			#{description},
+			#{operator_id});
+		]]>
+	</insert>
+
+	<update id="update" parameterType="NewPhenomenonEntity">
+		<![CDATA[
+			UPDATE `nogood_phenomenon`
+			SET
+			`location_group_desc` = #{location_group_desc},
+			`location_desc` = #{location_desc},
+			`description` = #{description}
+		]]>
+		<if test="determine_operator_id!=null and determine_operator_id!='' ">
+		<![CDATA[
+			,
+			`determine_operator_id` = #{determine_operator_id}
+		]]>
+		</if>
+		<![CDATA[
+			WHERE `alarm_message_id` = #{key};
+		]]>
+	</update>
+
+</mapper>

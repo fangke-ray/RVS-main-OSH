@@ -99,6 +99,13 @@ $(function() {
 		findit();
 	}
 
+	// 不良新现象登记
+	$("#nongood_new_phenomenonbutton").click(function() {
+		var rowid = $("#list").jqGrid('getGridParam', 'selrow');
+		if (rowid == null) {return;}
+		var rowData = $("#list").jqGrid('getRowData', rowid);
+		if (typeof(popNewPhenomenon) === "function") popNewPhenomenon(rowData.id, true);
+	})
 });
 
 var showDetail = function(alarm_messsage_id){
@@ -157,6 +164,7 @@ function search_handleComplete(xhrobj, textStatus) {
 					pager : "#listpager",
 					viewrecords : true,
 					caption : modelname + "一览",
+					onSelectRow: enablebuttons, 
 					ondblClickRow : function(rid, iRow, iCol, e) {
 						var data = $("#list").getRowData(rid);
 						var alarm_messsage_id = data["id"];
@@ -168,7 +176,8 @@ function search_handleComplete(xhrobj, textStatus) {
 					pgbuttons : true,
 					pginput : false,
 					recordpos : 'left',
-					viewsortcols : [true, 'vertical', true]
+					viewsortcols : [true, 'vertical', true],
+					gridComplete: enablebuttons
 				});
 				// $("#list").gridResize({minWidth:1248,maxWidth:1248,minHeight:200,
 				// maxHeight:900});
@@ -180,3 +189,16 @@ function search_handleComplete(xhrobj, textStatus) {
 	};
 };
 
+var enablebuttons = function() {
+	var rowid = $("#list").jqGrid("getGridParam", "selrow");
+	if (rowid == null) {
+		$("#nongood_new_phenomenonbutton").disable();
+	} else {
+		var rowdata = $("#list").getRowData(rowid);
+		if(rowdata.reason != 1 && rowdata.reason != 5) {
+			$("#nongood_new_phenomenonbutton").disable();
+		} else {
+			$("#nongood_new_phenomenonbutton").enable();
+		}
+	}
+}

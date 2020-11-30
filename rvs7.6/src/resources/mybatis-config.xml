@@ -146,6 +146,8 @@
 		
 		<typeAlias alias="FactReceptMaterialEntity" type="com.osh.rvs.bean.qf.FactReceptMaterialEntity"/>
 		<typeAlias alias="MaterialTagEntity" type="com.osh.rvs.bean.data.MaterialTagEntity"/>
+
+		<typeAlias alias="NewPhenomenonEntity" type="com.osh.rvs.bean.manage.NewPhenomenonEntity"/>
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -302,5 +304,7 @@
 		
 		<mapper resource="com/osh/rvs/mapper/partial/ComponentManageMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/ComponentSettingMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/manage/NewPhenomenonMapper.xml"/>
 	</mappers>
 </configuration> 
