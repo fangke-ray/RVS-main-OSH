@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.report.ProcedureManualMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchWithPersonalList" resultType="ProcedureManualEntity" parameterType="ProcedureManualEntity">
+	<![CDATA[
+		SELECT 
+			pm.procedure_manual_id, 
+			file_name,
+		    op.name AS update_by,
+		    update_time,
+		    bl.operator_id IS NOT NULL as booklist
+		FROM procedure_manual pm
+		JOIN operator op
+			ON pm.update_by = op.operator_id
+		LEFT JOIN procedure_manual_booklist bl
+			ON pm.procedure_manual_id = bl.procedure_manual_id
+		    AND bl.operator_id = #{update_by}
+	]]>
+	<where>
+	<if test="file_name!= null and file_name!= '' ">
+		AND file_name like CONCAT('%', #{file_name}, '%')
+	</if>
+	<if test="procedure_manual_id!= null and procedure_manual_id!= '' ">
+		AND pm.procedure_manual_id = #{procedure_manual_id}
+	</if>
+	</where>
+		ORDER BY booklist desc, update_time
+		;
+	</select>
+
+	<insert id="insertProcedureManual" parameterType="ProcedureManualEntity">
+		INSERT INTO `procedure_manual`
+		(`procedure_manual_id`,
+		`file_name`,
+		`update_by`,
+		`update_time`)
+		VALUES
+		(#{procedure_manual_id},
+		#{file_name},
+		#{update_by},
+		current_timestamp);
+	</insert>
+
+	<update id="updateProcedureManual" parameterType="ProcedureManualEntity">
+		UPDATE `procedure_manual`
+		SET
+		`file_name` = #{file_name},
+		`update_by` = #{update_by},
+		`update_time` = current_timestamp
+		WHERE `procedure_manual_id` = #{procedure_manual_id};
+	</update>
+
+	<update id="updateProcedureManualName" parameterType="ProcedureManualEntity">
+		UPDATE `procedure_manual`
+		SET
+		`file_name` = #{file_name}
+		WHERE `procedure_manual_id` = #{procedure_manual_id};
+	</update>
+
+	<delete id="deleteProcedureManual" parameterType="String">
+		DELETE FROM `procedure_manual`
+		WHERE `procedure_manual_id` = #{procedure_manual_id};
+	</delete>
+
+	<insert id="insertBooklist" parameterType="ProcedureManualEntity">
+		INSERT INTO `procedure_manual_booklist`
+		(`operator_id`,
+		`procedure_manual_id`)
+		VALUES
+		(#{update_by},
+		#{procedure_manual_id});
+	</insert>
+
+	<delete id="deleteBooklist" parameterType="String">
+		DELETE FROM `procedure_manual_booklist`
+		WHERE `procedure_manual_id` = #{procedure_manual_id}
+		<if test="operator_id!= null and operator_id!= '' ">
+		AND `operator_id` = #{operator_id}
+		</if>
+		;
+	</delete>
+
+
+</mapper>

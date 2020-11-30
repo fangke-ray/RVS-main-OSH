@@ -21,6 +21,7 @@ public class InitFilePathServlet extends HttpServlet {
 		PathConsts.DEVICEINFECTION = arg0.getInitParameter("DEVICEINFECTION");
 		PathConsts.INFECTIONS = arg0.getInitParameter("INFECTIONS");
 		PathConsts.IMAGES = arg0.getInitParameter("IMAGES");
+		PathConsts.DOCS = arg0.getInitParameter("DOCS");
 		PathConsts.load();
 	}
 

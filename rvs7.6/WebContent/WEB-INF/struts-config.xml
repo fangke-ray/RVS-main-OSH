@@ -130,6 +130,9 @@
 		<form-bean name="FactReceptMaterialForm" type="com.osh.rvs.form.qf.FactReceptMaterialForm"></form-bean>
 
 		<form-bean name="newPhenomenonForm" type="com.osh.rvs.form.manage.NewPhenomenonForm"></form-bean>
+
+		<form-bean name="procedureManualForm" type="com.osh.rvs.form.report.ProcedureManualForm"></form-bean>
+
 	</form-beans>
 
 
@@ -1484,7 +1487,11 @@
 		</action>
 
 		<!-- 作业要领书 -->
-		<action path="/procedureManual" type="com.osh.rvs.action.report.ProcedureManualAction" parameter="method" validate="false">
+		<action path="/procedureManual" 
+				type="com.osh.rvs.action.report.ProcedureManualAction" 
+				name="procedureManualForm"
+				scope="request"
+				parameter="method" validate="false">
 			<forward name="init" path="/pages/report/procedure_manual.jsp" />
 			<forward name="success" path="/pages/report/procedure_manual.jsp" />
 		</action>
@@ -1545,7 +1552,7 @@
 			<forward name="init" path="/pages/pda/pda_component_outstock_confirm.jsp" />
 			<forward name="success" path="/pda_component_outstock.do?method=init" />
 		</action>
-		
+
 		<!-- 维修品实物受理/测漏  -->
 		<action path="/fact_recept_material"
 			type="com.osh.rvs.action.qf.FactReceptMaterialAction"

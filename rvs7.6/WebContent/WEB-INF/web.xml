@@ -85,6 +85,12 @@
 	    <param-value>\Images</param-value>
 	  </init-param>
 	  
+	  <init-param>
+	   <description>资料文档</description>
+	  	 <param-name>DOCS</param-name>
+	    <param-value>\Docs</param-value>
+	  </init-param>
+
 	  <load-on-startup>3</load-on-startup>
 	</servlet>
 

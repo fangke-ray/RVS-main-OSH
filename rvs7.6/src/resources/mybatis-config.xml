@@ -148,6 +148,9 @@
 		<typeAlias alias="MaterialTagEntity" type="com.osh.rvs.bean.data.MaterialTagEntity"/>
 
 		<typeAlias alias="NewPhenomenonEntity" type="com.osh.rvs.bean.manage.NewPhenomenonEntity"/>
+
+		<typeAlias alias="ProcedureManualEntity" type="com.osh.rvs.bean.report.ProcedureManualEntity"/>
+
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -306,5 +309,7 @@
 		<mapper resource="com/osh/rvs/mapper/partial/ComponentSettingMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/manage/NewPhenomenonMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/report/ProcedureManualMapper.xml"/>
 	</mappers>
 </configuration> 

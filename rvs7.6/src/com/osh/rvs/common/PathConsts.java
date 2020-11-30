@@ -22,6 +22,7 @@ public class PathConsts {
 	public static String DEVICEINFECTION = "";
 	public static String INFECTIONS ="";
 	public static String IMAGES ="";
+	public static String DOCS = "";
 
 	public static Properties POSITION_SETTINGS = new Properties();
 	public static Properties OCM_FSE_SETTINGS = new Properties();
