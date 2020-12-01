@@ -8,6 +8,8 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
@@ -167,10 +169,23 @@ public class ProcedureManualService {
 			entity.setUpdate_by(user.getOperator_id());
 
 			pmMapper.insertBooklist(entity);
+
+			List<ProcedureManualEntity> l = pmMapper.searchWithPersonalList(entity);
+			if (l.size() > 0) {
+				user.getBooks().add(l.get(0));
+			}
 		} else {
 			// 删除
 			pmMapper.deleteBooklist(entity.getProcedure_manual_id(), user.getOperator_id());
+
+			for (ProcedureManualEntity book : user.getBooks()) {
+				if (book.getProcedure_manual_id().equals(entity.getProcedure_manual_id())) {
+					user.getBooks().remove(book);
+					break;
+				}
+			}
 		}
+
 	}
 
 	public void fileStorage(String procedure_manual_id, FormFile file) {
@@ -185,6 +200,37 @@ public class ProcedureManualService {
 		} catch (IOException e) {
 			_log.error("IO:" + e.getMessage());
 		}
+	}
+
+	public List<ProcedureManualEntity> getBooks(String operator_id,
+			SqlSession conn) {
+		ProcedureManualMapper pmMapper = conn.getMapper(ProcedureManualMapper.class);
+
+		return pmMapper.getPersonalList(operator_id);
+	}
+
+	public void writeHeaderMenuResponse(HttpServletResponse res,
+			List<ProcedureManualEntity> books) throws IOException {
+		ServletOutputStream output = res.getOutputStream();
+		StringBuffer sv = new StringBuffer();
+
+		if (books == null || books.size() == 0) {
+			sv.append("您的书单中没有文档。");
+			sv.append("<hr>");
+			sv.append("请到<br><a href='procedureManual.do'>【文档管理】->【作业要领书】</a><br>画面中设定。");
+			output.write(sv.toString().getBytes("utf8"));
+
+			return;
+		}
+		sv.append("您的书单中共有 " + books.size() + " 个文档。");
+		sv.append("<hr><ul>");
+		for (ProcedureManualEntity book : books) {
+			String id = book.getProcedure_manual_id();
+			sv.append("<li><a target=\"_" + id + "\" href=\"/docs/manual/" + id + ".pdf\">" + book.getFile_name() + "</a></li>");
+		}
+
+		sv.append("</ul>");
+		output.write(sv.toString().getBytes("utf8"));
 	}
 
 }

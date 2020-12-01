@@ -8,12 +8,14 @@
 	<select id="getMaterialComments" parameterType="String" resultType="String">
 	<![CDATA[ 
 		select coalesce(group_concat(`comment` order by create_datetime separator '\n')) as comment
-		from `material_comment`
+		from `material_comment` mc
+		join operator op
+		on mc.operator_id = op.operator_id
 		where material_id = #{material_id}
 	]]>
 	<if test="operator_id != null and operator_id != ''">
 	<![CDATA[ 
-		and operator_id != #{operator_id}
+		and mc.operator_id != #{operator_id}
 	]]>
 	</if>
 	</select>

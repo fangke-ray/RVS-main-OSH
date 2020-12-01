@@ -35,6 +35,38 @@ background-size: 10px 60px;*/
 	float: left;
 }
 
+.menulink.icon-file-pdf {
+	position:relative;
+}
+
+.menulink.icon-file-pdf .booklist-menu {
+	position:absolute;
+	background-color: #93c3cd;
+	z-index: 100;
+	min-height: 20em;
+	min-width: 15em;
+	display:none;
+    padding: 0.5em;
+	color:white;
+	font-size: 14px;
+}
+
+.menulink.icon-file-pdf .booklist-menu > ul {
+	padding-left:4px;
+}
+
+.menulink.icon-file-pdf .booklist-menu > ul > li {
+	display: table-row;
+}
+
+.menulink.icon-file-pdf .booklist-menu > ul > li > a {
+	color: darkblue;
+	text-decoration: none;
+}
+.menulink.icon-file-pdf .booklist-menu > ul > li:hover > a {
+	color: gold;
+}
+
 .littleball {
 	font-size: 10px;
 	-moz-border-radius-topleft: 8px;
@@ -104,6 +136,7 @@ background-size: 10px 60px;*/
 </style>
 
 	<% String sMessageType = (String)request.getAttribute("message_type"); %>
+
 	<input type="hidden" id="ro_mt_id" value="<%=sMessageType%>"/>
 
 	<div id="headarea">
@@ -117,6 +150,7 @@ background-size: 10px 60px;*/
 			<div class="menulink icon-help">查询</div>
 			<div class="menulink icon-list">点检</div>
 			${(retPartialLink eq "1") ? '<div class="menulink icon-cog">零件</div>' : ''}
+			${(! empty userdata.books) ? '<div class="menulink icon-file-pdf">书单<div class="booklist-menu"></div></div>' : ''}
 			${(needMenu eq "1") ? '<div class="menulink icon-calendar-2">菜单<div class="expland-menu ui-accordion" id="accordion"></div></div>' : ''}
 			<div style="height:29px;line-height:29px;float:right;margin-right: 16px;">
 				<span style="color:white;font-size:14px;">您好! ${userdata.name}${userdata.role_name}。</span>
@@ -271,7 +305,8 @@ $(function() {
 	});
 	if ($("#headarea .icon-calendar-2").length > 0) {
 		$("#headarea .icon-calendar-2").click(function() {
-			if (!$(".expland-menu").html()) {
+			var $explandMenu = $(this).find(".expland-menu");
+			if (!$explandMenu.html()) {
 				var $explandMenu = $(".expland-menu");
 				$explandMenu.load("appmenu.do?method=" + ($("#submenu").val() || "") + "init&ex=true", function(){
 					var $explandMenuItem = $explandMenu.children("div");
@@ -313,7 +348,7 @@ $(function() {
 					$explandMenu.toggle("fold");
 				});
 			} else {
-				$(".expland-menu").toggle("fold");
+				$explandMenu.toggle("fold");
 			}
 		});
 	}
@@ -326,6 +361,16 @@ $(function() {
 	});
 	$("#headarea .icon-list").click(function() {
 		window.location.href = "header.do?method=iinit";
+	});
+	$("#headarea .icon-file-pdf").click(function() {
+		var $booklistMenu = $(this).find(".booklist-menu");
+		if (!$booklistMenu.html()) {
+			$booklistMenu.load("procedureManual.do?method=header", function(){
+				$booklistMenu.toggle("fold");
+			});
+		} else {
+			$booklistMenu.toggle("fold");
+		}
 	});
 
 	$("#userPosition").click(function(){

@@ -6,6 +6,7 @@ import java.util.List;
 import com.osh.rvs.bean.master.LineEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.SectionEntity;
+import com.osh.rvs.bean.report.ProcedureManualEntity;
 
 import framework.huiqing.bean.BaseUserBean;
 import framework.huiqing.bean.annotation.BeanField;
@@ -32,6 +33,7 @@ public class LoginData extends BaseUserBean {
 	private String last_link;
 	private String working_role_id;
 	private String work_count_flg;
+	private List<ProcedureManualEntity> books = new ArrayList<ProcedureManualEntity>();
 
 	// 流水线修理方式 全部=0 A线=1 B线=2 C线=3
 	private String px = "0";
@@ -157,5 +159,11 @@ public class LoginData extends BaseUserBean {
 	}
 	public void setShift_work(boolean shift_work) {
 		this.shift_work = shift_work;
+	}
+	public List<ProcedureManualEntity> getBooks() {
+		return books;
+	}
+	public void setBooks(List<ProcedureManualEntity> books) {
+		this.books = books;
 	}
 }

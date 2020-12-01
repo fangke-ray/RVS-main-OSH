@@ -41,6 +41,7 @@ import com.osh.rvs.service.RoleService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
+import com.osh.rvs.service.report.ProcedureManualService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -259,6 +260,10 @@ public class LoginAction extends BaseAction {
 				}
 			}
 		}
+
+		// 书签
+		ProcedureManualService pmService = new ProcedureManualService();
+		loginData.setBooks(pmService.getBooks(loginData.getOperator_id(), conn));
 	}
 
 	/**

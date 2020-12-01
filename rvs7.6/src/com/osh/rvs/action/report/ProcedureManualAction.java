@@ -235,4 +235,27 @@ public class ProcedureManualAction extends BaseAction {
 		
 		log.info("ProcedureManualAction.doSetBooklist end");
 	}
+
+	/**
+	 * 菜单书单取得
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void header(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSession conn) throws Exception {
+
+		log.info("ProcedureManualAction.header start");
+
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+		ProcedureManualService service = new ProcedureManualService();
+		service.writeHeaderMenuResponse(res, user.getBooks());
+
+		log.info("ProcedureManualAction.header end");
+	}
 }

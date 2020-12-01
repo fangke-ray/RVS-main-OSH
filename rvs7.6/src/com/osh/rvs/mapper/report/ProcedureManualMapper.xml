@@ -84,5 +84,17 @@
 		;
 	</delete>
 
-
+	<select id="getPersonalList" resultType="ProcedureManualEntity" parameterType="String">
+	<![CDATA[
+		SELECT 
+			pm.procedure_manual_id, 
+			file_name,
+		    update_time
+		FROM procedure_manual pm
+		JOIN procedure_manual_booklist bl
+			ON pm.procedure_manual_id = bl.procedure_manual_id
+		    AND bl.operator_id = #{operator_id}
+		ORDER BY update_time;
+	]]>
+	</select>
 </mapper>

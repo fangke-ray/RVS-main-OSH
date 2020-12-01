@@ -21,4 +21,6 @@ public interface ProcedureManualMapper {
 	public int insertBooklist(ProcedureManualEntity entity);
 	
 	public int deleteBooklist(@Param("procedure_manual_id") String procedure_manual_id, @Param("operator_id") String operator_id);
+
+	public List<ProcedureManualEntity> getPersonalList(@Param("operator_id") String operator_id);
 }
