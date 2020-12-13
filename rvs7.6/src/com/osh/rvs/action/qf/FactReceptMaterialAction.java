@@ -202,7 +202,7 @@ public class FactReceptMaterialAction extends BaseAction {
 			// 通箱库位
 			if (!CommonStringUtil.isEmpty(factReceptMaterialForm.getTc_location())) {
 				TurnoverCaseService tcService = new TurnoverCaseService();
-				tcService.checkAndSetToLocation(factReceptMaterialForm.getMaterial_id(), factReceptMaterialForm.getTc_location(), errors, conn);
+				tcService.checkToLocation(factReceptMaterialForm.getMaterial_id(), factReceptMaterialForm.getTc_location(), errors, conn);
 			}
 
 			if (errors.size() == 0){
@@ -333,7 +333,7 @@ public class FactReceptMaterialAction extends BaseAction {
 		// Ajax响应对象
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
-		
+
 		// 当前登录者
 		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
 		// 根据操作者ID查找未结束作业信息

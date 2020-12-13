@@ -109,15 +109,12 @@
 		]]>
 	</select>
 
-	<update id="updateFormalReception">
+	<update id="updateFormalReception" parameterType="MaterialEntity">
 		<![CDATA[ 
 			UPDATE material m
-			SET reception_time = (select finish_time from production_feature where material_id = m.material_id and position_id = 9)
-			WHERE m.material_id in
+			SET reception_time = #{reception_time}
+			WHERE m.material_id = #{material_id}
  		]]>
-		<foreach item="material_id" index="index" collection="array" open="(" separator="," close=")">
-			#{material_id}
-		</foreach>
  		;
 	</update>
 
@@ -189,4 +186,26 @@ WHERE `record_date` = current_date;
  		]]>
 	</update>
 
+	<select id="searchReceptionsWithoutFact" resultType="MaterialEntity">
+		<![CDATA[ 
+			SELECT distinct ma.material_id, mdl.name as model_name, ma.serial_no, ma.direct_flg, ma.reception_time, ma.omr_notifi_no as sorc_no,
+				coalesce(sum(af.production_type = 102), 0) as fact_done
+			FROM material ma
+			JOIN model mdl
+				ON ma.model_id = mdl.model_id
+			LEFT JOIN fact_material fm
+				ON ma.material_id = fm.material_id
+			LEFT JOIN af_production_feature af
+				ON fm.af_pf_key = af.af_pf_key
+			WHERE 
+				break_back_flg = 0
+			AND fix_type in (1,2)
+			AND outline_time is null
+			AND inline_time is null
+			AND wip_date is null
+			GROUP BY ma.material_id
+			HAVING fact_done = 0
+			ORDER BY model_name, serial_no;
+		]]>
+	</select>
 </mapper>

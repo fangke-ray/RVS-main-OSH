@@ -164,9 +164,9 @@
 		`m`.`serial_no`,`m`.`ocm`,`m`.`level`,`m`.`ocm_rank`, `m`.`reception_time`,
 		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`,
 		`m`.`storager`,`m`.`fix_type`,`m`.`service_repair_flg`,
-		`m`.`section_id`,`m`.`wip_location`,`m`.`direct_flg`,
+		`m`.`section_id`,`m`.`wip_location`,`m`.`direct_flg`, `m`.`bound_out_ocm`, 
 		`m`.`am_pm`,`m`.`scheduled_expedited`,`m`.`scheduled_manager_comment`,`m`.`quotation_first`,
-		`m`.`outline_time`,`m`.`break_back_flg`,`m`.`pat_id`,
+		`m`.`outline_time`,`m`.`break_back_flg`,`m`.`pat_id`, `m`.`ticket_flg`,
 		`mdl`.`name` as model_name, `ctg`.`category_id`, `ctg`.`name` as category_name, `ctg`.`kind`, `ctg`.with_case as unrepair_flg
 		FROM MATERIAL `m` JOIN `MODEL` mdl
 			ON `m`.`model_id` = `mdl`.`model_id`

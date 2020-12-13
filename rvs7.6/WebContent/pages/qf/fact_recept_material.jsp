@@ -166,6 +166,10 @@ li.list-group-item.empty {
 	background-color: #3399CC;
 }
 
+.item-container.leak{
+	background-color: #FFC414;
+}
+
 .item-container[hold]{
 	transform: scale(.95);
 }
@@ -373,6 +377,15 @@ label.tc_location:empty {
 	background-color: lightgray;
 	cursor: pointer;
 }
+#letter_nav:before {
+	content: '索引';
+	font-size: 1.8em;
+	writing-mode: vertical-lr;
+	margin-left: 0.2em;
+	background: rgba(0, 0, 0, 0) linear-gradient(#9dd2ea, #8bceec) no-repeat 0 0;
+	padding: .2em 0;
+	color: #888;
+}
 #tc_location_pop {
 	position : fixed;
 	width : 75%;
@@ -478,7 +491,6 @@ label.tc_location:empty {
 					<div class="btn ui-state-default" id="direct" target="direct_tab">直送</div>
 					<div class="btn ui-state-default" id="perl" target="perl_tab">其他</div>
 					<div class="btn ui-state-default" id="spare" target="spare_tab">备品</div>
-					<!--div class="btn ui-state-default" id="cds" target="cds_tab">协助 CDS</div-->
 				</div>
 			</div>
 			<div id="content" class="ui-widget-content">

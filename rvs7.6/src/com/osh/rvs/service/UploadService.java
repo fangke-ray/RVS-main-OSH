@@ -2955,6 +2955,7 @@ public class UploadService {
 			if (coloumNum == 6 && ("型号".equals(getCellStringValue(row.getCell(0)))
 					&& "机身号".equals(getCellStringValue(row.getCell(1))))) {
 				readSpareFile(sheet, conn, errors, retList);
+				httpSession.setAttribute("AidRcAcceptStartAt", new Date());
 			} else if (coloumNum == 9 && "协助灭菌记录表".equals(getCellStringValue(row.getCell(0)))) {
 				readAidRcFile(sheet, conn, errors, retList);
 				httpSession.setAttribute("AidRcAcceptStartAt", new Date());
@@ -3027,13 +3028,16 @@ public class UploadService {
 				}
 				duplicateInFile.get(duplicateKey).add(retList.size());
 
+				String cdsType = getCellStringValue(row.getCell(2));
+
 				MaterialForm lineform = new MaterialForm();
 				lineform.setMaterial_id("Line" + iRow);
 				lineform.setModel_id(model_id);
 				lineform.setModel_name(model_name);
 				lineform.setSerial_no(serial_no);
 				lineform.setFix_type("3");
-				
+				lineform.setOcm_rank("△".equals(cdsType) ? "灭菌" : "消毒");
+
 				retList.add(lineform);					
 			}
 		}

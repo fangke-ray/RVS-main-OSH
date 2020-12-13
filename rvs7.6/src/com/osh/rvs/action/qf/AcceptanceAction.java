@@ -8,7 +8,6 @@
 package com.osh.rvs.action.qf;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -30,29 +29,29 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
-import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
+import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.form.qf.FactMaterialForm;
-import com.osh.rvs.mapper.CommonMapper;
+import com.osh.rvs.form.qf.FactReceptMaterialForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.DownloadService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.UserDefineCodesService;
 import com.osh.rvs.service.qf.AcceptanceService;
 import com.osh.rvs.service.qf.FactMaterialService;
+import com.osh.rvs.service.qf.FactReceptMaterialService;
 import com.osh.rvs.service.qf.TurnoverCaseService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
-import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.validator.Validators;
@@ -270,13 +269,19 @@ public class AcceptanceAction extends BaseAction {
 	 * @throws Exception
 	 */
 	public void doDisinfection(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("AcceptanceAction.doDisinfection start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
 		String ids = req.getParameter("ids");
 		String[] split = ids.split(",");
-		String test_ids = req.getParameter("test_ids");
-		String[] test_split = new String[0];
-		if (!CommonStringUtil.isEmpty(test_ids)) {
-			test_split = test_ids.split(",");
-		}
+//		String test_ids = req.getParameter("test_ids");
+//		String[] test_split = new String[0];
+//		if (!CommonStringUtil.isEmpty(test_ids)) {
+//			test_split = test_ids.split(",");
+//		}
 
 		// 取得用户信息
 		HttpSession session = req.getSession();
@@ -285,63 +290,84 @@ public class AcceptanceAction extends BaseAction {
 		String section_id = user.getSection_id();
 
 		// 测漏
-		AcceptFactService afService = new AcceptFactService();
-		FactMaterialService factService = new FactMaterialService();
-		Map<Integer, String> pfkeyMap = new HashMap<Integer, String>();
-		for (int i = 0; i < test_split.length; i++) {
-			String[] temp = test_split[i].split("_");
-			String material_id = temp[0];
-			String fix_type = temp[1];
-			int production_type = 102;
-			if ("3".equals(fix_type)) {
-				production_type = 105;
-			}
+//		AcceptFactService afService = new AcceptFactService();
+//		FactMaterialService factService = new FactMaterialService();
+//		Map<Integer, String> pfkeyMap = new HashMap<Integer, String>();
+//		for (int i = 0; i < test_split.length; i++) {
+//			String[] temp = test_split[i].split("_");
+//			String material_id = temp[0];
+//			String fix_type = temp[1];
+//			int production_type = 102;
+//			if ("3".equals(fix_type)) {
+//				production_type = 105;
+//			}
+//
+//			String insertId = "";
+//			if (!pfkeyMap.containsKey(production_type)) {
+//				AfProductionFeatureEntity afEntity = afService.getUnspecUnfinishByType(production_type, conn);
+//				if (afEntity == null) {
+//					Calendar cal = Calendar.getInstance();
+//					cal.set(Calendar.HOUR_OF_DAY, 1);
+//					cal.set(Calendar.MINUTE, 2);
+//					cal.set(Calendar.SECOND, 0);
+//	
+//					afEntity = new AfProductionFeatureEntity();
+//					afEntity.setProduction_type(production_type);
+//					afEntity.setOperator_id("0");
+//					afEntity.setAction_time(cal.getTime());
+//					afService.insert(afEntity, conn);
+//	
+//					CommonMapper comMapper = conn.getMapper(CommonMapper.class);
+//					insertId = comMapper.getLastInsertID();
+//				} else {
+//					insertId = afEntity.getAf_pf_key();
+//				}
+//				pfkeyMap.put(production_type, insertId);
+//			} else {
+//				insertId = pfkeyMap.get(production_type);
+//			}
+//
+//			FactMaterialForm factForm = new FactMaterialForm();
+//			factForm.setAf_pf_key(insertId);
+//			factForm.setMaterial_id(material_id);
+//			factService.insert(factForm, conn);
+//		}
 
-			String insertId = "";
-			if (!pfkeyMap.containsKey(production_type)) {
-				AfProductionFeatureEntity afEntity = afService.getUnspecUnfinishByType(production_type, conn);
-				if (afEntity == null) {
-					Calendar cal = Calendar.getInstance();
-					cal.set(Calendar.HOUR_OF_DAY, 1);
-					cal.set(Calendar.MINUTE, 2);
-					cal.set(Calendar.SECOND, 0);
-	
-					afEntity = new AfProductionFeatureEntity();
-					afEntity.setProduction_type(production_type);
-					afEntity.setOperator_id("0");
-					afEntity.setAction_time(cal.getTime());
-					afService.insert(afEntity, conn);
-	
-					CommonMapper comMapper = conn.getMapper(CommonMapper.class);
-					insertId = comMapper.getLastInsertID();
-				} else {
-					insertId = afEntity.getAf_pf_key();
-				}
-				pfkeyMap.put(production_type, insertId);
-			} else {
-				insertId = pfkeyMap.get(production_type);
-			}
+		MaterialTagService mtService = new MaterialTagService();
 
-			FactMaterialForm factForm = new FactMaterialForm();
-			factForm.setAf_pf_key(insertId);
-			factForm.setMaterial_id(material_id);
-			factService.insert(factForm, conn);
-		}
-
-		// 发送至消毒
+		List<String> sentMessage = new ArrayList<String>();
+		// 发送至消毒或灭菌
 		for (int i = 0; i < split.length; i++) {
-			ProductionFeatureEntity entity = new ProductionFeatureEntity();
-			entity.setMaterial_id(split[i]);
-			entity.setPosition_id("10");
-			entity.setSection_id(section_id);
-			entity.setPace(0);
-			entity.setOperate_result(0);
-			entity.setRework(0);
-			featureService.insert(entity, conn);
+			String material_id = split[i];
+
+			String disinectPositionId = mtService.getDisinectFlow(material_id, conn);
+
+			if (disinectPositionId == null) {
+				sentMessage.add(material_id);
+			} else {
+				ProductionFeatureEntity entity = new ProductionFeatureEntity();
+				entity.setMaterial_id(material_id);
+				entity.setPosition_id(disinectPositionId);
+				entity.setSection_id(section_id);
+				entity.setPace(0);
+				entity.setOperate_result(0);
+				entity.setRework(0);
+				featureService.insert(entity, conn);
+				sentMessage.add(material_id + "_" + disinectPositionId);
+			}
 		}
 
-		// 发送完毕后，受理时间覆盖导入时间
-		service.updateFormalReception(split, conn);
+		callbackResponse.put("sentMessage", sentMessage);
+
+		// 发送完毕后，受理时间覆盖导入时间 rvs8 因导入实物受理功能取消
+		// service.updateFormalReception(split, conn);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("AcceptanceAction.doAccept end");
 	}
 	
 	/**
@@ -376,7 +402,7 @@ public class AcceptanceAction extends BaseAction {
 		}
 
 		// 发送完毕后，受理时间覆盖导入时间
-		service.updateFormalReception(split, conn);
+//		service.updateFormalReception(split, conn);
 	}
 
 	/**
@@ -673,4 +699,57 @@ public class AcceptanceAction extends BaseAction {
 		log.info("AcceptanceAction.printTcLabels end");
 	}
 
+	@Privacies(permit = { 107 })
+	public void getMatch(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("AcceptanceAction.getMatch start");
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// 取得没有实物受理记录的维修品一览
+		List<MaterialForm> mBeans = service.getReceptionsWithoutFact(conn);
+		listResponse.put("receptionsWithoutFact", mBeans);
+
+		// 取得临时登录的实物受理品一览
+		FactReceptMaterialService frmService = new FactReceptMaterialService();
+		List<FactReceptMaterialForm> tempList = frmService.searchFactReceptMaterialTemp(null, conn);
+		listResponse.put("receptionsTemp", tempList);
+
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+		log.info("AcceptanceAction.getMatch end");
+	}
+
+	@Privacies(permit = { 107 })
+	public void doFactmatch(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("AcceptanceAction.doFactmatch start");
+		// Ajax回馈对象
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String material_id = req.getParameter("material_id");
+		String fact_recept_id = req.getParameter("fact_recept_id");
+
+		FactReceptMaterialService frmService = new FactReceptMaterialService();
+		FactReceptMaterialEntity factReceptTempEntity = frmService.getFactReceptTemp(fact_recept_id, conn);
+
+		if (factReceptTempEntity == null) {
+			MsgInfo info = new MsgInfo();
+			info.setComponentid("fact_recept_id");
+			info.setErrmsg("此实物受理临时记录不存在，或者已经被匹配。");
+			errors.add(info);
+		} else {
+			frmService.tempMatch(material_id, factReceptTempEntity, conn);
+		}
+
+		cbResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+		log.info("AcceptanceAction.doFactmatch end");
+	}
 }

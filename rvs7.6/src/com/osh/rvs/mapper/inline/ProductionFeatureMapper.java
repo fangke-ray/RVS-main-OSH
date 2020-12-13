@@ -105,6 +105,8 @@ public interface ProductionFeatureMapper {
 
 	public void removeWaiting(@Param("material_id") String material_id, @Param("position_id") String position_id) throws Exception;
 
+	public void removeFirstWaiting(@Param("material_id") String material_id, @Param("position_id") String position_id) throws Exception;
+
 	public List<Map<String, String>> getLastPositionAndStatus(String material_id);
 
 	public List<ProductionFeatureEntity> getWorkedPositionOfMaterial(String materialId);

@@ -20,10 +20,7 @@
 		    model_name,
 		    category_id,
 		    (select kind from category where category_id = temp.category_id) as kind,
-		    CASE
-				WHEN temp_fact_recept >=1 then 1
-                ELSE 0
-            END AS fact_recept,
+		    temp_fact_recept AS fact_recept,
 		    tag_types,
 		    location As tc_location,
 		    comment
@@ -37,26 +34,8 @@
 		    material.reception_time,
 		    mdl.name AS model_name,
 		    mdl.CATEGORY_ID,
-		]]>
-		<if test="search_range eq 1">
-		<![CDATA[
-		    SUM(fct.af_pf_key IS NOT NULL AND EXISTS( 
-				SELECT
-					1 
-		        FROM 
-					af_production_feature afpf 
-				WHERE 
-					fct.af_pf_key = afpf.af_pf_key 
-				AND 
-					afpf.production_type = 102)) AS temp_fact_recept,
-		]]>
-		</if>
-		<if test="search_range eq 2">
-		<![CDATA[
-		    0 AS temp_fact_recept,
-		]]>
-		</if>
-		<![CDATA[
+            SUM(afpf.production_type = 102) > 0 AS temp_fact_recept,
+            SUM(tag.tag_type = 2) AS waiting_leak,
 		    GROUP_CONCAT(DISTINCT tag.tag_type) AS tag_types,
             tcs.location,
 		    cmt.comment
@@ -66,6 +45,8 @@
 		    model mdl ON material.model_id = mdl.model_id
 		LEFT JOIN
 		    fact_material fct ON material.material_id = fct.material_id
+		LEFT JOIN 
+			af_production_feature afpf ON fct.af_pf_key = afpf.af_pf_key
 		LEFT JOIN
 		    material_tag tag ON material.material_id = tag.material_id
 		LEFT JOIN
@@ -80,6 +61,8 @@
 			inline_time IS NULL
 		AND 
 			wip_date IS NULL
+		AND 
+			outline_time IS NULL
 	]]>
 	<if test="search_range eq 1">
 	<![CDATA[
@@ -93,21 +76,22 @@
 			AND 
 				position_id IN (10 , 11)
 			AND 
-				operate_result > 0)
-	]]>
-	</if>
-	<if test="search_range eq 2">
-	<![CDATA[
-		AND (
-			fct.af_pf_key IS NULL
-		)
+				operate_result not in (0, 5))
 	]]>
 	</if>
 	<![CDATA[
 		GROUP BY
 			material.material_id
+	]]>
+	<if test="search_range eq 2">
+	<![CDATA[
+		HAVING (temp_fact_recept = 0 OR waiting_leak > 0)
+	]]>
+	</if>
+	<![CDATA[
 		ORDER BY 
-			model_name,serial_no) temp
+			model_name,serial_no
+			) temp
 	]]>
 	</select>
 
@@ -121,7 +105,8 @@
 			model_name,
 			af_pf_key,
 			tag_types,
-			tc_location
+			tc_location,
+			reception_time
 		)
 		VALUES
 		(
@@ -131,7 +116,8 @@
 			#{model_name},
 			#{af_pf_key},
 			#{tag_types},
-			#{tc_location}
+			#{tc_location},
+			current_timestamp
 		)
 	]]>
 	</insert>
@@ -143,11 +129,11 @@
 	    mdl.name AS model_name,
 	    (select kind from category where category_id = mdl.category_id) as kind,
 	    1 AS temp_fact_recept,
-	    1 AS fact_recept
+	    1 AS fact_recept,
+	    (select position_id from production_feature where material_id = material.material_id and position_id in (10, 11) limit 1) as tag_types
     FROM
         material
     JOIN model mdl ON material.model_id = mdl.model_id
-    LEFT JOIN material_tag tag ON material.material_id = tag.material_id
     WHERE
         fix_type = 3
     AND break_back_flg = 0
@@ -174,7 +160,8 @@
 			model_name,
 			af_pf_key,
 			tag_types,
-			tc_location
+			tc_location,
+			reception_time
 		FROM
 			fact_recept_material_temp frmt join model mdl on frmt.model_id = mdl.model_id
 	]]>
@@ -221,12 +208,18 @@
 			model_name,
 			af_pf_key,
 			tag_types,
-			tc_location
+			tc_location,
+			reception_time
 		FROM
 			fact_recept_material_temp
 		WHERE
 			fact_recept_id = #{fact_recept_id}
 	]]>
 	</select>
-	
+
+	<delete id="deleteTemp" parameterType="string">
+	<![CDATA[
+		DELETE FROM fact_recept_material_temp WHERE fact_recept_id = #{fact_recept_id}
+	]]>
+	</delete>
 </mapper>

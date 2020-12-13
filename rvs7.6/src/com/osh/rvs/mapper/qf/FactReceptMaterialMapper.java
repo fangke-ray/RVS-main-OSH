@@ -21,4 +21,6 @@ public interface FactReceptMaterialMapper {
 
 	public FactReceptMaterialEntity getFactReceptTemp(@Param("fact_recept_id") String fact_recept_id);
 
+	public void deleteTemp(String factReceptId);
+
 }

@@ -201,6 +201,7 @@ $("#ogzbutton").click(function(){
 						<!-- input type="button" class="ui-button" id="sterilizationbutton" value="进行灭菌" /-->
 						<input type="button" class="ui-button-primary ui-button" id="outbutton" value="报表导出" role="button" aria-disabled="false" style="float: right; right: 2px">
 						<input type="button" class="ui-button" id="tcPrintButton" value="预打印通箱标记" role="button" aria-disabled="false" style="float: right; right: 2px">
+						<input type="button" class="ui-button" id="factmatchbutton" value="实物受理匹配" style="float: right; right: 2px"/>
 					</div>
 				</div>
 			</div>
@@ -229,6 +230,77 @@ $("#ogzbutton").click(function(){
 			</div>
 		</div>
 </div>
-
+<style>
+#factmatch_dialog {
+	height: 480px;
+	display: none;
+}
+#factmatch_dialog > div {
+	float: left;
+	height: 480px;
+	border: 1px dotted darkcyan;
+	overflow: clip auto;
+}
+#factmatch_sys {
+	width: 40%;
+}
+#factmatch_fact {
+	width: 40%;
+}
+#factmatch_comp {
+	text-align:center;
+	text-align: center;
+}
+#factmatch_comp > div {
+	height:30%;
+	width:140px;
+}
+#factmatch_comp > div > table {
+	width :80%;
+	margin-left: 10%;
+	border: 3px dotted darkcyan;
+	table-layout: fixed;
+	word-break: break-all;
+}
+#factmatch_comp > p {
+    font-weight: bold;
+    font-size: 22px;
+    color: darkblue;
+    text-shadow: 2px 2px gold;
+}
+#factmatch_dialog table {
+	width :100%;
+}
+#factmatch_dialog table .direct_flg {
+	background-color: darkgreen;
+	color: white;
+}
+</style>
+<div id="factmatch_dialog">
+	<div id="factmatch_sys">
+		<table>
+			<thead class="ui-state-default"><th>机身号</th><th>是否直送</th><th>导入时间</th><th>维修单号</th></thead>
+			<tbody></tbody>
+		</table>
+	</div>
+	<div id="factmatch_comp">
+		<div id="sys_content">
+			<section style="height:75%;"></section>
+			<table><tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr></table>
+		</div>
+		<p>→</p>
+		<input id="factmatch_button" type="button" class="ui-button" value="匹配"/>
+		<p>←</p>
+		<div id="fact_content">
+			<table><tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr></table>
+		</div>
+	</div>
+	<div id="factmatch_fact">
+		<table>
+			<thead class="ui-state-default"><th>机身号</th><th>是否直送</th><th>完成时间</th><th>指示</th></thead>
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
 </body>
 </html>

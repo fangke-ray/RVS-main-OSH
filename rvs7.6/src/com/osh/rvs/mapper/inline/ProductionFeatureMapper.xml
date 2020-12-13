@@ -551,6 +551,16 @@ and a.inline_time is null -- [SpeedUp]
 		]]>
 	</delete>
 
+	<!-- 更换工艺流程前前 -->
+	<delete id="removeFirstWaiting" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM production_feature
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND operate_result = 0
+		]]>		
+	</delete>
+
 	<!-- 删除工位作业 -->
 	<delete id="removeAllOfPosition" parameterType="String">
 		<![CDATA[ 

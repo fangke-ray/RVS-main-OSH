@@ -55,6 +55,11 @@ public class FactReceptMaterialEntity implements Serializable {
 	/** 维修品实物受理/测漏临时表主键 **/
 	private String fact_recept_id;
 
+	/** 查询范围 **/
+	private Integer search_range;
+
+	private Date reception_time;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -173,6 +178,22 @@ public class FactReceptMaterialEntity implements Serializable {
 
 	public void setFact_recept_id(String fact_recept_id) {
 		this.fact_recept_id = fact_recept_id;
+	}
+
+	public Integer getSearch_range() {
+		return search_range;
+	}
+
+	public void setSearch_range(Integer search_range) {
+		this.search_range = search_range;
+	}
+
+	public Date getReception_time() {
+		return reception_time;
+	}
+
+	public void setReception_time(Date reception_time) {
+		this.reception_time = reception_time;
 	}
 
 }

@@ -19,7 +19,7 @@ public interface AcceptanceMapper {
 
 	public List<MaterialEntity> getTodayMaterialDetail();
 
-	public void updateFormalReception(String[] material_ids) throws Exception;
+	public void updateFormalReception(MaterialEntity entity) throws Exception;
 
 	public int importOgz(Map<String, String> map);
 
@@ -30,4 +30,6 @@ public interface AcceptanceMapper {
 	public int updateOcmShippingByID(MaterialEntity cond) throws Exception;
 
 	public Map<String, String> loadOgz();
+
+	public List<MaterialEntity> searchReceptionsWithoutFact();
 }

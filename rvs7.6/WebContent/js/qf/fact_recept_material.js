@@ -68,7 +68,7 @@ $(function() {
 	document.onkeydown=function(event){
 		var e = event || window.event || arguments.callee.caller.arguments[0];
 		if (e && e.keyCode) {
-			console.log(inputArea + "_" + e.keyCode);
+
 			if (inputArea === "page") {
 				switch(event.keyCode) {
 				     case 8:
@@ -77,12 +77,9 @@ $(function() {
 				     case 27:
 				     	$(".calculator #clearAll").trigger("release");
 				        break;
-				     case 48:
-				     case 49:
-				     case 50:
-				     case 51:
-				     case 52:
-				     case 53:
+				     case 48:				     case 49:
+				     case 50:				     case 51:
+				     case 52:				     case 53:
 				     case 54:
 				     case 55:
 				     case 56:
@@ -113,6 +110,14 @@ $(function() {
 				     	$("#model_keyboard span:contains('" + abfkey + "')").trigger("release");
 				     	break;
 				     }
+				     case 173: {
+				     	$("#model_keyboard span:contains('-')").trigger("release");
+				     }
+				     case 13: {
+				     	if ($("#model_list > span").length == 1) {
+				     		$("#model_list > span:eq(0)").trigger("release");
+				     	}
+				     }
 				}
 			}
 			// 173 -
@@ -121,7 +126,6 @@ $(function() {
 				return false;
 			} else if (inputArea !== "page" && event.keyCode == 27) {
 				event.preventDefault();
-				console.log("MEMEMEME");
 				return false;
 			}
 		}
@@ -130,7 +134,11 @@ $(function() {
     undirectObj.init();
     directObj.init();
     perlObj.init();
-    spareObj.init();
+	if ($("#role").val() === "none") {
+		$("#spare").remove();
+	} else {
+		spareObj.init();
+	}
 
     //Tab切换
     $("#production_type").find(".btn").each(function(i, item) {
@@ -374,6 +382,8 @@ $(function() {
         }
         filterSelModel();
     });
+
+	$("span.animal").hide();
 }); // End of $(function()
 
 function findit() {
@@ -782,7 +792,11 @@ function setList(id, list, tempList) {
 
             let classs = "";
             if (obj.fact_recept == "1") {
-                classs = "item-container";
+            	if (obj.tag_types && obj.tag_types.indexOf("2") >= 0) {
+	                classs = "item-container leak";
+            	} else {
+	                classs = "item-container";
+            	}
             } else {
                 let arriveDate = new Date(obj.expect_arrive_time);
                 arriveDate.setHours(0);
@@ -819,8 +833,8 @@ function setList(id, list, tempList) {
                 	content += '<div class="item"><div class="leak checked"></div></div>';
             } else if (arrTagTypes.includes('3')) { //做完测漏
                 	content += '<div class="item"><div class="leak done"></div></div>';
-            } else if (obj.fact_recept == "1" && obj.kind != 7) { //不用测漏
-                	content += '<div class="item"><div class="leak pass"></div></div>';
+//            } else if (obj.fact_recept == "1" && obj.kind != 7) { //不用测漏
+//                	content += '<div class="item"><div class="leak pass"></div></div>';
             } else {
             		content += '<div class="item"><div></div></div>';
             }
@@ -1215,7 +1229,9 @@ function showEditDialog(initData) {
         var errorData = "";
 
         if (!$("#edit_sterilize").hasClass("checked") && !$("#edit_disinfect").hasClass("checked")) {
-            errorData += "请选择【消毒】或者【灭菌】";
+        	if (!$("#edit_leak").hasClass("checked")) { // 等待测漏时允许
+	            errorData += "请选择【消毒】或者【灭菌】";
+        	}
         }
 
         if (!$("#edit_tc_location").html()) {
@@ -1553,6 +1569,7 @@ function showTempEditDialog(initData) {
         position: ['center', 50],
         title: title,
         width: 550,
+        closeOnEscape:false,
         height: 'auto',
         close: function(){inputArea = "page";},
         resizable: false,
@@ -1576,7 +1593,9 @@ function showTempEditDialog(initData) {
         let errorData = "";
 
         if (!$("#temp_edit_sterilize").hasClass("checked") && !$("#temp_edit_disinfect").hasClass("checked")) {
-            errorData += "请选择【消毒】或者【灭菌】";
+        	if (!$("#temp_edit_leak").hasClass("checked")) { // 等待测漏时允许
+	            errorData += "请选择【消毒】或者【灭菌】";
+        	}
         }
         if (!$("#temp_edit_tc_location").html()) {
         	errorData += "<br>请指定周转箱库位的标签。";
@@ -1806,7 +1825,9 @@ function showAddDialog(direct_flg) {
         }
 
         if (!$("#add_sterilize").hasClass("checked") && !$("#add_disinfect").hasClass("checked")) {
-            errorData += "请选择【消毒】或者【灭菌】";
+        	if (!$("#add_leak").hasClass("checked")) { // 等待测漏时允许
+            	errorData += "请选择【消毒】或者【灭菌】";
+        	}
         }
 
         if (errorData) {
@@ -2196,13 +2217,18 @@ function checkModelName(modelName, successFunction, failFunction) {
 //生成临时机身号
 function randomSerialNo() {
     let d = new Date(),
-        month = "" + (d.getMonth() + 1),
+        month = (d.getMonth() + 1),
         date = "" + d.getDate(),
         hour = "" + d.getHours(),
         minute = "" + d.getMinutes(),
-        seconds = "" + d.getSeconds(),
-        milliseconds = "" + d.getMilliseconds();
-    let serialNo = fillZero(month) + fillZero(date) + fillZero(hour) + fillZero(minute) + fillZero(seconds) + fillZero(milliseconds, 4);
+        seconds = d.getSeconds(),
+        milliseconds = d.getMilliseconds();
+    switch (month) {
+    	case 10 : month = "O"; break;
+    	case 11 : month = "N"; break;
+    	case 12 : month = "D"; break;
+    }
+    let serialNo = month + fillZero(date) + fillZero(hour) + fillZero(minute) + fillZero((seconds * 1000 + milliseconds).toString(28), 4);
     serialNo = "临" + serialNo;
 
     return serialNo

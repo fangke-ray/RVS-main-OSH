@@ -521,12 +521,12 @@ public class TurnoverCaseService {
 
 	private void drawBorder(PdfWriter pdfWriter, Rectangle rect) {
 		PdfContentByte cb = pdfWriter.getDirectContent();
-		cb.setLineWidth(10.5f);
-		cb.moveTo(0, rect.getHeight()-1f);
-		cb.lineTo(rect.getWidth(), rect.getHeight()-1f);
-		cb.lineTo(rect.getWidth(), 0);
-		cb.lineTo(0, 0);
-		cb.closePath();
+		cb.setLineWidth(16f);
+		cb.roundRectangle(0f, 0f, 110, 85, 16f);
+
+//		cb.setLineWidth(8f);
+//		cb.roundRectangle(4f, 4f, 102, 77, 12f);
+
 		cb.stroke();
 	}
 
@@ -536,8 +536,9 @@ public class TurnoverCaseService {
 		mainTable.setHorizontalAlignment(Element.ALIGN_CENTER);
 		mainTable.setTotalWidth(110);
 		mainTable.setLockedWidth(true);
-		mainTable.getDefaultCell().setBorder(PdfPCell.NO_BORDER);
+		//mainTable.getDefaultCell().setBorder(PdfPCell.NO_BORDER);
 		PdfPCell cell = new PdfPCell(new Paragraph(location, detailFont));
+		cell.setBorder(PdfPCell.NO_BORDER);
 		cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 		cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 		cell.setPaddingTop(25.0f);
@@ -622,7 +623,7 @@ public class TurnoverCaseService {
 	 * @param errors
 	 * @param conn
 	 */
-	public void checkAndSetToLocation(String material_id, String location,
+	public void checkToLocation(String material_id, String location,
 			List<MsgInfo> errors, SqlSessionManager conn) {
 		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
 
@@ -650,6 +651,11 @@ public class TurnoverCaseService {
 				errors.add(error);
 			}
 		}
+	}
+
+	public void setToLocation(String material_id, String location,
+			List<MsgInfo> errors, SqlSessionManager conn) {
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
 
 		// 指定库位
 		if (errors.size() == 0) {

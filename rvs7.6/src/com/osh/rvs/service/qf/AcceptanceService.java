@@ -183,13 +183,15 @@ public class AcceptanceService {
 		MaterialService mservice = new MaterialService();
 
 		boolean isAidRc = false;
+		boolean isSpare = false;
 
 		// 检查每个Form
 		for (MaterialForm materialForm : materialForms) {
 			isAidRc = "4".equals(materialForm.getFix_type());
+			isSpare = "3".equals(materialForm.getFix_type());
 
 			String cdsTypeName = materialForm.getOcm_rank(); 
-			if (isAidRc) {
+			if (isAidRc || isSpare) {
 				materialForm.setOcm_rank(null);
 				materialForm.setProcessing_position(cdsTypeName);
 			}
@@ -229,8 +231,8 @@ public class AcceptanceService {
 		// 放入数据库
 		if (errors.size() == 0) {
 			for (MaterialForm materialForm : materialForms) {
-				String material_id = insert(materialForm, isAidRc, conn, errors);
-				if (isAidRc && material_id != null) {
+				String material_id = insert(materialForm, (isAidRc || isSpare), conn, errors);
+				if ((isAidRc || isSpare) && material_id != null) {
 					// 自动受理完成
 					acceptComplete(material_id, aidRcAcceptStartAt, user, materialForm.getProcessing_position(), conn);
 				}
@@ -354,14 +356,15 @@ public class AcceptanceService {
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void updateFormalReception(String[] material_ids, SqlSessionManager conn) throws Exception {
+	public void updateFormalReception(String material_id, Date fact_finish_time, SqlSessionManager conn) throws Exception {
 		AcceptanceMapper dao = conn.getMapper(AcceptanceMapper.class);
-		dao.updateFormalReception(material_ids);
+		MaterialEntity material = new MaterialEntity();
+		material.setMaterial_id(material_id);
+		material.setReception_time(fact_finish_time);
+		dao.updateFormalReception(material);
 		try {
-		for (String material_id : material_ids) {
 			FseBridgeUtil.toUpdateMaterial(material_id, "111");
 			FseBridgeUtil.toUpdateMaterialProcess(material_id, "111");
-		}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -404,7 +407,7 @@ public class AcceptanceService {
 		}
 
 		if (aidRcAcceptStartAt == null) {
-			aidRcAcceptStartAt = new Date();
+			aidRcAcceptStartAt = new Date(new Date().getTime() - 300000l);
 		}
 
 		// 开始受理
@@ -437,5 +440,22 @@ public class AcceptanceService {
 			entity.setRework(0);
 			mapper.insertProductionFeature(entity);
 		}
+	}
+
+	/**
+	 * 取得没有实物受理记录的维修品
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public List<MaterialForm> getReceptionsWithoutFact(SqlSession conn) {
+		AcceptanceMapper mapper = conn.getMapper(AcceptanceMapper.class);
+		List<MaterialEntity> lEntities = mapper.searchReceptionsWithoutFact(); 
+
+		List<MaterialForm> lRet = new ArrayList<MaterialForm>();
+
+		BeanUtil.copyToFormList(lEntities, lRet, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
+
+		return lRet;
 	}
 }

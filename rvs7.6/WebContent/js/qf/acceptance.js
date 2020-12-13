@@ -847,6 +847,8 @@ $(function() {
 	$("#disinfectionbutton").click(doDisinfection);
 
 	// $("#sterilizationbutton").click(doSterilization);
+	$("#factmatchbutton").click(getMatch);
+
 	$("#returnbutton").click(doReturn);
 	$("#resetbutton").click(function() {
 		listdata = {};
@@ -859,6 +861,8 @@ $(function() {
 	acceptted_list();
 
 	takeWs();
+
+	$("#factmatch_button").click(factmatch);
 });
 
 // 工位后台推送
@@ -1143,21 +1147,21 @@ var doReturn = function(){
 }
 
 function doDisinfection(){
-	var test_listdata = [];
+//	var test_listdata = [];
 	var rowids = $("#imp_list").jqGrid("getGridParam","selarrrow");
 	var ids = [];
-	var test_ids = [];
+//	var test_ids = [];
 	var comm = "";
 
 	for (var i in rowids) {
 		var rowdata = $("#imp_list").getRowData(rowids[i]);
-		test_listdata[i]={
-				material_id:rowdata["material_id"],
-				sorc_no:rowdata["sorc_no"],
-				model_name:rowdata["model_name"],
-				serial_no:rowdata["serial_no"],
-				fix_type:rowdata["fix_type"]
-		};
+//		test_listdata[i]={
+//				material_id:rowdata["material_id"],
+//				sorc_no:rowdata["sorc_no"],
+//				model_name:rowdata["model_name"],
+//				serial_no:rowdata["serial_no"],
+//				fix_type:rowdata["fix_type"]
+//		};
 		ids[ids.length] = rowdata["material_id"];
 		var t_direct = rowdata["direct_flg"];
 		if (t_direct == 1) {
@@ -1182,75 +1186,130 @@ function doDisinfection(){
 			}
 		});
 	} else {
-		var jthis = $("#test_list");
-		if ($("#gbox_test_list").length > 0) {
-			jthis.jqGrid().clearGridData();
-			jthis.jqGrid('setGridParam',{data:test_listdata}).trigger("reloadGrid", [{current:true}]);
-		} else {
-			jthis.jqGrid({
-				data:test_listdata,
-				height: 215,
-				width: 500,
-				rowheight: 23,
-				datatype: "local",
-				colNames:['','修理单号','型号','机身号',''],
-				colModel:[
-					{name:'material_id',index:'material_id', hidden:true},
-					{name:'sorc_no',index:'sorc_no', width:60},
-					{name:'model_name',index:'model_name'},
-					{name:'serial_no',index:'serial_no', width:60, align:'center'},
-					{name:'fix_type',index:'fix_type', hidden:true}
-				],
-				rowNum: 50,
-				toppager: false,
-				viewrecords: true,
-				multiselect: true,
-				gridview: true
-			});
-		}
+		var data = {};
+		data.ids = ids.join(",");
 
-		$("#test_listarea").dialog({
-			resizable : false,
-			modal : true,
-			width: 525,
-			title : "其中需测漏品确认",
-			buttons : {
-				"确认" : function() {
-					rowids = $("#test_list").jqGrid("getGridParam","selarrrow");
-					if (rowids.length == 0) {
-						errorPop("请选择测漏对象。");
-						return;
+		$.ajax({
+			data : data,
+			url: servicePath + "?method=doDisinfection",
+			async: false, 
+			beforeSend: ajaxRequestType, 
+			success: ajaxSuccessCheck, 
+			error: ajaxError, 
+			type : "post",
+			complete : function(xhrObj, textStatus){
+				var resInfo = $.parseJSON(xhrObj.responseText);
+				if (resInfo.sentMessage) {
+					var sentMessage = "";
+					var nList = [], dList = [], sList = [];
+					for (var i in resInfo.sentMessage) {
+						var material_id = resInfo.sentMessage[i];
+						if (material_id.indexOf('_') < 0) {
+							var omr_notifi_no 
+								= $("#imp_list td[aria\\-describedby='imp_list_material_id'][title='" + material_id + "']")
+									.parent().children("[aria\\-describedby='imp_list_sorc_no']").attr("title");
+							nList.push(omr_notifi_no);
+						} else {
+							var splitMP = material_id.split("_");
+							var omr_notifi_no 
+								= $("#imp_list td[aria\\-describedby='imp_list_material_id'][title='" + splitMP[0] + "']")
+									.parent().children("[aria\\-describedby='imp_list_sorc_no']").attr("title");
+							switch (splitMP[1]) {
+								case "00000000010" : dList.push(omr_notifi_no); break;
+								case "00000000011" : sList.push(omr_notifi_no); break;
+							}
+						}
 					}
-					for (var i in rowids) {
-						var rowdata = $("#test_list").getRowData(rowids[i]);
-						test_ids[test_ids.length] = rowdata["material_id"] + "_" + rowdata["fix_type"];
+					if (nList.length) {
+						sentMessage += "以下维修品没有指示消毒/灭菌，请相关人员确认："
+							+ nList.join() + "\n";
 					}
-					$(this).dialog("close");
-				},
-				"都无需测漏" : function() {
-					$(this).dialog("close");
+					if (dList.length) {
+						sentMessage += "以下维修品已放入消毒等待区："
+							+ dList.join() + "\n";
+					}
+					if (sList.length) {
+						sentMessage += "以下维修品已放入灭菌等待区："
+							+ sList.join() + "\n";
+					}
+					if (sentMessage.length) {
+						sentMessage = sentMessage.substring(0, sentMessage.length - 1);
+					}
+					infoPop(decodeText(sentMessage));
 				}
-			},
-			close: function (){
-				var data = {};
-				data.ids = ids.join(",");
-				if (test_ids.length > 0) {
-					data.test_ids = test_ids.join(",");
-				}
-				$.ajax({
-					data : data,
-					url: servicePath + "?method=doDisinfection",
-					async: false, 
-					beforeSend: ajaxRequestType, 
-					success: ajaxSuccessCheck, 
-					error: ajaxError, 
-					type : "post",
-					complete : function(){
-						loadImpListData();
-					}
-				});	
+				loadImpListData();
 			}
-		});
+		});	
+
+//		var jthis = $("#test_list");
+//		if ($("#gbox_test_list").length > 0) {
+//			jthis.jqGrid().clearGridData();
+//			jthis.jqGrid('setGridParam',{data:test_listdata}).trigger("reloadGrid", [{current:true}]);
+//		} else {
+//			jthis.jqGrid({
+//				data:test_listdata,
+//				height: 215,
+//				width: 500,
+//				rowheight: 23,
+//				datatype: "local",
+//				colNames:['','修理单号','型号','机身号',''],
+//				colModel:[
+//					{name:'material_id',index:'material_id', hidden:true},
+//					{name:'sorc_no',index:'sorc_no', width:60},
+//					{name:'model_name',index:'model_name'},
+//					{name:'serial_no',index:'serial_no', width:60, align:'center'},
+//					{name:'fix_type',index:'fix_type', hidden:true}
+//				],
+//				rowNum: 50,
+//				toppager: false,
+//				viewrecords: true,
+//				multiselect: true,
+//				gridview: true
+//			});
+//		}
+
+//		$("#test_listarea").dialog({
+//			resizable : false,
+//			modal : true,
+//			width: 525,
+//			title : "其中需测漏品确认",
+//			buttons : {
+//				"确认" : function() {
+//					rowids = $("#test_list").jqGrid("getGridParam","selarrrow");
+//					if (rowids.length == 0) {
+//						errorPop("请选择测漏对象。");
+//						return;
+//					}
+//					for (var i in rowids) {
+//						var rowdata = $("#test_list").getRowData(rowids[i]);
+//						test_ids[test_ids.length] = rowdata["material_id"] + "_" + rowdata["fix_type"];
+//					}
+//					$(this).dialog("close");
+//				},
+//				"都无需测漏" : function() {
+//					$(this).dialog("close");
+//				}
+//			},
+//			close: function (){
+//				var data = {};
+//				data.ids = ids.join(",");
+//				if (test_ids.length > 0) {
+//					data.test_ids = test_ids.join(",");
+//				}
+//				$.ajax({
+//					data : data,
+//					url: servicePath + "?method=doDisinfection",
+//					async: false, 
+//					beforeSend: ajaxRequestType, 
+//					success: ajaxSuccessCheck, 
+//					error: ajaxError, 
+//					type : "post",
+//					complete : function(){
+//						loadImpListData();
+//					}
+//				});	
+//			}
+//		});
 	}
 }
 
@@ -1337,3 +1396,197 @@ function uploadComplete(status) {
 		}		
 	});
 };
+
+var getMatch = function(){
+	$.ajax({
+		data : null,
+		url: servicePath + "?method=getMatch",
+		async: true, 
+		dataType : "json",
+		beforeSend: ajaxRequestType, 
+		success: ajaxSuccessCheck, 
+		error: ajaxError, 
+		type : "post",
+		complete : matchShow
+	});
+}
+
+var localReceptionsWithoutFact = null;
+var localReceptionsTemp = null;
+
+var matchShow = function(xhrObj) {
+	var resInfo = $.parseJSON(xhrObj.responseText);
+
+	if (resInfo.errors && resInfo.errors.length > 0) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+
+		return;
+	}
+
+	if (!resInfo.receptionsTemp || !resInfo.receptionsTemp.length) {
+		infoPop("当前没有未匹配的临时实物受理记录。不需要匹配。");
+	} else {
+		localReceptionsWithoutFact = resInfo.receptionsWithoutFact;
+		localReceptionsTemp = resInfo.receptionsTemp;
+
+		setMatchTables();
+
+		$("#factmatch_dialog").dialog({
+			position : 'auto',
+			title : "系统/实物受理品手动匹配",
+			show: "blind",
+			width :  '920',
+			resizable : false,
+			modal : true,
+			minHeight : 200,
+			buttons : {
+				"关闭":function(){
+					$("#factmatch_dialog").dialog("close");
+				}
+			}
+		});
+	}
+}
+
+var cutReceptionTime = function(reception_time) {
+	if (reception_time && reception_time.length > 16) {
+		return reception_time.substring(5, 16);
+	} else {
+		return "-";
+	}
+}
+var showTags = function(tag_types) {
+	if (tag_types && tag_types.length) {
+		var tag_typea = tag_types.split(",");
+		var ret = "";
+		for (var i in tag_typea) {
+			switch(tag_typea[i]) {
+				case "2" : ret += "待测漏<br>";break;
+				case "4" : ret += "待消毒<br>";break;
+				case "5" : ret += "待灭菌<br>";break;
+			}
+		}
+		if (ret) {
+			return ret.substring(0, ret.length - 4);
+		}
+		return "-";
+	} else {
+		return "-";
+	}
+}
+
+var setMatchTables = function(){
+
+	var $tbodyLeft = $("#factmatch_sys > table > tbody");
+	$tbodyLeft.html("");
+	var currentModel = "";
+	for (var sysIdx in localReceptionsWithoutFact) {
+		var sysMaterial = localReceptionsWithoutFact[sysIdx];
+		if (sysMaterial.model_name != currentModel) {
+			$tbodyLeft.append("<tr><td colspan='4' class='ui-state-default'>" + sysMaterial.model_name + "</td></tr>");
+			currentModel = sysMaterial.model_name;
+		}
+		$tbodyLeft.append("<tr m_id=" + sysMaterial.material_id + " model_name='" + currentModel + "'><td>" 
+			+ sysMaterial.serial_no + "</td><td>" + (sysMaterial.direct_flg != "1" ? "RC":"<span class='direct_flg'>直送</span>") 
+			+ "</td><td>" + cutReceptionTime(sysMaterial.reception_time) + "</td><td>" + sysMaterial.sorc_no + "</td></tr>");
+	}
+
+	var $tbodyRight = $("#factmatch_fact > table > tbody");
+	$tbodyRight.html("");
+
+	for (var sysIdx in localReceptionsTemp) {
+		var sysMaterial = localReceptionsTemp[sysIdx];
+		if (sysMaterial.model_name != currentModel) {
+			$tbodyRight.append("<tr><td colspan='4' class='ui-state-default'>" + sysMaterial.model_name + "</td></tr>");
+			currentModel = sysMaterial.model_name;
+		}
+		$tbodyRight.append("<tr m_id=" + sysMaterial.fact_recept_id + " model_name='" + currentModel + "'><td>" 
+			+ sysMaterial.serial_no + "</td><td>" + (sysMaterial.direct_flg != "1" ? "RC":"<span class='direct_flg'>直送</span>") 
+			+ "</td><td>" + cutReceptionTime(sysMaterial.reception_time) + "</td><td>" + showTags(sysMaterial.tag_types) + "</td></tr>");
+	}
+
+	$("#sys_content table, #fact_content table").attr("w_id", "")
+		.html("<tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr>");
+
+	$tbodyLeft.find("tr").not(".ui-state-default").click(function(){
+		var $tr = $(this);
+		var left_id = $tr.attr("m_id");
+		var model_name = $tr.attr("model_name");
+		var serial_no = $tr.children().eq(0).text();
+
+		$("#sys_content table").attr("w_id", left_id)
+			.html("<tr><td>" + model_name + "</td></tr><tr><td>" + serial_no + "</td></tr>");
+		$tbodyLeft.find("tr.ui-state-highlight").removeClass("ui-state-highlight");
+		$tr.addClass("ui-state-highlight");
+	});
+
+	$tbodyRight.find("tr").not(".ui-state-default").click(function(){
+		var $tr = $(this);
+		var right_id = $tr.attr("m_id");
+		var model_name = $tr.attr("model_name");
+
+		var serial_no = $tr.children().eq(0).text();
+
+		$("#fact_content table").attr("w_id", right_id)
+			.html("<tr><td>" + model_name + "</td></tr><tr><td>" + serial_no + "</td></tr>");
+		$tbodyRight.find("tr.ui-state-highlight").removeClass("ui-state-highlight");
+		$tr.addClass("ui-state-highlight");
+	});
+}
+
+var factmatch=function(){
+	var $sys_content_table = $("#sys_content table");
+	var $fact_content_table = $("#fact_content table");
+	var left_id = $sys_content_table.attr("w_id");
+	if (!left_id) {
+		errorPop("请选择系统受理维修品。");
+		return;
+	}
+	var right_id = $fact_content_table.attr("w_id");
+	if (!right_id) {
+		errorPop("请选择实物受理维修品。");
+		return;
+	}
+	if ($sys_content_table.find("td:eq(0)").html() != $fact_content_table.find("td:eq(0)").html()) {
+		warningConfirm("选择的系统/实物受理品型号不完全一致，请确认是否匹配。",
+		function(){
+			factmatchPost(left_id, right_id);
+		}, 
+		null, null, 
+		"继续匹配");
+	} else {
+		factmatchPost(left_id, right_id);
+	}
+}
+
+var factmatchPost=function(material_id, fact_recept_id){
+	var postData = {
+		fact_recept_id: fact_recept_id,
+		material_id:material_id
+	}
+
+	// Ajax提交
+	$.ajax({
+		beforeSend: ajaxRequestType, 
+		async: false, 
+		url: servicePath + '?method=doFactmatch', 
+		cache: false, 
+		data: postData, 
+		type: "post", 
+		dataType: "json", 
+		success: ajaxSuccessCheck, 
+		error: ajaxError, 
+		complete:  function(xhrObj, textStatus){
+			var resInfo = $.parseJSON(xhrObj.responseText);
+			if (resInfo.errors && resInfo.errors.length) {
+				// 共通出错信息框
+				treatBackMessages(null, resInfo.errors);
+			} else {
+				griddata_remove(localReceptionsWithoutFact, "material_id", material_id, false);
+				griddata_remove(localReceptionsTemp, "fact_recept_id", fact_recept_id, false);
+				setMatchTables();
+			}
+		}
+	});
+}

@@ -65,6 +65,9 @@ public class FactReceptMaterialForm extends ActionForm implements Serializable {
 	@BeanField(title = "通箱库位", name = "tc_location", type = FieldType.String)
 	private String tc_location;
 
+	@BeanField(title = "实物受理时间", name = "reception_time", type = FieldType.DateTime)
+	private String reception_time;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -199,6 +202,14 @@ public class FactReceptMaterialForm extends ActionForm implements Serializable {
 
 	public void setTc_location(String tc_location) {
 		this.tc_location = tc_location;
+	}
+
+	public String getReception_time() {
+		return reception_time;
+	}
+
+	public void setReception_time(String reception_time) {
+		this.reception_time = reception_time;
 	}
 
 }

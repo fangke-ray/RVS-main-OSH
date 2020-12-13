@@ -20,7 +20,9 @@ import framework.huiqing.common.util.copy.CopyOptions;
  */
 public class MaterialTagService {
 
-	public static final Integer TAG_ANIMAL_EXPR = 1;
+	public static final int TAG_ANIMAL_EXPR = 1;
+	public static final int TAG_DISINFECT = 4;
+	public static final int TAG_STERIZE = 5;
 
 	/**
 	 * 新建
@@ -80,5 +82,25 @@ public class MaterialTagService {
 	public List<Integer> checkTagByMaterialId(String material_id, Integer tag_type, SqlSession conn) {
 		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
 		return mapper.checkTagByMaterialId(material_id, tag_type + "");
+	}
+
+	/**
+	 * 取得维修品设定的消毒灭菌流程
+	 * 
+	 * @param material_id
+	 * @param conn
+	 * @return
+	 */
+	public String getDisinectFlow(String material_id, SqlSession conn) {
+		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
+		List<Integer> tagsByMaterialId = mapper.checkTagByMaterialId(material_id, null);
+		for (Integer tag : tagsByMaterialId) {
+			switch(tag) {
+			case TAG_DISINFECT : return "00000000010";
+			case TAG_STERIZE : return "00000000011";
+			}
+		}
+
+		return null;
 	}
 }
