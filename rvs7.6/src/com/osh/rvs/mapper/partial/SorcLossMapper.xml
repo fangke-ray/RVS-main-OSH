@@ -72,10 +72,10 @@
 	    </where>
 		) mtl
 			left join 
-			(select * from service_repair_manage where material_id like '0%') srm 
+			(select cast(material_id as unsigned) as material_id, service_repair_flg, service_free_flg from service_repair_manage where material_id like '0%') srm 
 			ON mtl.material_id = srm.material_id
 			where 
-		(srm.service_repair_flg not in (1,2) or srm.service_repair_flg is null or 
+		(srm.service_repair_flg is null or srm.service_repair_flg not in (1,2) or 
 			(srm.service_repair_flg = 1 and srm.service_free_flg = 1))
 	order by mtl.ocm_shipping_date, mtl.sorc_no
   </select>

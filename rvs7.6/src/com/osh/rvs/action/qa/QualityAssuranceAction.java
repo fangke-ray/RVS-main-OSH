@@ -56,15 +56,16 @@ import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class QualityAssuranceAction extends BaseAction {
-	private static String WORK_STATUS_FORBIDDEN = "-1";
-	private static String WORK_STATUS_PREPAIRING = "0";
-	private static String WORK_STATUS_WORKING = "1";
-	private static String WORK_STATUS_PAUSING = "2";
-	private static String WORK_STATUS_DECIDE = "1.5";
-	private static String WORK_STATUS_DECIDE_PAUSING = "2.5";
-	private static String WORK_STATUS_CELL_WORKING = "1.9";
-	private static String WORK_STATUS_PERIPHERAL_WORKING = "4";
-	private static String WORK_STATUS_PERIPHERAL_PAUSING = "5";
+	private static final String OPERATOR_ENDO = "00000000145";
+	private static final String WORK_STATUS_FORBIDDEN = "-1";
+	private static final String WORK_STATUS_PREPAIRING = "0";
+	private static final String WORK_STATUS_WORKING = "1";
+	private static final String WORK_STATUS_PAUSING = "2";
+	private static final String WORK_STATUS_DECIDE = "1.5";
+	private static final String WORK_STATUS_DECIDE_PAUSING = "2.5";
+	private static final String WORK_STATUS_CELL_WORKING = "1.9";
+	private static final String WORK_STATUS_PERIPHERAL_WORKING = "4";
+	private static final String WORK_STATUS_PERIPHERAL_PAUSING = "5";
 
 	private Logger log = Logger.getLogger(getClass());
 
@@ -569,9 +570,20 @@ public class QualityAssuranceAction extends BaseAction {
 
 			pfdao.finishProductionFeature(workingPf);
 
+			MaterialService mService = new  MaterialService();
 			if (isLeader) {
-				MaterialService mService = new  MaterialService();
 				mService.saveLeaderInput(req, workingPf.getMaterial_id(), user, conn);
+			} else {
+				// 员工结束
+				String cfmPcsInputs = "{\"LN61199\":\"1\"}";
+				switch (user.getPosition_id()) {
+				case RvsConsts.POSITION_QA_P_613: cfmPcsInputs = "{\"ET61301\":\"1\",\"LR61399\":\"01\",\"LN61399\":\"1\"}"; break;
+				case RvsConsts.POSITION_QA_P_614: cfmPcsInputs = "{\"LN61499\":\"1\"}"; break;
+				}
+
+				String cfmPcsComments = null;
+				mService.saveLeaderInput(cfmPcsInputs, cfmPcsComments, workingPf.getMaterial_id(),
+						OPERATOR_ENDO, user.getLine_id(), conn);
 			}
 
 			// 启动下个工位 就是出货

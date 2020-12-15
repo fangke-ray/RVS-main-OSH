@@ -468,6 +468,7 @@
 		<value code="9">保修期内返品</value>
 		<value code="10">最终检查不良</value>
 		<value code="11">组装组件使用</value>
+		<value code="12">特殊对应</value>
 	</codelist>
 	
 	<codelist name="partial_spec_kind">
@@ -487,6 +488,8 @@
 		<value code="8">新品零件不良</value>
 		<value code="9">保修期内不良</value>
 		<value code="10">最终检查不良</value>
+		<value code="11">组装组件使用</value>
+		<value code="12">特殊对应</value>
 	</codelist>
 
 	<codelist name="privacy_system_module">

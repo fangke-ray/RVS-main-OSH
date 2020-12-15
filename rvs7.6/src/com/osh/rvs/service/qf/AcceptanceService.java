@@ -223,7 +223,7 @@ public class AcceptanceService {
 
 		Date aidRcAcceptStartAt = null;
 		LoginData user = null;
-		if (isAidRc) {
+		if (isAidRc || isSpare) {
 			aidRcAcceptStartAt = (Date) httpSession.getAttribute("AidRcAcceptStartAt");
 			user = (LoginData) httpSession.getAttribute(RvsConsts.SESSION_USER);
 		}
@@ -418,7 +418,7 @@ public class AcceptanceService {
 		entity.setPace(0);
 		entity.setSection_id("00000000009");
 		entity.setAction_time(aidRcAcceptStartAt);
-		entity.setOperator_id(user.getOperator_id());
+		if (user != null) entity.setOperator_id(user.getOperator_id());
 		entity.setOperate_result(RvsConsts.OPERATE_RESULT_WORKING);
 		entity.setRework(0);
 		mapper.insertProductionFeature(entity);

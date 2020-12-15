@@ -118,7 +118,7 @@ li.list-group-item.empty {
 }
 
 .add{
-	width: 42px;
+	width: 68px;
 	height: 42px;
 	line-height:42px;
 	text-align: center;
@@ -163,7 +163,7 @@ li.list-group-item.empty {
 }
 
 .item-container.more{
-	background-color: #3399CC;
+	background-color: #18CC99;
 }
 
 .item-container.leak{
@@ -403,13 +403,14 @@ label.tc_location:empty {
 
 #tc_location_pop .tc_location {
 	font-size:24px;
-	margin: 1em 1em 0 0;
+	margin: 1em .8em 0 0;
 	float: left;
 	background-color: white;
 	border-radius: 3px;
 	box-shadow: 0 4px rgba(0, 0, 0, 0.2);
 	color: #888;
-	padding: 0 0.2em;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
 }
 
 #model_keyboard_pop {
@@ -437,6 +438,20 @@ label.tc_location:empty {
 	box-shadow: 0 4px rgba(0, 0, 0, 0.2);
 	color: #888;
 	padding: 0 0.2em;
+}
+#model_keyboard_pop > #model_list > pre {
+	font-size:20px;
+	margin: 1em 1em 0 0;
+	float: left;
+	background-color: darkblue;
+	border-radius: 3px;
+	box-shadow: 0 4px rgba(0, 0, 0, 0.2);
+	color: gold;
+	padding: 0 0.2em;	
+}
+#model_keyboard_pop > #model_list > pre:after {
+	content:'...';
+	right:0;	
 }
 #model_keyboard_pop > #model_list > span > h {
 	color:orange;

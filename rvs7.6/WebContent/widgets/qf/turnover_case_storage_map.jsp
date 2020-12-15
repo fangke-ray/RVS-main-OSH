@@ -1059,7 +1059,7 @@ cursor :pointer;
 		</div>
 
 		<!--div class="clear"></div-->
-		<div style="margin: 15px; float: left;">
+		<div style="margin: 15px; float: left;transform: scaleX(0.84);transform-origin: left top;">
 			<div class="ui-widget-header" style="text-align: center;">硬性镜货架</div>
 			<table class="condform wip-table">
 				<tr>
@@ -1085,6 +1085,18 @@ cursor :pointer;
 <td location="Z20-01">20-01</td>
 <td location="Z21-01">21-01</td>
 <td location="Z22-01">22-01</td>
+<td location="Z23-01">23-01</td>
+<td location="Z24-01">24-01</td>
+<td location="Z25-01">25-01</td>
+<td location="Z26-01">26-01</td>
+<td location="Z27-01">27-01</td>
+<td location="Z28-01">28-01</td>
+<td location="Z29-01">29-01</td>
+<td location="Z30-01">30-01</td>
+<td location="Z31-01">31-01</td>
+<td location="Z32-01">32-01</td>
+<td location="Z33-01">33-01</td>
+<td location="Z34-01">34-01</td>
 				</tr>
 				<tr>
 <td location="Z01-02">01-02</td>
@@ -1109,6 +1121,18 @@ cursor :pointer;
 <td location="Z20-02">20-02</td>
 <td location="Z21-02">21-02</td>
 <td location="Z22-02">22-02</td>
+<td location="Z23-02">23-02</td>
+<td location="Z24-02">24-02</td>
+<td location="Z25-02">25-02</td>
+<td location="Z26-02">26-02</td>
+<td location="Z27-02">27-02</td>
+<td location="Z28-02">28-02</td>
+<td location="Z29-02">29-02</td>
+<td location="Z30-02">30-02</td>
+<td location="Z31-02">31-02</td>
+<td location="Z32-02">32-02</td>
+<td location="Z33-02">33-02</td>
+<td location="Z34-02">34-02</td>
 				</tr>
 				<tr>
 <td location="Z01-03">01-03</td>
@@ -1133,6 +1157,18 @@ cursor :pointer;
 <td location="Z20-03">20-03</td>
 <td location="Z21-03">21-03</td>
 <td location="Z22-03">22-03</td>
+<td location="Z23-03">23-03</td>
+<td location="Z24-03">24-03</td>
+<td location="Z25-03">25-03</td>
+<td location="Z26-03">26-03</td>
+<td location="Z27-03">27-03</td>
+<td location="Z28-03">28-03</td>
+<td location="Z29-03">29-03</td>
+<td location="Z30-03">30-03</td>
+<td location="Z31-03">31-03</td>
+<td location="Z32-03">32-03</td>
+<td location="Z33-03">33-03</td>
+<td location="Z34-03">34-03</td>
 				</tr>
 				<tr>
 <td location="Z01-04">01-04</td>
@@ -1157,6 +1193,18 @@ cursor :pointer;
 <td location="Z20-04">20-04</td>
 <td location="Z21-04">21-04</td>
 <td location="Z22-04">22-04</td>
+<td location="Z23-04">23-04</td>
+<td location="Z24-04">24-04</td>
+<td location="Z25-04">25-04</td>
+<td location="Z26-04">26-04</td>
+<td location="Z27-04">27-04</td>
+<td location="Z28-04">28-04</td>
+<td location="Z29-04">29-04</td>
+<td location="Z30-04">30-04</td>
+<td location="Z31-04">31-04</td>
+<td location="Z32-04">32-04</td>
+<td location="Z33-04">33-04</td>
+<td location="Z34-04">34-04</td>
 				</tr>
 				<tr>
 <td location="Z01-05">01-05</td>
@@ -1181,6 +1229,18 @@ cursor :pointer;
 <td location="Z20-05">20-05</td>
 <td location="Z21-05">21-05</td>
 <td location="Z22-05">22-05</td>
+<td location="Z23-05">23-05</td>
+<td location="Z24-05">24-05</td>
+<td location="Z25-05">25-05</td>
+<td location="Z26-05">26-05</td>
+<td location="Z27-05">27-05</td>
+<td location="Z28-05">28-05</td>
+<td location="Z29-05">29-05</td>
+<td location="Z30-05">30-05</td>
+<td location="Z31-05">31-05</td>
+<td location="Z32-05">32-05</td>
+<td location="Z33-05">33-05</td>
+<td location="Z34-05">34-05</td>
 				</tr>
 				<tr>
 <td location="Z01-06">01-06</td>

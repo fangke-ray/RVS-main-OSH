@@ -1509,9 +1509,10 @@ var setMatchTables = function(){
 	$("#sys_content table, #fact_content table").attr("w_id", "")
 		.html("<tr><td>&nbsp;</td></tr><tr><td>&nbsp;</td></tr>");
 
-	$tbodyLeft.find("tr").not(".ui-state-default").click(function(){
+	$tbodyLeft.find("tr").click(function(){
 		var $tr = $(this);
 		var left_id = $tr.attr("m_id");
+		if (!left_id) return;
 		var model_name = $tr.attr("model_name");
 		var serial_no = $tr.children().eq(0).text();
 
@@ -1521,9 +1522,10 @@ var setMatchTables = function(){
 		$tr.addClass("ui-state-highlight");
 	});
 
-	$tbodyRight.find("tr").not(".ui-state-default").click(function(){
+	$tbodyRight.find("tr").click(function(){
 		var $tr = $(this);
 		var right_id = $tr.attr("m_id");
+		if (!right_id) return;
 		var model_name = $tr.attr("model_name");
 
 		var serial_no = $tr.children().eq(0).text();

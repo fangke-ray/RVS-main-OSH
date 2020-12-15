@@ -773,10 +773,10 @@ public class MaterialAction extends BaseAction {
 			if (!isEmpty(lightFixStr)) {
 				String light_fix_content = "小修理的修理内容是：" + lightFixStr;
 				listResponse.put("light_fix_content", light_fix_content);
-
-				List<String> light_positions = mpas.getLightPositionsByMaterial(material_id, conn);
-				listResponse.put("light_positions", light_positions);
 			}
+
+			List<String> light_positions = mpas.getLightPositionsByMaterial(material_id, conn);
+			listResponse.put("light_positions", light_positions);
 
 			Set<String> ccdModels = RvsUtils.getCcdModels(conn);
 			if (ccdModels != null && ccdModels.contains(mEntity.getModel_id())) {

@@ -68,6 +68,11 @@ public class SorcLossAction extends BaseAction {
 			String current_date = DateUtil.toString(calendar.getTime(), "yyyy/MM/dd");
 			request.setAttribute("current_date", current_date);
 		}
+
+		request.getSession().removeAttribute("result");
+		request.getSession().removeAttribute("ocm_shipping_month");
+		request.getSession().removeAttribute("resultOfRepair");
+
 		actionForward = mapping.findForward(FW_INIT);
 
 		log.info("SorcLossAction.init end");
@@ -231,6 +236,15 @@ public class SorcLossAction extends BaseAction {
 		SorcLossForm sorcLossForm = (SorcLossForm) form;
 		// 验证 出货月和出货日期其中必须有一个有值
 		service.customValidate(sorcLossForm, conn, errors);
+
+		Object result = request.getSession().getAttribute("result");
+		if (result == null) {
+			
+			MsgInfo e = new MsgInfo();
+			e.setComponentid("ocm_shipping_month");
+			e.setErrmsg("没有月损金一览表数据，请选择【出货月】后进行一次查询。");
+			errors.add(e);
+		}
 
 		if (errors.size() == 0) {
 			String fileName = "SORC损金一览.xls";

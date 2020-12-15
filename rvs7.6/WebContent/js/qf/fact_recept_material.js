@@ -579,7 +579,11 @@ function filterSelModel() {
 	}
 
 	if (doClear) {
-		$("#model_list").html("");
+		if (filterIdx && filterIdx !== "汉") {
+			$("#model_list").html("<pre>" + filterIdx + "</pre>");
+		} else {
+			$("#model_list").html("");
+		}
 	} else {
 		var type = $("#model_keyboard_pop").data("type");
 		var dct = gModelDict[type];
@@ -594,12 +598,12 @@ function filterSelModel() {
 					 + model.name.substring(0, filterIdx.length)
 					 + "</h>" + decodeText(model.name.substring(filterIdx.length)) + "</span>";
 				}
-				$("#model_list").html(modelHtml);
+				$("#model_list").html(modelHtml);					
 			} else {
 				if (dct[filterIdx.substring(0,2) + "-"]) {
 					aimaiMatch(dct, filterIdx, 2);
 				} else {
-					$("#model_list").html("");
+					$("#model_list").html("<pre>" + filterIdx + "</pre>");
 				}
 			}
 		} else {
@@ -658,9 +662,13 @@ function aimaiMatch(dct, filterIdx, fcount) {
 				}
 			}
 		}
-		$("#model_list").html(modelHtml);
+		if (modelHtml) {
+			$("#model_list").html(modelHtml);					
+		} else {
+			$("#model_list").html("<pre>" + filterIdx + "</pre>");
+		}
 	} else {
-		$("#model_list").html("");
+		$("#model_list").html("<pre>" + filterIdx + "</pre>");
 	}
 }
 
@@ -791,11 +799,13 @@ function setList(id, list, tempList) {
             }
 
             let classs = "";
+            let complete = false;
             if (obj.fact_recept == "1") {
             	if (obj.tag_types && obj.tag_types.indexOf("2") >= 0) {
 	                classs = "item-container leak";
             	} else {
 	                classs = "item-container";
+	                complete = true;
             	}
             } else {
                 let arriveDate = new Date(obj.expect_arrive_time);
@@ -815,7 +825,8 @@ function setList(id, list, tempList) {
             	'" serial_no="' + obj.serial_no + '" model_name="' + (obj.model_name || '') + '" tag_types="' + (obj.tag_types || '') +
             	'" comment="' + (obj.comment || '') + '" category_id="' + obj.category_id + '" model_id="' + (obj.model_id || '') + '"' +
             	(obj.tc_location ? (' tc_location="' + obj.tc_location + '"') : '') +
-            	'">';
+            	(complete ? ' complete=true' : '') + 
+            	'>';
 	            content += '<div class="item-sub-container">';
 	            	content += '<div class="item">' + obj.serial_no + '</div>';
             	content += '</div>';
@@ -995,13 +1006,16 @@ function showEditDialog(initData) {
 
     // 绑定事件
     if (!arrTagTypes.includes('3')) {
+        if (arrTagTypes.includes('2')) { //要做测漏还未做
+            $("#edit_leak").addClass("checked");
+        }
         $("#edit_leak").hammer().off("tap").on("tap", function() {
             if ($(this).hasClass("checked")) {
                 $(this).removeClass("checked");
-                $dialog.next().find(".ui-dialog-buttonset button:eq(1)").hide();
+                $dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").hide();
             } else {
                 $(this).addClass("checked");
-                $dialog.next().find(".ui-dialog-buttonset button:eq(1)").show();
+                $dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").show();
             }
 
             blinkTip($(this));
@@ -1039,8 +1053,9 @@ function showEditDialog(initData) {
     initData.direct_flg == 1 ? title = "直送" : title = "非直送";
 
     let buttons = {};
+
     //已经做完测漏
-    if(arrTagTypes.includes("3")){
+    if(initData.complete){
     	buttons["更改"] = function(){
     		if (editValidate(arrTagTypes)) {
     			let postData = {
@@ -1126,7 +1141,38 @@ function showEditDialog(initData) {
     		}
     	}
     } else {
-    	buttons["完成实物受理"] = function(){
+    	buttons["完成实物受理及测漏"] = function(){
+    		if (editValidate(arrTagTypes)) {
+    			let postData = {
+    				"material_id": initData.material_id,
+    				"flag": initData.flag
+    			};
+
+    			let index = -1;
+    			if ($("#edit_animal").hasClass("checked")) {
+                    index++;
+                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物实验
+                }
+
+                index++;
+    			postData["material_tag.tag_type[" + index + "]"] = "3"; //完成测漏
+
+    			if ($("#edit_disinfect").hasClass("checked")) {
+                    index++;
+                    postData["material_tag.tag_type[" + index + "]"] = "4"; //消毒
+                } else if ($("#edit_sterilize").hasClass("checked")) {
+                    index++;
+                    postData["material_tag.tag_type[" + index + "]"] = "5"; //灭菌
+                }
+
+                if (!initData.tc_location) {
+			    	postData.tc_location = $("#edit_tc_location").html();
+			    }
+
+                updateMaterial(postData);
+    		}
+    	};
+	   	buttons["完成实物受理"] = function(){
     		if (editValidate(arrTagTypes)) {
     			let postData = {
     				"material_id": initData.material_id,
@@ -1159,38 +1205,7 @@ function showEditDialog(initData) {
                 updateMaterial(postData);
     		}
     	};
-    	buttons["完成实物受理及测漏"] = function(){
-    		if (editValidate(arrTagTypes)) {
-    			let postData = {
-    				"material_id": initData.material_id,
-    				"flag": initData.flag
-    			};
-
-    			let index = -1;
-    			if ($("#edit_animal").hasClass("checked")) {
-                    index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "1"; //动物实验
-                }
-
-                index++;
-    			postData["material_tag.tag_type[" + index + "]"] = "3"; //完成测漏
-
-    			if ($("#edit_disinfect").hasClass("checked")) {
-                    index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "4"; //消毒
-                } else if ($("#edit_sterilize").hasClass("checked")) {
-                    index++;
-                    postData["material_tag.tag_type[" + index + "]"] = "5"; //灭菌
-                }
-
-                if (!initData.tc_location) {
-			    	postData.tc_location = $("#edit_tc_location").html();
-			    }
-
-                updateMaterial(postData);
-    		}
-    	}
-    }
+     }
 
     $("#edit_tc_location").off();
     if (!initData.tc_location) {
@@ -1219,9 +1234,9 @@ function showEditDialog(initData) {
 
     if(arrTagTypes.includes("3")){
     } else if(arrTagTypes.includes("2")){
-    	$dialog.next().find(".ui-dialog-buttonset button:eq(1)").show();
+    	$dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").show();
     } else {
-		$dialog.next().find(".ui-dialog-buttonset button:eq(1)").hide();
+		$dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").hide();
     }
 
     //必须验证
@@ -1287,12 +1302,14 @@ var chooseTcLocation = function(category_id, $target) {
 	}
 
 	var $tcLocationCoverery = $("#tc_location_pop");
+	$tcLocationCoverery.attr("target_id", $target.attr("id"));
+
 	if ($tcLocationCoverery.length == 0) {
 		$(document.body).append("<div id='tc_location_pop'/>")
 		$tcLocationCoverery = $("#tc_location_pop");
 		$tcLocationCoverery.on("click", function(e){
 			if (e.target.className.indexOf("tc_location") >= 0) {
-				$target.text(e.target.innerText);
+				$("#" + $tcLocationCoverery.attr("target_id")).text(e.target.innerText);
         		$("body > .overlay").remove();
 				$tcLocationCoverery.hide();
 			} else {
@@ -1338,13 +1355,16 @@ function showTempEditDialog(initData) {
 
     // 绑定事件
     if (!arrTagTypes.includes('3')) {
+		if (arrTagTypes.includes('2')) { //要做测漏还未做
+           	$("#temp_edit_leak").addClass("checked");
+        }
         $("#temp_edit_leak").hammer().off("tap").on("tap", function() {
             if ($(this).hasClass("checked")) {
                 $(this).removeClass("checked");
-                $dialog.next().find(".ui-dialog-buttonset button:eq(1)").hide();
+                $dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").hide();
             } else {
                 $(this).addClass("checked");
-                $dialog.next().find(".ui-dialog-buttonset button:eq(1)").show();
+                $dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").show();
             }
 
             blinkTip($(this));
@@ -1580,9 +1600,9 @@ function showTempEditDialog(initData) {
 
     if(arrTagTypes.includes("3")){
     } else if(arrTagTypes.includes("2")){
-    	$dialog.next().find(".ui-dialog-buttonset button:eq(1)").show();
+    	$dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").show();
     } else {
-		$dialog.next().find(".ui-dialog-buttonset button:eq(1)").hide();
+		$dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").hide();
     }
 
     $("#temp_edit_model_name").enable();
@@ -1653,10 +1673,10 @@ function showAddDialog(direct_flg) {
     $("#add_leak").hammer().off("tap").on("tap", function() {
         if ($(this).hasClass("checked")) {
             $(this).removeClass("checked");
-            $dialog.next().find(".ui-dialog-buttonset button:eq(1)").hide();
+            $dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").hide();
         } else {
             $(this).addClass("checked");
-            $dialog.next().find(".ui-dialog-buttonset button:eq(1)").show();
+            $dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").show();
         }
 
         blinkTip($(this));
@@ -1736,7 +1756,36 @@ function showAddDialog(direct_flg) {
         resizable: false,
         modal: true,
         buttons: {
-            "完成实物受理": function(){
+            "完成实物受理及测漏":function(){
+            	if (addValidate()) {
+            		let postData = {
+                        "direct_flg": direct_flg,
+                        "model_name": $("#add_model_name").text().trim(),
+                        "model_id": $("#add_model_id").val().trim(),
+                        "serial_no": $("#add_serial_no").val().trim(),
+                        "flag": "0" //维修对象
+                    };
+
+                    let types = new Array();
+                    if ($("#add_animal").hasClass("checked")) {
+                        types.push("1"); //动物实验
+                    }
+
+                    types.push("3"); //完成测漏
+
+                    if ($("#add_disinfect").hasClass("checked")) {
+                        types.push("4"); //消毒
+                    } else if ($("#add_sterilize").hasClass("checked")) {
+                        types.push("5"); //灭菌
+                    }
+
+                    postData["tag_types"] = types.join();
+                    postData.tc_location = $("#add_tc_location").html();
+
+ 					addFactReceptMaterial(postData);
+            	}
+            },
+             "完成实物受理": function(){
             	if (addValidate()) {
             		let postData = {
                         "direct_flg": direct_flg,
@@ -1767,42 +1816,13 @@ function showAddDialog(direct_flg) {
                     addFactReceptMaterial(postData);
             	}
             },
-            "完成实物受理及测漏":function(){
-            	if (addValidate()) {
-            		let postData = {
-                        "direct_flg": direct_flg,
-                        "model_name": $("#add_model_name").text().trim(),
-                        "model_id": $("#add_model_id").val().trim(),
-                        "serial_no": $("#add_serial_no").val().trim(),
-                        "flag": "0" //维修对象
-                    };
-
-                    let types = new Array();
-                    if ($("#add_animal").hasClass("checked")) {
-                        types.push("1"); //动物实验
-                    }
-
-                    types.push("3"); //完成测漏
-
-                    if ($("#add_disinfect").hasClass("checked")) {
-                        types.push("4"); //消毒
-                    } else if ($("#add_sterilize").hasClass("checked")) {
-                        types.push("5"); //灭菌
-                    }
-
-                    postData["tag_types"] = types.join();
-                    postData.tc_location = $("#add_tc_location").html();
-
- 					addFactReceptMaterial(postData);
-            	}
-            },
-            "取消": function() {
+           "取消": function() {
                 $(this).dialog("close");
             }
         }
     });
     $dialog.next().find(".ui-dialog-buttonset button").removeClass("ui-state-focus");
-    $dialog.next().find(".ui-dialog-buttonset button:eq(1)").hide();
+    $dialog.next().find(".ui-dialog-buttonset button:contains('测漏')").hide();
     $("#add_model_name").enable();
     $("#add_serial_no").enable();
 

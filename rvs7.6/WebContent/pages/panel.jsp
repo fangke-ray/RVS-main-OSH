@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">8.3.3382.459</p>
+								<p id="nee">8.5.3406.462</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2020年09月14日</p>
+								<p>2020年12月14日</p>
 							</div>
 						</div>
 <%
@@ -186,6 +186,18 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 %>
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
+								<p>--------------------------------------</p>
+								<p>20/12/14 8.5.3406.462 更新</p>
+								<p>品保: 报价完成周边检查票pdf化</p>
+								<p>生产管理/接口: 不良新现象提交</p>
+								<p>生产管理: 作业要领书管理/个人书单</p>
+								<p>受理: 实物受理记录界面及相关对应</p>
+								<p>品保: 最终检查通过自动记录确认信息</p>
+								<p>--------------------------------------</p>
+								<p>20/10/15 8.3.3396.459 更新</p>
+								<p>流水线: 分解流水线改造</p>
+								<p>报价: 直接作业人员代工间接作业人员功能</p>
+								<p>受理/流水线: 动物内镜用维修品标记与提示</p>
 								<p>--------------------------------------</p>
 								<p>20/09/14 8.3.3382.459 更新</p>
 								<p>流水线: 总组流水线改造（中小修单元化）</p>

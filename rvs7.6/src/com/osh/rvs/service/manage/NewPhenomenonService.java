@@ -233,7 +233,7 @@ public class NewPhenomenonService {
 
 			conn.commit();
 
-			RvsUtils.sendTrigger("http://10.220.140.199:8080/rvsIfTest/phenomenon/" + entity.getKey());
+			RvsUtils.sendTrigger("http://10.220.142.227:8080/rvsIf/phenomenon/" + entity.getKey());
 		} else if (hit != null) {
 			mapper.update(entity);
 		}

@@ -229,13 +229,13 @@ LIMIT 1;
 	<where>
 		AND anml_exp = 0
 		<if test="kind neq 06 and kind neq 738">
-			AND shelf not in ('Z1', 'Z2', 'Z3', 'Z4', 'M', 'N')
+			AND shelf not in ('Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'M', 'N')
 		</if>
 		<if test="kind eq 06">
-			AND shelf in ('Z1', 'Z2', 'Z3')
+			AND shelf in ('Z1', 'Z2')
 		</if>
 		<if test="kind eq 738">
-			AND shelf in ('Z4')
+			AND shelf in ('Z4', 'Z5')
 		</if>
 
 		<if test="shelfs != null and shelfs.size>0">
@@ -260,13 +260,13 @@ LIMIT 1;
 		material_id is null AND anml_exp = 0
 		and shelf = #{shelf}
 		<if test="kind neq 06 and kind neq 738">
-			AND shelf not in ('Z1', 'Z2', 'Z3', 'Z4', 'M', 'N')
+			AND shelf not in ('Z1', 'Z2', 'Z3', 'Z4', 'Z5', 'M', 'N')
 		</if>
 		<if test="kind eq 06">
-			AND shelf in ('Z1', 'Z2', 'Z3')
+			AND shelf in ('Z1', 'Z2')
 		</if>
 		<if test="kind eq 738">
-			AND shelf in ('Z4')
+			AND shelf in ('Z4', 'Z5')
 		</if>
 	</where>
     </select>
@@ -292,12 +292,13 @@ LIMIT 1;
 		SELECT shelf, location,
 		CASE 
 			when shelf in ('Z1', 'Z2', 'Z3') then 1
-			when shelf in ('Z4') then 2
+			when shelf in ('Z4', 'Z5') then 2
 			when shelf in ('M', 'N') then 3
 			else 0
 		END as direct_flg
 		FROM turnover_case_storage
 		WHERE execute = 9
+		and not exists (select 1 from fact_recept_material_temp where tc_location = location)
 		ORDER by location
     </select>
 

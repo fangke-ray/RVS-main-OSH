@@ -17,7 +17,7 @@ public class OperatorForm extends ActionForm {
 	@BeanField(title = "担当人 ID", name = "operator_id", primaryKey = true, length = 11)
 	private String id;
 	/** 担当人姓名 */
-	@BeanField(title = "担当人姓名", name = "name", type = FieldType.FullString, notNull=true, length = 8)
+	@BeanField(title = "担当人姓名", name = "name", type = FieldType.String, notNull=true, length = 8)
 	private String name;
 	/** 工号 */
 	@BeanField(title = "工号", name = "job_no", notNull=true, length = 8)
