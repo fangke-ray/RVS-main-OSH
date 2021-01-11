@@ -417,7 +417,7 @@ function load_list(t_listdata) {
 		$("#uld_list").jqGrid().clearGridData();
 		$("#uld_list").jqGrid('setGridParam', {data : t_listdata}).trigger("reloadGrid", [{current : false}]);
 	} else {
-		var isL = ($("#passbutton").length > 0);
+		var isL = ($("#forbidbutton").length > 0);
 
 		$("#uld_list").jqGrid({
 			toppager : true,
@@ -551,7 +551,7 @@ var treatStart = function(resInfo) {
 
 	// 工程检查票
 	if (resInfo.pcses && resInfo.pcses.length > 0 && hasPcs) {
-		pcsO.generate(resInfo.pcses, $("#passbutton").length > 0);
+		pcsO.generate(resInfo.pcses, $("#forbidbutton").length > 0);
 	}
 
 	// 维修对象备注信息

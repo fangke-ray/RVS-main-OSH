@@ -101,7 +101,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchbutton" value="检索" role="button" aria-disabled="false" style="float:right;right:2px">
 						<input type="hidden" id="h_date_start" value="${scheduled_date_start}">
 						<input id="isEditor" type="hidden" value="<%=editor%>" />
-<% if (isQaer) { %>
+<% if (isQaer || isEditor) { %>
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchperltempbutton" value="显示周边设备报价结果" role="button" aria-disabled="false" style="float:right;right:2px">
 <% } %>
 						<input id="sLevel" type="hidden" value="${sLevel}">

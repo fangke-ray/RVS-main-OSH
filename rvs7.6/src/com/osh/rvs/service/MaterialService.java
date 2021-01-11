@@ -726,19 +726,22 @@ public class MaterialService {
 	}
 
 	public void saveLeaderInput(HttpServletRequest req, String material_id, LoginData user, SqlSessionManager conn) throws Exception {
+		saveLeaderInput(req.getParameter("pcs_inputs"), req.getParameter("pcs_comments"), material_id, user.getOperator_id(), user.getLine_id(), conn);
+	}
+	public void saveLeaderInput(String pcs_inputs, String pcs_comments, String material_id, String operator_id, String line_id, SqlSessionManager conn) throws Exception {
 		// 取得最新rework在line_id
 		ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
-		int lineMaxRework = pfMapper.getReworkCountWithLine(material_id, user.getLine_id());
+		int lineMaxRework = pfMapper.getReworkCountWithLine(material_id, line_id);
 
 		// 保存到线长工检票记录
 		LeaderPcsInputMapper dao = conn.getMapper(LeaderPcsInputMapper.class);
 
 		ProductionFeatureEntity pfBean = new ProductionFeatureEntity();
 		pfBean.setMaterial_id(material_id);
-		pfBean.setPcs_inputs(req.getParameter("pcs_inputs"));
-		pfBean.setPcs_comments(req.getParameter("pcs_comments"));
-		pfBean.setOperator_id(user.getOperator_id());
-		pfBean.setLine_id(user.getLine_id());
+		pfBean.setPcs_inputs(pcs_inputs);
+		pfBean.setPcs_comments(pcs_comments);
+		pfBean.setOperator_id(operator_id);
+		pfBean.setLine_id(line_id);
 		pfBean.setRework(lineMaxRework);
 
 		dao.insert(pfBean);

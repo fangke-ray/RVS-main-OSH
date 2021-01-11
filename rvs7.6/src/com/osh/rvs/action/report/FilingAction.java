@@ -87,7 +87,7 @@ public class FilingAction extends BaseAction {
 			req.setAttribute("editor", "true");
 		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
 			req.setAttribute("editor", "line");
-		} else if (privacies.contains(RvsConsts.PRIVACY_QA_MANAGER)) {
+		} else if (privacies.contains(RvsConsts.PRIVACY_QUALITY_ASSURANCE)) {
 			req.setAttribute("editor", "qa");
 		} else {
 			req.setAttribute("editor", "false");

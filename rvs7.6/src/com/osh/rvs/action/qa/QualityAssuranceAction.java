@@ -56,7 +56,7 @@ import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class QualityAssuranceAction extends BaseAction {
-	private static final String OPERATOR_ENDO = "00000000145";
+	private static final String OPERATOR_AIBRA = "00000000227";
 	private static final String WORK_STATUS_FORBIDDEN = "-1";
 	private static final String WORK_STATUS_PREPAIRING = "0";
 	private static final String WORK_STATUS_WORKING = "1";
@@ -557,10 +557,10 @@ public class QualityAssuranceAction extends BaseAction {
 			ProductionFeatureMapper pfdao = conn.getMapper(ProductionFeatureMapper.class);
 			workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
 			workingPf.setUse_seconds(use_seconds);
-			if (!isLeader) {
-				workingPf.setPcs_inputs(req.getParameter("pcs_inputs"));
-				workingPf.setPcs_comments(req.getParameter("pcs_comments"));
-			}
+//			if (!isLeader) { // 覆盖进行中记录
+//				workingPf.setPcs_inputs(req.getParameter("pcs_inputs"));
+//				workingPf.setPcs_comments(req.getParameter("pcs_comments"));
+//			}
 			if ("{}".equals(workingPf.getPcs_comments())) {
 				workingPf.setPcs_comments(null);
 			}
@@ -583,7 +583,7 @@ public class QualityAssuranceAction extends BaseAction {
 
 				String cfmPcsComments = null;
 				mService.saveLeaderInput(cfmPcsInputs, cfmPcsComments, workingPf.getMaterial_id(),
-						OPERATOR_ENDO, user.getLine_id(), conn);
+						OPERATOR_AIBRA, user.getLine_id(), conn);
 			}
 
 			// 启动下个工位 就是出货

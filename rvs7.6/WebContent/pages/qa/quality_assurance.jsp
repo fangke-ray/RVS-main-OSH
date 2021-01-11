@@ -141,11 +141,11 @@ if (peripheral!=null && peripheral) {
 						<%
 							if(islineLeader){
 						%>
-						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="passbutton" value="检测通过" role="button" aria-disabled="false" style="float: right; right: 2px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="forbidbutton" value="检测不通过" role="button" aria-disabled="false" style="float: right; right: 2px">
 						<%
 							}
 						%>
+						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="passbutton" value="检测通过" role="button" aria-disabled="false" style="float: right; right: 2px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="pausebutton" value="暂停" role="button" aria-disabled="false" style="float: right; right: 2px">
 						<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="continuebutton" value="重开" role="button" aria-disabled="false" style="float: right; right: 2px; display : none;">
 						<input type="button" class="ui-button" id="stepbutton" value="正常中断" style="float: right; right: 2px;display : none;">
