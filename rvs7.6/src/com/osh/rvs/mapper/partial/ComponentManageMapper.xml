@@ -369,6 +369,11 @@
 		FROM material ma
 		LEFT JOIN component_manage cm
 		ON ma.material_id = cm.target_material_id
+
+        JOIN material_partial mp
+        ON ma.material_id = mp.material_id
+        AND mp.occur_times = 1
+
 		WHERE inline_time is not null AND outline_time is null
 		AND level = 1
 		AND ma.model_id = #{model_id}

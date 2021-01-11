@@ -19,24 +19,29 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<table class="condform">
 				<tbody>
 					<tr>
-						<td class="ui-state-default td-title" rowspan="2">维修对象机种</td>
-						<td class="td-content" rowspan="2"><select name="category_id" id="search_category_id" class="ui-widget-content" multiple>${cOptions}</select></td>
+						<td class="ui-state-default td-title" rowspan="4">维修对象机种</td>
+						<td class="td-content" colspan="3" rowspan="4"><select name="category_id" id="search_category_id" class="ui-widget-content" multiple>${cOptions}</select></td>
+						<td class="ui-state-default td-title">修理单号</td>
+						<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content"></td>
+					</tr>
+					<tr>
 						<td class="ui-state-default td-title">维修对象型号</td>
 						<td class="td-content">
 							<input type="text" class="ui-widget-content" readonly="readonly" id="txt_modelname">
 							<input type="hidden" name="modelname" id="search_modelname">
 						</td>
+					</tr>
+					<tr>
 						<td class="ui-state-default td-title">机身号</td>
 						<td class="td-content"><input type="text" id="search_serialno" maxlength="20" class="ui-widget-content"></td>
 					</tr>
 					<tr>
-						<td class="ui-state-default td-title">修理单号</td>
-						<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content"></td>
 						<td class="ui-state-default td-title">维修课室</td>
 						<td class="td-content">
 							<select name="section_id" id="search_section_id" class="ui-widget-content">${sOptions}</select>
 						</td>
 					</tr>
+
 					<tr>
 						<td class="ui-state-default td-title">受理日期</td>
 						<td class="td-content"><input type="text" name="reception_time" id="reception_time_start" maxlength="50" class="ui-widget-content" readonly="readonly">起<br/><input type="text" name="name" id="reception_time_end" maxlength="50" class="ui-widget-content" readonly="readonly">止</td>

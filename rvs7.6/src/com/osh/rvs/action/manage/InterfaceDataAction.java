@@ -256,9 +256,9 @@ public class InterfaceDataAction extends BaseAction {
 				content.put("itemReceiverDate", req.getParameter("edit_item_receiver_date"));
 				content.put("itemReceiverTime", req.getParameter("edit_item_receiver_time"));
 				content.put("itemReceiverPerson", req.getParameter("edit_item_receiver_person"));
+				content.put("itemFailureDescrip", req.getParameter("edit_item_failure_descrip"));
 			}
-			
-			
+
 			service.updateContent(if_sap_message_key, seq, content, conn);
 			conn.commit();
 			

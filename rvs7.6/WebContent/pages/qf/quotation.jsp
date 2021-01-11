@@ -259,14 +259,14 @@ if (peripheral!=null && peripheral) {
 								<input type="button" class="ui-button" id="downloadbutton" value="下载报价说明书" /> -->
 								<input type="hidden" id="hide_material_id" value="" />
 								<input type="button" value="申请消耗品" class="ui-button" onclick="javascript:consumable_application_edit()"/>
-								<div class="ui-button" id="tejunbutton" style="font-size:14px;">
+								<!--div class="ui-button" id="tejunbutton" style="font-size:14px;">
 									显示要领书
 									<div class="ui-widget-content" style="z-index:2;position:absolute;display:none;top: -120%;width:300px;">
 										<a target="_blank" href="/docs/manual/E204解析要领书.pdf" class="ui-button">E204解析要领书.pdf</a>
 										<br>
 										<a target="_blank" href="/docs/manual/开关不良解析要领书.pdf" class="ui-button">开关不良解析要领书.pdf</a>
 									</div>
-								</div>
+								</div-->
 							</div>
 						</div>
 					</div>

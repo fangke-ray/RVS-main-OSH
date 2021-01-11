@@ -858,6 +858,7 @@ public class ReadInfect {
 					} else if (tag.startsWith("T")) {
 						// 单元格中的跳动
 						itemEntity.setTab(Integer.parseInt(tag.substring(1)));
+					} else if (tag.startsWith("U")) {
 					} else {
 						throw new Exception("不合法的标签：" + cellText);
 					}

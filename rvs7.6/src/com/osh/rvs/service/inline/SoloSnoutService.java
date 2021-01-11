@@ -812,7 +812,7 @@ public class SoloSnoutService {
 						+ "<input type='button' value='打印信息单'>";
 			} else {
 				return "您现在处理中的维修对象" + idNo + "完成后请送至NS组件库位。<input type='button' value='指定'><label></label><input type='button' value='打印标签'><input type='button' value='打印信息单'>";
-		}
+			}
 		}
 	}
 

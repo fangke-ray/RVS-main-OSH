@@ -999,8 +999,13 @@ public class PcsUtils {
 					}
 					// 没有输入过的文本框
 					if (leaderLineId != null) {
-						specify = specify.replaceAll("<pcinput pcid=\"@#([EL]C\\d{5})\\d{2}\" scope=\"[EL]\" type=\"C\" position=\"(000|" + currentProcessCode + ")\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
-								 staticContent(currentProcessCode) + "<textarea name=\"$1\"></textarea>");
+						if ("xyz".equals(currentProcessCode)) {
+							specify = specify.replaceAll("<pcinput pcid=\"@#([EL]C\\d{5})\\d{2}\" scope=\"[EL]\" type=\"C\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
+									 staticContent(currentProcessCode) + "<textarea name=\"$1\"></textarea>");
+						} else {
+							specify = specify.replaceAll("<pcinput pcid=\"@#([EL]C\\d{5})\\d{2}\" scope=\"[EL]\" type=\"C\" position=\"(000|" + currentProcessCode + ")\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
+									 staticContent(currentProcessCode) + "<textarea name=\"$1\"></textarea>");
+						}
 					} else {
 						specify = specify.replaceAll("<pcinput pcid=\"@#(EC\\d{5})\\d{2}\" scope=\"E\" type=\"C\" position=\"(000|" + currentProcessCode + ")\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
 								 staticContent(currentProcessCode) + "<textarea name=\"$1\"></textarea>");
