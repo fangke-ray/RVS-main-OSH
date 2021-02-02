@@ -14,9 +14,11 @@
 			PROCESS_CODE,
 			UPDATED_BY,
 			UPDATED_TIME,
+			special_page,
 			light_worktime_rate,
 			light_division_flg,
-			mapping_position_id
+			mapping_position_id,
+			unitized_position_id
 		FROM V_POSITION
 		WHERE DELETE_FLG <> 1
 		AND POSITION_ID = #{position_id};
@@ -85,9 +87,9 @@
 	<insert id="insertPosition" parameterType="PositionEntity">
 		<![CDATA[ 
 		INSERT INTO POSITION 
-			(NAME, LINE_ID, PROCESS_CODE, UPDATED_BY, UPDATED_TIME,light_worktime_rate,light_division_flg,delete_flg) 
+			(NAME, LINE_ID, PROCESS_CODE, UPDATED_BY, UPDATED_TIME, SPECIAL_PAGE, light_worktime_rate,light_division_flg,delete_flg) 
 		VALUES 
-			(#{name}, #{line_id}, #{process_code}, #{updated_by}, current_timestamp,#{light_worktime_rate},#{light_division_flg},#{delete_flg});
+			(#{name}, #{line_id}, #{process_code}, #{updated_by}, current_timestamp, #{special_page}, #{light_worktime_rate},#{light_division_flg},#{delete_flg});
 		]]>
 	</insert>
 
@@ -97,6 +99,7 @@
 			LINE_ID = #{line_id},
 			UPDATED_BY = #{updated_by},
 			UPDATED_TIME = current_timestamp,
+			SPECIAL_PAGE = #{special_page},
 			light_worktime_rate = #{light_worktime_rate},
 			light_division_flg = #{light_division_flg}
 		WHERE POSITION_ID = #{position_id};
@@ -199,6 +202,43 @@
 		]]>
 	</update>
 
+	<select id="getAllUnitizedPositions" resultType="PositionEntity">
+		<![CDATA[ 
+			SELECT p1.`position_id`,
+				p1.`unitized_position_id`
+			FROM POSITION p1
+			JOIN POSITION p2 on p1.`unitized_position_id` = p2.`position_id`
+			WHERE 
+			p1.`unitized_position_id` IS NOT NULL
+			AND p1.delete_flg = 0 AND p2.delete_flg <> 1
+			ORDER BY p1.`unitized_position_id`;
+		]]>
+	</select>
+
+	<select id="getUnitizedPositionList" resultType="PositionEntity">
+		<![CDATA[ 
+			SELECT position_id, name, process_code 
+			FROM position WHERE position_id in (
+			select unitized_position_id from position where unitized_position_id is not null);
+		]]>
+	</select>
+
+	<update id="clearUnitizedPosition" parameterType="String">
+		<![CDATA[ 
+		UPDATE POSITION 
+			SET unitized_position_id = null
+		WHERE unitized_position_id = #{unitized_position_id};
+		]]>
+	</update>
+
+	<update id="setUnitizedPosition" parameterType="String">
+		<![CDATA[ 
+		UPDATE POSITION 
+			SET unitized_position_id = #{unitized_position_id}
+		WHERE POSITION_ID = #{position_id};
+		]]>
+	</update>
+
 	<update id="setPositionRevision" parameterType="String">
 		<![CDATA[ 
 		UPDATE POSITION 
@@ -221,4 +261,12 @@
 		order by lcode, case when lcode = 4 then rcode else 0 end, case when process_code = '443' then '473' else process_code end
 	</select>
 
+	<select id="getSpecialPagePositions" resultType="PositionEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT POSITION_ID, special_page
+		FROM POSITION
+		WHERE DELETE_FLG = 0
+		AND special_page is not null;
+		]]>
+	</select>
 </mapper>

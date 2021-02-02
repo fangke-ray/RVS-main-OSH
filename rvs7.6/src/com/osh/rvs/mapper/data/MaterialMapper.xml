@@ -40,7 +40,8 @@
 				coalesce(omr_notifi_no, sorc_no) as sorc_no,
 				`m`.model_id,
 				mdl.name as model_name,
-				(select date_format(finish_time, '%Y-%m-%d') from production_feature where position_id in (13,14,64)
+				(select date_format(finish_time, '%Y-%m-%d') from production_feature 
+				where position_id in (select position_id from position where special_page = 'quotation') and position_id != 101
 				and production_feature.material_id in
 		]]>
 		<foreach item="id" collection="list" open="(" separator="," close=")">
@@ -421,7 +422,7 @@
 			<![CDATA[
 			JOIN production_feature pf47
 			ON pf47.material_id = a.material_id
-			AND pf47.position_id = 47
+			AND pf47.position_id in (select position_id from position where special_page = 'shipping')
 			and pf47.pace = 0
 			]]>
 			<if test="finish_time_start!= null and finish_time_start!= '' ">
@@ -664,7 +665,9 @@
 				date_format(a.reception_time, '%Y-%m-%d') as reception_time,
 				date_format(a.agreed_date, '%Y-%m-%d') as agreed_date,
 				date_format(a.inline_time, '%Y-%m-%d') as inline_time,
-				(select date_format(finish_time, '%Y-%m-%d') from production_feature where position_id in (13,14,64) and material_id = a.material_id order by finish_time desc limit 1) as finish_time,
+				(select date_format(finish_time, '%Y-%m-%d') from production_feature 
+				where position_id in (select position_id from position where special_page = 'quotation') and position_id != 101 
+				and material_id = a.material_id order by finish_time desc limit 1) as finish_time,
 				(select operate_result from production_feature where material_id = a.material_id and operate_result not in (5, 8) order by (1-ISNULL(action_time)), action_time desc limit 1) as operate_result,
 				date_format(a.outline_time, '%Y-%m-%d') as outline_time,
 				a.scheduled_manager_comment,
@@ -696,7 +699,9 @@
 				a.reception_time,
 				a.agreed_date,
 				a.selectable,
-				(select date_format(finish_time, '%Y-%m-%d') from production_feature where position_id in (13,14,64) and material_id = a.material_id order by finish_time desc limit 1) as finish_time,
+				(select date_format(finish_time, '%Y-%m-%d') from production_feature 
+				where position_id in (select position_id from position where special_page = 'quotation') and position_id != 101 
+				and material_id = a.material_id order by finish_time desc limit 1) as finish_time,
 				date_format(a.outline_time, '%Y-%m-%d') as outline_time,
 				a.scheduled_manager_comment,
 				(select date_format(scheduled_date, '%Y-%m-%d') from material_process where line_id = 14 and material_id = a.material_id) as scheduled_date,

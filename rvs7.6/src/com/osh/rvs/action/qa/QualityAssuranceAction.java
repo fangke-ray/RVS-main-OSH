@@ -41,6 +41,7 @@ import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
@@ -585,11 +586,19 @@ public class QualityAssuranceAction extends BaseAction {
 				mService.saveLeaderInput(cfmPcsInputs, cfmPcsComments, workingPf.getMaterial_id(),
 						OPERATOR_AIBRA, user.getLine_id(), conn);
 			}
+			
+			// 是动物实验用内镜
+			boolean isAnimalExp = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
 
 			// 启动下个工位 就是出货
 			pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
 
 			service.updateCountSucceed(conn);
+
+			// 移出列表动物实验用内镜列表
+			if (isAnimalExp) {
+				MaterialTagService.resetAnmlMaterials(conn);
+			}
 
 			conn.commit();
 

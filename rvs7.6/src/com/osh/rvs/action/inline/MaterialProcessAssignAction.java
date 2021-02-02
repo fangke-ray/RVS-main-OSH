@@ -22,8 +22,8 @@ import com.osh.rvs.form.inline.MaterialProcessAssignForm;
 import com.osh.rvs.form.master.LightFixForm;
 import com.osh.rvs.service.MaterialProcessAssignService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
-import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProcessAssignService;
 
 import framework.huiqing.action.BaseAction;
@@ -110,8 +110,16 @@ public class MaterialProcessAssignAction extends BaseAction {
 					materialForm.setPat_id(CommonStringUtil.fillChar(defaultPatId, '0', 11, true));
 			}
 
-			// 取得中小修理对应工位/流程设定用
-			callbackResponse.put("positionMapping", service.getPositionMappingEntities(conn));
+			boolean isAnml = MaterialTagService.getAnmlMaterials(conn).contains(materialProcessAssignForm.getMaterial_id());
+			if (isAnml) {
+				// 取得动物内镜用对应工位/流程设定用
+				
+				callbackResponse.put("positionMapping", service.getPositionUnitizedEntities(conn));
+				
+			} else {
+				// 取得中小修理对应工位/流程设定用
+				callbackResponse.put("positionMapping", service.getPositionMappingEntities(conn));
+			}
 		}
 
 //		String category_kind = CodeListUtils.getGridOptions("category_kind");//机种分类

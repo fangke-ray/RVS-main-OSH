@@ -25,6 +25,9 @@ public class PositionForm extends ActionForm {
 	/** 进度代码 */
 	@BeanField(title = "进度代码", name = "process_code", notNull = true, length = 3)
 	private String process_code;
+	/** 工程名称 */
+	@BeanField(title = "特殊工位页面", name = "special_page")
+	private String special_page;
 	/** 最后更新人 */
 	@BeanField(title = "更新者", name = "updated_by")
 	private String updated_by;
@@ -42,6 +45,8 @@ public class PositionForm extends ActionForm {
 	/** 工位 ID */
 	@BeanField(title = "对应中小修工位", name = "mapping_position_id", length = 11)
 	private String mapping_position_id;
+	@BeanField(title = "对应流水席工位", name = "unitized_position_id", length = 11)
+	private String unitized_position_id;
 
 	/** 删除标记 **/
 	@BeanField(title = "删除标记", name = "delete_flg", type = FieldType.Integer, length = 1)
@@ -210,6 +215,22 @@ public class PositionForm extends ActionForm {
 
 	public void setDelete_flg(String delete_flg) {
 		this.delete_flg = delete_flg;
+	}
+
+	public String getSpecial_page() {
+		return special_page;
+	}
+
+	public void setSpecial_page(String special_page) {
+		this.special_page = special_page;
+	}
+
+	public String getUnitized_position_id() {
+		return unitized_position_id;
+	}
+
+	public void setUnitized_position_id(String unitized_position_id) {
+		this.unitized_position_id = unitized_position_id;
 	}
 
 }

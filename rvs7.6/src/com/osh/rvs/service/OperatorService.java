@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpSession;
 
@@ -14,6 +16,7 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
+import com.osh.rvs.bean.master.OperatorNotifyEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.RoleEntity;
 import com.osh.rvs.common.RvsConsts;
@@ -22,6 +25,7 @@ import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -555,4 +559,70 @@ public class OperatorService {
 		return false;
 	}
 
+	public List<OperatorNotifyEntity> getOperatorNotifyEntity(SqlSession conn) {
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		return mapper.getOperatorNotifyEntity();
+	}
+
+	public void setNotify(Map<String, String[]> parameterMap,
+			SqlSessionManager conn, List<MsgInfo> errors) {
+		List<OperatorNotifyEntity> onEntities = new AutofillArrayList<OperatorNotifyEntity>(OperatorNotifyEntity.class);
+		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
+
+		
+		// 整理提交数据
+		for (String parameterKey : parameterMap.keySet()) {
+			Matcher m = p.matcher(parameterKey);
+			if (m.find()) {
+				String entity = m.group(1);
+				if ("notify".equals(entity)) {
+					String column = m.group(2);
+					int icounts = Integer.parseInt(m.group(3));
+					String[] value = parameterMap.get(parameterKey);
+
+					// TODO 全
+					if ("position_id".equals(column)) {
+						onEntities.get(icounts).setPosition_id(value[0]);
+					} else if ("category_id".equals(column)) {
+						onEntities.get(icounts).setCategory_id(value[0]);
+					} else if ("operator_id".equals(column)) {
+						onEntities.get(icounts).setOperator_id(value[0]);
+					} else if ("manager_operator_id".equals(column)) {
+						onEntities.get(icounts).setManager_operator_id(value[0]);
+					}
+				}
+			}
+		}
+
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		mapper.deleteOperatorNotify();
+
+		for (OperatorNotifyEntity onEntity : onEntities) {
+			if ("".equals(onEntity.getOperator_id())) onEntity.setOperator_id(null);
+			if ("".equals(onEntity.getManager_operator_id())) onEntity.setManager_operator_id(null);
+			mapper.insertOperatorNotify(onEntity);
+		}
+
+	}
+
+	public String notifyAnmlBreak(String category_id,
+			String position_id, SqlSession conn) {
+		String managerId = null, defaultManagerId = null;
+		List<OperatorNotifyEntity> operatorNotifyEntities = this.getOperatorNotifyEntity(conn);
+		for (OperatorNotifyEntity entity : operatorNotifyEntities) {
+			if (position_id.equals(entity.getPosition_id())) {
+				if ("00000000000".equals(entity.getCategory_id())) {
+					defaultManagerId = entity.getManager_operator_id();
+				} else if (category_id.equals(entity.getCategory_id())) {
+					managerId = entity.getManager_operator_id();
+				}
+			}
+		}
+
+		if (managerId != null) {
+			return managerId;
+		}
+
+		return defaultManagerId;
+	}
 }

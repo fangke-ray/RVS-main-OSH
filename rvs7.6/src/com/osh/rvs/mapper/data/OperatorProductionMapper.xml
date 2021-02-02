@@ -216,7 +216,8 @@
 			JOIN material am
 			ON a.material_id = am.material_id
 			WHERE a.operator_id = #{operator_id}
-			AND position_id not in (24, 51) -- 先端组件以独立作业为准
+			AND position_id not in (24) -- [先端组件以独立作业为准]
+			AND position_id not in (select position_id from position where special_page = 'serviceRepairReferee') -- [返品分析以独立作业为准]
 			AND (a.action_time between #{action_time} and DATE_ADD(#{action_time},INTERVAL 1 DAY))
 			union
 			SELECT 
@@ -240,7 +241,7 @@
 				spf.finish_time as pause_finish_time,
 				COALESCE(spf.model_name, mdl_spf.name) as model_name,
 				CASE
-					WHEN position_id = 51
+					WHEN position_id in (select position_id from position where special_page = 'serviceRepairReferee')
 					THEN
 						CONCAT("判定机身号: ", spf.serial_no)
 					WHEN position_id = 24
@@ -251,7 +252,7 @@
 				END as sorc_no,
 				'' as reason,
 				CASE
-					WHEN position_id = 51
+					WHEN position_id in (select position_id from position where special_page = 'serviceRepairReferee')
 					THEN replace(replace(pcs_comments, '{"GC6210100":"', ''),'"}','')
 					ELSE ''
 				END as comments,
@@ -287,7 +288,8 @@
 			JOIN material am
 			ON a.material_id = am.material_id
 			WHERE (a.action_time between #{action_time} and DATE_ADD(#{action_time},INTERVAL 1 DAY))
-			AND position_id not in (24, 51) -- 先端组件以独立作业为准
+			AND position_id not in (24) -- [先端组件以独立作业为准]
+			AND position_id not in (select position_id from position where special_page = 'serviceRepairReferee') -- [返品分析以独立作业为准]
 			union
 			SELECT 
 				b.operator_id,
@@ -309,7 +311,7 @@
 				spf.finish_time as finish_time,
 				COALESCE(spf.model_name, mdl_spf.name) as model_name,
 				CASE
-					WHEN position_id = 51
+					WHEN position_id in (select position_id from position where special_page = 'serviceRepairReferee')
 					THEN
 						CONCAT("判定机身号: ", spf.serial_no)
 					WHEN position_id = 24

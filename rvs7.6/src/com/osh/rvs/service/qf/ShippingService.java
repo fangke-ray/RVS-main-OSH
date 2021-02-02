@@ -32,23 +32,23 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class ShippingService {
 	private Logger _log = Logger.getLogger(getClass());
 
-	public List<MaterialEntity> getWaitingMaterial(SqlSession conn) {
+	public List<MaterialEntity> getWaitingMaterial(String position_id, SqlSession conn) {
 		// TODO Auto-generated method stub
 
 		ShippingMapper sDao = conn.getMapper(ShippingMapper.class);
 
 		// 取得待品保处理对象一览 711
-		List<MaterialEntity> waitings = sDao.getWaitings();
+		List<MaterialEntity> waitings = sDao.getWaitings(position_id);
 
 		return waitings;
 	}
 
-	public List<MaterialEntity> getFinishedMaterial(SqlSession conn) {
+	public List<MaterialEntity> getFinishedMaterial(String position_id, SqlSession conn) {
 
 		ShippingMapper sDao = conn.getMapper(ShippingMapper.class);
 
 		// 取得今日已完成处理对象一览
-		List<MaterialEntity> finished = sDao.getFinished();
+		List<MaterialEntity> finished = sDao.getFinished(position_id);
 
 		return finished;
 	}
@@ -112,9 +112,11 @@ public class ShippingService {
 
 		String section_id = user.getSection_id();// TODO
 		user.setSection_id(null);
-		user.setPosition_id("00000000047");
-		user.setProcess_code("711");
-		user.setLine_id("00000000011");
+		if (user.getPosition_id() == null) {
+			user.setPosition_id(RvsConsts.POSITION_SHIPPING);
+			user.setProcess_code("711");
+			user.setLine_id("00000000011");
+		}
 
 		// 判断维修对象已经完成出货
 		ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);

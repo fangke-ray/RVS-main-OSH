@@ -90,14 +90,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<form id="editform" method="POST" onsubmit="return false;">
 			<table class="condform">
 				<tr>
-					<td class="ui-state-default td-title">所属工程</td>
-					<td class="td-content">
+					<td class="ui-state-default td-title" rowspan=2>所属工程</td>
+					<td class="td-content" rowspan=2>
 						<select name="line_id" alt="所属工程" id="input_line_id" class="ui-widget-content">
 							<%=request.getAttribute("lOptions")%>
 						</select>
 					</td>
-				</tr>
-				<tr>
 					<td class="ui-state-default td-title">工位 ID</td>
 					<td class="td-content"><label id="label_edit_id"> - </label></td>
 				</tr>
@@ -113,16 +111,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-content">
 						<input type="text" alt="工位名称" name="name" id="input_name" maxlength="20" class="ui-widget-content">
 					</td>
-				</tr>
-				<tr>
-					<td class="ui-state-default td-title">中小修理工时比率</td>
-					<td class="td-content">
-						<input type="text" alt="中小修理工时比率" name="light_worktime_rate" id="input_light_worktime_rate" maxlength="3" class="ui-widget-content">
-					</td>
-				</tr>
-				<tr>
 					<td class="ui-state-default td-title">进行分线的工位</td>
 					<td class="td-content" id="input_light_division_flg"></td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">特殊工位页面</td>
+					<td class="td-content" colspan=3>
+						<select name="special_page" alt="特殊工位页面" id="input_special_page" class="ui-widget-content">
+							<%=request.getAttribute("spOptions")%>
+						</select>
+					</td>
 				</tr>
 				<tr id="mapping_tr">
 					<td class="ui-state-default td-title">中小修理工位映射</td>
@@ -130,8 +128,17 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<input type="button" alt="设定映射" value="设定映射" id="mapping_button" class="ui-button">
 						<span id="mapping_span"></span>
 					</td>
+					<td class="ui-state-default td-title">动物实验用工位映射</td>
+					<td class="td-content">
+						<input type="button" alt="设定映射" value="设定映射" id="mapping_anml_button" class="ui-button">
+						<span id="mapping_anml_span"></span>
+					</td>
 				</tr>
 				<tr>
+					<td class="ui-state-default td-title">中小修理工时比率</td>
+					<td class="td-content">
+						<input type="text" alt="中小修理工时比率" name="light_worktime_rate" id="input_light_worktime_rate" maxlength="3" class="ui-widget-content">
+					</td>
 					<td class="ui-state-default td-title">虚拟组工位</td>
 					<td class="td-content">
 						<label id="label_set_group" style="margin-left:1em;">未设定</label>

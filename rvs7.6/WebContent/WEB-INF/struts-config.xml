@@ -496,7 +496,7 @@
 			<forward name="lineleader" path="/lineLeader.do?method=init" />
 			<forward name="blineleader" path="/beforeLineLeader.do?method=init" />
 			<forward name="qualityAssurance" path="/qualityAssurance.do?method=init" />
-			<forward name="serviceRepair" path="/service_repair_referee.do?method=init" />
+			<forward name="serviceRepairReferee" path="/service_repair_referee.do?method=init" />
 			<forward name="shipping" path="/shipping.do?method=init" />
 			<forward name="material" path="/material.do?method=init" />
 			<forward name="partialm" path="/partialManage.do?method=init" />

@@ -32,6 +32,7 @@ import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.PcsRequestEntity;
+import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.mapper.infect.PeripheralInfectDeviceMapper;
 import com.osh.rvs.mapper.inline.LeaderPcsInputMapper;
 import com.osh.rvs.mapper.inline.MaterialProcessAssignMapper;
@@ -382,7 +383,7 @@ public class PcsUtils {
 	 * @return
 	 */
 	public static Map<String, String> toHtml(Map<String, String> srcPcses, String materialId, String sorcNo,
-			String modelName, String serialNo, String level, String currentProcessCode, String leaderLineId, SqlSession conn) {
+			String modelName, String serialNo, String level, String currentProcessCode, String leaderLineId, boolean isAnmlExp, SqlSession conn) {
 		logger.info("getXmlContents for material=" + materialId + " currentProcessCode=" + currentProcessCode);
 		String currentProcessCodeOrg = currentProcessCode;
 
@@ -409,9 +410,17 @@ public class PcsUtils {
 
 		// 当前可填写工位映射
 		if (isLightFix) {
-			currentProcessCode = checkInLightProcessGroup(currentProcessCode, materialId, conn);
+			if (isAnmlExp) {
+				currentProcessCode = checkInAnmlExpProcessGroup(currentProcessCode, materialId, conn);
+			} else {
+				currentProcessCode = checkInLightProcessGroup(currentProcessCode, materialId, conn);
+			}
 		} else { // TODO 其实在OSH没有用了
-			currentProcessCode = checkOverAll(currentProcessCode);
+			if (isAnmlExp) {
+				currentProcessCode = checkInAnmlExpProcessGroup(currentProcessCode, null, conn);
+			} else {
+				currentProcessCode = checkOverAll(currentProcessCode);
+			}
 		}
 
 		Pattern pCurrentProcessCode = Pattern.compile("<pcinput.*?scope=\"E\".*?position=\""+currentProcessCode+"\".*?/>");
@@ -608,9 +617,17 @@ public class PcsUtils {
 					// if (currentProcessCodeOrg)
 					// 当前可填写工位映射
 					if (isLightFix) {
-						processCode = checkInLightProcessGroup(processCode, materialId, conn);
+						if (isAnmlExp) {
+							processCode = checkInAnmlExpProcessGroup(processCode, materialId, conn);
+						} else {
+							processCode = checkInLightProcessGroup(processCode, materialId, conn);
+						}
 					} else { // TODO 其实在OSH没有用了
-						processCode = checkOverAll(processCode);
+						if (isAnmlExp) {
+							processCode = checkInAnmlExpProcessGroup(processCode, null, conn);
+						} else {
+							processCode = checkOverAll(processCode);
+						}
 					}
 
 					Pattern pProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"E\" type=\"\\w\" position=\"" + processCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
@@ -1144,6 +1161,39 @@ public class PcsUtils {
 			return mappedProcessCodes;
 		}
 	}
+
+	private static String checkInAnmlExpProcessGroup(String currentProcessCode,
+			String materialId, SqlSession conn) {
+		String positionId = ReverseResolution.getPositionByProcessCode(currentProcessCode, conn);
+		if (!PositionService.getPositionUnitizeds(conn).containsKey(positionId)) {
+			return currentProcessCode;
+		}
+
+		List<String> mappedProcessCodes = new ArrayList<String>();
+
+		if (materialId == null) {
+			PositionService pService = new PositionService();
+
+			List<String> list = PositionService.getPositionUnitizeds(conn).get(positionId);
+			for (String position_id : list) {
+				PositionEntity e = pService.getPositionEntityByKey(position_id, conn);
+				if (e != null) {
+					mappedProcessCodes.add(e.getProcess_code());
+				}
+			}
+		} else {
+			
+		}
+
+		if (mappedProcessCodes.isEmpty()) {
+			return currentProcessCode;
+		} else {
+			return "(" + CommonStringUtil.joinBy("|",
+					mappedProcessCodes.toArray(new String[mappedProcessCodes.size()])) + ")";
+		}
+
+	}
+
 	/**
 	 * 工程单元维修匹配
 	 * @param currentProcessCode
@@ -1794,7 +1844,7 @@ public class PcsUtils {
 	 * @throws IOException
 	 */
 	public static String toPdf(Map<String, String> srcPcses, String materialId, String sorcNo, String modelName,
-			String serialNo, String level, String currentProcessCode9, String folderPath, SqlSession conn) throws IOException {
+			String serialNo, String level, String currentProcessCode9, String folderPath, boolean isAnmlExp, SqlSession conn) throws IOException {
 		logger.info("getXmlContents for material=" + materialId + " currentProcessCode=" + currentProcessCode9);
 
 		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
@@ -2077,10 +2127,19 @@ public class PcsUtils {
 					// 当前可填写工位映射
 					String checkedOverAllProcessCode = "";
 					String lightProcess = null;
+
 					if (isLightFix) {
-						lightProcess = checkInLightProcessGroup(process_code, materialId, conn);
+						if (isAnmlExp) {
+							lightProcess = checkInAnmlExpProcessGroup(process_code, materialId, conn);
+						} else {
+							lightProcess = checkInLightProcessGroup(process_code, materialId, conn);
+						}
 					} else { // TODO 其实在OSH没有用了
-						checkedOverAllProcessCode = checkOverAllExcel(process_code);
+						if (isAnmlExp) {
+							checkedOverAllProcessCode = checkInAnmlExpProcessGroup(process_code, null, conn);
+						} else {
+							checkedOverAllProcessCode = checkOverAllExcel(process_code);
+						}
 					}
 
 					// 判断有本工号的标签

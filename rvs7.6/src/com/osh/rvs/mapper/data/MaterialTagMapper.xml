@@ -37,4 +37,16 @@
 		AND tag_type = #{tag_type};
 	]]>
 	</delete>
+
+	<select id="getAnmlWipMaterials" parameterType="string" resultType="String">
+	<![CDATA[
+		SELECT ma.material_id 
+        FROM material_tag mt
+        JOIN material ma
+        ON mt.material_id = ma.material_id
+		WHERE tag_type = 1
+        AND outline_time is null;
+	]]>
+	</select>
+
 </mapper>

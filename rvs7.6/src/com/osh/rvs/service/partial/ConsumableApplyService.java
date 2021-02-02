@@ -859,7 +859,7 @@ public class ConsumableApplyService {
 				kariForm.setMaterial_id("0000000000X");
 				ret.add(kariForm);
 			}
-			if ("00000000051".equals(position_id)) {
+			if (RvsConsts.POSITION_QA_601.equals(position_id)) {
 				MaterialForm kariForm = new MaterialForm();
 				kariForm.setMaterial_id("0000000000Y");
 				ret.add(kariForm);

@@ -234,3 +234,9 @@ var refreshNotice = function(list){
 	}
 }
 </script>
+
+<script type="text/javascript">
+var anmlNotice = function(instorage){
+	warningConfirm("动物实验用维修品【" + instorage.material + "】已经进入【" + instorage.process_code + "】工位仕挂，请相关人员着手作业。");
+}
+</script>

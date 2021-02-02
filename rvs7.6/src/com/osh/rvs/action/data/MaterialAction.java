@@ -50,6 +50,7 @@ import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialProcessAssignService;
 import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
@@ -342,6 +343,14 @@ public class MaterialAction extends BaseAction {
 			isLeader = true;
 		}
 
+		// 判断动物内镜用 必定按照历史数据
+		if (getHistory == null && mform.getOutline_time() != null) {
+			MaterialTagService mtService = new MaterialTagService();
+			if (mtService.checkTagByMaterialId(material_id, 1, conn).size() > 0) {
+				getHistory = "forAnml";
+			}
+		}
+
 		// 取得工程检查票
 		materialService.getPcses(listResponse, mform, material_id, sLine_id, isLeader, getHistory, conn); // 线长编辑
 
@@ -351,6 +360,11 @@ public class MaterialAction extends BaseAction {
 		returnJsonResponse(res, listResponse);
 
 		log.info("MaterialAction.getPcsDetail end");
+	}
+
+	private Object MaterialTagService() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/**

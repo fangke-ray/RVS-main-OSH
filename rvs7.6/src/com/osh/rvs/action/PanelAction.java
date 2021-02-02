@@ -20,6 +20,7 @@ import javax.servlet.http.HttpSession;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
@@ -95,35 +96,36 @@ public class PanelAction extends BaseAction {
 				actionForward = mapping.findForward("lineleader");
 			}
 		} else if (RvsConsts.ROLE_OPERATOR.equals(roleId)) {
-			actionForward = mapping.findForward("position");
 
-			if (user.getSection_id() != null && "00000000001".equals(user.getSection_id())) {
-				String positionId = user.getPosition_id();
-				String px = user.getPx();
-				Set<String> dividePositions = PositionService.getDividePositions(conn);
-				if (dividePositions.contains(positionId)) {
-					if (px == null || "0".equals(px)) {
-						if (user.getProcess_code() == null || !user.getProcess_code().startsWith("5")) { // TODO
-							user.setPx("1");
-						} else {
-							user.setPx("3");
+			// 根据工位区分位置
+			String specialPage = PositionService.getPositionSpecialPage(user.getPosition_id(), conn);
+			if (specialPage != null) {
+				actionForward = mapping.findForward(specialPage);
+			}
+			if (actionForward == null) 	{
+
+				actionForward = mapping.findForward("position");
+
+				if (user.getSection_id() != null && "00000000001".equals(user.getSection_id())) {
+					String positionId = user.getPosition_id();
+					String px = user.getPx();
+					Set<String> dividePositions = PositionService.getDividePositions(conn);
+					if (dividePositions.contains(positionId)) {
+						if (px == null || "0".equals(px)) {
+							if (user.getProcess_code() == null || !user.getProcess_code().startsWith("5")) { // TODO
+								user.setPx("1");
+							} else {
+								user.setPx("3");
+							}
+							session.setAttribute(RvsConsts.SESSION_USER, user);
 						}
-						session.setAttribute(RvsConsts.SESSION_USER, user);
-					}
-				} else {
-					if (!"4".equals(px)) {
-						user.setPx("0");
-						session.setAttribute(RvsConsts.SESSION_USER, user);
+					} else {
+						if (!"4".equals(px)) {
+							user.setPx("0");
+							session.setAttribute(RvsConsts.SESSION_USER, user);
+						}
 					}
 				}
-			}
-			if (user.getPosition_id().equals("00000000046")
-					|| user.getPosition_id().equals("00000000052")
-					|| user.getPosition_id().equals(RvsConsts.POSITION_QA_P_613)
-					|| user.getPosition_id().equals(RvsConsts.POSITION_QA_P_614)) {
-				actionForward = mapping.findForward("qualityAssurance");
-			} else if (user.getPosition_id().equals("00000000051")) {
-				actionForward = mapping.findForward("serviceRepair");
 			}
 		} else if (RvsConsts.ROLE_QAER.equals(roleId) || RvsConsts.ROLE_QA_MANAGER.equals(roleId)) {
 			actionForward = mapping.findForward("qualityAssurance");
@@ -160,7 +162,7 @@ public class PanelAction extends BaseAction {
 		if (new_position_id != null && new_position_id.equals(org_position_id)
 				&& new_px.equals(org_px)) {
 
-			callResponse.put("position_link", getLink(new_position_id));
+			callResponse.put("position_link", getLink(new_position_id, mapping, conn));
 
 			// 检查发生错误时报告错误信息
 			callResponse.put("errors", errors);
@@ -249,7 +251,7 @@ public class PanelAction extends BaseAction {
 						}
 					}
 
-				callResponse.put("position_link", getLink(new_position_id));
+				callResponse.put("position_link", getLink(new_position_id, mapping, conn));
 			}
 
 			if (new_section_id != null) {
@@ -314,22 +316,36 @@ public class PanelAction extends BaseAction {
 		return 0;
 	}
 
-	private String getLink(String new_position_id) {
-		if ("00000000009".equals(new_position_id)) { // TODO
-			return "acceptance.do";
-		} else if ("00000000013".equals(new_position_id) || "00000000014".equals(new_position_id) 
-				|| RvsConsts.POSITION_QUOTATION_P_181.equals(new_position_id)
-				|| "00000000101".equals(new_position_id)) {
-			return "quotation.do";
-		} else if ("00000000016".equals(new_position_id) || "00000000032".equals(new_position_id)) {
-			return "position_panel.do";
-		} else if ("00000000046".equals(new_position_id) || "00000000052".equals(new_position_id)
-				|| RvsConsts.POSITION_QA_P_613.equals(new_position_id)
-				|| RvsConsts.POSITION_QA_P_614.equals(new_position_id)) {
-			return "qualityAssurance.do";
-		} else if (RvsConsts.POSITION_QA_601.equals(new_position_id)) {
-			return "service_repair_referee.do";
+	private String getLink(String new_position_id, ActionMapping mapping, SqlSession conn) {
+
+		String specialPage = PositionService.getPositionSpecialPage(new_position_id, conn); // TODO
+
+		String forwardStr = null;
+		if (specialPage != null) {
+			ActionForward forward = mapping.findForward(specialPage);
+			if (forward != null)
+				forwardStr = forward.getPath();
 		}
+
+		if (forwardStr != null) {
+			return forwardStr.substring(1);
+		}
+
+//		if ("00000000009".equals(new_position_id)) { // TODO
+//			return "acceptance.do";
+//		} else if ("00000000013".equals(new_position_id) || "00000000014".equals(new_position_id) 
+//				|| RvsConsts.POSITION_QUOTATION_P_181.equals(new_position_id)
+//				|| "00000000101".equals(new_position_id)) {
+//			return "quotation.do";
+//		} else if ("00000000016".equals(new_position_id) || "00000000032".equals(new_position_id)) {
+//			return "position_panel.do";
+//		} else if ("00000000046".equals(new_position_id) || "00000000052".equals(new_position_id)
+//				|| RvsConsts.POSITION_QA_P_613.equals(new_position_id)
+//				|| RvsConsts.POSITION_QA_P_614.equals(new_position_id)) {
+//			return "qualityAssurance.do";
+//		} else if (RvsConsts.POSITION_QA_601.equals(new_position_id)) {
+//			return "service_repair_referee.do";
+//		}
 		// 分流
 		int rand = new Double(1.0d + Math.random() * 4).intValue();
 		return "position_panel" + rand + ".do";

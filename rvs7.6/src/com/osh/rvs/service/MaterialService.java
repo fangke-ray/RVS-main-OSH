@@ -499,8 +499,21 @@ public class MaterialService {
 					enterCom =true;
 				}
 			} else if ("00000000012".equals(sline_id)) {
-				showLines = new String[1];
-				showLines[0] = "分解工程";
+				if (getHistory != null || MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
+					if ("1".equals(mform.getLevel())) {
+						showLines = new String[2];
+						showLines[0] = "总组工程";
+						showLines[1] = "分解工程";
+					} else {
+						showLines = new String[3];
+						showLines[0] = "总组工程";
+						showLines[1] = "分解工程";
+						showLines[2] = "NS 工程";
+					}
+				} else {
+					showLines = new String[1];
+					showLines[0] = "分解工程";
+				}
 			} else if ("00000000013".equals(sline_id)) {
 				showLines = new String[1];
 				showLines[0] = "NS 工程";
@@ -520,6 +533,18 @@ public class MaterialService {
 			}
 		}
 
+		boolean isAnmlExp = MaterialTagService.getAnmlMaterials(conn).contains(material_id);
+		if (!isAnmlExp && getHistory != null) {
+			if ("forAnml".equals(getHistory)) {
+				isAnmlExp = true;
+			} else {
+				MaterialTagService mtService = new MaterialTagService();
+				if (mtService.checkTagByMaterialId(material_id, 1, conn).size() > 0) {
+					isAnmlExp = true;
+				}
+			}
+		}
+
 		for (int i=0 ; i < showLines.length ; i++) {
 			String showLine = showLines[i]; 
 			logger.info(showLine);
@@ -527,12 +552,15 @@ public class MaterialService {
 					null, getHistory != null, mform.getMaterial_id(), RvsUtils.isLightFix(mform.getLevel()),   
 					conn);
 
-			if ("NS 工程".equals(showLine)) filterSolo(fileTempl, material_id, conn);
+			if ("NS 工程".equals(showLine)) filterSolo(fileTempl, material_id, mform.getLevel(), conn);
 
-			Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, material_id, mform.getSorc_no(),
-					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), "xyz", (i == ext && isLeader ? sline_id : null), conn);
-			fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
-			pcses.add(fileHtml);
+			if (!fileTempl.isEmpty()) {
+				Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, material_id, mform.getSorc_no(),
+						mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), "xyz", (i == ext && isLeader ? sline_id : null), 
+						isAnmlExp, conn);
+				fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
+				pcses.add(fileHtml);
+			}
 		}
 
 		// 采用NS 组件，得到工程检查票
@@ -631,13 +659,16 @@ public class MaterialService {
 		
 	}
 
-	public void filterSolo(Map<String, String> fileTempl, String material_id, SqlSession conn) {
+	public void filterSolo(Map<String, String> fileTempl, String material_id, String level, SqlSession conn) {
 
 		if (fileTempl == null) return;
 
 		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 
-		if (!dao.checkLineDid(material_id, "00000000013")) {
+		boolean isAnmlWithNs = MaterialTagService.getAnmlMaterials(conn).contains(material_id) && !"1".equals(level);
+
+		if (!dao.checkLineDid(material_id, "00000000013")
+				&& !isAnmlWithNs) {
 			fileTempl.clear();
 			return;
 		}
@@ -969,7 +1000,7 @@ public class MaterialService {
 			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, mform.getModel_name(), null, conn);
 
 			if ("NS 工程".equals(showLine)) {
-				filterSolo(fileTempl, material_id, conn);
+				filterSolo(fileTempl, material_id, mform.getLevel(), conn);
 			}
 
 			Map<String, String> fileHtml = PcsUtils.toHtml4Fix(fileTempl, material_id, mform.getSorc_no(),

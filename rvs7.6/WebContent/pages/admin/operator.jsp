@@ -101,8 +101,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</tbody>
 			</table>
 			<div style="height:44px">
-				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
+				<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
 				<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchbutton" value="检索" role="button" aria-disabled="false" style="float:right;right:2px">
+				<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="anmlbutton" value="动物内镜担当" role="button" aria-disabled="false" style="float:right;right:10px">
 				<input type="hidden" id="rkGo" value="${rkGo}"/>
 			</div>
 		</form>
@@ -283,5 +284,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </div>
 
 <div id="confirmmessage"></div>
+
+<div class="referchooser ui-widget-content" id="oReferChooser" tabindex="-1">
+	<table>
+		<tr>
+			<td width="50%">过滤字:<input type="text"/></td>	
+			<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
+		</tr>
+	</table>
+	<table class="subform">${oReferChooser}</table>
+</div>
 </body>
 </html>

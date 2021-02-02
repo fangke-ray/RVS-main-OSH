@@ -1,9 +1,11 @@
 package com.osh.rvs.service.inline;
 
+import static framework.huiqing.common.util.CommonStringUtil.fillChar;
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +48,7 @@ import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.ProcessAssignService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
@@ -458,12 +461,35 @@ public class LineLeaderService {
 
 		Set<String> ccdLineModels = RvsUtils.getCcdLineModels(conn);
 
+		Set<String> anmlMaterials = MaterialTagService.getAnmlMaterials(conn);
+
+		ProcessAssignService paService = new ProcessAssignService();
+		List<String> anmlProcesses = ProcessAssignService.getAnmlProcesses(conn);
+		Map<String, String> anmlProcessMap = new HashMap<String, String>();
+
 		for (MaterialEntity entity : listEntities) {
 			MaterialForm retForm = new MaterialForm();
 			BeanUtil.copyToForm(entity, retForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 			if (!ccdLineModels.contains(entity.getModel_id())) { // 非304作业对象
 				retForm.setPat_id(null);
 			}
+			// 动物实验
+			if (anmlMaterials.contains(entity.getMaterial_id())) {
+				retForm.setAnml_exp("1");
+
+				String pat_id = retForm.getPat_id();
+				if (pat_id != null && anmlProcesses.size() > 0) {
+					if (!anmlProcesses.contains(fillChar(pat_id, '0', 11, true))) {
+						retForm.setPat_id(anmlProcesses.get(0));
+						if (!anmlProcessMap.containsKey(anmlProcesses.get(0))) {
+							String patName = paService.getDetail(anmlProcesses.get(0), conn).getName();
+							anmlProcessMap.put(anmlProcesses.get(0), patName);
+						}
+						retForm.setSection_name(anmlProcessMap.get(anmlProcesses.get(0)));
+					}
+				}
+			}
+			
 			ret.add(retForm);
 		}
 

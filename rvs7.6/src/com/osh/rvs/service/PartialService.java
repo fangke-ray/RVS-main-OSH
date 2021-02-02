@@ -76,8 +76,11 @@ public class PartialService {
 		/* 数据复制 */
 		BeanUtil.copyToBean(partialForm, conditionBean, (new CopyOptions()).include("partial_id", "code"));
 
+		// 得到的是可能删除的
+		conditionBean.setIs_exists(0);
 		List<String> resultBean = dao.checkPartial(conditionBean);
 		if (resultBean != null && resultBean.size() > 0) {
+
 			MsgInfo error = new MsgInfo();
 			error.setComponentid("code");
 			error.setErrcode("dbaccess.columnNotUnique");

@@ -118,7 +118,8 @@
 			SELECT
 				shelf, location, `execute`, tcs.material_id
 			FROM turnover_case_storage tcs
-			JOIN production_feature pf ON tcs.material_id = pf.material_id and position_id = 47 and operate_result = 0
+			JOIN production_feature pf ON tcs.material_id = pf.material_id and position_id in (select position_id from position where special_page = 'shipping')
+			 and operate_result = 0
 			WHERE location = #{location}
 		]]>
 	</select>
@@ -128,7 +129,8 @@ select tcs.location, ma.material_id, mdl.name as model_name, ma.serial_no,
 		tcs.shelf,
 coalesce(ma.bound_out_ocm, ma.ocm) as bound_out_ocm, break_back_flg as `execute`
 from material ma 
-JOIN production_feature pf ON  ma.material_id = pf.material_id and position_id = 47 and operate_result = 0
+JOIN production_feature pf ON  ma.material_id = pf.material_id and position_id in (select position_id from position where special_page = 'shipping')
+ and operate_result = 0
 JOIN turnover_case_storage tcs ON ma.material_id = tcs.material_id
 JOIN model mdl ON ma.model_id = mdl.model_id
 where outline_time is not null OR ma.break_back_flg = 1

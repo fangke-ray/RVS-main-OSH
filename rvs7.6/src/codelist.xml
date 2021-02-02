@@ -1310,4 +1310,17 @@
 		<value code="4">已使用</value>
 	</codelist>
 
+	<codelist name="position_spec">
+		<value code="dummy">流水线虚拟</value>
+		<value code="part_order">零件订购</value>
+		<value code="part_recieve">零件发放</value>
+		<value code="acceptance">受理</value>
+		<value code="dismantle">分拆</value>
+		<value code="materials">物料虚拟</value>
+		<value code="qualityAssurance">最终检查</value>
+		<value code="quotation">报价</value>
+		<value code="serviceRepairReferee">返品分析</value>
+		<value code="shipping">包装出货</value>
+	</codelist>
+
 </codelist-config>

@@ -26,7 +26,6 @@ var customers = {};
 var lightRepairs=[];
 var chosedPat = {};
 var chosedPos = {};
-var positionMapping={};
 
 var showWipEmpty=function() {
 	$.ajax({

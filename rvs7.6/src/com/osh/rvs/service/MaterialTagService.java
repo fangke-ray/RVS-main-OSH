@@ -1,6 +1,8 @@
 package com.osh.rvs.service;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
@@ -23,6 +25,8 @@ public class MaterialTagService {
 	public static final int TAG_ANIMAL_EXPR = 1;
 	public static final int TAG_DISINFECT = 4;
 	public static final int TAG_STERIZE = 5;
+
+	private static Set<String> anml_materials = null;
 
 	/**
 	 * 新建
@@ -77,6 +81,10 @@ public class MaterialTagService {
 				mapper.deleteTagByMaterialId(material_id, tag_type + "");
 			}
 		}
+
+		if (TAG_ANIMAL_EXPR == tag_type) {
+			resetAnmlMaterials(conn);
+		}
 	}
 
 	public List<Integer> checkTagByMaterialId(String material_id, Integer tag_type, SqlSession conn) {
@@ -102,5 +110,27 @@ public class MaterialTagService {
 		}
 
 		return null;
+	}
+
+	/**
+	 * @return the anml_materials
+	 */
+	public static Set<String> getAnmlMaterials(SqlSession conn) {
+		if (anml_materials == null) {
+			if (conn == null) {
+				
+			} else {
+				resetAnmlMaterials(conn);
+			}
+		}
+		return anml_materials;
+	}
+	public static void resetAnmlMaterials(SqlSession conn) {
+		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
+		List<String> lAnmlWipMaterials = mapper.getAnmlWipMaterials();
+		anml_materials = new HashSet<String>();
+		for (String material_id : lAnmlWipMaterials) {
+			anml_materials.add(material_id);
+		}
 	}
 }

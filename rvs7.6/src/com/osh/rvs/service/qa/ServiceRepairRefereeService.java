@@ -31,14 +31,14 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 
 
 public class ServiceRepairRefereeService {
-	private static final String JUDGE_POSITION = "00000000051";
+	// private static final String JUDGE_POSITION = "00000000051";
 	private static final String PROCESS_CODE = "601";
 	private Logger _log=Logger.getLogger(getClass());
 
-	public List<ServiceRepairManageForm> searchServiceRepair(SqlSession conn,String material_id){
+	public List<ServiceRepairManageForm> searchServiceRepair(SqlSession conn, boolean forAnml, String material_id){
 		ServiceRepairRefereeMapper dao=conn.getMapper(ServiceRepairRefereeMapper.class);
 		List<ServiceRepairManageForm> lResultForm=new ArrayList<ServiceRepairManageForm>();
-		List<ServiceRepairManageEntity> lResultBean=dao.searchServiceRepair(material_id);
+		List<ServiceRepairManageEntity> lResultBean=dao.searchServiceRepair(material_id, (forAnml? "1" : "-1"));
 		if(lResultBean!=null){
 			//复制数据对象到表单
 			BeanUtil.copyToFormList(lResultBean, lResultForm, null,ServiceRepairManageForm.class);
@@ -104,7 +104,7 @@ public class ServiceRepairRefereeService {
 	 */
 	public List<ServiceRepairManageEntity> searchPausedServiceRepair(SqlSession conn, String material_id) {
 		ServiceRepairRefereeMapper dao=conn.getMapper(ServiceRepairRefereeMapper.class);
-		return dao.findPausing(material_id);
+		return dao.findPausing(material_id, null);
 	}
 
 	/**
@@ -112,10 +112,10 @@ public class ServiceRepairRefereeService {
 	 * @param conn
 	 * @return
 	 */
-	public List<ServiceRepairManageForm> searchServiceRepairPaused(SqlSession conn) {
+	public List<ServiceRepairManageForm> searchServiceRepairPaused(String position_id, SqlSession conn) {
 		ServiceRepairRefereeMapper dao=conn.getMapper(ServiceRepairRefereeMapper.class);
 		List<ServiceRepairManageForm> lResultFormList=new ArrayList<ServiceRepairManageForm>();
-		List<ServiceRepairManageEntity> lResultBeans=dao.findPausing(null);
+		List<ServiceRepairManageEntity> lResultBeans=dao.findPausing(null, position_id);
 		//复制数据对象到表单
 		BeanUtil.copyToFormList(lResultBeans, lResultFormList, null,ServiceRepairManageForm.class);
 		return lResultFormList;
@@ -144,10 +144,10 @@ public class ServiceRepairRefereeService {
 	}
 
 	public void createProductionFeature(SqlSessionManager conn, ServiceRepairManageEntity resultEntity, 
-			String operator_id, String section_id, Integer operate_result) throws Exception {
+			String judge_position_id, String operator_id, String section_id, Integer operate_result) throws Exception {
 		SoloProductionFeatureEntity productionFeatureEntity = new SoloProductionFeatureEntity();
 		productionFeatureEntity.setSection_id(section_id);
-		productionFeatureEntity.setPosition_id(JUDGE_POSITION);
+		productionFeatureEntity.setPosition_id(judge_position_id);
 		productionFeatureEntity.setModel_name(resultEntity.getModel_name());
 		productionFeatureEntity.setJudge_date(resultEntity.getRc_mailsend_date());
 		productionFeatureEntity.setSerial_no(resultEntity.getSerial_no());

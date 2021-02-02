@@ -513,4 +513,37 @@
 		]]>
 	</select>
 
+	<select id="getOperatorNotifyEntity" resultType="OperatorNotifyEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT 
+			noti.position_id, category_id, noti.operator_id, manager_operator_id, 
+		    op.name, op.job_no, om.name as manager_operator_name
+		FROM operator_notify noti
+		LEFT JOIN operator op
+		ON noti.operator_id = op.operator_id
+		LEFT JOIN operator om
+		ON noti.manager_operator_id = om.operator_id;
+		]]>
+	</select>
+
+	<insert id="insertOperatorNotify" parameterType="OperatorNotifyEntity">
+		<![CDATA[ 
+		INSERT INTO `operator_notify`
+		(`position_id`,
+		`category_id`,
+		`operator_id`,
+		`manager_operator_id`)
+		VALUES
+		(#{position_id},
+		#{category_id},
+		#{operator_id},
+		#{manager_operator_id});
+		]]>
+	</insert>
+
+	<delete id="deleteOperatorNotify" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM `operator_notify`;
+		]]>
+	</delete>
 </mapper>

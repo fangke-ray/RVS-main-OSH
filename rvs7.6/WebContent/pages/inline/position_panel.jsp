@@ -203,6 +203,15 @@ if (work_count_flg == 1) {
 				<div class="clear areaencloser"></div>
 			</div>
 
+<%
+if (request.getAttribute("unitizeds")!=null) {
+%>
+<%@include file="/widgets/position_panel/unitizeds_rent.jsp"%>
+<%
+}
+%>
+
+
 			<div class="dwidth-full">
 <%
 if (px == null || "0".equals(px)) {

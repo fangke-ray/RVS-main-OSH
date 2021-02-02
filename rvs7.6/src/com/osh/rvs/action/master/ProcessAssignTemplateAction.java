@@ -316,13 +316,22 @@ public class ProcessAssignTemplateAction extends BaseAction {
 
 		String modelId = req.getParameter("model_id");
 		String deriveKind = req.getParameter("derive_kind");
+		String anmlExp = req.getParameter("anml_exp");
 
-		ModelService mService = new ModelService();
-		ModelEntity mEntity = mService.getDetailEntity(modelId, conn);
+		if (anmlExp != null && "1".equals(anmlExp)) {
+			List<String> anmlProcesses = ProcessAssignService.getAnmlProcesses(conn);
+			if (anmlProcesses.size() > 0) {
+				cbResponse.put("dpResult", 
+						service.getDerivePair(anmlProcesses.get(0), deriveKind, conn));
+			}
+		} else {
+			ModelService mService = new ModelService();
+			ModelEntity mEntity = mService.getDetailEntity(modelId, conn);
 
-		if (mEntity != null && mEntity.getDefault_pat_id() != null) {
-			cbResponse.put("dpResult", 
-					service.getDerivePair(mEntity.getDefault_pat_id(), deriveKind, conn));
+			if (mEntity != null && mEntity.getDefault_pat_id() != null) {
+				cbResponse.put("dpResult", 
+						service.getDerivePair(mEntity.getDefault_pat_id(), deriveKind, conn));
+			}
 		}
 
 		// 检查发生错误时报告错误信息

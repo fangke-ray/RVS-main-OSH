@@ -43,6 +43,9 @@ public class PositionService {
 	private static Map<String, PositionEntity> positionEntityCache = new HashMap<String, PositionEntity>();
 	private static Map<String, List<String>> positionMappings = null; // (中小修)映射工位指向(大修)来源工位
 	private static Map<String, String> positionMappingRevers = null; // (大修)来源工位指向(中小修)映射工位
+	private static Map<String, List<String>> positionUnitizeds = null; // (动物内镜)映射工位指向(大修)来源工位
+	private static Map<String, String> positionUnitizedRevers = null; // (大修)来源工位指向(动物内镜)映射工位
+	private static Map<String, String> specialPagePositions = null;
 
 	private void clearCaches() {
 		dividePositions = null;
@@ -53,6 +56,9 @@ public class PositionService {
 		inlineOptions = null;
 		positionMappings = null;
 		positionMappingRevers = null;
+		positionUnitizeds = null;
+		positionUnitizedRevers = null;
+		specialPagePositions = null;
 		positionEntityCache.clear();
 		ReverseResolution.positionRever.clear();
 	}
@@ -624,7 +630,7 @@ public class PositionService {
 	}
 
 	/**
-	 * 设定映射
+	 * 设定映射(中小修)
 	 * 
 	 * @param id
 	 * @param mappingList
@@ -643,6 +649,84 @@ public class PositionService {
 		clearCaches();
 	}
 
+	/**
+	 * 检查设定
+	 * 
+	 * @param req
+	 * @param conn
+	 * @param errors
+	 */
+	public List<String> checkUnitized(HttpServletRequest req, SqlSession conn,
+			List<MsgInfo> errors) {
+		List<String> mappingList = new AutofillArrayList<String> (String.class);
+
+		String id = null;
+
+		Map<String, String[]> parameterMap = req.getParameterMap();
+		for (String parameterKey : parameterMap.keySet()) {
+			if ("id".equals(parameterKey)) {
+				id = parameterMap.get(parameterKey)[0];
+			} else if (parameterKey.startsWith("mappings")) {
+				mappingList.add(parameterMap.get(parameterKey)[0]);
+			}
+		}
+
+		if (mappingList.size() > 0) {
+			Map<String, List<String>> checkPositionUnitizeds = getPositionUnitizeds(conn);
+			Map<String, String> checkPositionUnitizedRevers = getPositionUnitizedRevers(conn);
+
+			for (String mappingPosition : mappingList) {
+				if (mappingPosition.equals(id)
+						|| checkPositionUnitizeds.containsKey(mappingPosition)) {
+
+					MsgInfo error = new MsgInfo();
+					error.setComponentid("mapping_position_id");
+					error.setErrcode("info.master.position.setUnitizedFrom");
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.master.position.setMappingFrom"
+							, getPositionEntityByKey(mappingPosition, conn).getProcess_code()));
+					errors.add(error);
+				} else if (checkPositionUnitizedRevers.containsKey(mappingPosition)) {
+					if (!(checkPositionUnitizeds.containsKey(id) 
+							&& checkPositionUnitizeds.get(id).contains(mappingPosition))) {
+						MsgInfo error = new MsgInfo();
+						error.setComponentid("mapping_position_id");
+						error.setErrcode("info.master.position.setMappedTo");
+						error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.master.position.setMappedTo"
+								, getPositionEntityByKey(mappingPosition, conn).getProcess_code()));
+						errors.add(error);
+					}
+				}
+			}
+		}
+
+		return mappingList;
+	}
+
+	/**
+	 * 设定映射(动物内镜)
+	 * 
+	 * @param id
+	 * @param unitizedList
+	 * @param conn
+	 */
+	public void mappingUnitized(String id, List<String> unitizedList,
+			SqlSessionManager conn) {
+		PositionMapper mapper = conn.getMapper(PositionMapper.class);
+
+		mapper.clearUnitizedPosition(id);
+
+		for (String position_id : unitizedList) {
+			mapper.setUnitizedPosition(position_id, id);
+		}
+
+		clearCaches();
+	}
+
+	public List<PositionEntity> getUnitizedPositionList(SqlSession conn) {
+		PositionMapper mapper = conn.getMapper(PositionMapper.class);
+		return mapper.getUnitizedPositionList();
+	}
+	
 	/**
 	 * 取得全部中小修工位对应
 	 * 
@@ -682,6 +766,57 @@ public class PositionService {
 			}
 		}
 		return positionMappingRevers;
+	}
+	public static Map<String, List<String>> getPositionUnitizeds(SqlSession conn) {
+		if (positionUnitizeds == null) {
+			positionUnitizeds = new HashMap<String, List<String>>();
+			positionUnitizedRevers = new HashMap<String, String>();
+
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionEntity> l = mapper.getAllUnitizedPositions();
+			for (PositionEntity posUnitized : l) {
+				if (!positionUnitizeds.containsKey(posUnitized.getUnitized_position_id())) {
+					positionUnitizeds.put(posUnitized.getUnitized_position_id(), new ArrayList<String> ());
+				}
+				positionUnitizeds.get(posUnitized.getUnitized_position_id()).add(posUnitized.getPosition_id());
+				positionUnitizedRevers.put(posUnitized.getPosition_id(), posUnitized.getUnitized_position_id());
+			}
+		}
+		return positionUnitizeds;
+	}
+	public static Map<String, String> getPositionUnitizedRevers(SqlSession conn) {
+		if (positionUnitizedRevers == null) {
+			positionUnitizeds = new HashMap<String, List<String>>();
+			positionUnitizedRevers = new HashMap<String, String>();
+
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionEntity> l = mapper.getAllUnitizedPositions();
+			for (PositionEntity posUnitized : l) {
+				if (!positionUnitizeds.containsKey(posUnitized.getUnitized_position_id())) {
+					positionUnitizeds.put(posUnitized.getUnitized_position_id(), new ArrayList<String> ());
+				}
+				positionUnitizeds.get(posUnitized.getUnitized_position_id()).add(posUnitized.getPosition_id());
+				positionUnitizedRevers.put(posUnitized.getPosition_id(), posUnitized.getUnitized_position_id());
+			}
+		}
+		return positionUnitizedRevers;
+	}
+
+	/**
+	 * 取得工位特殊页面
+	 * @param conn
+	 * @return
+	 */
+	public static String getPositionSpecialPage(String position_id, SqlSession conn) {
+		if (specialPagePositions == null) {
+			specialPagePositions = new HashMap<String, String>();
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionEntity> l = mapper.getSpecialPagePositions();
+			for (PositionEntity pos : l) {
+				specialPagePositions.put(pos.getPosition_id(), pos.getSpecial_page());
+			}
+		}
+		return specialPagePositions.get(position_id);
 	}
 
 }

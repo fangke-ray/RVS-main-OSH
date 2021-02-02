@@ -28,6 +28,7 @@ import com.osh.rvs.service.PositionService;
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.validator.Validators;
 
@@ -58,6 +59,8 @@ public class PositionAction extends BaseAction {
 		// 取得下拉框信息
 		String lOptions = lservice.getOptions(conn);
 		req.setAttribute("lOptions", lOptions);
+
+		req.setAttribute("spOptions", CodeListUtils.getSelectOptions("position_spec", null, ""));
 
 		req.setAttribute("pReferChooser", service.getOptions(conn, true, true));
 
@@ -140,6 +143,10 @@ public class PositionAction extends BaseAction {
 				if (resultForm.getMapping_position_id() == null) {
 					Map<String, List<String>> positionMappings = PositionService.getPositionMappings(conn);
 					listResponse.put("positionMappings", positionMappings.get(reqId));
+				}
+				if (resultForm.getUnitized_position_id() == null) {
+					Map<String, List<String>> positionMappings = PositionService.getPositionUnitizeds(conn);
+					listResponse.put("positionUnitizeds", positionMappings.get(reqId));
 				}
 			}
 		}
@@ -294,5 +301,30 @@ public class PositionAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("PositionAction.domapping end");
+	}
+
+	public void domappingUnitized(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("PositionAction.domappingUnitized start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		// 删除记录表单合法性检查
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ONLYKEY);
+		List<MsgInfo> errors = v.validate();
+
+		List<String> mappingList = service.checkUnitized(req, conn, errors);
+
+		if (errors.size() == 0) {
+			// 执行删除
+			service.mappingUnitized(req.getParameter("id"), mappingList, conn);
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("PositionAction.domappingUnitized end");
 	}
 }

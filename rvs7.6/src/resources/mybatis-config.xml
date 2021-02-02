@@ -151,6 +151,8 @@
 
 		<typeAlias alias="ProcedureManualEntity" type="com.osh.rvs.bean.report.ProcedureManualEntity"/>
 
+		<typeAlias alias="OperatorNotifyEntity" type="com.osh.rvs.bean.master.OperatorNotifyEntity" />
+
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">

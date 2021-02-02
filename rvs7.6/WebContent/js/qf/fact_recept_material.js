@@ -383,7 +383,7 @@ $(function() {
         filterSelModel();
     });
 
-	$("span.animal").hide();
+	// $("span.animal").hide();
 }); // End of $(function()
 
 function findit() {

@@ -218,7 +218,10 @@
 			LEFT JOIN production_feature pf111
 				ON `pf111`.material_id = `m`.material_id AND `pf111`.position_id = 9 AND `pf111`.operate_result = 2
 			LEFT JOIN production_feature pf151
-				ON `pf151`.material_id = `m`.material_id AND `pf151`.position_id IN (13,14,64) AND `pf151`.operate_result = 2
+				ON `pf151`.material_id = `m`.material_id 
+				AND `pf151`.position_id in (select position_id from position where special_page = 'quotation') 
+				and `pf151`.position_id != 101 
+				AND `pf151`.operate_result = 2
 			JOIN (SELECT `pfp`.material_id, `pfp`.position_id, `pfp`.name, `pfp`.process_code, `pfp`.operate_result FROM (
 					SELECT `pf`.material_id, `pf`.position_id, `p`.name, `p`.process_code, `pf`.operate_result
 					FROM production_feature pf
@@ -249,6 +252,7 @@
 				ON `m`.material_id = mt.material_id AND tag_type = 1
 			WHERE `m`.inline_time IS NULL AND outline_time IS NULL
 			AND break_back_flg = 0
+			AND `m`.fix_type in (1,2)
 		]]>
 			<if test="sorc_no!= null and sorc_no!= '' ">
 				AND (`m`.sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or `m`.omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))

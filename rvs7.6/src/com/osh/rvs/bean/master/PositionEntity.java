@@ -30,8 +30,12 @@ public class PositionEntity implements Serializable {
 	/** 独立小修理工位标记 **/
 	private Integer light_division_flg;
 
+	/** 特殊工位页面 */
+	private String special_page;
+
 	/** 映射工位 ID */
 	private String mapping_position_id;
+	private String unitized_position_id;
 
 	private Integer chief;
 
@@ -197,5 +201,21 @@ public class PositionEntity implements Serializable {
 
 	public void setChief(Integer chief) {
 		this.chief = chief;
+	}
+
+	public String getSpecial_page() {
+		return special_page;
+	}
+
+	public void setSpecial_page(String special_page) {
+		this.special_page = special_page;
+	}
+
+	public String getUnitized_position_id() {
+		return unitized_position_id;
+	}
+
+	public void setUnitized_position_id(String unitized_position_id) {
+		this.unitized_position_id = unitized_position_id;
 	}
 }

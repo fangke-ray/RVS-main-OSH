@@ -7,6 +7,8 @@
  */
 package com.osh.rvs.action.master;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,9 +22,14 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.master.OperatorNotifyEntity;
+import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.common.RvsUtils;
+import com.osh.rvs.form.master.CategoryForm;
 import com.osh.rvs.form.master.OperatorForm;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.LineService;
+import com.osh.rvs.service.CategoryService;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.RoleService;
@@ -88,6 +95,8 @@ public class OperatorAction extends BaseAction {
 
 		AcceptFactService afService = new AcceptFactService();
 		req.setAttribute("afReferChooser", afService.getOptions(conn));
+
+		req.setAttribute("oReferChooser", service.getAllOperatorName(conn));
 
 		// 分线
 		req.setAttribute("pxOptions", CodeListUtils.getSelectOptions("operator_px", "0", "0::(全部)", false));
@@ -350,5 +359,93 @@ public class OperatorAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("OperatorAction.dogeneratepasswd end");
+	}
+
+	/**
+	 * 取得动物实验用内镜维修指令的担当明细
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={2, 0})
+	public void showAnml(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+
+		log.info("OperatorAction.showAnml start");
+		// Ajax响应对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		// 检索条件表单合法性检查
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// 查询动物内镜用工位一览
+		PositionService pService = new PositionService();
+		List<PositionEntity> unitizedPositionList = pService.getUnitizedPositionList(conn);
+		if (unitizedPositionList.size() == 0) {
+			
+			MsgInfo e = new MsgInfo();
+			e.setErrmsg("没有动物实验用工位。");
+			errors.add(e);
+		} else {
+			listResponse.put("unitizedPositionList", unitizedPositionList);
+
+			List<OperatorNotifyEntity> operatorNotifies = service.getOperatorNotifyEntity(conn);
+			if (operatorNotifies != null) {
+				// 取得动物实验用担当设置
+				listResponse.put("operatorNotifies", operatorNotifies);
+			}
+
+			// 硬性镜型号
+			CategoryService ctgService = new CategoryService();
+			CategoryForm ctgForm = new CategoryForm();
+			ctgForm.setKind("06");
+			List<CategoryForm> rigidCategory = ctgService.search(ctgForm, conn, errors);
+			listResponse.put("rigidCategory", rigidCategory);
+
+		}
+
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("OperatorAction.showAnml end");
+	}
+
+	/**
+	 * 设定担当提示（动物内镜）
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={2, 0})
+	public void doSetNotify(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("OperatorAction.doSetNotify start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		// 检索条件表单合法性检查
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		if (errors.size() == 0) {
+			// 执行重新设定密码
+			service.setNotify(req.getParameterMap(), conn, errors);
+
+			RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/prop/set_notify/" + new Date().getTime());
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("OperatorAction.doSetNotify end");
 	}
 }

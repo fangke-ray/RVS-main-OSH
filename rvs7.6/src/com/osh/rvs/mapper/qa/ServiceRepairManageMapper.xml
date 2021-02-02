@@ -212,7 +212,8 @@
 			        AND srm.rc_mailsend_date = srpm.rc_mailsend_date
 			        LEFT JOIN
 			    production_feature pr ON srm.material_id = pr.material_id
-			        AND pr.position_id in (13 , 14)
+			        AND pr.position_id in (select position_id from position where special_page = 'quotation') 
+			        and pr.position_id != 101
 			        AND pr.operate_result = 2
 			        LEFT JOIN
 			    qis_payout qis ON srm.model_name = qis.model_name

@@ -63,7 +63,8 @@
 		and pf111.operate_result = 2
 		join production_feature pf151
 		on ma.material_id = pf151.material_id
-		and pf151.position_id in (13, 14)
+		and pf151.position_id in (select position_id from position where special_page = 'quotation') 
+		and pf151.position_id != 101
 		and pf151.operate_result = 2
 		where 
 		ma.break_back_flg in (0, 2)
@@ -253,12 +254,14 @@ production_feature pdf
 on 
 pdf.material_id = ma.material_id
 and operate_result = 2
-and pdf.position_id in (13, 14, 64)
+and pdf.position_id in (select position_id from position where special_page = 'quotation') 
+and pdf.position_id != 101
 left join (
 select material_id, min(pause_start_time) as pause_start_time 
 from pause_feature pwf
 where pwf.reason in (73,74)
-and pwf.position_id in (13, 14, 64)
+and pwf.position_id in (select position_id from position where special_page = 'quotation') 
+and pwf.position_id != 101
 group by material_id) pwfg
 on ma.material_id = pwfg.material_id
 having quotation_time is not null

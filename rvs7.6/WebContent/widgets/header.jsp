@@ -454,6 +454,8 @@ $(function() {
     			if (typeof(refreshLightWaiting) === "function") refreshLightWaiting(resInfo.list);
     		} else if ("notice" == resInfo.method) {
     			if (typeof(refreshNotice) === "function") refreshNotice(resInfo.list);
+    		} else if ("anml" == resInfo.method) {
+    			if (typeof(anmlNotice) === "function") anmlNotice(resInfo.instorage);
     		}
     	} catch(e) {
     	}

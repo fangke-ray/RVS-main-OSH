@@ -157,6 +157,10 @@
 				AND partial_id <> #{partial_id}
 			]]>
 		</if>
+		<if test="is_exists eq 0">
+			AND delete_flg = 0
+		</if>
+		ORDER BY delete_flg, UPDATED_TIME;
 	</select> 
 	
     <select id="getPartialByCode" resultType="PartialEntity" parameterType="String">

@@ -747,9 +747,16 @@ public class PositionPanelService {
 			showLines[0] = "检查卡";
 		} else {
 			if ("00000000012".equals(sline_id)) {
-				showLines = new String[2];
-				showLines[0] = "分解工程";
-				showLines[1] = "总组工程"; // TODO 判断有无总组返工
+				if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
+					showLines = new String[3];
+					showLines[0] = "分解工程";
+					showLines[1] = "NS 工程";
+					showLines[2] = "总组工程";
+				} else {
+					showLines = new String[2];
+					showLines[0] = "分解工程";
+					showLines[1] = "总组工程"; // TODO 判断有无总组返工
+				}
 			} else if ("00000000013".equals(sline_id)) {
 				showLines = new String[1];
 				showLines[0] = "NS 工程";
@@ -776,7 +783,8 @@ public class PositionPanelService {
 			if ("NS 工程".equals(showLine)) filterSolo(fileTempl, material_id, conn);
 
 			Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, material_id, mform.getSorc_no(),
-					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), pf.getProcess_code(), isLeader ? sline_id : null, conn);
+					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), pf.getProcess_code(), isLeader ? sline_id : null, 
+							MaterialTagService.getAnmlMaterials(conn).contains(material_id), conn);
 			fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
 			pcses.add(fileHtml);
 		}
@@ -871,7 +879,8 @@ public class PositionPanelService {
 			if ("NS 工程".equals(showLine)) filterSolo(fileTempl, material_id, conn);
 
 			Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, material_id, mform.getSorc_no(),
-					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), "619", null, conn);
+					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), "619", null, 
+					MaterialTagService.getAnmlMaterials(conn).contains(material_id), conn);
 			fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
 			pcses.add(fileHtml);
 		}
@@ -1096,9 +1105,7 @@ public class PositionPanelService {
 		mform.setOperate_result(String.valueOf(pf.getOperate_result()));
 
 		// 动物内镜用
-		MaterialTagService mtServcie = new MaterialTagService();
-		List<Integer> mtList = mtServcie.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
-		if (mtList != null && mtList.size() > 0) {
+		if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
 			mform.setAnml_exp("true");
 		}
 

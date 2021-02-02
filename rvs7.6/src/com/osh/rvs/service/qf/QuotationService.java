@@ -7,6 +7,7 @@
 */ 
 package com.osh.rvs.service.qf;
 
+import static framework.huiqing.common.util.CommonStringUtil.fillChar;
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;
@@ -77,6 +78,19 @@ public class QuotationService {
 		MaterialForm mform = service.getMaterialInfo(material_id, user,conn);
 		responseBean.put("mform", mform);
 
+		boolean anmlExp = "true".equals(mform.getAnml_exp());
+		List<String> anmlProcesses = ProcessAssignService.getAnmlProcesses(conn);
+		ProcessAssignService paService = new ProcessAssignService();
+
+		String pat_id = mform.getPat_id();
+		if (!RvsUtils.isLightFix(mform.getLevel()) && pat_id != null && anmlProcesses.size() > 0) {
+			if (!anmlProcesses.contains(pat_id)) {
+				mform.setPat_id(anmlProcesses.get(0));
+				String patName = paService.getDetail(anmlProcesses.get(0), conn).getName();
+				mform.setSection_name(patName);
+			}
+		}
+
 		// 判断是否CCD线更换对象，是的话可选择流程
 		if (RvsUtils.getCcdLineModels(conn).contains(mform.getModel_id())) {
 			Map<String, String> patState = new HashMap<String, String>();
@@ -84,13 +98,19 @@ public class QuotationService {
 			patState.put("pat_name", mform.getSection_name());
 			responseBean.put("patState", patState);
 
-			ModelService mService = new ModelService();
-			ModelEntity mEntity = mService.getDetailEntity(mform.getModel_id(), conn);
+			if (anmlExp) {
+				if (anmlProcesses.size() > 0) {
+					responseBean.put("dpResult", 
+							paService.getDerivePair(anmlProcesses.get(0), "3", conn));
+				}
+			} else {
+				ModelService mService = new ModelService();
+				ModelEntity mEntity = mService.getDetailEntity(mform.getModel_id(), conn);
 
-			if (mEntity != null && mEntity.getDefault_pat_id() != null) {
-				ProcessAssignService paService = new ProcessAssignService();
-				responseBean.put("dpResult", 
-						paService.getDerivePair(mEntity.getDefault_pat_id(), "3", conn));
+				if (mEntity != null && mEntity.getDefault_pat_id() != null) {
+					responseBean.put("dpResult", 
+							paService.getDerivePair(mEntity.getDefault_pat_id(), "3", conn));
+				}
 			}
 		}
 
@@ -117,9 +137,7 @@ public class QuotationService {
 		String otherComment = mapper.getMaterialComments(material_id, user.getOperator_id());
 		materialForm.setScheduled_manager_comment(otherComment);
 
-		MaterialTagService mtServcie = new MaterialTagService();
-		List<Integer> mtList = mtServcie.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
-		if (mtList != null && mtList.size() > 0) {
+		if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
 			materialForm.setAnml_exp("true");
 		}
 

@@ -85,36 +85,53 @@ public class AlarmMesssageService {
 			}
 			logger.error("重新试图取得的ID是：" + amId);
 		}
-		// 查找发送目标
-		// 线长
-		OperatorMapper oDao = conn.getMapper(OperatorMapper.class);
-		OperatorEntity condBean = new OperatorEntity();
-		condBean.setLine_id(entity.getLine_id());
-		condBean.setSection_id(entity.getSection_id());
-		condBean.setRole_id("00000000005"); //TODO
-		List<OperatorNamedEntity> leaders = oDao.searchOperator(condBean);
 
+		// 查找发送目标
 		List<String> fingerOperators = new ArrayList<String>();
 
-		for(OperatorNamedEntity leader : leaders) {
-			AlarmMesssageSendationEntity sendation = new AlarmMesssageSendationEntity();
-			sendation.setAlarm_messsage_id(amId);
-			sendation.setSendation_id(leader.getOperator_id());
-			dao.createAlarmMessageSendation(sendation);
-			fingerOperators.add(leader.getOperator_id());
+		boolean isAnml = false; 
+		if (entity.getMaterial_id() != null) {
+			isAnml = MaterialTagService.getAnmlMaterials(conn).contains(entity.getMaterial_id());
 		}
 
-		if (sendToScheduler) {
-			// 计划管理员
-			condBean = new OperatorEntity();
-			condBean.setRole_id(RvsConsts.ROLE_SCHEDULER);
-			List<OperatorNamedEntity> schedulers = oDao.searchOperator(condBean);
-			for(OperatorNamedEntity scheduler : schedulers) {
+		if (isAnml) {
+			OperatorService operatorService = new OperatorService();
+			MaterialService materialService = new MaterialService();
+			MaterialEntity mBean = materialService.loadMaterialDetailBean(conn, entity.getMaterial_id());
+
+			String anmlBreakNotifier = operatorService.notifyAnmlBreak(mBean.getCategory_id(), entity.getPosition_id(), conn);
+			if (anmlBreakNotifier != null) {
+				fingerOperators.add(anmlBreakNotifier);
+			}
+		} else {
+			// 线长
+			OperatorMapper oDao = conn.getMapper(OperatorMapper.class);
+			OperatorEntity condBean = new OperatorEntity();
+			condBean.setLine_id(entity.getLine_id());
+			condBean.setSection_id(entity.getSection_id());
+			condBean.setRole_id(RvsConsts.ROLE_LINELEADER);
+			List<OperatorNamedEntity> leaders = oDao.searchOperator(condBean);
+
+			for(OperatorNamedEntity leader : leaders) {
 				AlarmMesssageSendationEntity sendation = new AlarmMesssageSendationEntity();
 				sendation.setAlarm_messsage_id(amId);
-				sendation.setSendation_id(scheduler.getOperator_id());
+				sendation.setSendation_id(leader.getOperator_id());
 				dao.createAlarmMessageSendation(sendation);
-				fingerOperators.add(scheduler.getOperator_id());
+				fingerOperators.add(leader.getOperator_id());
+			}
+
+			if (sendToScheduler) {
+				// 计划管理员
+				condBean = new OperatorEntity();
+				condBean.setRole_id(RvsConsts.ROLE_SCHEDULER);
+				List<OperatorNamedEntity> schedulers = oDao.searchOperator(condBean);
+				for(OperatorNamedEntity scheduler : schedulers) {
+					AlarmMesssageSendationEntity sendation = new AlarmMesssageSendationEntity();
+					sendation.setAlarm_messsage_id(amId);
+					sendation.setSendation_id(scheduler.getOperator_id());
+					dao.createAlarmMessageSendation(sendation);
+					fingerOperators.add(scheduler.getOperator_id());
+				}
 			}
 		}
 

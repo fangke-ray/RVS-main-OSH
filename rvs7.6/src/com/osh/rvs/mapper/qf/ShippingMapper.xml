@@ -5,7 +5,7 @@
 	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
 		</cache -->
 	
-	<select id="getWaitings" resultType="MaterialEntity">
+	<select id="getWaitings" resultType="MaterialEntity" parameterType="String">
 		<![CDATA[
 			SELECT `m`.material_id,coalesce(m.omr_notifi_no,m.sorc_no) as sorc_no, `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm, `m`.bound_out_ocm,
 				`m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
@@ -24,7 +24,7 @@
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
 			JOIN production_feature pf
 			  ON `m`.material_id = `pf`.material_id
-			  AND `pf`.position_id = 47
+			  AND `pf`.position_id = #{position_id}
 			  AND `pf`.operate_result = 0
 			  AND `pf`.action_time is null
 			LEFT JOIN material_process mp
@@ -36,7 +36,7 @@
 		
 	</select>
 
-	<select id="getFinished" resultType="MaterialEntity">
+	<select id="getFinished" resultType="MaterialEntity" parameterType="String">
 		<![CDATA[
 			SELECT `m`.material_id,coalesce(m.omr_notifi_no,m.sorc_no) as sorc_no, `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
 			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
@@ -45,7 +45,7 @@
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
 			JOIN production_feature pf
 			  ON `m`.material_id = `pf`.material_id
-			  AND `pf`.position_id = 47
+			  AND `pf`.position_id = #{position_id}
 			  AND `pf`.operate_result = 2
 			  AND `pf`.finish_time > current_date
 			ORDER BY quotation_time DESC

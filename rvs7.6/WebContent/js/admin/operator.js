@@ -77,6 +77,8 @@ $(function() {
 
 	});
 
+	$("#anmlbutton").click(showAnml);
+
 	// 关联工位参照
 	setReferChooser($("#input_position"));
 
@@ -713,3 +715,131 @@ var showEdit = function(rid) {
 		}, null, "重设密码"
 	);
 };
+
+var showAnml = function(){
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=showAnml',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : showAnml_handleComplete
+	});
+}
+var showAnml_handleComplete = function(xhrobj, textStatus){
+	var resInfo = $.parseJSON(xhrobj.responseText);
+
+	if (resInfo.errors.length > 0) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+	} else {
+
+		var categorySize = resInfo.rigidCategory.length + 1;
+		var $dialog_ontent = $("<table border=1><tr class='ui-state-default'><th>工位</th><th>机种</th><th>担当</th><th>上级</th></tr></table>");
+
+		var positionTrs = "";
+		for (var iUp in resInfo.unitizedPositionList) {
+			var unitizedPosition = resInfo.unitizedPositionList[iUp];
+			positionTrs += "<tr><td class='ui-state-default' rowspan=" + categorySize + ">" + unitizedPosition.name + "<br>" + unitizedPosition.process_code 
+				+ "</td><td position_id=" + unitizedPosition.position_id + " category_id='00000000000' >软性镜</td><td class='operator_id'><input type='text' readonly><input type='hidden'></td><td class='manager_operator_id'><input type='text' readonly><input type='hidden'></td></tr>";
+
+			for (var iRc in resInfo.rigidCategory) {
+				var category = resInfo.rigidCategory[iRc];
+				positionTrs += "<tr><td position_id=" + unitizedPosition.position_id + " category_id=" + category.id + " >" + category.name + "</td><td class='operator_id'><input type='text' readonly><input type='hidden'></td><td class='manager_operator_id'><input type='text' readonly><input type='hidden'></td></tr>"
+			}
+		}
+
+		$dialog_ontent.append(positionTrs);
+
+		var $pReferChooser = $("#oReferChooser");
+		$dialog_ontent.find("input:hidden").each(function(idx, ele){
+			setReferChooser($(ele), $pReferChooser);
+		});
+
+		for (var ion in resInfo.operatorNotifies) {
+			var operatorNotify = resInfo.operatorNotifies[ion];
+			var $posi = $dialog_ontent.find("td[position_id="+ operatorNotify.position_id +"][category_id="+ operatorNotify.category_id +"]")
+				.closest("tr");
+			if ($posi.length > 0) {
+				if (operatorNotify.operator_id) {
+					var $operatorTd = $posi.children(".operator_id");
+					$operatorTd.children("input:text").val(operatorNotify.name);
+					$operatorTd.children("input[type=hidden]").val(operatorNotify.operator_id);
+				}
+
+				if (operatorNotify.manager_operator_id) {
+					var $managerTd = $posi.children(".manager_operator_id");
+					$managerTd.children("input:text").val(operatorNotify.manager_operator_name);
+					$managerTd.children("input[type=hidden]").val(operatorNotify.manager_operator_id);
+				}
+				
+			}
+			
+		}
+		
+		
+		var showAnmlDialog = $("#show_anml");
+		if (showAnmlDialog.length === 0) {
+			$("body.outer").append("<div id='show_anml'/>");
+			showAnmlDialog = $("#show_anml");
+		}
+		showAnmlDialog.html($dialog_ontent);
+		showAnmlDialog.dialog({
+			title : "担当明细设置（硬性镜不设置则软性镜设置与ALL机种）",
+			width : 600,
+			show: "blind",
+			height : 600 ,
+			resizable : false,
+			modal : true,
+			close : function(){
+				showAnmlDialog.html("");
+				$("#oReferChooser").hide();
+			},
+			buttons : {
+				"保存": function(){
+					var postData = {};
+					var iPost = 0;
+					$dialog_ontent.find("tr")
+						.each(function(idx, ele){
+						var $positionTr = $(ele);
+						if ($positionTr.find("input:hidden").length) {
+							var operator_id = $positionTr.find(".operator_id > input:hidden").val();
+							var manage_operator_id = $positionTr.find(".manager_operator_id > input:hidden").val();
+							if (operator_id || manage_operator_id) {
+								var $posi = $positionTr.children("td[position_id]");
+								postData["notify.position_id[" + iPost + "]"] = $posi.attr("position_id");
+								postData["notify.category_id[" + iPost + "]"] = $posi.attr("category_id");
+								postData["notify.operator_id[" + iPost + "]"] = operator_id;
+								postData["notify.manager_operator_id[" + iPost + "]"] = manage_operator_id;
+								iPost++;
+							}
+						}
+					});
+					// Ajax提交
+					$.ajax({
+						beforeSend : ajaxRequestType,
+						async : true,
+						url : servicePath + '?method=doSetNotify',
+						cache : false,
+						data : postData,
+						type : "post",
+						dataType : "json",
+						success : ajaxSuccessCheck,
+						error : ajaxError,
+						complete : function(){
+							showAnmlDialog.dialog("close");
+						}
+					});
+				},
+				"关闭": function(){
+					showAnmlDialog.dialog("close");
+				}
+			}
+		});
+	}
+}

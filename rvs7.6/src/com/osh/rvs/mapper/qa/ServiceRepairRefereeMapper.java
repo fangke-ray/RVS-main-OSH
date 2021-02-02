@@ -8,7 +8,7 @@ import com.osh.rvs.bean.qa.ServiceRepairManageEntity;
 
 
 public interface ServiceRepairRefereeMapper {
-	public List<ServiceRepairManageEntity> searchServiceRepair(@Param("material_id") String material_id);
+	public List<ServiceRepairManageEntity> searchServiceRepair(@Param("material_id") String material_id, @Param("anml_exp") String anml_exp);
 	
 	
 	//检查维修对象是否存在
@@ -27,7 +27,7 @@ public interface ServiceRepairRefereeMapper {
 	 * @param material_id 有值的时候为扫描对象确认
 	 * @return
 	 */
-	public List<ServiceRepairManageEntity> findPausing(@Param("material_id") String material_id);
+	public List<ServiceRepairManageEntity> findPausing(@Param("material_id") String material_id, @Param("position_id") String position_id);
 
 	/**删除QIS请款信息**/
 	public void deleteQisPayout(ServiceRepairManageEntity entity);

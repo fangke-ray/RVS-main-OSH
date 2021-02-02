@@ -44,7 +44,16 @@ public interface PositionMapper {
 	public void clearMappingPosition(String mapping_position_id);
 	public void setMappingPosition(@Param("position_id") String position_id, @Param("mapping_position_id") String id);
 
+	public List<PositionEntity> getAllUnitizedPositions();
+
+	public void clearUnitizedPosition(String unitized_position_id);
+	public void setUnitizedPosition(@Param("position_id") String position_id, @Param("unitized_position_id") String id);
+
 	public void setPositionRevision(String process_code);
 
 	public List<PositionEntity> getAllProcessCodeForSwt();
+
+	public List<PositionEntity> getSpecialPagePositions();
+
+	public List<PositionEntity> getUnitizedPositionList();
 }

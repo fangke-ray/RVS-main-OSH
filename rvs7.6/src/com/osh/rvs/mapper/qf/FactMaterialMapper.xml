@@ -64,7 +64,8 @@
 	JOIN 
 		production_feature pf
 	ON 
-		m.material_id = pf.material_id AND pf.position_id = 47 AND pf.operate_result = 0 AND pf.action_time IS NULL
+		m.material_id = pf.material_id AND pf.position_id in (select position_id from position where special_page = 'shipping')
+		AND pf.operate_result = 0 AND pf.action_time IS NULL
 	LEFT JOIN 
 		material_process mp
 	ON 
@@ -117,7 +118,8 @@
 	JOIN 
 		production_feature pf
 	ON 
-		m.material_id = pf.material_id AND pf.position_id = 47 AND pf.operate_result = 0 AND pf.action_time IS NULL
+		m.material_id = pf.material_id AND pf.position_id in (select position_id from position where special_page = 'shipping')
+		 AND pf.operate_result = 0 AND pf.action_time IS NULL
 	LEFT JOIN 
 		material_process mp
 	ON 

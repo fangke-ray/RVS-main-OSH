@@ -80,15 +80,18 @@ public class QualityAssuranceService {
 
 		MaterialService mService = new MaterialService();
 
+		MaterialTagService mtService = new MaterialTagService();
+		boolean isAnmlExp = (mtService.checkTagByMaterialId(mform.getMaterial_id(), 1, conn).size() > 0);
+
 		for (String showLine : showLines) {
 			Map<String, String> fileTempl = PcsUtils.getXlsContents(showLine, mform.getModel_name(), null, 
 					mform.getMaterial_id(), RvsUtils.isLightFix(mform.getLevel()), getHistory, conn);
 
 			if ("NS 工程".equals(showLine))
-				mService.filterSolo(fileTempl, mform.getMaterial_id(), conn);
+				mService.filterSolo(fileTempl, mform.getMaterial_id(), mform.getLevel(), conn);
 
 			String retEmpty = PcsUtils.toPdf(fileTempl, mform.getMaterial_id(), mform.getSorc_no(), mform.getModel_name(),
-					mform.getSerial_no(), mform.getLevel(), null, folderPath, conn);
+					mform.getSerial_no(), mform.getLevel(), null, folderPath, isAnmlExp, conn);
 			if (retEmpty!= null && retEmpty.length() > 0) {
 				Logger logger = Logger.getLogger("Download");
 				logger.info(retEmpty + " MODEL: " + mform.getModel_name() + " PAT:" + mform.getPat_id());
@@ -132,9 +135,7 @@ public class QualityAssuranceService {
 		listResponse.put("mform", mform);
 
 		// 动物内镜用
-		MaterialTagService mtServcie = new MaterialTagService();
-		List<Integer> mtList = mtServcie.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
-		if (mtList != null && mtList.size() > 0) {
+		if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
 			mform.setAnml_exp("true");
 		}
 

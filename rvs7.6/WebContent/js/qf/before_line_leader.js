@@ -218,6 +218,9 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 								} else if (rData["fix_type"] == "2") {
 									comment += " 单元";
 								}
+								if (rData["anml_exp"] == "1") {
+									comment += " 动物实验";
+								}
 								return comment.trim();
 							}}, {
 								name : 'position_id',
@@ -1349,7 +1352,7 @@ var showDetail=function(rid) {
 					async : true,
 					url : 'processAssignTemplate.do?method=getDerivePair',
 					cache : false,
-					data : {model_id : $("#edit_modelname").val(), derive_kind : 3},
+					data : {model_id : $("#edit_modelname").val(), derive_kind : 3, anml_exp : $("#edit_anml_exp").val()},
 					type : "post",
 					dataType : "json",
 					success : ajaxSuccessCheck,

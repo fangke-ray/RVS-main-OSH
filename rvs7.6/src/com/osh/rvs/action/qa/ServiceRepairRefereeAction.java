@@ -23,6 +23,7 @@ import com.osh.rvs.bean.qa.ServiceRepairManageEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qa.ServiceRepairManageForm;
 import com.osh.rvs.service.PauseFeatureService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qa.ServiceRepairManageService;
 import com.osh.rvs.service.qa.ServiceRepairRefereeService;
@@ -62,11 +63,12 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
 		// 取得待点检信息
-		String section_id = user.getSection_id();
-		user.setProcess_code("601");
-		user.setPosition_id("00000000051");
+		if (user.getPosition_id() == null) {
+			user.setProcess_code("601");
+			user.setPosition_id(RvsConsts.POSITION_QA_601);
 
-		user.setLine_id("00000000015");
+			user.setLine_id("00000000015");
+		}
 
 		//产品分类
 		request.setAttribute("sKind", CodeListUtils.getSelectOptions("qa_category_kind", null, ""));
@@ -108,16 +110,6 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		// Ajax响应对象
 		Map<String,Object>callbackResponse=new HashMap<String,Object>();
 
-		// 未着手数据
-		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
-		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,null);
-		callbackResponse.put("errors", infoes);
-		callbackResponse.put("serviceRepairList", sList);
-
-		// 暂停/中断中数据
-		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(conn);
-		callbackResponse.put("serviceRepairPausedList", sListPaused);
-
 		// 取得用户信息
 		HttpSession session = request.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
@@ -125,8 +117,26 @@ public class ServiceRepairRefereeAction extends BaseAction{
 
 		// 取得待点检信息
 		String section_id = "00000000009";
-		String position_id = "00000000051";
-		String line_id = "00000000015";
+		if (user.getPosition_id() == null) {
+			user.setProcess_code("601");
+			user.setPosition_id(RvsConsts.POSITION_QA_601);
+
+			user.setLine_id("00000000015");
+		}
+		String position_id = user.getPosition_id();
+		String line_id = user.getLine_id();
+
+		// 未着手数据
+		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
+		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,
+				PositionService.getPositionUnitizeds(conn).containsKey(position_id), null);
+		callbackResponse.put("errors", infoes);
+		callbackResponse.put("serviceRepairList", sList);
+
+		// 暂停/中断中数据
+		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(user.getPosition_id(), conn);
+		callbackResponse.put("serviceRepairPausedList", sListPaused);
+
 		PositionPanelService ppservice = new PositionPanelService();
 		String infectString = ppservice.getInfectMessageByPosition(section_id,
 				position_id, line_id, conn);
@@ -177,14 +187,19 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		// Ajax响应对象
 		Map<String,Object>listResponse=new HashMap<String,Object>();
 
+		// 取得用户信息
+		HttpSession session = request.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
 		// 未着手数据
 		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
-		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,null);
+		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,
+				PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id()), null);
 		listResponse.put("errors", infoes);
 		listResponse.put("serviceRepairList", sList);
 
 		// 暂停/中断中数据
-		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(conn);
+		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(user.getPosition_id(), conn);
 		listResponse.put("serviceRepairPausedList", sListPaused);
 		returnJsonResponse(response, listResponse);
 
@@ -205,10 +220,15 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		// Ajax响应对象
 		Map<String,Object>listResponse=new HashMap<String,Object>();
 		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
-		
+
 		//检查合法性
 		Validators v=BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 		msgInfos = v.validate();
+
+		// 取得用户信息
+		HttpSession session = request.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
 		// 如果检查输入没有问题
 		if(msgInfos.size()==0){
 			//根据material_id找出扫描对象
@@ -216,8 +236,12 @@ public class ServiceRepairRefereeAction extends BaseAction{
 			String material_id = servicerepairManageForm.getMaterial_id();
 			ServiceRepairManageEntity resultEntity=service.checkServiceRepairManageExist(material_id, conn, msgInfos);
 
-			HttpSession session = request.getSession();
-			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+			if (user.getPosition_id() == null) {
+				user.setProcess_code("601");
+				user.setPosition_id(RvsConsts.POSITION_QA_601);
+
+				user.setLine_id("00000000015");
+			}
 
 			//如果扫描对象存在
 			if(msgInfos.size()==0){
@@ -226,7 +250,8 @@ public class ServiceRepairRefereeAction extends BaseAction{
 				// 复制对象数据到表单
 				BeanUtil.copyToForm(resultEntity, resultForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 
-				List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,material_id);
+				List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn, 
+						PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id()), material_id);
 				//如果扫描对象不在等待区域
 				if(sList.size()<=0){
 					// 判断在暂停区存在
@@ -239,13 +264,13 @@ public class ServiceRepairRefereeAction extends BaseAction{
 						info.setErrcode("info.linework.notInWaiting");
 						msgInfos.add(info);
 					} else {
-						service.createProductionFeature(conn, resultEntity, user.getOperator_id(), user.getSection_id(), RvsConsts.OPERATE_RESULT_WORKING);
+						service.createProductionFeature(conn, resultEntity, user.getPosition_id(), user.getOperator_id(), user.getSection_id(), RvsConsts.OPERATE_RESULT_WORKING);
 						resultForm.setMention(service.getWorkedSteps(resultEntity, conn));
 						listResponse.put("resultForm", resultForm);
 					}
 				}else{
 					//更新受理时间
-					service.createProductionFeature(conn, resultEntity, user.getOperator_id(), user.getSection_id(), RvsConsts.OPERATE_RESULT_WORKING);
+					service.createProductionFeature(conn, resultEntity, user.getPosition_id(), user.getOperator_id(), user.getSection_id(), RvsConsts.OPERATE_RESULT_WORKING);
 					service.updateQareceptionTime(conn, material_id);
 					listResponse.put("resultForm", resultForm);
 				}
@@ -253,7 +278,7 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		}
 		
 		// 暂停/中断中数据
-		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(conn);
+		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(user.getPosition_id(), conn);
 		listResponse.put("serviceRepairPausedList", sListPaused);
 
 		listResponse.put("errors", msgInfos);
@@ -312,6 +337,10 @@ public class ServiceRepairRefereeAction extends BaseAction{
 			msgInfos.add(info);
 		}
 
+		// 取得用户信息
+		HttpSession session = request.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
 		if(msgInfos.size()==0){
 			service.updateServiceRepair(form,conn);
 			ServiceRepairManageForm tempForm=(ServiceRepairManageForm)form;
@@ -326,9 +355,6 @@ public class ServiceRepairRefereeAction extends BaseAction{
 				}
 			//}
 
-			// 取得用户信息
-			HttpSession session = request.getSession();
-			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 			String operator_id = user.getOperator_id();
 
 			String pcs_comments = request.getParameter("pcs_comments");
@@ -337,11 +363,12 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		}
 
 		// 未着手数据
-		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,null);
+		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,
+				PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id()), null);
 		listResponse.put("serviceRepairList", sList);
 
 		// 暂停/中断中数据
-		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(conn);
+		List<ServiceRepairManageForm> sListPaused = service.searchServiceRepairPaused(user.getPosition_id(), conn);
 		listResponse.put("serviceRepairPausedList", sListPaused);
 
 		listResponse.put("errors", msgInfos);

@@ -95,12 +95,14 @@ public class ShippingAction extends BaseAction {
 		String section_id = user.getSection_id();// TODO
 
 		user.setSection_id(null);
-		user.setPosition_id("00000000047");
-		user.setProcess_code("711");
-		user.setLine_id("00000000011");
+		if (user.getPosition_id() == null) {
+			user.setPosition_id(RvsConsts.POSITION_SHIPPING);
+			user.setProcess_code("711");
+			user.setLine_id("00000000011");
+		}
 
 		// 取得等待区一览
-		listRefresh(listResponse, conn);
+		listRefresh(listResponse, user.getPosition_id(), conn);
 
 		// 判断是否有在进行中的维修对象
 		ProductionFeatureEntity workingPf = ppService.getWorkingOrSupportingPf(user, conn);
@@ -220,7 +222,11 @@ public class ShippingAction extends BaseAction {
 		if (errors.size() == 0) {
 			service.updateMaterial(req, conn);
 
-			listRefresh(listResponse, conn);
+			// 取得用户信息
+			HttpSession session = req.getSession();
+			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+			listRefresh(listResponse, user.getPosition_id(), conn);
 
 		}
 
@@ -233,13 +239,13 @@ public class ShippingAction extends BaseAction {
 		log.info("ShippingAction.dofinish end");
 	}
 
-	private void listRefresh(Map<String, Object> listResponse, SqlSession conn) {
+	private void listRefresh(Map<String, Object> listResponse, String postion_id, SqlSession conn) {
 		ShippingMapper sDao = conn.getMapper(ShippingMapper.class);
 		// 取得待品保处理对象一览 711
-		List<MaterialEntity> waitings = sDao.getWaitings();
+		List<MaterialEntity> waitings = sDao.getWaitings(postion_id);
 
 		// 取得今日已完成处理对象一览
-		List<MaterialEntity> finished = sDao.getFinished();
+		List<MaterialEntity> finished = sDao.getFinished(postion_id);
 
 		List<MaterialForm> waitingsForm = new ArrayList<MaterialForm>();
 		List<MaterialForm> finishedForm = new ArrayList<MaterialForm>();

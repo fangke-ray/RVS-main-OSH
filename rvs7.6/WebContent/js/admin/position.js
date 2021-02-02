@@ -79,6 +79,7 @@ $(function() {
 	$("#group_content").on("click", ".group_content_remove", removeGroupContentInput);
 
 	$("#mapping_button").click(setPositionMapping);
+	$("#mapping_anml_button").click(setPositionUnitized);
 
 	$("#mapping_dialog").on("click", ".subform tr", function(){
 		$(this).toggleClass("ui-state-active");
@@ -236,6 +237,9 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			$("#input_line_id").val(resInfo.positionForm.line_id).trigger("change");
 			$("#label_edit_updated_by").text(resInfo.positionForm.updated_by);
 			$("#label_edit_updated_time").text(resInfo.positionForm.updated_time);
+
+			$("#input_special_page").val(resInfo.positionForm.special_page).trigger("change");
+
 			$("#input_light_worktime_rate").val(resInfo.positionForm.light_worktime_rate);
 			$("#input_light_division_flg").html("").html(light_division_flg_button);
 			$("#light_division_flg_all,label[for='light_division_flg_all']").remove();
@@ -274,6 +278,24 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 						.show();
 				} else {
 					$("#mapping_span").text("")
+						.data("positionMappings", null)
+						.hide();
+				}
+			}
+			if (resInfo.positionForm.unitized_position_id) {
+				$("#mapping_anml_span").text(resInfo.positionForm.unitized_position_id)
+					.data("positionMappings", null)
+					.show();
+				$("#mapping_button").hide();
+			} else {
+				
+				$("#mapping_button").show();
+				if (resInfo.positionUnitizeds) {
+					$("#mapping_anml_span").text("已有设置")
+						.data("positionMappings", resInfo.positionUnitizeds)
+						.show();
+				} else {
+					$("#mapping_anml_span").text("")
 						.data("positionMappings", null)
 						.hide();
 				}
@@ -353,6 +375,7 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 							"id" : $("#label_edit_id").text(),
 							"line_id" : $("#input_line_id").val(),
 							"name" : $("#input_name").val(),
+							"special_page" : $("#input_special_page").val(),
 							"light_worktime_rate" : $("#input_light_worktime_rate").val(),
 							"light_division_flg" : $("#input_light_division_flg input[type='radio']:checked").val()
 						}
@@ -505,6 +528,7 @@ var showAdd = function() {
 				"name" : $("#input_name").val(),
 				"line_id" : $("#input_line_id").val(),
 				"process_code" : $("#input_process_code").val(),
+				"special_page" : $("#input_special_page").val(),
 				"light_worktime_rate":$("#input_light_worktime_rate").val(),
 				"light_division_flg":$("#input_light_division_flg input[type='radio']:checked").val()
 			}
@@ -716,6 +740,98 @@ var setPositionMapping = function() {
 						beforeSend : ajaxRequestType,
 						async : true,
 						url : servicePath + '?method=domapping',
+						cache : false,
+						data : postData,
+						type : "post",
+						dataType : "json",
+						success : ajaxSuccessCheck,
+						error : ajaxError,
+						complete : function(xhrObj) {
+							var resInfo = $.parseJSON(xhrObj.responseText);
+							if (resInfo.errors && resInfo.errors.length > 0) {
+								// 共通出错信息框
+								treatBackMessages("#editarea", resInfo.errors);
+							} else {
+								$mappingDialog.dialog("close");
+							}
+						}
+					});					
+				});
+			},
+			"关闭" : function(){
+				$mappingDialog.dialog("close");
+			}
+		}
+	});
+}
+
+var setPositionUnitized = function() {
+	$mappingDialog = $("#mapping_dialog");
+	if (!$mappingDialog.html()) {
+		$mappingDialog.html($("#pReferChooser .subform").clone());
+	} else {
+		$("#mapping_dialog tr.ui-state-active").removeClass("ui-state-active");
+	}
+
+	var positionMappings = $("#mapping_anml_span").data("positionMappings");
+	if (positionMappings) {
+		for (var idx in positionMappings) {
+			$mappingDialog.find("tr:has(.referId:contains('"+positionMappings[idx]+"'))")
+				.addClass("ui-state-active");
+		}
+	}
+	$mappingDialog.dialog({
+		title : $("#input_label_process_code").text() + "工位对应流水线工位列表",
+		height : 640,
+		resizable : false,
+		modal : true,
+		minHeight : 200,
+		buttons : {
+			"确认" : function(){
+				var postData = {"id" : $("#label_edit_id").text()};
+
+				positionMappings = []; 
+
+				$("#mapping_dialog tr.ui-state-active").each(function(i,item){
+					var mappingId = $(item).find(".referId").html();
+					postData["mappings[" + i + "]"] = mappingId;
+					positionMappings.push(mappingId);
+				});
+
+				$("#mapping_anml_span").data("positionMappings", positionMappings);
+	
+				// Ajax提交
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : true,
+					url : servicePath + '?method=domappingUnitized',
+					cache : false,
+					data : postData,
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function(xhrObj) {
+						var resInfo = $.parseJSON(xhrObj.responseText);
+						if (resInfo.errors && resInfo.errors.length > 0) {
+							// 共通出错信息框
+							treatBackMessages("#editarea", resInfo.errors);
+						} else {
+							$mappingDialog.dialog("close");
+						}
+					}
+				});
+			},
+			"清除" : function(){
+				warningConfirm("是否要清除" + $("#input_label_process_code").text() + "工位的全部对应关系，使得此工位不能对应流水线工作岗位？", function(){
+					$("#mapping_anml_span").data("positionMappings", null);
+					var postData = {"id" : $("#label_edit_id").text()};
+
+					// Ajax提交
+					$.ajax({
+						beforeSend : ajaxRequestType,
+						async : true,
+						url : servicePath + '?method=domappingUnitized',
 						cache : false,
 						data : postData,
 						type : "post",

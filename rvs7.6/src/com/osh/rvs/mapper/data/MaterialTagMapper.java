@@ -14,4 +14,6 @@ public interface MaterialTagMapper {
 	public List<Integer> checkTagByMaterialId(@Param("material_id") String material_id, @Param("tag_type") String tag_type);
 
 	public int deleteTagByMaterialId(@Param("material_id") String material_id, @Param("tag_type") String tag_type);
+
+	public List<String> getAnmlWipMaterials();
 }

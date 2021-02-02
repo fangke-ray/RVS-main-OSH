@@ -390,21 +390,35 @@ public class AcceptFactService {
 				case "132" : // 维修品包装
 					// 按key查询af_pf时间段中完成的711工位记录数，
 					// 乘以每单用时
-					standardPart2 = calcFromPositionProcess(key, "00000000047", "2", 
+				{
+					standardPart2 = calcFromPositionProcess(key, RvsConsts.POSITION_SHIPPING, "2", 
 							new String[]{"PACKAGE_PER_MAT"}, 
 							null, conn);
+					BigDecimal standardPart2_1 = calcFromPositionProcess(key, RvsConsts.POSITION_ANML_SHPPING, "2", 
+							new String[]{"PACKAGE_PER_MAT"}, 
+							null, conn);
+					standardPart2 = standardPart2.add(standardPart2_1);
+					
 					break;
+				}
 				case "133" : // 维修品出货
 					// 按key查询af_pf时间，以及最近一次同样的维修品出货之间完成的711工位记录数，
 					// 分内窥镜、周边设备、光学视管
 					// 分别计算为车数
 					// 总车数乘以每车时间
 					// 返回合计
-					standardPart2 = calcFromPositionBetweenCloseProcesses(key, "00000000047", "2", productionType,
+				{
+					standardPart2 = calcFromPositionBetweenCloseProcesses(key, RvsConsts.POSITION_SHIPPING, "2", productionType,
 							new String[]{"SHIPPING_ENSC_CNT2_TROLLEY", "SHIPPING_PERI_CNT2_TROLLEY", "SHIPPING_UDI_CNT2_TROLLEY"}, 
 							"SHIPPING_PER_TROLLEY",
 							null, conn);
+					BigDecimal standardPart2_1 = calcFromPositionBetweenCloseProcesses(key, RvsConsts.POSITION_ANML_SHPPING, "2", productionType,
+							new String[]{"SHIPPING_ENSC_CNT2_TROLLEY", "SHIPPING_PERI_CNT2_TROLLEY", "SHIPPING_UDI_CNT2_TROLLEY"}, 
+							"SHIPPING_PER_TROLLEY",
+							null, conn);
+					standardPart2 = standardPart2.add(standardPart2_1);
 					break;
+				}
 				case "201" : // 投线
 					// 通过fact_material表取得现品票打印数量
 					// 乘以每单用时

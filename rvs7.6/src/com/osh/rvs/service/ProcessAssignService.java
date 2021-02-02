@@ -92,6 +92,12 @@ public class ProcessAssignService {
 		return result;
 	}
 
+	public ProcessAssignTemplateEntity getDetail(String id, SqlSession conn) {
+		// 取得模板详细
+		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
+		return dao.getProcessAssignTemplateByID(id);
+	}
+
 	public void insert(ActionForm form, Map<String, String[]> parameterMap, HttpSession session,
 			SqlSessionManager conn, List<MsgInfo> errors) throws Exception {
 		// 表单复制到数据对象
@@ -491,5 +497,15 @@ public class ProcessAssignService {
 			evalLastPositions(conn);
 		}
 		return lastFLowPositions;
+	}
+
+	/*
+		取得动物内镜用流程
+	 */
+	public static List<String> getAnmlProcesses(SqlSession conn) {
+		// 取得动物内镜用流程 TODO
+		List<String> anmlPats = new ArrayList<String>();
+		anmlPats.add("00000000073"); anmlPats.add("00000000074");
+		return anmlPats;
 	}
 }

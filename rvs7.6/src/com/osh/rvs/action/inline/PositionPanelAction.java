@@ -55,6 +55,7 @@ import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialProcessAssignService;
 import com.osh.rvs.service.MaterialRemainTimeService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.OperatorProductionService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionPlanTimeService;
@@ -258,6 +259,12 @@ public class PositionPanelAction extends BaseAction {
 			req.setAttribute("userPositionId", user.getPosition_id());
 			req.setAttribute("position_name", process_code + " " + user.getPosition_name());
 		}
+
+		// 判断是否动物实验用维修品工位
+		if (PositionService.getPositionUnitizeds(conn).containsKey(position_id)) {
+			req.setAttribute("unitizeds", "true");
+		}
+
 		session.setAttribute(RvsConsts.SESSION_USER, user);
 
 		log.info("PositionPanelAction.init end");
@@ -412,8 +419,12 @@ public class PositionPanelAction extends BaseAction {
 					PartialReceptService prService = new PartialReceptService();
 
 					// 工位上的未签收零件
+					String partial_position_id = workingPf.getPosition_id();
+					if (MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id())) {
+						partial_position_id = null;
+					}
 					List<MaterialPartialDetailEntity> wentities = prService.getPartialsForPosition(
-							workingPf.getMaterial_id(), workingPf.getPosition_id(), conn);
+							workingPf.getMaterial_id(), partial_position_id, conn);
 					if (wentities == null || wentities.size() == 0) {
 
 						// 取得作业信息
@@ -788,8 +799,12 @@ public class PositionPanelAction extends BaseAction {
 
 			// 零件签收确认
 			PartialReceptService prService = new PartialReceptService();
+			String partial_position_id = user.getPosition_id();
+			if (MaterialTagService.getAnmlMaterials(conn).contains(waitingPf.getMaterial_id())) {
+				partial_position_id = null;
+			}
 			List<MaterialPartialDetailEntity> wentities = prService
-					.getPartialsForPosition(waitingPf.getMaterial_id(), waitingPf.getPosition_id(), conn);
+					.getPartialsForPosition(waitingPf.getMaterial_id(), partial_position_id, conn);
 			if (wentities == null || wentities.size() == 0) {
 
 				service.getProccessingData(listResponse, material_id, waitingPf, user, conn);
@@ -1224,9 +1239,13 @@ public class PositionPanelAction extends BaseAction {
 	
 					// 检查零件是否全部签收
 					PartialReceptService prService = new PartialReceptService();
-		
+
+					String partial_position_id = user.getPosition_id();
+					if (MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id())) {
+						partial_position_id = null;
+					}
 					List<MaterialPartialDetailEntity> wentities = prService
-							.getPartialsForPosition(workingPf.getMaterial_id(), workingPf.getPosition_id(), conn, use_snout);
+							.getPartialsForPosition(workingPf.getMaterial_id(), partial_position_id, conn, use_snout);
 		
 					if (wentities == null || wentities.size() == 0) {
 					} else {
@@ -1751,7 +1770,7 @@ public class PositionPanelAction extends BaseAction {
 	            HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/preport/sterilize/00000000011");
 				log.info("finger:"+request.getURI());
 	            httpclient.execute(request, null);
-			} else if ("00000000047".equals(position_id)) {
+			} else if (RvsConsts.POSITION_SHIPPING.equals(position_id) || RvsConsts.POSITION_ANML_SHPPING.equals(position_id)) {
 	            HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/preport/shipping/00000000047");
 				log.info("finger:"+request.getURI());
 	            httpclient.execute(request, null);
@@ -1807,8 +1826,12 @@ public class PositionPanelAction extends BaseAction {
 		String process_code = user.getProcess_code();
 		if (isLightFix ||
 				(!"331".equals(process_code) && !"242".equals(process_code) && !"304".equals(process_code))) {
+			String partial_position_id = workingPf.getPosition_id();
+			if (MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id())) {
+				partial_position_id = null;
+			}
 			List<MaterialPartialDetailEntity> wentities = prService
-					.getPartialsForPosition(workingPf.getMaterial_id(), workingPf.getPosition_id(), conn);
+					.getPartialsForPosition(workingPf.getMaterial_id(), partial_position_id, conn);
 
 			if (wentities == null || wentities.size() == 0) {
 				// 已经完成OK

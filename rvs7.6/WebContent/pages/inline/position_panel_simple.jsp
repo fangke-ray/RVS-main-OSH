@@ -58,7 +58,7 @@ String px = (String) request.getAttribute("px");
 
 			<div id="workarea">
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
-					<span id="position_name" class="areatitle">工作信2息</span> <span id="position_status" class="areatitle working_status ${((empty px) or (px eq 0)) ? 'simple' : ''}"></span>
+					<span id="position_name" class="areatitle">工作信息</span> <span id="position_status" class="areatitle working_status ${((empty px) or (px eq 0)) ? 'simple' : ''}"></span>
 <%
 Integer work_count_flg = (Integer) request.getAttribute("work_count_flg");
 if (work_count_flg == 1) {

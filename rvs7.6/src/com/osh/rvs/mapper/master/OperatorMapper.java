@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
+import com.osh.rvs.bean.master.OperatorNotifyEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.RoleEntity;
 
@@ -107,4 +108,10 @@ public interface OperatorMapper {
 	
 	/** NS 线长  */
 	public List<String> getOperatorByRoleAndLine(@Param("role_id") String role_id, @Param("line_id") String line_id);
+
+	public List<OperatorNotifyEntity> getOperatorNotifyEntity();
+
+	public int insertOperatorNotify(OperatorNotifyEntity entity);
+
+	public int deleteOperatorNotify();
 }

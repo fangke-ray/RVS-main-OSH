@@ -54,6 +54,7 @@ import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialProcessAssignService;
 import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
@@ -90,6 +91,8 @@ public class MaterialFactService {
 		List<MaterialFactForm> lResultForm = new ArrayList<MaterialFactForm>();
 		MaterialPartialService mps = new MaterialPartialService();
 
+		List<String> anmlPats = ProcessAssignService.getAnmlProcesses(conn);
+
 		// 数据对象复制到表单
 		for (MaterialFactEntity resultBean : lResultBean) {
 			MaterialFactForm resultForm = new MaterialFactForm();
@@ -124,6 +127,11 @@ public class MaterialFactService {
 					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "已订购零件"));
 					resultForm.setCcd_operate_result(getBr(resultForm.getCcd_operate_result(), "缺零件"));
 				}
+			}
+
+			// 动物内镜强制流程
+			if (MaterialTagService.getAnmlMaterials(conn).contains(resultBean.getMaterial_id())) {
+				resultForm.setPat_id(anmlPats.get(0));
 			}
 			lResultForm.add(resultForm);
 		}

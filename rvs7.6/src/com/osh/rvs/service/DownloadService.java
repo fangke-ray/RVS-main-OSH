@@ -509,7 +509,11 @@ public class DownloadService {
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 			topTable.addCell(cell);
 
-			cell = new PdfPCell(new Paragraph("口１课  口２课  口３课", detailFont));
+			if (MaterialTagService.getAnmlMaterials(conn).contains(mBean.getMaterial_id())) {
+				cell = new PdfPCell(new Paragraph("动物实验用内镜区域", detailFont));
+			} else {
+				cell = new PdfPCell(new Paragraph("口１课  口２课  口３课", detailFont));
+			}
 			cell.setFixedHeight(16);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);

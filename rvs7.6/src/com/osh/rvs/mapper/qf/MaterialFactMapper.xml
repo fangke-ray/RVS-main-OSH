@@ -31,7 +31,9 @@
 			a.scheduled_expedited,
 			a.unrepair_flg,
 			a.service_repair_flg,
-		    (select finish_time from production_feature where material_id = a.material_id and position_id IN (13,14,64) and operate_result not in (5, 8) order by (1-ISNULL(action_time)), action_time desc limit 1) as quotation_time ,
+		    (select finish_time from production_feature where material_id = a.material_id 
+		    and position_id in (select position_id from position where special_page = 'quotation') and position_id != 101 
+		    and operate_result not in (5, 8) order by (1-ISNULL(action_time)), action_time desc limit 1) as quotation_time ,
 			exists (
 		      select material_id from production_feature p2
 		        where p2.material_id = a.material_id
@@ -45,7 +47,8 @@
 		<where>
 				a.material_id = b.material_id and
 				a.break_back_flg = 0 and 
-				b.position_id in(13,14,64) and
+				b.position_id in (select position_id from position where special_page = 'quotation') and 
+				b.position_id != 101 and
 				b.operate_result = 2 and
 				a.model_id = m.model_id and
 				a.inline_time is null

@@ -525,7 +525,14 @@ public class MaterialProcessAssignService {
 		if (checkedPosition == null)
 			return null;
 
-		Map<String, List<String>> positionMappings = PositionService.getPositionMappings(conn);
+		Map<String, List<String>> positionMappings = null;
+
+		if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
+			positionMappings = PositionService.getPositionUnitizeds(conn);
+		} else {
+			positionMappings = PositionService.getPositionMappings(conn);
+		}
+		
 
 		String position_id = checkedPosition.getPosition_id();
 		String ret = getProcessInterf(new PositionService().getPositionEntityByKey(position_id, conn), now_process_code);
@@ -591,6 +598,25 @@ public class MaterialProcessAssignService {
 		PositionService pService = new PositionService();
 		Map<String, String[]> positionMappingEntities = new HashMap<String, String[]>();
 		Map<String, String> positionMapping = PositionService.getPositionMappingRevers(conn);
+		for (String pId : positionMapping.keySet()) {
+			String[] positionMappingEntity = new String[2];
+			positionMappingEntity[0] = positionMapping.get(pId);
+			positionMappingEntity[1] = pService.getPositionEntityByKey(positionMappingEntity[0], conn).getProcess_code();
+			positionMappingEntities.put(pId.replaceAll("^0+", ""), positionMappingEntity);
+		}
+		return positionMappingEntities;
+	}
+
+	/**
+	 * 取得动物内镜对应工位
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public Map<String, String[]> getPositionUnitizedEntities(SqlSession conn) {
+		PositionService pService = new PositionService();
+		Map<String, String[]> positionMappingEntities = new HashMap<String, String[]>();
+		Map<String, String> positionMapping = PositionService.getPositionUnitizedRevers(conn);
 		for (String pId : positionMapping.keySet()) {
 			String[] positionMappingEntity = new String[2];
 			positionMappingEntity[0] = positionMapping.get(pId);

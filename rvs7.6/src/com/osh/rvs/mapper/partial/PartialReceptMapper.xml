@@ -112,8 +112,12 @@
 				pa.partial_id=mpd.partial_id
 			WHERE
 				mpd.material_id=#{material_id}
-			AND
+		]]>
+		<if test="position_id!= null and position_id!= '' ">
+				AND
 				(mpd.position_id=#{position_id} OR mpd.position_id IS NULL)
+		</if>
+		<![CDATA[
 			AND 
 				mpd.status > 0
 			ORDER by bom_quantity asc,waiting_receive_quantity desc, status = 3 
