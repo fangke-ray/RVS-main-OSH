@@ -502,10 +502,14 @@ public class ProcessAssignService {
 	/*
 		取得动物内镜用流程
 	 */
+	private static List<String> anmlPats = null;
 	public static List<String> getAnmlProcesses(SqlSession conn) {
-		// 取得动物内镜用流程 TODO
-		List<String> anmlPats = new ArrayList<String>();
-		anmlPats.add("00000000073"); anmlPats.add("00000000074");
+		// 取得动物内镜用流程
+		if (anmlPats == null) {
+			ProcessAssignMapper mapper = conn.getMapper(ProcessAssignMapper.class);
+			anmlPats = mapper.getAnmlProcesses();
+			// anmlPats.add("73"); anmlPats.add("74");
+		}
 		return anmlPats;
 	}
 }

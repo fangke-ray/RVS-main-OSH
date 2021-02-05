@@ -36,6 +36,7 @@ import com.osh.rvs.mapper.partial.ConsumableSubstituteMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.mapper.partial.PartialOrderMapper;
 import com.osh.rvs.mapper.partial.PartialReleaseMapper;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.inline.LineLeaderService;
 
@@ -595,6 +596,20 @@ public class PartialReleaseService {
 
 	public void finishDecPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
 		finishPartialRelease(material_id, "00000000021", user, triggerList, conn);
+	}
+
+	public void finishAnmlPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
+		String anmlRecPositionId = null;
+		Map<String, String> positionUnitizedRevers = PositionService.getPositionUnitizedRevers(conn);
+		if (positionUnitizedRevers.containsKey("00000000021")) {
+			anmlRecPositionId = positionUnitizedRevers.get("00000000021");
+		}
+		if (positionUnitizedRevers.containsKey("00000000027")) {
+			anmlRecPositionId = positionUnitizedRevers.get("00000000027");
+		}
+		if (anmlRecPositionId != null) {
+			finishPartialRelease(material_id, anmlRecPositionId, user, triggerList, conn);
+		}
 	}
 
 	public void finishPartialRelease(String material_id, String position_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {

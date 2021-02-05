@@ -229,54 +229,40 @@ function qaresult_list(q_listdata){
 				var qualify_613 = 0;//613工位的合格台数
 				var qualify_614 = 0;//614工位的合格台数
 				var qualify_6A1 = 0;//6A1工位的合格台数
+				var qualify_6A2 = 0;//6A1工位的合格台数
 			
 				var unqualify_611=0;	//611工位的不合格台数			
 				var unqualify_612 = 0;//612工位的不合格台数
 				var unqualify_613 = 0;//613工位的不合格台数
 				var unqualify_614 = 0;//614工位的不合格台数
 				var unqualify_6A1 = 0;//6A1工位的不合格台数
+				var unqualify_6A2 = 0;//6A1工位的不合格台数
 				
 				for(var i=0;i<records;i++){		
 					//不合格
 					if(quotation_listdata[i].result==6){
 						j++;
-						
-						if(quotation_listdata[i].process_code=='611'){
-							unqualify_611++;
-						}
-						
-						if(quotation_listdata[i].process_code=='612'){
-							unqualify_612++;
-						}	
-						if(quotation_listdata[i].process_code=='613'){
-							unqualify_613++;
-						}	
-						if(quotation_listdata[i].process_code=='614'){
-							unqualify_614++;
-						}	
-						if(quotation_listdata[i].process_code=='6A1'){
-							unqualify_6A1++;
+
+						switch(quotation_listdata[i].process_code) {
+							case '611': unqualify_611++; break;
+							case '612': unqualify_612++; break;
+							case '613': unqualify_613++; break;
+							case '614': unqualify_614++; break;
+							case '65D': unqualify_6A1++; break;
+							case '69D': unqualify_6A2++; break;
 						}	
 					}
 					
 					//合格
 					if(quotation_listdata[i].result==2){
 					
-						if(quotation_listdata[i].process_code=='611'){
-							qualify_611++;
-						}
-						
-						if(quotation_listdata[i].process_code=='612'){
-							qualify_612++;
-						}	
-						if(quotation_listdata[i].process_code=='613'){
-							qualify_613++;
-						}	
-						if(quotation_listdata[i].process_code=='614'){
-							qualify_614++;
-						}	
-						if(quotation_listdata[i].process_code=='6A1'){
-							qualify_6A1++;
+						switch(quotation_listdata[i].process_code) {
+							case '611': qualify_611++; break;
+							case '612': qualify_612++; break;
+							case '613': qualify_613++; break;
+							case '614': qualify_614++; break;
+							case '65D': qualify_6A1++; break;
+							case '69D': qualify_6A2++; break;
 						}	
 					}
 				}
@@ -285,8 +271,8 @@ function qaresult_list(q_listdata){
 					c=(records-j)/records*100;
 					c=c.toFixed(1);
 				}
-				var countText = "当前检索范围内，检查总数"+records+"台（611 : "+qualify_611+"，612 : "+qualify_612+"，613 : "+qualify_613+"，614 : "+qualify_614+"，6A1 : "+qualify_6A1+"）；" +
-							"不合格"+j+"台（611 : "+unqualify_611+"，612 : "+unqualify_612+"，613 : "+unqualify_613+"，614 : "+unqualify_614+"，6A1 : "+unqualify_6A1+"）；检查合格率"+c+"%";
+				var countText = "当前检索范围内，检查总数"+records+"台（611 : "+qualify_611+"，612 : "+qualify_612+"，613 : "+qualify_613+"，614 : "+qualify_614+"，65D : "+qualify_6A1+"，69D : "+qualify_6A2+"）；" +
+							"不合格"+j+"台（611 : "+unqualify_611+"，612 : "+unqualify_612+"，613 : "+unqualify_613+"，614 : "+unqualify_614+"，65D : "+unqualify_6A1+"，69D : "+qualify_6A2+"）；检查合格率"+c+"%";
 				if($("#count_result").length==0){
 					$("#exd_listarea .ui-jqgrid-titlebar").append("<span id='count_result' style='float:right;margin-right:6px;font-size:15px;'>" +
 							countText + "</span>");

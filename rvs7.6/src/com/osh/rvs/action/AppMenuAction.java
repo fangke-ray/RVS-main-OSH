@@ -243,7 +243,9 @@ public class AppMenuAction extends BaseAction {
 		if (privacies.contains(RvsConsts.PRIVACY_RECEPT_FACT)) {
 			String links = getLinksByPositions(userPositions, LINE_SHIP, section_id, px, conn);
 			if (links.length() > 0) {
-				menuLinks.put("shipping", true);
+				inlinePosition += links;
+				req.setAttribute("inlinePosition", inlinePosition);
+				menuLinks.put("inlinePosition", true);
 				menuLinks.put("在线作业", true);
 			}
 		}

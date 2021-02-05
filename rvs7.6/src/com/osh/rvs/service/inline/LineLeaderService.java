@@ -479,7 +479,7 @@ public class LineLeaderService {
 
 				String pat_id = retForm.getPat_id();
 				if (pat_id != null && anmlProcesses.size() > 0) {
-					if (!anmlProcesses.contains(fillChar(pat_id, '0', 11, true))) {
+					if (!anmlProcesses.contains(pat_id)) {
 						retForm.setPat_id(anmlProcesses.get(0));
 						if (!anmlProcessMap.containsKey(anmlProcesses.get(0))) {
 							String patName = paService.getDetail(anmlProcesses.get(0), conn).getName();

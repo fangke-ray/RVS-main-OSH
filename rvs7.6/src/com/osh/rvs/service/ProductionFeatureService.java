@@ -404,6 +404,10 @@ public class ProductionFeatureService {
 		return fingerNextPosition(material_id, workingPf, conn, triggerList, true);
 	}
 	public List<String> fingerNextPosition(String material_id, ProductionFeatureEntity workingPf, SqlSessionManager conn, List<String> triggerList, boolean isFact) throws Exception {
+
+		// 为了reset工位consts
+		PositionService.getPositionUnitizeds(conn);
+
 		MaterialProcessService mpService = new MaterialProcessService();
 		// 发动工位
 		List<String> nextPositions = new ArrayList<String>();
@@ -468,7 +472,7 @@ public class ProductionFeatureService {
 			} else {
 				nextPositions.add("00000000014"); // 直送报价
 			}
-		} else if (RvsConsts.POSITION_ANML_QA.equals(position_id)) { // 品保
+		} else if (RvsConsts.POSITION_ANML_QA.equals(position_id) || RvsConsts.POSITION_ANML_QA_UDI.equals(position_id)) { // 品保
 			nextPositions.add(RvsConsts.POSITION_ANML_SHPPING); // 出货
 		} else if ("00000000046".equals(position_id) || "00000000052".equals(position_id) 
 				|| RvsConsts.POSITION_QA_P_613.equals(position_id) || RvsConsts.POSITION_QA_P_614.equals(position_id)) { // 品保
@@ -639,11 +643,14 @@ public class ProductionFeatureService {
 
 			 // 维修流程参照
 			 getNext(paProxy, material_id, mEntity, pat_id, position_id, mEntity.getLevel(), nextPositions, conn);
+
+			 // 一堆品保 TODO
 			 if (nextPositions.size() == 1 && "00000000046".equals(nextPositions.get(0))) fixed = true;
 			 else if (nextPositions.size() == 1 && "00000000052".equals(nextPositions.get(0))) fixed = true;
 			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_QA_P_613.equals(nextPositions.get(0))) fixed = true;
 			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_QA_P_614.equals(nextPositions.get(0))) fixed = true;
 			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_ANML_QA.equals(nextPositions.get(0))) fixed = true;
+			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_ANML_QA_UDI.equals(nextPositions.get(0))) fixed = true;
 			 else fixed = false;
 
 			// 没投线无流程 TODO 小修理报价中先做CCD盖玻璃更换
@@ -832,7 +839,13 @@ public class ProductionFeatureService {
 			String line_id = pa.getLine_id();
 			if ((RvsConsts.PROCESS_ASSIGN_LINE_BASE + "").equals(line_id)) {
 				if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
-					nextPositions.add(RvsConsts.POSITION_ANML_QA);
+					// 判断是否UDI
+					if (mEntity.getCategory_id().equals(RvsConsts.CATEGORY_UDI)) {
+						nextPositions.add(RvsConsts.POSITION_ANML_QA_UDI);
+					} else {
+						nextPositions.add(RvsConsts.POSITION_ANML_QA);
+					}
+					
 				} else {
 //					if (paProxy.getFinishedByLine(line_id)) { TODO 其实要这个的 像OGZ有最后一个工位并行的就会两次611。总之目前省下一次查询
 					if (level == 56 || level == 57 || level == 58 || level == 59) {

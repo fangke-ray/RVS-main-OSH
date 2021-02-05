@@ -88,4 +88,6 @@ public interface ProcessAssignMapper {
 	public void deleteProcessEndPosition();
 
 	public void insertProcessEndPosition(String position_id);
+
+	public List<String> getAnmlProcesses();
 }

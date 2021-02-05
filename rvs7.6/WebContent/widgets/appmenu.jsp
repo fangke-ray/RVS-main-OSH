@@ -60,9 +60,9 @@ $(function() {
 	<% if(links.get("composeStorage")) { %>
 		        <a href="compose_storage.do">总组签收库位</a><br>
 	<% } %>
-	<% if(links.get("shipping")) { %>
-		        <a href="shipping.do">711 出货</a><br>
-	<% } %>
+	<!-- <% if(links.get("shipping")) { %>
+		        <a href="javascript:getPositionWork('00000000047');">711 出货</a><br>
+	<% } %> -->
 	<% if(links.get("support")) { %>
 		        <a href="support.do">辅助工作</a><br>
 	<% } %>

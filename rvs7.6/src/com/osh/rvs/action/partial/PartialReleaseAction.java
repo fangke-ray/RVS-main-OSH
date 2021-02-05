@@ -31,6 +31,7 @@ import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -230,10 +231,16 @@ public class PartialReleaseAction extends BaseAction {
 							}
 
 							List<String> triggerList = new ArrayList<String> ();
-							// 零件发放者完成321工位
-							service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
-							// 零件发放者完成252工位
-							service.finishDecPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+
+							if (MaterialTagService.getAnmlMaterials(conn).contains(materialPartialEntity.getMaterial_id())) {
+								// 零件发放者完成24D工位
+								service.finishAnmlPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+							} else {
+								// 零件发放者完成321工位
+								service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+								// 零件发放者完成252工位
+								service.finishDecPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+							}
 
 							if (triggerList.size() > 0) {
 								conn.commit();

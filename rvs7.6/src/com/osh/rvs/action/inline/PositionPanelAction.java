@@ -1217,11 +1217,11 @@ public class PositionPanelAction extends BaseAction {
 			String special_forward = PathConsts.POSITION_SETTINGS
 					.getProperty("page." + process_code);
 			boolean use_snout = (special_forward != null && special_forward.indexOf("use_snout") >= 0);
-	
-			if (!isLightFix && ("331".equals(process_code) 
-					|| "242".equals(process_code) || "304".equals(process_code)
-					|| ("252".equals(process_code) && "EndoEye".equals(mEntity.getCategory_id())) // TODO
-					)) {
+			boolean isAnml = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
+
+			// 大修理可分工位检查零件需要检查零件全签收
+			if (isAnml ||
+					(!isLightFix && (PositionPanelService.allowPartRecieve(process_code, mEntity)))) {
 	
 				// info.partial.withoutOrder
 				MaterialPartialService mps = new MaterialPartialService();
@@ -1229,19 +1229,21 @@ public class PositionPanelAction extends BaseAction {
 				if (mp == null || 
 						(("8".equals(mp.getBo_flg()) || "9".equals(mp.getBo_flg())) && !use_snout )
 						) {
-					// 如果没订购零件不能结束
-					// 如果没有任何发放不能结束
-					MsgInfo info = new MsgInfo();
-					info.setErrcode("info.partial.withoutOrder");
-					info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.withoutOrder"));
-					infoes.add(info);
+					if (!(isAnml && mp == null)) {
+						// 如果没订购零件不能结束
+						// 如果没有任何发放不能结束
+						MsgInfo info = new MsgInfo();
+						info.setErrcode("info.partial.withoutOrder");
+						info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.withoutOrder"));
+						infoes.add(info);
+					}
 				} else {
 	
 					// 检查零件是否全部签收
 					PartialReceptService prService = new PartialReceptService();
 
 					String partial_position_id = user.getPosition_id();
-					if (MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id())) {
+					if (isAnml) {
 						partial_position_id = null;
 					}
 					List<MaterialPartialDetailEntity> wentities = prService
@@ -1824,12 +1826,14 @@ public class PositionPanelAction extends BaseAction {
 		boolean isLightFix = RvsUtils.isLightFix(mEntity.getLevel());
 
 		String process_code = user.getProcess_code();
-		if (isLightFix ||
-				(!"331".equals(process_code) && !"242".equals(process_code) && !"304".equals(process_code))) {
+
+		boolean isAnml = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
+
+		// 除"大修理可分工位检查零件"外，必须在开始时全部签收定位
+		if (!isAnml && (
+				isLightFix ||
+				! PositionPanelService.allowPartRecieve(process_code, mEntity))) {
 			String partial_position_id = workingPf.getPosition_id();
-			if (MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id())) {
-				partial_position_id = null;
-			}
 			List<MaterialPartialDetailEntity> wentities = prService
 					.getPartialsForPosition(workingPf.getMaterial_id(), partial_position_id, conn);
 

@@ -1741,4 +1741,17 @@ public class PositionPanelService {
 		varWorkInfo += "};";
 		return varWorkInfo;
 	}
+
+	public static boolean allowPartRecieve(String process_code, MaterialForm mEntity) {
+		switch (process_code) {
+		case "331":
+		case "242":
+		case "304":
+			return true;
+		case "252":
+			return "EndoEye".equals(mEntity.getCategory_id());
+		}
+		return false;
+	}
+
 }

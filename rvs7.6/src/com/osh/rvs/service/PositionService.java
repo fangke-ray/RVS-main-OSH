@@ -769,37 +769,37 @@ public class PositionService {
 	}
 	public static Map<String, List<String>> getPositionUnitizeds(SqlSession conn) {
 		if (positionUnitizeds == null) {
-			positionUnitizeds = new HashMap<String, List<String>>();
-			positionUnitizedRevers = new HashMap<String, String>();
-
-			PositionMapper mapper = conn.getMapper(PositionMapper.class);
-			List<PositionEntity> l = mapper.getAllUnitizedPositions();
-			for (PositionEntity posUnitized : l) {
-				if (!positionUnitizeds.containsKey(posUnitized.getUnitized_position_id())) {
-					positionUnitizeds.put(posUnitized.getUnitized_position_id(), new ArrayList<String> ());
-				}
-				positionUnitizeds.get(posUnitized.getUnitized_position_id()).add(posUnitized.getPosition_id());
-				positionUnitizedRevers.put(posUnitized.getPosition_id(), posUnitized.getUnitized_position_id());
-			}
+			resetPositionUnitized(conn);
 		}
 		return positionUnitizeds;
 	}
+
 	public static Map<String, String> getPositionUnitizedRevers(SqlSession conn) {
 		if (positionUnitizedRevers == null) {
-			positionUnitizeds = new HashMap<String, List<String>>();
-			positionUnitizedRevers = new HashMap<String, String>();
-
-			PositionMapper mapper = conn.getMapper(PositionMapper.class);
-			List<PositionEntity> l = mapper.getAllUnitizedPositions();
-			for (PositionEntity posUnitized : l) {
-				if (!positionUnitizeds.containsKey(posUnitized.getUnitized_position_id())) {
-					positionUnitizeds.put(posUnitized.getUnitized_position_id(), new ArrayList<String> ());
-				}
-				positionUnitizeds.get(posUnitized.getUnitized_position_id()).add(posUnitized.getPosition_id());
-				positionUnitizedRevers.put(posUnitized.getPosition_id(), posUnitized.getUnitized_position_id());
-			}
+			resetPositionUnitized(conn);
 		}
 		return positionUnitizedRevers;
+	}
+
+	private static void resetPositionUnitized(SqlSession conn) {
+		positionUnitizeds = new HashMap<String, List<String>>();
+		positionUnitizedRevers = new HashMap<String, String>();
+
+		PositionMapper mapper = conn.getMapper(PositionMapper.class);
+		List<PositionEntity> l = mapper.getAllUnitizedPositions();
+		for (PositionEntity posUnitized : l) {
+			switch (posUnitized.getPosition_id()) {
+			case RvsConsts.POSITION_QUOTATION_N : RvsConsts.POSITION_ANML_QUOTAION = posUnitized.getUnitized_position_id(); break;
+			case RvsConsts.POSITION_QA : RvsConsts.POSITION_ANML_QA = posUnitized.getUnitized_position_id(); break;
+			case RvsConsts.POSITION_QA_P_614 : RvsConsts.POSITION_ANML_QA_UDI = posUnitized.getUnitized_position_id(); break;
+			case RvsConsts.POSITION_SHIPPING : RvsConsts.POSITION_ANML_SHPPING = posUnitized.getUnitized_position_id(); break;
+			}
+			if (!positionUnitizeds.containsKey(posUnitized.getUnitized_position_id())) {
+				positionUnitizeds.put(posUnitized.getUnitized_position_id(), new ArrayList<String> ());
+			}
+			positionUnitizeds.get(posUnitized.getUnitized_position_id()).add(posUnitized.getPosition_id());
+			positionUnitizedRevers.put(posUnitized.getPosition_id(), posUnitized.getUnitized_position_id());
+		}
 	}
 
 	/**

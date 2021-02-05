@@ -79,15 +79,20 @@ public class QuotationService {
 		responseBean.put("mform", mform);
 
 		boolean anmlExp = "true".equals(mform.getAnml_exp());
-		List<String> anmlProcesses = ProcessAssignService.getAnmlProcesses(conn);
+		List<String> anmlProcesses = null;
 		ProcessAssignService paService = new ProcessAssignService();
 
-		String pat_id = mform.getPat_id();
-		if (!RvsUtils.isLightFix(mform.getLevel()) && pat_id != null && anmlProcesses.size() > 0) {
-			if (!anmlProcesses.contains(pat_id)) {
-				mform.setPat_id(anmlProcesses.get(0));
-				String patName = paService.getDetail(anmlProcesses.get(0), conn).getName();
-				mform.setSection_name(patName);
+		if (anmlExp) {
+			anmlProcesses = ProcessAssignService.getAnmlProcesses(conn);
+
+			String pat_id = mform.getPat_id();
+
+			if (!RvsUtils.isLightFix(mform.getLevel()) && pat_id != null && anmlProcesses.size() > 0) {
+				if (!anmlProcesses.contains(pat_id)) {
+					mform.setPat_id(anmlProcesses.get(0));
+					String patName = paService.getDetail(anmlProcesses.get(0), conn).getName();
+					mform.setSection_name(patName);
+				}
 			}
 		}
 

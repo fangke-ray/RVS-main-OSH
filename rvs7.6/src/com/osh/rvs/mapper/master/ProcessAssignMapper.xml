@@ -477,4 +477,11 @@ and position_id in (select position_id from position where line_id = #{line_id} 
 		(#{position_id});
 	</insert>
 
+	<select id="getAnmlProcesses" resultType="String">
+		select distinct cast(pa.refer_id  as unsigned) 
+		from process_assign pa
+		join position der
+		on pa.position_id = der.unitized_position_id;
+	</select>
+
 </mapper>

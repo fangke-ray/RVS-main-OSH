@@ -95,7 +95,7 @@ public class PanelAction extends BaseAction {
 			} else {
 				actionForward = mapping.findForward("lineleader");
 			}
-		} else if (RvsConsts.ROLE_OPERATOR.equals(roleId)) {
+		} else if (RvsConsts.ROLE_OPERATOR.equals(roleId) || RvsConsts.ROLE_SHIPPPER.equals(roleId)) {
 
 			// 根据工位区分位置
 			String specialPage = PositionService.getPositionSpecialPage(user.getPosition_id(), conn);
@@ -129,8 +129,8 @@ public class PanelAction extends BaseAction {
 			}
 		} else if (RvsConsts.ROLE_QAER.equals(roleId) || RvsConsts.ROLE_QA_MANAGER.equals(roleId)) {
 			actionForward = mapping.findForward("qualityAssurance");
-		} else if (RvsConsts.ROLE_SHIPPPER.equals(roleId)) {
-			actionForward = mapping.findForward("shipping");
+//		} else if (RvsConsts.ROLE_SHIPPPER.equals(roleId)) {
+//			actionForward = mapping.findForward("shipping");
 		} else if (RvsConsts.ROLE_PARTIAL_MANAGER.equals(roleId)) {
 			actionForward = mapping.findForward("partialm");
 		} else {
