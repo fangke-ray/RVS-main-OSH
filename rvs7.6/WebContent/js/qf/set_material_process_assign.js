@@ -275,6 +275,8 @@ var update_material_process_assign=function(){
 	var total = $checked.length;
 	var mappingCursor = null;
 
+	var nextUsed = {};
+
 	$checked.each(function(index,ele){
 		var $span = $(ele);
 
@@ -292,10 +294,20 @@ var update_material_process_assign=function(){
 		data["material_process_assign.position_id[" + count + "]"] = code;
 
 		if (mappingCursor != mappingCode) {
-			mappingCursor = mappingCode;
 			if (mappingCode && mappedmap[mappingCode] != null) {
-				errorPop("中小修对应工位不能在流程中多次出现，请保持连续的工位对应同一个中小修工位。");
-				return;
+//				errorPop("中小修对应工位不能在流程中多次出现，请保持连续的工位对应同一个中小修工位。");
+//				return;
+				nextUsed[code] = 9999999;
+			} else {
+				mappingCursor = mappingCode;
+			}
+		}
+
+		if (nextUsed[code] == null) {
+			for (var itm in nextUsed) {
+				if (nextUsed[itm] == 9999999) {
+					nextUsed[itm] = code;
+				}
 			}
 		}
 
@@ -325,8 +337,11 @@ var update_material_process_assign=function(){
 					= data["material_process_assign.prev_position_id[" + idx + "]"] || 0;
 			data["material_process_assign.prev_position_id[" + idx + "]"] = 0;
 
-			mappedmap[mappingCode].next
-				= data["material_process_assign.next_position_id[" + idx + "]"];
+			var next_code = data["material_process_assign.next_position_id[" + idx + "]"];
+			if (nextUsed[code] == null) {
+				mappedmap[mappingCode].next = next_code;
+			}
+
 			data["material_process_assign.next_position_id[" + idx + "]"] = 0;
 
 			data["material_process_assign.sign_position_id[" + idx + "]"] = mappingCode;
@@ -335,9 +350,13 @@ var update_material_process_assign=function(){
 
 	for (var mappingCode in mappedmap) {
 		data["material_process_assign.position_id[" + count + "]"] = mappingCode;
-		data["material_process_assign.prev_position_id[" + count + "]"] = mappedmap[mappingCode].prev || 0;
-		data["material_process_assign.next_position_id[" + count + "]"] = mappedmap[mappingCode].next || 9999999;
 		data["material_process_assign.sign_position_id[" + count + "]"] = mappingCode;
+
+		data["material_process_assign.prev_position_id[" + count + "]"] = mappedmap[mappingCode].prev || 0;
+
+		var next_code = mappedmap[mappingCode].next || 9999999;
+		if (nextUsed[next_code] != null) next_code = nextUsed[next_code]; 
+		data["material_process_assign.next_position_id[" + count + "]"] = next_code;
 
 		count++;
 	}
@@ -355,7 +374,31 @@ var update_material_process_assign=function(){
 		if (next == null) {
 			data["material_process_assign.next_position_id[" + idx + "]"] = 0;
 		}else if (tomap[next] != null) {
-			data["material_process_assign.next_position_id[" + idx + "]"] = tomap[next];
+			if (nextUsed[next] != null) {
+				next = nextUsed[next];
+			}
+			if (tomap[next] != null) {
+				data["material_process_assign.next_position_id[" + idx + "]"] = tomap[next];
+			} else {
+				data["material_process_assign.next_position_id[" + idx + "]"] = next;
+			}
+		}
+	}
+
+	if (Object.keys(nextUsed).length) {
+		var prevUsed = {};
+		for (var idx = 0; idx < count; idx++) {
+			var next = data["material_process_assign.next_position_id[" + idx + "]"];
+			if (next && next != 9999999) {
+				prevUsed[next] = data["material_process_assign.position_id[" + idx + "]"];
+			}
+		}
+		for (var next in prevUsed) {
+			for (var idx = 0; idx < count; idx++) {
+				if (data["material_process_assign.position_id[" + idx + "]"] == next) {
+					data["material_process_assign.prev_position_id[" + idx + "]"] = prevUsed[next];
+				}
+			}
 		}
 	}
 
@@ -423,7 +466,7 @@ var showResult= function(intt) {
 		processText += "; " + $(ele).find("td:eq(1)").text();
 	});
 	var positionText = "";
-	var mapedMapper = {}; var mappingCursor = false;
+	var mapedMapper = {}; var mapedList = []; //  var mappingCursor = false;
 	$("#pa_main .suceed,#pa_main .point").each(function(idx, ele){
 		var eleText = $(ele).text();
 		if (eleText.indexOf("\n") >= 0) {
@@ -434,19 +477,29 @@ var showResult= function(intt) {
 		if (mapCode) {
 			if (mapedMapper[mapCode] == null) {
 				mapedMapper[mapCode] = eleText;
-				if (mappingCursor) positionText += ")";
-				positionText += "->" + mapCode + "(" + eleText;
+				mapedList.push(mapCode);
+//				if (mappingCursor) positionText += ")";
+//				positionText += "->" + mapCode + "(" + eleText;
 			} else {
-				positionText += "," + eleText;
+				mapedMapper[mapCode] += "," + eleText;
 			}
-			mappingCursor = true;
+//			mappingCursor = true;
 		} else {
-			if (mappingCursor) positionText += ")";
-			positionText += "->" + eleText;
-			mappingCursor = false;
+//			if (mappingCursor) positionText += ")";
+			mapedList.push(eleText);
+//			mappingCursor = false;
 		}
 	});
-	if (positionText && mappingCursor) positionText += ")";
+	
+//	if (positionText && mappingCursor) positionText += ")";
+	for (var il in mapedList) {
+		var codes = mapedMapper[mapedList[il]];
+		if (codes == null) {
+			positionText += "->" + mapedList[il];
+		} else {
+			positionText += "->" + mapedList[il] + "(" + codes + ")";
+		}
+	}
 
 	var showText = "";
 	if (processText.length) {

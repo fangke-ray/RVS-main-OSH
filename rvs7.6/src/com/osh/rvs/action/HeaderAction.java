@@ -25,12 +25,14 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.AlarmMesssageEntity;
 import com.osh.rvs.bean.data.PostMessageEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.master.OperatorNotifyEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.qf.AfProductionFeatureEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.HolidayService;
+import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PostMessageService;
 import com.osh.rvs.service.inline.PositionPanelService;
 
@@ -141,6 +143,7 @@ public class HeaderAction extends BaseAction {
 		if (RvsConsts.ROLE_OPERATOR.equals(role_id)) {
 			message_type = "op";
 		}
+
 		if (message_type != null) {
 			req.setAttribute("message_type", message_type);
 
@@ -159,6 +162,19 @@ public class HeaderAction extends BaseAction {
 				}
 			}
 			req.setAttribute("has_notice", hasNotice);
+		} else {
+			OperatorService oService = new OperatorService();
+			List<OperatorNotifyEntity> lOn = oService.getOperatorNotifyEntity(conn);
+			for (OperatorNotifyEntity onEntity : lOn) {
+				if (user.getOperator_id().equals(onEntity.getOperator_id())) {
+					// 无进度信息者，如果是动物内镜通知人追加
+					req.setAttribute("message_type", "ae");
+					break;
+				} else if (user.getOperator_id().equals(onEntity.getManager_operator_id())){
+					req.setAttribute("message_type", "ae");
+					break;
+				}
+			}
 		}
 
 		String servletPath = req.getServletPath();

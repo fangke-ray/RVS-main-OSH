@@ -10,10 +10,10 @@
 </script>
 
 <div id="device_rent_area">
-	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
+	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
 		<span class="areatitle">借用设备工具清单</span>
 	</div>
-	<div id="device_rent_details" class="ui-widget-content dwidth-full">
+	<div id="device_rent_details" class="ui-widget-content">
 		<!--div style="height: 44px">
 			<input type="button" class="ui-button" id="finishcheckbutton" value="点检完成" role="button" aria-disabled="false" style="float: right; right: 2px;">
 		</div-->

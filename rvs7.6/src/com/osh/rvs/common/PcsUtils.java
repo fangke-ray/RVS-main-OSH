@@ -415,10 +415,10 @@ public class PcsUtils {
 			} else {
 				currentProcessCode = checkInLightProcessGroup(currentProcessCode, materialId, conn);
 			}
-		} else { // TODO 其实在OSH没有用了
+		} else {
 			if (isAnmlExp) {
 				currentProcessCode = checkInAnmlExpProcessGroup(currentProcessCode, null, conn);
-			} else {
+			} else { // TODO 其实在OSH没有用了
 				currentProcessCode = checkOverAll(currentProcessCode);
 			}
 		}
@@ -622,10 +622,10 @@ public class PcsUtils {
 						} else {
 							processCode = checkInLightProcessGroup(processCode, materialId, conn);
 						}
-					} else { // TODO 其实在OSH没有用了
+					} else {
 						if (isAnmlExp) {
 							processCode = checkInAnmlExpProcessGroup(processCode, null, conn);
-						} else {
+						} else { // TODO 其实在OSH没有用了
 							processCode = checkOverAll(processCode);
 						}
 					}
@@ -1149,9 +1149,9 @@ public class PcsUtils {
 	private static List<String> checkInLightProcess(String currentProcessCode,
 			String materialId, SqlSession conn) {
 		String positionId = ReverseResolution.getPositionByProcessCode(currentProcessCode, conn);
-		if (!PositionService.getPositionMappings(conn).containsKey(positionId)) {
-			return null;
-		}
+//		if (!PositionService.getPositionMappings(conn).containsKey(positionId)) {
+//			return null;
+//		}
 
 		MaterialProcessAssignMapper mapper = conn.getMapper(MaterialProcessAssignMapper.class);
 		List<String> mappedProcessCodes = mapper.getSelectedMappings(materialId, positionId);
@@ -1162,6 +1162,14 @@ public class PcsUtils {
 		}
 	}
 
+	/**
+	 * 取得动物内镜映射工位
+	 * 
+	 * @param currentProcessCode
+	 * @param materialId
+	 * @param conn
+	 * @return
+	 */
 	private static String checkInAnmlExpProcessGroup(String currentProcessCode,
 			String materialId, SqlSession conn) {
 		String positionId = ReverseResolution.getPositionByProcessCode(currentProcessCode, conn);
@@ -1182,10 +1190,11 @@ public class PcsUtils {
 				}
 			}
 		} else {
-			
+			// 取得小修理已选工位的
+			mappedProcessCodes = checkInLightProcess(currentProcessCode, materialId, conn);
 		}
 
-		if (mappedProcessCodes.isEmpty()) {
+		if (mappedProcessCodes == null || mappedProcessCodes.isEmpty()) {
 			return currentProcessCode;
 		} else {
 			return "(" + CommonStringUtil.joinBy("|",
@@ -2134,10 +2143,10 @@ public class PcsUtils {
 						} else {
 							lightProcess = checkInLightProcessGroup(process_code, materialId, conn);
 						}
-					} else { // TODO 其实在OSH没有用了
+					} else {
 						if (isAnmlExp) {
 							checkedOverAllProcessCode = checkInAnmlExpProcessGroup(process_code, null, conn);
-						} else {
+						} else { // TODO 其实在OSH没有用了
 							checkedOverAllProcessCode = checkOverAllExcel(process_code);
 						}
 					}

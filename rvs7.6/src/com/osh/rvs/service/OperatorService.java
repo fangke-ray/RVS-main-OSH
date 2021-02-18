@@ -559,9 +559,13 @@ public class OperatorService {
 		return false;
 	}
 
+	private List<OperatorNotifyEntity> operatorNotifyEntities = null;
 	public List<OperatorNotifyEntity> getOperatorNotifyEntity(SqlSession conn) {
-		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
-		return mapper.getOperatorNotifyEntity();
+		if (operatorNotifyEntities == null) {
+			OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+			operatorNotifyEntities = mapper.getOperatorNotifyEntity();
+		}
+		return operatorNotifyEntities;
 	}
 
 	public void setNotify(Map<String, String[]> parameterMap,
@@ -569,7 +573,6 @@ public class OperatorService {
 		List<OperatorNotifyEntity> onEntities = new AutofillArrayList<OperatorNotifyEntity>(OperatorNotifyEntity.class);
 		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
 
-		
 		// 整理提交数据
 		for (String parameterKey : parameterMap.keySet()) {
 			Matcher m = p.matcher(parameterKey);
@@ -603,6 +606,7 @@ public class OperatorService {
 			mapper.insertOperatorNotify(onEntity);
 		}
 
+		operatorNotifyEntities = null;
 	}
 
 	public String notifyAnmlBreak(String category_id,

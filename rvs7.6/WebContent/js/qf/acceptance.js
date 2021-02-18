@@ -1019,6 +1019,7 @@ var insert_handleComplete = function(xhrobj, textStatus) {
 				$("#service_repair").val("").trigger("change");
 				$("#fix_type").val("").trigger("change");
 				$("#selectable").val("").trigger("change");
+				$("#edit_anml_exp").val("").trigger("change");
 				$("#edit_bound_out_ocm").val("").trigger("change");
 			}
 

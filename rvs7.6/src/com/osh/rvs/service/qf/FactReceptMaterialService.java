@@ -196,6 +196,8 @@ public class FactReceptMaterialService {
 			
 			//维修对象属性标签
 			materialTagService.deleteByMaterialId(materialID, conn);
+			MaterialTagService.resetAnmlMaterials(conn);
+
 			for(MaterialTagForm materialTagForm : pageList){
 				materialTagService.insert(materialTagForm, conn);
 			}

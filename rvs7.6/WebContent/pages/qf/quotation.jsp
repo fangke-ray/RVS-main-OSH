@@ -58,6 +58,14 @@ ${WORKINFO}
 						<div id="uld_listedit"></div>
 					</div>
 
+<%
+if (request.getAttribute("unitizeds")!=null) {
+%>
+<%@include file="/widgets/position_panel/unitizeds_rent.jsp"%>
+<%
+}
+%>
+
 					<div>
 						<div id="waitarea" class="ui-widget-content" style="float: left;min-height: 250px;">
 							<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-half">

@@ -437,7 +437,12 @@ public class ProductionFeatureService {
 				if ("07".equals(mEntity.getKind()) && mEntity.getFix_type() == 1) {
 					nextPositions.add(RvsConsts.POSITION_QUOTATION_P_181); // 周边报价
 				} else if (RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) { // 光学视管
-					nextPositions.add("00000000013");
+					boolean anml_flg = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
+					if (anml_flg) {
+						nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
+					} else {
+						nextPositions.add(RvsConsts.POSITION_QUOTATION_N); // 报价
+					}
 				} else {
 					nextPositions.add("00000000012");
 				}
@@ -459,9 +464,9 @@ public class ProductionFeatureService {
 			} else if (anml_flg) {
 				nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
 			} else if ((mEntity.getService_repair_flg()!=null && (mEntity.getService_repair_flg() == 1 || mEntity.getService_repair_flg() == 2))) {
-				nextPositions.add("00000000014"); // 直送报价
+				nextPositions.add(RvsConsts.POSITION_QUOTATION_D); // 直送报价
 			} else {
-				nextPositions.add("00000000013"); // 报价
+				nextPositions.add(RvsConsts.POSITION_QUOTATION_N); // 报价
 			}
 		} else if ("00000000101".equals(position_id)) { // IISE
 

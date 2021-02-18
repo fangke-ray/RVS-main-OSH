@@ -37,6 +37,7 @@ import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.PauseFeatureService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.inline.PositionPanelService;
@@ -108,6 +109,11 @@ public class QuotationAction extends BaseAction {
 		ProcessAssignService paService = new ProcessAssignService();
 		String paOptions = paService.getGroupOptions("", conn);
 		req.getSession().setAttribute("paOptions", paOptions);
+
+		// 判断是否动物实验用维修品工位
+		if (PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id())) {
+			req.setAttribute("unitizeds", "true");
+		}
 
 		req.setAttribute("WORKINFO", ppService.getWorkInfo());
 

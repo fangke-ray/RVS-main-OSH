@@ -41,6 +41,10 @@ public class MaterialTagService {
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
 		dao.insert(entity);
+
+		if (TAG_ANIMAL_EXPR == entity.getTag_type()) {
+			resetAnmlMaterials(conn);
+		}
 	}
 
 	/**

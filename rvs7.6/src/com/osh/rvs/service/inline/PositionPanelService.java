@@ -221,7 +221,10 @@ public class PositionPanelService {
 		if (material_id.contains("_")) {
 			String[] split = material_id.split("_");
 			material_id = split[0];
-			operate_result = Integer.parseInt(split[1]);
+			try {
+				operate_result = Integer.parseInt(split[1]);
+			} catch (NumberFormatException e) {
+			}
 		}
 		parameters.put("material_id", material_id);
 		if (CommonStringUtil.isEmpty(material_id)) {
@@ -1730,8 +1733,8 @@ public class PositionPanelService {
 		varWorkInfo += "pcsCheck : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.pcsCheck") + "\",";
 		varWorkInfo += "needFillBreak : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.needFillBreak") + "\",";
 		varWorkInfo += "chooseDryingProcessStock : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.chooseDryingProcessStock") + "\",";
-		varWorkInfo += "confirmPcsWhenBreak : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.chooseDryingProcess") + "\",";
-		varWorkInfo += "chooseDryingProcess : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmPcsWhenBreak") + "\",";
+		varWorkInfo += "confirmPcsWhenBreak : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmPcsWhenBreak") + "\",";
+		varWorkInfo += "chooseDryingProcess : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.chooseDryingProcess") + "\",";
 		varWorkInfo += "confirmSelectFirstSnout : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmSelectFirstSnout") + "\",";
 		varWorkInfo += "abnormalSnoutOrigin : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.abnormalSnoutOrigin") + "\",";
 		varWorkInfo += "animalExpNotice : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.animalExpNotice") + "\",";

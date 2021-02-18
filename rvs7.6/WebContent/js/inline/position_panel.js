@@ -706,8 +706,10 @@ var treatStart = function(resInfo) {
 	var $hidden_id = $("#material_details td:eq(0) input:hidden");
 	$hidden_id.val(resInfo.mform.material_id);
 	$("#anml_attendtion").remove();
-	if (resInfo.mform.anml_exp && $("#manualdetailarea").length > 0) { // 虚拟工位不显
-		infoPop(WORKINFO.animalExpNotice);
+	if (resInfo.mform.anml_exp && $("#manualdetailarea").length > 0) { // 虚拟工位不显 专用工位不显
+		if ($("#device_rent_area").length == 0) {
+			infoPop(WORKINFO.animalExpNotice);
+		}
 		$hidden_id.before("<attendtion id='anml_attendtion'></attendtion>");
 	}
 
@@ -1032,17 +1034,6 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 //				$("#pauseo_material_id").val(resInfo.waitings[0].material_id);
 //			}
 
-			// 如果打开作业中但是没有
-			var flowtext = resInfo.past_fingers;
-			if (!resInfo.fingers && $("#material_details").is(":visible")) {
-				getJustWorkingFingers(resInfo.mform.material_id);
-			} else {
-				if (resInfo.lightFix) flowtext = resInfo.lightFix + (flowtext ? "<br>" + flowtext : "");
-				if (resInfo.fingers) flowtext = resInfo.fingers + (flowtext ? "<br>" + flowtext : "");
-				if (flowtext) $("#flowtext").html(flowtext);
-			}
-
-			
 			// 设备安全手册信息
 			if (resInfo.position_hcsgs) device_safety_guide = resInfo.position_hcsgs;
 
@@ -1071,6 +1062,16 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 						} else {
 							$("#comments_sidebar").hide();
 						}
+					}
+
+					// 如果打开作业中但是没有
+					var flowtext = resInfo.past_fingers;
+					if (!resInfo.fingers && $("#material_details").is(":visible")) {
+						getJustWorkingFingers(resInfo.mform.material_id);
+					} else {
+						if (resInfo.lightFix) flowtext = resInfo.lightFix + (flowtext ? "<br>" + flowtext : "");
+						if (resInfo.fingers) flowtext = resInfo.fingers + (flowtext ? "<br>" + flowtext : "");
+						if (flowtext) $("#flowtext").html(flowtext);
 					}
 				});
 			});

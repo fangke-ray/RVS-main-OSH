@@ -97,7 +97,7 @@ public class AlarmMesssageService {
 		if (isAnml) {
 			OperatorService operatorService = new OperatorService();
 			MaterialService materialService = new MaterialService();
-			MaterialEntity mBean = materialService.loadMaterialDetailBean(conn, entity.getMaterial_id());
+			MaterialEntity mBean = materialService.loadSimpleMaterialDetailEntity(conn, entity.getMaterial_id());
 
 			String anmlBreakNotifier = operatorService.notifyAnmlBreak(mBean.getCategory_id(), entity.getPosition_id(), conn);
 			if (anmlBreakNotifier != null) {

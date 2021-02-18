@@ -206,7 +206,9 @@ if (work_count_flg == 1) {
 <%
 if (request.getAttribute("unitizeds")!=null) {
 %>
+<div class="dwidth-full">
 <%@include file="/widgets/position_panel/unitizeds_rent.jsp"%>
+</div>
 <%
 }
 %>

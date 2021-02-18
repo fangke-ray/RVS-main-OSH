@@ -119,4 +119,25 @@ public class FactMaterialService {
 		
 		return count;
 	}
+
+	/**
+	 * 判断维修品是否操作了指定作业
+	 * 
+	 * @param material_id
+	 * @param production_type 作业类型
+	 * @param conn
+	 * @return
+	 */
+	public List<FactMaterialEntity> checkOnMaterialAndType(String material_id, Integer production_type, SqlSession conn) {
+		FactMaterialMapper dao = conn.getMapper(FactMaterialMapper.class);
+		FactMaterialEntity condition = new FactMaterialEntity();
+		condition.setMaterial_id(material_id);
+		condition.setProduction_type(production_type);
+
+		List<FactMaterialEntity> list = dao.search(condition);
+
+		return list;
+	}
+
+
 }

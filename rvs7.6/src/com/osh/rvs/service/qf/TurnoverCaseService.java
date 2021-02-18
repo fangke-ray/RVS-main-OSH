@@ -645,7 +645,8 @@ public class TurnoverCaseService {
 			errors.add(error);
 		} else {
 			TurnoverCaseEntity loc = ret.get(0);
-			if (loc.getExecute() == null || loc.getExecute() != 9) {
+			if ((loc.getAnml_exp() == null || loc.getAnml_exp() != 1) &&
+					(loc.getExecute() == null || loc.getExecute() != 9)) {
 				MsgInfo error = new MsgInfo();
 				error.setErrmsg("此库位没有打印标签，或者已经被使用，请重新选择。");
 				errors.add(error);

@@ -557,7 +557,9 @@ var treatStart = function(resInfo) {
 		var $hidden_id = $("#material_details td:eq(0) input:hidden");
 		$hidden_id.val(resInfo.mform.material_id);
 		if (resInfo.mform.anml_exp) {
-			infoPop(WORKINFO.animalExpNotice);
+			if ($("#device_rent_area").length == 0) {
+				infoPop(WORKINFO.animalExpNotice);
+			}
 			$hidden_id.before("<attendtion id='anml_attendtion'></attendtion>");
 		}
 		$("#material_details td:eq(1)").text(resInfo.mform.sorc_no);

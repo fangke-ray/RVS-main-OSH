@@ -600,7 +600,9 @@ var getMaterialInfo = function(resInfo) {
 
 		$("#anml_attendtion").remove();
 		if (resInfo.mform.anml_exp) {
-			infoPop(WORKINFO.animalExpNotice);
+			if ($("#device_rent_area").length == 0) {
+				infoPop(WORKINFO.animalExpNotice);
+			}
 			$("#edit_direct_flg").before("<p id='anml_attendtion'></p>");
 		}
 

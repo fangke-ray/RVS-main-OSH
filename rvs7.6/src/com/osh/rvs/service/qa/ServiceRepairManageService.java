@@ -36,10 +36,14 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.qa.ServiceRepairManageEntity;
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.qa.ServiceRepairManageForm;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.qa.ServiceRepairManageMapper;
+import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.partial.ComponentManageService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -812,6 +816,16 @@ public class ServiceRepairManageService {
 
 				// 插入
 				mapper.insertServiceRepairManage(entity);
+
+				String positionId = RvsConsts.POSITION_QA_601;
+				if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
+					Map<String, String> positionUnitizedRevers = PositionService.getPositionUnitizedRevers(conn);
+					if (positionUnitizedRevers.get(RvsConsts.POSITION_QA_601) != null) {
+						positionId = positionUnitizedRevers.get(RvsConsts.POSITION_QA_601);
+					}
+				}
+
+				RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/in/" + positionId + "/1/" + material_id + "/0");
 			}
 		}
 	}

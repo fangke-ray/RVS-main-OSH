@@ -533,7 +533,9 @@ var treatStart = function(resInfo) {
 		var $hidden_id = $("#pauseo_material_id");
 		$hidden_id.val(mform.material_id);
 		if (mform.anml_exp) {
-			infoPop(WORKINFO.animalExpNotice);
+			if ($("#device_rent_area").length == 0) {
+				infoPop(WORKINFO.animalExpNotice);
+			}
 			$hidden_id.before("<attendtion id='anml_attendtion'></attendtion>");
 		}
 

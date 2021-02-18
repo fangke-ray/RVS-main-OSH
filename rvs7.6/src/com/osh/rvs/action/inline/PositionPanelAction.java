@@ -1680,6 +1680,8 @@ public class PositionPanelAction extends BaseAction {
 //		
 
 		if (workingPf != null) {
+			log.info("PositionPanelAction.getNexts for " + workingPf.getMaterial_id());
+
 			MaterialService ms = new MaterialService();
 			MaterialEntity mBean = ms.loadMaterialDetailBean(conn, workingPf.getMaterial_id());
 

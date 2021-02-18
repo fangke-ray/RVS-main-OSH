@@ -29,6 +29,7 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
@@ -743,7 +744,17 @@ public class AcceptanceAction extends BaseAction {
 			info.setErrmsg("此实物受理临时记录不存在，或者已经被匹配。");
 			errors.add(info);
 		} else {
-			frmService.tempMatch(material_id, factReceptTempEntity, conn);
+			// 判断下是否操作了系统记录
+			FactMaterialService fmService = new FactMaterialService();
+			List<FactMaterialEntity> l = fmService.checkOnMaterialAndType(material_id, 102, conn);
+			if (l.size() > 0) {
+				MsgInfo info = new MsgInfo();
+				info.setComponentid("material_id");
+				info.setErrmsg("此系统受理记录已经处理了实物受理。请选择其他操作。");
+				errors.add(info);
+			} else {
+				frmService.tempMatch(material_id, factReceptTempEntity, conn);
+			}
 		}
 
 		cbResponse.put("errors", errors);
