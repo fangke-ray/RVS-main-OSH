@@ -70,7 +70,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">规格种别</td>
-					<td class="td-content" colspan="5"><select id="search_spec_kind" class="ui-widget-content">${specKind}</select></td>
+					<td class="td-content" colspan="5">
+						<select id="search_spec_kind" class="ui-widget-content">${specKind}</select>
+						<input type="checkbox" value="2" id="search_order_flg"></input><label style="margin-left:3em;" for="search_order_flg">订购组件</label>
+					</td>
 				</tr>
 			</table>
 				<div style="height:44px">
@@ -134,9 +137,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<input type="radio" name="order_flg" alt="订购对象" id="edit_order_flg_yes" value="1" class="ui-widget-content"
 <% if (!isOperator) { %> disabled<% } %>>
 						<label for="edit_order_flg_yes" radio>是</label>
-						<input type="radio" name="order_flg" alt="订购对象" id="edit_order_flg_yes_no" value="0" class="ui-widget-content"
+						<input type="radio" name="order_flg" alt="订购对象" id="edit_order_flg_comp" value="2" class="ui-widget-content"
 <% if (!isOperator) { %> disabled<% } %>>
-						<label for="edit_order_flg_yes_no" radio>否</label>
+						<label for="edit_order_flg_comp" radio>订购组件</label>
+						<input type="radio" name="order_flg" alt="订购对象" id="edit_order_flg_no" value="0" class="ui-widget-content"
+<% if (!isOperator) { %> disabled<% } %>>
+						<label for="edit_order_flg_no" radio>否</label>
 					</td>
 				</tr>
 				<tr>

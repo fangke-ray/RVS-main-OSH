@@ -415,12 +415,10 @@ function importPcs(){
             							error : ajaxError,
             							complete : function(){
             								findit();
-            								//$("#import_pic").dialog("close");
-            								$confirmmessage.dialog("close");
+            								$("#import_pic").dialog("close");
             								infoPop("上传图片已经完成。");
             							}
             						});
-            						$("#import_pic").dialog("close");
             					});
 		                        } else {
 		                        	findit();

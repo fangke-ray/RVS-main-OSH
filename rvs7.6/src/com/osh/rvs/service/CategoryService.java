@@ -49,7 +49,7 @@ public class CategoryService {
 			+ "<optgroup label=\"周边设备\">" + CodeListUtils.getSelectOptions(codeMapPeripheral, null, null, false) + "</optgroup>";
 	}
 	
-	public String getEndoscopeOptions(SqlSession conn) {
+	public String getEndoscopeOptions(String nullOption, SqlSession conn) {
 		CategoryMapper dao = conn.getMapper(CategoryMapper.class);
 		List<CategoryEntity> l = dao.getAllCategory();
 		
@@ -60,7 +60,7 @@ public class CategoryService {
 				codeMapEndoscope.put(bean.getCategory_id(), bean.getName());
 			} 
 		}
-		return CodeListUtils.getSelectOptions(codeMapEndoscope, null, null, false);
+		return CodeListUtils.getSelectOptions(codeMapEndoscope, null, nullOption, false);
 	
 	}
 

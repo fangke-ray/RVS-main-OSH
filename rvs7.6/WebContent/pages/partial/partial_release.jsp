@@ -161,6 +161,8 @@ background-color:white;}
 							<span class="ui-icon ui-icon-circle-triangle-w"></span>
 						</a>
 					</div>
+					<div id="component_instorage" class='ui-state-highlight' style="padding: 4px;">
+					</div>
 					<div id="ns_partial_set">
 						<table class="condform">
 						<tbody>

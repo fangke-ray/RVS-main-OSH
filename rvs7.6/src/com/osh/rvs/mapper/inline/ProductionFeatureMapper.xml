@@ -130,12 +130,14 @@ and a.inline_time is null -- [SpeedUp]
 				FROM production_feature
 			]]>
 		<where>
-			1 = 1
 			<if test="material_id!= null and material_id!= ''">
 				AND material_id = #{material_id}
 			</if>
 			<if test="position_id!= null and position_id!= ''">
 				AND position_id = #{position_id}
+			</if>
+			<if test="line_id!= null and line_id!= ''">
+				AND position_id in (select position_id from position where line_id = #{line_id})
 			</if>
 			<if test="pace!= null">
 				AND pace = #{pace}

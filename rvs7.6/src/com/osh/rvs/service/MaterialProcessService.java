@@ -18,8 +18,8 @@ public class MaterialProcessService {
 	private static final int PX_A = 0;
 	private static final int PX_B = 1;
 	private static final int PX_B_OF_1 = 4;
-	private static final int PX_C = 2;
-	private static final int PX_B_OF_2 = 7;
+	public static final int PX_C = 2;
+	public static final int PX_B_OF_2 = 7;
 
 	public MaterialProcessForm loadMaterialProcess(SqlSession conn, String id) {
 

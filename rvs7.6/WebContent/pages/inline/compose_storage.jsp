@@ -53,30 +53,44 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<table class="condform">
 						<tbody>
 							<tr>
-								<td class="ui-state-default td-title" rowspan="2">维修对象机种</td>
+								<td class="ui-state-default td-title">维修对象机种</td>
 								
-								<td class="td-content" rowspan="2"><select name="category_id" id="search_category_id" class="ui-widget-content">${cOptions}</select>
+								<td class="td-content" colspan="3"><select name="category_id" id="search_category_id" class="ui-widget-content">${cOptions}</select>
+								</td>
+								<td class="ui-state-default td-title">总组分线</td>
+								<td class="td-content"><select name="px" id="search_px" class="ui-widget-content">${pxOptions}</select>
 								</td>
 								
+							</tr>
+							<tr>
 							    <td class="ui-state-default td-title">修理单号</td>
 							    
 								<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content">
 								</td>
+								<td class="ui-state-default td-title" rowspan="2">来源</td>
+								<td class="td-content" rowspan="2">
+									<select name="line_id" id="search_line_id" class="ui-widget-content">
+									<option value=""></option>
+									<option value="00000000012">分解</option>
+									<option value="00000000013">组件</option>
+									</select>
+								</td-->
+								
+								<!--td class="ui-state-default td-title" rowspan="2">维修课室</td>
+								
+								<td class="td-content" rowspan="2"><select name="section_id" id="search_section_id" class="ui-widget-content">${sOptions}</select>
+								</td-->
+								
+								<td class="ui-state-default td-title" rowspan="2">纳期</td>
+								<td class="td-content" rowspan="2"><input type="text" name="name" id="search_scheduled_date_start" class="ui-widget-content" readonly="readonly" value="">起<br/>
+													   <input type="text" name="name" id="search_scheduled_date_end" class="ui-widget-content" readonly="readonly">止
+								</td>
+							</tr>
+							<tr>
 								
 								<td class="ui-state-default td-title">机身号</td>
 								
 								<td class="td-content"><input type="text" id="search_serial_no" maxlength="20" class="ui-widget-content">
-								</td>
-							</tr>
-							<tr>
-								<td class="ui-state-default td-title">维修课室</td>
-								
-								<td class="td-content"><select name="section_id" id="search_section_id" class="ui-widget-content">${sOptions}</select>
-								</td>
-								
-								<td class="ui-state-default td-title">纳期</td>
-								<td class="td-content"><input type="text" name="name" id="search_scheduled_date_start" maxlength="50" class="ui-widget-content" readonly="readonly" value="">起<br/>
-													   <input type="text" name="name" id="search_scheduled_date_end" maxlength="50" class="ui-widget-content" readonly="readonly">止
 								</td>
 							</tr>
 							<tr>
@@ -103,15 +117,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						</tbody>
 						</table>
 						<div style="height:44px">
-							<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
+							<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
 							<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchbutton" value="检索" role="button" aria-disabled="false" style="float:right;right:2px">
+							<input type="hidden" id="pxGridOptions" value="${pxGridOptions}">
 						</div>
 					</form>
 				</div>
 				
 				<div id="exd_listarea" class="width-middleright" style="margin-top:36px;">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-						<span class="areatitle">总组签收管理</span>
+						<span class="areatitle">总组库位管理</span>
 						<a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 							<span class="ui-icon ui-icon-circle-triangle-n"></span>
 						</a>
@@ -119,13 +134,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					
 					<table id="exd_list"></table>
 					<div id="exd_listpager"></div>
-					<div class="ui-widget-content dwidth-middleright" id="scanner_container">
+					<!-- div class="ui-widget-content dwidth-middleright" id="scanner_container">
 						<div class="ui-state-default td-title">扫描录入区域</div>
 						<input type="text" id="scanner_inputer" title="扫描前请点入此处" class="scanner_inputer" style="width: 986px;"></input>
 						<div style="text-align: center;">
 								<img src="images/barcode.png" style="margin: auto; width: 150px; padding-top: 4px;">
 						</div>
-					</div>
+					</div-->
 				</div>
 				
 			</div>

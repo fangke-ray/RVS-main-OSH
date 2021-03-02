@@ -83,6 +83,8 @@ public class MaterialPartialDetailForm extends ActionForm {
 
 	private String line_id;
 	private String partial_code;
+	private String order_flg;
+
 	/** 
 	 * 页面追加标记
 	 * 消耗品代替借用为消耗品标记 
@@ -417,6 +419,14 @@ public class MaterialPartialDetailForm extends ActionForm {
 
 	public void setSpec_kind(String spec_kind) {
 		this.spec_kind = spec_kind;
+	}
+
+	public String getOrder_flg() {
+		return order_flg;
+	}
+
+	public void setOrder_flg(String order_flg) {
+		this.order_flg = order_flg;
 	}
 
 }

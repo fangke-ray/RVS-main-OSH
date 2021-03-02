@@ -72,7 +72,7 @@ public class DryingOvenDeviceAction extends BaseAction {
 		
 		//机种
 		CategoryService categoryService = new CategoryService();
-		String cReferChooser = categoryService.getEndoscopeOptions(conn);
+		String cReferChooser = categoryService.getEndoscopeOptions(null, conn);
 		request.setAttribute("cReferChooser",cReferChooser);
 
 		String role = request.getParameter("role");

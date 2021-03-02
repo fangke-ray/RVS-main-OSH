@@ -30,6 +30,7 @@ public class WaitingEntity implements Serializable {
 	private Integer overtime;
 	private Integer imbalance;
 	private String scheduled_monthday;
+	private String shelf_name;
 
 	private String position_id;
 	private String process_code;
@@ -185,5 +186,11 @@ public class WaitingEntity implements Serializable {
 	}
 	public void setAnml_exp(Integer anml_exp) {
 		this.anml_exp = anml_exp;
+	}
+	public String getShelf_name() {
+		return shelf_name;
+	}
+	public void setShelf_name(String shelf_name) {
+		this.shelf_name = shelf_name;
 	}
 }

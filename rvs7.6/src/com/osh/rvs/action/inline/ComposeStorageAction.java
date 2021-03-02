@@ -22,6 +22,7 @@ import com.osh.rvs.service.inline.ComposeStorageService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.validator.Validators;
 
@@ -45,13 +46,17 @@ public class ComposeStorageAction extends BaseAction{
 		log.info("ComposeStorageAction.init start");
 		
 		CategoryService categoryService=new CategoryService();
-		String cOptions=categoryService.getOptions(conn);
+		String cOptions=categoryService.getEndoscopeOptions("", conn);
 		request.setAttribute("cOptions", cOptions);// 维修对象机种集合
 		
-		SectionService sectionService = new SectionService();
-		String sOptions = sectionService.getOptions(conn, "(全部)");
-		request.setAttribute("sOptions", sOptions);// 维修科室集合
-		
+//		SectionService sectionService = new SectionService();
+//		String sOptions = sectionService.getOptions(conn, "(全部)");
+//		request.setAttribute("sOptions", sOptions);// 维修科室集合
+
+		// 分线取得
+		request.setAttribute("pxOptions", CodeListUtils.getSelectOptions("material_px", null, ""));
+		request.setAttribute("pxGridOptions", CodeListUtils.getGridOptions("material_px"));
+
 		actionForward = mapping.findForward(FW_INIT);
 		log.info("ComposeStorageAction.init end");
 	}

@@ -364,6 +364,12 @@ var search_handleComplete=function(xhrobj, textStatus) {
 				$("#ns_partial_set").removeClass("needNp").hide();
 			}
 
+			if (resInfo.componentInstorage) {
+				$("#component_instorage").text(resInfo.componentInstorage).show();
+			} else {
+				$("#component_instorage").text("").hide();
+			}
+
 			arrive_partial_list(resInfo.responseList);
 
 			$("#body-mdl").hide();
@@ -388,7 +394,7 @@ var arrive_partial_list=function(responseList){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','','零件编号','零件名称','待发放数量','发放数量','订购数量','消耗品标记','使用工程','使用工位','追加订购','status'],
+			colNames:['','','零件编号','零件名称','待发放数量','发放数量','订购数量','消耗品标记','使用工程','使用工位','追加订购','status','order_flg'],
 			colModel:[
 				{
 					name:'material_partial_detail_key',
@@ -506,6 +512,11 @@ var arrive_partial_list=function(responseList){
 					name:'status',
 					index:'status',
 					hidden:true
+				},
+				{
+					name:'order_flg',
+					index:'order_flg',
+					hidden:true
 				}
 			],
 			rowNum: 100,
@@ -522,6 +533,7 @@ var arrive_partial_list=function(responseList){
 			onSelectAll : changevalue,
 			gridComplete:function(){
 				if(privacy!="pm"){
+
 					var isJudge = $("#bo_flg").val() == 9.1;
 					var isFirst = $("#bo_flg").val() == 9 || isJudge;
 					// 得到显示到界面的id集合
@@ -549,9 +561,15 @@ var arrive_partial_list=function(responseList){
 	//					if(waiting_quantity!=0){
 	//						pill.find("tr#" + ID + " td").css("background-color", "lightsalmon");	
 	//					}
+
+						var order_flg = rowData.order_flg;
+						if (order_flg == 2) {
+							pill.find("tr#" + ID + " td[aria\\-describedby='arrive_partial_list_partial_name']").css({"color": "lightsalmon", "fontWeight": "bold"});
+						}
 					}
 					changevalue();
 					//$pill_parent.append(pill);
+
 				}
 			},
 			loadComplete:function(){
@@ -646,6 +664,7 @@ var changeMaterialStatus=function(flag){
 		"flag":flag
 	}
 	var iii = 0;
+	var sendComponent = false; // 发放了订购组件
 	$("#arrive_partial_list").find("tr").each(function(idx, ele) {
 		var $tr = $(ele);
 		$input = $tr.find("input[type=number]");
@@ -664,6 +683,10 @@ var changeMaterialStatus=function(flag){
 				postData["exchange.status["+iii+"]"]=ckValue;
 				postData["exchange.partial_id[" + iii + "]"] = $input.parent().parent().find("td[aria\\-describedby='arrive_partial_list_partial_id']").text();
 				iii ++;
+
+				if (ival > 0 && $tr.find("td[aria\\-describedby=arrive_partial_list_order_flg]").text() == "2") {
+					sendComponent = true;
+				}
 			}
 		};
 	});
@@ -692,6 +715,8 @@ var changeMaterialStatus=function(flag){
 			postChangeMaterialStatus(postData);
 		}
 	} else {
+		if (sendComponent && $("#component_instorage").text()) postData["sendComponent"] = $("#component_instorage").text();
+
 		if ($("#check_use_ns_component:visible").is(":checked") && !$("#ns_partial_set").hasClass("compSelected")) {
 			postData["exchange.cur_quantity[" + iii + "]"] = 1;
 			postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
@@ -726,6 +751,7 @@ var completeChange=function(xhrobj, textStatus){
 		if (resInfo.errors.length > 0) {
 			treatBackMessages("", resInfo.errors);
 		} else {
+			if (resInfo.componentInstorage) infoPop(resInfo.componentInstorage);
 			$("#body-mdl").show();
 			$("#body-detail").hide();
 			findit();

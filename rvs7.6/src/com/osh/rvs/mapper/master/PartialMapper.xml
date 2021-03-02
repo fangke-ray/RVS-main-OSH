@@ -63,6 +63,7 @@
 				P.CODE,
 				P.NAME,
 				 p.price,
+				p.order_flg,
 				O.NAME AS UPDATED_BY,
 				P.UPDATED_TIME,
 				P.spec_kind,
@@ -111,6 +112,11 @@
 		<if test="consumable_flg!=null and consumable_flg==2">
 			<![CDATA[
 				AND cm.PARTIAL_ID is null
+			]]>
+		</if>
+		<if test="order_flg!=null and order_flg==2">
+			<![CDATA[
+				AND p.order_flg = 2
 			]]>
 		</if>
 		<if test="spec_kind!=null and spec_kind!=''">

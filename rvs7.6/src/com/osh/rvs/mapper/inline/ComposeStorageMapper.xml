@@ -21,8 +21,10 @@
 			    cs.case_code,
 			    cs.goods_id,
 			    cs.shelf_name,
-			    current_timestamp() as action_time
-			FROM
+			    cs.line_id,
+			    cs.px,
+			    cs.spec_type
+				FROM
 			    material ma
 			        LEFT JOIN
 			    material_process mp1 ON mp1.material_id = ma.material_id
@@ -39,7 +41,7 @@
 			    model mo ON mo.model_id = ma.model_id
 			        JOIN
 			    category ca ON ca.category_id = mo.category_id
-			        LEFT JOIN
+			        JOIN
 				(SELECT
 					mpd.material_id,
 					CASE
@@ -53,8 +55,11 @@
 					END bo_flg,
 					max(mpd.arrival_plan_date) as arrival_plan_date
 					from material_partial mpd
-					group by mpd.material_id) matp ON ma.material_id = matp.material_id
-			        LEFT JOIN
+					JOIN compose_storage cs_in 
+						ON mpd.material_id = cs_in.goods_id
+					group by mpd.material_id
+					) matp ON ma.material_id = matp.material_id
+			        JOIN
 			    compose_storage cs ON ma.material_id = cs.goods_id
 			WHERE
 			    ma.break_back_flg = 0
@@ -68,7 +73,7 @@
 		</if>
 		<if test="sorc_no!=null and sorc_no!='' ">
 		<![CDATA[
-				AND (sorc_no LIKE CONCAT('%', #{sorc_no},'%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no},'%'))
+				AND (omr_notifi_no LIKE CONCAT('%', #{sorc_no},'%'))
 		]]>
 		</if>
 		<if test="serial_no!=null and serial_no!='' ">
@@ -79,6 +84,11 @@
 		<if test="section_id!=null and section_id!='' ">
 		<![CDATA[
 				AND ma.section_id=#{section_id}
+		]]>
+		</if>
+		<if test="line_id!=null and line_id!='' ">
+		<![CDATA[
+				AND cs.line_id=#{line_id}
 		]]>
 		</if>
 		<if test="scheduled_date_start!=null and scheduled_date_start!='' ">
@@ -121,7 +131,24 @@
 				AND mp3.scheduled_date<=#{com_scheduled_date_end}
 		]]>
 		</if>
+		<if test="px!=null and px!='' ">
 		<![CDATA[
+				AND cs.px=#{px}
+		]]>
+		</if>
+		<if test="px eq 0 ">
+		<![CDATA[
+				AND cs.px=0
+		]]>
+		</if>
+		<![CDATA[
+		
+
+	    ORDER BY com_scheduled_date DESC,cs.refresh_time ASC
+		]]>
+	</select>
+
+<!-- OLD search
 		    AND EXISTS( SELECT 
 		            *
 		        FROM
@@ -152,13 +179,9 @@
 					)
 				AND pf.material_id = ma.material_id
 			)
-		)
+-->
 
-	    ORDER BY com_scheduled_date DESC,cs.refresh_time ASC
-		]]>
-	</select>
-	
-	<select id="getComposEmpty" resultType="ComposeStorageEntity" >
+	<select id="getComposNotEmpty" resultType="ComposeStorageEntity" >
 		<![CDATA[
 				SELECT 
 					case_code,
@@ -170,7 +193,60 @@
 					goods_id IS NOT NULL
 		]]>
 	</select>
-	
+
+	<select id="getComposeStorageEntities" resultType="ComposeStorageEntity" >
+		<![CDATA[
+				SELECT 
+					case_code,
+					shelf_name,
+					scan_code,
+					goods_id,
+					goods_id,
+					`refresh_time`,
+					px
+				FROM 
+					compose_storage cs
+		]]>
+		<where>
+		<if test="goods_id!=null and goods_id eq 'null' ">
+		<![CDATA[
+				AND goods_id IS NULL
+		]]>
+		</if>
+		<if test="material_id!=null and material_id !='' ">
+		<![CDATA[
+				AND goods_id = #{material_id}
+		]]>
+		</if>
+		<if test="line_id!=null and line_id!='' ">
+		<![CDATA[
+				AND cs.line_id=#{line_id}
+		]]>
+		</if>
+		<if test="px!=null and px!='' ">
+		<![CDATA[
+				AND cs.px=#{px}
+		]]>
+		</if>
+		<if test="px eq 0 ">
+		<![CDATA[
+				AND cs.px=0
+		]]>
+		</if>
+		<if test="spec_type eq 1 ">
+		<![CDATA[
+				AND cs.spec_type=1
+		]]>
+		</if>
+		<if test="spec_type eq 0 ">
+		<![CDATA[
+				AND cs.spec_type=0
+		]]>
+		</if>
+		</where>
+		order by scan_code;
+	</select>
+
 	<select id="checkMaterialExist" resultType="ComposeStorageEntity" parameterType="String">
 		<![CDATA[
 				SELECT 
@@ -224,6 +300,16 @@
 			AND ma.material_id=#{material_id}
 		</if>
 	</select>
+
+	<select id="checkMaterialPutin" resultType="ComposeStorageEntity" parameterType="String">
+		<![CDATA[
+		SELECT scan_code 
+		FROM 
+			compose_storage 
+		WHERE
+			goods_id=#{material_id} AND line_id = #{line_id}
+		]]>
+	</select>
 	
 	<update id="updateLocation" parameterType="String">
 		<![CDATA[
@@ -257,7 +343,7 @@
 				goods_id=#{material_id},
 				refresh_time=current_timestamp()
 			WHERE 
-				scan_code= #{scan_code} 
+				case_code= #{case_code} 
 		]]>
 	</insert>
 
@@ -273,11 +359,11 @@
 	</update>
 
 	<select id="searchShelfNameExits" resultType="ComposeStorageEntity" parameterType="String">
-		SELECT scan_code
+		SELECT case_code
 		FROM 
 			compose_storage
 		WHERE
-			scan_code=#{scan_code}
+			case_code=#{case_code}
 	</select>
 	
 	
@@ -286,6 +372,15 @@
 		FROM 
 			compose_storage
 		WHERE
-			scan_code=#{scan_code}
+			case_code=#{case_code}
+	</select>
+
+	<select id="showWaitingWarehousingOfPosition" resultType="ComposeStorageEntity" parameterType="String">
+		SELECT case_code, line_id, material_id FROM compose_storage cs
+		JOIN production_feature pf
+		ON cs.goods_id = pf.material_id
+		AND pf.operate_result = 0
+		AND pf.position_id = #{position_id}
+		ORDER BY line_id;
 	</select>
 </mapper>

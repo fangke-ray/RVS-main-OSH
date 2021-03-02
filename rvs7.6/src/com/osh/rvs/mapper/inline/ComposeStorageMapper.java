@@ -17,10 +17,13 @@ public interface ComposeStorageMapper {
 	public List<ComposeStorageEntity> searchComposeStroage(ComposeStorageEntity instance);
 
 	// 总组展示
-	public List<ComposeStorageEntity> getComposEmpty();
+	public List<ComposeStorageEntity> getComposNotEmpty();
+	public List<ComposeStorageEntity> getComposeStorageEntities(ComposeStorageEntity condition);
 
 	// 根据material_id判断总组签收对象是否存在
 	public ComposeStorageEntity checkMaterialExist(@Param("material_id") String material_id);
+
+	public String checkMaterialPutin(@Param("material_id") String material_id, @Param("line_id") String line_id);
 
 	// 更新旧库位
 	public void updateLocation(@Param("scan_code") String scan_code);
@@ -29,7 +32,7 @@ public interface ComposeStorageMapper {
 	public void changeLocation(@Param("goods_id") String goods_id, @Param("scan_code") String scan_code);
 
 	// 入库
-	public void insertCom(@Param("material_id") String material_id, @Param("scan_code") String scan_code);
+	public void insertCom(@Param("material_id") String material_id, @Param("case_code") String case_code);
 
 	/**
 	 * 出库
@@ -39,17 +42,18 @@ public interface ComposeStorageMapper {
 	public void stockRemoval(String goods_id);
 
 	/**
-	 * 根据扫描码查询货架是否存在
+	 * 查询货架是否存在
 	 * @param scan_code
 	 * @return 
 	 */
-	public ComposeStorageEntity searchShelfNameExits(@Param("scan_code") String scan_code);
+	public ComposeStorageEntity searchShelfNameExits(String case_code);
 	
 	/**
-	 * 根据扫描码查询货架是否放置了对象
+	 * 查询货架是否放置了对象
 	 * @param scan_code
 	 * @return
 	 */
-	public ComposeStorageEntity searchGoodsExits(@Param("scan_code") String scan_code);
+	public ComposeStorageEntity searchGoodsExits(String case_code);
 
+	public List<ComposeStorageEntity> showWaitingWarehousingOfPosition(String position_id);
 }

@@ -79,7 +79,7 @@ public class WaittingTimeReportAction extends BaseAction {
 		req.setAttribute("px", px);
 		
 		//分线
-		String mpx = CodeListUtils.getSelectOptions("material_px", null, "");
+		String mpx = CodeListUtils.getSelectOptions("material_px_history", null, "");
 		req.setAttribute("mpx", mpx);
 		
 		// 迁移到页面

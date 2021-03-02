@@ -186,6 +186,8 @@ public class AppMenuAction extends BaseAction {
 
 		String inlinePosition = "";
 
+		menuLinks.put("composeStorage", false);
+
 		// 分解
 		if (LINE_DECOM.equals(user.getLine_id())) {
 			if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
@@ -195,6 +197,9 @@ public class AppMenuAction extends BaseAction {
 			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
 				String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px, conn);
 				inlinePosition += links;
+			}
+			if ("00000000001".equals(section_id)) {
+				menuLinks.put("composeStorage", true);
 			}
 		}
 
@@ -210,10 +215,12 @@ public class AppMenuAction extends BaseAction {
 				String links = getLinksByPositions(userPositions, LINE_NS, section_id, px, conn);
 				inlinePosition += links;
 			}
+			if ("00000000001".equals(section_id)) {
+				menuLinks.put("composeStorage", true);
+			}
 		}
 
 		menuLinks.put("composeline", false);
-		menuLinks.put("composeStorage", false);
 
 		// 总组
 		if (LINE_COM.equals(user.getLine_id())) {

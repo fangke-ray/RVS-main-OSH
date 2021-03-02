@@ -28,11 +28,12 @@ $(function() {
     
     /*radio-->button*/
     $("#edit_order_flg,#operation_id,#search_consumable_flg,#edit_unpack").buttonset();
-	$("#searchbutton").addClass("ui-button-primary");
+	$("#search_order_flg").button();
 	
+ 	$("#searchbutton").addClass("ui-button-primary");
 	$("#edit_spec_kind option:eq(0)").remove();
 	$("#search_spec_kind,#edit_spec_kind").select2Buttons();
-	
+
 	/*初始化页面*/
 	 findit();
 	$("#searchbutton").click(function(){
@@ -625,12 +626,13 @@ var search_handleComplete = function(xhrobj, textStatus) {
 					width : gridWidthMiddleRight,
 					rowheight : 23,
 					datatype : "local",
-					colNames : [  '','零件ID', '零件编码', '零件名称', '消耗品','参考价格', '规格种别','最后更新人', '最后更新时间','是否存在有效期大于当前时间'],
+					colNames : [  '','零件ID', '零件编码', '零件名称', '订购品', '消耗品','参考价格', '规格种别','最后更新人', '最后更新时间','是否存在有效期大于当前时间'],
 					colModel : [
 					{name:'myac', width:40, fixed:true, sortable:false, resize:false,formatter:'actions',formatoptions:{keys:true, editbutton:false}},
 					{name:'partial_id',index:'partial_id', hidden:true},
 					{name:'code',index:'code',width:40},
-					{name:'name',index:'name',width : 150}, 
+					{name:'name',index:'name',width : 150},
+					{name:'order_flg',index:'order_flg', hidden:true},
 					{name:'consumable_flg',index:'consumable_flg',width:20,formatter:function(value, options, rData) {
 						if(value==1){
 							return '是';
@@ -672,6 +674,13 @@ var search_handleComplete = function(xhrobj, textStatus) {
 							//如果有效截止日期不是9999/12/31的话，蒸行变成灰色
 							if(is_exists!='1'){
 								pill.find("tr#" + IDS[i] +  " td ").addClass("overdue_row");
+							}
+							var is_component = (rowData["order_flg"] == 2);
+							if (is_component) {
+								var $spec_kind = pill.find("tr#" + IDS[i] +  " td[aria\\-describedby='list_spec_kind']");
+								if ($spec_kind.length > 0) {
+									$spec_kind.text($spec_kind.text() + "(组件)");
+								}
 							}
 						}
 					}
@@ -809,7 +818,7 @@ var update_handleComplete = function(xhrobj, textStatus) {
 var keepSearchData;
 var findit = function(data) {
 	if (!data) {
-		KeepSearchData = {
+		keepSearchData = {
 			"code":$("#search_code").val(),
 			"name":$("#search_name").val(),
 			"consumable_flg":$("#search_consumable_flg input:checked").val(),
@@ -818,13 +827,18 @@ var findit = function(data) {
 	 } else {
 			keepSearchData = data;
 	 } 
-		// Ajax提交
+
+	 if ($("#search_order_flg").is(":checked")) {
+	 	keepSearchData["order_flg"] = "2";
+	 }
+
+	 // Ajax提交
 		$.ajax({
 			beforeSend : ajaxRequestType,
 			async : true,
 			url : servicePath + '?method=search',
 			cache : false,
-			data : KeepSearchData,
+			data : keepSearchData,
 			type : "post",
 			dataType : "json",
 			success : ajaxSuccessCheck,

@@ -85,6 +85,13 @@ public class ComposeStorageForm extends ActionForm implements Serializable {
 	@BeanField(title = "扫描码", name = "scan_code", length = 6)
 	private String scan_code;// 扫描码
 
+	@BeanField(title = "存放来源", name = "line_id", length = 11)
+	private String line_id;
+	@BeanField(title = "总组分线", name = "px", type = FieldType.Integer)
+	private String px;
+	@BeanField(title = "规格限定", name = "spec_type", type = FieldType.Integer)
+	private String spec_type;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -275,6 +282,30 @@ public class ComposeStorageForm extends ActionForm implements Serializable {
 
 	public void setScan_code(String scan_code) {
 		this.scan_code = scan_code;
+	}
+
+	public String getLine_id() {
+		return line_id;
+	}
+
+	public void setLine_id(String line_id) {
+		this.line_id = line_id;
+	}
+
+	public String getPx() {
+		return px;
+	}
+
+	public void setPx(String px) {
+		this.px = px;
+	}
+
+	public String getSpec_type() {
+		return spec_type;
+	}
+
+	public void setSpec_type(String spec_type) {
+		this.spec_type = spec_type;
 	}
 
 }

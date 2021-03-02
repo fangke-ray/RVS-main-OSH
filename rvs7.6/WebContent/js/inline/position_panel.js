@@ -2008,7 +2008,8 @@ var getTubeBody = function(waiting) {
 		return waiting.sorc_no + ' | ' + waiting.model_name + ' | ' + waiting.scheduled_monthday;
 	else 
 		return (waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no
-			+ (waiting.scheduled_monthday ?  ' | ' + waiting.scheduled_monthday : "");
+			+ (waiting.scheduled_monthday ?  ' | ' + waiting.scheduled_monthday : "") 
+			+ (waiting.shelf_name ? ('<span class="shelf_name">' + waiting.shelf_name + "</span>") : '');
 }
 
 var getWaitingHtml = function(waitings, other) {

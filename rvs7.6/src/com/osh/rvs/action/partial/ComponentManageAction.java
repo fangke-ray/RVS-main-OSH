@@ -17,7 +17,9 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
+import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.common.RvsConsts;
@@ -26,8 +28,10 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.ComponentManageForm;
 import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
+import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.inline.ComposeStorageService;
 import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.partial.ComponentManageService;
@@ -714,6 +718,23 @@ public class ComponentManageAction extends BaseAction{
 		// 设定出库
 		service.componentOutstock(componentBean, user, conn);
 
+		// 总组库位存放
+		MaterialService mService = new MaterialService();
+		MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, componentBean.getTarget_material_id());
+		
+		ComposeStorageService cstService = new ComposeStorageService();
+		String inStorage = cstService.checkRecommendCase(mEntity, "00000000013", 1024, conn);
+
+		if (inStorage == null) {
+			callbackResponse.put("componentInstorage", "刚才发布的组件给维修品" + mEntity.getSorc_no() + "，不指定库位。");
+		} else if (inStorage.equals(RvsConsts.COM_STORAGE_INSTABLE)) {
+			callbackResponse.put("componentInstorage", "刚才发布的组件给维修品" + mEntity.getSorc_no() + "，无可用库位。");
+		} else {
+			callbackResponse.put("componentInstorage", "刚才发布的组件给维修品" + mEntity.getSorc_no() + "，请放到" + inStorage + "库位。");
+			// 实际放入
+			cstService.insertCom(conn, componentBean.getTarget_material_id(), inStorage, errors);
+		}
+
 		/* 检查错误时报告错误信息 */
 		callbackResponse.put("errors", errors);
 		/* 返回Json格式响应信息 */
@@ -874,6 +895,15 @@ public class ComponentManageAction extends BaseAction{
 		List<MaterialForm> targetMaterials = service.getTargetMaterials(componentBean, conn);
 	
 		callbackResponse.put("targetMaterials", targetMaterials);
+
+		if (targetMaterials.size() > 0) {
+			// 按组件型号取得可存放库位
+			ModelService mdlService = new ModelService();
+			ModelEntity model = mdlService.getDetailEntity(componentBean.getModel_id(), conn);
+			ComposeStorageService csService = new ComposeStorageService();
+			String reco = csService.checkRecommendCase(model, "00000000013", conn);
+			callbackResponse.put("recommendCase", reco);
+		}
 
 		// 检查发生错误时报告错误信息
 		callbackResponse.put("errors", infoes);

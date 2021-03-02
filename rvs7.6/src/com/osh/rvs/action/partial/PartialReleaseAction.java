@@ -32,6 +32,7 @@ import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.inline.ComposeStorageService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -119,8 +120,9 @@ public class PartialReleaseAction extends BaseAction {
 		listResponse.put("responseForm", responseForm);
 		listResponse.put("responseList", responseList);
 
-		// NS组件判断
 		if ("1".equals(responseForm.getLevel())) {
+			// NS组件判断
+
 			ComponentSettingService csService = new ComponentSettingService();
 			ComponentSettingEntity componentSetting = csService.getComponentSettingDetail(responseForm.getModel_id(), conn);
 			if (componentSetting != null) {
@@ -141,6 +143,28 @@ public class PartialReleaseAction extends BaseAction {
 
 				// 找出列表中的组件并且标记
 				service.checkCompAppended(responseList, listResponse);
+			}
+
+			// 订购组件判断
+			if ("1".equals(occur_times)) {
+				String componentPart = null;
+				for (MaterialPartialDetailForm partForm : responseList) {
+					if ("2".equals(partForm.getOrder_flg())) {
+						if (!"0".equals(partForm.getWaiting_quantity())) {
+							componentPart = partForm.getCode() + " " + partForm.getPartial_name();
+						}
+						break;
+					}
+				}
+				if (componentPart != null) {
+					MaterialService mService = new MaterialService();
+					MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, responseForm.getMaterial_id());
+					ComposeStorageService cstService = new ComposeStorageService();
+					String inStorage = cstService.checkRecommendCase(mEntity, "00000000013", 0, conn);
+					if (inStorage != null) {
+						listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。如果对其进行发放，建议的库位是：" + inStorage + "。(暂定)");
+					}
+				}
 			}
 		}
 
@@ -253,6 +277,39 @@ public class PartialReleaseAction extends BaseAction {
 					}
 
 					// TODO check negative 防止同时发放
+
+					// 订购组件入库
+					String sendComponent = request.getParameter("sendComponent");
+					if (sendComponent != null) {
+						String componentPart = sendComponent.substring("订购单中存在组件：".length(), sendComponent.indexOf("。如果对其进行发放，建议的库位是："));
+						String noticeStorage = sendComponent.substring(sendComponent.indexOf("。如果对其进行发放，建议的库位是：") + "。如果对其进行发放，建议的库位是：".length()
+								, sendComponent.indexOf("。(暂定)"));
+
+						ComposeStorageService cstService = new ComposeStorageService();
+						String storaged = cstService.checkMaterialPutin(materialPartialEntity.getMaterial_id(), "00000000013", conn);
+
+						if (storaged == null) {
+							MaterialService mService = new MaterialService();
+							MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, materialPartialEntity.getMaterial_id());
+							String inStorage = cstService.checkRecommendCase(mEntity, "00000000013", 0, conn);
+
+							if (inStorage != null) {
+								if (inStorage.equals(RvsConsts.COM_STORAGE_INSTABLE)) {
+									listResponse.put("componentInstorage", "目前此组件没有存放库存。");
+								} else {
+									if (!inStorage.equals(noticeStorage)) {
+										listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。请发放到库位：" + inStorage + "。(与先前提示有变化)");	
+									} else {
+										listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。请发放到库位：" + inStorage + "。");	
+									}
+									// 实际放入
+									cstService.insertCom(conn, materialPartialEntity.getMaterial_id(), inStorage, errors);
+								}
+							}
+						} else {
+							listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。请发放到库位：" + storaged + "。(系统上已分配)");
+						}
+					}
 				}
 			} else { // 判定是否BO
 				service.checkBoFlg(form, request.getParameterMap(), conn);

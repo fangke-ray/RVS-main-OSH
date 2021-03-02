@@ -1158,11 +1158,11 @@ var getTargetMaterials_handleComplete = function(xhrobj) {
 		// 共通出错信息框
 		treatBackMessages(null, resInfo.errors);
 	} else {
-		loadTargetMaterials(resInfo.targetMaterials);
+		loadTargetMaterials(resInfo.targetMaterials, resInfo.recommendCase);
 	}
 }
 
-var loadTargetMaterials = function(targetMaterials) {
+var loadTargetMaterials = function(targetMaterials, recommendCase) {
 	if (targetMaterials.length == 0) {
 		errorPop("线上无此型号的S1级维修品。");
 		return;
@@ -1203,6 +1203,11 @@ var loadTargetMaterials = function(targetMaterials) {
 		}
 	});
 	$pop_window.html($pop_target_table);
+
+	if (recommendCase) {
+		$pop_window.append("<div class='ui-state-highlight' style='padding:4px;'>此组件出库后建议放入" + recommendCase + "库位。（如果使用维修品需要存放）</div>");
+	}
+
 	$pop_window.dialog({
 		resizable : false,
 		width : '640px',
@@ -1245,6 +1250,9 @@ var componentOutstock_handleComplete = function(xhrobj) {
 		treatBackMessages(null, resInfo.errors);
 	} else {
 		$("#pop_target_materials").dialog("close");
+
+		if (resInfo.componentInstorage) infoPop(resInfo.componentInstorage);
+
 		findit();
 		findSetting();
 	}

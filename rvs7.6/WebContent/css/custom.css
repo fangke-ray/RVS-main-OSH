@@ -409,6 +409,17 @@ div.ui-datepicker {
 	position: relative;
 }
 
+.tube-liquid .shelf_name {
+	border: 1px double brown;
+	background-color: burlywood;
+	z-index :0;
+	position: relative;
+	padding: 0 2px;
+	top :2px;
+}
+.tube-liquid .shelf_name:hover {
+	z-index : 100;
+}
 .tube-liquid .material_flags
 {
 width: 100%;
@@ -419,6 +430,7 @@ right: 1em;
 text-align: center;
 border:1px solid transparent;
 top: -0.1em;
+pointer-events: none;
 }
 
 .tube-liquid .material_flags div

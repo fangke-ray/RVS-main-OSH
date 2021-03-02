@@ -149,7 +149,8 @@
 				when p.line_id = 13 then 1
 			    else 0
 			end as flg,
-			line.name as line_name
+			line.name as line_name,
+			pa.order_flg
 		from
 			material_partial_detail mpd
 		left join

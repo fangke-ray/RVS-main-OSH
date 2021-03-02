@@ -80,7 +80,7 @@ public class LineBalanceRateAction extends BaseAction {
 		req.setAttribute("sLine", sLine);
 		
 		// 分线
-		String px = CodeListUtils.getSelectOptions("material_px", null, "");
+		String px = CodeListUtils.getSelectOptions("material_px_history", null, "");
 		req.setAttribute("px", px);
 
 		// 流程

@@ -6,7 +6,7 @@ var servicePath = "compose_storage.do";
 /*入口*/
 $(function(){
 	/*将Select转换成Button*/
-	$("#search_category_id,#search_section_id").select2Buttons();
+	$("#searchform select").select2Buttons();
 	
 	$("#cond_work_procedure_order_template_flg_set").buttonset();
 	/*Button*/
@@ -49,7 +49,7 @@ $(function(){
 		}
 	});
 	
-	$("#search_section_id").val("00000000001").trigger("change");
+//	$("#search_section_id").val("00000000001").trigger("change");
 	
 	/*点击检索按钮执行查询*/
 	$("#searchbutton").click(function(){
@@ -64,6 +64,10 @@ $(function(){
 		$("#cond_work_procedure_order_template").data("post",$("#cond_work_procedure_order_template").val());
 		$("#search_com_scheduled_date_start").data("post",$("#search_com_scheduled_date_start").val());
 		$("#search_com_scheduled_date_end").data("post",$("#search_com_scheduled_date_end").val());
+
+		$("#search_line_id").data("post",$("#search_line_id").val());
+		$("#search_px").data("post",$("#search_px").val());
+
 		findit();//调用检索方法
 	});
 	
@@ -122,9 +126,11 @@ var findit=function(){
 			"arrival_plan_date_start":$("#search_arrival_plan_date_start").data("post"),
 			"arrival_plan_date_end":$("#search_arrival_plan_date_end").data("post"),
 			"bo_flg":$("#cond_work_procedure_order_template").data("post"),
+			"line_id":$("#search_line_id").data("post"),
+			"px":$("#search_px").data("post"),
 			"com_scheduled_date_start":$("#search_com_scheduled_date_start").data("post"),
 			"com_scheduled_date_end":$("#search_com_scheduled_date_end").data("post")
-	}
+		}
 	
 	$.ajax({
 		beforeSend:ajaxRequestType,
@@ -169,6 +175,8 @@ var reset=function(){
 	$("#cond_work_procedure_order_template_a").attr("checked","checked").trigger("change");
 	$("#search_com_scheduled_date_start").val("").data("post","");
 	$("#search_com_scheduled_date_end").val("").data("post","");
+	$("#search_line_id").val("").trigger("change").data("post","");
+	$("#search_px").val("").trigger("change").data("post","");
 };
 
 /**jqGrid**/
@@ -182,17 +190,22 @@ var compose_storage_list=function(com_listdata){
 			//toppager:true,//是否在表格上部显示分页条
 			data:quotation_listdata,
 			width:992,
-			height:231,
+			height:461,
 			rowhight:23,//行高
 			datatype:'local',//从服务器端返回的数据类型
-			colNames:['','','机种','SORC_NO.','机身号','课室','纳期','入库<br>预定日','BO','总组<br>出货安排','分解<br>产出日','NS<br>产出日','库位','','零件缺失信息'],
+			colNames:['','','库位','分线','来源','机种','SORC_NO.','机身号'
+			// ,'课室'
+			,'纳期','入库<br>预定日','BO','总组<br>出货安排','分解<br>产出日','NS<br>产出日','零件缺失信息'],
 			colModel:[
 			          {name:'material_id',index:'material_id',hidden:true},
 			          {name:'goods_id',index:'goods_id',hidden:true},
+			          {name:'case_code',index:'case_code',width:35,align:'left'},
+			          {name:'px',index:'px',width:25,align:'center',formatter:'select', editoptions:{value: $("#pxGridOptions").val()}},
+			          {name:'line_id',index:'line_id',width:25,align:'center',formatter:'select', editoptions:{value: '00000000012:分解;00000000013:组件'}},
 			          {name:'category_name',index:'category_name',width:30,algin:'left'},
-			          {name:'sorc_no',index:'sorc_no', width:60,align:'left'},
+			          {name:'sorc_no',index:'sorc_no', width:40,align:'left'},
 			          {name:'serial_no',index:'serial_no', width:30, align:'left'},
-			          {name:'section_name',index:'section_name',width:30, align:'left'},
+//			          {name:'section_name',index:'section_name',width:30, align:'left'},
 			          {
 			        	  name:'scheduled_date',
 			        	  index:'scheduled_date',//传到服务器端用来排序用的列名
@@ -263,8 +276,6 @@ var compose_storage_list=function(com_listdata){
 			        	  formatter:'date',
 			        	  formatoptions:{srcformat:'Y/m/d',newformat:'m-d'}
 			          },          
-			          {name:'case_code',index:'case_code',width:70,align:'left'},
-			          {name:'shelf_name',index:'shelf_name',width:30,align:'left',hidden:true},
 /*			          {
 			        	  name:'case_code_shelf_name',
 			        	  index:'shelf_name',
@@ -298,7 +309,7 @@ var compose_storage_list=function(com_listdata){
 			],
 			pager: "#exd_listpager",//设置分页的,在页面中是使用<div/>来放置的
 			viewrecords: true,//设置是否在page bar 显示所有记录的总数
-			rowNum:10,
+			rowNum:20,
 			hidegrid : false,//
 			gridview: true, // 
 			pagerpos: 'right',//指定分页栏的位置

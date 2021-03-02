@@ -396,7 +396,7 @@ FROM
 			round(order_num / ld_num *100, 1) as turnround_rate
 		from 
 		(select condition_view.model_id, condition_view.`level`, mdl.name as model_name, coalesce(mls.echelon, 4) as echelon, 
-				count(1) as recept_num, sum(agreed_num) as agreed_num, sum(order_flg) as order_num, 
+				count(1) as recept_num, sum(agreed_num) as agreed_num, sum(order_flg > 0) as order_num, 
 				sum(bo_flg) as bo_num, sum(bo3days_num) as bo3days_num, 
 				forecast_setting as base_setting, CEIL(mls.forecast_setting / 8 * #{workday}) as ld_num
 			FROM
@@ -524,7 +524,7 @@ FROM
 		from 
 		(select mls.model_id, mls.`level`, mdl.name as model_name, coalesce(mls.echelon, 4) as echelon, 
 				count(condition_view.material_id) as recept_num, coalesce(sum(agreed_num), 0) as agreed_num, 
-				coalesce(sum(order_flg), 0) as order_num, 
+				coalesce(sum(order_flg > 0), 0) as order_num, 
 				coalesce(sum(bo_flg), 0) as bo_num, coalesce(sum(bo3days_num), 0) as bo3days_num, 
 				forecast_setting as base_setting, CEIL(mls.forecast_setting / 8 * #{workday}) as ld_num
 			FROM

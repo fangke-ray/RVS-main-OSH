@@ -10,14 +10,21 @@ import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.inline.ComposeStorageEntity;
+import com.osh.rvs.bean.inline.MaterialProcessEntity;
+import com.osh.rvs.bean.master.ModelEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.ProductionFeatureForm;
 import com.osh.rvs.form.inline.ComposeStorageForm;
 import com.osh.rvs.mapper.inline.ComposeStorageMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.SupportMapper;
+import com.osh.rvs.service.MaterialProcessService;
+import com.osh.rvs.service.ProductionFeatureService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -27,12 +34,30 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class ComposeStorageService {
 	public List<ComposeStorageForm> search(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
 		// 复制表单到数据对象
-		ComposeStorageEntity composeStorageEntity = new ComposeStorageEntity();
-		BeanUtil.copyToBean(form, composeStorageEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		ComposeStorageEntity condition = new ComposeStorageEntity();
+		BeanUtil.copyToBean(form, condition, CopyOptions.COPYOPTIONS_NOEMPTY);
 
 		// 从数据库中 查询记录
 		ComposeStorageMapper dao = conn.getMapper(ComposeStorageMapper.class);
-		List<ComposeStorageEntity> lResultBean = dao.searchComposeStroage(composeStorageEntity);
+		List<ComposeStorageEntity> lResultBean = dao.searchComposeStroage(condition);
+
+		// 不针对维修品查询时
+		if (condition.getCategory_id() == null &&
+				condition.getSorc_no() == null &&
+				condition.getSerial_no() == null &&
+				condition.getScheduled_date_start() == null &&
+				condition.getScheduled_date_end() == null &&
+				condition.getArrival_plan_date_start() == null &&
+				condition.getArrival_plan_date_end() == null &&
+				condition.getCom_scheduled_date_start() == null &&
+				condition.getCom_scheduled_date_end() == null &&
+				condition.getBo_flg() == null) {
+			condition.setGoods_id("null");
+			List<ComposeStorageEntity> lResultBeanEmpty = dao.getComposeStorageEntities(condition);
+			if (lResultBeanEmpty != null) {
+				lResultBean.addAll(lResultBeanEmpty);
+			}
+		}
 
 		// 建立页面返回表单
 		List<ComposeStorageForm> lResultForm = new ArrayList<ComposeStorageForm>();
@@ -45,7 +70,7 @@ public class ComposeStorageService {
 	public List<ComposeStorageForm> getComposEmpty(SqlSession conn, List<MsgInfo> errors) {
 		// 从数据库中 查询记录
 		ComposeStorageMapper dao = conn.getMapper(ComposeStorageMapper.class);
-		List<ComposeStorageEntity> lResultBean = dao.getComposEmpty();
+		List<ComposeStorageEntity> lResultBean = dao.getComposNotEmpty();
 
 		// 建立页面返回表单
 		List<ComposeStorageForm> lResultForm = new ArrayList<ComposeStorageForm>();
@@ -79,6 +104,13 @@ public class ComposeStorageService {
 			BeanUtil.copyToForm(bean, form, CopyOptions.COPYOPTIONS_NOEMPTY);
 			return form;
 		}
+	}
+
+	public String checkMaterialPutin(String material_id, String line_id,
+			SqlSession conn) {
+		ComposeStorageMapper mapper = conn.getMapper(ComposeStorageMapper.class);
+
+		return mapper.checkMaterialPutin(material_id, line_id);
 	}
 
 	/**
@@ -121,14 +153,14 @@ public class ComposeStorageService {
 	 * @param material_id
 	 * @param scan_code
 	 */
-	public void insertCom(SqlSessionManager conn, String material_id, String scan_code, List<MsgInfo> msgInfos) {
+	public void insertCom(SqlSessionManager conn, String material_id, String case_code, List<MsgInfo> msgInfos) {
 		ComposeStorageMapper dao = conn.getMapper(ComposeStorageMapper.class);
-		ComposeStorageEntity entity = dao.searchShelfNameExits(scan_code);
+		ComposeStorageEntity entity = dao.searchShelfNameExits(case_code);
 		MsgInfo msg = new MsgInfo();
 		if (entity != null) {//货架存在
-			ComposeStorageEntity comentity = dao.searchGoodsExits(scan_code);
+			ComposeStorageEntity comentity = dao.searchGoodsExits(case_code);
 			if (comentity == null) {//货架上没有东西
-				dao.insertCom(material_id, scan_code);
+				dao.insertCom(material_id, case_code);
 			} else {
 				msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.composeShelf.notEmpty"));
 				msg.setComponentid("scanner_com");
@@ -224,6 +256,152 @@ public class ComposeStorageService {
 			return form;
 		} else {
 			return null;
+		}
+	}
+
+	/**
+	 * 取得范围内推荐的放入库位
+	 * 
+	 * @param line_id
+	 * @param px
+	 * @param spec_type
+	 * @param conn
+	 * @return
+	 */
+	public String getRecommendCase(String line_id, Integer px, Integer spec_type, SqlSession conn) {
+		ComposeStorageMapper mapper = conn.getMapper(ComposeStorageMapper.class);
+		ComposeStorageEntity condition = new ComposeStorageEntity();
+		condition.setLine_id(line_id);
+		condition.setPx(px);
+		condition.setSpec_type(spec_type);
+		List<ComposeStorageEntity> allList = mapper.getComposeStorageEntities(condition);
+
+		if (allList == null || allList.size() == 0) {
+			return null;
+		}
+
+		Long newestRefreshTime = 0l;
+		String hitCase = null;
+		String firstEmptyCase = null;
+
+		for (ComposeStorageEntity entity : allList) {
+			if (entity.getGoods_id() == null) {
+				if (firstEmptyCase == null) firstEmptyCase = entity.getCase_code();
+				if (hitCase == null) hitCase = entity.getCase_code();
+			} else {
+				if (entity.getRefresh_time() != null && entity.getRefresh_time().getTime() > newestRefreshTime) {
+					newestRefreshTime = entity.getRefresh_time().getTime();
+					hitCase = null;
+				}
+			}
+		}
+
+		if (newestRefreshTime > 0 && hitCase == null) {
+			hitCase = firstEmptyCase;
+		}
+
+		return hitCase;
+	}
+
+	public String checkRecommendCase(ModelEntity model, String line_id, SqlSession conn) {
+		// 特殊库位要求
+		Integer spec_kind = null;
+		MaterialProcessService mpService = new MaterialProcessService();
+		int px = mpService.evalPx(model.getModel_id(), "00000000014", false, conn);
+
+		if (px == MaterialProcessService.PX_B_OF_2 && "00000000013".equals(line_id)) {
+			// B2 线根据型号判断分类
+			// 不含混合细镜、超声细镜
+			if ("04".equals(model.getKind()) || "05".equals(model.getKind())) {
+				return null;
+			}
+
+			spec_kind = 0;
+			// 取得滑石粉机型
+			String talcumModels = PathConsts.POSITION_SETTINGS.getProperty("com_storage.talcum.models");
+			if (talcumModels != null) {
+				String[] talcumModelArray = talcumModels.split(",");
+				for (String talcumModel : talcumModelArray) {
+					if (talcumModel.equals(model.getName())) {
+						spec_kind = 1; // 滑石粉
+						break;
+					}
+				}
+			}
+		}
+
+		String recommendCase = getRecommendCase(line_id, px, spec_kind, conn);
+
+		if (recommendCase == null) {
+			return RvsConsts.COM_STORAGE_INSTABLE;
+		} else {
+			return recommendCase;
+		}
+	}
+
+	public String checkRecommendCase(MaterialEntity mEntity, String line_id, int reworkFromPf,
+			SqlSession conn) {
+		// 判断放入总组库位
+		if (!mEntity.getSection_id().equals("00000000001")) { // 不是 1课
+			return null;
+		}
+
+		boolean isLightFix = RvsUtils.isLightFix(mEntity.getLevel());
+		if (isLightFix) {
+			return null;
+		}
+
+		// 取得总组工程
+		MaterialProcessService mpService = new MaterialProcessService();
+
+		MaterialProcessEntity mpOfCom = mpService.loadMaterialProcessOfLine(mEntity.getMaterial_id(), "00000000014", conn);
+		if (mpOfCom == null || mpOfCom.getPx() == null || mpOfCom.getPx() == MaterialProcessService.PX_C) { // C 线不排
+			return null;
+		}
+
+		// 判断总组是否有返工
+		if (reworkFromPf > 0) {
+			ProductionFeatureService pfService = new ProductionFeatureService();
+			ProductionFeatureEntity pfEntity = new ProductionFeatureEntity();
+			pfEntity.setMaterial_id(mEntity.getMaterial_id());
+			pfEntity.setLine_id("00000000014");
+			pfEntity.setOperate_result(8);
+			ProductionFeatureEntity reworkRecord = pfService.searchProductionFeatureOne(pfEntity, conn);
+
+			if (reworkRecord != null) { // 总组反过工不需要排
+				return null;
+			}
+		}
+
+		// 特殊库位要求
+		Integer spec_kind = null;
+		if (mpOfCom.getPx() == MaterialProcessService.PX_B_OF_2 && "00000000013".equals(line_id)) {
+			// B2 线根据型号判断分类
+			// 不含混合细镜、超声细镜
+			if ("04".equals(mEntity.getKind()) || "05".equals(mEntity.getKind())) {
+				return null;
+			}
+
+			spec_kind = 0;
+			// 取得滑石粉机型
+			String talcumModels = PathConsts.POSITION_SETTINGS.getProperty("com_storage.talcum.models");
+			if (talcumModels != null) {
+				String[] talcumModelArray = talcumModels.split(",");
+				for (String talcumModel : talcumModelArray) {
+					if (talcumModel.equals(mEntity.getModel_name())) {
+						spec_kind = 1; // 滑石粉
+						break;
+					}
+				}
+			}
+		}
+
+		String recommendCase = getRecommendCase(line_id, mpOfCom.getPx(), spec_kind, conn);
+
+		if (recommendCase == null) {
+			return RvsConsts.COM_STORAGE_INSTABLE;
+		} else {
+			return recommendCase;
 		}
 	}
 

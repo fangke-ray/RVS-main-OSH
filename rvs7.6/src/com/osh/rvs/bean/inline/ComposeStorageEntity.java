@@ -33,6 +33,10 @@ public class ComposeStorageEntity implements Serializable {
 	private String shelf_name;// 总组库位货架
 	private String goods_id;// 存放对象ID
 	private String scan_code;//扫描码
+	private String line_id;
+	private Integer px;
+	private Integer spec_type;
+	private Date refresh_time;
 	
 	public String getMaterial_id() {
 		return material_id;
@@ -224,6 +228,38 @@ public class ComposeStorageEntity implements Serializable {
 
 	public void setScan_code(String scan_code) {
 		this.scan_code = scan_code;
+	}
+
+	public String getLine_id() {
+		return line_id;
+	}
+
+	public void setLine_id(String line_id) {
+		this.line_id = line_id;
+	}
+
+	public Integer getPx() {
+		return px;
+	}
+
+	public void setPx(Integer px) {
+		this.px = px;
+	}
+
+	public Integer getSpec_type() {
+		return spec_type;
+	}
+
+	public void setSpec_type(Integer spec_type) {
+		this.spec_type = spec_type;
+	}
+
+	public Date getRefresh_time() {
+		return refresh_time;
+	}
+
+	public void setRefresh_time(Date refresh_time) {
+		this.refresh_time = refresh_time;
 	}
 
 }

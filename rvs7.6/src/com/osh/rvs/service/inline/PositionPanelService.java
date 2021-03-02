@@ -31,6 +31,7 @@ import com.osh.rvs.bean.infect.CheckResultEntity;
 import com.osh.rvs.bean.infect.CheckUnqualifiedRecordEntity;
 import com.osh.rvs.bean.infect.PeriodsEntity;
 import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
+import com.osh.rvs.bean.inline.ComposeStorageEntity;
 import com.osh.rvs.bean.inline.DryingProcessEntity;
 import com.osh.rvs.bean.inline.ForSolutionAreaEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
@@ -573,6 +574,28 @@ public class PositionPanelService {
 	}
 	private void signWaitingEntity(List<WaitingEntity> ret, String singlePositionId, String singleProcessCode, String groupPositionId,
 			List<WaitingEntity> completes, SqlSession conn) {
+		boolean checkComStorage = "410".equals(singleProcessCode) || "411".equals(singleProcessCode) || "412".equals(singleProcessCode); // TODO
+		Map<String, String> comStorageMap = null;
+		if (checkComStorage) {
+			comStorageMap = new HashMap<String, String>();
+			ComposeStorageMapper csMapper = conn.getMapper(ComposeStorageMapper.class);
+			List<ComposeStorageEntity> storages = csMapper.showWaitingWarehousingOfPosition(singlePositionId);
+			for (ComposeStorageEntity storage : storages) {
+				String material_id = storage.getMaterial_id();
+				String storageText = storage.getCase_code();
+				if ("00000000012".equals(storage.getLine_id())) {
+					storageText = "分解:" + storageText;
+				} else {
+					storageText = "组件:" + storageText;
+				}
+				if (comStorageMap.containsKey(material_id)) {
+					comStorageMap.put(material_id, comStorageMap.get(material_id) + "|" + storageText);
+				} else {
+					comStorageMap.put(material_id, storageText);
+				}
+			}
+		}
+
 		for (WaitingEntity we : ret) {
 			String position_id = singlePositionId;
 			if (position_id == null) position_id = we.getPosition_id();
@@ -580,7 +603,12 @@ public class PositionPanelService {
 			String process_code = singleProcessCode;
 			if (process_code == null) process_code = we.getProcess_code();
 
-			if ("0".equals(we.getWaitingat())) we.setWaitingat("未处理");
+			if ("0".equals(we.getWaitingat())) {
+				we.setWaitingat("未处理");
+				if (checkComStorage) { // 总组库位显示
+					we.setShelf_name(comStorageMap.get(we.getMaterial_id()));
+				}
+			}
 			else if ("4".equals(we.getWaitingat())) { // 暂停
 				// 工位特殊暂停理由
 				if (we.getPause_reason() != null && we.getPause_reason() >= 70) {
@@ -1228,18 +1256,30 @@ public class PositionPanelService {
 	public void executeActionByPosition(ProductionFeatureEntity waitingPf, LoginData user, List<String> triggerList,
 			SqlSessionManager conn) throws Exception {
 		String positionId = waitingPf.getPosition_id();
+		String processCode = user.getProcess_code();
 
-		if (waitingPf.getOperate_result() == 0 
-				&& ("00000000033".equals(positionId) || "00000000042".equals(positionId) 
-						|| "00000000048".equals(positionId) || "00000000050".equals(positionId))) { // TODO properties?
-			// 如果投入总组开始, 取出库位
+		boolean checkComStorage = "410".equals(processCode) || "411".equals(processCode) || "412".equals(processCode); // TODO
+		if (checkComStorage && waitingPf.getOperate_result() == 0 ) {
 			ComposeStorageMapper scDao = conn.getMapper(ComposeStorageMapper.class);
-			scDao.stockRemoval(waitingPf.getMaterial_id());
+			ComposeStorageEntity cond = new ComposeStorageEntity();
+			cond.setMaterial_id(waitingPf.getMaterial_id());
+			// 如果投入总组开始, 取出库位
+			List<ComposeStorageEntity> ret = scDao.getComposeStorageEntities(cond);
+			// 先判断是否存在
+			if (ret.size() > 0) {
+				scDao.stockRemoval(waitingPf.getMaterial_id());
+			}
 		}
+//		if (waitingPf.getOperate_result() == 0 
+//				&& ("00000000033".equals(positionId) || "00000000042".equals(positionId) 
+//						|| "00000000048".equals(positionId) || "00000000050".equals(positionId))) { // TODO properties?
+//			// 如果投入总组开始, 取出库位
+//			ComposeStorageMapper scDao = conn.getMapper(ComposeStorageMapper.class);
+//			scDao.stockRemoval(waitingPf.getMaterial_id());
+//		}
 
 		// 倒计时管理，只做翻修1课
 		// 工位首次开始作业或者中断再开 TODO
-		String processCode = user.getProcess_code();
 		if ("00000000001".equals(user.getSection_id())
 				&& waitingPf.getOperate_result() == 0
 				&& ("261".equals(processCode)
@@ -1250,6 +1290,7 @@ public class PositionPanelService {
 			triggerList.add("http://localhost:8080/rvspush/trigger/expected_finish_time/"
 					+ waitingPf.getMaterial_id() + "/" + user.getLine_id() + "/" + positionId);
 		}
+
 	}
 
 	/**

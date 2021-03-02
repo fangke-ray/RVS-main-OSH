@@ -120,4 +120,5 @@ public class RvsConsts extends BaseConst {
 	public static final String CATEGORY_UDI = "00000000055";
 	public static final int WORK_COUNT_FLG_DIRECT = 1;
 	public static final int WORK_COUNT_FLG_INDIRECT = 6;
+	public static final String COM_STORAGE_INSTABLE = "(库位没有空余)";
 }

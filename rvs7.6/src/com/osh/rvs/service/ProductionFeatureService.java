@@ -33,9 +33,11 @@ import com.osh.rvs.mapper.inline.ProductionAssignMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
+import com.osh.rvs.service.inline.ComposeStorageService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.proxy.ProcessAssignProxy;
 
+import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
@@ -426,6 +428,7 @@ public class ProductionFeatureService {
 		ProcessAssignProxy paProxy = new ProcessAssignProxy(material_id, pat_id, mEntity.getSection_id(), isLightFix, conn);
 
 		boolean fixed = true;
+		String inStorage = null;
 	
 		// 固定流程工位 (有特殊界面的不列在内)
 		if ("00000000010".equals(position_id) || "00000000011".equals(position_id)) { // 消毒灭菌
@@ -577,6 +580,9 @@ public class ProductionFeatureService {
 						e.printStackTrace();
 					}
 				}
+
+				ComposeStorageService csService= new ComposeStorageService();
+				inStorage = csService.checkRecommendCase(mEntity, "00000000013", workingPf.getRework(), conn);
 			} else
 //			if (!isLightFix && "00000000022".equals(position_id)) { // 试图触发400 不要5.18
 //				nextPositions.add("00000000032");
@@ -599,10 +605,13 @@ public class ProductionFeatureService {
 						e.printStackTrace();
 					}
 				}
+
+				ComposeStorageService csService= new ComposeStorageService();
+				inStorage = csService.checkRecommendCase(mEntity, "00000000012", workingPf.getRework(), conn);
 			} else
 			if (!isLightFix && "00000000021".equals(position_id)) { // fenjieOver TODO
 
-				mEntity = mDao.getMaterialNamedEntityByKey(material_id);
+				// if (mEntity == null) mEntity = mDao.getMaterialNamedEntityByKey(material_id);
 				if ("00000000016".equals(mEntity.getCategory_id())) { // 外科镜
 
 					if (isFact) {
@@ -701,6 +710,7 @@ public class ProductionFeatureService {
 
 		ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
 
+		// 返回下一步
 		List<String> ret = new ArrayList<String>();
 
 		// 建立后续工位的初始作业信息
@@ -715,6 +725,36 @@ public class ProductionFeatureService {
 			}
 			nPf.setPosition_id(nextPosition_id);
 			fingerPosition(workingPf.getPosition_id(), mEntity, fixed, nPf, conn, pfDao, paProxy, ret, triggerList, isFact);
+		}
+
+		if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage)) {
+			if (isFact) {
+				ComposeStorageService csService= new ComposeStorageService();
+				ArrayList<MsgInfo> testInsert = new ArrayList<MsgInfo>();
+				csService.insertCom(conn, material_id, inStorage, testInsert);
+
+				if (testInsert.size() > 0) {
+					// 再取一次
+					String line_id = "00000000012";
+					if ("00000000031".equals(position_id)) line_id = "00000000013";
+					inStorage = csService.checkRecommendCase(mEntity, line_id, workingPf.getRework(), conn);
+					if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage)) {
+						testInsert = new ArrayList<MsgInfo>();
+						csService.insertCom(conn, material_id, inStorage, testInsert);
+						if (testInsert.size() > 0) {
+							// 直接都取不到，认为已满
+							inStorage = RvsConsts.COM_STORAGE_INSTABLE;
+						}
+					}
+				}
+			}
+		
+			if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage)) {
+				// 只限是库位
+				ret = new ArrayList<String>();
+				ret.add("库位号：" + inStorage);
+				return ret;
+			}
 		}
 
 		PositionMapper ps = conn.getMapper(PositionMapper.class);
@@ -766,6 +806,10 @@ public class ProductionFeatureService {
 					ret.set(i, "[" + position.getProcess_code() + " " + position.getName() + "]");
 				}
 			}
+		}
+
+		if (inStorage != null && RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage)) {
+			ret.add(inStorage);
 		}
 
 		return ret;
@@ -966,7 +1010,7 @@ public class ProductionFeatureService {
 	 * @param conn
 	 * @return
 	 */
-	public ProductionFeatureEntity searchProductionFeatureOne(ProductionFeatureEntity pf, SqlSessionManager conn) {
+	public ProductionFeatureEntity searchProductionFeatureOne(ProductionFeatureEntity pf, SqlSession conn) {
 		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 		List<ProductionFeatureEntity> results = dao.searchProductionFeature(pf);
 		if (results != null && results.size() > 0) {
@@ -1081,6 +1125,19 @@ public class ProductionFeatureService {
 
 		String idNo = mEntity.getSorc_no();
 		if (idNo == null) idNo = "(机身号" + mEntity.getSerial_no() + ")";
+
+		if (fingerList.size() == 1) {
+			String inStorage = fingerList.get(0);
+			if (inStorage.startsWith("库位号：")) {
+				if (isFact)
+					return ApplicationMessage.WARNING_MESSAGES
+						.getMessage("info.transfer.justFinshed", idNo, inStorage);
+				else
+					return ApplicationMessage.WARNING_MESSAGES
+						.getMessage("info.transfer.justNow", idNo, inStorage + "(暂定)");
+			}
+		}
+
 		if (isFact)
 			return ApplicationMessage.WARNING_MESSAGES
 				.getMessage("info.transfer.justFinshed", idNo, joinBy(", ", fingerList.toArray(new String[fingerList.size()])));
