@@ -219,7 +219,12 @@ and a.inline_time is null -- [SpeedUp]
 			OPERATE_RESULT = 7,
 		</if>
 		<![CDATA[
-				ACTION_TIME = current_timestamp
+		]]>
+		<if test="pcs_inputs != null and pcs_inputs != ''">
+			PCS_INPUTS = #{pcs_inputs},
+		</if>
+		<![CDATA[
+			ACTION_TIME = current_timestamp
 		WHERE MATERIAL_ID = #{material_id}
 		AND POSITION_ID = #{position_id}
 		AND SECTION_ID = #{section_id}

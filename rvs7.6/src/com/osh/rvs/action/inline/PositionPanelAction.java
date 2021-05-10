@@ -104,7 +104,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
+	@Privacies(permit={107})
 	public void entrance(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 
 		log.info("PositionPanelAction.entrance start");
@@ -142,7 +142,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 
 		log.info("PositionPanelAction.init start");
@@ -236,7 +236,10 @@ public class PositionPanelAction extends BaseAction {
 
 				if (matchforward(arrSpecialForward, "result") != null) {
 					actionForward = mapping.findForward("result");
-					req.setAttribute("oManageNo", service.getManageNo(position_id,conn));
+					Map<String, String> dmMap = service.getManageNo(position_id,conn);
+					req.setAttribute("oManageNo", dmMap);
+					req.setAttribute("dm_styles", service.getDmStyles(dmMap));
+					req.setAttribute("dm_levers", JSON.encode(service.getDmLevers(dmMap)));
 				} else if (matchforward(arrSpecialForward, "simple") != null) {
 					actionForward = mapping.findForward("simple");
 				} else if (matchforward(arrSpecialForward, "snout") != null) {
@@ -288,7 +291,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
+	@Privacies(permit={107})
 	public void jsinit(ActionMapping mapping, ActionForm form,
 			HttpServletRequest req, HttpServletResponse res, SqlSession conn)
 			throws Exception {
@@ -616,7 +619,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
+	@Privacies(permit={107})
 	public void jsinitInfect(ActionMapping mapping, ActionForm form,
 			HttpServletRequest req, HttpServletResponse res, SqlSession conn)
 			throws Exception {
@@ -670,7 +673,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void doscan(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.scan start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -891,7 +894,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void doendpause(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.doendpause start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -961,7 +964,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void dopause(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.dopause start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -1025,7 +1028,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void dobreak(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.dobreak start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -1169,7 +1172,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void dofinish(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.dofinish start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -1353,7 +1356,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
+	@Privacies(permit={107})
 	public void jsinitf(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 
 		log.info("PositionPanelAction.jsinitf start");
@@ -1381,7 +1384,7 @@ public class PositionPanelAction extends BaseAction {
 			// 取得等待区一览
 			listResponse.put("waitings",
 					service.getWaitingMaterial(section_id, user.getPosition_id(), user.getLine_id(),
-							user.getOperator_id(), user.getPx(), process_code, conn));
+							null, user.getPx(), process_code, conn));
 
 			// 取得现在处理中的批量
 			service.searchWorkingBatch(listResponse, user, conn);
@@ -1400,7 +1403,7 @@ public class PositionPanelAction extends BaseAction {
 		log.info("PositionPanelAction.jsinitf end");
 	}
 
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void doscanf(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.scanf start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -1429,6 +1432,7 @@ public class PositionPanelAction extends BaseAction {
 
 			// 作业信息状态改为，批量作业中
 			waitingPf.setOperator_id(user.getOperator_id());
+			waitingPf.setPcs_inputs(req.getParameter("pcs_inputs"));
 			pfService.startBatchProductionFeature(waitingPf, conn);
 
 			// 如果等待中信息是暂停中，则结束掉暂停记录(有可能已经被结束)
@@ -1449,7 +1453,7 @@ public class PositionPanelAction extends BaseAction {
 		log.info("PositionPanelAction.scanf end");
 	}
 
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void dofinishf(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.dofinishf start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -1467,56 +1471,42 @@ public class PositionPanelAction extends BaseAction {
 		List<ProductionFeatureEntity> workingPfs = service.getWorkingPfs(user, conn);
 
 		String sPcs_inputs = req.getParameter("pcs_inputs");
-		@SuppressWarnings("unchecked")
-		Map<String, LinkedHashMap<String, String>> jsonPcs_inputs = JSON.decode(sPcs_inputs, Map.class);
-
-		for (ProductionFeatureEntity workingPf : workingPfs) {
-			String material_id = workingPf.getMaterial_id();
-			if (workingPf.getOperate_result() == 5) {
-				material_id = material_id + "_5";
-			}
-			if (!jsonPcs_inputs.containsKey(material_id)) {
-				continue;
-			} else {
-				sPcs_inputs = JSON.encode(jsonPcs_inputs.get(material_id));
-			}
-
-			// 通箱处理
-			if (workingPf.getOperate_result() == 5) {
-				workingPf.setUse_seconds(null);
-				workingPf.setPcs_inputs(sPcs_inputs);
-				workingPf.setPcs_comments(null);
-				pfService.finishProductionFeature(workingPf, conn);
-			} else {
-				// 计算一下总工时：
-				Integer use_seconds = 0;
-				if ("00000000010".equals(workingPf.getPosition_id())) {
-					/// 取得本次工时
-					String sUse_seconds = RvsUtils.getZeroOverLine("_default", null, user, user.getProcess_code());
-					try {
-						use_seconds = Integer.parseInt(sUse_seconds) * 60;
-					} catch (Exception e){
-					}
-	
-					// 作业信息状态改为，作业完成
-					workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
-					workingPf.setUse_seconds(use_seconds);
-					workingPf.setPcs_inputs(sPcs_inputs);
-					workingPf.setPcs_comments(null);
-					pfService.finishProductionFeatureSetFinish(workingPf, conn);
-				} else if ("00000000011".equals(workingPf.getPosition_id())) {
-					use_seconds = service.getTotalTimeByRework(workingPf, conn);
-	
-					// 作业信息状态改为，作业完成
-					workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
-					workingPf.setUse_seconds(use_seconds);
-					workingPf.setPcs_inputs(sPcs_inputs);
-					workingPf.setPcs_comments(null);
-					pfService.finishProductionFeature(workingPf, conn);
+		Map<String, LinkedHashMap<String, String>> jsonPcs_inputs = null;
+		if (!isEmpty(sPcs_inputs)) {
+			jsonPcs_inputs = JSON.decode(sPcs_inputs, Map.class);
+			for (ProductionFeatureEntity workingPf : workingPfs) {
+				String material_id = workingPf.getMaterial_id();
+				if (workingPf.getOperate_result() == 5) {
+					material_id = material_id + "_5";
 				}
-	
-				// 启动下个工位
-				pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
+				if (!jsonPcs_inputs.containsKey(material_id)) {
+					continue;
+				} else {
+					sPcs_inputs = JSON.encode(jsonPcs_inputs.get(material_id));
+				}
+
+				service.finishf(workingPf, pfService, sPcs_inputs, user, conn, triggerList);
+			}
+		} else {
+			String sMaterialIds = req.getParameter("material_id");
+			if (!isEmpty(sMaterialIds)) {
+				Set<String> reqMaterialsSet = new HashSet<String>();
+				for (String material_id : sMaterialIds.split(",")) {
+					reqMaterialsSet.add(material_id);
+				}
+
+				for (ProductionFeatureEntity workingPf : workingPfs) {
+					String material_id = workingPf.getMaterial_id();
+					if (workingPf.getOperate_result() == 5) {
+						material_id = material_id + "_5";
+					}
+
+					if (!reqMaterialsSet.contains(material_id)) {
+						continue;
+					}
+
+					service.finishf(workingPf, pfService, null, user, conn, triggerList);
+				}
 			}
 		}
 
@@ -1548,7 +1538,6 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
 	public void checkProcess(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 		log.info("PositionPanelAction.checkProcess start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -1615,7 +1604,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void doProcess(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.doProcess start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -1660,7 +1649,6 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit={0})
 	public void doPointOut(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.getNexts start");
 		Map<String, Object> jsonResponse = new HashMap<String, Object>();
@@ -1745,7 +1733,7 @@ public class PositionPanelAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
+	@Privacies(permit={103, 104, 107, 108})
 	public void makeReport(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 
 		log.info("PositionPanelAction.makeReport start");
@@ -1797,7 +1785,7 @@ public class PositionPanelAction extends BaseAction {
 	/**
 	 * 工位零件使用
 	 */
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void doPartialUse(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.doPartialUse start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -2165,7 +2153,7 @@ public class PositionPanelAction extends BaseAction {
 		log.info("PositionPanelAction.doFoundryChange end");
 	}
 
-	@Privacies(permit={0})
+	@Privacies(permit={107})
 	public void doscanfAll(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PositionPanelAction.doscanfAll start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -2181,6 +2169,8 @@ public class PositionPanelAction extends BaseAction {
 
 		// 停止之前的暂停
 		bfService.finishPauseFeature(null, null, null, user.getOperator_id(), conn);
+
+		String pcs_inputs = req.getParameter("pcs_inputs");
 
 		List<MaterialForm> mforms = new ArrayList<MaterialForm>();
 		for (int i = 0; i < id_split.length; i++) {
@@ -2203,6 +2193,7 @@ public class PositionPanelAction extends BaseAction {
 
 				// 作业信息状态改为，批量作业中
 				waitingPf.setOperator_id(user.getOperator_id());
+				waitingPf.setPcs_inputs(pcs_inputs);
 				pfService.startBatchProductionFeature(waitingPf, conn);
 	
 				// 如果等待中信息是暂停中，则结束掉暂停记录(有可能已经被结束)

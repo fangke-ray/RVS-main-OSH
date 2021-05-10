@@ -60,6 +60,8 @@ import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 
@@ -744,7 +746,7 @@ public class PositionPanelService {
 
 		PositionPanelMapper dao = conn.getMapper(PositionPanelMapper.class);
 		// 取得等待维修品
-		List<ProductionFeatureEntity> workings = dao.getWorkingBatch(user.getPosition_id(), user.getOperator_id());
+		List<ProductionFeatureEntity> workings = dao.getWorkingBatch(user.getPosition_id(), null);
 
 		return workings;
 	}
@@ -1298,7 +1300,7 @@ public class PositionPanelService {
 	 * @param position_id
 	 * @return
 	 */
-	public String getManageNo(String position_id,SqlSession conn) {
+	public Map<String,String> getManageNo(String position_id,SqlSession conn) {
 		if ("00000000010".equals(position_id)) {
 
 			Map<String,String> map = new LinkedHashMap<String,String>();
@@ -1315,9 +1317,10 @@ public class PositionPanelService {
 			}
 //			map.put("00000000000", "(手动)");
 
-			return "<span class=\"device_manage_select\"><select class=\"manager_no\" code=\"ER12101\">" +
-				CodeListUtils.getSelectOptions(map, "", null, false) + "</select></span>" +
-				"<span class=\"device_manage_item ui-state-default\">设备管理No. 选择: </span>";
+			return map;
+//			return "<span class=\"device_manage_select\"><select class=\"manager_no\" code=\"ER12101\">" +
+//				CodeListUtils.getSelectOptions(map, "", null, false) + "</select></span>" +
+//				"<span class=\"device_manage_item ui-state-default\">设备管理No. 选择: </span>";
 
 		} else if ("00000000011".equals(position_id)) {
 
@@ -1331,16 +1334,41 @@ public class PositionPanelService {
 			List<DevicesManageEntity> list = dao.searchDeviceManage(entity);
 
 			for(DevicesManageEntity devicesManageEntity:list){
-				map.put(devicesManageEntity.getDevices_manage_id(), devicesManageEntity.getManage_code());
+				map.put(devicesManageEntity.getDevices_manage_id(), devicesManageEntity.getName() + " " + devicesManageEntity.getManage_code());
 			}
 
-			return "<span class=\"device_manage_select\"><select class=\"manager_no\" code=\"ER13101\">" +
-				CodeListUtils.getSelectOptions(map, "", null, false) + "</select></span>" +
-				"<span class=\"device_manage_item ui-state-default\">设备管理No. 选择: </span>";
+			return map;
+//			return "<span class=\"device_manage_select\"><select class=\"manager_no\" code=\"ER13101\">" +
+//				CodeListUtils.getSelectOptions(map, "", null, false) + "</select></span>" +
+//				"<span class=\"device_manage_item ui-state-default\">设备管理No. 选择: </span>";
 		}
 		return null;
 	}
 
+	/**
+	 * 上色
+	 * @param dmMap
+	 * @return
+	 */
+	public String getDmStyles(Map<String,String> dmMap) {
+		if (dmMap == null) return null;
+		int size = dmMap.size();
+		int gapHue = 320 / size;
+		int i = 0;
+		String ret = "";
+		for (String key : dmMap.keySet()) {
+			ret += ".sty_" + key + "{background-color:hsl(" + (i++ * gapHue + 40) + ",60%,75%);}";
+		}
+		return ret;
+	}
+
+	/**
+	 * 上限
+	 * @param dmMap
+	 * @return
+	 */
+	public Map<String, String> getDmLevers(Map<String,String> dmMap) {
+		if (dmMap == null) return null;
 	/**
 	 * 取得点检相关信息
 	 * @param section_id

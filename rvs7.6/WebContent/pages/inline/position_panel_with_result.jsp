@@ -1,5 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" isELIgnored="false"%>
+<%@ taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
+<%@ taglib uri="http://struts.apache.org/tags-logic" prefix="logic"%>
 <html>
 <head>
 <%
@@ -59,6 +61,37 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript">
 ${WORKINFO}
 </script>
+<% 
+	Object oManageNo = request.getAttribute("oManageNo");
+	if (oManageNo != null) {
+ %>
+<style>
+	.device_manage_item {
+		padding: 0 4px;float: left; height: 32px;line-height:32px;color: white;cursor:pointer;
+	}
+	.device_manage_item.device_manage_select {
+		color: darkblue;
+	}
+	#working_table {
+		table-layout:fixed;
+	}
+	#working_table td{
+		vertical-align: top;
+		overflow-x: hidden;
+		transition: width 0.6s;
+	}
+	#working_table td.showing {
+		width:45%;
+	}
+	#working_table .workings {
+		min-height: 215px; max-height: 430px; overflow-y: auto; overflow-x: hidden;
+		background-color:white;
+	}
+${dm_styles}
+</style>
+<%
+	}
+ %>
 <title>欢迎登录RVS系统</title>
 </head>
 <body class="outer">
@@ -136,12 +169,14 @@ ${WORKINFO}
 				</div>
 
 				<div id="manualarea" style="float: right;">
-					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-half">
-						<span class="areatitle">维修对象信息 </span>
-					</div>
-
-					<div class="ui-widget-content dwidth-half" id="scanner_container" style="min-height: 215px;">
+					<div class="ui-widget-header ui-corner-top ui-helper-clearfix dwidth-half">
 						<div class="ui-state-default td-title">扫描录入区域</div>
+<logic:iterate id="device" name="oManageNo">
+<div class="device_manage_item sty_<bean:write name="device" property="key"/>" id="dm_<bean:write name="device" property="key"/>"><bean:write name="device" property="value"/></div>
+</logic:iterate>
+<input type=hidden id="dm_levers" value='${dm_levers}'/>
+					</div>
+					<div class="ui-widget-content dwidth-half" id="scanner_container" style="min-height: 198px;">
 						<input type="text" id="scanner_inputer" title="扫描前请点入此处" class="scanner_inputer dwidth-half"></input>
 						<div style="text-align: center;">
 							<img src="images/barcode.png" style="margin: auto; width: 150px; padding-top: 4px;">
@@ -158,29 +193,38 @@ ${WORKINFO}
 					<span class="areatitle">处理中维修对象</span><span class="areatitle" id="s_t"></span>
 				</div>
 				<div class="ui-widget-content dwidth-full" style="overflow-x: hidden;">
-					<div id="workings" style="min-height: 215px; max-height: 430px; overflow-y: auto; overflow-x: hidden; margin: 20px;">
+<%
+	if (oManageNo == null) {
+%>
+					<div id="workings" class="workings" style="min-height: 215px; max-height: 430px; overflow-y: auto; overflow-x: hidden; margin: 20px;">
 					</div>
 					<div style="height: 44px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="finishbutton" value="一同完成" role="button" aria-disabled="false" style="float: right; margin-right: 6px;">
-<% 
-	String oManageNo = (String) request.getAttribute("oManageNo");
-	if (oManageNo != null) {
- %>
-<style>
-	.device_manage_select {
-		padding: 0 4px;float: right; margin-right: 20px; height: 32px;line-height:32px;border: 1px solid rgb(147, 195, 205);
-	}
-	.device_manage_item {
-		padding: 0 4px;float: right; height: 32px;line-height:32px;
-	}
-</style>
-<div id="dm_select_all">
-<%=oManageNo%>
+					</div>
+<%
+	} else {
+%>
+<table id="working_table" style="width:99.6%;min-height: 260px;">
+<tr>
+<logic:iterate id="device" name="oManageNo">
+<td class="sty_<bean:write name="device" property="key"/>" for="dm_<bean:write name="device" property="key"/>">
+<div class="ui-state-default w_group" style="width: 80%; margin-top: 4px; margin-bottom: 4px; padding: 2px; white-space: nowrap;"><bean:write name="device" property="value"/>(<span class="working_cnt">0</span> 台)</div>
+<div class="workings">
 </div>
+</td>
+</logic:iterate>
+</tr>
+<tr style="height: 35px">
+<logic:iterate id="device" name="oManageNo">
+<td class="sty_<bean:write name="device" property="key"/>" for="dm_<bean:write name="device" property="key"/>">
+	<input type="button" class="ui-button finishbutton" value="一同完成" role="button" aria-disabled="false" style="float: right; margin-right: 6px;">
+</td>
+</logic:iterate>
+</tr>
+</table>
 <%
 	}
- %>
-					</div>
+%>
 				</div>
 				<div class="clear areaencloser"></div>
 			</div>
@@ -198,7 +242,6 @@ ${WORKINFO}
 	</div>
 	<div class="clear areaencloser"></div>
 </div>
-
 		</div>
 	</div>
 	<div id="break_dialog"></div>

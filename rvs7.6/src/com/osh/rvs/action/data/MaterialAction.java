@@ -276,6 +276,8 @@ public class MaterialAction extends BaseAction {
 			processForm = materialProcessService.loadMaterialProcess(conn, id);
 			occutTimes = materialPartialService.getOccurTimes(conn, id);
 			caseId = chooseCase(session, partialForm != null , processForm != null);
+
+			session.setAttribute("material_detail_target", id);
 		}
 
 		detailResponse.put("materialForm", materialForm);
@@ -360,11 +362,6 @@ public class MaterialAction extends BaseAction {
 		returnJsonResponse(res, listResponse);
 
 		log.info("MaterialAction.getPcsDetail end");
-	}
-
-	private Object MaterialTagService() {
-		// TODO Auto-generated method stub
-		return null;
 	}
 
 	/**
@@ -847,7 +844,11 @@ public class MaterialAction extends BaseAction {
 		String filePath = "Chaxunjieguo" + user.getJob_no() + today.getTime() + ".xls";
 		String fileFullPath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + filePath;
 
-		materialService.createReport(fileFullPath, lResultForm);
+		if (user.getRole_id().equals(RvsConsts.ROLE_SYSTEM) || "00000000006".equals(user.getSection_id())) { // 支援课
+			materialService.createReport(fileFullPath, lResultForm, conn);
+		} else {
+			materialService.createReport(fileFullPath, lResultForm, null);
+		}
 
 		listResponse.put("filePath", filePath);
 

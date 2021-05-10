@@ -73,47 +73,101 @@ var makeBreakDialog = function(jBreakDialog) {
 
 var remapworking = function(workingPfs) {
 
-	var $dmSelect = null;
-	if ($("#dm_select_all").length > 0) {
-		$dmSelect = $($("#dm_select_all").html());
-		$dmSelect.find(".select2Buttons").remove();
-		$dmSelect.find("option").each(function(idx, ele){
-			var text = $(ele).text();
-			$(ele).text(text.replace(/[^\u00-\uFF]\s*/g,''));
-		});
-	}
+//	var $dmSelect = null;
+//	if ($("#dm_select_all").length > 0) {
+//		$dmSelect = $($("#dm_select_all").html());
+//		$dmSelect.find(".select2Buttons").remove();
+//		$dmSelect.find("option").each(function(idx, ele){
+//			var text = $(ele).text();
+//			$(ele).text(text.replace(/[^\u00-\uFF]\s*/g,''));
+//		});
+//	}
 
-	var waiting_html = "";
+	var waiting_htmls = {};
 	for (var iworking = 0; iworking < workingPfs.length; iworking++) {
+
 		var waiting = workingPfs[iworking];
+
+		var pI = "null";
+		if (waiting.storager) {
+			pI = waiting.storager.match("\"ER1\\d{2}01\":\"(\\d{11})\"");
+			if (pI.length >= 2) {
+				pI = pI[1];
+			} else {
+				pI = "null";
+			}
+		}
+		if (waiting_htmls[pI] == null) {
+			waiting_htmls[pI] = "";
+		}
+
 		var tube_id = "w_" + waiting.material_id;
 		if (waiting.operate_result == 5) {
 			tube_id = tube_id + "_5";
 		}
-		waiting_html += '<div class="waiting tube" id="' + tube_id + '">' +
-							'<div class="tube-liquid' + expeditedColor(waiting.expedited)  + '">' +
-								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no;
+
+		var item_html = '<div class="waiting tube" id="' + tube_id + '">' +
+						'<div class="tube-liquid' + expeditedColor(waiting.expedited)  + '">' +
+							(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no;
 		if (waiting.operate_result == 5) {
-			waiting_html +=	'<div class="material_flags"><div class="package">箱</div></div>';
+			item_html +=	'<div class="material_flags"><div class="package">箱</div></div>';
 		} else if (waiting.fix_type == 3) {
-			waiting_html +=	'<div class="material_flags"><div class="spare">备</div></div>';
+			item_html +=	'<div class="material_flags"><div class="spare">备</div></div>';
 		} else if (waiting.fix_type == 4) {
-			waiting_html +=	'<div class="material_flags"><div class="rc">协</div></div>';
+			item_html +=	'<div class="material_flags"><div class="rc">协</div></div>';
 		}								
-		waiting_html +=	'</div>' + '<div class="dm_select"></div>';
-		waiting_html +=	'</div>';
-	}
-	var $waiting_html = $(waiting_html);
+		item_html +=	'</div>'; // + '<div class="dm_select"></div>'
+		item_html +=	'</div>';
 
-	if ($dmSelect != null) {
-		$waiting_html.find(".dm_select").html($dmSelect);
-		$waiting_html.each(function(idx, ele){
-			$(ele).find(".dm_select .manager_no").attr("id", $(ele).attr("id") + "se").select2Buttons();
+		waiting_htmls[pI] += item_html;
+	}
+
+	if ($("#workings").length == 1) {
+		var $waiting_html = $(waiting_htmls["null"]);
+
+//	if ($dmSelect != null) {
+//		$waiting_html.find(".dm_select").html($dmSelect);
+//		$waiting_html.each(function(idx, ele){
+//			$(ele).find(".dm_select .manager_no").attr("id", $(ele).attr("id") + "se").select2Buttons();
+//		});
+//	}
+
+		$("#workings").html($waiting_html);
+	} else {
+		var $focTd = null;
+		$(".workings").each(function(idx,ele){
+			var $workings = $(ele); 
+			var $td = $workings.closest("td");
+			
+			size = setWoringArea($workings, $td, waiting_htmls);
+
+			if (size > 0 && $focTd == null) $focTd = $td;
 		});
+		if ($focTd != null) {
+			$focTd.trigger("click");
+		}
 	}
 
-	$("#workings").html($waiting_html);
+}
 
+var setWoringArea = function($workings, $td, waiting_htmls){
+	var td_for = $td.attr("for");
+	if (waiting_htmls != null) $workings.html(waiting_htmls[td_for.substring(3)]);
+	var size = $workings.find(".waiting:visible").length;
+
+	var lever = $("#" + td_for).attr("lever"); 
+
+	if (lever) {
+		if (size >= parseInt(lever)) {
+			$td.find(".working_cnt").html("<font color='red'>" + size + "</font>/" + lever);
+		} else {
+			$td.find(".working_cnt").html(size + "/" + lever);
+		}
+	} else {
+		$td.find(".working_cnt").html(size);
+	}
+
+	return size;
 }
 
 var treatStart = function(resInfo) {
@@ -371,6 +425,7 @@ var doInit=function(){
 };
 
 var manual_types = [];
+var dmLevels = {};
 
 //$(document).ready(function() {
 $(function() {
@@ -388,6 +443,20 @@ $(function() {
 //	function(){
 //		opd_load($("#workarea table td:contains('暂停时间')"), function(){$(".opd_re_comment").remove()});
 //	});
+
+	var $workingTd = $("#working_table tr:eq(0) > td");
+	if ($workingTd.length > 2) {
+		$workingTd.click(function(){
+			$("#working_table td.showing").removeClass("showing");
+			$(this).addClass("showing");
+		});
+	}
+
+	dmLevers = $.parseJSON($("#dm_levers").val());
+	for (var dmId in dmLevers) {
+		var lever = dmLevers[dmId];
+		$("#dm_" + dmId).attr({"title": "上限" + lever, "lever" : lever});
+	}
 
 	doInit();
 
@@ -420,16 +489,16 @@ $(function() {
 		doStart();
 	}
 	});
-	$("#finishbutton").click(doFinish);
+	$("#finishbutton").click(function(){doFinish($("#workings"))});
 	$("#reportbutton").click(makeReport);
 
-	if ($("#dm_select_all").length > 0) {
-		$("#dm_select_all").find(".manager_no").change(function() {
-			var code= $(this).attr("code");
-			var val = $(this).val();
-			$("#workings .dm_select .manager_no[code="+ code +"]").val(val).trigger("change");
-		});
-	}
+//	if ($("#dm_select_all").length > 0) {
+//		$("#dm_select_all").find(".manager_no").change(function() {
+//			var code= $(this).attr("code");
+//			var val = $(this).val();
+//			$("#workings .dm_select .manager_no[code="+ code +"]").val(val).trigger("change");
+//		});
+//	}
 
 	$("#comments_sidebar .ui-widget-header span").on("click",function(){
 
@@ -454,10 +523,41 @@ $(function() {
 		}
 	});
 
-	$("#dm_select_all select option").each(function(idx, ele){
-		if (ele.innerText.indexOf("手动") >= 0) {
-			manual_types.push(ele.value);
+	$("#manualarea .device_manage_item")
+		.click(function(e){
+			var item_class = $(this).attr("class");
+			$("#manualarea .device_manage_select").removeClass("device_manage_select");
+			$(this).addClass("device_manage_select");
+			if (item_class) {
+				var item_classar = item_class.split(" ");
+				for (var iar in item_classar) {
+					if (item_classar[iar].indexOf("sty_") == 0) {
+						$("#scanner_inputer").attr("class", "scanner_inputer dwidth-half")
+							.addClass(item_classar[iar]);
+						return;
+					}
+				}
+			}
+		}).each(function(idx, ele){
+			if (ele.innerText.indexOf("手动") >= 0) {
+				manual_types.push(ele.id.substring(3));
+			}
+		});
+
+	$(".finishbutton").click(function(){
+		var $finishbutton = $(this);
+		var $td = $finishbutton.closest("td");
+		var forList = $td.attr("for");
+		var $targetTd = $("#working_table tr:eq(0) td[for=" + forList + "]");
+		if ($targetTd.length == 0 || $targetTd.find(".waiting").length == 0) {
+			errorPop("没有完成的对象。");
+			return;
 		}
+		warningConfirm("是否要完成以下设备的作业：" + $("#working_table tr:eq(0) td[for=" + forList + "] .w_group").text() + "？",
+			function(){
+				doFinishForDevice($targetTd.find(".workings"));
+			}
+		);
 	});
 });
 
@@ -492,15 +592,43 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus){
 			treatStart(resInfo);
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
 
 var doStart=function(materialId){
-	var data = {};
+	var scanClass = $("#scanner_inputer").attr("class");
+	if (!scanClass) {
+		return;
+	}
+	var styIdx = scanClass.indexOf("sty_");
+	if (styIdx < 0) {
+		errorPop("请选择使用的设备。");
+		$("#scanner_inputer").val("");
+		return;
+	}
+
+	var posCode = $("#g_process_code").val();
+	var devId = scanClass.substring(styIdx + 4, styIdx + 15);
+
+	var lever = $("#dm_" + devId).attr("lever");
+
+	if (lever) {
+		var workingCnt = $("#working_table .sty_" + devId + " .workings .waiting:visible").length;
+		if (parseInt(lever) <= workingCnt){
+			errorPop("当前设备容量已至上限。");
+			return;
+		}
+	}
+
+	var data = {"pcs_inputs" : 
+		"{\"ER" + posCode + "01\":\"" + devId + "\"" +
+		(manual_types.indexOf(devId) >= 0 ? ",\"EI" + posCode + "01\":\"manual\"" : "") +
+				"}"};
+
 	var processType = 111; // 维修品消毒
-	if ($("#g_process_code").val() == "131") {
+	if (posCode == "131") {
 		processType = 121; // 维修品灭菌 
 	}
 	if (materialId) {
@@ -542,7 +670,7 @@ var doStartPost = function(data) {
 	});
 }
 
-var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
+var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs, material_ids){
 	var resInfo = null;
 	try {
 		// 以Object形式读取JSON
@@ -563,6 +691,10 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 				}
 				if ($("#workings .tube").length == $("#workings .tube.finished").length) {
 					$("#finishbutton").disable();
+				}
+			} else if (material_ids) {
+				for (var idx in material_ids) {
+					$(".workings").find("#w_" + material_ids[idx]).addClass("finished").hide("drop", {direction: 'right'}, function() {});
 				}
 			} else {
 				$("#workings .tube").hide("drop", {direction: 'right'}, function() {});
@@ -590,14 +722,71 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus, pcs_inputs){
 	};
 };
 
-var doFinish=function(){
+var doFinishForDevice = function($workings) {
+	var arr_reps = [];
+	var arr_rcs = [];
+	var arr_spares = [];
+	var arr_package = [];
+	var type_count = 0;
+
+	$workings.children("div:not(.finished)").each(function(idx, ele) {
+		var $wk = $(ele);
+		var wk_id = $wk.attr("id").replace("w_", "");
+
+		if ($wk.find(".rc").length > 0) {
+			arr_rcs.push(wk_id);
+		} else if ($wk.find(".spare").length > 0) {
+			arr_spares.push(wk_id);
+		} else if ($wk.find(".package").length > 0) {
+			arr_package.push(wk_id);
+		} else {
+			arr_reps.push(wk_id);
+		}
+	});
+
+	if (arr_reps.length > 0) type_count++;
+	if (arr_spares.length > 0) type_count++;
+	if (arr_rcs.length > 0) type_count++;
+	if (arr_package.length > 0) type_count++;
+
+	if (arr_reps.length > 0) {
+		if (type_count > 1) {
+			infoPop("先处理维修品的完成，请稍后处理其他类别完成。");
+		}
+		if ($("#g_process_code").val() == "131") {
+			afObj.applyProcess(121, this, doFinish_ajax, [null, arr_reps]);
+		} else {
+			afObj.applyProcess(111, this, doFinish_ajax, [null, arr_reps]);
+		}
+	} else if (arr_spares.length > 0) {
+		if (type_count > 1) {
+			infoPop("先处理备品的完成，请稍后处理其他类别完成。");
+		}
+		if ($("#g_process_code").val() == "131") {
+			afObj.applyProcess(122, this, doFinish_ajax, [null, arr_spares]);
+		} else {
+			afObj.applyProcess(112, this, doFinish_ajax, [null, arr_spares]);
+		}
+	} else if (arr_rcs.length > 0) {
+		if (type_count > 1) {
+			infoPop("先处理RC 协助品的完成，请稍后处理其他类别完成。");
+		}
+		doFinish_ajax(null, arr_rcs);
+	} else if (arr_package.length > 0) {
+		afObj.applyProcess(113, this, doFinish_ajax, [null, arr_package]);
+	}
+
+	setWoringArea($workings, $workings.closest("td"));
+}
+
+var doFinish=function($workings){
 	var pcs_inputs = {};
 	var pcs_inputs_rcs = {};
 	var pcs_inputs_spares = {};
 	var pcs_inputs_package = {};
 	var pcs_count = 0;
 
-	$("#workings > div:not(.finished)").each(function(idx, ele){
+	$workings.children("div:not(.finished)").each(function(idx, ele){
 		var $wk = $(ele);
 		var wk_id = $wk.attr("id").replace("w_", "");
 		var pcs_input = {};
@@ -687,12 +876,13 @@ var doFinish=function(){
 	}
 };
 
-var doFinish_ajax = function(pcs_inputs) {
+var doFinish_ajax = function(pcs_inputs, material_ids) {
 	var data = {};
-	if ($.isEmptyObject(pcs_inputs)) {
+	if ($.isEmptyObject(pcs_inputs) && $.isEmptyObject(material_ids) && !device_manage_id) {
 		return false;
 	}
 	data.pcs_inputs = Json_to_String(pcs_inputs);
+	data.material_id = material_ids.join();
 	
 	// Ajax提交
 	$.ajax({
@@ -706,7 +896,7 @@ var doFinish_ajax = function(pcs_inputs) {
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete : function(xhrobj, textStatus){
-			doFinish_ajaxSuccess(xhrobj, textStatus, pcs_inputs);
+			doFinish_ajaxSuccess(xhrobj, textStatus, pcs_inputs, material_ids);
 		}
 	});
 };
@@ -736,7 +926,28 @@ var convertMinute =function(sminute) {
 var doStartAll = function(wk_type, processType) {
 	var material_ids = [];
 	var index = 0;
-	$("#waitings > div.tube").each(function(idx, ele){
+
+	var scanClass = $("#scanner_inputer").attr("class");
+	if (!scanClass) {
+		return;
+	}
+	var styIdx = scanClass.indexOf("sty_");
+	if (styIdx < 0) {
+		errorPop("请选择使用的设备。");
+		return;
+	}
+
+	var posCode = $("#g_process_code").val();
+	var devId = scanClass.substring(styIdx + 4, styIdx + 15);
+
+	var lever = $("#dm_" + devId).attr("lever");
+
+	var data = {"pcs_inputs" : 
+		"{\"ER" + posCode + "01\":\"" + devId + "\"" +
+		(manual_types.indexOf(devId) >= 0 ? ",\"EI" + posCode + "01\":\"manual\"" : "") +
+				"}"};
+
+	$("#waitings > div.tube:visible").each(function(idx, ele){
 		var $wk = $(ele);
 		if ($wk.find("." + wk_type).length > 0) {
 			var wk_id = $wk.attr("id").replace("w_", "");
@@ -744,6 +955,15 @@ var doStartAll = function(wk_type, processType) {
 			index++;
 		}
 	});
+
+	if (lever) {
+		var workingCnt = $("#working_table .sty_" + devId + " .workings .waiting:visible").length;
+		if (parseInt(lever) <= workingCnt + material_ids.length){
+			errorPop("当前设备容量已至上限。");
+			return;
+		}
+	}
+
 	if (material_ids.length == 0) {
 		if (wk_type == "spare") {
 			errorPop("没有待作业备品，请选择其他作业对象。");
@@ -755,7 +975,6 @@ var doStartAll = function(wk_type, processType) {
 		return false;
 	}
 
-	var data = {};
 	data.material_ids = material_ids.join(",");
 
 	$("#scanner_inputer").attr("value", "");
