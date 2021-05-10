@@ -201,7 +201,7 @@
 					WHEN mdl.kind = 03
 						THEN 6 
 					WHEN mdl.kind = 07
-						THEN 3 
+						THEN 5 
 					WHEN `m`.level = 1
 						THEN 8
 					ELSE 14

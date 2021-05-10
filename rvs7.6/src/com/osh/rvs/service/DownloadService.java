@@ -401,7 +401,9 @@ public class DownloadService {
 		if (directflg == null) directflg = -1;
 		// 受理在直送时打印两张
 		if (RvsConsts.TICKET_RECEPTOR == operator && directflg >= 1) {
-			printTimes = 2;
+			if (!"07".equals(mBean.getKind())) {
+				printTimes = 2;
+			}
 		} else
 		// 补打一张
 		if (RvsConsts.TICKET_ADDENDA == operator) {

@@ -70,7 +70,7 @@
 					WHEN mdl.kind = 03
 						THEN 6
 					WHEN mdl.kind = 07
-						THEN 3
+						THEN 5
 					WHEN `m`.level = 1
 						THEN 8
 					ELSE 14
@@ -192,6 +192,7 @@
 				(select name from section where section_id = a.section_id) as section_name,
 				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
 				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id = 13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position2,
+				a.inline_time,
 				mpr.scheduled_assign_date as scheduled_date_end,
 				mpr.finish_date as outline_time,
 				max(mpt.arrival_plan_date) as arrival_plan_date,
