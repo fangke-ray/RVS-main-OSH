@@ -89,7 +89,7 @@ $(function() {
 		
 	});
 
-	$("select").select2Buttons();
+	$("#body-mdl select").select2Buttons();
 //	$("#input_imbalance_line_id").change(function(){
 //		var lines = $(this).val();
 //		if (lines == null) {

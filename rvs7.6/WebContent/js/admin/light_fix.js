@@ -34,7 +34,7 @@ $(function() {
 	$("#searchbutton").click(findit);
 	$("#addbutton").click(doAdd);
 	$("#editbutton").click(doEdit);
-	$("#addcancelbutton, #editcancelbutton").click(showList);
+	$("#addcancelbutton, #editcancelbutton, #editarea span.ui-icon").click(showList);
 
 	// 清空检索条件
 	$("#resetbutton").click(function() {

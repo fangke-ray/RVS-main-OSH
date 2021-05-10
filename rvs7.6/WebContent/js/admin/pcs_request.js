@@ -111,7 +111,7 @@ $(function() {
 		currentText: "今天"
 	});
 
-	$("select").select2Buttons();
+	$("#body-1 select").select2Buttons();
 	setReferChooser($("#search_target_model_id"), $("#model_refer"));
 
 	var vato = null;

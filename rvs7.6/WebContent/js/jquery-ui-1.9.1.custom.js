@@ -8067,6 +8067,12 @@ $.extend(Datepicker.prototype, {
 				};
 				var year = determineYear(years[0]);
 				var endYear = Math.max(year, determineYear(years[1] || ''));
+				if (drawYear && drawYear < year) {
+					year = drawYear;
+				}
+				if (drawYear && drawYear > endYear) {
+					endYear = drawYear;
+				}
 				year = (minDate ? Math.max(year, minDate.getFullYear()) : year);
 				endYear = (maxDate ? Math.min(endYear, maxDate.getFullYear()) : endYear);
 				inst.yearshtml += '<select class="ui-datepicker-year" data-handler="selectYear" data-event="change">';

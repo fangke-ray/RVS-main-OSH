@@ -1066,7 +1066,7 @@ $(function() {
 		}
 	});
 
-	$("select").select2Buttons();
+	$("#body-pos select").select2Buttons();
 	$("#edit_agreed_date, #edit_ocm_deliver_date").datepicker({
 		showButtonPanel: true,
 		maxDate: 0,

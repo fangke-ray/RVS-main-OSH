@@ -61,7 +61,7 @@ $(function() {
 	// 关联权限参照
 	setReferChooser($("#cond_privacy"));
 
-	$("select").select2Buttons();
+	$("#body-mdl select").select2Buttons();
 
 	// 编辑权限
 	$("#editarea .avli").click(function(){

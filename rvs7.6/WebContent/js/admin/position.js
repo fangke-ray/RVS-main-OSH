@@ -62,7 +62,7 @@ $(function() {
 		$("#cond_process_code").val("").data("post", "");
 	});
 
-	$("select").select2Buttons();
+	$("#body-mdl select").select2Buttons();
 
 	$("#set_group_button").click(function() {
 		if (this.value=="设定") {

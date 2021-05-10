@@ -117,6 +117,8 @@ var ajaxError = function(xhrobj, status, e) {
 		, function(){location.reload();}
 		, "处理超时", "之后刷新", "立刻刷新");
 		$('div#warningstring .ui-warn-dialog').removeClass('.ui-warn-dialog').addClass(".ui-error-dialog");
+	} else {
+		window.location.href = "/break.do";
 	}
 //	if ($('#pagecontent').length > 0) {
 //		window.location.hash = "#error";
@@ -525,11 +527,15 @@ if ($.datepicker) {
 	$.datepicker.setDefaults({
 		dayNamesMin: ['<span style="color:red;">日</span>','一','二','三','四','五','<span style="color:red;">六</span>'],
 		monthNames: ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
+		monthNamesShort:['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'],
 		showMonthAfterYear: true,
+		changeYear: true,
+		changeMonth: true,
+		yearRange: "2013:+1",
 		yearSuffix: '<span>年</span>',
 		closeText:'清空',
 		dateFormat: 'yy/mm/dd',
-		beforeShow: function (input, inst) { datepicker_CurrentInput = input; },
+		beforeShow: function (input, inst) { $(this).data("dpMonth", null); datepicker_CurrentInput = input; },
 		beforeShowDay : gBeforeShowDay,
 		onChangeMonthYear : gMonthHoliday
 	});
@@ -657,6 +663,7 @@ var setReferChooser = function(target, jthis, jfather, callback) {
 	});
 
 	if (!jthis.attr("beset")) {
+
 		jthis.attr("beset", true);
 
 		jthis.blur(function(){
