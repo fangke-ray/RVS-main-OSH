@@ -668,6 +668,18 @@ public class RvsUtils {
 		return iBussinessYear + 1867;
 	}
 
+	public static Calendar BUSS_CALENDAR = Calendar.getInstance();
+	static {
+		BUSS_CALENDAR.set(2021, Calendar.APRIL, 1);
+	}
+	public static String getTestBussinessYearString(Calendar date) {
+		if (date.compareTo(BUSS_CALENDAR) < 0) {
+			return getBussinessYearString(date);
+		} else {
+			return getFYBussinessYearString(date);
+		}
+	}
+
 	/**
 	 * 新年度规则（FY格式）
 	 * 

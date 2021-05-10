@@ -297,38 +297,48 @@ public class UploadAction extends BaseAction {
 		try {
 			boolean isSpare = filename.indexOf("备品") >= 0;
 
-			if (nameParam.equals("inline")) {
-				filepath += "内镜投线记录表-";
-			} else if (nameParam.equals("accept")) {
+			switch (nameParam) {
+			case "inline" : filepath += "内镜投线记录表-"; break;
+			case "accept" : {
 				if (isSpare) {
 					filepath += "QR-B25002-2 备品受理记录表-";
 				} else {
 					filepath += "QR-B31002-59 内镜受理记录表-";
 				}
-			} else if (nameParam.equals("accept-spare")) {
-				filepath += "QR-B25002-2 备品受理记录表-";
-			} else if (nameParam.equals("sterilize")) {
+			} break;
+			case "accept-spare" : filepath += "QR-B25002-2 备品受理记录表-"; break;
+			case "sterilize" : {
 				if (isSpare) {
 					filepath += "QR-B25002-4 备品灭菌记录表-";
 				} else {
 					filepath += "QR-B31002-62 内镜EOG灭菌记录表-";
 				}
-			} else if (nameParam.equals("sterilize-spare")) {
-				filepath += "QR-B25002-4 备品灭菌记录表-";
-			} else if (nameParam.equals("disinfect")) {
+			} break;
+				case "sterilize-spare" : filepath += "QR-B25002-4 备品灭菌记录表-"; break;
+			case "disinfect" : {
 				if (isSpare) {
 					filepath += "QR-B25002-3 备品消毒记录表-";
 				} else {
 					filepath += "QR-B31002-60 内镜清洗消毒记录表-";
 				}
-			} else if (nameParam.equals("disinfect-spare")) {
-				filepath += "QR-B25002-3 备品消毒记录表-";
-			} else if (nameParam.equals("schedule")) {
-				filepath += "计划报告书-";
-			} else if (nameParam.equals("shipping")) {
-				filepath += "QR-B31002-63 内镜出货记录表-";
+			} break;
+			case "disinfect-spare" : filepath += "QR-B25002-3 备品消毒记录表-"; break;
+			case "schedule" : filepath += "计划报告书-"; break;
+			case "shipping" : filepath += "QR-B31002-63 内镜出货记录表-"; break;
 			}
-			fileOutput = new FileOutputStream(filepath + uploadDate + ".xls");
+
+			String pathOutput = filepath + uploadDate + ".xls";
+			switch (nameParam) {
+			case "accept" : {
+				File originFile = new File(pathOutput.replaceAll("\\confirm", ""));
+				if (!originFile.exists()) {
+					pathOutput = pathOutput.replaceAll("QR-B31002-59 内镜受理记录表-",
+							"QR-B31002-59 维修品受理记录表-");
+				}
+			}	
+			}
+
+			fileOutput = new FileOutputStream(pathOutput);
 			fileOutput.write(file.getFileData());
 			fileOutput.flush();
 			fileOutput.close();

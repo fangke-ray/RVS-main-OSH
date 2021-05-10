@@ -206,7 +206,13 @@ public class DownloadAction extends BaseAction {
 		String filename = req.getParameter("filename");
 
 		if (path == null || path.length() == 0) {
-			filename = filename.substring(0, 7) + "月SORC维修运营月报.xlsx";
+			if (filename == null || filename.length() < 10) {
+				return null;
+			}
+			if (filename.indexOf('月') < 0) {
+				filename = new String(req.getParameter("filename").getBytes("iso-8859-1"), req.getCharacterEncoding());
+			}
+			// filename = filename.substring(0, 9) + "月SORC维修运营月报.xlsx";
 			XlsUtil xls = null;
 			try {
 				xls = new XlsUtil(PathConsts.BASE_PATH + PathConsts.REPORT + "\\works\\mail\\" + filename);

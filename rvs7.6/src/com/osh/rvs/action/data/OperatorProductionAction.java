@@ -387,7 +387,7 @@ public class OperatorProductionAction extends BaseAction {
 		String filePath = "";
 		filePath = PathConsts.BASE_PATH + PathConsts.REPORT+"\\works\\"+fileName;
 
-		 res.setHeader( "Content-Disposition", "attachment;filename=" + new String( fileName.getBytes("gb2312"), "ISO8859-1" ) );  
+		res.setHeader( "Content-Disposition", "attachment;filename=" + new String( fileName.getBytes("gb2312"), "ISO8859-1" ).replaceAll(" ", "%20") );  
 		res.setContentType(contentType);
 		File file = new File(filePath);
 		InputStream is = new BufferedInputStream(new FileInputStream(file));
