@@ -101,6 +101,7 @@ $(function() {
 		        <a href="materialFact.do">现品投线</a><br>
 		        <a href="waste_partial_arrangement.do">废弃零件回收追溯</a><br>
 				<a href="delivery_order.do" title="出货单制作">出货单制作</a><br>
+				<a href="compose_storage.do?from=fact">总组匹配库位</a><br>
 	<% } %>
 	<% if(links.get("bo_partial")) { %>
 		        <a href="materialPartial.do" title="现品零件BO管理">零件BO管理</a><br>

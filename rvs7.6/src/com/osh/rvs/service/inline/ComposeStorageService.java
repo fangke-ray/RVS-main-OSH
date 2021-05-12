@@ -24,7 +24,6 @@ import com.osh.rvs.mapper.inline.ComposeStorageMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.SupportMapper;
 import com.osh.rvs.service.MaterialProcessService;
-import com.osh.rvs.service.ProductionFeatureService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -321,9 +320,24 @@ public class ComposeStorageService {
 			String talcumModels = PathConsts.POSITION_SETTINGS.getProperty("com_storage.talcum.models");
 			if (talcumModels != null) {
 				String[] talcumModelArray = talcumModels.split(",");
-				for (String talcumModel : talcumModelArray) {
-					if (talcumModel.equals(model.getName())) {
+				for (String specModel : talcumModelArray) {
+					if (specModel.equals(model.getName())) {
 						spec_kind = 1; // 滑石粉
+						break;
+					}
+				}
+			}
+		}
+
+		if (px == MaterialProcessService.PX_B_OF_1 && "00000000012".equals(line_id)) {
+			spec_kind = 0;
+			// 取得大量零件机型
+			String talcumModels = PathConsts.POSITION_SETTINGS.getProperty("com_storage.massPart.models");
+			if (talcumModels != null) {
+				String[] massPartModelArray = talcumModels.split(",");
+				for (String specModel : massPartModelArray) {
+					if (specModel.equals(model.getName())) {
+						spec_kind = 2; // 大量零件
 						break;
 					}
 				}
@@ -351,6 +365,15 @@ public class ComposeStorageService {
 			return null;
 		}
 
+		// 只放A/B1/B2库位 = 粗镜/细镜分类
+		switch (mEntity.getKind()) {
+		case "01" :
+		case "02" :
+			break;
+		default :
+			return null;
+		}
+
 		// 取得总组工程
 		MaterialProcessService mpService = new MaterialProcessService();
 
@@ -359,18 +382,27 @@ public class ComposeStorageService {
 			return null;
 		}
 
-		// 判断总组是否有返工
+		// 判断总组是否有作业
 		if (reworkFromPf > 0) {
-			ProductionFeatureService pfService = new ProductionFeatureService();
+			ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+
 			ProductionFeatureEntity pfEntity = new ProductionFeatureEntity();
 			pfEntity.setMaterial_id(mEntity.getMaterial_id());
 			pfEntity.setLine_id("00000000014");
-			pfEntity.setOperate_result(8);
-			ProductionFeatureEntity reworkRecord = pfService.searchProductionFeatureOne(pfEntity, conn);
-
-			if (reworkRecord != null) { // 总组反过工不需要排
-				return null;
+			List<ProductionFeatureEntity> retEntities = pfMapper.searchProductionFeature(pfEntity);
+			if (retEntities.size() > 0) {
+				ProductionFeatureEntity reworkRecord = null;
+				for (ProductionFeatureEntity retEntity : retEntities) {
+					if (retEntity.getOperate_result() != RvsConsts.OPERATE_RESULT_NOWORK_WAITING) {
+						reworkRecord = retEntity;
+						break;
+					}
+				}
+				if (reworkRecord != null) { // 总组作业过工不需要排
+					return RvsConsts.COM_STORAGE_PROCESSED;
+				}
 			}
+
 		}
 
 		// 特殊库位要求
@@ -390,6 +422,20 @@ public class ComposeStorageService {
 				for (String talcumModel : talcumModelArray) {
 					if (talcumModel.equals(mEntity.getModel_name())) {
 						spec_kind = 1; // 滑石粉
+						break;
+					}
+				}
+			}
+		}
+		if (mpOfCom.getPx() == MaterialProcessService.PX_B_OF_1 && "00000000012".equals(line_id)) {
+			spec_kind = 0;
+			// 取得大量零件机型
+			String talcumModels = PathConsts.POSITION_SETTINGS.getProperty("com_storage.massPart.models");
+			if (talcumModels != null) {
+				String[] massPartModelArray = talcumModels.split(",");
+				for (String specModel : massPartModelArray) {
+					if (specModel.equals(mEntity.getModel_name())) {
+						spec_kind = 2; // 大量零件
 						break;
 					}
 				}

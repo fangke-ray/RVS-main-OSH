@@ -146,4 +146,24 @@ public class SteelWireContainerWashProcessService {
 		return retLIst;
 	}
 
+	public void insertForWaitUnpack(String partial_id, String material_id, SqlSessionManager conn) throws Exception {
+		SteelWireContainerWashProcessMapper mapper = conn.getMapper(SteelWireContainerWashProcessMapper.class);
+
+		SteelWireContainerWashProcessEntity entity = new SteelWireContainerWashProcessEntity();
+		entity.setPartial_id(partial_id);
+		entity.setMaterial_id(material_id);
+		mapper.insertForWaitUnpack(entity);
+	}
+	
+	public void unpack(ActionForm form, LoginData user, SqlSessionManager conn) throws Exception {
+		SteelWireContainerWashProcessMapper mapper = conn.getMapper(SteelWireContainerWashProcessMapper.class);
+
+		SteelWireContainerWashProcessEntity entity = new SteelWireContainerWashProcessEntity();
+		// 拷贝表单数据到对象
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		entity.setOperator_id(user.getOperator_id());
+
+		mapper.finishForMaterial(entity);
+	}
+
 }

@@ -1201,13 +1201,20 @@
 		<value code="4">D</value>
 	</codelist>
 
-	<codelist name="material_px">
+	<codelist name="material_px_history">
 		<value code="0">A</value>
 		<value code="1">B</value>
 		<value code="4">B1</value>
 		<value code="7">B2</value>
 		<value code="2">C</value>
 		<value code="3">D</value>
+	</codelist>
+
+	<codelist name="material_px">
+		<value code="0">A</value>
+		<value code="4">B1</value>
+		<value code="7">B2</value>
+		<value code="2">C</value>
 	</codelist>
 
 	<codelist name="countdown_unreach_main_cause">
@@ -1321,6 +1328,11 @@
 		<value code="dismantle">分拆</value>
 		<value code="qualityAssurance">最终检查</value>
 		<value code="shipping">包装出货</value>
+	</codelist>
+
+	<codelist name="compose_storage_case_spec">
+		<value code="1">滑石粉</value>
+		<value code="2">大量零件</value>
 	</codelist>
 
 </codelist-config>

@@ -24,4 +24,13 @@ public interface SteelWireContainerWashProcessMapper {
 			throws Exception;
 	
 	public List<MaterialEntity> searchMaterial();
+
+	/**
+	 * 插入维修品的组件信息，并取得用于表示待处理的最大时间
+	 * @return
+	 */
+	public int insertForWaitUnpack(SteelWireContainerWashProcessEntity entity);
+
+	public void finishForMaterial(SteelWireContainerWashProcessEntity entity)
+			throws Exception;
 }

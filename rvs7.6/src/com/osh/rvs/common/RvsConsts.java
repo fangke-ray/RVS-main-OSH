@@ -122,4 +122,5 @@ public class RvsConsts extends BaseConst {
 	public static final int WORK_COUNT_FLG_DIRECT = 1;
 	public static final int WORK_COUNT_FLG_INDIRECT = 6;
 	public static final String COM_STORAGE_INSTABLE = "(库位没有空余)";
+	public static final String COM_STORAGE_PROCESSED = "(已经开始作业)";
 }

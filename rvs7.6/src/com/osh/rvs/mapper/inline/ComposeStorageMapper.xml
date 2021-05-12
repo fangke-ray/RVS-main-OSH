@@ -301,7 +301,7 @@
 		</if>
 	</select>
 
-	<select id="checkMaterialPutin" resultType="ComposeStorageEntity" parameterType="String">
+	<select id="checkMaterialPutin" resultType="String" parameterType="String">
 		<![CDATA[
 		SELECT scan_code 
 		FROM 

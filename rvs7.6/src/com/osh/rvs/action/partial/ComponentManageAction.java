@@ -729,6 +729,8 @@ public class ComponentManageAction extends BaseAction{
 			callbackResponse.put("componentInstorage", "刚才发布的组件给维修品" + mEntity.getSorc_no() + "，不指定库位。");
 		} else if (inStorage.equals(RvsConsts.COM_STORAGE_INSTABLE)) {
 			callbackResponse.put("componentInstorage", "刚才发布的组件给维修品" + mEntity.getSorc_no() + "，无可用库位。");
+		} else if (inStorage.equals(RvsConsts.COM_STORAGE_PROCESSED)) {
+			callbackResponse.put("componentInstorage", "刚才发布的组件给维修品" + mEntity.getSorc_no() + "，请直接给到生产线。");
 		} else {
 			callbackResponse.put("componentInstorage", "刚才发布的组件给维修品" + mEntity.getSorc_no() + "，请放到" + inStorage + "库位。");
 			// 实际放入

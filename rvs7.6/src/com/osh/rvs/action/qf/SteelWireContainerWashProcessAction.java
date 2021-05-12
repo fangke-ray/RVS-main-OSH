@@ -17,12 +17,16 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.ConsumableListForm;
 import com.osh.rvs.form.qf.SteelWireContainerWashProcessForm;
+import com.osh.rvs.service.MaterialProcessService;
+import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PartialService;
+import com.osh.rvs.service.inline.ComposeStorageService;
 import com.osh.rvs.service.partial.ConsumableListService;
 import com.osh.rvs.service.qf.SteelWireContainerWashProcessService;
 
@@ -122,6 +126,17 @@ public class SteelWireContainerWashProcessAction extends BaseAction {
 			SteelWireContainerWashProcessService service = new SteelWireContainerWashProcessService();
 			List<SteelWireContainerWashProcessForm> list = service.search(form, conn);
 			listResponse.put("finished", list);
+
+			if ("5".equals(req.getParameter("process_type"))) {
+				// 取得总组库位信息
+				ComposeStorageService csService = new ComposeStorageService();
+				Map<String, String> recommendCases = new HashMap<String, String>();
+				recommendCases.put("A", csService.getRecommendCase("00000000013", MaterialProcessService.PX_A, null, conn));
+				recommendCases.put("B1", csService.getRecommendCase("00000000013", MaterialProcessService.PX_B_OF_1, null, conn));
+				recommendCases.put("B2_coal", csService.getRecommendCase("00000000013", MaterialProcessService.PX_B_OF_2, 0, conn));
+				recommendCases.put("B2_talcum", csService.getRecommendCase("00000000013", MaterialProcessService.PX_B_OF_2, 1, conn));
+				listResponse.put("recommendCases", recommendCases);
+			}
 		}
 
 		// 检查发生错误时报告错误信息
@@ -298,6 +313,71 @@ public class SteelWireContainerWashProcessAction extends BaseAction {
 		returnJsonResponse(res, listResponse);
 
 		log.info("SteelWireContainerWashProcessAction.doApplyToMaterial end");
+	}
+
+	/**
+	 * 完成待处理作业维修对象
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void doUnpack(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("SteelWireContainerWashProcessAction.doUnpack start");
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		// 更新条件表单合法性检查
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.add("material_id", v.required("分配维修对象"));
+		List<MsgInfo> errors = v.validate();
+
+		if (errors.size() == 0) {
+			// 取得用户信息
+			HttpSession session = req.getSession();
+			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+			SteelWireContainerWashProcessService service = new SteelWireContainerWashProcessService();
+			service.unpack(form, user, conn);
+
+			SteelWireContainerWashProcessForm proForm = (SteelWireContainerWashProcessForm) form;
+			ComposeStorageService cstService = new ComposeStorageService();
+
+			// 已放库位
+			String storaged = cstService.checkMaterialPutin(proForm.getMaterial_id(), "00000000013", conn);
+
+			if (storaged == null) {
+				MaterialService mService = new MaterialService();
+				MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, proForm.getMaterial_id());
+
+				String inStorage = cstService.checkRecommendCase(mEntity, "00000000013", +1, conn);
+
+				if (inStorage != null) {
+					if (inStorage.equals(RvsConsts.COM_STORAGE_INSTABLE)) {
+						listResponse.put("componentInstorage", "目前此组件没有存放库存。");
+					} else if (inStorage.equals(RvsConsts.COM_STORAGE_PROCESSED)) {
+						listResponse.put("componentInstorage", "请直接交给到生产线。");
+					} else {
+						listResponse.put("componentInstorage", "已拆组件：" + proForm.getCode() + "。请发放到库位：" + inStorage + "。");	
+						// 实际放入
+						cstService.insertCom(conn, proForm.getMaterial_id(), inStorage, errors);
+					}
+				}
+			} else {
+				listResponse.put("componentInstorage", "已拆组件：" + proForm.getCode() + "。请发放到库位：" + storaged + "。(系统上已分配)");
+			}
+		}
+
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("SteelWireContainerWashProcessAction.doUnpack end");
 	}
 
 }

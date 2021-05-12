@@ -32,13 +32,13 @@ import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
-import com.osh.rvs.service.inline.ComposeStorageService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.FactPartialReleaseService;
 import com.osh.rvs.service.partial.PartialReleaseService;
 import com.osh.rvs.service.partial.PremakePartialService;
+import com.osh.rvs.service.qf.SteelWireContainerWashProcessService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -144,27 +144,21 @@ public class PartialReleaseAction extends BaseAction {
 				// 找出列表中的组件并且标记
 				service.checkCompAppended(responseList, listResponse);
 			}
+		}
 
-			// 订购组件判断
-			if ("1".equals(occur_times)) {
-				String componentPart = null;
-				for (MaterialPartialDetailForm partForm : responseList) {
-					if ("2".equals(partForm.getOrder_flg())) {
-						if (!"0".equals(partForm.getWaiting_quantity())) {
-							componentPart = partForm.getCode() + " " + partForm.getPartial_name();
-						}
-						break;
+		// 可能单追组件
+		if (!RvsUtils.isPeripheral(responseForm.getLevel())) { // !RvsUtils.isLightFix(responseForm.getLevel()) && 小修理拆
+			String componentPart = null;
+			for (MaterialPartialDetailForm partForm : responseList) {
+				if ("2".equals(partForm.getOrder_flg())) {
+					if (!"0".equals(partForm.getWaiting_quantity())) {
+						componentPart = partForm.getCode() + " " + partForm.getPartial_name();
 					}
+					break;
 				}
-				if (componentPart != null) {
-					MaterialService mService = new MaterialService();
-					MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, responseForm.getMaterial_id());
-					ComposeStorageService cstService = new ComposeStorageService();
-					String inStorage = cstService.checkRecommendCase(mEntity, "00000000013", 0, conn);
-					if (inStorage != null) {
-						listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。如果对其进行发放，建议的库位是：" + inStorage + "。(暂定)");
-					}
-				}
+			}
+			if (componentPart != null) {
+				listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。");
 			}
 		}
 
@@ -204,18 +198,23 @@ public class PartialReleaseAction extends BaseAction {
 					mpService.updateBoFlgWithDetail(materialPartialEntity, conn);
 					// service.updateBoFlg(form,conn,flag);
 
+					MaterialService mService = new MaterialService();
+					MaterialEntity mBean = null;
+
 					ForSolutionAreaService fsoService = new ForSolutionAreaService();
 					if ("big".equals(flag)) {
-						boolean isNoBo = checkOfCN(materialPartialEntity.getMaterial_id(), conn);
+						mBean = mService.loadMaterialDetailBean(conn, materialPartialEntity.getMaterial_id());
+
+						boolean isNoBo = checkOfCN(mBean, conn);
 						// 追加大单也拿待解决区域
 						if (materialPartialEntity.getOccur_times() > 1) {
 							// 检查工位上BO零件为解除
 							fsoService.solveBo(materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times(), user.getOperator_id(), conn);
 						} else if (materialPartialEntity.getOccur_times() == 1 && isNoBo) {
-							MaterialService mService = new MaterialService();
-							MaterialEntity mBean = mService.loadMaterialDetailBean(conn, materialPartialEntity.getMaterial_id());
-							if (RvsUtils.isLightFix(mBean.getLevel())) {
-								// 中小修检查全工程BO零件为解除
+							if (RvsUtils.isLightFix(mBean.getLevel())
+									|| RvsUtils.isPeripheral(mBean.getLevel())
+									|| RvsConsts.CATEGORY_UDI.equals(mBean.getCategory_id())) {
+								// 中小修/周边/UDI检查全工程BO零件为解除
 								fsoService.solveBo(materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times(), user.getOperator_id(), conn);
 							}
 						}
@@ -281,33 +280,19 @@ public class PartialReleaseAction extends BaseAction {
 					// 订购组件入库
 					String sendComponent = request.getParameter("sendComponent");
 					if (sendComponent != null) {
-						String componentPart = sendComponent.substring("订购单中存在组件：".length(), sendComponent.indexOf("。如果对其进行发放，建议的库位是："));
-						String noticeStorage = sendComponent.substring(sendComponent.indexOf("。如果对其进行发放，建议的库位是：") + "。如果对其进行发放，建议的库位是：".length()
-								, sendComponent.indexOf("。(暂定)"));
+						// 只拆粗细镜
+						if (mBean == null || mBean.getKind() == null) {
+							mBean = mService.loadSimpleMaterialDetailEntity(conn, materialPartialEntity.getMaterial_id());
+						}
+						switch (mBean.getKind()) {
+						case "01" :
+						case "02" :
+							String[] componentParts = sendComponent.split("\\$");
 
-						ComposeStorageService cstService = new ComposeStorageService();
-						String storaged = cstService.checkMaterialPutin(materialPartialEntity.getMaterial_id(), "00000000013", conn);
+							SteelWireContainerWashProcessService supportPService = new SteelWireContainerWashProcessService();
+							supportPService.insertForWaitUnpack(componentParts[0], materialPartialEntity.getMaterial_id(), conn);
 
-						if (storaged == null) {
-							MaterialService mService = new MaterialService();
-							MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, materialPartialEntity.getMaterial_id());
-							String inStorage = cstService.checkRecommendCase(mEntity, "00000000013", 0, conn);
-
-							if (inStorage != null) {
-								if (inStorage.equals(RvsConsts.COM_STORAGE_INSTABLE)) {
-									listResponse.put("componentInstorage", "目前此组件没有存放库存。");
-								} else {
-									if (!inStorage.equals(noticeStorage)) {
-										listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。请发放到库位：" + inStorage + "。(与先前提示有变化)");	
-									} else {
-										listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。请发放到库位：" + inStorage + "。");	
-									}
-									// 实际放入
-									cstService.insertCom(conn, materialPartialEntity.getMaterial_id(), inStorage, errors);
-								}
-							}
-						} else {
-							listResponse.put("componentInstorage", "订购单中存在组件：" + componentPart + "。请发放到库位：" + storaged + "。(系统上已分配)");
+							listResponse.put("componentInstorage", "订购单中存在组件：" + componentParts[1] + "。请进行拆包装作业。");
 						}
 					}
 				}
@@ -332,15 +317,13 @@ public class PartialReleaseAction extends BaseAction {
 	 * @return
 	 * @throws Exception
 	 */
-	private boolean checkOfCN(String material_id, SqlSessionManager conn) throws Exception {
+	private boolean checkOfCN(MaterialEntity me, SqlSessionManager conn) throws Exception {
 		// 检查工位上BO零件
 		ForSolutionAreaService fsoService = new ForSolutionAreaService();
-		MaterialService mService = new MaterialService();
 		String bo_partials = "";
 		MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
 
-		// TODO
-		MaterialEntity me = mService.loadSimpleMaterialDetailEntity(conn, material_id);
+		String material_id = me.getMaterial_id();
 		if (!"06".equals(me.getKind()) && !"07".equals(me.getKind())) {
 
 			// 252工位则判断全工程内是否有BO

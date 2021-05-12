@@ -727,7 +727,7 @@ public class ProductionFeatureService {
 			fingerPosition(workingPf.getPosition_id(), mEntity, fixed, nPf, conn, pfDao, paProxy, ret, triggerList, isFact);
 		}
 
-		if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage)) {
+		if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage) && !RvsConsts.COM_STORAGE_PROCESSED.equals(inStorage)) {
 			if (isFact) {
 				ComposeStorageService csService= new ComposeStorageService();
 				ArrayList<MsgInfo> testInsert = new ArrayList<MsgInfo>();
@@ -738,7 +738,7 @@ public class ProductionFeatureService {
 					String line_id = "00000000012";
 					if ("00000000031".equals(position_id)) line_id = "00000000013";
 					inStorage = csService.checkRecommendCase(mEntity, line_id, workingPf.getRework(), conn);
-					if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage)) {
+					if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage) && !RvsConsts.COM_STORAGE_PROCESSED.equals(inStorage)) {
 						testInsert = new ArrayList<MsgInfo>();
 						csService.insertCom(conn, material_id, inStorage, testInsert);
 						if (testInsert.size() > 0) {

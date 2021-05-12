@@ -10,18 +10,24 @@
 			sw.partial_id,
 			sw.process_type,
 			sw.process_time,
-			sw.lot_no,
+			CASE 
+				WHEN sw.process_type = 5 THEN cstor.case_code
+				ELSE sw.lot_no
+			END as lot_no,
 			sw.quantity,
 			partial.code,
 		    operator.name AS operator_name,
-		    COALESCE(material.omr_notifi_no, material.sorc_no) AS sorc_no
+		    sw.material_id,
+		    material.omr_notifi_no AS sorc_no,
+		    cpat.goods_id AS operator_id,
+		    material.scheduled_date AS process_time_end
 		FROM
 			steel_wire_container_wash_process sw
 		JOIN
 			partial
 		ON
 			sw.partial_id = partial.partial_id
-		JOIN
+		LEFT JOIN
 			operator
 		ON
 			sw.operator_id = operator.operator_id
@@ -29,6 +35,22 @@
 			material
 		ON
 			sw.material_id = material.material_id
+		LEFT JOIN
+			compose_storage cstor
+		ON
+			sw.material_id = cstor.goods_id
+		AND
+			sw.process_type = 5
+		AND
+			cstor.line_id = 00000000013
+		LEFT JOIN
+			compose_storage cpat
+		ON
+			sw.material_id = cpat.goods_id
+		AND
+			sw.process_type = 5
+		AND
+			cstor.line_id = 00000000012
 	]]>
 	<where>
 	<if test="process_type!=null and process_type!='' ">
@@ -48,12 +70,12 @@
 	</if>
 	<if test="process_time_start!=null and process_time_start!='' ">
 	<![CDATA[
-		AND sw.process_time >= #{process_time_start}
+		AND (sw.process_time >= #{process_time_start} OR sw.process_time < '2012-10-1')
 	]]>
 	</if>
 	<if test="process_time_end!=null and process_time_end!='' ">
 	<![CDATA[
-		AND sw.process_time < DATE_ADD(#{process_time_end}, interval 1 day)
+		AND sw.process_time BETWEEN '2012-10-1' AND DATE_ADD(#{process_time_end}, interval 1 day)
 	]]>
 	</if>
 	<if test="operator_id!=null and operator_id!='' ">
@@ -173,4 +195,42 @@
 	]]>
 	</select>
 
+	<insert id="insertForWaitUnpack" parameterType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		INSERT INTO steel_wire_container_wash_process
+		(
+		partial_id,
+		process_type,
+		process_time,
+		quantity,
+		material_id
+		)
+		(SELECT 
+			#{partial_id} as partial_id,
+            5 as process_type,
+			date_add(coalesce(max(process_time), '2000-1-1'), interval 1 minute) as process_time,
+            1 as quantity,
+            #{material_id} as material_id
+            FROM steel_wire_container_wash_process
+		where process_time < '2012-10-1')
+	]]>
+	</insert>
+
+	<update id="finishForMaterial" parameterType="SteelWireContainerWashProcessEntity">
+	<![CDATA[
+		UPDATE 
+			steel_wire_container_wash_process 
+		SET
+			operator_id = #{operator_id}, 
+			process_time = CURRENT_TIMESTAMP
+		WHERE
+			partial_id = #{partial_id}
+		AND
+			process_type = #{process_type}
+		AND
+			material_id = #{material_id}
+		AND
+			process_time < '2012-10-1'
+	]]>
+	</update>
 </mapper>

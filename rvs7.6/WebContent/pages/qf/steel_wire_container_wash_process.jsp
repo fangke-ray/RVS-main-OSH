@@ -237,11 +237,39 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 								<span class="ui-icon ui-icon-circle-triangle-n"></span>
 							</a>
 						</div>
+
+						<div id="recommendCases" class="ui-widget-content dwidth-middleright">
+							<style>#recommendCases td.td-content{width:110px;}</style>
+							<table class="condform">
+								<tbody>
+									<tr>
+										<td class="ui-state-default td-title">A 线</td>
+										<td class="td-content">
+											<lable id="recommendCases_A"></label>
+										</td>
+										<td class="ui-state-default td-title">B1 线</td>
+										<td class="td-content">
+											<lable id="recommendCases_B1"></label>
+										</td>
+										<td class="ui-state-default td-title">B2 线(碳粉)</td>
+										<td class="td-content">
+											<lable id="recommendCases_B2_coal"></label>
+										</td>
+										<td class="ui-state-default td-title">B2 线(滑石粉)</td>
+										<td class="td-content">
+											<lable id="recommendCases_B2_talcum"></label>
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
 						<table id="list"></table>
 						<div id="listpager"></div>
 						<div class="ui-widget-header areabase" id="executes" style="padding-top:4px;">
 				        	<div style="margin-left:4px;margin-top:2px;">
 								<input type="button" id="applyToMaterialButton" class="ui-button"  value="分配维修对象">
+								<input type="button" id="unpackButton" class="ui-button"  value="拆包装">
 					    	</div>
 						</div>
 					</div>

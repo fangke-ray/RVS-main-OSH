@@ -664,7 +664,7 @@ var changeMaterialStatus=function(flag){
 		"flag":flag
 	}
 	var iii = 0;
-	var sendComponent = false; // 发放了订购组件
+	var sendComponent = null; // 发放了订购组件
 	$("#arrive_partial_list").find("tr").each(function(idx, ele) {
 		var $tr = $(ele);
 		$input = $tr.find("input[type=number]");
@@ -682,40 +682,46 @@ var changeMaterialStatus=function(flag){
 				postData["exchange.material_partial_detail_key[" + iii + "]"] = $tr.find("td[aria\\-describedby=arrive_partial_list_material_partial_detail_key]").text();
 				postData["exchange.status["+iii+"]"]=ckValue;
 				postData["exchange.partial_id[" + iii + "]"] = $input.parent().parent().find("td[aria\\-describedby='arrive_partial_list_partial_id']").text();
-				iii ++;
 
 				if (ival > 0 && $tr.find("td[aria\\-describedby=arrive_partial_list_order_flg]").text() == "2") {
-					sendComponent = true;
+					sendComponent = postData["exchange.partial_id[" + iii + "]"] + "$" + $tr.find("td[aria\\-describedby=arrive_partial_list_code]").text();;
 				}
+
+				iii ++;
 			}
 		};
 	});
 
+	var subPartCnt = $(".subPart").closest("tr").length;
 	var nsPartsCollected = $("#ns_partial_set").hasClass("needNp") && !$("#ns_partial_set").hasClass("compSelected") 
-		&& ($(".subPart").closest("tr.ui-state-highlight").length == $(".subPart").closest("tr").length);
+		&& ($(".subPart").closest("tr.ui-state-highlight").length == subPartCnt);
 
 	if ("check" === flag) {
 
 		if (nsPartsCollected) {
-			warningConfirm("此次判定NS 组件子零件全部无 BO，是否立刻将子零件准备入库？", 
-				function(){
-					if ($("#check_use_ns_component:visible").is(":checked")) {
-						postData["exchange.cur_quantity[" + iii + "]"] = 1;
-						postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
-						postData["exchange.status["+iii+"]"]=7; // 使用组件
-						postData["exchange.partial_id[" + iii + "]"] = $("#label_use_ns_component_code").data("component_partial_id");
-						postData["exchange.code[" + iii + "]"]=$("#label_use_ns_component_code").text(); // 使用组件名
-					}
-					postChangeMaterialStatus(postData);
-				}, 
-				function(){
-					postChangeMaterialStatus(postData);
-				}, "物料组签收确认", "判定后就准备入库", "只判定不入库");
+			if (subPartCnt == 0) {
+				errorPop("订单中无 NS 组装组件的子零件，不能入库签收。");
+			} else {
+				warningConfirm("此次判定NS 组件子零件全部无 BO，是否立刻将子零件准备入库？", 
+					function(){
+						if ($("#check_use_ns_component:visible").is(":checked")) {
+							postData["exchange.cur_quantity[" + iii + "]"] = 1;
+							postData["exchange.material_partial_detail_key[" + iii + "]"] = null;
+							postData["exchange.status["+iii+"]"]=7; // 使用组件
+							postData["exchange.partial_id[" + iii + "]"] = $("#label_use_ns_component_code").data("component_partial_id");
+							postData["exchange.code[" + iii + "]"]=$("#label_use_ns_component_code").text(); // 使用组件名
+						}
+						postChangeMaterialStatus(postData);
+					}, 
+					function(){
+						postChangeMaterialStatus(postData);
+					}, "物料组签收确认", "判定后就准备入库", "只判定不入库");
+			}
 		} else {
 			postChangeMaterialStatus(postData);
 		}
 	} else {
-		if (sendComponent && $("#component_instorage").text()) postData["sendComponent"] = $("#component_instorage").text();
+		if (sendComponent && $("#component_instorage").text()) postData["sendComponent"] = sendComponent;
 
 		if ($("#check_use_ns_component:visible").is(":checked") && !$("#ns_partial_set").hasClass("compSelected")) {
 			postData["exchange.cur_quantity[" + iii + "]"] = 1;

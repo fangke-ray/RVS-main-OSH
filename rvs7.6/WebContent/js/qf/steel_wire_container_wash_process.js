@@ -73,28 +73,30 @@ $(function(){
 		$("#load > div[for='" + id + "']").show();
 		
 		var title = $("label[for='" + id +"']").text();
-		$("#listModelName").text(title + "一览");
+		$("#listModelName").text(title + "作业一览");
 		
+		$(".ui-jqgrid-hbox").prev().show();
 		if(process_type == 1){
 			$("#list").jqGrid('showCol','lot_no');
-			$("#list").jqGrid('hideCol',['cut_length','sorc_no']);
+			$("#list").jqGrid('hideCol',['cut_length','sorc_no','case_code','partial_case','process_time_end']);
 			L1.findit();
 		} else if (process_type == 2){
 			$("#list").jqGrid('showCol','cut_length');
-			$("#list").jqGrid('hideCol',['lot_no','sorc_no']);
+			$("#list").jqGrid('hideCol',['lot_no','sorc_no','case_code','partial_case','process_time_end']);
 			L2.findit();
 		} else if (process_type == 3){
-			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no']);
+			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no','case_code','partial_case','process_time_end']);
 			L3.findit();
 		} else if (process_type == 4){
-			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no']);
+			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no','case_code','partial_case','process_time_end']);
 			L4.findit();
 		} else if (process_type == 5){
-			$("#list").jqGrid('showCol','sorc_no');
+			$("#list").jqGrid('showCol',['sorc_no','case_code','partial_case','process_time_end']);
 			$("#list").jqGrid('hideCol',['lot_no','cut_length']);
+			$(".ui-jqgrid-hbox").prev().hide();
 			L5.findit();
 		}
-		
+
 		$("#list").jqGrid('setGridWidth', '992');
 		
 		if(process_type == 5){
@@ -107,6 +109,9 @@ $(function(){
 	$("#L1Button").prop("checked",true).trigger("change").trigger("click");
 	
 	$("#applyToMaterialButton").click(distribut);
+	$("#unpackButton").click(function(){
+		afObj.applyProcess(275, this, unpack, arguments);
+	});
 	
 	
 	$("#search_partial_code_refer table:last-child tr").each(function(){
@@ -308,7 +313,7 @@ function jsinit(){
 						}
 					});
     	        }
-    	    } catch (e) {};
+    	    } catch (e) {console.log(e.message)};
         }
     });
 };
@@ -334,8 +339,16 @@ function search(data){
                     treatBackMessages(null, resInfo.errors);
                 } else {
                     list(resInfo.finished);
+                    if (resInfo.recommendCases) {
+                    	$("#recommendCases").show();
+                    	for (var key in resInfo.recommendCases) {
+                    		$("#recommendCases_" + key).text(resInfo.recommendCases[key] || "-");
+                    	}
+                    } else {
+                    	$("#recommendCases").hide();
+                    }
                 }
-            } catch (e) {};
+            } catch (e) {console.log(e.message)};
         }
     });
 };
@@ -351,11 +364,18 @@ function list(listdata){
             width: 992,
             rowheight: 23,
             datatype: "local",
-            colNames:['partial_id','process_type','hid_process_time','品名','入库批号','切割长度','数量','处理日期','责任人','维修对象修理单号'],
+            colNames:['partial_id','process_type','hid_process_time','品名','入库批号','切割长度','数量','处理日期','责任人'
+            	,'material_id','维修对象修理单号','零件箱','纳期','总组库位'],
             colModel:[
             	  {name:'partial_id',index:'partial_id',hidden:true},
             	  {name:'process_type',index:'process_type',hidden:true},
-            	  {name:'hid_process_time',index:'hid_process_time',hidden:true,formatter : function(value, options, rData) {return rData["process_time"];	}},
+            	  {name:'hid_process_time',index:'hid_process_time',hidden:true,formatter : function(value, options, rData) {
+            	  	var process_time = rData["process_time"];
+            	  	if (process_time <= "2012") {
+            	  		return "";
+            	  	}
+            	  	return process_time;
+            	  }},
 	              {name:'code',index:'code',width:100},
                   {name:'lot_no',index:'lot_no',width:50},
                   {name:'cut_length',index:'cut_length',width:50,align:'right',formatter : function(value, options, rData) {
@@ -367,8 +387,24 @@ function list(listdata){
                    }},
                   {name:'quantity',index:'quantity',width:50,align:'right'},
                   {name:'process_time',index:'process_time',width:90,align:'center',sorttype:'date',formatter:'date',formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'Y-m-d'}},
-                  {name:'operator_name',index:'operator_name',width:100},
-                  {name:'sorc_no',index:'sorc_no',width:100}
+                  {name:'operator_name',index:'operator_name',width:60},
+                  {name:'material_id',index:'material_id',hidden:true},
+                  {name:'sorc_no',index:'sorc_no',width:100},
+                  {name:'partial_case',index:'partial_case',width:30,formatter : function(value, options, rData) {
+                	  if(!rData["operator_id"]){
+                		  return "-"; 
+                	  }else{
+                		  return "已入库";
+                	  }
+                  }},
+                  {name:'process_time_end',index:'process_time_end',width:90,align:'center',sorttype:'date',formatter:'date',formatoptions:{srcformat:'Y/m/d',newformat:'Y-m-d'}},
+                  {name:'case_code',index:'case_code',width:70,formatter : function(value, options, rData) {
+                	  if(!rData["lot_no"]){
+                		  return "-"; 
+                	  }else{
+                		  return rData["lot_no"];
+                	  }
+                  }}
             ],
             rowNum: 20,
             toppager : false,
@@ -390,8 +426,17 @@ function list(listdata){
             },
             viewsortcols : [true,'vertical',true],
             gridComplete:function(){
-            	if(process_type == 5){
-            		$("#applyToMaterialButton").disable();
+            	enableButton();
+            	if (process_type == 5) {
+            		$("#list > tbody > tr.jqgrow").each(function(idx, ele){
+            		
+            			var $tdProcessTime = $(ele).children("td[aria\\-describedby=\"list_process_time\"]");
+            			if ($tdProcessTime.text() < "2012") {
+            				$tdProcessTime.text("包装待拆")
+            					.attr("title", "待处理")
+            					.css("color", "orange");
+            			}
+            		})
             	}
             }
         }); 
@@ -408,12 +453,26 @@ function list(listdata){
 };
 
 function enableButton(){
-	var rowId=$("#list").jqGrid("getGridParam","selrow");
-	
-	if(rowId && process_type == 5){
-		$("#applyToMaterialButton").enable();
-	}else{
-		$("#applyToMaterialButton").disable();
+
+	if(process_type == 5){
+		var rowId=$("#list").jqGrid("getGridParam","selrow");
+		if (rowId) {
+			var rowData = $("#list").getRowData(rowId);
+			if (rowData.sorc_no) {
+				$("#applyToMaterialButton").disable();
+			} else {
+				$("#applyToMaterialButton").enable();
+			}
+
+			if (rowData.hid_process_time != "") {
+				$("#unpackButton").disable();
+			} else {
+				$("#unpackButton").enable();
+			}
+		} else {
+			$("#applyToMaterialButton").disable();
+			$("#unpackButton").disable();
+		}
 	}
 };
 
@@ -538,7 +597,7 @@ function insert_handleComplete (xhrobj, textStatus){
 				L5.findit();
 			}
         }
-    } catch (e) {};
+    } catch (e) {console.log(e.message)};
 };
 
 function showEdit () {
@@ -646,7 +705,7 @@ function update_handleComplete (xhrobj, textStatus){
 				L5.findit();
 			}
         }
-    } catch (e) {}
+    } catch (e) {console.log(e.message)};
 };
 
 function distribut(){
@@ -729,7 +788,7 @@ function distribut(){
             				     					L5.findit();
             				     				}
             				     	        }
-            				     	    } catch (e) {}
+            				     	    } catch (e) {console.log(e.message)};
             				        }
             				    });
             				},
@@ -739,10 +798,44 @@ function distribut(){
             			}
             		});
                 }
-            } catch (e) {}
+            } catch (e) {console.log(e.message)};
         }
     });
 };
+
+var unpack = function(){
+	var rowID = $("#list").jqGrid("getGridParam","selrow");
+	var rowData = $("#list").getRowData(rowID);
+
+	var postData = {
+		"partial_id" : rowData.partial_id,
+		"process_type" : 5,
+		"code" : rowData.code,
+		"material_id" : rowData.material_id
+	}
+
+	$.ajax({
+        beforeSend : ajaxRequestType,
+        async : true,
+        url : servicePath + '?method=doUnpack',
+        cache : false,
+        data : postData,
+        type : "post",
+        dataType : "json",
+        success : ajaxSuccessCheck,
+        error : ajaxError,
+        complete : function (xhrobj, textStatus){
+        	var resInfo = $.parseJSON(xhrobj.responseText);
+ 	        if (resInfo.errors.length > 0) {
+ 	            // 共通出错信息框
+ 	            treatBackMessages(null, resInfo.errors);
+ 	        } else {
+ 	        	if (resInfo.componentInstorage) infoPop(resInfo.componentInstorage);
+				L5.findit();
+ 	        }
+        }
+    });
+}
 
 function materialList(listdata){
 	if ($("#gbox_materiallist").length > 0) {
