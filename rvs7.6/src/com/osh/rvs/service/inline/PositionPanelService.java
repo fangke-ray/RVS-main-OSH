@@ -1264,15 +1264,8 @@ public class PositionPanelService {
 
 		boolean checkComStorage = "410".equals(processCode) || "411".equals(processCode) || "412".equals(processCode); // TODO
 		if (checkComStorage && waitingPf.getOperate_result() == 0 ) {
-			ComposeStorageMapper scDao = conn.getMapper(ComposeStorageMapper.class);
-			ComposeStorageEntity cond = new ComposeStorageEntity();
-			cond.setMaterial_id(waitingPf.getMaterial_id());
-			// 如果投入总组开始, 取出库位
-			List<ComposeStorageEntity> ret = scDao.getComposeStorageEntities(cond);
-			// 先判断是否存在
-			if (ret.size() > 0) {
-				scDao.stockRemoval(waitingPf.getMaterial_id());
-			}
+			ComposeStorageService scService = new ComposeStorageService();
+			scService.checkAstockRemoval(waitingPf.getMaterial_id(), conn);
 		}
 //		if (waitingPf.getOperate_result() == 0 
 //				&& ("00000000033".equals(positionId) || "00000000042".equals(positionId) 

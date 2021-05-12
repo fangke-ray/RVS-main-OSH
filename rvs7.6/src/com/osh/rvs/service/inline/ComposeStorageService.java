@@ -451,4 +451,22 @@ public class ComposeStorageService {
 		}
 	}
 
+	/**
+	 * 检查维修品存在总组库位，并且出库
+	 * 
+	 * @param material_id
+	 * @param conn
+	 */
+	public void checkAstockRemoval(String material_id, SqlSessionManager conn) {
+		ComposeStorageMapper scDao = conn.getMapper(ComposeStorageMapper.class);
+		ComposeStorageEntity cond = new ComposeStorageEntity();
+		cond.setMaterial_id(material_id);
+		// 如果投入总组开始, 取出库位
+		List<ComposeStorageEntity> ret = scDao.getComposeStorageEntities(cond);
+		// 先判断是否存在
+		if (ret.size() > 0) {
+			scDao.stockRemoval(material_id);
+		}
+	}
+
 }

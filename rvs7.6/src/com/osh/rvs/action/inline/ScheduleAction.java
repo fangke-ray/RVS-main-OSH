@@ -40,6 +40,7 @@ import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.UserDefineCodesService;
+import com.osh.rvs.service.inline.ComposeStorageService;
 import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.inline.ScheduleService;
@@ -471,6 +472,9 @@ public class ScheduleAction extends BaseAction {
 		// 删除未完成的烘干作业
 		DryingProcessService dpService = new DryingProcessService();
 		dpService.stopDryingProcessByMaterial(id, conn);
+		// 如果总组库位中，取消库位
+		ComposeStorageService csService = new ComposeStorageService();
+		csService.checkAstockRemoval(id, conn);
 
 		WipService wService = new WipService();
 		wService.stop(conn, id);
