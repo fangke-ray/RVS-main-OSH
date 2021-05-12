@@ -45,10 +45,12 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.PostMessageEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.inline.MaterialProcessEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.master.LineEntity;
 import com.osh.rvs.bean.master.PcsFixOrderEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
+import com.osh.rvs.common.CopyByPoi;
 import com.osh.rvs.common.FseBridgeUtil;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
@@ -62,6 +64,7 @@ import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.data.PostMessageMapper;
 import com.osh.rvs.mapper.inline.LeaderPcsInputMapper;
 import com.osh.rvs.mapper.inline.MaterialCommentMapper;
+import com.osh.rvs.mapper.inline.MaterialProcessMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.manage.PcsFixOrderMapper;
 import com.osh.rvs.mapper.master.LineMapper;
@@ -831,11 +834,12 @@ public class MaterialService {
 		return v.validate();
 	}
 
-	public void createReport(String fileFullPath, List<MaterialForm> lResultForm) {
+	public void createReport(String fileFullPath, List<MaterialForm> lResultForm, SqlSession conn) {
 		FileUtils.copyFile(PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\维修对象一览报表模板.xls", fileFullPath);
 		
 		POIFSFileSystem fs;
 		HSSFWorkbook book = null;
+		boolean needAddition = (conn != null);
 
 		try {
 			fs = new POIFSFileSystem(new FileInputStream(fileFullPath));
@@ -875,38 +879,63 @@ public class MaterialService {
 			centerCell.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 			centerCell.setFont(fontYH);
 
-			listSheet.setDefaultColumnStyle(0, highlightCell);
-			listSheet.setDefaultColumnStyle(1, defaultCell);
-			listSheet.setDefaultColumnStyle(2, defaultCell);
-			listSheet.setDefaultColumnStyle(3, defaultCell);
-			listSheet.setDefaultColumnStyle(4, defaultCell);
-			listSheet.setDefaultColumnStyle(5, defaultCell);
-			listSheet.setDefaultColumnStyle(6, centerCell);
-			listSheet.setDefaultColumnStyle(7, centerCell);
-			listSheet.setDefaultColumnStyle(8, defaultCell);
-			listSheet.setDefaultColumnStyle(9, defaultCell);
-			listSheet.setDefaultColumnStyle(10, defaultCell);
-			listSheet.setDefaultColumnStyle(11, defaultCell);
-			listSheet.setDefaultColumnStyle(12, defaultCell);
-			listSheet.setDefaultColumnStyle(13, defaultCell);
-			listSheet.setDefaultColumnStyle(14, defaultCell);
-			listSheet.setDefaultColumnStyle(15, defaultCell);
-			listSheet.setDefaultColumnStyle(16, defaultCell);
+			int colCur = -1;
+
+			listSheet.setDefaultColumnStyle(++colCur, highlightCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, centerCell);
+			listSheet.setDefaultColumnStyle(++colCur, centerCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+
+			MaterialProcessMapper mapper = null;
+			if (needAddition) {
+				mapper = conn.getMapper(MaterialProcessMapper.class);
+				row = listSheet.getRow(0);
+				for (int irest = 0; irest < 5; irest++) {
+					HSSFCell distCell = row.getCell(colCur + 8 - irest);
+					if (distCell == null) distCell = row.createCell(colCur + 8 - irest);
+					// 插入行
+					HSSFCell srcCell = row.getCell(colCur + 5 - irest);
+					CopyByPoi.copyCell(srcCell, distCell, true);
+
+					listSheet.setColumnWidth(colCur + 8 - irest, 
+							listSheet.getColumnWidth(colCur + 5 - irest));
+				}
+				listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+				row.getCell(colCur).setCellValue("投线时间");
+				listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+				row.getCell(colCur).setCellValue("分解完成");
+				listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+				row.getCell(colCur).setCellValue("NS 完成");
+			}
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
 
 			for (int i=0; i < lResultForm.size(); i++) {
+				colCur = -1;
 				MaterialForm resultForm = lResultForm.get(i);
 				row = listSheet.createRow(i+1);
 				// int excelRowNum = row.getRowNum();
-				HSSFCell cell = row.createCell(0, HSSFCell.CELL_TYPE_STRING);
+				HSSFCell cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(i+1);
 
-				cell = row.createCell(1, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue("'" + resultForm.getSorc_no());
 
-				cell = row.createCell(2, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getModel_name());
 
-				cell = row.createCell(3, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				String sLevel = resultForm.getLevel();
 				if (!levels.containsKey(sLevel)) {
 					levels.put(sLevel, CodeListUtils.getValue("material_level", sLevel, " - "));
@@ -914,10 +943,10 @@ public class MaterialService {
 				sLevel = levels.get(sLevel);
 				cell.setCellValue(sLevel);
 
-				cell = row.createCell(4, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue("'" + resultForm.getSerial_no());
 
-				cell = row.createCell(5, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				String sOcm = resultForm.getOcm();
 				if (!ocms.containsKey(sOcm)) {
 					ocms.put(sOcm, CodeListUtils.getValue("material_ocm", sOcm, " - "));
@@ -925,48 +954,73 @@ public class MaterialService {
 				sOcm = ocms.get(sOcm);
 				cell.setCellValue(sOcm);
 
-				cell = row.createCell(6, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getSection_name());
 
-				cell = row.createCell(7, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getProcessing_position());
 
-				cell = row.createCell(8, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getProcessing_position2());
 
-				cell = row.createCell(9, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				String sReceptionTime = resultForm.getReception_time();
 				if (sReceptionTime != null && sReceptionTime.length() > 10)
 					sReceptionTime = sReceptionTime.substring(0, 10);
 				cell.setCellValue(sReceptionTime);
 
-				cell = row.createCell(10, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getAgreed_date());
 
-				cell = row.createCell(11, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getScheduled_date());
 
-				cell = row.createCell(12, HSSFCell.CELL_TYPE_STRING);
+				if (needAddition) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					if (resultForm.getInline_time() != null) {
+						cell.setCellValue(resultForm.getInline_time().replace('/', '-'));
+					} else {
+						cell.setCellValue("-");
+					}
+
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					MaterialProcessEntity mpEntity = mapper.loadMaterialProcessOfLine(resultForm.getMaterial_id(), "00000000012");
+					if (mpEntity == null || mpEntity.getFinish_date() == null) {
+						cell.setCellValue("-");
+					} else {
+						cell.setCellValue(DateUtil.toString(mpEntity.getFinish_date(), DateUtil.ISO_DATE_PATTERN));
+					}
+
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					mpEntity = mapper.loadMaterialProcessOfLine(resultForm.getMaterial_id(), "00000000013");
+					if (mpEntity == null || mpEntity.getFinish_date() == null) {
+						cell.setCellValue("-");
+					} else {
+						cell.setCellValue(DateUtil.toString(mpEntity.getFinish_date(), DateUtil.ISO_DATE_PATTERN));
+					}
+				}
+
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				if("9999-12-31".equals(resultForm.getScheduled_date_end())){
 					cell.setCellValue("另行通知");
 				}else{
 					cell.setCellValue(resultForm.getScheduled_date_end());
 				}
-
-				cell = row.createCell(13, HSSFCell.CELL_TYPE_STRING);
+				
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getOutline_time());
 
-				cell = row.createCell(14, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getPartial_order_date());
 
-				cell = row.createCell(15, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				if("9999-12-31".equals(resultForm.getArrival_plan_date())){
 					cell.setCellValue("未定");
 				}else{
 					cell.setCellValue(resultForm.getArrival_plan_date());
 				}
 
-				cell = row.createCell(16, HSSFCell.CELL_TYPE_STRING);
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getIs_late());
 			}
 			// 保存文件
