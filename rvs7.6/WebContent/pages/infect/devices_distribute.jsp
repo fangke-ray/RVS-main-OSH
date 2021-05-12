@@ -68,15 +68,22 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									</td>
 								</tr>
 								<tr>
-									<td class="ui-state-default td-title">分发课室</td>
-									<td class="td-content">
+									<td class="ui-state-default td-title" rowspan="2">分发课室</td>
+									<td class="td-content" rowspan="2">
 										<select id="search_section_id">${sectionOptions}</select>
 									</td>
-									<td class="ui-state-default td-title">责任工程</td>
-									<td class="td-content">
+									<td class="ui-state-default td-title" rowspan="2">责任工程</td>
+									<td class="td-content" rowspan="2">
 										<select id="search_responsible_line_id">${lineOptions }</select>
 									</td>
 									<td class="ui-state-default td-title">责任工位</td>
+									<td class="td-content">
+										<input type="text" id="search_responsible_position_name" class="ui-widget-content">
+										<input name="position_name" id="hidden_responsible_position_id" type="hidden">
+									</td>
+								</tr>
+								<tr>
+									<td class="ui-state-default td-title">借出</td>
 									<td class="td-content">
 										<input type="text" id="search_responsible_position_name" class="ui-widget-content">
 										<input name="position_name" id="hidden_responsible_position_id" type="hidden">

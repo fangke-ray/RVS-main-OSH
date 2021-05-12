@@ -101,6 +101,14 @@ public class ShippingAction extends BaseAction {
 			user.setLine_id("00000000011");
 		}
 
+		// 设定待点检信息
+		String infectString = ppService.checkPositionInfectWorkOnPass(
+				section_id, user.getPosition_id(), user.getLine_id(), user.getOperator_id(), conn, listResponse);
+
+		infectString += ppService.getAbnormalWorkStateByOperator(user.getOperator_id(), conn);
+
+		listResponse.put("infectString", infectString);
+
 		// 取得等待区一览
 		listRefresh(listResponse, user.getPosition_id(), conn);
 

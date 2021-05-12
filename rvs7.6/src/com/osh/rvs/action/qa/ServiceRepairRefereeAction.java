@@ -18,12 +18,14 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.qa.ServiceRepairManageEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.qa.ServiceRepairManageForm;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qa.ServiceRepairManageService;
 import com.osh.rvs.service.qa.ServiceRepairRefereeService;
@@ -89,6 +91,11 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		//发行QIS
 		request.setAttribute("sQis_isuse", CodeListUtils.getSelectOptions("qis_isuse", null, ""));
 
+		// 判断是否动物实验用维修品工位
+		if (PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id())) {
+			request.setAttribute("unitizeds", "true");
+		}
+
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
@@ -125,11 +132,12 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		}
 		String position_id = user.getPosition_id();
 		String line_id = user.getLine_id();
+		boolean isUnitizeds = PositionService.getPositionUnitizeds(conn).containsKey(position_id);
 
 		// 未着手数据
 		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
 		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,
-				PositionService.getPositionUnitizeds(conn).containsKey(position_id), null);
+				isUnitizeds, null);
 		callbackResponse.put("errors", infoes);
 		callbackResponse.put("serviceRepairList", sList);
 
@@ -138,9 +146,11 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		callbackResponse.put("serviceRepairPausedList", sListPaused);
 
 		PositionPanelService ppservice = new PositionPanelService();
-		String infectString = ppservice.getInfectMessageByPosition(section_id,
-				position_id, line_id, conn);
-		infectString += ppservice.getAbnormalWorkStateByOperator(user.getOperator_id(), conn);
+
+		// 设定待点检信息
+		String infectString = ppservice.checkPositionInfectWorkOnPass(
+				section_id, position_id, line_id, operator_id, conn, callbackResponse);
+		infectString += ppservice.getAbnormalWorkStateByOperator(operator_id, conn);
 
 		callbackResponse.put("infectString", infectString);
 		if (infectString.indexOf("限制工作") >= 0) {
@@ -165,6 +175,17 @@ public class ServiceRepairRefereeAction extends BaseAction{
 			// 工步
 			String stepOptions = service.getSteps();
 			callbackResponse.put("stepOptions", stepOptions);
+
+			// 判断作业者是否借用了设备工具
+			if (!isUnitizeds) {
+				if (session.getAttribute("DJ_LOANING") != null) {
+					DeviceJigLoanService djlService = new DeviceJigLoanService();
+					String loaning = djlService.checkLoaningNowText(user.getOperator_id(), conn);
+					if (loaning != null) {
+						callbackResponse.put("djLoaning", loaning);
+					}
+				}
+			}
 		}
 
 		returnJsonResponse(response, callbackResponse);
@@ -274,6 +295,22 @@ public class ServiceRepairRefereeAction extends BaseAction{
 					service.updateQareceptionTime(conn, material_id);
 					listResponse.put("resultForm", resultForm);
 				}
+
+				if (PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id())) {
+					DeviceJigLoanService djlService = new DeviceJigLoanService();
+
+					ProductionFeatureEntity waitingPf = new ProductionFeatureEntity();
+					waitingPf.setMaterial_id(material_id);
+					waitingPf.setRework(0);
+					waitingPf.setPosition_id(user.getPosition_id());
+					// 现在已借用的设备治具未登记给维修品
+					List<String> loaningUnregisting = djlService.getLoaningUnregisting(waitingPf,
+							user.getOperator_id(), conn);
+
+					// 在借用的前提下
+					djlService.registToMaterial(waitingPf, loaningUnregisting, conn);
+				}
+
 			}
 		}
 		
@@ -283,7 +320,7 @@ public class ServiceRepairRefereeAction extends BaseAction{
 
 		listResponse.put("errors", msgInfos);
 		returnJsonResponse(response, listResponse);
-		
+
 		log.info("ServiceRepairRefereeAction.doscan end");
 	}
 	

@@ -1013,11 +1013,11 @@ cursor :pointer;
 <td location="S03">03</td>
 <td location="S04">04</td>
 <td location="S05">05</td>
-<td location="S06" anml_exp>06</td>
-<td location="S07" anml_exp>07</td>
-<td location="S08" anml_exp>08</td>
-<td location="S09" anml_exp>09</td>
-<td location="S10" anml_exp>10</td>
+<td location="S06">06</td>
+<td location="S07">07</td>
+<td location="S08">08</td>
+<td location="S09">09</td>
+<td location="S10">10</td>
 				</tr>
 				<tr>
 <td location="S11">11</td>

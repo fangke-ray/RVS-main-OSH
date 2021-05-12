@@ -87,13 +87,13 @@ public class AppMenuAction extends BaseAction {
 		// 受理报价全工位
 		menuLinks.put("acceptance", false);
 		{
-			String links = getLinksByPositions(userPositions, LINE_ACCEPT_QUOTATE, section_id, px, conn);
+			String links = getLinksByPositions(userPositions, LINE_ACCEPT_QUOTATE, section_id, px, false, conn);
 			if (links.length() > 0) {
 				menuLinks.put("acceptance", true);
 				req.setAttribute("beforePosition", links);
 				menuLinks.put("受理报价", true);
 			} else {
-				links = getLinksByPositions(userPositions, LINE_FACTM, section_id, px, conn);
+				links = getLinksByPositions(userPositions, LINE_FACTM, section_id, px, false, conn);
 				if (links.length() > 0) {
 					menuLinks.put("acceptance", true);
 					req.setAttribute("beforePosition", links);
@@ -195,7 +195,7 @@ public class AppMenuAction extends BaseAction {
 				menuLinks.put("在线作业", true);
 			} 
 			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px, conn);
+				String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px, false, conn);
 				inlinePosition += links;
 			}
 			if ("00000000001".equals(section_id)) {
@@ -212,7 +212,7 @@ public class AppMenuAction extends BaseAction {
 				menuLinks.put("在线作业", true);
 			} 
 			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_NS, section_id, px, conn);
+				String links = getLinksByPositions(userPositions, LINE_NS, section_id, px, false, conn);
 				inlinePosition += links;
 			}
 			if ("00000000001".equals(section_id)) {
@@ -230,7 +230,7 @@ public class AppMenuAction extends BaseAction {
 				// 总组库位
 			} 
 			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_COM, section_id, px, conn);
+				String links = getLinksByPositions(userPositions, LINE_COM, section_id, px, false, conn);
 				inlinePosition += links;
 			}
 			if ("00000000001".equals(section_id)) {
@@ -248,7 +248,7 @@ public class AppMenuAction extends BaseAction {
 		menuLinks.put("shipping", false);
 
 		if (privacies.contains(RvsConsts.PRIVACY_RECEPT_FACT)) {
-			String links = getLinksByPositions(userPositions, LINE_SHIP, section_id, px, conn);
+			String links = getLinksByPositions(userPositions, LINE_SHIP, section_id, px, false, conn);
 			if (links.length() > 0) {
 				inlinePosition += links;
 				req.setAttribute("inlinePosition", inlinePosition);
@@ -273,6 +273,15 @@ public class AppMenuAction extends BaseAction {
 			menuLinks.put("wash", false);
 		}
 
+		menuLinks.put("在线作业（特殊）", false);
+		{
+			String links = getLinksByPositions(userPositions, null, section_id, px, true, conn);
+			if (links.length() > 0) {
+				req.setAttribute("inlineSpecPosition", links);
+				menuLinks.put("在线作业（特殊）", true);
+			}
+		}
+
 		///////////////////////////////////////////////////////////////////
 
 		// 品保
@@ -285,7 +294,7 @@ public class AppMenuAction extends BaseAction {
 			menuLinks.put("qa_view", false);
 		}
 
-		String links = getLinksByPositions(userPositions, LINE_QA, section_id, px, conn);
+		String links = getLinksByPositions(userPositions, LINE_QA, section_id, px, false, conn);
 		if (privacies.contains(RvsConsts.PRIVACY_QUALITY_ASSURANCE) || links.length() > 0) {
 //			links = links.replaceAll("javascript:getPositionWork\\('00000000046'\\);", "qualityAssurance.do")
 //					.replaceAll("javascript:getPositionWork\\('00000000051'\\);", "service_repair_referee.do")
@@ -368,8 +377,8 @@ public class AppMenuAction extends BaseAction {
 	 * @param conn 
 	 * @return
 	 */
-	private String getLinksByPositions(List<PositionEntity> positions, String line_id, String section_id, String px, 
-			SqlSession conn) {
+	private String getLinksByPositions(List<PositionEntity> positions, String line_id, String section_id, String px,
+			boolean getUnitized, SqlSession conn) {
 		StringBuffer ret = new StringBuffer("");
 		Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
 		Set<String> groupPositions = new HashSet<String>();
@@ -379,7 +388,13 @@ public class AppMenuAction extends BaseAction {
 				continue;
 			}
 
-			if (line_id.equals(position.getLine_id())) {
+			boolean isPositionUnitizeds = PositionService.getPositionUnitizeds(conn).containsKey(position.getPosition_id());
+			if (getUnitized && !isPositionUnitizeds) {
+				continue;
+			} else if (!getUnitized && isPositionUnitizeds) {
+				continue;
+			}
+			if (line_id == null || line_id.equals(position.getLine_id())) {
 				if ("00000000001".equals(section_id) && position.getLight_division_flg() != null 
 						&& position.getLight_division_flg() == 1 && !"4".equals(px)) {
 					if (position.getProcess_code().startsWith("5")) {

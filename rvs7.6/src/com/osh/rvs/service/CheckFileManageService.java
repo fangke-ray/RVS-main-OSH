@@ -85,6 +85,8 @@ public class CheckFileManageService {
 
 		CheckFileManageMapper dao = conn.getMapper(CheckFileManageMapper.class);
 		dao.delete(entity);
+
+		CheckResultService.clearInfectPass(null);
 	}
 
 	/**
@@ -112,6 +114,7 @@ public class CheckFileManageService {
 		CheckFileManageMapper dao = conn.getMapper(CheckFileManageMapper.class);
 		dao.insert(entity);
 
+		CheckResultService.clearInfectPass(null);
 	}
 
 	/**

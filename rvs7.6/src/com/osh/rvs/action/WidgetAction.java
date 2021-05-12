@@ -26,6 +26,8 @@ import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.mapper.data.MaterialMapper;
+import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
@@ -322,6 +324,20 @@ public class WidgetAction extends BaseAction {
 			if ("3".equals(editLevel)) {
 				req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level", null, "(未定)", false));
 			}
+
+
+			boolean isAnmlExp = false;
+			if (mBean.getOutline_time() != null) { // 完成
+				isAnmlExp = MaterialTagService.getAnmlMaterials(conn).contains(material_id);
+			} else {
+				MaterialTagService mtService = new MaterialTagService(); 
+				List<Integer> l = mtService.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
+				isAnmlExp = l.size() > 0;
+			}
+			if (isAnmlExp) {
+				req.setAttribute("showDjLoan", "yes");
+			}
+
 		}
 
 		// 迁移到页面

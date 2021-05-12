@@ -11,6 +11,9 @@ public interface ToolsManageMapper {
 	public List<ToolsManageEntity> searchToolsManage(
 			ToolsManageEntity toolsManageEntity);
 
+	/*治具分布详细数据*/
+	public List<ToolsManageEntity> searchJigDistribute(ToolsManageEntity toolsDistributeEntity);
+
 	/* 修改治具管理详细 */
 	public void updateToolsManage(ToolsManageEntity toolsManageEntity);
 

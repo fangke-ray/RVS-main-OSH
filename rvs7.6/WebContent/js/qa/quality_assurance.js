@@ -334,6 +334,9 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 					doStart();
 				}
 			}
+			if (resInfo.djLoaning) {
+				warningConfirm(resInfo.djLoaning);
+			}
 		}
 
 	} catch (e) {
@@ -654,6 +657,7 @@ var doStart_ajaxSuccess=function(xhrobj){
 			treatBackMessages(null, resInfo.errors);
 		} else {
 			treatStart(resInfo);
+			if (typeof(getRentListdata) === "function") getRentListdata();
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: "

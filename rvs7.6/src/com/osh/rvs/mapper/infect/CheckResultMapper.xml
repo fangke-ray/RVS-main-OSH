@@ -24,7 +24,7 @@
 			    `device_check_result`
 			WHERE manage_id = #{manage_id}
 				AND check_file_manage_id = #{check_file_manage_id}
-				AND date(`check_confirm_time`) = current_date
+				AND `check_confirm_time` >= current_date
 			group by 
 			    `manage_id`,
 			    `check_file_manage_id`,
@@ -60,7 +60,7 @@
 			    `device_check_result`
 			WHERE manage_id = #{manage_id}
 				AND check_file_manage_id = #{check_file_manage_id}
-				AND date(`check_confirm_time`) = current_date
+				AND `check_confirm_time` >= current_date
 			group by 
 			    `manage_id`,
 			    `check_file_manage_id`,
@@ -98,7 +98,7 @@
 			    ON dcr.manage_id = dm.devices_manage_id
 			WHERE dm.section_id = #{section_id} AND dm.position_id = #{position_id}
 				AND check_file_manage_id = #{check_file_manage_id}
-				AND date(`check_confirm_time`) between #{check_confirm_time_start} and #{check_confirm_time_end}
+				AND `check_confirm_time` between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 			group by 
 			    `manage_id`,
 			    `check_file_manage_id`,
@@ -136,7 +136,7 @@
 			    ON dcr.manage_id = dm.devices_manage_id
 			WHERE dm.section_id = #{section_id} AND dm.position_id = #{position_id}
 				AND check_file_manage_id = #{check_file_manage_id}
-				AND date(`check_confirm_time`) = current_date
+				AND `check_confirm_time` >= current_date
 			group by 
 			    `manage_id`,
 			    `check_file_manage_id`,
@@ -172,7 +172,7 @@
 			    `device_check_result`
 			WHERE manage_id = #{manage_id}
 				AND check_file_manage_id = #{check_file_manage_id}
-				AND date(`check_confirm_time`) between #{check_confirm_time_start} and #{check_confirm_time_end}
+				AND `check_confirm_time` between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 			group by 
 			    `manage_id`,
 			    `check_file_manage_id`,
@@ -239,7 +239,7 @@
 		FROM tool_check_result cr
 		join tools_manage tm
 		where cr.manage_id = tm.tools_manage_id
-		and date(cr.check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and cr.check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		]]>
 			<if test="section_id!= null and section_id!=''">
 		<![CDATA[ 
@@ -298,7 +298,7 @@
 		        from
 		            tool_check_result
 		        where
-		            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		            check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		        group by manage_id) tcras
 		ON tcr.manage_id = tcras.manage_id
 		AND tcr.check_confirm_time = tcras.check_confirm_time
@@ -334,11 +334,29 @@
 		select distinct tm.tools_manage_id from tools_manage tm 
 		LEFT JOIN tool_check_result tcr 
 		ON tcr.manage_id = tm.tools_manage_id
-		AND date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		AND check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		WHERE
 		tm.section_id = #{section_id}
 		AND
 		tm.position_id = #{position_id}
+		AND
+		tcr.checked_status is null
+		AND delete_flg = 0 AND status = 1
+		AND (tm.provide_date != current_date OR tm.provide_date is null)
+		and NOT EXISTS (SELECT 1 FROM check_unqualified_record cur 
+			where cur.manage_id = tm.tools_manage_id and cur.manage_id = 2
+			and repair_date_start <= current_date and (repair_date_end IS null or repair_date_end >= current_date))
+		]]>
+	</select>
+
+	<select id="searchToolUncheckedOnOperator"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
+		<![CDATA[ 
+		select distinct tm.tools_manage_id from tools_manage tm 
+		LEFT JOIN tool_check_result tcr 
+		ON tcr.manage_id = tm.tools_manage_id
+		AND check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
+		WHERE
+		tm.responsible_operator_id = #{operator_id}
 		AND
 		tcr.checked_status is null
 		AND delete_flg = 0 AND status = 1
@@ -438,7 +456,7 @@
 		        and
 		        	check_file_manage_id = #{check_file_manage_id}
 		        and
-		            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		            check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		        and
 		        	checked_status > 0
 		        group by manage_id, item_seq) dcras
@@ -469,7 +487,7 @@
 	        and
 	        	item_seq = #{item_seq}
 	        and
-	            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+	            check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 	        and
 	        	checked_status > 0
 	        group by manage_id, item_seq) dcras
@@ -490,7 +508,7 @@
         and
         	check_file_manage_id = #{check_file_manage_id}
         and
-            date(check_confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+            check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 	</select>
 
     <select id="getUpperStamp" resultType="CheckResultEntity" parameterType="CheckResultEntity">
@@ -498,7 +516,7 @@
 		SELECT op.job_no FROM tool_manager_confirm tmc
 		join operator op
 		on tmc.upper_confirmer_id = op.operator_id
-		where date(confirm_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		where confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		and tmc.section_id = #{section_id}
 		and tmc.position_id = #{position_id}
 		order by (op.section_id = tmc.section_id) desc,confirm_time desc;
@@ -561,7 +579,7 @@
 	        and
 	        	item_seq = #{item_seq}
 	        and
-	            date(check_confirm_time) = #{check_confirm_time}
+	            check_confirm_time between #{check_confirm_time} and date_add(#{check_confirm_time}, INTERVAL 1 DAY)
 	        and
 	        	checked_status > 0
 	        group by manage_id, item_seq) dcras
@@ -585,16 +603,26 @@
 		ON cc.manage_id = dm.devices_manage_id
 		where manage_id = #{manage_id}
 		and object_type = 1
-		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and input_time between #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		order by input_time
 		;
 	</select>
 
 	<select id="getJigCheckCommentInPeriodByManageId"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
-		SELECT group_concat(content, ' ' , date_format(input_time, '%m-%d') order by input_time separator '\n') FROM check_comment
+		SELECT 
+			content as `comment`,
+			date(input_time) as check_confirm_time,
+			op.job_no,
+			dm.manage_code
+		FROM check_comment cc
+		JOIN operator op
+		ON cc.operator_id = op.operator_id
+		JOIN devices_manage dm
+		ON cc.manage_id = dm.devices_manage_id
 		where manage_id = #{manage_id}
 		and object_type = 2
-		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and input_time between #{check_confirm_time_start} and DATE_ADD(#{check_confirm_time_end}, INTERVAL 1 DAY)
+		order by input_time
 		;
 	</select>
 
@@ -602,7 +630,7 @@
 		SELECT group_concat(content, ' ' , date_format(input_time, '%m-%d') order by input_time separator '\n') FROM check_comment
 		where manage_id = #{manage_id}
 		and object_type = 1
-		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and input_time between #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		;
 	</select>
 
@@ -610,7 +638,7 @@
 		SELECT group_concat(content, ' ' , date_format(input_time, '%m-%d') order by input_time separator '\n') FROM check_comment
 		where manage_id = #{manage_id}
 		and object_type = 2
-		and date(input_time) between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and input_time between #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		;
 	</select>
 
@@ -644,7 +672,7 @@
 			        and cjm.delete_flg = 0
 			WHERE
 				dcr.manage_id = #{manage_id}
-				AND date(dcr.check_confirm_time) >= #{check_confirm_time_start}
+				AND dcr.check_confirm_time >= #{check_confirm_time_start}
 			;
 		]]>
 	</select>

@@ -56,7 +56,7 @@ public class DevicesManageAction extends BaseAction {
 	 *            数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 1, 0 })
+	@Privacies(permit = { 124 })
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
 
@@ -114,6 +114,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void search(ActionMapping mapping, ActionForm form, HttpServletRequest request,
 			HttpServletResponse response, SqlSession conn) throws Exception {
 		log.info("DevicesManageAction.search start");
@@ -124,7 +125,6 @@ public class DevicesManageAction extends BaseAction {
 		// 设备工具管理详细数据
 		List<DevicesManageForm> devicesManageForms = service.searchDevicesManage(form, conn, errors);
 
-		
 		// 获取当前时间
 		Calendar calendar = Calendar.getInstance();
 		String current_date = DateUtil.toString(calendar.getTime(), "yyyy/MM/dd");
@@ -146,6 +146,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void detail(ActionMapping mapping, ActionForm form, HttpServletRequest request,
 			HttpServletResponse response, SqlSession conn) throws Exception {
 		log.info("DevicesManageAction.detail start");
@@ -171,6 +172,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void doupdate(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn) throws Exception{
 		log.info("DevicesManageAction.doupdate start");
 
@@ -201,6 +203,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void doinsert(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn) throws Exception{
 		log.info("DevicesManageAction.doinsert start");
 
@@ -230,6 +233,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void dodelete(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn) throws Exception{
 		log.info("DevicesManageAction.dodelete start");
 
@@ -277,6 +281,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void doexchange(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn) throws Exception{
 		log.info("DevicesManageAction.doexchange start");
 
@@ -310,6 +315,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void doReplace(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn) throws Exception{
 		log.info("DevicesManageAction.doReplace start");
 
@@ -341,6 +347,7 @@ public class DevicesManageAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit = { 124 })
 	public void dodeliver(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response, SqlSessionManager conn)throws Exception{
 		log.info("DevicesManageAction.dodeliver end");
 

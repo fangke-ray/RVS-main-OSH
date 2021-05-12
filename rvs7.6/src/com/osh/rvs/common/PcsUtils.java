@@ -412,6 +412,9 @@ public class PcsUtils {
 		if (isLightFix) {
 			if (isAnmlExp) {
 				currentProcessCode = checkInAnmlExpProcessGroup(currentProcessCode, materialId, conn);
+				if (currentProcessCode.length() == 3) {
+					currentProcessCode = checkInAnmlExpProcessGroup(currentProcessCode, null, conn);
+				}
 			} else {
 				currentProcessCode = checkInLightProcessGroup(currentProcessCode, materialId, conn);
 			}
@@ -619,6 +622,9 @@ public class PcsUtils {
 					if (isLightFix) {
 						if (isAnmlExp) {
 							processCode = checkInAnmlExpProcessGroup(processCode, materialId, conn);
+							if (processCode.length() == 3) {
+								processCode = checkInAnmlExpProcessGroup(processCode, null, conn);
+							}
 						} else {
 							processCode = checkInLightProcessGroup(processCode, materialId, conn);
 						}
@@ -2140,6 +2146,9 @@ public class PcsUtils {
 					if (isLightFix) {
 						if (isAnmlExp) {
 							lightProcess = checkInAnmlExpProcessGroup(process_code, materialId, conn);
+							if (lightProcess.length() == 3) {
+								lightProcess = checkInAnmlExpProcessGroup(lightProcess, null, conn);
+							}
 						} else {
 							lightProcess = checkInLightProcessGroup(process_code, materialId, conn);
 						}

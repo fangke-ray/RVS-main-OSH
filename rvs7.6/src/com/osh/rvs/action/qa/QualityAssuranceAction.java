@@ -25,8 +25,6 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.AlarmMesssageEntity;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
-import com.osh.rvs.bean.infect.CheckResultEntity;
-import com.osh.rvs.bean.infect.PeriodsEntity;
 import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.FseBridgeUtil;
@@ -34,17 +32,16 @@ import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.mapper.infect.CheckResultMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.service.AlarmMesssageService;
-import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qa.QualityAssuranceService;
@@ -53,7 +50,6 @@ import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
-import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class QualityAssuranceAction extends BaseAction {
@@ -131,6 +127,11 @@ public class QualityAssuranceAction extends BaseAction {
 
 		req.setAttribute("WORKINFO", ppService.getWorkInfo());
 
+		// 判断是否动物实验用维修品工位
+		if (PositionService.getPositionUnitizeds(conn).containsKey(position_id)) {
+			req.setAttribute("unitizeds", "true");
+		}
+
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
@@ -177,24 +178,12 @@ public class QualityAssuranceAction extends BaseAction {
 
 		user.setLine_id("00000000015");
 
-		// 设定待点检信息
-		CheckResultService crService = new CheckResultService();
-		CheckResultMapper crMapper = conn.getMapper(CheckResultMapper.class);
-		CheckResultEntity condEntity = new CheckResultEntity();
-		PeriodsEntity periodsEntity = CheckResultService.getPeriodsOfDate(DateUtil.toString(new Date(), DateUtil.ISO_DATE_PATTERN), conn);
-		try {
-			crService.getDevices(null, section_id, null, user.getPosition_id(), user.getPositions(), user.getLine_id(), condEntity, periodsEntity, conn, crMapper, -1);
-
-			crService.getTorsionDevices(null, section_id, null, user.getPosition_id(), null, condEntity, periodsEntity, conn, crMapper, -1);
-			crService.getElectricIronDevices(null, section_id, null, user.getPosition_id(), null, condEntity, periodsEntity, conn, crMapper, -1);
-
-		} catch(Exception tex) {
-			log.error("dmmm:" + tex.getMessage());
-		}
-
 		PositionPanelService ppservice = new PositionPanelService();
-		String infectString = ppservice.getInfectMessageByPosition(section_id,
-				user.getPosition_id(), user.getLine_id(), conn);
+
+		// 设定待点检信息
+		String infectString = ppservice.checkPositionInfectWorkOnPass(
+				section_id, user.getPosition_id(), user.getLine_id(), user.getOperator_id(), conn, callbackResponse);
+
 		infectString += ppservice.getAbnormalWorkStateByOperator(user.getOperator_id(), conn);
 
 		callbackResponse.put("infectString", infectString);
@@ -316,6 +305,18 @@ public class QualityAssuranceAction extends BaseAction {
 					// 准备中
 					callbackResponse.put("workstauts", WORK_STATUS_PREPAIRING);
 				}
+
+				// 判断作业者是否借用了设备工具
+				if (!PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id())) {
+					if (session.getAttribute("DJ_LOANING") != null) {
+						DeviceJigLoanService djlService = new DeviceJigLoanService();
+						String loaning = djlService.checkLoaningNowText(user.getOperator_id(), conn);
+						if (loaning != null) {
+							callbackResponse.put("djLoaning", loaning);
+						}
+					}
+				}
+
 			}
 
 			// 设定暂停选项
@@ -438,6 +439,18 @@ public class QualityAssuranceAction extends BaseAction {
 			// 取得工程检查票
 			waitingPf.setProcess_code(process_code);
 			getPf(waitingPf, qa_checked, isLeader, listResponse, conn);
+
+			// 判断借用设备
+			if (PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id())) {
+				DeviceJigLoanService djlService = new DeviceJigLoanService();
+
+				// 现在已借用的设备治具未登记给维修品
+				List<String> loaningUnregisting = djlService.getLoaningUnregisting(waitingPf,
+						user.getOperator_id(), conn);
+
+				// 在借用的前提下
+				djlService.registToMaterial(waitingPf, loaningUnregisting, conn);
+			}
 		}
 
 		user.setSection_id(section_id); // TODO

@@ -128,6 +128,9 @@
 		<typeAlias alias="ConsumableSupplyRecordEntity" type="com.osh.rvs.bean.partial.ConsumableSupplyRecordEntity"/>
 		<typeAlias alias="DeviceBackupEntity" type="com.osh.rvs.bean.equipment.DeviceBackupEntity"/>
 		<typeAlias alias="DeviceJigRepairRecordEntity" type="com.osh.rvs.bean.equipment.DeviceJigRepairRecordEntity"/>
+
+		<typeAlias alias="DeviceJigLoanEntity" type="com.osh.rvs.bean.equipment.DeviceJigLoanEntity"/>
+
 		<typeAlias alias="PartialBussinessStandardEntity" type="com.osh.rvs.bean.master.PartialBussinessStandardEntity"/>
 		<typeAlias alias="PartialUnpackEntity" type="com.osh.rvs.bean.master.PartialUnpackEntity"/>
 		<typeAlias alias="PartialWarehouseEntity" type="com.osh.rvs.bean.partial.PartialWarehouseEntity"/>
@@ -313,5 +316,8 @@
 		<mapper resource="com/osh/rvs/mapper/manage/NewPhenomenonMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/report/ProcedureManualMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/equipment/DeviceJigLoanMapper.xml"/>
+
 	</mappers>
 </configuration> 

@@ -109,6 +109,7 @@ public class DevicesManageService {
 
 		if(errors.size()==0){
 			dao.updateDevicesManage(devicesManageEntity);
+			CheckResultService.clearInfectPass(null);
 		}
 	}
 
@@ -151,6 +152,7 @@ public class DevicesManageService {
 		devicesManageEntity.setUpdated_by(user.getOperator_id());
 
 		dao.insertDevicesManage(devicesManageEntity);
+		CheckResultService.clearInfectPass(null);
 	}
 
 	/* 验证管理编号不能重复 */
@@ -260,6 +262,7 @@ public class DevicesManageService {
 		devicesManageEntity.setUpdated_by(user.getOperator_id());
 
 		dao.deleteDevicesManage(devicesManageEntity);
+		CheckResultService.clearInfectPass(null);
 	}
 
 	// 取得设备管理人员
@@ -342,6 +345,7 @@ public class DevicesManageService {
 					conditionEntity.setUpdated_by(user.getOperator_id());
 					dao.deliverDevicesManage(conditionEntity);
 				}
+				CheckResultService.clearInfectPass(null);
 			}
 			
 		} else {
@@ -412,6 +416,8 @@ public class DevicesManageService {
 			devicesManageEntity.setUpdated_by(user.getOperator_id());//发放者是登录人
 			dao.disband(devicesManageEntity);
 		}
+		CheckResultService.clearInfectPass(null);
+
 	}
 
 	public DevicesManageForm getDetail(String manage_id, SqlSession conn) {

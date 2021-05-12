@@ -39,6 +39,7 @@ import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.RoleService;
 import com.osh.rvs.service.SectionService;
+import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.report.ProcedureManualService;
@@ -167,6 +168,10 @@ public class LoginAction extends BaseAction {
 		session.removeAttribute("K" + RvsConsts.SESSION_USER);
 		ServletContext contextMain =session.getServletContext();
 		contextMain.setAttribute("login_name", loginData.getName());
+
+		DeviceJigLoanService djlService = new DeviceJigLoanService();
+		djlService.checkLoaningNow(loginData.getOperator_id(), session, conn);
+
 		// contextMe.getContext("");
 		// ServletContext contextMain= contextMe.getContext("/rvs");
 	}
@@ -325,20 +330,28 @@ public class LoginAction extends BaseAction {
 				// 判断是否有进行中工作，如果有则按工位直接决定角色
 				ProductionFeatureEntity workingPf = getWoringPf(loginData, conn);
 				if (workingPf != null) {
+					PositionService.getPositionUnitizeds(conn); // 确认下取过动物内镜工位映射
+
 					String now_position_id = workingPf.getPosition_id();
+
 					if (RvsConsts.POSITION_ACCEPTANCE.equals(now_position_id)) { // 受理
 						loginData.setWorking_role_id(RvsConsts.ROLE_ACCEPTOR);
 					} else if (RvsConsts.POSITION_QUOTATION_N.equals(now_position_id)
 								|| RvsConsts.POSITION_QUOTATION_D.equals(now_position_id)
 								|| RvsConsts.POSITION_QUOTATION_P_181.equals(now_position_id)
+								|| RvsConsts.POSITION_ANML_QUOTAION.equals(now_position_id) // IISE检查
 								|| "00000000101".equals(now_position_id)) { // 报价
 						loginData.setWorking_role_id(RvsConsts.ROLE_QUOTATOR);
 					} else if (RvsConsts.POSITION_QA.equals(now_position_id)
 							|| RvsConsts.POSITION_QA_LIGHT.equals(now_position_id)
 							|| RvsConsts.POSITION_QA_P_613.equals(now_position_id)
-							|| RvsConsts.POSITION_QA_P_614.equals(now_position_id)) { // 出检
+							|| RvsConsts.POSITION_QA_P_614.equals(now_position_id)
+							|| RvsConsts.POSITION_ANML_QA.equals(now_position_id)
+							|| RvsConsts.POSITION_ANML_QA_UDI.equals(now_position_id)
+							) { // 出检
 						loginData.setWorking_role_id(RvsConsts.ROLE_QAER);
-					} else if (RvsConsts.POSITION_SHIPPING.equals(now_position_id)) { // 出货
+					} else if (RvsConsts.POSITION_SHIPPING.equals(now_position_id)
+							|| RvsConsts.POSITION_ANML_SHPPING.equals(now_position_id)) { // 出货
 						loginData.setWorking_role_id(RvsConsts.ROLE_SHIPPPER);
 					} else {
 						loginData.setWorking_role_id(RvsConsts.ROLE_OPERATOR);
@@ -363,6 +376,9 @@ public class LoginAction extends BaseAction {
 				// 用户信息保存在会话中
 				session.setAttribute(RvsConsts.SESSION_USER, loginData);
 			}
+
+			DeviceJigLoanService djlService = new DeviceJigLoanService();
+			djlService.checkLoaningNow(loginData.getOperator_id(), session, conn);
 		}
 		return null;
 	}
@@ -406,6 +422,8 @@ public class LoginAction extends BaseAction {
 				positionsList.add(p);
 			} else {
 				positionsList.get(0).setChief(p.getChief());
+				positionsList.get(0).setLine_id(p.getLine_id());
+				positionsList.get(0).setLine_name(p.getLine_name());
 			}
 		}
 

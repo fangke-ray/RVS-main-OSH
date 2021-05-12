@@ -162,18 +162,18 @@ public class HeaderAction extends BaseAction {
 				}
 			}
 			req.setAttribute("has_notice", hasNotice);
-		} else {
-			OperatorService oService = new OperatorService();
-			List<OperatorNotifyEntity> lOn = oService.getOperatorNotifyEntity(conn);
-			for (OperatorNotifyEntity onEntity : lOn) {
-				if (user.getOperator_id().equals(onEntity.getOperator_id())) {
-					// 无进度信息者，如果是动物内镜通知人追加
-					req.setAttribute("message_type", "ae");
-					break;
-				} else if (user.getOperator_id().equals(onEntity.getManager_operator_id())){
-					req.setAttribute("message_type", "ae");
-					break;
-				}
+		}
+
+		OperatorService oService = new OperatorService();
+		List<OperatorNotifyEntity> lOn = oService.getOperatorNotifyEntity(conn);
+		for (OperatorNotifyEntity onEntity : lOn) {
+			if (user.getOperator_id().equals(onEntity.getOperator_id())) {
+				// 无进度信息者，如果是动物内镜通知人追加
+				req.setAttribute("anml_message_type", "ae");
+				break;
+			} else if (user.getOperator_id().equals(onEntity.getManager_operator_id())){
+				req.setAttribute("anml_message_type", "al");
+				break;
 			}
 		}
 
@@ -424,7 +424,7 @@ public class HeaderAction extends BaseAction {
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 
 		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
-		if (user.getWork_count_flg().equals("" + RvsConsts.WORK_COUNT_FLG_DIRECT)) {
+		if (!user.getWork_count_flg().equals("" + RvsConsts.WORK_COUNT_FLG_INDIRECT)) {
 			// 判断是否完成直接作业
 			PositionPanelService service = new PositionPanelService();
 			ProductionFeatureEntity ret = service.getWorkingOrSupportingPf(user, conn);

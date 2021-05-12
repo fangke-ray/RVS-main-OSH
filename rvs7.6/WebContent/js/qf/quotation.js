@@ -483,6 +483,9 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 					delay : 100
 				});
 			}
+			if (resInfo.djLoaning) {
+				warningConfirm(resInfo.djLoaning);
+			}
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
@@ -693,6 +696,7 @@ var doStart_ajaxSuccess=function(xhrobj){
 		} else {
 			getMaterialInfo(resInfo);
 			treatStart(resInfo);
+			if (typeof(getRentListdata) === "function") getRentListdata();
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: "

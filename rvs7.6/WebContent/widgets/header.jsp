@@ -136,6 +136,7 @@ background-size: 10px 60px;*/
 </style>
 
 	<% String sMessageType = (String)request.getAttribute("message_type"); %>
+	<% String sAnmlMessageType = (String)request.getAttribute("anml_message_type"); %>
 
 	<input type="hidden" id="ro_mt_id" value="<%=sMessageType%>"/>
 
@@ -167,7 +168,12 @@ background-size: 10px 60px;*/
 	<jsp:param name="has_notice" value="<%=sHasNotice%>"/>
 </jsp:include>
 <% }  %>
+
+<% if ("ae".equals(sAnmlMessageType) || "al".equals(sAnmlMessageType)) { // ANml内镜工位等待 %>
+<jsp:include page="/widgets/anml_position_hint.jsp" flush="true"/>
+<% }  %>
 		</div>
+
 	</div>
 	<div class="clear" style="height: 10px;"></div>
 
@@ -453,9 +459,9 @@ $(function() {
     		} else if ("light" == resInfo.method) {
     			if (typeof(refreshLightWaiting) === "function") refreshLightWaiting(resInfo.list);
     		} else if ("notice" == resInfo.method) {
-    			if (typeof(refreshNotice) === "function") refreshNotice(resInfo.list);
+    			if (typeof(refreshNotice) === "function") refreshNotice(resInfo.list, resInfo.anmlNotice);
     		} else if ("anml" == resInfo.method) {
-    			if (typeof(anmlNotice) === "function") anmlNotice(resInfo.instorage);
+    			if (typeof(anmlNotice) === "function") anmlNotice(resInfo.instorage, resInfo.anmlNotice);
     		}
     	} catch(e) {
     	}

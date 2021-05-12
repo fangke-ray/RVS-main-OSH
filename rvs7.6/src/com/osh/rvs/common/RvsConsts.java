@@ -99,9 +99,10 @@ public class RvsConsts extends BaseConst {
 	public static final String POSITION_572 = "00000000102";
 
 	public static String POSITION_ANML_QUOTAION = "00000000112";
-	public static String POSITION_ANML_QA = "00000000117";
-	public static String POSITION_ANML_QA_UDI = "00000000117";
-	public static String POSITION_ANML_SHPPING = "00000000119";
+	public static String POSITION_ANML_QA = "00000000118";
+	public static String POSITION_ANML_QA_UDI = "00000000119";
+	public static String POSITION_ANML_SHPPING = "00000000120";
+	public static String POSITION_ANML_SR_REF = "00000000121";
 	
 	public static final String TEXT_PLAN_HOLD = "另行通知";
 	public static final String SEARCH_RESULT = "SEARCH_RESULT";

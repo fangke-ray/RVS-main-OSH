@@ -10,7 +10,6 @@ package com.osh.rvs.action.inline;
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,13 +41,14 @@ import com.osh.rvs.form.inline.DryingProcessForm;
 import com.osh.rvs.form.partial.MaterialPartialDetailForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.service.AlarmMesssageService;
-import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesManageService;
 import com.osh.rvs.service.MaterialRemainTimeService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.OperatorProductionService;
 import com.osh.rvs.service.PauseFeatureService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
@@ -119,24 +119,8 @@ public class PositionPanelMixedAction extends BaseAction {
 		// 虚拟组不在加载时判断待点检
 		if (sGroupPositionId == null) {
 
-			// 各工位当日点检已完成标志
-			boolean infectPassed = CheckResultService.checkInfectPass(section_id, position_id);
+			infectString = service.checkPositionInfectWorkOnPass(section_id, position_id, line_id, user.getOperator_id(), conn, listResponse);
 
-			// 如果点检不锁定的话，初始化暂不取异常信息
-			if (!infectPassed) {
-				// 设定待点检信息
-				CheckResultService crService = new CheckResultService();
-				crService.checkForPosition(section_id, position_id, line_id, conn);
-
-				// 取得待点检信息
-				infectString = service.getInfectMessageByPosition(section_id, position_id, line_id, conn);
-
-				if (infectString.length() == 0 || infectString.indexOf("限制工作") < 0) {
-					CheckResultService.setInfectPass(section_id, position_id);
-				}
-			} else {
-				listResponse.put("jsinitInfect", true);
-			}
 		}
 
 		// 判断操作者异常作业状态
@@ -484,6 +468,17 @@ public class PositionPanelMixedAction extends BaseAction {
 					}
 
 					listResponse.put("isExistInPlan", isExistInPlan);
+				}
+			}
+
+			// 判断作业者是否借用了设备工具
+			if (!PositionService.getPositionUnitizeds(conn).containsKey(position_id)) {
+				if (session.getAttribute("DJ_LOANING") != null) {
+					DeviceJigLoanService djlService = new DeviceJigLoanService();
+					String loaning = djlService.checkLoaningNowText(user.getOperator_id(), conn);
+					if (loaning != null) {
+						listResponse.put("djLoaning", loaning);
+					}
 				}
 			}
 		}

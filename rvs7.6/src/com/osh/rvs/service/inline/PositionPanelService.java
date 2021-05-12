@@ -42,6 +42,7 @@ import com.osh.rvs.bean.master.PositionGroupEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
@@ -1215,6 +1216,7 @@ public class PositionPanelService {
 				mForm.setSerial_no(mEntity.getSerial_no());
 				mForm.setFix_type(mEntity.getFix_type());
 				mForm.setOperate_result(workingPf.getOperate_result());
+				mForm.setStorager(workingPf.getPcs_inputs());
 				mForms.add(mForm);
 			}
 
@@ -1293,6 +1295,21 @@ public class PositionPanelService {
 					+ waitingPf.getMaterial_id() + "/" + user.getLine_id() + "/" + positionId);
 		}
 
+		// 判断借用设备
+		if (PositionService.getPositionUnitizeds(conn).containsKey(waitingPf.getPosition_id())) {
+			DeviceJigLoanService djlService = new DeviceJigLoanService();
+
+			// 现在已借用的设备治具未登记给维修品
+			List<String> loaningUnregisting = djlService.getLoaningUnregisting(waitingPf,
+					user.getOperator_id(), conn);
+
+			// 在借用的前提下
+			djlService.registToMaterial(waitingPf, loaningUnregisting, conn);
+
+			// 开始作业定制警报
+			triggerList.add("http://localhost:8080/rvspush/trigger/work/"
+					+ positionId + waitingPf.getMaterial_id() + "/" + user.getOperator_id());
+		}
 	}
 
 	/**
@@ -1369,6 +1386,18 @@ public class PositionPanelService {
 	 */
 	public Map<String, String> getDmLevers(Map<String,String> dmMap) {
 		if (dmMap == null) return null;
+		Map<String,String> dmLeverMap = new HashMap<String,String>();
+		for (String key : dmMap.keySet()) {
+			String[] deviceContents = dmMap.get(key).split(" ");
+			String manageCode = deviceContents[deviceContents.length - 1];
+			String lever = PathConsts.POSITION_SETTINGS.getProperty("device.capacity." + manageCode);
+			if (!CommonStringUtil.isEmpty(lever) && !lever.startsWith("-")) {
+				dmLeverMap.put(key, lever);
+			}
+		}
+		return dmLeverMap;
+	}
+
 	/**
 	 * 取得点检相关信息
 	 * @param section_id
@@ -1404,23 +1433,12 @@ public class PositionPanelService {
 		cond.setSection_id(section_id);
 		cond.setPosition_id(position_id);
 		cond.setLine_id(line_id);
-		// cond.setOperator_id(operator_id); TODO
 
 		PeriodsEntity period = CheckResultService.getPeriodsOfDate(todayString, conn);
 		cond.setCheck_confirm_time_start(period.getStartOfMonth());
 		cond.setCheck_confirm_time_end(period.getEndOfMonth());
 
-		List<CheckResultEntity> list = crMapper.searchToolUncheckedOnPosition(cond);
-
 		String retComments = "";
-		if (list.size() > 0) {
-			if (DateUtil.compareDate(today, period.getExpireOfMonthOfJig()) >= 0) {
-				retComments += "本工位有"+list.size()+"件治具在期限前未作点检，将限制工作。\n";
-			} else {
-				retComments += "本工位有"+list.size()+"件治具尚未点检，期限为"+
-						DateUtil.toString(period.getExpireOfMonthOfJig(), DateUtil.ISO_DATE_PATTERN)+"，请在期限前完成点检。\n";
-			}
-		}
 
 		// 设备
 		String dailyDevices = crMapper.searchDailyDeviceUncheckedOnPosition(cond);
@@ -1493,6 +1511,44 @@ public class PositionPanelService {
 			}
 		}
 
+		return retComments;
+	}
+
+	/**
+	 * 取得点检相关信息
+	 * @param section_id
+	 * @param position_id
+	 * @param conn
+	 * @param line_id 
+	 * @return
+	 * @throws Exception 
+	 */
+	public String getInfectMessageByPositionAnaOperartor(String section_id,
+			String position_id, String operator_id, SqlSession conn) throws Exception {
+		Date today = new Date();
+		String todayString = DateUtil.toString(today, DateUtil.ISO_DATE_PATTERN);
+
+		CheckResultMapper crMapper = conn.getMapper(CheckResultMapper.class);
+		CheckResultEntity cond = new CheckResultEntity();
+		cond.setSection_id(section_id);
+		cond.setPosition_id(position_id);
+		cond.setOperator_id(operator_id);
+
+		PeriodsEntity period = CheckResultService.getPeriodsOfDate(todayString, conn);
+		cond.setCheck_confirm_time_start(period.getStartOfMonth());
+		cond.setCheck_confirm_time_end(period.getEndOfMonth());
+
+		List<CheckResultEntity> list = crMapper.searchToolUncheckedOnOperator(cond);
+
+		String retComments = "";
+		if (list.size() > 0) {
+			if (DateUtil.compareDate(today, period.getExpireOfMonthOfJig()) >= 0) {
+				retComments += "本工位有"+list.size()+"件治具在期限前未作点检，将限制工作。\n";
+			} else {
+				retComments += "本工位有"+list.size()+"件治具尚未点检，期限为"+
+						DateUtil.toString(period.getExpireOfMonthOfJig(), DateUtil.ISO_DATE_PATTERN)+"，请在期限前完成点检。\n";
+			}
+		}
 		return retComments;
 	}
 
@@ -1867,6 +1923,59 @@ public class PositionPanelService {
 			// 启动下个工位
 			pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
 		}
+	}
+
+	/**
+	 * 
+	 * @param section_id
+	 * @param position_id
+	 * @param line_id
+	 * @param operator_id
+	 * @param conn
+	 * @param callbackResponse
+	 * @return
+	 * @throws Exception
+	 */
+	public String checkPositionInfectWorkOnPass(String section_id,
+			String position_id, String line_id, String operator_id, SqlSession conn,
+			Map<String, Object> callbackResponse) throws Exception {
+		// 各工位当日点检已完成标志
+		boolean infectPassedPosition = CheckResultService.checkInfectPass(section_id, position_id);
+		boolean infectPassedOperator = CheckResultService.checkInfectPass(section_id, position_id, operator_id);
+
+		String infectString = "";
+
+		// 如果点检不锁定的话，初始化暂不取异常信息
+		if (!infectPassedPosition) {
+			// 设定待点检信息
+			CheckResultService crService = new CheckResultService();
+			crService.checkForPosition(section_id, position_id, line_id, conn);
+
+			// 取得待点检信息
+			infectString = getInfectMessageByPosition(section_id, position_id, line_id, conn);
+
+			if (infectString.length() == 0 || infectString.indexOf("限制工作") < 0) {
+				CheckResultService.setInfectPass(section_id, position_id);
+			}
+		}
+
+		// 如果点检不锁定的话，初始化暂不取异常信息
+		if (!infectPassedOperator) {
+			// 取得待点检信息
+			String infectStringOp = getInfectMessageByPositionAnaOperartor(section_id, position_id, operator_id, conn);
+
+			if (infectStringOp.length() == 0) {
+				CheckResultService.setInfectPass(section_id, position_id, operator_id);
+			} else {
+				infectString = infectString + "\n" + infectStringOp;
+			}
+		}
+
+		if (infectPassedPosition && infectPassedOperator) {
+			callbackResponse.put("jsinitInfect", true);
+		}
+
+		return infectString;
 	}
 
 }

@@ -48,6 +48,11 @@ public interface CheckResultMapper {
 	 */
 	public List<CheckResultEntity> searchToolUncheckedOnPosition(CheckResultEntity position);
 	/**
+	 * 按人员查找未点检的治具
+	 */
+	public List<CheckResultEntity> searchToolUncheckedOnOperator(CheckResultEntity position);
+
+	/**
 	 * 按工位查找未点检的日常点检设备工具
 	 */
 	public String searchDailyDeviceUncheckedOnPosition(CheckResultEntity position);

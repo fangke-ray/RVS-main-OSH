@@ -52,6 +52,15 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
 </div>
 <% } %>
 
+<% if(links.get("在线作业（特殊）")) { %>
+<div class="dwidth-left">
+<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>在线作业（动物）</h3>
+	<div class="ui-accordion-content ui-helper-reset ui-widget-content">
+       ${inlineSpecPosition}
+    </div>
+</div>
+<% } %>
+
 <% if(links.get("品保作业")) { %>
 <div class="dwidth-left">
 <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>品保作业</h3>

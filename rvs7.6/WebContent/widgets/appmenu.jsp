@@ -70,6 +70,13 @@ $(function() {
 		    </div>
 <% } %>
 
+<% if(links.get("在线作业（特殊）")) { %>
+    <h3 style="padding-left:30px;">在线作业（动物）</h3>
+    <div>
+       ${inlineSpecPosition}
+    </div>
+<% } %>
+
 <% if(links.get("品保作业")) { %>
 	<h3 style="padding-left:30px;">品保作业</h3>
 	<div>

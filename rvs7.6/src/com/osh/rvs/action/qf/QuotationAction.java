@@ -403,6 +403,18 @@ public class QuotationAction extends BaseAction {
 
 			// 如果等待中信息是暂停中，则结束掉暂停记录(有可能已经被结束)
 			bfService.finishPauseFeature(material_id, user.getSection_id(), user.getPosition_id(), user.getOperator_id(), conn);
+
+			// 判断借用设备
+			if (PositionService.getPositionUnitizeds(conn).containsKey(waitingPf.getPosition_id())) {
+				DeviceJigLoanService djlService = new DeviceJigLoanService();
+
+				// 现在已借用的设备治具未登记给维修品
+				List<String> loaningUnregisting = djlService.getLoaningUnregisting(waitingPf,
+						user.getOperator_id(), conn);
+
+				// 在借用的前提下
+				djlService.registToMaterial(waitingPf, loaningUnregisting, conn);
+			}
 		}
 
 		user.setSection_id(section_id); // TODO

@@ -42,6 +42,7 @@ $(function(){
         $("#provide_date_start").data("post",$("#provide_date_start").val());//发放日期开始
         $("#provide_date_end").data("post",$("#provide_date_end").val());//发放日期结束
         $("#search_manage_level").data("post",$("#search_manage_level").val());//管理等级
+        $("#search_loaned").data("post",$("#search_loaned").val());// 借出
         findit();
     });
     
@@ -134,12 +135,12 @@ var devices_distribute_list=function(datalist){
            datatype: "local", 
            colNames:['管理编号','品名','型号','分发课室','责任工程','责任工位','管理员','发放日期','发放者','管理等级','','','','',''],
            colModel:[
-            {name:'manage_code',index:'manage_code',width:120},
+            {name:'manage_code',index:'manage_code',width:60},
             {name:'name',index:'name',width:120},
             {name:'model_name',index:'model_name',width:120},
             {name:'section_name',index:'section_name',width:100},
             {name:'line_name',index:'line_name',width:80},
-            {name:'process_code',index:'process_code',width:80,align:'right'},
+            {name:'process_code',index:'process_code',width:80,align:'center'},
             {name:'manager',index:'manager',width:100},
             {name:'provide_date',index:'provide_date',width:100,align:'center'},
             {name:'provider',index:'provider',width:100},

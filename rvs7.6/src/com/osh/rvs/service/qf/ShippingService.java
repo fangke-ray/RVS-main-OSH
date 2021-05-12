@@ -21,6 +21,8 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.mapper.qf.ShippingMapper;
+import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.PositionPanelService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -102,7 +104,7 @@ public class ShippingService {
 		
 	}
 
-	public void scanMaterial(SqlSession conn, String material_id, HttpServletRequest req, List<MsgInfo> errors,
+	public void scanMaterial(SqlSessionManager conn, String material_id, HttpServletRequest req, List<MsgInfo> errors,
 			Map<String, Object> listResponse) throws Exception {
 		PositionPanelService ppService = new PositionPanelService();
 
@@ -138,6 +140,18 @@ public class ShippingService {
 				ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 				waitingPf.setOperator_id(user.getOperator_id());
 				dao.startProductionFeature(waitingPf);
+
+				// 判断借用设备
+				if (PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id())) {
+					DeviceJigLoanService djlService = new DeviceJigLoanService();
+
+					// 现在已借用的设备治具未登记给维修品
+					List<String> loaningUnregisting = djlService.getLoaningUnregisting(waitingPf,
+							user.getOperator_id(), conn);
+
+					// 在借用的前提下
+					djlService.registToMaterial(waitingPf, loaningUnregisting, conn);
+				}
 			}
 		}
 

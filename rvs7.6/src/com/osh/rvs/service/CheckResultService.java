@@ -107,7 +107,14 @@ public class CheckResultService {
 	Logger _logger = Logger.getLogger(CheckResultService.class);
 
 	public static Map<String, Set<String>> infectPass = new HashMap<String, Set<String>>();
+	public static Map<String, Set<String>> infectPersonalPass = new HashMap<String, Set<String>>();
 
+	/**
+	 * 已点检（设备/按工位）
+	 * @param section_id
+	 * @param position_id
+	 * @return
+	 */
 	public synchronized static boolean checkInfectPass(String section_id, String position_id) {
 		Calendar now = Calendar.getInstance();
 		String infectPassDateKey = now.get(Calendar.DATE) + "|" + (now.get(Calendar.HOUR_OF_DAY) >= 14);
@@ -123,7 +130,9 @@ public class CheckResultService {
 
 	public synchronized static void clearInfectPass(String infectPassDateKey) {
 		infectPass.clear();
-		infectPass.put(infectPassDateKey, new HashSet<String>());
+		if (infectPassDateKey != null) {
+			infectPass.put(infectPassDateKey, new HashSet<String>());
+		}
 	}
 
 	public synchronized static void setInfectPass(String section_id, String position_id) {
@@ -131,12 +140,50 @@ public class CheckResultService {
 		String infectPassDateKey = now.get(Calendar.DATE) + "|" + (now.get(Calendar.HOUR_OF_DAY) >= 14);
 
 		if (!infectPass.containsKey(infectPassDateKey)) {
-			clearInfectPass(infectPassDateKey);
+			clearInfectPersonalPass(infectPassDateKey);
 		}
 		
 		String infectPassPosKey = CommonStringUtil.nullToAlter(section_id, "") + "_" + position_id;
 
 		infectPass.get(infectPassDateKey).add(infectPassPosKey);
+	}
+
+	public synchronized static void clearInfectPersonalPass(String infectPassMonthKey) {
+		infectPersonalPass.clear();
+		if (infectPassMonthKey != null) {
+			infectPersonalPass.put(infectPassMonthKey, new HashSet<String>());
+		}
+	}
+
+	/**
+	 * 已点检（按人员）
+	 * @param operator_id
+	 * @return
+	 */
+	public synchronized static boolean checkInfectPass(String section_id, String position_id, String operator_id) {
+		Calendar now = Calendar.getInstance();
+		String infectPassMonthKey = now.get(Calendar.MONTH) + "";
+
+		if (!infectPersonalPass.containsKey(infectPassMonthKey)) {
+			clearInfectPersonalPass(infectPassMonthKey);
+		}
+
+		String infectPassPosKey = CommonStringUtil.nullToAlter(section_id, "") + "_" + position_id + "_" + operator_id;
+
+		return infectPersonalPass.get(infectPassMonthKey).contains(infectPassPosKey);
+	}
+
+	public synchronized static void setInfectPass(String section_id, String position_id, String operator_id) {
+		Calendar now = Calendar.getInstance();
+		String infectPassMonthKey = now.get(Calendar.MONTH) + "";
+
+		if (!infectPersonalPass.containsKey(infectPassMonthKey)) {
+			clearInfectPass(infectPassMonthKey);
+		}
+
+		String infectPassPosKey = CommonStringUtil.nullToAlter(section_id, "") + "_" + position_id + "_" + operator_id;
+
+		infectPersonalPass.get(infectPassMonthKey).add(infectPassPosKey);
 	}
 
 	/**

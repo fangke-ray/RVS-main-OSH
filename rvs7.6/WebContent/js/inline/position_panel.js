@@ -1037,6 +1037,10 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			// 设备安全手册信息
 			if (resInfo.position_hcsgs) device_safety_guide = resInfo.position_hcsgs;
 
+			if (resInfo.djLoaning) {
+				warningConfirm(resInfo.djLoaning);
+			}
+
 			loadJs(
 			"js/data/operator-detail.js",
 			function(){
@@ -1358,6 +1362,7 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus, postData){
 				if (typeof(operator_ws) === "object") operator_ws.send("callLight:");
 				showFoundry();
 				getJustWorkingFingers(resInfo.mform.material_id);
+				if (typeof(getRentListdata) === "function") getRentListdata();
 			} else if (resInfo.workstauts == 3) {
 				showPartialRecept(resInfo);
 			} else if (resInfo.workstauts == 3.9) {

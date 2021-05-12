@@ -793,6 +793,7 @@ public class PositionService {
 			case RvsConsts.POSITION_QA : RvsConsts.POSITION_ANML_QA = posUnitized.getUnitized_position_id(); break;
 			case RvsConsts.POSITION_QA_P_614 : RvsConsts.POSITION_ANML_QA_UDI = posUnitized.getUnitized_position_id(); break;
 			case RvsConsts.POSITION_SHIPPING : RvsConsts.POSITION_ANML_SHPPING = posUnitized.getUnitized_position_id(); break;
+			case RvsConsts.POSITION_QA_601 : RvsConsts.POSITION_ANML_SR_REF = posUnitized.getUnitized_position_id(); break;
 			}
 			if (!positionUnitizeds.containsKey(posUnitized.getUnitized_position_id())) {
 				positionUnitizeds.put(posUnitized.getUnitized_position_id(), new ArrayList<String> ());

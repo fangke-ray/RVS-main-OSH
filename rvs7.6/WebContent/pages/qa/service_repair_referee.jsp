@@ -142,6 +142,16 @@ display:none;
 			</div>
 		</div>
 
+<%
+if (request.getAttribute("unitizeds")!=null) {
+%>
+<div class="dwidth-middleright">
+<%@include file="/widgets/position_panel/unitizeds_rent.jsp"%>
+</div>
+<%
+}
+%>
+
 		<div class="ui-widget-content">
 		<div id="waitarea" style="float: left;width: 386px;min-height: 250px;">
 			<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">

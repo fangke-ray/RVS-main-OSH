@@ -10,8 +10,9 @@ public interface DevicesManageMapper {
 	
 	/*设备工具管理详细数据*/
    public List<DevicesManageEntity> searchDeviceManage(DevicesManageEntity devicesManageEntity);
-   
-    /*修改设备工具管理详细*/
+   public List<DevicesManageEntity> searchDistribute(DevicesManageEntity devicesManageEntity);
+
+   /*修改设备工具管理详细*/
    public void updateDevicesManage(DevicesManageEntity devicesManageEntity);
    
    /*插入设备工具管理数据*/

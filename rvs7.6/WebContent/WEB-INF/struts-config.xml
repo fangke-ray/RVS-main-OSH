@@ -1578,6 +1578,15 @@
 			<forward name="detail" path="/widgets/manage/nogood_phenomenon_detail.jsp" />
 		</action>		
 
+		<!-- 借调设备工具记录 -->
+		<action path="/device_jig_loan"
+				type="com.osh.rvs.action.equipment.DeviceJigLoanAction"
+				scope="request"
+				parameter="method"
+				validate="false">
+			<forward name="detail_of_material" path="/widgets/equipment/device_jig_loan_detail.jsp" />
+		</action>
+
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->
 

@@ -157,6 +157,116 @@
 		updated_time DESC
 	</select>	
 
+	<!-- 检索 -->
+	<select id="searchDistribute" parameterType="DevicesManageEntity" resultType="DevicesManageEntity">
+		<![CDATA[
+			SELECT 
+				`devices_manage_id`,
+				dm.manage_code,
+				dt.name,
+				dm.model_name,
+				sec.name AS section_name,
+				line.name AS line_name,
+				pos.process_code,
+				manager_oper.name AS manager,
+				dm.provide_date,
+				provide_oper.name AS provider,
+				dm.manage_level,
+				dm.section_id,
+				dm.location,
+				dm.products_code,
+			    dm.brand,
+				dm.import_date,
+				dm.status,
+				dm.comment
+			FROM 
+				devices_manage dm
+			JOIN
+				devices_type dt
+			ON
+				dm.devices_type_id=dt.devices_type_id
+			LEFT JOIN
+				section sec 
+			ON
+				sec.section_id=dm.section_id
+			LEFT JOIN
+				line 
+			ON
+				line.line_id=dm.line_id
+			LEFT JOIN
+				position pos
+			ON
+				pos.position_id=dm.position_id
+			LEFT JOIN
+				operator manager_oper
+			ON
+				manager_oper.operator_id=dm.manager_operator_id
+			LEFT JOIN
+				operator  provide_oper
+			ON
+				provide_oper.operator_id=dm.updated_by
+			WHERE
+				dm.delete_flg=0
+				AND dm.status IN(1,4)
+		]]>
+		<if test="manage_code!=null and manage_code!=''">
+			<![CDATA[
+				AND dm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+			]]>
+		</if>
+		<if test="devices_type_id!=null and devices_type_id!=''">
+			<![CDATA[
+				AND dt.devices_type_id=#{devices_type_id}
+			]]>
+		</if>
+		<if test="model_name!=null and model_name!=''">
+			<![CDATA[
+				AND dm.model_name LIKE CONCAT('%',#{model_name},'%')
+			]]>
+		</if>
+		<if test="section_id!=null and section_id!=''">
+			<![CDATA[
+			   AND dm.section_id=#{section_id}
+			]]>
+		</if>
+		<if test="line_id!=null and line_id!=''">
+			<![CDATA[
+			   AND dm.line_id=#{line_id}
+			]]>
+		</if>
+		<if test="position_id!=null and position_id!=''">
+			<![CDATA[
+				AND dm.position_id=#{position_id}
+			]]>
+		</if>
+		<if test="manager_operator_id!=null and manager_operator_id!=''">
+			<![CDATA[
+				AND dm.manager_operator_id=#{manager_operator_id}
+			]]>
+		</if>
+		<if test="responsible_operator_id!=null and responsible_operator_id!=''">
+			<![CDATA[
+				AND dm.responsible_operator_id=#{responsible_operator_id}
+			]]>
+		</if>
+		<if test="provide_date_start!=null and provide_date_start!=''">
+			<![CDATA[
+				AND dm.provide_date >= #{provide_date_start}
+			]]>
+		</if>
+		<if test="provide_date_end!=null and provide_date_end!=''">
+			<![CDATA[
+				AND dm.provide_date <= #{provide_date_end}
+			]]>
+		</if>
+		<if test="manage_level!=null and manage_level!=''">
+			<![CDATA[
+				AND dm.manage_level=#{manage_level}
+			]]>
+		</if>
+		order by dm.status, dm.position_id, dm.manage_code
+	</select>
+
 	<!-- 查询管理编号 -->
     <select id="searchManageCode" resultType="String" parameterType="DevicesManageEntity">
      <![CDATA[ 

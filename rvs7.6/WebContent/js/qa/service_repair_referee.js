@@ -830,6 +830,7 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus){
 			treatBackMessages(null, resInfo.errors);
 		} else {
 			showStart(resInfo);
+			if (typeof(getRentListdata) === "function") getRentListdata();
 		}	
 	}catch(e){
 		alert("name:"+e.name+" message:"+e.message+" lineNumber:"+e.lineNumber+" fileName:"+e.fileName);
@@ -1003,6 +1004,9 @@ function search_handleComplete(xhrobj, textStatus) {
         
 		if(resInfo.stepOptions) {
 			stepOptions = resInfo.stepOptions;
+		}
+		if (resInfo.djLoaning) {
+			warningConfirm(resInfo.djLoaning);
 		}
 	}
 };

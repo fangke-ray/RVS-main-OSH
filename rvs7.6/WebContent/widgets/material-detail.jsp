@@ -7,13 +7,20 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <body>
 <div id="material_detail_content" style="margin:auto;">
 
+<%
+	boolean showDjLoan = (request.getAttribute("showDjLoan") != null);
+%>
+
+
 <div style="height:44px;width:770px;" id="material_detail_infoes" class="dwidth-full">
 
 	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_base" role="button" checked><label for="material_detail_infoes_base" title="">基本信息</label>
 	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_product" role="button"><label for="material_detail_infoes_product" title="">作业信息</label>
 	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_change" role="button" style="display: none"><label for="material_detail_infoes_change" style="display: none">变更信息</label>
 	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_partical" role="button"><label for="material_detail_infoes_partical">零件信息</label>
-
+<% if (showDjLoan) { %>
+	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_dj_loan" role="button"><label for="material_detail_infoes_dj_loan">设备工具清洗记录</label>
+<% } %>
 </div>
 <input type="hidden" id="global_material_id"><input type="hidden" id="global_occur_times">
 <div class="ui-widget-content material_detail_tabcontent" for="material_detail_infoes_base" style="width:786px;text-align:left;">
@@ -448,7 +455,12 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 </div>
 
 <!-- 维修对象变更信息 -->
+<% if (showDjLoan) { %>
 
+<!-- 维修违治具借用信息 -->
+<div class="ui-widget-content material_detail_tabcontent" for="material_detail_infoes_dj_loan" style="width:786px;text-align:center;display:none;" lazyload="device_jig_loan.do?method=detailMaterial">
+</div>
+<% } %>
 
 <div class="clear areacloser"></div>
 </div>

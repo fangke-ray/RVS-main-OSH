@@ -107,6 +107,8 @@ public class ToolsManageService {
 		toolsManageEntity.setUpdated_by(user.getOperator_id());
 
 		dao.updateToolsManage(toolsManageEntity);
+
+		CheckResultService.clearInfectPersonalPass(null);
 	}
 	
 	/* 验证管理编号不能重复 */
@@ -184,6 +186,8 @@ public class ToolsManageService {
 		toolsManageEntity.setUpdated_by(user.getOperator_id());
 
 		dao.insertToolsManage(toolsManageEntity);
+
+		CheckResultService.clearInfectPersonalPass(null);
 	}
 	
 	/**
@@ -204,6 +208,8 @@ public class ToolsManageService {
 		toolsManageEntity.setUpdated_by(user.getOperator_id());
 
 		dao.deleteToolsManage(toolsManageEntity);
+
+		CheckResultService.clearInfectPersonalPass(null);
 	}
 	
 	// 取得责任人员
@@ -286,7 +292,9 @@ public class ToolsManageService {
 			toolsManageEntity.setUpdated_by(user.getOperator_id());
 			dao.disband(toolsManageEntity);
 		}
-				
+
+		CheckResultService.clearInfectPersonalPass(null);
+
 	}
 
 	//批量交付
@@ -321,6 +329,8 @@ public class ToolsManageService {
 					null, "要交付的治具工具"));
 			errors.add(error);
 		}
+
+		CheckResultService.clearInfectPersonalPass(null);
 	}
 	
 	// 获取被选择的多个治具

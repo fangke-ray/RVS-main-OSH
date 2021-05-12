@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.equipment.DeviceJigLoanMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="getAllLoaned" parameterType="DeviceJigLoanEntity" resultType="DeviceJigLoanEntity">
+		<![CDATA[ 
+		SELECT djl_op.device_jig_loan_key, djl_op.object_type, djl_op.on_loan_time,
+			djl_op.manage_code, djl_op.type_name, djl_op.model_name,
+			pos.process_code,
+			group_concat(ma.omr_notifi_no separator ' ') as omr_notifi_no
+		FROM
+		(
+			SELECT djl.device_jig_loan_key, djl.object_type, djl.on_loan_time,
+				COALESCE(dm.manage_code, jm.manage_code,'') AS manage_code,
+				COALESCE(dt.name, jm.tool_name) as type_name,
+				COALESCE(dm.model_name, jm.tools_no) as model_name,
+				COALESCE(dm.position_id,jm.position_id) AS position_id
+			FROM 
+				device_jig_loan djl
+			left join devices_manage dm
+				on djl.manage_id = dm.devices_manage_id
+			and djl.object_type = 1
+			left join devices_type dt
+				on dm.devices_type_id = dt.devices_type_id
+			left join tools_manage jm
+				on djl.manage_id = jm.tools_manage_id
+				and djl.object_type = 2
+			where djl.operator_id = #{operator_id}
+				and revent_time is null
+				and reason = #{reason}
+		) djl_op
+		left join position pos
+			on djl_op.position_id = pos.position_id
+		left join device_jig_loan_apply_trace tr
+			on djl_op.device_jig_loan_key = tr.device_jig_loan_key
+			and tr.position_id = #{position_id}
+		left join material ma 
+			on tr.material_id = ma.material_id
+		group by djl_op.device_jig_loan_key
+		ORDER by on_loan_time, process_code;
+		;
+		]]> 
+	</select>
+
+	<select id="countLoanedOfOperator" parameterType="String" resultType="DeviceJigLoanEntity">
+		<![CDATA[ 
+		SELECT djl.device_jig_loan_key, djl.object_type, djl.on_loan_time
+		FROM 
+			device_jig_loan djl
+		where djl.operator_id = #{operator_id}
+			and revent_time is null
+		]]> 
+	</select>
+
+	<select id="getLoaningUnregisting" parameterType="DeviceJigLoanEntity" resultType="String">
+		<![CDATA[ 
+			SELECT djl.device_jig_loan_key
+			FROM 
+				device_jig_loan djl
+			WHERE djl.operator_id = #{operator_id}
+				and revent_time is null
+				and reason = 1
+                and device_jig_loan_key not in 
+                (select device_jig_loan_key 
+                from device_jig_loan_apply_trace 
+                where material_id = #{material_id}
+                and position_id = #{position_id}
+                and rework = #{rework}
+                )
+		]]> 
+	</select>
+
+	<insert id="insertLoan" parameterType="DeviceJigLoanEntity">
+		INSERT INTO `device_jig_loan`
+		(
+		`manage_id`, `object_type`, `on_loan_time`, `reason`, `operator_id`)
+		VALUES
+		(
+		#{manage_id},  #{object_type}, #{on_loan_time}, #{reason}, #{operator_id});
+	</insert>
+
+	<update id="finishLoan">
+		UPDATE `device_jig_loan`
+		SET
+		`revent_time` = current_timestamp
+		WHERE `device_jig_loan_key` in
+		<foreach item="key" collection="array" open="(" separator="," close=")">
+			#{key}
+		</foreach>
+	</update>
+
+	<insert id="insertApplyTrace" parameterType="DeviceJigLoanEntity">
+		REPLACE INTO `device_jig_loan_apply_trace`
+		(`device_jig_loan_key`,
+		`position_id`,
+		`rework`,
+		`material_id`)
+		VALUES
+		(
+		#{device_jig_loan_key},
+		#{position_id},
+		#{rework},
+		#{material_id});
+	</insert>
+
+	<select id="getLoanApplyTraceByMaterial" parameterType="DeviceJigLoanEntity" resultType="DeviceJigLoanEntity">
+		<![CDATA[ 
+		SELECT 
+			djl.object_type,
+			djl.on_loan_time,
+			COALESCE(dm.manage_code, jm.manage_code,'') AS manage_code,
+			COALESCE(dt.name, jm.tool_name) as type_name,
+			dm.model_name,
+		    pos.process_code,
+		    op.name as operator_name,
+		    on_loan_time,
+		    revent_time
+		FROM device_jig_loan_apply_trace atr
+		JOIN device_jig_loan djl
+		ON atr.device_jig_loan_key = djl.device_jig_loan_key
+		JOIN position pos
+		ON atr.position_id = pos.position_id
+		JOIN operator op
+		ON djl.operator_id = op.operator_id
+		left join devices_manage dm
+			on djl.manage_id = dm.devices_manage_id
+		and djl.object_type = 1
+		left join devices_type dt
+			on dm.devices_type_id = dt.devices_type_id
+		left join tools_manage jm
+			on djl.manage_id = jm.tools_manage_id
+			and djl.object_type = 2
+		WHERE atr.material_id = #{material_id}
+		]]> 
+		<if test="position_id!= null and position_id!= '' ">
+			AND djl.position_id = #{position_id}
+		</if>
+		<if test="rework!= null and rework!= '' ">
+			AND djl.rework = #{rework}
+		</if>
+		<![CDATA[ 
+		ORDER by on_loan_time, process_code;
+		]]> 
+	</select>
+
+</mapper>

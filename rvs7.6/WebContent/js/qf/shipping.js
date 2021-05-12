@@ -70,6 +70,9 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			if(resInfo.workstauts == 1) {
 				treatStart(resInfo);
 			}
+			if (resInfo.djLoaning) {
+				warningConfirm(resInfo.djLoaning);
+			}
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: "

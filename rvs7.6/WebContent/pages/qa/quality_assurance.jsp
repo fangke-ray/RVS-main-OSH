@@ -71,6 +71,16 @@ ${WORKINFO}
 		</div>
 
 <%
+if (request.getAttribute("unitizeds")!=null) {
+%>
+<div class="dwidth-middleright">
+<%@include file="/widgets/position_panel/unitizeds_rent.jsp"%>
+</div>
+<%
+}
+%>
+
+<%
 Boolean peripheral = (Boolean) request.getAttribute("peripheral");
 if (peripheral!=null && peripheral) {
 %>

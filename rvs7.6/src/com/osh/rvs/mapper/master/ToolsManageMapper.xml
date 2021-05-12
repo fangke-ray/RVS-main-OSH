@@ -8,7 +8,7 @@
 		    `manage_code`,
 		    `tools_no`,
 		    `tools_type_id`,
-		    `tool_name`,
+		    `tool_name` as tools_name,
 		    `total_price`,
 		    `manage_level`,
 		    `manager_operator_id`,
@@ -171,6 +171,114 @@
 			</if>
 		</where>
 		 ORDER BY status,updated_time DESC
+	</select>	
+
+    <!-- 治具管理详细 -->
+    <select id="searchJigDistribute" resultType="ToolsManageEntity" parameterType="ToolsManageEntity">
+		<![CDATA[ 
+		select
+			tm.manage_code,
+			ot.name as responsible_operator,
+			l.name as line_name,
+			s.name as section_name,
+			p.process_code,
+			tool_name as tools_name,
+			tm.provide_date,
+			op.name as updated_by,
+			tm.tools_manage_id,
+			tm.manage_code,
+			tm.tools_no,
+			tm.section_id,
+			tm.line_id,
+			tm.position_id,
+			tm.status,
+			tm.responsible_operator_id,
+			tm.comment
+		from
+		    tools_manage tm
+	    left join
+			OPERATOR O ON tm.manager_operator_id = O.OPERATOR_ID
+		left join
+			OPERATOR op ON tm.updated_by = op.OPERATOR_ID
+		left join 
+            operator ot on tm.responsible_operator_id =ot.OPERATOR_ID
+        left join
+            position p on tm.position_id = p.position_id
+		left join 
+			section s  on tm.section_id = s.section_id
+        left join line l on tm.line_id = l.line_id
+		]]>
+		<where>		
+		        tm.delete_flg=0
+		   <if test="status!=null and status!='' ">
+				<![CDATA[
+				and tm.status in(${status})
+			    ]]>
+		   </if>
+		       
+		   <if test="manage_code!=null and manage_code!='' ">
+				<![CDATA[
+				and  tm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+			    ]]>
+			</if>     
+			<if test="tools_no!=null and tools_no!='' ">
+				<![CDATA[
+				    and tm.tools_no LIKE CONCAT('%',#{tools_no},'%')
+			    ]]>
+			</if>
+			<if test="tools_name!=null and tools_name!='' ">
+				<![CDATA[
+				    and tm.tool_name LIKE CONCAT('%',#{tools_name},'%')
+			    ]]>
+			</if>
+			<if test="section_id!=null and section_id!='' ">
+				<![CDATA[
+				    and tm.section_id =#{section_id}
+			    ]]>
+			</if>
+			<if test="line_id!=null and line_id!='' ">
+				<![CDATA[
+				    and tm.line_id =#{line_id}
+			    ]]>
+			</if>
+			<if test="manager_operator_id!=null and manager_operator_id!='' ">
+				<![CDATA[
+				    and tm.manager_operator_id = #{manager_operator_id}
+			    ]]>
+			</if>
+			<if test="position_id!=null and position_id!='' ">
+				<![CDATA[
+				    and tm.position_id =#{position_id}
+			    ]]>
+			</if>
+			<if test="responsible_operator_id!=null and responsible_operator_id!='' ">
+				<![CDATA[
+				    and tm.responsible_operator_id =#{responsible_operator_id}
+			    ]]>
+			</if>
+			<if test="import_date_start!=null and import_date_start!=''">
+				<![CDATA[
+					and tm.import_date>=#{import_date_start}
+				]]>
+			</if>
+			<if test="import_date_end!=null and import_date_end!=''">
+				<![CDATA[
+					and tm.import_date<=#{import_date_end}
+				]]>
+			</if>
+			<if test="waste_date_start!=null and waste_date_start!=''">
+				<![CDATA[
+					and tm.waste_date>=#{waste_date_start}
+				]]>
+			</if>
+			<if test="waste_date_end!=null and waste_date_end!=''">
+				<![CDATA[
+					and tm.waste_date<=#{waste_date_end}
+				]]>
+			</if>
+		</where>
+		ORDER BY tm.manage_code
+		limit 1000;
 	</select>	
 
 	 <!-- 双击页面修改 -->
