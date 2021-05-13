@@ -40,6 +40,7 @@ import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qa.ServiceRepairManageService;
 import com.osh.rvs.service.qf.QuotationService;
@@ -148,14 +149,15 @@ public class QuotationAction extends BaseAction {
 		String infectString = "";
 		boolean join151And161 = "00000000013".equals(position_id) || "00000000014".equals(position_id);
 		if (join151And161) {
-			infectString = ppservice.getInfectMessageByPosition(section_id,
-					"00000000013", line_id, conn);
-			if (infectString == null) infectString = ""; else infectString += "\n";
-			infectString += ppservice.getInfectMessageByPosition(section_id,
-					"00000000014", line_id, conn);
+			infectString = ppservice.checkPositionInfectWorkOnPass(
+					section_id, "00000000013", line_id, user.getOperator_id(), conn, callbackResponse);
+
+			infectString += ppservice.checkPositionInfectWorkOnPass(
+					section_id, "00000000014", line_id, user.getOperator_id(), conn, callbackResponse);
 		} else {
-			infectString = ppservice.getInfectMessageByPosition(section_id,
-					position_id, line_id, conn);
+			// 设定待点检信息
+			infectString = ppservice.checkPositionInfectWorkOnPass(
+					section_id, position_id, line_id, user.getOperator_id(), conn, callbackResponse);
 		}
 		infectString += ppservice.getAbnormalWorkStateByOperator(user.getOperator_id(), conn);
 
@@ -274,6 +276,17 @@ public class QuotationAction extends BaseAction {
 			
 			// 查询结果放入Ajax响应对象
 			callbackResponse.put("customers", list);
+
+			// 判断作业者是否借用了设备工具
+			if (!PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id())) {
+				if (session.getAttribute("DJ_LOANING") != null) {
+					DeviceJigLoanService djlService = new DeviceJigLoanService();
+					String loaning = djlService.checkLoaningNowText(user.getOperator_id(), conn);
+					if (loaning != null) {
+						callbackResponse.put("djLoaning", loaning);
+					}
+				}
+			}
 		}
 
 		// 检查发生错误时报告错误信息

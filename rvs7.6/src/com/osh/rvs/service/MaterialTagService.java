@@ -122,12 +122,15 @@ public class MaterialTagService {
 	public static Set<String> getAnmlMaterials(SqlSession conn) {
 		if (anml_materials == null) {
 			if (conn == null) {
-				
+				return new HashSet<String>();
 			} else {
 				resetAnmlMaterials(conn);
 			}
 		}
 		return anml_materials;
+	}
+	public static void clearAnmlMaterials() {
+		anml_materials = null;
 	}
 	public static void resetAnmlMaterials(SqlSession conn) {
 		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);

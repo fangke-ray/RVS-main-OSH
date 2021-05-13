@@ -104,6 +104,15 @@
 	    <url-pattern>/servlet/InitFilePathServlet</url-pattern>
   	</servlet-mapping>
 
+	<servlet>
+		<servlet-name>trigger</servlet-name>
+		<servlet-class>com.osh.rvs.servlet.TriggerServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>trigger</servlet-name>
+		<url-pattern>/trigger/*</url-pattern>
+	</servlet-mapping>
+
 	<filter>
 		<!--
 		字符码设定Filter
