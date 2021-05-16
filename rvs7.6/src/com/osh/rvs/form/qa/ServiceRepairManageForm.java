@@ -36,7 +36,7 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	@BeanField(title = "分析对应建议", name = "analysis_correspond_suggestion", length = 500)
 	private String analysis_correspond_suggestion;
 	// 分析表编号
-	@BeanField(title = "分析表编号", name = "analysis_no", length = 23)
+	@BeanField(title = "分析表编号", name = "analysis_no", length = 32)
 	private String analysis_no;
 	// 客户编号
 	@BeanField(title = "客户编号", name = "customer_id", type = FieldType.Integer, length = 11)
@@ -183,7 +183,7 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	private String mention;// 提要
 
 	/* 后期添加 */
-	@BeanField(title = "质量信息单号", name = "quality_info_no", length = 20)
+	@BeanField(title = "质量信息单号", name = "quality_info_no", length = 25)
 	private String quality_info_no;
 
 	@BeanField(title = "QIS发送单号", name = "qis_invoice_no", length = 32)
@@ -240,7 +240,7 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	@BeanField(title = "判定结果(工厂)", name = "m_judgment_result", type = FieldType.String, length = 32)
 	private String m_judgment_result;
 
-	@BeanField(title = "分析结果简述(工厂)", name = "m_analysis_result_brief", type = FieldType.String, length = 768)
+	@BeanField(title = "分析结果简述(工厂)", name = "m_analysis_result_brief", type = FieldType.String, length = 1023)
 	private String m_analysis_result_brief;
 
 	@BeanField(title = "对应方法(工厂)", name = "m_correspond_method", type = FieldType.String, length = 32)

@@ -45,7 +45,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<tr>
 					<td class="ui-state-default td-title">分析表编号</td>
 					<td class="td-content">
-						<input type="text"  id="text_analysis_no" name="analysis_no" alt="分析表编号" maxlength="23" style="width:14em;" class="ui-widget-content"/>
+						<input type="text"  id="text_analysis_no" name="analysis_no" alt="分析表编号" maxlength="32" style="width:14em;" class="ui-widget-content"/>
 					</td>
 				   	<td class="ui-state-default td-title">不良内容</td>
 					<td class="td-content">
