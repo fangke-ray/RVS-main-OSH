@@ -3036,7 +3036,7 @@ public class UploadService {
 				lineform.setModel_name(model_name);
 				lineform.setSerial_no(serial_no);
 				lineform.setFix_type("3");
-				lineform.setOcm_rank("△".equals(cdsType) ? "灭菌" : "消毒");
+				lineform.setOcm_rank("○".equals(cdsType) ? "灭菌" : "消毒");
 
 				retList.add(lineform);					
 			}

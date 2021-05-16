@@ -341,7 +341,9 @@ td.td-content textarea{
 	height: 40px;
     line-height: 40px;
 }
-
+.calculator .screen.mismatch {
+	color: darkred;
+}
 .calculator .group{
 	display: flex;
 	justify-content: space-around;

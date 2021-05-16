@@ -181,6 +181,7 @@ var setValue = function(detailForm){
 		$("#recept_edit_item_receiver_date").val(content.itemReceiverDate);
 		$("#recept_edit_item_receiver_time").val(content.itemReceiverTime);
 		$("#recept_edit_item_receiver_person").val(content.itemReceiverPerson);
+		$("#recept_edit_item_failure_descrip").val(content.itemFailureDescrip);
 	}else if(kind=="part_order"){
 		$("#part_order_edit_omr_notifi_no").text(content.OMRNotifiNo);//SAP修理通知单No.
 		$("#part_order_edit_sorc_code").text(content.SORCCode);//SORC代码
@@ -347,6 +348,7 @@ var comfirm_f = function(){
 		data.edit_item_receiver_date = $("#recept_edit_item_receiver_date").val();
 		data.edit_item_receiver_time = $("#recept_edit_item_receiver_time").val();
 		data.edit_item_receiver_person = $("#recept_edit_item_receiver_person").val();
+		data.edit_item_failure_descrip = $("#recept_edit_item_failure_descrip").val();
 	}else if(kind="part_order"){
 		data.OMRNotifiNo = $("#part_order_edit_omr_notifi_no").text();
 		data.SORCCode = $("#part_order_edit_sorc_code").text();

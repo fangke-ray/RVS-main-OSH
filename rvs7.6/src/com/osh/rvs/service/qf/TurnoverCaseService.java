@@ -628,17 +628,19 @@ public class TurnoverCaseService {
 		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
 
 		TurnoverCaseEntity condition = new TurnoverCaseEntity();
-		condition.setMaterial_id(material_id);
-		List<TurnoverCaseEntity> ret = mapper.searchTurnoverCase(condition);
-		if (ret.size() > 0) {
-			MsgInfo error = new MsgInfo();
-			error.setErrmsg("此维修品已经加入库位，请退出编辑框重新操作。");
-			errors.add(error);
+		if (material_id != null) {
+			condition.setMaterial_id(material_id);
+			List<TurnoverCaseEntity> ret = mapper.searchTurnoverCase(condition);
+			if (ret.size() > 0) {
+				MsgInfo error = new MsgInfo();
+				error.setErrmsg("此维修品已经加入库位，请退出编辑框重新操作。");
+				errors.add(error);
+			}
 		}
 
 		condition.setMaterial_id(null);
 		condition.setLocation(location);
-		ret = mapper.searchTurnoverCase(condition);
+		List<TurnoverCaseEntity> ret = mapper.searchTurnoverCase(condition);
 		if (ret.size() == 0) {
 			MsgInfo error = new MsgInfo();
 			error.setErrmsg("库位不存在。");

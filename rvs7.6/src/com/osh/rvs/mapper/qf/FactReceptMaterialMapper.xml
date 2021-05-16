@@ -12,6 +12,7 @@
 		    serial_no,
 		    ocm,
 		    direct_flg,
+		    service_repair_flg,
 		    CASE
 		    	WHEN temp_fact_recept >= 1 THEN null
 		    	WHEN ocm = 4 THEN f_addworkdays(reception_time,2)
@@ -23,6 +24,7 @@
 		    temp_fact_recept AS fact_recept,
 		    tag_types,
 		    location As tc_location,
+		    ocm_rank,
 		    comment
 		FROM
 		(
@@ -30,11 +32,13 @@
 		    material.material_id,
 		    material.serial_no,
 		    material.ocm,
+		    material.ocm_rank,
 		    material.direct_flg,
+		    material.service_repair_flg,
 		    material.reception_time,
 		    mdl.name AS model_name,
 		    mdl.CATEGORY_ID,
-            SUM(afpf.production_type = 102) > 0 AS temp_fact_recept,
+            coalesce(SUM(afpf.production_type = 102) > 0, 0) AS temp_fact_recept,
             SUM(tag.tag_type = 2) AS waiting_leak,
 		    GROUP_CONCAT(DISTINCT tag.tag_type) AS tag_types,
             tcs.location,
@@ -166,6 +170,9 @@
 			fact_recept_material_temp frmt join model mdl on frmt.model_id = mdl.model_id
 	]]>
 	<where>
+	<![CDATA[
+		af_pf_key <> 0 
+	]]>
 	<if test="model_id!=null and model_id!=''">
 	<![CDATA[
 		AND frmt.model_id = #{model_id}
@@ -174,6 +181,11 @@
 	<if test="serial_no!=null and serial_no!=''">
 	<![CDATA[
 		AND serial_no = #{serial_no}
+	]]>
+	</if>
+	<if test="search_range eq 2">
+	<![CDATA[
+		AND (reception_time IS NULL OR LOCATE('2', tag_types) > 0)
 	]]>
 	</if>
 	</where>

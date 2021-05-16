@@ -20,6 +20,7 @@ import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialTagForm;
 import com.osh.rvs.form.qf.FactMaterialForm;
 import com.osh.rvs.form.qf.FactReceptMaterialForm;
@@ -155,10 +156,11 @@ public class FactReceptMaterialService {
 		}
 		
 		//非直送/其他(周边)
+		//判断受理工位（111）有没有做完 => 判断小票有没打印
+		MaterialService mService = new MaterialService();
+		MaterialEntity mBean = mService.loadSimpleMaterialDetailEntity(conn, materialID);
+
 		if("0".equals(flag) || "3".equals(flag)){
-			//判断受理工位（111）有没有做完 => 判断小票有没打印
-			MaterialService mService = new MaterialService();
-			MaterialEntity mBean = mService.loadSimpleMaterialDetailEntity(conn, materialID);
 			Integer ticketFlg = mBean.getTicket_flg();
 
 			// boolean isDid = featureService.checkPositionDid(materialID, "00000000009", "2", null, conn);
@@ -206,6 +208,10 @@ public class FactReceptMaterialService {
 			if (factReceptMaterialForm.getTc_location() != null) {
 				TurnoverCaseService tcService = new TurnoverCaseService();
 				tcService.setToLocation(factReceptMaterialForm.getMaterial_id(), factReceptMaterialForm.getTc_location(), errors, conn);
+
+				// 尝试触发通箱消毒等待
+				RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/assign_tc_space/" + materialID
+						+ "/1/1/" + mBean.getUnrepair_flg()); 
 			}
 		}
 	}
@@ -366,7 +372,7 @@ public class FactReceptMaterialService {
 				if(!"00000000000".equals(entity.getModel_id()) && !entity.getSerial_no().startsWith("临")){
 					//临时表重复check
 					List<FactReceptMaterialEntity> list = dao.searchTemp(entity);
-					
+
 					//型号机身号不能重复
 					if(list.size() == 1 && !factReceptId.equals(list.get(0).getFact_recept_id())){
 						MsgInfo info = new MsgInfo();

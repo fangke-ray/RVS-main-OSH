@@ -106,6 +106,7 @@ div.hidden{
 li.list-group-item.empty {
 	padding-top:0;
 	padding-bottom:0;
+	margin-top:-.4em
 }
 
 .page{
@@ -224,7 +225,24 @@ li.list-group-item.empty {
 	font-size: 0.75rem;
 	vertical-align: text-bottom;
 }
-
+.item-container > .item-sub-container .dm_tag{
+	position: absolute;
+	left: -.4em;
+	top: -.4em;
+	background: darkviolet;
+	border-radius: 50%;
+	font-size: 18px;
+	padding: 0 .2em;
+}
+.item-container > .item-sub-container .service_tag{
+	position: absolute;
+	left: 1.4em;
+	top: -.4em;
+	background: orange;
+	border-radius: 50%;
+	font-size: 18px;
+	padding: 0 .2em;
+}
 .td-content .btn{
 	display: inline-block;
 	padding:10px;
@@ -412,6 +430,18 @@ label.tc_location:empty {
 	border-left: 10px solid transparent;
 	border-right: 10px solid transparent;
 }
+#tc_location_pop .tc_no_location {
+	font-size:24px;
+	position: absolute;
+	left : 0;
+	top : -1em;
+	background-color: gold;
+	border-radius: 3px;
+	box-shadow: 0 4px rgba(0, 0, 0, 0.2);
+	color: darkblue;
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+}
 
 #model_keyboard_pop {
 	position : fixed;
@@ -491,6 +521,9 @@ label.tc_location:empty {
     transform:translate3d(1px,1px,0);
     background-color: #9c89f6;
     color: white;
+}
+#edit_ocm > span{
+	padding:0 0.2em;
 }
 </style>
 
@@ -598,7 +631,7 @@ label.tc_location:empty {
 						</td>
 					</tr>
 					<tr>
-						<td class="ui-state-default td-title">下一个工作日</td>
+						<td class="ui-state-default td-title">下一个工作日预计到货</td>
 					</tr>
 					<tr>
 						<td class="td-content" style="font-size: 1rem;padding:10px 6px;">
@@ -658,6 +691,12 @@ label.tc_location:empty {
 					<td class="ui-state-default td-title">机身号</td>
 					<td class="td-content">
 						<label id="edit_serial_no"></label>
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">委托 RC</td>
+					<td class="td-content">
+						<label id="edit_ocm"></label>
 					</td>
 				</tr>
 				<tr>

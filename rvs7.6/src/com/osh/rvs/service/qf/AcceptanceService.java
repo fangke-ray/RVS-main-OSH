@@ -20,6 +20,7 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
 import com.osh.rvs.common.FseBridgeUtil;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -28,6 +29,7 @@ import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.qf.AcceptanceMapper;
+import com.osh.rvs.mapper.qf.FactReceptMaterialMapper;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
@@ -92,7 +94,7 @@ public class AcceptanceService {
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void accept(String newId, HttpSession session, List<String> triggerList, SqlSession conn) throws Exception {
+	public void accept(String newId, HttpSession session, List<String> triggerList, SqlSessionManager conn) throws Exception {
 		ProductionFeatureEntity entity = new ProductionFeatureEntity();
 		entity.setMaterial_id(newId);
 		entity.setPosition_id("00000000009");
@@ -121,6 +123,16 @@ public class AcceptanceService {
 		if (mEntity.getFix_type() != null && mEntity.getFix_type() != 3) { // 备品通箱不入库也不消毒通箱(备品必须单都包含通箱信息)
 			triggerList.add("http://localhost:8080/rvspush/trigger/assign_tc_space/" + newId
 					+ "/" + kind + "/" + mEntity.getFix_type() + "/" + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
+		}
+
+		FactReceptMaterialService frmService = new FactReceptMaterialService();
+		FactReceptMaterialMapper frmMapper = conn.getMapper(FactReceptMaterialMapper.class);
+		FactReceptMaterialEntity frmEntity = new FactReceptMaterialEntity();
+		frmEntity.setSerial_no(mEntity.getSerial_no());
+		frmEntity.setModel_id(mEntity.getModel_id());
+		List<FactReceptMaterialEntity> list = frmMapper.searchTemp(frmEntity);
+		if (list.size() > 0) {
+			frmService.tempMatch(newId, list.get(0), conn);
 		}
 	}
 
@@ -371,6 +383,15 @@ public class AcceptanceService {
 		material.setMaterial_id(material_id);
 		material.setReception_time(fact_finish_time);
 		dao.updateFormalReception(material);
+
+		ProductionFeatureEntity pfEntity = new ProductionFeatureEntity();
+		pfEntity.setMaterial_id(material_id);
+		pfEntity.setPosition_id("00000000009");
+		pfEntity.setFinish_time(fact_finish_time);
+		Integer use_seconds = Integer.valueOf(RvsUtils.getZeroOverLine("_default", null, null, "111")) * 60;
+		pfEntity.setUse_seconds(use_seconds);
+		dao.updateReceptionTime(pfEntity);
+
 		try {
 			FseBridgeUtil.toUpdateMaterial(material_id, "111");
 			FseBridgeUtil.toUpdateMaterialProcess(material_id, "111");

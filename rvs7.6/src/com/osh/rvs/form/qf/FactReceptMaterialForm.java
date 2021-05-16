@@ -20,11 +20,17 @@ public class FactReceptMaterialForm extends ActionForm implements Serializable {
 	@BeanField(title = "机身号", name = "serial_no", type = FieldType.String, length = 20, notNull = true)
 	private String serial_no;
 
-	@BeanField(title = "OCM等级", name = "ocm", type = FieldType.Integer, length = 1)
+	@BeanField(title = "OCM等级", name = "ocm", type = FieldType.Integer, length = 2)
 	private String ocm;
+
+	@BeanField(title = "OCM等级", name = "ocm_rank", type = FieldType.Integer, length = 1)
+	private String ocm_rank;
 
 	@BeanField(title = "直送", name = "direct_flg", type = FieldType.Integer, length = 1)
 	private String direct_flg;
+
+	@BeanField(title = "保内", name = "service_repair_flg", type = FieldType.Integer, length = 1)
+	private String service_repair_flg;
 
 	@BeanField(title = "受理时间", name = "expect_arrive_time", type = FieldType.Date)
 	private String expect_arrive_time;
@@ -210,6 +216,22 @@ public class FactReceptMaterialForm extends ActionForm implements Serializable {
 
 	public void setReception_time(String reception_time) {
 		this.reception_time = reception_time;
+	}
+
+	public String getOcm_rank() {
+		return ocm_rank;
+	}
+
+	public void setOcm_rank(String ocm_rank) {
+		this.ocm_rank = ocm_rank;
+	}
+
+	public String getService_repair_flg() {
+		return service_repair_flg;
+	}
+
+	public void setService_repair_flg(String service_repair_flg) {
+		this.service_repair_flg = service_repair_flg;
 	}
 
 }

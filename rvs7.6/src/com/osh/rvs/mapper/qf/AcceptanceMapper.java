@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
 
 public interface AcceptanceMapper {
 
@@ -32,4 +33,6 @@ public interface AcceptanceMapper {
 	public Map<String, String> loadOgz();
 
 	public List<MaterialEntity> searchReceptionsWithoutFact();
+
+	public void updateReceptionTime(ProductionFeatureEntity pfEntity);
 }

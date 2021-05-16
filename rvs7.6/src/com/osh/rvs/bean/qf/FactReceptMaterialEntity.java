@@ -16,11 +16,17 @@ public class FactReceptMaterialEntity implements Serializable {
 	/** 机身号 **/
 	private String serial_no;
 
-	/** OCM等级 **/
+	/** OCM RC **/
 	private Integer ocm;
+
+	/** OCM等级 **/
+	private Integer ocm_rank;
 
 	/** 直送 **/
 	private Integer direct_flg;
+
+	/** 保内 **/
+	private Integer service_repair_flg;
 
 	/** 受理时间 **/
 	private Date expect_arrive_time;
@@ -194,6 +200,22 @@ public class FactReceptMaterialEntity implements Serializable {
 
 	public void setReception_time(Date reception_time) {
 		this.reception_time = reception_time;
+	}
+
+	public Integer getOcm_rank() {
+		return ocm_rank;
+	}
+
+	public void setOcm_rank(Integer ocm_rank) {
+		this.ocm_rank = ocm_rank;
+	}
+
+	public Integer getService_repair_flg() {
+		return service_repair_flg;
+	}
+
+	public void setService_repair_flg(Integer service_repair_flg) {
+		this.service_repair_flg = service_repair_flg;
 	}
 
 }

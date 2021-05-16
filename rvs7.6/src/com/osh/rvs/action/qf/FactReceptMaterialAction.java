@@ -2,6 +2,7 @@ package com.osh.rvs.action.qf;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,16 +108,18 @@ public class FactReceptMaterialAction extends BaseAction {
 		List<FactReceptMaterialForm> materialList = factReceptMaterialService.searchReceptMaterial(search_range, conn);
 		callbackResponse.put("materialList", materialList);
 
-		if (SEARCH_RANGE_TODAY_ALL.equals(search_range)) {
+		// 取得登录用户权限
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		List<Integer> privacies = user.getPrivacies();
+
+		if (privacies.contains(RvsConsts.PRIVACY_LINE) &&
+			SEARCH_RANGE_TODAY_ALL.equals(search_range)) { // 线长人员查看备品受理分页
 			List<FactReceptMaterialForm> spareMaterialList = factReceptMaterialService.searchReceptSpareMaterial(conn);
 			callbackResponse.put("spareMaterialList", spareMaterialList);
 		}
 
 		List<FactReceptMaterialForm> tempList = factReceptMaterialService.searchFactReceptMaterialTemp(form, conn);
 		callbackResponse.put("tempList", tempList);
-		
-		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
-		List<Integer> privacies = user.getPrivacies();
 		
 		Calendar start = Calendar.getInstance();
 		start.set(Calendar.HOUR_OF_DAY, 0);
@@ -196,11 +199,17 @@ public class FactReceptMaterialAction extends BaseAction {
 			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.productionTypeNotMatch",CodeListUtils.getValue("qf_production_type", productionForm.getProduction_type())));
 			errors.add(error);
 		}
-		
+
 		if(errors.size() == 0){
 			FactReceptMaterialForm factReceptMaterialForm = (FactReceptMaterialForm)form;
+
+			String tcLocation = factReceptMaterialForm.getTc_location();
+			if ("不分配".equals(tcLocation)) {
+				factReceptMaterialForm.setTc_location(tcLocation = null);
+			}
+
 			// 通箱库位
-			if (!CommonStringUtil.isEmpty(factReceptMaterialForm.getTc_location())) {
+			if (!CommonStringUtil.isEmpty(tcLocation)) {
 				TurnoverCaseService tcService = new TurnoverCaseService();
 				tcService.checkToLocation(factReceptMaterialForm.getMaterial_id(), factReceptMaterialForm.getTc_location(), errors, conn);
 			}
@@ -394,7 +403,18 @@ public class FactReceptMaterialAction extends BaseAction {
 							}
 						}
 					}
-					
+
+					String tcLocation = factReceptMaterialForm.getTc_location();
+					if ("不分配".equals(tcLocation)) {
+						factReceptMaterialForm.setTc_location(tcLocation = null);
+					}
+
+					// 通箱库位
+					if (!CommonStringUtil.isEmpty(tcLocation)) {
+						TurnoverCaseService tcService = new TurnoverCaseService();
+						tcService.checkToLocation(null, factReceptMaterialForm.getTc_location(), errors, conn);
+					}
+
 					if(errors.size() == 0){
 						//插入临时表fact_recept_material_temp
 						factReceptMaterialService.insertFactReceptMaterialTemp(factReceptMaterialForm, conn);
@@ -414,6 +434,9 @@ public class FactReceptMaterialAction extends BaseAction {
 						materialForm.setModel_id(factReceptMaterialForm.getModel_id());
 						materialForm.setSerial_no(factReceptMaterialForm.getSerial_no());
 						materialForm.setFix_type("1");
+						materialForm.setDirect_flg("0");
+						materialForm.setScheduled_expedited("0");;
+						materialForm.setReception_time(DateUtil.toString(new Date(), DateUtil.DATE_TIME_PATTERN));
 
 						materialService.insert(materialForm, conn);
 						CommonMapper cDao = conn.getMapper(CommonMapper.class);
@@ -424,7 +447,7 @@ public class FactReceptMaterialAction extends BaseAction {
 						factMaterialForm.setAf_pf_key(productionForm.getAf_pf_key());
 						factMaterialForm.setMaterial_id(insertId);
 						factMaterialService.insert(factMaterialForm, conn);
-						
+
 						//新建维修对象属性标签
 						String [] arrTag = factReceptMaterialForm.getTag_types().split(",");
 						for(int i = 0;i<arrTag.length;i++){

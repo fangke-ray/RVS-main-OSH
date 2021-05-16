@@ -208,4 +208,15 @@ WHERE `record_date` = current_date;
 			ORDER BY model_name, serial_no;
 		]]>
 	</select>
+
+	<update id="updateReceptionTime" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+			UPDATE production_feature
+			SET action_time = date_add(#{finish_time} , interval -#{use_seconds} second),
+			finish_time = #{finish_time}
+			WHERE material_id = #{material_id}
+			AND position_id = #{position_id}
+ 		]]>
+ 		;
+	</update>
 </mapper>

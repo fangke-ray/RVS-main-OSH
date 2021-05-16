@@ -88,7 +88,7 @@ tr.three td:first-child{
 							<td class="ui-state-default td-title">是否直送</td>
 							<td class="td-content" id="recept_edit_directly_to_sorc">
 								<input type="radio" name="direct_flg" id="direct_flg_yes" class="ui-widget-content" value="1"><label for="direct_flg_yes">是</label>
-								<input type="radio" name="direct_flg" id="direct_flg_no" class="ui-widget-content" value="0"><label for="direct_flg_no">否</label>
+								<input type="radio" name="direct_flg" id="direct_flg_no" class="ui-widget-content" value=""><label for="direct_flg_no">否</label>
 							</td>
 						</tr>
 						<tr>
@@ -113,6 +113,12 @@ tr.three td:first-child{
 							<td class="ui-state-default td-title">修理品入库人员</td>
 							<td class="td-content">
 								<input type="text" id="recept_edit_item_receiver_person" class="ui-widget-content" maxlength="12">
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">故障信息</td>
+							<td class="td-content">
+								<input type="text" id="recept_edit_item_failure_descrip" class="ui-widget-content" maxlength="12">
 							</td>
 						</tr>
 					</tbody>
