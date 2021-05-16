@@ -120,6 +120,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							<td class="td-content">
 								<input type="text" name="devices_manage_id" readonly="readonly" alt="管理编号" id="search_devices_manage_id" class="ui-widget-content"/>
 								<input type="hidden" id="hidden_detail_devices_manage_id"/>
+								<input type="text" name="jig_manage_id" readonly="readonly" alt="管理编号" id="search_jig_manage_id" class="ui-widget-content" style="display:none;"/>
+								<input type="hidden" id="hidden_detail_jig_manage_id"/>
 							</td>
 							<td class="ui-state-default td-title">文件从属</td>
 							<td class="td-content"><select id="search_branch">${goBranch}</select></td>	
@@ -188,29 +190,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</table>
 			</form>	
 			
-			<!-- 上传附件 点检表名称 -->
-			<div id="sheet_file_name_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:20000">
-				<table width="200px">
-					<tr>
-						<td></td>
-						<td width="50%">过滤字:<input type="text"/></td>
-						<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-					</tr>
-				</table>
-				<table  class="subform">${sfnReferChooser}</table>
-			</div>	
-			
-			<!-- 上传附件 设备名称 -->
-			<div id="device_name_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:20000">
-				<table width="200px">
-					<tr>
-						<td></td>
-						<td width="50%">过滤字:<input type="text"/></td>
-						<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
-					</tr>
-				</table>
-				<table  class="subform">${dnReferChooser}</table>
-			</div>		
 		</div>
 
 		<div class="clear areaencloser"></div>
@@ -236,7 +215,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<table  class="subform">${nReferChooser}</table>
 		</div>	
 
-		<div id="detail_device_name_refer" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:20000">
+		<!-- 上传附件 点检表名称 -->
+		<div id="sheet_file_name_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:20000">
+			<table width="200px">
+				<tr>
+					<td></td>
+					<td width="50%">过滤字:<input type="text"/></td>
+					<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
+				</tr>
+			</table>
+			<table  class="subform">${sfnReferChooser}</table>
+		</div>	
+		<!-- 上传附件 设备名称 -->
+		<div id="device_name_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:20000">
 			<table width="200px">
 				<tr>
 					<td></td>
@@ -245,9 +236,22 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</tr>
 			</table>
 			<table  class="subform">${dnReferChooser}</table>
+		</div>	
+
+		<!-- 上传附件 治具名称 -->
+		<div id="jig_name_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:20000">
+			<table width="200px">
+				<tr>
+					<td></td>
+					<td width="50%">过滤字:<input type="text"/></td>
+					<td width="50%" align="right"><input type="button" class="ui-button" style="float:right;" value="清空"/></td>
+				</tr>
+			</table>
+			<table  class="subform">${jnReferChooser}</table>
+		</div>	
+
 		</div>
-		</div>
-					
+
 		<div class="clear"></div>
 		<div id="confirmmessage"></div>
 		</div>		

@@ -216,10 +216,25 @@ public class ReadInfect {
 //				instance.convert(fromfile, tofile, ids[0], conn); // ids[i]
 //			}
 
-			instance.convert("D:\\rvs\\DeviceInfection\\xml\\QR-B31003-5TEST.xml", 
-					"D:\\rvs\\DeviceInfection\\xml\\QR-B31003-5TEST.html", "100", conn, new ArrayList<MsgInfo>()); // ids[i]
+//			instance.convert("D:\\rvs\\DeviceInfection\\xml\\QR-B31003-5TEST.xml", 
+//					"D:\\rvs\\DeviceInfection\\xml\\QR-B31003-5TEST.html", "100", conn, new ArrayList<MsgInfo>()); // ids[i]
+
+			ArrayList<MsgInfo> simpleFilConv = new ArrayList<MsgInfo>();
+
+			File srcPath = new File("F:/Download/项目通信/OSH/2021 维护/点检表FY-P/tag");
 			
-			
+			for (File file : srcPath.listFiles()) {
+				String fPath = file.getAbsolutePath();
+				if (fPath.endsWith(".xlsx")) {
+					XlsUtil xls = new XlsUtil(fPath);
+					String fPathXml = fPath.replaceAll(".xlsx$", ".xml");
+					xls.SaveAsXml(fPathXml);
+					if (!new File(fPathXml+".html").exists())
+					instance.convert(fPathXml, 
+							fPathXml+".html", "100", null, simpleFilConv); // ids[i]
+				}
+			}
+
 			conn.commit();
 		} catch (Exception e) {
 			_logger.error(e.getMessage(), e);
@@ -351,9 +366,10 @@ public class ReadInfect {
 			int[] columnspanned = new int[sheetcols];
 			Map<String, List<ShiftData>> brokenShifts = new HashMap<String, List<ShiftData>>();
 
-			CheckFileManageMapper mapper = conn.getMapper(CheckFileManageMapper.class);
+			CheckFileManageMapper mapper = null;
+			if (conn != null) mapper = conn.getMapper(CheckFileManageMapper.class); 
 			// 先删除项目
-			mapper.deleteDevicesCheckItem(check_file_manage_id);
+			if (mapper != null) mapper.deleteDevicesCheckItem(check_file_manage_id);
 
 			for (int irow =0;irow<rows.getLength();irow++) { // 行的循环
 				String trcontents = "";
@@ -864,7 +880,7 @@ public class ReadInfect {
 					}
 				}
 				itemEntity.setCheck_file_manage_id(check_file_manage_id);
-				mapper.addSeqItem(itemEntity);
+				if (mapper != null) mapper.addSeqItem(itemEntity);
 
 				// 替换成标签
 				String replaceTag = matchTag.replaceAll("\\[", "\\\\[").replaceAll("\\+", "\\\\+").replaceAll("-", "\\\\-");

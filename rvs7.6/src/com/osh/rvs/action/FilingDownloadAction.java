@@ -93,7 +93,12 @@ public class FilingDownloadAction extends BaseAction {
 			List<String> lEncodedDeviceList = 
 					JSON.decode(sEncodedDeviceList, ArrayList.class);
 
-			service.makeFileGroup(cfsEntity, lEncodedDeviceList, conn);
+			String sJigOperaterId = req.getParameter("sJigOperaterId");
+			if (sJigOperaterId != null) {
+				service.makeFileJigs(cfsEntity, lEncodedDeviceList, sJigOperaterId, conn);
+			} else {
+				service.makeFileGroup(cfsEntity, lEncodedDeviceList, conn);
+			}
 		}
 
 		String sDeviceId = req.getParameter("sDeviceId");
@@ -102,13 +107,6 @@ public class FilingDownloadAction extends BaseAction {
 			lEncodedDeviceList.add(sDeviceId);
 			service.makeFileGroup(cfsEntity, lEncodedDeviceList, conn);
 //			service.makeFileSingle(cfsEntity, sDeviceId, conn);
-		}
-
-		String sJigOperaterId = req.getParameter("sJigOperaterId");
-		if (sJigOperaterId != null) {
-			List<String> lEncodedJigList = new ArrayList<String>();
-			lEncodedJigList.add(sDeviceId);
-			service.makeFileJigs(cfsEntity, lEncodedJigList, conn);
 		}
 
 		return null;

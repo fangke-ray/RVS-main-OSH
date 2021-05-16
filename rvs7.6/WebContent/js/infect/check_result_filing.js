@@ -41,7 +41,7 @@ $(function(){
 		$("#hidden_devices_type_id").val("");
 	});
 
-		//新建治具点检种类---取消button
+	//新建治具点检种类---取消button
 	$("#come_back_button").click(function() {
 		showList();
 	});

@@ -62,13 +62,13 @@ public class CheckResultFilingService {
 
 		CheckResultFilingForm condForm = (CheckResultFilingForm) form;
 		if (!isEmpty(condForm.getCheck_manage_code())) {
-			if ("QF0601-5".indexOf(condForm.getCheck_manage_code()) < 0) {
+			if ("QR-B31004-7".indexOf(condForm.getCheck_manage_code()) < 0) {
 				return formList;
 			}
 		}
 
 		if (!isEmpty(condForm.getSheet_file_name())) {
-			if ("QF0601-5专用工具定期清点保养记录".indexOf(condForm.getSheet_file_name()) < 0) {
+			if ("QR-B31004-7 专用工具定期清点保养记录".indexOf(condForm.getSheet_file_name()) < 0) {
 				return formList;
 			}
 		}
@@ -92,11 +92,11 @@ public class CheckResultFilingService {
 		CheckResultFilingForm jigForm = new CheckResultFilingForm();
 
 		jigForm.setCheck_file_manage_id("00000000000");
-		jigForm.setCheck_manage_code("QF0601-5");
-		jigForm.setSheet_file_name("QF0601-5专用工具定期清点保养记录");
+		jigForm.setCheck_manage_code("QR-B31004-7");
+		jigForm.setSheet_file_name("QR-B31004-7 专用工具定期清点保养记录");
 		jigForm.setAccess_place("2");
-		jigForm.setCycle_type("8");
-		jigForm.setName("专用工具");
+		jigForm.setCycle_type("2");
+		jigForm.setName("治具");
 		jigForm.setDevices_type_id("00000000000");
 
 		formList.add(jigForm);
@@ -130,15 +130,19 @@ public class CheckResultFilingService {
 			   Calendar filingDate=Calendar.getInstance();
 			   filingDate.setTime(resultFilingEntity.getFiling_date());//获取点检表归档日期
 			   //点检表归档日期转成SORC财年
-			   String strFilingDate = RvsUtils.getBussinessYearString(filingDate);
+			   String strFilingDate = RvsUtils.getTestBussinessYearString(filingDate);
 
 			   //对应类型是日常+归档周期是周月
-			   if(resultFilingEntity.getAccess_place()==1 || resultFilingEntity.getCycle_type()==1){
-				   //获取财年中的月份
-				   int month =filingDate.get(Calendar.MONTH)+1;
-				   strFilingDate=strFilingDate+" "+month+"月";
+			   if (!"00000000000".equals(resultFilingEntity.getCheck_file_manage_id())) {
+				   if(resultFilingEntity.getAccess_place()==1 || resultFilingEntity.getCycle_type()==1){
+					   //获取财年中的月份
+					   int month =filingDate.get(Calendar.MONTH)+1;
+					   strFilingDate=strFilingDate+" "+month+"月";
+				   }
+			   } else {
+				   resultFilingEntity.setCheck_manage_code("QR-B31004-7");
 			   }
-			  
+
 			   resultFilingEntity.setWork_period(strFilingDate);
 			   resultList.add(resultFilingEntity);
 		   }		   
@@ -249,12 +253,14 @@ public class CheckResultFilingService {
 	    calendar.setTime(date);
 	   
 	    //期年-如147P
-	    String workPeriod = RvsUtils.getBussinessYearString(calendar);
+	    String workPeriod = RvsUtils.getTestBussinessYearString(calendar);
 	   	
 		FileOutputStream fileOutput;
 
 		//存放路径：D://rvs/Infections/147P/QR-B31002-24
-		String tempfilename = PathConsts.BASE_PATH + PathConsts.INFECTIONS + "\\" + workPeriod +"\\"+checkResultFilingForm.getCheck_manage_code();
+		String tempfilename = PathConsts.BASE_PATH + PathConsts.INFECTIONS
+				+ "\\" + workPeriod + "\\"
+				+ checkResultFilingForm.getCheck_manage_code();
 
 		File fMonthPath = new File(tempfilename);
 		if (!fMonthPath.exists()) {
