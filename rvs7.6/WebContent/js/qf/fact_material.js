@@ -362,7 +362,7 @@ var process_set = function(rowdata) {
 						$('div#errstring').dialog({
 							dialogClass : 'ui-warn-dialog', modal : false, width : 450, title : "提示信息", 
 							buttons : {
-								"此次光学视管修理不需要零件订购" : function() { 
+								"不零件订购投入维修" : function() { 
 									process_dialog($process_dialog, rowdata);
 									$(this).dialog("close"); 
 								}, 
@@ -371,7 +371,7 @@ var process_set = function(rowdata) {
 								}
 							}
 						});
-						$('div#errstring').html("<span class='errorarea'>光学视管修理应当在投线前订购零件，请确认！</span>");
+						$('div#errstring').html("<span class='errorarea'>此光学视管还未订购零件，<br>如果未订购就投线，维修品将进入Pending Area。</span>");
 					}
 					else {
 						process_dialog($process_dialog, rowdata);
@@ -383,7 +383,9 @@ var process_set = function(rowdata) {
 				$("#search_section_id").val("00000000012").trigger("change");
 				$("#ref_template").val(fillZero(category_kind, 11)).trigger("change");
 
-				if (checkPart(material_id)) {
+				if (level == 57) { // E2 
+					process_dialog($process_dialog, rowdata);
+				} else if (checkPart(material_id)) {
 					if ($('div#errstring').length == 0) {
 						$("body").append("<div id='errstring'/>");
 					}
@@ -391,7 +393,7 @@ var process_set = function(rowdata) {
 					$('div#errstring').dialog({
 						dialogClass : 'ui-warn-dialog', modal : false, width : 450, title : "提示信息", 
 						buttons : {
-							"此次周边设备修理不需要零件订购" : function() { 
+							"不零件订购投入维修" : function() { 
 								process_dialog($process_dialog, rowdata);
 								$(this).dialog("close"); 
 							}, 
@@ -400,12 +402,11 @@ var process_set = function(rowdata) {
 							}
 						}
 					});
-					$('div#errstring').html("<span class='errorarea'>周边设备修理应当在投线前订购零件，请确认！</span>");
+					$('div#errstring').html("<span class='errorarea'>此周边设备还未订购零件，<br>如果未订购就投线，维修品将进入Pending Area。</span>");
 				}
 				else {
 					process_dialog($process_dialog, rowdata);
 				}
-
 			} else { // 小修
 				if(rowdata["category_kind"] == 6) {
 					$("#search_section_id").val("00000000012").trigger("change");

@@ -203,7 +203,7 @@ public class PartialReleaseAction extends BaseAction {
 
 					ForSolutionAreaService fsoService = new ForSolutionAreaService();
 					if ("big".equals(flag)) {
-						mBean = mService.loadMaterialDetailBean(conn, materialPartialEntity.getMaterial_id());
+						mBean = mService.loadSimpleMaterialDetailEntity(conn, materialPartialEntity.getMaterial_id());
 
 						boolean isNoBo = checkOfCN(mBean, conn);
 						// 追加大单也拿待解决区域

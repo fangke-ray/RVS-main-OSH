@@ -386,6 +386,7 @@ public class MaterialFactService {
 //		boolean lightFix = (level == 9 || level == 91 || level == 92 || level == 93);
 		boolean lightFix = RvsUtils.isLightFix(level);
 		boolean peripheral = (level == 56 || level == 57 || level == 58 || level == 59);
+		boolean isE2 = (level == 57);
 		lightFix = lightFix && (entity.getFix_type() == 1);
 
 		Date agreedDate = entity.getAgreed_date();
@@ -442,6 +443,7 @@ public class MaterialFactService {
 			Date workDate4PreCom = workDates[1];
 
 			int px = 0;
+			boolean hasNs = true;
 			if (lightFix) {
 				// 小修理
 				MaterialProcessAssignMapper mpaMapper = conn.getMapper(MaterialProcessAssignMapper.class);
@@ -479,7 +481,7 @@ public class MaterialFactService {
 				}
 
 				ProcessAssignService pas = new ProcessAssignService();
-				boolean hasNs = pas.checkPatHasNs(pat_id, conn);
+				hasNs = pas.checkPatHasNs(pat_id, conn);
 
 				// while S1 no NS
 				if (1 != level && hasNs) {
@@ -514,6 +516,7 @@ public class MaterialFactService {
 			featureEntity.setRework(0);
 
 			PositionPanelService pps = new PositionPanelService();
+			String sampleFirstPositionId = null;
 			if (lightFix) {
 				// 取得首工位
 				MaterialProcessAssignService mpas = new MaterialProcessAssignService();
@@ -535,16 +538,7 @@ public class MaterialFactService {
 					pps.notifyPosition(entity.getSection_id(), firstPosition_id, materialId, true);
 				}
 
-				// 小修理判断是否订购零件
-				MaterialPartialService mps = new MaterialPartialService();
-				MaterialPartialForm mp = mps.loadMaterialPartial(conn, materialId, null);
-				if (mp == null || 
-						!("0".equals(mp.getBo_flg()) || "2".equals(mp.getBo_flg()))) {
-					// 否则首工位进入PA
-					ForSolutionAreaService fsoService = new ForSolutionAreaService();
-					fsoService.create(materialId, "零件未到达时投线", ForSolutionAreaService.REASON_BO_OF_POSITION, firstPosition_id, conn, false);
-				}
-
+				sampleFirstPositionId = firstPosition_id;
 			} else {
 				// 302指定投线
 				if (entity.getCcd_change() != null && "true".equals(entity.getCcd_change()) ) {
@@ -553,13 +547,49 @@ public class MaterialFactService {
 				} else {
 					ProcessAssignService pas = new ProcessAssignService();
 					List<String> firstPosition_ids = pas.getFirstPositionIds(pat_id, conn);
-					String firstPosition_id = "00000000016";
 					if (firstPosition_ids.size() > 0) {
-						firstPosition_id = firstPosition_ids.get(0);
+						for (String firstPosition_id : firstPosition_ids) {
+							if (!hasNs) {
+								boolean isPass = false;
+								int iPos = Integer.parseInt(firstPosition_id);
+								for (int j = 0; j < ProcessAssignService.S1PASSES.length; j++) {
+									if (ProcessAssignService.S1PASSES[j] == iPos) {
+										isPass = true;
+										break;
+									}
+								}
+								if (isPass) continue;
+							}
+							sampleFirstPositionId = firstPosition_id;
+							featureEntity.setPosition_id(firstPosition_id);
+							featureEntity.setSection_id(entity.getSection_id());
+							featureMapper.insertProductionFeature(featureEntity);
+							pps.notifyPosition(entity.getSection_id(), firstPosition_id, materialId, false);
+						}
+						featureEntity.setPosition_id(null);
+					} else {
+						String firstPosition_id = "00000000016";
+						sampleFirstPositionId = firstPosition_id;
+
+						featureEntity.setPosition_id(firstPosition_id);
+						featureEntity.setSection_id(entity.getSection_id());
+						pps.notifyPosition(entity.getSection_id(), firstPosition_id, materialId, false);
 					}
-					featureEntity.setPosition_id(firstPosition_id);
-					featureEntity.setSection_id(entity.getSection_id());
-					pps.notifyPosition(entity.getSection_id(), firstPosition_id, materialId, false);
+				}
+			}
+
+			// 
+			if (lightFix
+					|| (peripheral && !isE2)
+					|| RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) {
+				// 周边非E2或光学视管判断是否订购零件
+				MaterialPartialService mps = new MaterialPartialService();
+				MaterialPartialForm mp = mps.loadMaterialPartial(conn, materialId, null);
+				if (mp == null || 
+						!("0".equals(mp.getBo_flg()) || "2".equals(mp.getBo_flg()))) {
+					// 否则首工位进入PA
+					ForSolutionAreaService fsoService = new ForSolutionAreaService();
+					fsoService.create(materialId, "零件未到达时投线", ForSolutionAreaService.REASON_BO_OF_POSITION, sampleFirstPositionId, conn, false);
 				}
 			}
 
