@@ -130,6 +130,10 @@ public class ConsumableOrderService {
 			dao.updateOrder(tmp_entity);
 
 			for (ConsumableOrderEntity entity : entityList) {
+				if ("delete".equals(entity.getDb_flg())
+						|| entity.getOrder_quantity() == 0) {
+					continue;
+				}
 				// 每个零件订购的数量, 要加到consumable_manage表中相应的on_passage上
 				dao.updateConsumableManage(entity);
 			}

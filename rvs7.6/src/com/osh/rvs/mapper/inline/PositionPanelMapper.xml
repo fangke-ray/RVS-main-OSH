@@ -537,6 +537,7 @@
     	LEFT JOIN `section` s
     	ON pf.section_id = s.section_id
 		WHERE operate_result in (5, 7)
+		AND `pf`.action_time is not null
 		AND `pf`.finish_time is null
 		AND `pf`.position_id = #{position_id};
 	]]>

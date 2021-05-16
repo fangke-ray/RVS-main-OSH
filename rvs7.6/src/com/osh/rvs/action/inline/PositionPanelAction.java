@@ -1555,7 +1555,7 @@ public class PositionPanelAction extends BaseAction {
 			log.error("materialId is empty!");
 		} else {
 			MaterialService mService = new MaterialService();
-			MaterialEntity mEntity = mService.loadMaterialDetailBean(conn, materialId);
+			MaterialEntity mEntity = mService.getMaterialEntityByKey(materialId, conn);
 			if (mEntity == null) {
 				log.error("mEntity is empty! >> " + materialId);
 			} else {
@@ -1674,7 +1674,7 @@ public class PositionPanelAction extends BaseAction {
 			log.info("PositionPanelAction.getNexts for " + workingPf.getMaterial_id());
 
 			MaterialService ms = new MaterialService();
-			MaterialEntity mBean = ms.loadMaterialDetailBean(conn, workingPf.getMaterial_id());
+			MaterialEntity mBean = ms.getMaterialEntityByKey(workingPf.getMaterial_id(), conn);
 
 //			boolean isLightFix = (mBean.getLevel() != null) 
 //					&& (mBean.getLevel() == 9 || mBean.getLevel() == 91 || mBean.getLevel() == 92 || mBean.getLevel() == 93); 

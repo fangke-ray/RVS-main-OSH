@@ -97,6 +97,11 @@
 			<![CDATA[
 				AND dp.end_time IS NOT NULL
 			]]>
+			<if test="material_id!=null and material_id!=''">
+			<![CDATA[
+				AND ma.material_id = #{material_id}
+			]]>
+			</if>
 			</if>
 		</where>
 		ORDER BY

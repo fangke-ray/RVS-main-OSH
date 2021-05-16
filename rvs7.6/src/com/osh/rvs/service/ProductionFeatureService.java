@@ -496,9 +496,21 @@ public class ProductionFeatureService {
 			if (mEntity.getInline_time() != null) {
 				// 确认已经是否完成作业
 				ProductionFeatureMapper ppDao = conn.getMapper(ProductionFeatureMapper.class);
-				if (!ppDao.checkPositionDid(material_id, "00000000016", ""+RvsConsts.OPERATE_RESULT_FINISH, null)) {
-					nextPositions.add("00000000016"); // 分解
+
+				ProcessAssignService pas = new ProcessAssignService();
+				List<String> firstPosition_ids = pas.getFirstPositionIds(pat_id, conn);
+				if (firstPosition_ids.size() > 0) {
+					for (String firstPosition_id : firstPosition_ids) {
+						if (!ppDao.checkPositionDid(material_id, firstPosition_id, ""+RvsConsts.OPERATE_RESULT_FINISH, null)) {
+							nextPositions.add(CommonStringUtil.fillChar(firstPosition_id, '0', 11, true)); // 分解
+						}
+					}					
+				} else {
+					if (!ppDao.checkPositionDid(material_id, "00000000016", ""+RvsConsts.OPERATE_RESULT_FINISH, null)) {
+						nextPositions.add("00000000016"); // 分解
+					}
 				}
+
 			}
 			
 //			// CCD 更换线长确认移到此处

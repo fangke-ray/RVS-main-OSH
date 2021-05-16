@@ -199,7 +199,8 @@
 			WHERE
 				srm.qa_reception_time is NOT null AND srm.qa_referee_time is null
 			AND NOT exists (select 1 from solo_production_feature where serial_no = srm.serial_no and model_name = srm.model_name
-				and judge_date=srm.rc_mailsend_date and action_time is not null and finish_time is null
+				and judge_date=srm.rc_mailsend_date 
+				and action_time is not null and finish_time is null
 				)
 		]]>
 		<if test="material_id!=null and material_id!='' ">
@@ -210,7 +211,8 @@
 		<if test="position_id!=null and position_id!='' ">
 			<![CDATA[
 				 AND exists (select 1 from solo_production_feature where serial_no = srm.serial_no and model_name = srm.model_name
-				and judge_date=srm.rc_mailsend_date and position_id = #{position_id}
+				-- [and judge_date=srm.rc_mailsend_date] 
+				 and position_id = #{position_id}
 				)
 			]]>
 		</if>

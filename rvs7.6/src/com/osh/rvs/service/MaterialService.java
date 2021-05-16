@@ -1184,6 +1184,17 @@ public class MaterialService {
 		fixResolver(req, user, conn);
 	}
 
+	/**
+	 * 通过主键，仅取得维修品表信息
+	 * @param material_id
+	 * @param conn
+	 * @return
+	 */
+	public MaterialEntity getMaterialEntityByKey(String material_id, SqlSession conn) {
+		MaterialMapper mapper = conn.getMapper(MaterialMapper.class);
+		return mapper.getMaterialEntityByKey(material_id);
+	}
+
 	public void fixResolver(HttpServletRequest req, LoginData user, SqlSessionManager conn) throws Exception {
 
 		String material_id = req.getParameter("material_id");
