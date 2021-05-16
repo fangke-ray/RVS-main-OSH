@@ -398,13 +398,15 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 						 -->
 					</td>
 				</tr>
-						<!-- //2期修改
+
 				<tr id="tr_bo_contents">
-					<td class="ui-state-default td-title">缺品零件</td>
+					<td class="ui-state-default td-title">零件缺品原因</td>
 					<td class="td-content" colspan="3">
-						<label id="label_bo_contents"></label>
+						<textarea id="edit_bo_contents" style="width:600px;height:80px;"></textarea>
 					</td>
 				</tr>
+
+						<!-- //2期修改
 				<tr id="label_bo_contents1">
 					<td class="ui-state-default td-title">分解缺品零件</td>
 					<td class="td-content" colspan="3">

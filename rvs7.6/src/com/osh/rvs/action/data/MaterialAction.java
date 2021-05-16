@@ -212,6 +212,7 @@ public class MaterialAction extends BaseAction {
 		MaterialForm materialForm = new MaterialForm();
 		MaterialPartialForm partialForm = new MaterialPartialForm();
 		MaterialProcessForm processForm = new MaterialProcessForm();
+		// 订购次数的可选项
 		List<String> occutTimes = new ArrayList<String>();
 		int caseId = 0;
 		HttpSession session = req.getSession();
@@ -221,7 +222,7 @@ public class MaterialAction extends BaseAction {
 			
 			String location = materialForm.getWip_location();
 			if (location != null && !"".equals(location)) { //location不为空，设置当前状态WIP
-				
+
 				List<Map<String, String>> positions = materialService.getLastPositionAndStatus(id, conn);
 				int positionSize = positions.size();
 				String[] locations = new String[positionSize];

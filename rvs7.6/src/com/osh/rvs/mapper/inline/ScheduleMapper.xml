@@ -275,7 +275,14 @@
 			mp.arrival_plan_date,
 			mp.arrival_date,
 			mp.bo_flg,
-			mp.bo_contents,
+			CASE 
+				WHEN mp.bo_contents IS NULL AND mp.bo_comments IS NOT NULL
+				THEN mp.bo_comments
+				WHEN mp.bo_contents IS NOT NULL AND mp.bo_comments IS NULL
+				THEN mp.bo_contents
+				WHEN mp.bo_contents IS NOT NULL AND mp.bo_comments IS NOT NULL
+				THEN concat(mp.bo_contents, '\n', mp.bo_comments)
+			END as bo_contents,
 			mp.order_date,
 			a.section_id,
 			sc.name as section_name,
@@ -338,9 +345,9 @@
 			min(mpd.order_date) as order_date,
 			min(mpd.arrival_date) as arrival_date,
 			max(mpd.arrival_plan_date) as arrival_plan_date,
-			coalesce(group_concat(bo_contents separator ','),
+            group_concat(bo_contents separator ',') as bo_comments,
 			(select group_concat(ptl.code SEPARATOR ' ') from partial ptl join material_partial_detail mpdd on ptl.partial_id = mpdd.partial_id
-					where mpdd.material_id = mpd.material_id and mpdd.waiting_quantity > 0 and mpdd.status <> 2)) as bo_contents
+					where mpdd.material_id = mpd.material_id and mpdd.waiting_quantity > 0 and mpdd.status <> 2) as bo_contents
 			from material_partial mpd
 			where mpd.material_id in
 		]]>

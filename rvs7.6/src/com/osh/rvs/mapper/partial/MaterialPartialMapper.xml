@@ -35,6 +35,7 @@
 					ELSE 0
 				END bo_flg,
 				max(b.occur_times) as occur_times,
+				group_concat(b.bo_contents) as bo_contents,
 				min(b.order_date) as order_date,
 				min(b.arrival_date) as arrival_date,
 				max(b.arrival_plan_date) as arrival_plan_date
@@ -59,6 +60,8 @@
 			bo_flg = #{bo_flg},
 			order_date = #{order_date},
 			arrival_date = #{arrival_date},
+			</if>
+			<if test="bo_contents!= null and bo_contents!= '' ">
 			bo_contents = #{bo_contents},
 			</if>
 		<![CDATA[ 
@@ -1035,7 +1038,18 @@
 				material_id=#{material_id} AND occur_times=#{occur_times} -- AND arrival_date IS NULL
 		]]>
 	</update>
-	
+
+	<update id="updateMaterialPartialBoContent" parameterType="MaterialPartialEntity">
+		<![CDATA[
+			update 
+				material_partial
+			set
+				bo_contents = #{bo_contents}
+			where 
+				material_id=#{material_id} AND occur_times=#{occur_times}
+		]]>
+	</update>
+
 	<!-- 零件签收对象一览 -->
 	<select id="searchMaterialPartialRecept" parameterType="MaterialPartialEntity" resultType="MaterialPartialEntity">
 		<![CDATA[

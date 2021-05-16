@@ -1775,6 +1775,25 @@ public class MaterialPartialService {
 			return conflexError;
 		}
 
+		String boContents = req.getParameter("bo_contents");
+		if (boContents != null && !"".equals(boContents)) {
+			if ("x".equals(boContents) || "/".equals(boContents) || "-".equals(boContents)) {
+				boContents = null;
+			}
+			String material_id = req.getParameter("material_id");
+			String occur_times = req.getParameter("occur_times");
+			Integer iOcccrTimes = 1;
+			try {
+				iOcccrTimes = Integer.parseInt(occur_times);
+			} catch(Exception e ) {
+			}
+			MaterialPartialEntity entity= new MaterialPartialEntity();
+			entity.setMaterial_id(material_id);
+			entity.setOccur_times(iOcccrTimes);
+			entity.setBo_contents(boContents);
+			mapper.updateMaterialPartialBoContent(entity);
+		}
+
 		String content = "";
 		for (MaterialPartialDetailEntity parital : paritals) {
 			if (parital.getArrival_plan_date().equals(parital.getHistory_limit_date()))

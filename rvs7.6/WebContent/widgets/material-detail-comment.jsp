@@ -221,7 +221,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					</td>
 				</tr>
 				<tr id="tr_bo_contents">
-					<td class="ui-state-default td-title">缺品零件</td>
+					<td class="ui-state-default td-title">零件缺品原因</td>
 					<td class="td-content" colspan="3">
 						<label id="label_bo_contents"></label>
 					</td>

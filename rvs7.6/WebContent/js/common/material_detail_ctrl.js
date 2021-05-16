@@ -139,7 +139,7 @@ function case3(){
 		"#service_repair","#direct","#fix_type",
 		//==//
 		//"#label_bo_flg","#label_arrival_date","#label_arrival_plan_date",//2期修改
-		"#edit_order_date", "#tr_bo_contents","#div_no_arrival_plan_date","#edit_arrival_plan_date",
+		"#edit_order_date","#div_no_arrival_plan_date","#edit_arrival_plan_date",
 		
 		"#tr_dec_date","#tr_ns_date","#tr_com_date",
 		"#distributions"
@@ -318,23 +318,30 @@ function setLabelText(data, data2, data3, times, material_id, occur_times) {
 			$("#label_process_code").text("工程前订购");
 		}
 		if (data2.bo_contents) {//不为空
-			var content = null;
-			try {
-				eval('content =' + data2.bo_contents);
-			} catch(e) {
-				
-			}
-			if (content) {
-				$("#label_bo_contents").text("分解缺品零件:" + content.dec +",NS缺品零件:"+ content.ns +",总组缺品零件:"+content.com);
-				
-				$("#edit_bo_contents1").val(content.dec);
-				$("#edit_bo_contents2").val(content.ns);
-				$("#edit_bo_contents3").val(content.com);
+			if (data2.bo_contents.charAt(0) == "{") {
+				var content = null;
+				try {
+					eval('content =' + data2.bo_contents);
+				} catch(e) {
+					
+				}
+				if (content) {
+					$("#label_bo_contents").text("分解缺品零件:" + content.dec +",NS缺品零件:"+ content.ns +",总组缺品零件:"+content.com);
+					
+					$("#edit_bo_contents1").val(content.dec);
+					$("#edit_bo_contents2").val(content.ns);
+					$("#edit_bo_contents3").val(content.com);
+				} else {
+					$("#label_bo_contents").text(data2.bo_contents);
+					$("#edit_bo_contents").val(data2.bo_contents);
+				}			
 			} else {
 				$("#label_bo_contents").text(data2.bo_contents);
-			}			
+				$("#edit_bo_contents").val(data2.bo_contents);
+			}
 		} else {
 			$("#label_bo_contents").text("");
+			$("#edit_bo_contents").val("");
 			$("#edit_bo_contents1").val("");
 			$("#edit_bo_contents2").val("");
 			$("#edit_bo_contents3").val("");
@@ -493,12 +500,12 @@ function doMaterialUpdate(material_id){ //TODO: new
 	var partial = {//2期修改
 		"material_id" : isNew ? "" : material_id,
 		"sorc_no": $("#edit_sorc_no").val(),
-		//"occur_times":$("#edit_occur_times").val(),
+		"occur_times":$("#edit_occur_times").val() || $("#global_occur_times").val(),
 		//"bo_flg": $("#edit_bo_flg").val(),
 		//"order_date": $("#edit_order_date").val(),
-		"arrival_plan_date": $("#edit_arrival_plan_date").val()
+		"arrival_plan_date": $("#edit_arrival_plan_date").val(),
 		//"arrival_date": $("#edit_arrival_date").val(),
-		//"bo_contents": "{'dec':'" + $("#edit_bo_contents1").val()+"','ns':'" + $("#edit_bo_contents2").val()+"','com':'"+$("#edit_bo_contents3").val()+"'}"
+		"bo_contents": $("#edit_bo_contents").val()
 	}
 	var listIdx = 0;
 	$("#exd_list").find(".fix_arrival_plan_date").each(

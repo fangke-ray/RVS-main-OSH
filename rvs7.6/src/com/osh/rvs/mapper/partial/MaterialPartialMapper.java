@@ -86,6 +86,8 @@ public interface MaterialPartialMapper {
 
 	public int updatePartialArrivalPlanDateByKey(MaterialPartialDetailEntity entity);
 
+	public int updateMaterialPartialBoContent(MaterialPartialEntity entity);
+
 	/*零件签收归档*/
 	public List<MaterialPartialDetailEntity> archiveOfPartialRecept(String material_id);
 	

@@ -15,7 +15,7 @@ var edit_bo = function(material_id, occur_times) {
 		function(responseText, textStatus, XMLHttpRequest) {
 			$.ajax({
 			data:{
-				"id": material_id // , occur_times: occur_times
+				"id": material_id , occur_times: occur_times
 			},
 			url : "material.do?method=getDetial",
 			type : "post",
@@ -24,7 +24,7 @@ var edit_bo = function(material_id, occur_times) {
 				try {
 					// 以Object形式读取JSON
 					eval('resInfo =' + xhrobj.responseText);
-					setLabelText(resInfo.materialForm, resInfo.materialPartialFormList, resInfo.processForm, resInfo.timesOptions, material_id, occur_times);
+					setLabelText(resInfo.materialForm, resInfo.partialForm, resInfo.processForm, resInfo.timesOptions, material_id, occur_times);
 					if (resInfo.caseId == 3) {
 						case3();
 					} else if (resInfo.caseId == 4) {
@@ -107,7 +107,8 @@ function initGrid() {
 			width : 1248,
 			rowheight : 23,
 			datatype : "local",
-			colNames : ['维修对象ID','修理单号', '发生次数', '型号 ID', '型号', '机身号', '等级', '纳期', '零件订购日', '入库预定日', '零件到货', '零件BO', '零件BO', '零件缺品详细', '加急', '发生工位' ,'进展工位'],
+			colNames : ['维修对象ID','修理单号', '发生次数', '型号 ID', '型号', '机身号', '等级', '纳期', '零件订购日', '入库预定日', '零件到货', '零件BO', '零件BO'
+			, '零件缺品详细', '零件缺品原因', '加急', '发生工位' ,'进展工位'],
 			colModel : [{
 						name: 'material_id',
 						index: 'material_id',
@@ -115,7 +116,7 @@ function initGrid() {
 					}, {
 						name : 'sorc_no',
 						index : 'sorc_no',
-						width : 70
+						width : 55
 					},{
 						name : 'occur_times',
 						index : 'occur_times',
@@ -131,7 +132,7 @@ function initGrid() {
 					}, {
 						name : 'model_name',
 						index : 'model_name',
-						width : 125
+						width : 115
 					}, {
 						name : 'serial_no',
 						index : 'serial_no',
@@ -206,18 +207,22 @@ function initGrid() {
 						width : 50,
 						hidden : true
 					}, {
+						name : 'bo_contents_new',
+						index : 'bo_contents_new',
+						width : 150
+					}, {
 						name : 'bo_contents',
 						index : 'bo_contents_new',
 						width : 150,
-						formatter:function(date, row, record) {
+						formatter:function(val, row, record) {
 							var content = null;
 							try {
-								eval('content =' + date);
-								if (content) {
+								if (val && val.length && val.charAt(0) == "{") {
+									eval('content =' + val);
 //									return "分解缺品零件:" + content.dec +",NS缺品零件:"+ content.ns +",总组缺品零件:"+content.com;
 									return content.dec  +content.ns + content.com;
 								} else {
-									return record.bo_contents_new ? record.bo_contents_new : "";
+									return val || "";
 								}								
 							} catch (e) {
 								return "";
@@ -242,12 +247,12 @@ function initGrid() {
 					}, {
 						name : 'line_name',
 						index : 'line_name',
-						width : 60,
+						width : 55,
 						align : 'center'
 					}, {
 						name : 'process_name',
 						index : 'process_name',
-						width : 60,
+						width : 55,
 						align : 'center'
 					}
 			],
@@ -364,13 +369,14 @@ var findit = function(data) {
 function doOk(material_id){
 	var partial = {
 		"material_id" : material_id,
-		"occur_times":$("#edit_occur_times").val(),
-		"sorc_no": $("#edit_sorc_no").val()
+		"occur_times":$("#edit_occur_times").val() || $("#global_occur_times").val(),
+		"sorc_no": $("#edit_sorc_no").val(),
 //		"bo_flg": $("#edit_bo_flg").val(),
 //		"order_date": $("#edit_order_date").val(),
 //		"arrival_plan_date": $("#edit_arrival_plan_date").val(),
 //		"arrival_date": $("#edit_arrival_date").val(),
 //		"bo_contents": "{'dec':'" + $("#edit_bo_contents1").val()+"','ns':'" + $("#edit_bo_contents2").val()+"','com':'"+$("#edit_bo_contents3").val()+"'}"
+		"bo_contents": $("#edit_bo_contents").val()
 	}
 	var listIdx = 0;
 	$("#exd_list").find(".fix_arrival_plan_date").each(
