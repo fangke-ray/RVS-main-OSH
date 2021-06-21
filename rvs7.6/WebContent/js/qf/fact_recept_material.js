@@ -525,7 +525,7 @@ var setPreprintedLocations = function(preprintedLocations, animalExpLocations) {
 		infoPop(info + "请预先打印一批。");
 	}
 	if (infoAn && infoAn.length) {
-		infoPop(infoAn);
+//		infoPop(infoAn);
 	}
 }
 
