@@ -632,10 +632,13 @@ var page_apply = {
 			if (form.price) {
 				total_price = (supply_quantity * form.price).toFixed(2);
 			}
-			
+			var description = form.partial_name || "";
+			if (form.cut_length) {
+				description = "<span class='label_cut_length'>裁剪：(" + form.cut_length + " MM)</span><br>" + description;
+			}
 			htmlContent = htmlContent + "<tr partial_id='" + form.partial_id + "' petitioner_id='" + petitioner_id +"' type='"+ form.type + "' " + (content!=null && pack_method == 0 ? " content='" + content+ "'" :"") +	">"
 											+ 	"<td class='td-content'>" + form.code + "</td>"
-											+ 	"<td class='td-content'>" + form.partial_name + "</td>"
+											+ 	"<td class='td-content'>" + description + "</td>"
 											+ 	"<td class='td-content'>" + (form.stock_code || "-") + "</td>"
 											+ 	"<td class='td-content'>" + apply_label + "</td>"
 											+ 	"<td class='td-content'>"
