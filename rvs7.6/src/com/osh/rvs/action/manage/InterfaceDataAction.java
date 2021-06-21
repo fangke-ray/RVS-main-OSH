@@ -256,12 +256,49 @@ public class InterfaceDataAction extends BaseAction {
 				content.put("itemReceiverDate", req.getParameter("edit_item_receiver_date"));
 				content.put("itemReceiverTime", req.getParameter("edit_item_receiver_time"));
 				content.put("itemReceiverPerson", req.getParameter("edit_item_receiver_person"));
-				content.put("itemFailureDescrip", req.getParameter("edit_item_failure_descrip"));
+				content.put("FailureDescrip", req.getParameter("edit_failure_descrip"));
+				content.put("AnimalExperiment", req.getParameter("edit_animal_experiment"));
+			}else if("quotation_part".equals(kind)){
+
+				content.put("OMRNotifiNo", req.getParameter("edit_omr_notifi_no"));
+				content.put("OSHRank", req.getParameter("edit_osh_rank"));
+
+				List<HashMap> partialList = new AutofillArrayList<HashMap>(HashMap.class);//零件
+
+				Map<String,String[]> map=(Map<String,String[]>)req.getParameterMap();
+				Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
+				// 整理提交数据
+				for (String parameterKey : map.keySet()) {
+					 Matcher m = p.matcher(parameterKey);
+					 if (m.find()) {
+						 String table = m.group(1);
+						 if ("part_pre".equals(table)) {
+						    String column = m.group(2);
+						    int icounts = Integer.parseInt(m.group(3));
+							String[] value = map.get(parameterKey);
+							if ("BomCode".equals(column)) {
+								 partialList.get(icounts).put("BomCode", value[0]);
+							} else if ("PartsMaterialNo".equals(column)) {
+								 partialList.get(icounts).put("PartsMaterialNo", value[0]);
+							} else if ("InstructQty".equals(column)) {
+								 partialList.get(icounts).put("InstructQty", value[0]);
+							} else if ("Rank".equals(column)) {
+								 partialList.get(icounts).put("Rank", value[0]);
+							} else if ("Ship".equals(column)) {
+								 partialList.get(icounts).put("Ship", value[0]);
+							} else if ("SorcRank".equals(column)) {
+								 partialList.get(icounts).put("SorcRank", value[0]);
+							}
+						 }
+					 }
+				}
+
+				content.put("Items", partialList);
 			}
 
 			service.updateContent(if_sap_message_key, seq, content, conn);
 			conn.commit();
-			
+
 			// 调用rvsIf
 			HttpClient httpclient = new DefaultHttpClient();
 			try {

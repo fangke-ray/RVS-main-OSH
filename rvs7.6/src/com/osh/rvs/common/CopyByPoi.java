@@ -1,5 +1,6 @@
 package com.osh.rvs.common;
 
+import java.util.Date;
 import java.util.Iterator;
 
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -7,6 +8,9 @@ import org.apache.poi.hssf.usermodel.HSSFCellStyle;
 import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+
+import framework.huiqing.common.util.copy.DateUtil;
 
 public class CopyByPoi {
 
@@ -132,5 +136,92 @@ public class CopyByPoi {
 		}
 		
 		return strCell;
+	}
+
+	/**
+	 * 根据单元格不同属性返回字符串
+	 * 
+	 * @param cell
+	 *            Excel单元格
+	 * @return String 单元格数据内容
+	 */
+	public static String getCellStringValue(XSSFCell cell) {
+		if (cell == null) {
+	           return "";
+	    }
+		String strCell = "";
+		switch (cell.getCellType()) {
+		case XSSFCell.CELL_TYPE_STRING:
+			strCell = cell.getStringCellValue();
+			break;
+		case XSSFCell.CELL_TYPE_NUMERIC:
+			strCell = String.valueOf((double) cell.getNumericCellValue());
+			break;
+		case XSSFCell.CELL_TYPE_BOOLEAN:
+			strCell = String.valueOf(cell.getBooleanCellValue());
+			break;
+		case XSSFCell.CELL_TYPE_BLANK:
+			strCell = "";
+			break;
+		default:
+			strCell = "";
+			break;
+		}
+		
+		return strCell;
+	}
+
+	/**
+	 * 根据单元格不同属性返回日期
+	 * 
+	 * @param cell
+	 *            Excel单元格
+	 * @return String 单元格数据内容
+	 */
+	public static Date getCellDateValue(HSSFCell cell) {
+		if (cell == null) {
+	           return null;
+	    }
+		Date dtCell = null;
+		switch (cell.getCellType()) {
+		case HSSFCell.CELL_TYPE_STRING:
+			dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.DATE_PATTERN);
+			break;
+		case HSSFCell.CELL_TYPE_NUMERIC:
+			dtCell = cell.getDateCellValue();
+			break;
+		default:
+			dtCell = null;
+			break;
+		}
+		
+		return dtCell;
+	}
+
+	/**
+	 * 根据单元格不同属性返回日期
+	 * 
+	 * @param cell
+	 *            Excel单元格
+	 * @return String 单元格数据内容
+	 */
+	public static Date getCellDateValue(XSSFCell cell) {
+		if (cell == null) {
+			return null;
+	    }
+		Date dtCell = null;
+		switch (cell.getCellType()) {
+		case XSSFCell.CELL_TYPE_STRING:
+			dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.DATE_PATTERN);
+			break;
+		case XSSFCell.CELL_TYPE_NUMERIC:
+			dtCell = cell.getDateCellValue();
+			break;
+		default:
+			dtCell = null;
+			break;
+		}
+		
+		return dtCell;
 	}
 }

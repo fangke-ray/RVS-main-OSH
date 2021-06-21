@@ -39,6 +39,7 @@ import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.UploadService;
 import com.osh.rvs.service.partial.PartialAssignService;
 import com.osh.rvs.service.partial.PartialBaseLineValueService;
+import com.osh.rvs.service.partial.PartialPositionService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -374,12 +375,22 @@ public class UploadAction extends BaseAction {
 		String tempfilename = uService.getFile2Local(form, errors);
 
 		// 转换2003格式
+		boolean checkRead = false;
 		if (tempfilename.endsWith(".xlsx")) {
-			tempfilename = toXls2003(tempfilename);
+			PartialPositionService ppService = new PartialPositionService();
+			checkRead = ppService.checkReadBomFile(tempfilename, conn, errors);
 		}
 
 		if (errors.size() == 0) {
-			uService.readCodePosition(tempfilename, conn, errors);
+			
+			// 旧的上传格式
+			if(errors.size() == 0 && !checkRead){
+				if (tempfilename.endsWith(".xlsx")) {
+					tempfilename = toXls2003(tempfilename);
+				}
+				uService.readCodePosition(tempfilename, conn, errors);
+			}
+
 			if(errors.size()>0){
 				MsgInfo error = new MsgInfo();
 				error.setErrcode("file.invalidFormat");

@@ -118,7 +118,14 @@ tr.three td:first-child{
 						<tr>
 							<td class="ui-state-default td-title">故障信息</td>
 							<td class="td-content">
-								<input type="text" id="recept_edit_item_failure_descrip" class="ui-widget-content" maxlength="12">
+								<input type="text" id="recept_edit_failure_descrip" class="ui-widget-content" maxlength="12">
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">是否动物内镜</td>
+							<td class="td-content" id="recept_edit_animal_experiment">
+								<input type="radio" name="animal_experiment" id="animal_experiment_yes" class="ui-widget-content" value="1"><label for="animal_experiment_yes">是</label>
+								<input type="radio" name="animal_experiment" id="animal_experiment_no" class="ui-widget-content" value=""><label for="animal_experiment_no">否</label>
 							</td>
 						</tr>
 					</tbody>
@@ -183,6 +190,26 @@ tr.three td:first-child{
 							<td class="ui-state-default td-title">零件发到修理单时间</td>
 							<td class="td-content">
 								<input type="text" id="part_order_edit_parts_confrim_time" class="ui-widget-content" maxlength="6">
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- 报价 -->
+			<div id="body-quotation_part" class="ui-widget-content" style="display:none;">
+				<table class="condform">
+					<tbody>
+						<tr>
+							<td class="ui-state-default td-title">SAP修理通知单No.</td>
+							<td class="td-content">
+								<label id="quotation_part_edit_omr_notifi_no"></label>
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">维修等级</td>
+							<td class="td-content">
+								<input type="text" id="quotation_part_edit_osh_rank" class="ui-widget-content" maxlength="3">
 							</td>
 						</tr>
 					</tbody>

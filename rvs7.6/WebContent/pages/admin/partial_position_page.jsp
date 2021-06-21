@@ -12,6 +12,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
+<link rel="stylesheet" type="text/css" href="css/partial/instruction_sheets.css">
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
@@ -24,8 +25,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/admin/partial_position.js"></script>
+<script type="text/javascript" src="js/partial/common/instruction_sheets.js"></script>
 
-<title>零件定位信息</title>
+<title>零件BOM与定位管理</title>
 </head>
 <% 
 	String role = (String) request.getAttribute("role");
@@ -76,8 +78,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</tr>
 			</table>
 					<div style="height:44px">
-						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
+						<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="referencebutton" value="参照" role="button" aria-disabled="false" style="float:right;right:2px">
+						<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="instructbutton" value="参考指示单形式" role="button" aria-disabled="false" style="float:right;right:2px">
 					</div>
 		</form>
 		
@@ -156,6 +159,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<input type="button" id="uploadbutton" class="ui-button ui-widget ui-state-default ui-corner-all "  value="上传" role="button">
 
 					<input type="button" id="waste_revision_button" class="ui-button ui-widget ui-state-default ui-corner-all"  value="废改订" role="button">
+					<input type="button" id="downloadbutton" class="ui-button ui-widget ui-state-default ui-corner-all "  value="下载" role="button">
 				  </div>
 <% } %>
 				</div>

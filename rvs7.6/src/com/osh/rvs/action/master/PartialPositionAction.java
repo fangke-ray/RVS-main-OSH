@@ -208,4 +208,45 @@ public class PartialPositionAction extends BaseAction {
 		returnJsonResponse(response, callbackResponse);
 		log.info("PartialPositionAction.doupdatecode end");
 	}
+
+	/**
+	 * 按型号读取工作指示单格式
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 */
+	public void instructLoad(ActionMapping mapping, ActionForm form, HttpServletRequest request,
+			HttpServletResponse response, SqlSession conn) {
+		log.info("PartialPositionAction.instructLoad start");
+
+		PartialPositionForm partialPositionForm = (PartialPositionForm) form;
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		PartialPositionEntity partialPositionEntity = new PartialPositionEntity();
+		/* 表单复制到Bean */
+		BeanUtil.copyToBean(partialPositionForm, partialPositionEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		/* 验证型号是否输入 */
+		service.modelNameValidate(partialPositionEntity, errors);
+
+		/* 查询 */
+		Map<String, List<PartialPositionForm>> instructLists = service.loadInstruct(partialPositionEntity.getModel_id(), conn);
+
+		if (partialPositionEntity.getLevel() != null) {
+			// 获取RankBom信息 TODO
+		}
+
+		listResponse.put("instructLists", instructLists);
+		listResponse.put("components", service.getComponentOfModel(partialPositionEntity.getModel_id(), conn));
+
+		listResponse.put("errors", errors);
+
+		returnJsonResponse(response, listResponse);
+		log.info("PartialPositionAction.instructLoad end");
+	}
 }

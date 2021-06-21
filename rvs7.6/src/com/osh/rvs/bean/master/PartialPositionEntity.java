@@ -18,6 +18,7 @@ public class PartialPositionEntity implements Serializable{
 	private String  partial_id;
 	/*工位ID*/
 	private String position_id;
+	private String line_id;
 	/*有效截止日期*/
 	private Date history_limit_date;
 	/*更名对应零件 ID*/
@@ -46,20 +47,24 @@ public class PartialPositionEntity implements Serializable{
 	private Timestamp updated_time;
 	/*bom*/
 	private String bom;
-	
-	private String active_date;
-	
-	
+
+	private Date active_date;
+
+	private Integer quantity;
+
+	/*bom_code*/
+	private String bom_code;
+
 	public String getOld_partial_id() {
 		return old_partial_id;
 	}
 	public void setOld_partial_id(String old_partial_id) {
 		this.old_partial_id = old_partial_id;
 	}
-	public String getActive_date() {
+	public Date getActive_date() {
 		return active_date;
 	}
-	public void setActive_date(String active_date) {
+	public void setActive_date(Date active_date) {
 		this.active_date = active_date;
 	}
 	public String getProcess_code() {
@@ -157,6 +162,24 @@ public class PartialPositionEntity implements Serializable{
 	}
 	public void setParent_partial_code(String parent_partial_code) {
 		this.parent_partial_code = parent_partial_code;
+	}
+	public Integer getQuantity() {
+		return quantity;
+	}
+	public void setQuantity(Integer quantity) {
+		this.quantity = quantity;
+	}
+	public String getBom_code() {
+		return bom_code;
+	}
+	public void setBom_code(String bom_code) {
+		this.bom_code = bom_code;
+	}
+	public String getLine_id() {
+		return line_id;
+	}
+	public void setLine_id(String line_id) {
+		this.line_id = line_id;
 	}
 	
 

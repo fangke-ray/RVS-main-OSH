@@ -114,6 +114,30 @@ public class PartialService {
 		 */
 	}
 
+	public String insert(String code, SqlSessionManager conn) {
+		PartialEntity insertBean = new PartialEntity();
+		insertBean.setCode(code);
+		insertBean.setName("(数据导入临时创建，请补全信息)");
+		insertBean.setOrder_flg(0);
+		insertBean.setSpec_kind(0);
+		insertBean.setUpdated_by("0");
+
+		/* partail表插入数据 */
+		PartialMapper dao = conn.getMapper(PartialMapper.class);
+		try {
+			dao.insertPartial(insertBean);
+
+			CommonMapper cDao = conn.getMapper(CommonMapper.class);
+			String partial_id = cDao.getLastInsertID();// //取得本连接最后取得的自增ID
+
+			return partial_id;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
 	public PartialForm getDetail(PartialEntity partialEntity, SqlSession conn, List<MsgInfo> errors) {
 		String partial_id = partialEntity.getPartial_id();
 

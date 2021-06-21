@@ -61,17 +61,18 @@ $(function(){
 	       if ($("#searchform").valid()) {	    	   
 	    	   findit();
 			  if($("#search_rank").val()==''){
-					var tname=['userate','bom']
+					var tname=['userate','rank_bom']
 					$("#list").jqGrid('hideCol',tname);
 				}else{
-					var tname=['userate','bom']
+					var tname=['userate','rank_bom']
 					$("#list").jqGrid('showCol',tname);
 				}	
 			$("#list").jqGrid('setGridWidth', '992');
 		        
 	    }
 	});
-	
+
+	$("#instructbutton").click(instructLoad);
 	
 	 $("#waste_revision_button").disable();
 })
@@ -467,14 +468,15 @@ function filed_list(finished){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','型号ID','零件ID','工位ID','零件编码','名称','工位','有效期','active_date','使用率','BOM', '最后更新人','最后更新时间'],
+			colNames:['','型号ID','零件ID','工位ID','零件编码','名称', 'BOM 代码','工位','有效期','active_date','使用率','等级 BOM', '最后更新人','最后更新时间'],
 			colModel:[  
 				       {name:'myac', width:35, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true,delbutton:false }, hidden:true},
 			           {name:'model_id',index:'model_id',hidden:true},
 			           {name:'partial_id',index:'partial_id',hidden:true},
 			           {name:'position_id',index:'position_id',hidden:true},
-					   {name:'code',index:'code',width:40,align:'left'},
-					   {name:'name',index:'name',width: 150,align:'left'},
+					   {name:'code',index:'code',width:30,align:'left'},
+					   {name:'name',index:'name',width: 100,align:'left'},
+					   {name:'bom_code',index:'bom_code',width: 50,align:'left'},
 					   {name:'process_code',index:'process_code',width:20,align:'center',formatter : function(value, options, rData){
 							if(value==null || value=='0'){
 								return '' ;
@@ -484,13 +486,13 @@ function filed_list(finished){
 						}},
 					   {name:'history_limit_date',index:'history_limit_date',width:60,align:'center',formatter : function(value, options, rData){
 							if(value=='9999/12/31'){
-								if(rData.active_date){
+								if(rData.active_date && rData.active_date != '1900/01/01'){
 									return rData.active_date+" ～"
 								}
 								    return ' ' ;
 							}else{
-								if(rData.active_date){
-									return rData.active_date+" ～ "+value
+								if(rData.active_date && rData.active_date != '1900/01/01'){
+									return rData.active_date+" ～ "+ value
 								}else{
 									return "～ "+value;
 								}							   
@@ -503,8 +505,8 @@ function filed_list(finished){
 								return '';
 							}
 						}},
-					   {name:'userate',index:'userate',hidden:true,width:40,align:'right',formatter:'integer', sorttype:'integer', formatoptions:{suffix:'%',defaultValue: ' - '}},
-				       {name:'bom',index:'bom',width:25,align:'center',hidden:true,formatter : function(value, options, rData){
+					   {name:'userate',index:'userate',hidden:true,width:40,align:'right',formatter:'number', sorttype:'number', formatoptions:{suffix:' %',defaultValue: ' - ',decimalPlaces:2}},
+				       {name:'rank_bom',index:'rank_bom',width:25,align:'center',hidden:true,formatter : function(value, options, rData){
 							if(value=='1'){
 								return 'BOM' ;
 							}else{
@@ -652,4 +654,49 @@ var showList = function() {
 	$("#condition_view,#searchform").show();
 	$("#listarea").show();
 	$("#editarea").hide();
+}
+
+var instructLoad = function() {
+	var model_id = $("#search_model_id").val();
+	if (!model_id) {
+		errorPop("请选择参考的机型。");
+	} else {
+		var postData = {
+			"model_id": model_id,
+			"level": $("#search_rank").val()
+		};
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : servicePath + '?method=instructLoad',
+			cache : false,
+			data : postData,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : instructShow
+		});
+	}
+}
+
+var instructShow = function(xhrObj) {
+	var resInfo = $.parseJSON(xhrObj.responseText);
+	if (resInfo.errors && resInfo.errors.length) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+		return;
+	}
+	var $instructDialog = $("#instruct_dialog");
+	if ($instructDialog.length == 0) {
+		$(document.body).append("<div id='instruct_dialog'></div>");
+		$instructDialog = $("#instruct_dialog");
+	}
+	if (!(resInfo.instructLists && resInfo.instructLists['@'])) {
+		errorPop("此型号尚未导入工作指示单。");
+		return;
+	}
+	if (typeof(instruction_show) === "function") {
+		instruction_show($instructDialog, $("#txt_model_name").val(), resInfo.instructLists, resInfo.components);
+	}
 }

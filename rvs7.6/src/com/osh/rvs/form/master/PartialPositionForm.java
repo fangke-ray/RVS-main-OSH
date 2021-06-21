@@ -15,7 +15,7 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	private static final long serialVersionUID = -116552365716715639L;
 	
 	/*active_date*/
-	@BeanField(title = "", name = "active_date")
+	@BeanField(title = "", name = "active_date", type = FieldType.Date)
 	private String active_date;
 	/*型号*/
 	@BeanField(title = "型号", name = "model_name",length=30)
@@ -26,6 +26,9 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	/*零件名称*/
 	@BeanField(title = "零件名称", name = "name",length = 120)
 	private String name;
+	/*零件名称*/
+	@BeanField(title = "BOM 代码", name = "bom_code")
+	private String bom_code;
 	/*工位*/
 	@BeanField(title = "工位", name = "process_code")
 	private String process_code;
@@ -39,8 +42,8 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	@BeanField(title = "最后更新时间", name = "updated_time",length=100,type=FieldType.TimeStamp)
 	private String updated_time;
 	/*BOM*/
-	@BeanField(title = "BOM", name = "bom")
-	private String bom;
+	@BeanField(title = "等级 BOM", name = "bom")
+	private String rank_bom;
 	/*等级*/
 	@BeanField(title = "等级", name = "level")
 	private String level;
@@ -57,6 +60,8 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	/*工位ID*/
 	@BeanField(title = "工位ID", name = "position_id",type = FieldType.String, primaryKey = true, length = 11)
 	private String position_id;
+	private String line_id;
+
 	/*有效截止日期*/
 	@BeanField(title = "有效截止日期", name = "history_limit_date", type = FieldType.Date)
 	private String history_limit_date;
@@ -68,7 +73,9 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	private String parent_partial_id;
 	private String parent_partial_code;
 	
-	
+	@BeanField(title = "指示数量", name = "quantity", type = FieldType.Integer)
+	private String quantity;
+
 	public String getOld_partial_id() {
 		return old_partial_id;
 	}
@@ -87,11 +94,11 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	public void setLevel(String level) {
 		this.level = level;
 	}
-	public String getBom() {
-		return bom;
+	public String getRank_bom() {
+		return rank_bom;
 	}
-	public void setBom(String bom) {
-		this.bom = bom;
+	public void setRank_bom(String bom) {
+		this.rank_bom = bom;
 	}
 	public String getModel_id() {
 		return model_id;
@@ -176,6 +183,24 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	}
 	public void setParent_partial_code(String parent_partial_code) {
 		this.parent_partial_code = parent_partial_code;
+	}
+	public String getBom_code() {
+		return bom_code;
+	}
+	public void setBom_code(String bom_code) {
+		this.bom_code = bom_code;
+	}
+	public String getQuantity() {
+		return quantity;
+	}
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
+	}
+	public String getLine_id() {
+		return line_id;
+	}
+	public void setLine_id(String line_id) {
+		this.line_id = line_id;
 	}
 	
 }

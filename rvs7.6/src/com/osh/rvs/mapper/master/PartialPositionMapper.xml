@@ -6,11 +6,12 @@
 		PA.CODE,
 		PA.NAME,
 		PPB.new_partial_id,
+		ppb.bom_code,
 		PO.PROCESS_CODE AS PROCESS_CODE,
 		PPB.HISTORY_LIMIT_DATE,
-	    COALESCE(O.NAME,O_NEW.NAME) AS UPDATED_BY,
-	    COALESCE(PWMH.UPDATED_TIME,PWMH_NEW.UPDATED_TIME) AS UPDATED_TIME,
-		PWMH_NEW.ACTIVE_DATE,
+	    O.NAME AS UPDATED_BY,
+	    PA.UPDATED_TIME,
+		PPB.ACTIVE_DATE,
 		PPB.MODEL_ID,
 		PPB.PARTIAL_ID,
 		PA_P.CODE AS parent_partial_CODE,
@@ -44,12 +45,6 @@
 	     PWMH.MODEL_ID = PPB.MODEL_ID
 	  AND 
 	     PWMH.OLD_PARTIAL_ID = PPB.PARTIAL_ID
-	  LEFT JOIN 
-	     PARTIAL_WASTE_MODIFY_HISTORY PWMH_NEW
-	  ON
-	     PWMH_NEW.MODEL_ID = PPB.MODEL_ID
-	  AND 
-	     PWMH_NEW.NEW_PARTIAL_ID = PPB.PARTIAL_ID
 	<if test="level!=null and level!='' ">
 	  LEFT JOIN 
 		PARTIAL_BOM_SET PBS 
@@ -79,9 +74,6 @@
 		) p_use
 	   on p_use.partial_id =PPB.partial_id 	   
 	</if>  
-      LEFT JOIN 
-         OPERATOR O_NEW
-      ON PWMH_NEW.UPDATED_BY=O_NEW.OPERATOR_ID	
       LEFT JOIN 
          OPERATOR O
       ON PWMH.UPDATED_BY=O.OPERATOR_ID	
@@ -133,12 +125,23 @@
  <insert id="insertPartialPosition" parameterType="PartialPositionEntity">
    INSERT INTO PARTIAL_POSITION_BELONG (
         MODEL_ID,                                                                
-		PARTIAL_ID,                                                                                                   
+		PARTIAL_ID,
+		BOM_CODE,                                                                                                   
 		POSITION_ID,                                                                                                  
 		NEW_PARTIAL_ID, 		                                                                                            
 		PARENT_PARTIAL_ID,
-		HISTORY_LIMIT_DATE                                                                                             
-		)VALUES(#{model_id},#{partial_id},#{position_id},#{new_partial_id},#{parent_partial_id},'9999/12/31')    
+		QUANTITY,
+		ACTIVE_DATE,
+		HISTORY_LIMIT_DATE
+		)VALUES(
+		#{model_id},#{partial_id},
+		coalesce(#{bom_code},''),
+		#{position_id},#{new_partial_id},
+		coalesce(#{parent_partial_id},0),
+		coalesce(#{quantity},1),
+		#{active_date},
+		coalesce(#{history_limit_date},'9999/12/31')
+		)
  </insert>
 
  <delete id="clearPartialPositionOfModel" parameterType="PartialPositionEntity">
@@ -158,7 +161,27 @@
 		 WHERE
 		 	MODEL_ID=#{model_id}
  </delete>
- 
+
+ <select id="getPartialPositionOfModel" resultType="PartialPositionEntity" parameterType="String">
+		 SELECT 
+		 	 `model_id`, `partial_id`, `bom_code`, `quantity`, `position_id`, `active_date`, `history_limit_date`, `new_partial_id`, `parent_partial_id`
+		 FROM
+			 PARTIAL_POSITION_BELONG
+		 WHERE
+		 	MODEL_ID=#{model_id}
+ </select>
+
+ <select id="getPartialPositionRevisionOfModel" resultType="PartialPositionEntity" parameterType="String">
+		 SELECT 
+		 	 `partial_id`, `new_partial_id`, `parent_partial_id`
+		 FROM
+			 PARTIAL_POSITION_BELONG
+		 WHERE
+		 	MODEL_ID=#{model_id}
+		 AND
+		 	`partial_id` != `new_partial_id`
+ </select>
+
  <update id="updatePartialPosition" parameterType="PartialPositionEntity">
 	   <![CDATA[
 	    UPDATE 
@@ -170,7 +193,19 @@
 	    	MODEL_ID=#{model_id} AND ( PARTIAL_ID=#{partial_id} OR NEW_PARTIAL_ID=#{partial_id}) AND POSITION_ID=#{position_id}
 	   ]]>
  </update>
- 
+
+ <update id="updatePartialPositionQuantity" parameterType="PartialPositionEntity">
+	   <![CDATA[
+	    UPDATE 
+	    	PARTIAL_POSITION_BELONG
+	    SET 
+	    	POSITION_ID = #{position_id},
+	    	QUANTITY = #{quantity}
+	    WHERE 
+	    	MODEL_ID=#{model_id} AND PARTIAL_ID=#{partial_id} AND PARENT_PARTIAL_ID=#{parent_partial_id}
+	   ]]>
+ </update>
+
  <update id="updatePartialPositionOldHistoryLimitDate" parameterType="PartialPositionEntity">
  	   <![CDATA[
  	    update 
@@ -198,5 +233,40 @@
 	    	(#{model_id},#{partial_id},#{new_partial_id},#{updated_by},current_timestamp,#{history_limit_date})
 	   ]]>
  </update>
- 
+
+ <select id="getInstructOfModel" resultType="PartialPositionEntity" parameterType="String">
+		SELECT 
+			PPB.`partial_id`, PA.code, PA.name, `parent_partial_id`, PA_P.CODE as parent_partial_code,
+			`bom_code`, sum(`quantity`) as quantity, group_concat(concat(PO.process_code, ':', `quantity`) separator ';') as process_code,
+			group_concat(PO.line_id separator ';') as line_id
+		FROM
+			PARTIAL_POSITION_BELONG PPB
+		JOIN 
+			PARTIAL PA
+		ON 
+			PPB.PARTIAL_ID = PA.PARTIAL_ID
+		LEFT JOIN 
+			PARTIAL PA_P
+		ON 
+			PPB.parent_partial_id = PA_P.PARTIAL_ID
+		LEFT JOIN 
+			POSITION PO
+		ON 
+			PPB.POSITION_ID = PO.POSITION_ID
+		WHERE
+			MODEL_ID=#{model_id}
+		AND 
+			current_date between active_date and history_limit_date
+		GROUP BY bom_code
+		ORDER BY parent_partial_id, code
+ </select>
+
+ <select id="getComponentOfModel" resultType="String" parameterType="String">
+	SELECT ptl.code FROM partial ptl
+	JOIN PARTIAL_POSITION_BELONG ppb
+	on ppb.PARTIAL_ID = ptl.PARTIAL_ID
+	and MODEL_ID=#{model_id}
+	where order_flg = 2;
+ </select>
+
 </mapper>
