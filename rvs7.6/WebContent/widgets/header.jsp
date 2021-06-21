@@ -382,7 +382,11 @@ $(function() {
 	$("#userPosition").click(function(){
 		var txt = $(this).text();
 		if (txt && txt.indexOf("工位") >= 0) {
-			window.location.href = "position_panel.do";
+			if (typeof getPositionWork === "undefined") {
+				window.location.href = "position_panel.do";
+			} else {
+				getPositionWork();
+			}
 		}
 	});
 

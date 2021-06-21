@@ -233,9 +233,9 @@
 				AND cs.px=0
 		]]>
 		</if>
-		<if test="spec_type eq 1 ">
+		<if test="spec_type!=null and spec_type neq 0">
 		<![CDATA[
-				AND cs.spec_type=1
+				AND cs.spec_type=#{spec_type}
 		]]>
 		</if>
 		<if test="spec_type eq 0 ">

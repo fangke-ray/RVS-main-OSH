@@ -111,6 +111,9 @@ function initMonthFilesGrid(listName, listdata){
 
 /*下载*/
 function downExcel(file_name) {
+	if (file_name.indexOf(" ") >= 0) {
+		file_name = file_name.replace(" ", "%20")
+	}
 	if ($("iframe").length > 0) {
 		$("iframe").attr("src","operatorProduction.do?method=output&fileName="+ file_name);
 	} else {

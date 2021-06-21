@@ -184,6 +184,11 @@ public class MaterialProcessService {
 					return PX_B;
 				}
 			} else {
+				if (comLine) {
+					if (("02".equals(kind) || "04".equals(kind))) { // 细镜总组
+						return PX_B_OF_2;
+					}
+				}
 				if ("03".equals(kind) && comLine) { // 纤维镜总组
 					return PX_C;
 				} else {

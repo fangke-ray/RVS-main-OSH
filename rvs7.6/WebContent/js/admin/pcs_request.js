@@ -487,47 +487,47 @@ var loadFile = function(){
 						postData["models.name[" + iMCount + "]"] = $(ele).text();
 						iMCount++;
 					});
-		            $.ajaxFileUpload({
-		                url : servicePath + '?method=doCreate', // 需要链接到服务器地址
-		                secureuri : false,
-		                data:postData,
-		                fileElementId : 'import_file_name', // 文件选择框的id属性
-		                dataType : 'json', // 服务器返回的格式
-		                success : function(responseText, textStatus) {
-		                    var resInfo = $.parseJSON(responseText);
-	                        if (resInfo.errors.length > 0) {
-	                            // 共通出错信息框
-	                            treatBackMessages("#import_form", resInfo.errors);
-	                        } else {
-	                        	if (resInfo.infoes.length > 0) {
+				$.ajaxFileUpload({
+					url : servicePath + '?method=doCreate', // 需要链接到服务器地址
+					secureuri : false,
+					data:postData,
+					fileElementId : 'import_file_name', // 文件选择框的id属性
+					dataType : 'json', // 服务器返回的格式
+					success : function(responseText, textStatus) {
+						var resInfo = $.parseJSON(responseText);
+						if (resInfo.errors.length > 0) {
+							// 共通出错信息框
+							treatBackMessages("#import_form", resInfo.errors);
+						} else {
+							if (resInfo.infoes.length > 0) {
+								$process_file_dialog = $("#process_file_dialog");
+								if ($process_file_dialog.length == 0) {
+									$("body").append("<div id='process_file_dialog' style='width:1024px;display:none;'>");
 									$process_file_dialog = $("#process_file_dialog");
-									if ($process_file_dialog.length == 0) {
-										$("body").append("<div id='process_file_dialog' style='width:1024px;display:none;'>");
-										$process_file_dialog = $("#process_file_dialog");
-									}
-									var $files = $("<section/>");
-									for (var iInfoer in resInfo.orgFiles) {
-										$files.append("<div>"+resInfo.orgFiles[iInfoer]+"</div>");
-									}
-									$files.find("div").click(function(){
-										$process_file_dialog.dialog("close");
-										postData.org_file_name = $(this).text();
-										$.ajax({
-											beforeSend: ajaxRequestType,
-											async: false,
-											url: servicePath + '?method=doCreate',
-											cache: false,
-											data: postData,
-											type: "post",
-											dataType: "json",
-											success: ajaxSuccessCheck,
-											error: ajaxError,
-											complete: function(xhrObj){
+								}
+								var $files = $("<section/>");
+								for (var iInfoer in resInfo.orgFiles) {
+									$files.append("<div>"+resInfo.orgFiles[iInfoer]+"</div>");
+								}
+								$files.find("div").click(function(){
+									$process_file_dialog.dialog("close");
+									postData.org_file_name = $(this).text();
+									$.ajax({
+										beforeSend: ajaxRequestType,
+										async: false,
+										url: servicePath + '?method=doCreate',
+										cache: false,
+										data: postData,
+										type: "post",
+										dataType: "json",
+										success: ajaxSuccessCheck,
+										error: ajaxError,
+										complete: function(xhrObj){
 				 					           	$process_dialog.dialog('close');
-												$("#search_target_model").val("").trigger("change");
-												$("#search_target_model_id").val("");
-					                            findit();
-											}
+											$("#search_target_model").val("").trigger("change");
+											$("#search_target_model_id").val("");
+											findit();
+										}
 										});										
 									});
 

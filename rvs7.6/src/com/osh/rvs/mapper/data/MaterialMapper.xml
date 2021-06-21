@@ -218,7 +218,7 @@
 				and a.model_id = #{model_id}
 			</if>
 			<if test="level!= null and level!= ''">
-				and a.level = ${level}
+				and a.level = #{level}
 			</if>
 			<if test="levels!= null and levels!= ''">
 				and a.level IN(${levels})

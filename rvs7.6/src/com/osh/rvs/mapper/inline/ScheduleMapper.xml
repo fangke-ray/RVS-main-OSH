@@ -187,7 +187,7 @@
 			</if>
 			<if test="px == 0 or px == 2 or px == 4 or px == 7">
 				<![CDATA[
-				AND c.px = ${px}
+				AND c.px = #{px}
 				]]>
 			</if>
 		</where>

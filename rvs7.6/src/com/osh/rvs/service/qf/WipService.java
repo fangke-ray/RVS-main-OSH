@@ -36,7 +36,6 @@ import com.osh.rvs.service.partial.PartialOrderManageService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
-import framework.huiqing.common.util.BaseConst;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.IntegerConverter;
@@ -286,6 +285,12 @@ public class WipService {
 		WipMapper dao = conn.getMapper(WipMapper.class);
 		dao.stop(material_id);
 
+		ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
+		ProductionFeatureEntity entity = new ProductionFeatureEntity();
+		entity.setMaterial_id(material_id);
+		entity.setPace(0);
+		entity.setOperate_result(0);
+
 		boolean check = pfMapper.checkPositionDid(material_id, "00000000012", ""+RvsConsts.OPERATE_RESULT_FINISH, null);
 		if (!check) { // RVS3 如果没完成测漏
 
@@ -297,16 +302,18 @@ public class WipService {
 				mBean.setOutline_time(null);
 				qaMapper.updateMaterial(mBean);
 
-				// 182 不修理返还
-				ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
-				ProductionFeatureEntity entity = new ProductionFeatureEntity();
-				entity.setMaterial_id(material_id);
-				entity.setPosition_id(RvsConsts.POSITION_PERP_UNREPIAR);
-				entity.setPace(0);
-				entity.setSection_id("00000000009");
-				entity.setOperate_result(0);
-				entity.setRework(0);
-				pfDao.insertProductionFeature(entity);
+				if (!(mBean.getLevel() != null && mBean.getLevel() == 57)) {
+					// 182 不修理返还
+					entity.setPosition_id(RvsConsts.POSITION_PERP_UNREPIAR);
+					entity.setSection_id("00000000009");
+					entity.setRework(0);
+				} else {
+					// 出货
+					entity.setMaterial_id(material_id);
+					entity.setPosition_id(RvsConsts.POSITION_SHIPPING);
+					entity.setSection_id("00000000000");
+					entity.setRework(0);
+				}
 
 				String sorcNo = mBean.getSorc_no();
 				String path = PathConsts.BASE_PATH + PathConsts.PCS + "\\" + 
@@ -325,23 +332,18 @@ public class WipService {
 						_logger.error("Failed", e);
 					}
 				}
-			} else {
-				// 出货
-				ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
-				ProductionFeatureEntity entity = new ProductionFeatureEntity();
-				entity.setMaterial_id(material_id);
+			} else if (mBean.getCategory_id().equals(RvsConsts.CATEGORY_UDI)) {
 				entity.setPosition_id(RvsConsts.POSITION_SHIPPING);
-				entity.setPace(0);
 				entity.setSection_id("00000000000");
-				entity.setOperate_result(0);
 				entity.setRework(0);
-				pfDao.insertProductionFeature(entity);
+			} else {
+				entity.setPosition_id(RvsConsts.POSITION_SHIPPING);
+				entity.setSection_id("00000000000");
+				entity.setRework(0);
 			}
 		} else { // 如果完成测漏
 			if (mBean.getInline_time() == null) {
 				// 图象检查
-				ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
-
 				Map<String, Object> params = new HashMap<String, Object>();
 				List<String> positions = new ArrayList<String>();
 				positions.add("00000000015");
@@ -349,27 +351,19 @@ public class WipService {
 				params.put("position_ids", positions);
 
 				int rework = pfDao.getReworkCountWithPositions(params);
-				ProductionFeatureEntity entity = new ProductionFeatureEntity();
-				entity.setMaterial_id(material_id);
 				entity.setPosition_id("00000000015");
-				entity.setPace(0);
 				entity.setSection_id("00000000009"); // TODO
-				entity.setOperate_result(0);
 				entity.setRework(rework + 1);
-				pfDao.insertProductionFeature(entity);
 			} else { // 已投线
 				// 出货
-				ProductionFeatureMapper pfDao = conn.getMapper(ProductionFeatureMapper.class);
-				ProductionFeatureEntity entity = new ProductionFeatureEntity();
-				entity.setMaterial_id(material_id);
 				entity.setPosition_id(RvsConsts.POSITION_SHIPPING);
-				entity.setPace(0);
 				entity.setSection_id("00000000000");
-				entity.setOperate_result(0);
 				entity.setRework(0);
-				pfDao.insertProductionFeature(entity);
 			}
 		}
+
+		// 下一工位
+		pfDao.insertProductionFeature(entity);		
 
 		// 如果是周边或小修理/光学视管，则取消零件订购。
 		if ("07".equals(mBean.getKind()) || RvsConsts.CATEGORY_UDI.equals(mBean.getCategory_id())

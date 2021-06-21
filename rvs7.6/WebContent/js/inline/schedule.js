@@ -371,9 +371,9 @@ function exportReport() {
 				treatBackMessages("#searcharea", resInfo.errors);
 			} else {
 				var iframe = document.createElement("iframe");
-	            iframe.src = servicePath+"?method=export&filePath=" + resInfo.filePath;
-	            iframe.style.display = "none";
-	            document.body.appendChild(iframe);
+				iframe.src = servicePath+"?method=export&filePath=" + resInfo.filePath;
+				iframe.style.display = "none";
+				document.body.appendChild(iframe);
 			}
 		}
 	});

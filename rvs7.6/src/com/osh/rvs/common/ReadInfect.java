@@ -221,7 +221,7 @@ public class ReadInfect {
 
 			ArrayList<MsgInfo> simpleFilConv = new ArrayList<MsgInfo>();
 
-			File srcPath = new File("F:/Download/项目通信/OSH/2021 维护/点检表FY-P/tag");
+			File srcPath = new File("F:/Download/项目通信/OSH/2021 维护/点检表FY-P/6B");
 			
 			for (File file : srcPath.listFiles()) {
 				String fPath = file.getAbsolutePath();
@@ -313,11 +313,11 @@ public class ReadInfect {
 							for (int irowcell = 0; irowcell<rowcells.getLength(); irowcell++) {
 								Element rowcell = (Element)rowcells.item(irowcell);
 								String cellText = getTextData(rowcell);
-								String iRowIdx = rowcell.getAttribute("ss:Index");
-								if (isEmpty(iRowIdx)) iRowIdx = "1";
+								String iColIdx = rowcell.getAttribute("ss:Index");
+								if (isEmpty(iColIdx)) iColIdx = "" + (irowcell + 1);
 								// 单元格的循环
 								if (!isEmpty(cellText)) {
-									String cellNum = XlsUtil.getExcelColCode(iRowIdx) + (irow + 1);
+									String cellNum = XlsUtil.getExcelColCode(iColIdx) + (irow + 1);
 									// refer可以有空格
 									cellText = cellText.replaceAll("&nbsp;", " ");
 									referItems.put(cellNum, cellText);

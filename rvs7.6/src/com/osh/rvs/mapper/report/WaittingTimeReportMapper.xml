@@ -17,6 +17,14 @@
 		ON
 			ma.model_id = v_model.model_id
 	]]>
+	<if test="order_date_start!=null or order_date_end!=null or arrival_date_start!=null or arrival_date_end!=null">
+	<![CDATA[
+		JOIN 
+			material_partial mp 
+		ON 
+			ma.material_id = mp.material_id and mp.occur_times = 1
+	]]>
+	</if>
 	<if test="dec_px!=null">
 	<![CDATA[
 		JOIN 
@@ -48,10 +56,6 @@
 			ma.break_back_flg = 0
 		AND
 			ma.outline_time IS NOT NULL
-		AND
-			ma.section_id IN(1,3)
-		AND
-			v_model.kind <> 6
 	]]>
 	<if test="category_id!=null and category_id!='' ">
 	<![CDATA[

@@ -151,6 +151,9 @@ public class PanelAction extends BaseAction {
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
+		String new_section_id = req.getParameter("section_id");
+		String new_line_id = req.getParameter("line_id");
+
 		// 判断有没有进行中作业
 		// 取得当前作业中作业信息
 		String org_position_id = user.getPosition_id();
@@ -171,6 +174,19 @@ public class PanelAction extends BaseAction {
 			returnJsonResponse(res, callResponse);
 
 			log.info("PanelAction.changeposition end");
+
+			return;
+		}
+
+		if (new_position_id == null && new_section_id == null && new_line_id == null) {
+			callResponse.put("position_link", getLink(org_position_id, mapping, conn));
+			// 检查发生错误时报告错误信息
+			callResponse.put("errors", errors);
+
+			// 返回Json格式响应信息
+			returnJsonResponse(res, callResponse);
+
+			log.info("PanelAction.changeposition end（unchange）");
 
 			return;
 		}
@@ -203,8 +219,8 @@ public class PanelAction extends BaseAction {
 		// 会话更新
 		if (errors.size() == 0) {
 			String org_role_id = user.getRole_id();
-			String new_section_id = req.getParameter("section_id");
-			String new_line_id = req.getParameter("line_id");
+			new_section_id = req.getParameter("section_id");
+			new_line_id = req.getParameter("line_id");
 
 			if (new_position_id != null || new_line_id != null) {
 

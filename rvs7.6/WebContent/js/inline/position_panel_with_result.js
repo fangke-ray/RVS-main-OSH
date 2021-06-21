@@ -388,6 +388,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 
 			if (resInfo.workstauts == 1) {
 				treatStart(resInfo);
+			} else if (resInfo.workstauts == 0) {
 			} else {
 				if (device_safety_guide && device_safety_guide.length) {
 					showSidebar(null);

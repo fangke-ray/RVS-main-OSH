@@ -334,7 +334,7 @@ function detail_list(item_list){
 					}},
 				{name:'storage_file_name',index:'storage_file_name',width : 100,align:'left',
 					formatter : function(value, options, rData){
-						return "<a href='javascript:downExcel(\""+ value+".pdf"+"\",\""+rData['work_period'].substring(0,4)+"\""+",\""+rData['check_manage_code']+"\");' >" + value + "</a>";
+						return "<a href='javascript:downExcel(\""+ value+".pdf"+"\",\""+getWorkPeriod(rData['work_period'])+"\""+",\""+rData['check_manage_code']+"\");' >" + value + "</a>";
 					}
 				},
 				{name:'filing_date',index:'filing_date',hidden:true},
@@ -358,6 +358,17 @@ function detail_list(item_list){
 
 	}
 };
+
+var getWorkPeriod = function (fullWorkPeriod) {
+	if (!fullWorkPeriod) {
+		return "";
+	}
+	if (fullWorkPeriod.charAt(0) == "F") {
+		return fullWorkPeriod.substring(0,6);
+	} else {
+		return fullWorkPeriod.substring(0,4);
+	}
+}
 
 /*编辑页面*/
 var findEdit = function() {
