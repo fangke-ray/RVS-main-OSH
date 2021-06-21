@@ -773,9 +773,10 @@ public class PositionPanelService {
 		boolean enterCom = false;
 		String[] showLines = {};
 		if (mform.getLevel()==null) {
-			showLines = new String[2];
-			showLines[0] = "检查卡"; // 181 用
-			showLines[1] = "NS 工程"; // 302 预先CCD盖玻璃时用
+			showLines = new String[3];
+			showLines[0] = "报价"; // 152 用
+			showLines[1] = "检查卡"; // 181 用
+			showLines[2] = "NS 工程"; // 302 预先CCD盖玻璃时用
 		} else if (mform.getLevel().startsWith("5")) {
 			showLines = new String[1];
 			showLines[0] = "检查卡";
@@ -795,18 +796,23 @@ public class PositionPanelService {
 				showLines = new String[1];
 				showLines[0] = "NS 工程";
 			} else if ("00000000014".equals(sline_id)) {
-				showLines = new String[3];
+				showLines = new String[4];
 				showLines[0] = "总组工程";
-				showLines[1] = "分解工程";
-				showLines[2] = "NS 工程";
+				showLines[1] = "报价";
+				showLines[2] = "分解工程";
+				showLines[3] = "NS 工程";
 				enterCom =true;
 			} else if ("00000000015".equals(sline_id)) {
-				showLines = new String[4];
+				showLines = new String[5];
 				showLines[0] = "最终检验";
-				showLines[1] = "分解工程";
-				showLines[2] = "NS 工程";
-				showLines[3] = "总组工程";
+				showLines[1] = "报价";
+				showLines[2] = "分解工程";
+				showLines[3] = "NS 工程";
+				showLines[4] = "总组工程";
 				enterCom =true;
+			} else if ("00000000011".equals(sline_id)) {
+				showLines = new String[1];
+				showLines[0] = "报价";
 			}
 		}
 
@@ -898,13 +904,14 @@ public class PositionPanelService {
 
 		List<Map<String, String>> pcses = new ArrayList<Map<String, String>>();
 
-		String[] showLines = new String[6];
+		String[] showLines = new String[7];
 		showLines[0] = "最终检验";
-		showLines[1] = "检查卡";
-		showLines[2] = "外科硬镜修理工程";
-		showLines[3] = "分解工程";
-		showLines[4] = "NS 工程";
-		showLines[5] = "总组工程";
+		showLines[1] = "报价";
+		showLines[2] = "检查卡";
+		showLines[3] = "外科硬镜修理工程";
+		showLines[4] = "分解工程";
+		showLines[5] = "NS 工程";
+		showLines[6] = "总组工程";
 
 		for (String showLine : showLines) {
 			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, mform.getModel_name(), null, 

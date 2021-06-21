@@ -91,8 +91,15 @@ public class QuotationAction extends BaseAction {
 		String process_code = user.getProcess_code();
 		String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
 		boolean isPeripheral = (special_forward != null && special_forward.indexOf("peripheral") >= 0);
+
 		if (isPeripheral) {
 			req.setAttribute("peripheral", true);
+		} else {
+			boolean isSimple = (special_forward != null && special_forward.indexOf("simple") >= 0);
+
+			if (!isSimple) {
+				req.setAttribute("needPcs", true);
+			}
 		}
 
 		req.setAttribute("edit_ocm", CodeListUtils.getSelectOptions("material_ocm", null, null, false));
@@ -229,6 +236,11 @@ public class QuotationAction extends BaseAction {
 					}
 
 				} else {
+					// 取得工程检查票
+					if (!"simple".equals(special_forward)) {
+						PositionPanelService.getPcses(callbackResponse, workingPf, "00000000011", conn);
+					}
+
 					// 页面设定为编辑模式
 					callbackResponse.put("workstauts", WORK_STATUS_WORKING);
 				}
@@ -262,6 +274,11 @@ public class QuotationAction extends BaseAction {
 						}
 
 					} else {
+						// 取得工程检查票
+						if (!"simple".equals(special_forward)) {
+							PositionPanelService.getPcses(callbackResponse, pauseingPf, "00000000011", conn);
+						}
+
 						// 页面设定为编辑模式
 						callbackResponse.put("workstauts", WORK_STATUS_PAUSING);
 					}
@@ -361,9 +378,9 @@ public class QuotationAction extends BaseAction {
 			}
 		}
 
-		if(errors.size() == 0){
-			if (waitingPf != null && waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_NOWORK_WAITING
-					&& !privacies.contains(RvsConsts.PRIVACY_PROCESSING)) {
+		// 检查停止维修型号
+		if(errors.size() == 0 && !privacies.contains(RvsConsts.PRIVACY_PROCESSING)){ // 经理不限制
+			if (waitingPf != null && waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_NOWORK_WAITING) {
 				//验证型号是否终止
 				MaterialService materialService = new MaterialService();
 				MaterialForm materialForm  = materialService.loadSimpleMaterialDetail(conn, material_id);
@@ -401,6 +418,11 @@ public class QuotationAction extends BaseAction {
 					detailResponse.put("workstauts", WORK_STATUS_WORKING);
 				}
 			} else {
+				// 取得工程检查票
+				if (!"simple".equals(special_forward)) {
+					PositionPanelService.getPcses(detailResponse, waitingPf, "00000000011", conn);
+				}
+
 				// 页面设定为编辑模式
 				detailResponse.put("workstauts", WORK_STATUS_WORKING);
 			}
@@ -926,6 +948,27 @@ public class QuotationAction extends BaseAction {
 					urlconn.getContentType(); // 这个就能触发
 				} catch (Exception e) {
 					log.error("Failed", e);
+				}
+			} else {
+				String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + user.getProcess_code());
+				boolean isSimple = (special_forward != null && special_forward.indexOf("simple") >= 0);
+				if (!isSimple) {
+					MaterialForm mEntity = mservice.loadSimpleMaterialDetail(conn, materialForm.getMaterial_id());
+					if (mEntity.getCategory_id().equals(RvsConsts.CATEGORY_UDI)) {
+						conn.commit();
+
+						// 推送归档
+						try {
+							URL url = new URL("http://localhost:8080/rvs/download.do?method=file&material_id=" + materialForm.getMaterial_id());
+							url.getQuery();
+							URLConnection urlconn = url.openConnection();
+							urlconn.setReadTimeout(1); // 不等返回
+							urlconn.connect();
+							urlconn.getContentType(); // 这个就能触发
+						} catch (Exception e) {
+							log.error("Failed", e);
+						}
+					}
 				}
 			}
 

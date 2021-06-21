@@ -444,7 +444,7 @@ public class ProductionFeatureService {
 					if (anml_flg) {
 						nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
 					} else {
-						nextPositions.add(RvsConsts.POSITION_QUOTATION_N); // 报价
+						nextPositions.add(RvsConsts.POSITION_QUOTATION_152); // 报价
 					}
 				} else {
 					nextPositions.add("00000000012");

@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">8.5.3406.462</p>
+								<p id="nee">8.5.3425.466</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2020年12月14日</p>
+								<p>2021年5月13日</p>
 							</div>
 						</div>
 <%
@@ -186,6 +186,22 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 %>
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
+								<p>--------------------------------------</p>
+								<p>21/5/13 8.5.3425.466 更新</p>
+								<p>共通: 财务年度更改相关</p>
+								<p>设备管理: 借用设备工具</p>
+								<p>共通: 管理员/支援课导出维修品时增加字段</p>
+								<p>接口: 受理接口更新了动物内镜用标记</p>
+								<p>零件管理: 记录零件缺品原因功能</p>
+								<p>投线: 周边/UDI的投线后判定零件</p>
+								<p>--------------------------------------</p>
+								<p>21/3/10 8.5.3413.463 更新</p>
+								<p>共通: 日历功能可直选年月</p>
+								<p>生产管理: 总组库位自动分配/提示</p>
+								<p>受理: 消毒灭菌方式更改</p>
+								<p>--------------------------------------</p>
+								<p>21/2/18 8.5.3409.463 更新</p>
+								<p>生产管理: 动物实验用维修品-独立维修流程</p>
 								<p>--------------------------------------</p>
 								<p>20/12/14 8.5.3406.462 更新</p>
 								<p>品保: 报价完成周边检查票pdf化</p>

@@ -70,13 +70,14 @@ public class QualityAssuranceService {
 	 * @throws IOException
 	 */
 	public void makePdf(MaterialForm mform, String folderPath, boolean getHistory, SqlSession conn) throws IOException {
-		String[] showLines = new String[6];
-		showLines[0] = "检查卡";
-		showLines[1] = "最终检验";
-		showLines[2] = "分解工程";
-		showLines[3] = "NS 工程";
-		showLines[4] = "总组工程";
-		showLines[5] = "外科硬镜修理工程";
+		String[] showLines = new String[7];
+		showLines[0] = "最终检验";
+		showLines[1] = "报价";
+		showLines[2] = "检查卡";
+		showLines[3] = "外科硬镜修理工程";
+		showLines[4] = "分解工程";
+		showLines[5] = "NS 工程";
+		showLines[6] = "总组工程";
 
 		MaterialService mService = new MaterialService();
 

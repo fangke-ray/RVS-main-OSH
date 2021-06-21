@@ -84,6 +84,7 @@ public class RvsConsts extends BaseConst {
 	public static final String POSITION_SHIPPING = "00000000047";
 	public static final String POSITION_QA_LIGHT = "00000000052";
 	public static final String POSITION_QA_601 = "00000000051";
+	public static final String POSITION_QUOTATION_152 = "00000000124";
 
 	// 周边维修工位
 	public static final String POSITION_QUOTATION_P_181 = "00000000064";

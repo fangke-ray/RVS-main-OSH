@@ -484,23 +484,29 @@ public class MaterialService {
 			showLines[0] = "检查卡";
 		} else {
 			if (!isEmpty(mform.getOutline_time())) {
-				showLines = new String[4];
-				showLines[0] = "分解工程";
-				showLines[1] = "NS 工程";
-				showLines[2] = "总组工程";
-				showLines[3] = "最终检验";
-				ext = 2;
-				if ("00000000012".equals(sline_id)) {
+				showLines = new String[5];
+				showLines[0] = "报价";
+				showLines[1] = "分解工程";
+				showLines[2] = "NS 工程";
+				showLines[3] = "总组工程";
+				showLines[4] = "最终检验";
+				ext = 3;
+				if ("00000000011".equals(sline_id)) {
 					ext = 0;
-				} else if ("00000000013".equals(sline_id)) {
+				} else if ("00000000012".equals(sline_id)) {
 					ext = 1;
-				} else if ("00000000014".equals(sline_id)) {
+				} else if ("00000000013".equals(sline_id)) {
 					ext = 2;
-					enterCom =true;
-				} else if ("00000000015".equals(sline_id)) {
+				} else if ("00000000014".equals(sline_id)) {
 					ext = 3;
 					enterCom =true;
+				} else if ("00000000015".equals(sline_id)) {
+					ext = 4;
+					enterCom =true;
 				}
+			} else if ("00000000011".equals(sline_id)) {
+				showLines = new String[1];
+				showLines[0] = "报价";
 			} else if ("00000000012".equals(sline_id)) {
 				if (getHistory != null || MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
 					if ("1".equals(mform.getLevel())) {
@@ -521,17 +527,19 @@ public class MaterialService {
 				showLines = new String[1];
 				showLines[0] = "NS 工程";
 			} else if ("00000000014".equals(sline_id)) {
-				showLines = new String[3];
+				showLines = new String[4];
 				showLines[0] = "总组工程";
-				showLines[1] = "分解工程";
-				showLines[2] = "NS 工程";
+				showLines[1] = "报价";
+				showLines[2] = "分解工程";
+				showLines[3] = "NS 工程";
 				enterCom =true;
 			} else if ("00000000015".equals(sline_id)) {
-				showLines = new String[4];
+				showLines = new String[5];
 				showLines[0] = "最终检验";
-				showLines[1] = "分解工程";
-				showLines[2] = "NS 工程";
-				showLines[3] = "总组工程";
+				showLines[1] = "报价";
+				showLines[2] = "分解工程";
+				showLines[3] = "NS 工程";
+				showLines[4] = "总组工程";
 				enterCom =true;
 			}
 		}
@@ -641,12 +649,13 @@ public class MaterialService {
 
 		List<Map<String, String>> pcses = new ArrayList<Map<String, String>>();
 
-		String[] showLines =  new String[5];
+		String[] showLines =  new String[6];
 		showLines[0] = "检查卡";
 		showLines[1] = "最终检验";
-		showLines[2] = "分解工程";
-		showLines[3] = "NS 工程";
-		showLines[4] = "总组工程";
+		showLines[2] = "报价";
+		showLines[3] = "分解工程";
+		showLines[4] = "NS 工程";
+		showLines[5] = "总组工程";
 
 		for (int i=0 ; i < showLines.length ; i++) {
 			String showLine = showLines[i]; 
@@ -1041,11 +1050,12 @@ public class MaterialService {
 			showLines = new String[1];
 			showLines[0] = "检查卡";
 		} else {
-			showLines = new String[4];
+			showLines = new String[5];
 			showLines[0] = "最终检验";
-			showLines[1] = "分解工程";
-			showLines[2] = "NS 工程";
-			showLines[3] = "总组工程";
+			showLines[1] = "报价";
+			showLines[2] = "分解工程";
+			showLines[3] = "NS 工程";
+			showLines[4] = "总组工程";
 		}
 
 		for (int i=0 ; i < showLines.length ; i++) {
@@ -1266,10 +1276,11 @@ public class MaterialService {
 		String[] showLines = new String[6];
 		showLines[0] = "检查卡";
 		showLines[1] = "最终检验";
-		showLines[2] = "分解工程";
-		showLines[3] = "NS 工程";
-		showLines[4] = "总组工程";
-		showLines[5] = "外科硬镜修理工程";
+		showLines[2] = "报价";
+		showLines[3] = "分解工程";
+		showLines[4] = "NS 工程";
+		showLines[5] = "总组工程";
+		showLines[6] = "外科硬镜修理工程";
 
 		for (int i=0 ; i < showLines.length ; i++) {
 			String showLine = showLines[i]; 

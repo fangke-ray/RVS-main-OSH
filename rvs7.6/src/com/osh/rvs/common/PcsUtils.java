@@ -174,6 +174,7 @@ public class PcsUtils {
 	private static String toLineCode(String sLineName) {
 		// TODO 分别工程名
 		switch (sLineName) {
+		case "报价" : return "11";
 		case "分解工程" : return "12";
 		case "NS 工程" : return "13";
 		case "总组工程" : return "14";
