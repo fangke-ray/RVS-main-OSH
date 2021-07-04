@@ -112,6 +112,11 @@ var pop_wip = function(call_back, resInfo){
 	quotation_pop.hide();
 	quotation_pop.load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
 		 //新增
+		if ($("#anml_attendtion").length > 0) {
+			quotation_pop.find("div.shelf_model[for!='anml_exp']").hide();
+		} else {
+			quotation_pop.find("div.shelf_model[for='anml_exp']").hide();
+		}
 
 		quotation_pop.dialog({
 			position : [ 800, 20 ],

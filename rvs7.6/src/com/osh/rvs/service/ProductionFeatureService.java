@@ -437,17 +437,21 @@ public class ProductionFeatureService {
 				mDao.updateMaterialOutlineTime(material_id);
 				return null;
 			} else {
+				boolean anml_flg = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
 				if ("07".equals(mEntity.getKind()) && mEntity.getFix_type() == 1) {
 					nextPositions.add(RvsConsts.POSITION_QUOTATION_P_181); // 周边报价
 				} else if (RvsConsts.CATEGORY_UDI.equals(mEntity.getCategory_id())) { // 光学视管
-					boolean anml_flg = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
 					if (anml_flg) {
 						nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
 					} else {
 						nextPositions.add(RvsConsts.POSITION_QUOTATION_152); // 报价
 					}
 				} else {
-					nextPositions.add("00000000012");
+					if (anml_flg) {
+						nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
+					} else {
+						nextPositions.add("00000000012"); // 测漏
+					}
 				}
 				if (isFact) {
 					// FSE 数据同步
