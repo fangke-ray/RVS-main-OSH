@@ -95,6 +95,10 @@ public class QuotationService {
 			}
 		}
 
+		if ("00000000259".equals(mform.getModel_id()) 
+				|| "00000000319".equals(mform.getModel_id())) {
+			responseBean.put("special_notice", mform.getModel_name());
+		}
 		// 判断是否CCD线更换对象，是的话可选择流程
 		if (RvsUtils.getCcdLineModels(conn).contains(mform.getModel_id())) {
 			Map<String, String> patState = new HashMap<String, String>();

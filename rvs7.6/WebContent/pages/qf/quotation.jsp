@@ -31,7 +31,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.flowchart.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
-<script type="text/javascript" src="js/qf/quotation.js?v=3432"></script>
+<script type="text/javascript" src="js/qf/quotation.js?v=3433"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
 <script type="text/javascript">
@@ -90,11 +90,14 @@ if (request.getAttribute("unitizeds")!=null) {
 										<table class="condform">
 											<tbody>
 												<tr>
-													<td class="ui-state-default td-title">型号<input type="hidden" name="wip_location" id="edit_wip_location"/></td>
+													<td class="ui-state-default td-title">型 号<input type="hidden" name="wip_location" id="edit_wip_location"/></td>
 													<td class="td-content"></td>
 												</tr>
 												<tr class="component_setting">
 													<td class="ui-state-highlight td-title" colspan=2>此维修品是可进行<span style="color:red;">NS 组件组装</span>的型号</td>
+												</tr>
+												<tr class="special_notice">
+													<td class="ui-state-highlight td-title" colspan=2>请查询该机型是否为 <span style="color:red;">2020年12月1日到2021年7月5日期间</span> 的维修品</td>
 												</tr>
 												<tr>
 													<td class="ui-state-default td-title">机身号</td>
