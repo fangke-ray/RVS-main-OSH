@@ -72,7 +72,7 @@ public class PartialForm extends UploadForm{
 	 * 分装数量
 	 */
 	private String split_quantity;
-	
+
 	public String getOrder_flg() {
 		return order_flg;
 	}

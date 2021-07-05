@@ -17,7 +17,6 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.form.data.ProductionFeatureForm;
 import com.osh.rvs.form.inline.ComposeStorageForm;
 import com.osh.rvs.service.CategoryService;
-import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.ComposeStorageService;
 
 import framework.huiqing.action.BaseAction;

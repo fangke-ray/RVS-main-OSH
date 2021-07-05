@@ -1,6 +1,4 @@
 package com.osh.rvs.action.data;
-import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -17,15 +15,12 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.RvsConsts;
-import com.osh.rvs.form.master.ModelForm;
-import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.StandardWorkTimeService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
-import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class StandardWorkTimeAction extends BaseAction {
 

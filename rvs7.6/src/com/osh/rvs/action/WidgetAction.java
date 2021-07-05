@@ -7,10 +7,10 @@
  */
 package com.osh.rvs.action;
 
+import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
 import java.util.List;
 import java.util.Map;
-
-import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +26,6 @@ import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.mapper.data.MaterialMapper;
-import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.ProcessAssignService;

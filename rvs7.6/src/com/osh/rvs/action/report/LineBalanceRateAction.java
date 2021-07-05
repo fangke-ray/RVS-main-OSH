@@ -1,5 +1,7 @@
 package com.osh.rvs.action.report;
 
+import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,16 +17,15 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.form.report.LineBalanceRateForm;
 import com.osh.rvs.service.CategoryService;
-import com.osh.rvs.service.report.LineBalanceRateService;
 import com.osh.rvs.service.LineService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.SectionService;
+import com.osh.rvs.service.report.LineBalanceRateService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
-import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 import framework.huiqing.common.util.validator.Validators;

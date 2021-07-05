@@ -1,6 +1,5 @@
 package com.osh.rvs.service.inline;
 
-import static framework.huiqing.common.util.CommonStringUtil.fillChar;
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;

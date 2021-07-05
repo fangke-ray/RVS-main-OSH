@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
@@ -17,8 +18,6 @@ import com.osh.rvs.bean.master.DevicesTypeEntity;
 import com.osh.rvs.form.master.DevicesTypeForm;
 import com.osh.rvs.service.DevicesTypeService;
 import com.osh.rvs.service.UploadService;
-
-import org.apache.log4j.Logger;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;

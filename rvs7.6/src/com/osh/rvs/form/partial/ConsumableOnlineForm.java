@@ -7,7 +7,9 @@
  */
 package com.osh.rvs.form.partial;
 import java.io.Serializable;
+
 import org.apache.struts.action.ActionForm;
+
 import framework.huiqing.bean.annotation.BeanField;
 import framework.huiqing.bean.annotation.FieldType;
 

@@ -1,7 +1,9 @@
 package com.osh.rvs.form.manage;
 
 import java.io.Serializable;
+
 import org.apache.struts.action.ActionForm;
+
 import framework.huiqing.bean.annotation.BeanField;
 import framework.huiqing.bean.annotation.FieldType;
 

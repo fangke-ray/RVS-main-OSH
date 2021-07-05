@@ -1,8 +1,8 @@
 package com.osh.rvs.bean.partial;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.math.BigDecimal;
+import java.util.Date;
 public class ConsumableListEntity implements Serializable{
 	/**
 	 * 消耗品仓库库存一览

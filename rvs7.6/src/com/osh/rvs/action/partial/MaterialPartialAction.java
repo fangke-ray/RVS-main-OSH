@@ -67,7 +67,7 @@ public class MaterialPartialAction extends BaseAction {
 	 * @throws Exception
 	 */
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
-		log.info("MaterialAction.init start");
+		log.info("MaterialPartialAction.init start");
 		
 		String mReferChooser = modelService.getOptions(conn);
 		req.setAttribute("mReferChooser", mReferChooser);
@@ -112,7 +112,7 @@ public class MaterialPartialAction extends BaseAction {
 		String sOptions = sectionService.getOptions(conn, "(全部)");
 		req.setAttribute("sOptions", sOptions);
 
-		log.info("MaterialAction.init end");
+		log.info("MaterialPartialAction.init end");
 	}
 
 	/**

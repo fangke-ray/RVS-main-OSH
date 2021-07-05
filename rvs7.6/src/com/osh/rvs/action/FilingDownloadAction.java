@@ -16,9 +16,9 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.infect.CheckedFileStorageEntity;
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DownloadService;
 import com.osh.rvs.service.FilingDownloadService;
-import com.osh.rvs.service.CheckResultService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.common.util.CommonStringUtil;

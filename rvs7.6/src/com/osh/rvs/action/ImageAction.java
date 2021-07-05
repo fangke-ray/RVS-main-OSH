@@ -120,4 +120,53 @@ public class ImageAction extends BaseAction {
 
 		logger.info("ImageAction.reset end");
 	}
+
+//	/**
+//	 * OCR 识别图片
+//	 * 
+//	 * @param mapping
+//	 * @param form
+//	 * @param request
+//	 * @param response
+//	 * @return ActionForward
+//	 */
+//	public void ocrImage(ActionMapping mapping, ActionForm form, HttpServletRequest req,
+//			HttpServletResponse res, SqlSession conn) throws Exception {
+//		logger.info("ImageAction.ocrImage start");
+//
+//		// Ajax回馈对象
+//		Map<String, Object> jsonResponse = new HashMap<String, Object>();
+//		List<MsgInfo> msgs = new ArrayList<MsgInfo>();
+//
+//		String tempfilename = "";
+//		String ocrResult = "";
+//
+//		String base64 = req.getParameter("base64");
+//
+//		try {
+//			tempfilename = ImageService.generateImage(base64);
+//		} catch (Exception e) {
+//			logger.error(e.getMessage(), e);
+//			MsgInfo error = new MsgInfo();
+//			error.setErrmsg("保存图片失败。");
+//			msgs.add(error);
+//		}
+//
+//		try {
+//			ocrResult = ImageService.ocrImage(tempfilename);
+//		} catch (Exception e) {
+//			logger.error(e.getMessage(), e);
+//			MsgInfo error = new MsgInfo();
+//			error.setErrmsg("识别图片失败。");
+//			msgs.add(error);
+//		}
+//
+//		jsonResponse.put("ocr_result", ocrResult);
+//		// 检查发生错误时报告错误信息
+//		jsonResponse.put("errors", msgs);
+//		// 返回Json格式响应信息
+//		returnJsonResponse(res, jsonResponse);
+//
+//		logger.info("ImageAction.ocrImage end");
+//	}
 }

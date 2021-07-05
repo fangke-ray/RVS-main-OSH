@@ -161,7 +161,7 @@ public class MaterialProcessAssignAction extends BaseAction {
 		// 返回Json格式回馈信息
 		returnJsonResponse(response, callbackResponse);
 
-		log.info("MaterialProcessAssignAction.doUpdateMaterialProcessAssign start");
+		log.info("MaterialProcessAssignAction.doUpdateMaterialProcessAssign end");
 	}
 
 }

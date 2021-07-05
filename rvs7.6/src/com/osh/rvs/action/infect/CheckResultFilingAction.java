@@ -18,8 +18,8 @@ import org.apache.struts.upload.FormFile;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.infect.CheckResultFilingForm;
-import com.osh.rvs.service.infect.CheckResultFilingService;
 import com.osh.rvs.service.DevicesTypeService;
+import com.osh.rvs.service.infect.CheckResultFilingService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
