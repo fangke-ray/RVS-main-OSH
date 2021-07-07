@@ -67,7 +67,7 @@ public class ServiceRepairResolveForm extends ActionForm implements Serializable
 	@BeanField(title = "QA分析日结束", name = "qa_reception_time_end", type = FieldType.Date)
 	private String qa_reception_time_end;
 	// 分析表编号
-	@BeanField(title = "分析表编号", name = "analysis_no", length = 20)
+	@BeanField(title = "分析表编号", name = "analysis_no", length = 30)
 	private String analysis_no;
 	// 客户编号
 	@BeanField(title = "客户编号", name = "customer_id", type = FieldType.Integer, length = 11)

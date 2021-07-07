@@ -706,7 +706,7 @@ var show_analysis_Complete = function(xhrobj, textStatus,isQaManager,hidden_rece
 			rules : {
 				analysis_no : {
 					required : true,
-					maxlength : 23
+					maxlength : 30
 				}
 			},
 			ignore : "input[type='text']:hidden"
@@ -1011,7 +1011,7 @@ var showedit_accept = function(xhrobj, textStatus) {// 点击受理按钮触发D
 				},
 				serial_no : {
 					required : true,
-					maxlength : 20
+					maxlength : 32
 				},
 				sorc_no : {
 					maxlength : 18
