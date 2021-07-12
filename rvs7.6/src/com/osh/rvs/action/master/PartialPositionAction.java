@@ -23,10 +23,13 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.master.PartialBomEntity;
 import com.osh.rvs.bean.master.PartialPositionEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.master.PartialPositionForm;
 import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.partial.PartialBomService;
 import com.osh.rvs.service.partial.PartialPositionService;
 
 import framework.huiqing.action.BaseAction;
@@ -73,7 +76,9 @@ public class PartialPositionAction extends BaseAction {
 		}else{
 			req.setAttribute("role", "other");
 		}
-				
+
+		req.setAttribute("kOption", CodeListUtils.getSelectOptions("repair_category_kind", null, false));
+
 		actionForward = mapping.findForward(FW_INIT);
 		log.info("PartialPositionAction.init end");
 	}
@@ -237,8 +242,19 @@ public class PartialPositionAction extends BaseAction {
 		/* 查询 */
 		Map<String, List<PartialPositionForm>> instructLists = service.loadInstruct(partialPositionEntity.getModel_id(), conn);
 
-		if (partialPositionEntity.getLevel() != null) {
-			// 获取RankBom信息 TODO
+		String level = partialPositionEntity.getLevel();
+		if (level != null && !RvsUtils.isLightFix(level)) {
+			// 获取RankBom信息
+			PartialBomService pRankBomService = new PartialBomService();
+			List<PartialBomEntity> rankBom = pRankBomService.searchRankBom(partialPositionForm, conn);
+			if (!rankBom.isEmpty()) {
+				listResponse.put("rankBom", rankBom);
+			} else {
+				List<String> partialBom = pRankBomService.searchPartialBomEntity(partialPositionForm, conn);
+				if (!partialBom.isEmpty()) {
+					listResponse.put("partialBom", partialBom);
+				}
+			}
 		}
 
 		listResponse.put("instructLists", instructLists);
@@ -248,5 +264,33 @@ public class PartialPositionAction extends BaseAction {
 
 		returnJsonResponse(response, listResponse);
 		log.info("PartialPositionAction.instructLoad end");
+	}
+
+	/**
+	 * 按类别读取工作指示单格式并生成文件
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 */
+	public void makefile(ActionMapping mapping, ActionForm form, HttpServletRequest request,
+			HttpServletResponse response, SqlSession conn) {
+		log.info("PartialPositionAction.makefile start");
+
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String kind = request.getParameter("kind");
+
+		/* 查询 */
+		String file_path = service.makeBomFile(kind, conn);
+
+		cbResponse.put("file_path", file_path);
+		cbResponse.put("errors", errors);
+
+		returnJsonResponse(response, cbResponse);
+		log.info("PartialPositionAction.makefile end");
 	}
 }

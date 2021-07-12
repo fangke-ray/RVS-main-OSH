@@ -1,8 +1,12 @@
 package com.osh.rvs.service.partial;
 
+import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -28,6 +32,7 @@ import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.master.PartialPositionEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.CopyByPoi;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.PartialPositionForm;
@@ -40,6 +45,7 @@ import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class PartialPositionService {
@@ -178,9 +184,9 @@ public class PartialPositionService {
 		Date today = new Date();
 
 		try {
-			in = new FileInputStream(tempfilename);
+			in = new BufferedInputStream(new FileInputStream(tempfilename));
 			XSSFWorkbook work = new XSSFWorkbook(in);
-			
+
 			XSSFSheet sheet 
 			= work.getSheet("ZCMMXLBOM");
 			if (sheet == null) sheet = work.getSheetAt(0);
@@ -245,7 +251,7 @@ public class PartialPositionService {
 			// 读入型号失败暂存
 			Set<String> modelLoseCache = new HashSet<String>(); 
 
-			Map<PartialPositionEntity, String> multiPositionParts = new HashMap<PartialPositionEntity, String>(); 
+			Map<PartialPositionEntity, String> multiPositionPartsForFile = new HashMap<PartialPositionEntity, String>(); 
 
 			// 读入型号列表
 			Map<String, List<PartialPositionEntity>> modelReadIn = new HashMap<String, List<PartialPositionEntity>>();
@@ -322,8 +328,11 @@ public class PartialPositionService {
 					String processCode = CopyByPoi.getCellStringValue(row.getCell(idxProcessCode));
 					if (!CommonStringUtil.isEmpty(processCode)) {
 						if (processCode.indexOf(";") > -1) {
-							multiPositionParts.put(partialPositionEntity, processCode);
+							multiPositionPartsForFile.put(partialPositionEntity, processCode);
 						} else {
+							if (processCode.indexOf(":") > -1) {
+								processCode = processCode.substring(0, 3);
+							}
 							String positionId = ReverseResolution.getPositionByProcessCode(processCode, conn);
 							partialPositionEntity.setPosition_id(positionId);
 						}
@@ -336,12 +345,14 @@ public class PartialPositionService {
 			for (String modelId : modelReadIn.keySet()) {
 				List<PartialPositionEntity> listOfModel = modelReadIn.get(modelId);
 
+				Map<PartialPositionEntity, String> multiPositionParts = new HashMap<PartialPositionEntity, String>(); 
+
 				// 没有定位信息时，取得现有定位信息
 				if (idxProcessCode == -1) {
 					List<PartialPositionEntity> orgList = partialPositionMapper.getPartialPositionOfModel(modelId);
 					if (orgList.size() > 0) {
 						Map<String, String> toNewMap = new HashMap<String, String>();
-						Map<String, List<String>> positionMap = new HashMap<String, List<String>>();
+						Map<String, HashSet<String>> positionMap = new HashMap<String, HashSet<String>>();
 
 						// 取得原数据
 						for (PartialPositionEntity orgBean : orgList) {
@@ -350,9 +361,9 @@ public class PartialPositionService {
 								toNewMap.put(poskey, orgBean.getNew_partial_id());
 							}
 							String positionId = orgBean.getPosition_id();
-							if (positionId != null) {
+							if (positionId != null && !"00000000000".equals(positionId)) {
 								if (!positionMap.containsKey(poskey)) {
-									positionMap.put(poskey, new ArrayList<String>());
+									positionMap.put(poskey, new HashSet<String>());
 								}
 								positionMap.get(poskey).add(positionId);
 							}
@@ -367,9 +378,11 @@ public class PartialPositionService {
 							}
 							// 定位信息
 							if (positionMap.containsKey(poskey)) {
-								List<String> l = positionMap.get(poskey);
+								HashSet<String> l = positionMap.get(poskey);
 								if (l.size() == 1) {
-									ppEntity.setPosition_id(l.get(0));
+									for (String positionId : l) {
+										ppEntity.setPosition_id(positionId);
+									}
 								} else {
 									int thisQuantity = ppEntity.getQuantity();
 									int remainder = 0;
@@ -416,6 +429,12 @@ public class PartialPositionService {
 							}
 						}
 					}
+
+					for (PartialPositionEntity e : multiPositionPartsForFile.keySet()) {
+						if (e.getModel_id().equals(modelId)) {
+							multiPositionParts.put(e, multiPositionPartsForFile.get(e));
+						}
+					}
 				}
 
 				// 删除现有BOM/定位信息
@@ -449,7 +468,7 @@ public class PartialPositionService {
 						multiPositionPart.setQuantity(quatity);
 						if (i==0) {
 							// 首条记录Update
-							partialPositionMapper.updatePartialPosition(multiPositionPart);
+							partialPositionMapper.updatePartialPositionQuantity(multiPositionPart);
 						} else {
 							// 其他记录Insert
 							partialPositionMapper.insertPartialPosition(multiPositionPart);
@@ -651,5 +670,103 @@ public class PartialPositionService {
 		PartialPositionMapper mapper = conn.getMapper(PartialPositionMapper.class);
 
 		return mapper.getComponentOfModel(model_id);
+	}
+
+	public String makeBomFile(String kind,
+			SqlSession conn) {
+
+		PartialPositionMapper mapper = conn.getMapper(PartialPositionMapper.class);
+
+		List<PartialPositionEntity> l = mapper.getInstructOfCategoryKind(kind);
+
+		if (l.size() == 0) return null;
+
+		//Excel临时文件
+		String cacheName ="BOM_position" + new Date().getTime() + ".xlsx";
+		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\" +cacheName; 
+		
+		OutputStream out = null;
+		try {
+			File file = new File(cachePath);
+			if(!file.exists()){
+				file.createNewFile();
+			}
+			
+			XSSFWorkbook work=new XSSFWorkbook();
+			XSSFSheet sheet = work.createSheet("零件BOM及定位");
+
+			int idx = 0;
+			XSSFRow row = sheet.createRow(idx++);
+			row.createCell(0).setCellValue("ProductCode");
+			row.createCell(1).setCellValue("BomCode");
+			row.createCell(2).setCellValue("ParentItemCode");
+			row.createCell(3).setCellValue("子物料号");
+			row.createCell(4).setCellValue("数量");
+			row.createCell(5).setCellValue("EnabledDate");
+			row.createCell(6).setCellValue("DisabledDate");
+			row.createCell(7).setCellValue("定位");
+
+			for (PartialPositionEntity posiEntity : l) {
+				row = sheet.createRow(idx++);
+
+				// productcode
+				row.createCell(0).setCellValue(posiEntity.getModel_name());
+
+				// bomcode
+				row.createCell(1).setCellValue(posiEntity.getBom_code());
+
+				// parentitemcode
+				String parentItemCode = posiEntity.getParent_partial_code();
+				if (parentItemCode == null) {
+					parentItemCode = posiEntity.getModel_name();
+				}
+				row.createCell(2).setCellValue(parentItemCode);
+
+				// 子物料号
+				row.createCell(3).setCellValue(posiEntity.getCode());
+
+				// 数量
+				row.createCell(4).setCellValue(posiEntity.getQuantity());
+
+				// enableddate
+				Date enabledDate = posiEntity.getActive_date();
+				if (enabledDate == null) {
+					row.createCell(5).setCellType(XSSFCell.CELL_TYPE_BLANK);
+				} else {
+					row.createCell(5).setCellValue(DateUtil.toString(enabledDate, DateUtil.ISO_DATE_PATTERN));
+				}
+
+				// disableddate
+				row.createCell(6).setCellValue(
+						DateUtil.toString(posiEntity.getHistory_limit_date(), DateUtil.ISO_DATE_PATTERN));
+
+				// 定位
+				String position = posiEntity.getProcess_code();
+				if (position == null) {
+					row.createCell(7).setCellType(XSSFCell.CELL_TYPE_BLANK);
+				} else {
+					if (position.indexOf(";") < 0) {
+						position = position.substring(0, 3);
+					}
+					row.createCell(7).setCellValue(position);
+				}
+			}
+
+			out= new FileOutputStream(file);
+			work.write(out);
+
+		} catch (Exception ex){
+			_log.error(ex.getMessage(), ex);
+		} finally{
+			if(out!=null){
+				try {
+					out.close();
+				} catch (IOException e) {
+					_log.error(e.getMessage(), e);
+				}
+			}
+		}
+
+		return cacheName;
 	}
 }

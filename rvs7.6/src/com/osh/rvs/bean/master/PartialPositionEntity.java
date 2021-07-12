@@ -1,6 +1,7 @@
 package com.osh.rvs.bean.master;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Date;
 
@@ -51,6 +52,9 @@ public class PartialPositionEntity implements Serializable{
 	private Date active_date;
 
 	private Integer quantity;
+
+	/* 价格 */
+	private BigDecimal price;
 
 	/*bom_code*/
 	private String bom_code;
@@ -180,6 +184,12 @@ public class PartialPositionEntity implements Serializable{
 	}
 	public void setLine_id(String line_id) {
 		this.line_id = line_id;
+	}
+	public BigDecimal getPrice() {
+		return price;
+	}
+	public void setPrice(BigDecimal price) {
+		this.price = price;
 	}
 	
 

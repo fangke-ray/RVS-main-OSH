@@ -14,7 +14,7 @@ $(function(){
 		}
 	});   
     setReferChooser($("#search_model_id"), $("#model_refer"));//维修对象型号 下拉作用选择
-    $("#search_rank").select2Buttons();
+    $("#search_rank,#download_kind").select2Buttons();
    
     $("#cancelbutton, #editarea span.ui-icon").click(function() {
 		showList();
@@ -37,6 +37,9 @@ $(function(){
     $("#uploadbutton").click(function(){
 		import_upload_file();
 	});
+
+	$("#downloadbutton").click(show_download_select);
+	
     /*参照button*/
 	$("#referencebutton").addClass("ui-button-primary");
 	$("#referencebutton").click(function(){
@@ -437,18 +440,7 @@ $.ajaxFileUpload({
 				// 共通出错信息框
 				treatBackMessages("#confirmmessage", resInfo.errors);
 			} else {
-				$("#confirmmessage").dialog('close');
-				$("#confirmmessage").text("导入零件定位信息完成。");
-				$("#confirmmessage").dialog({
-					resizable : false,
-					modal : true,
-					title : "导入确认",
-					buttons : {
-						"确认" : function() {
-							$(this).dialog("close");
-						}
-					}
-				});
+				infoPop("导入零件定位信息完成。");
 			}
 		} catch(e) {
 			
@@ -456,6 +448,53 @@ $.ajaxFileUpload({
 	}
 });
 };
+
+var show_download_select = function(){
+	$("#download_kind").val("").trigger("change");
+	var $dialog = $("#download_dialog").dialog({
+		height: 'auto',
+		modal : true,
+		title : "选择导出的维修品类别",
+		resizable:false,
+		buttons : {
+			"导出" : function() {
+				$dialog.parent().hide();
+				// Ajax提交
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : false,
+					url : servicePath + '?method=makefile',
+					cache : false,
+					data : {kind : $("#download_kind").val()},
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function(xhrobj) {
+						var resInfo = $.parseJSON(xhrobj.responseText);
+						var tempFile = resInfo.file_path;
+						var kind = $("#download_kind > option:selected").text();
+						if (!tempFile) {
+							errorPop("无法下载信息选择类别" + kind + "的零件BOM定位文档。");
+							$dialog.parent().show();
+						} else {
+							$("#download_dialog").dialog("close");
+							if ($("iframe").length > 0) {
+								$("iframe").attr("src", "download.do"+"?method=output&fileName=" + kind + "零件BOM定位表.xlsx&filePath=" + tempFile);
+							} else {
+								var iframe = document.createElement("iframe");
+					            iframe.src = "download.do"+"?method=output&fileName=" + kind + "零件BOM定位表.xlsx&filePath=" + tempFile;
+					            iframe.style.display = "none";
+					            document.body.appendChild(iframe);
+							}
+						}
+					}
+				});
+			},
+			"取消" : function() { $dialog.dialog("close")}
+		}
+	 });
+}
 
 function filed_list(finished){
 	if ($("#gbox_list").length > 0) {
@@ -697,6 +736,15 @@ var instructShow = function(xhrObj) {
 		return;
 	}
 	if (typeof(instruction_show) === "function") {
-		instruction_show($instructDialog, $("#txt_model_name").val(), resInfo.instructLists, resInfo.components);
+		if ((resInfo.rankBom && resInfo.rankBom.length) || (resInfo.partialBom && resInfo.partialBom.length)) {
+			var materialEntity = {
+				level : $("#search_rank").val(),
+				rankName : $("#search_rank > option:selected").text()
+			};
+			instruction_show($instructDialog, $("#txt_model_name").val(), resInfo.instructLists, resInfo.components,
+				materialEntity, null, resInfo.rankBom, resInfo.partialBom);
+		} else {
+			instruction_show($instructDialog, $("#txt_model_name").val(), resInfo.instructLists, resInfo.components);
+		}
 	}
 }

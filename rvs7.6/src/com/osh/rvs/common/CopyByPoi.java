@@ -156,6 +156,7 @@ public class CopyByPoi {
 			break;
 		case XSSFCell.CELL_TYPE_NUMERIC:
 			strCell = String.valueOf((double) cell.getNumericCellValue());
+			if (strCell.endsWith(".0")) strCell = strCell.substring(0, strCell.length() - 2);
 			break;
 		case XSSFCell.CELL_TYPE_BOOLEAN:
 			strCell = String.valueOf(cell.getBooleanCellValue());
@@ -185,7 +186,12 @@ public class CopyByPoi {
 		Date dtCell = null;
 		switch (cell.getCellType()) {
 		case HSSFCell.CELL_TYPE_STRING:
-			dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.DATE_PATTERN);
+			String strCellValue = cell.getStringCellValue();
+			if (strCellValue.indexOf("-") > -1) {
+				dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.ISO_DATE_PATTERN);
+			} else {
+				dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.DATE_PATTERN);
+			}
 			break;
 		case HSSFCell.CELL_TYPE_NUMERIC:
 			dtCell = cell.getDateCellValue();
@@ -211,8 +217,14 @@ public class CopyByPoi {
 	    }
 		Date dtCell = null;
 		switch (cell.getCellType()) {
-		case XSSFCell.CELL_TYPE_STRING:
-			dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.DATE_PATTERN);
+		case XSSFCell.CELL_TYPE_STRING: {
+			String strCellValue = cell.getStringCellValue();
+			if (strCellValue.indexOf("-") > -1) {
+				dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.ISO_DATE_PATTERN);
+			} else {
+				dtCell = DateUtil.toDate(cell.getStringCellValue(), DateUtil.DATE_PATTERN);
+			}
+		}
 			break;
 		case XSSFCell.CELL_TYPE_NUMERIC:
 			dtCell = cell.getDateCellValue();

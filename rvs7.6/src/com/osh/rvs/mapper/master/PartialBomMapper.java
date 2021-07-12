@@ -25,4 +25,7 @@ public interface PartialBomMapper {
 
 	/*删除有效截止日期之前且零件ID没有修改过的零件的ID*/
 	public void deleteHistoryPartialBom(PartialBomEntity entity);
+
+	public List<PartialBomEntity> searchRankBom(
+			PartialBomEntity partialBomEntity);
 }

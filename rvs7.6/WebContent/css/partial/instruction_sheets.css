@@ -40,10 +40,24 @@
 	display:table-row;
 	color: lightgray;
 }
-#inst_list > table td[for=quantity] {
+#inst_list > table td[for=quantity],
+#inst_list > table td[for=price] {
 	text-align:right;
 	padding-right:.5em;
 }
+#inst_list > table tr.instructed > td {
+	background-color:aliceblue;
+}
+#inst_list > table tr.instructed.cancel > td {
+	background-color:lightgray;
+}
+#inst_list > table tr.append > td {
+	background-color:lemonchiffon;
+}
+#inst_list > table td.noticeprice {
+	background-color:orange;
+}
+#inst_list > table td[for=rank],
 #inst_list > table td[for=process_code] {
 	text-align:center;
 }
@@ -65,4 +79,20 @@
 
 #inst_list > table tr[level="4"] > td:first-child {
 	padding-left:3em;
+}
+#inst_list > table td[for=quantity] > span,
+#inst_list > table tr.instructed.cancel > td[for=quantity] > span {
+	display:none;
+}
+#inst_list > table tr.instructed > td[for=quantity] > span,
+#inst_list > table tr.append > td[for=quantity] > span {
+	display: inline;
+}
+#inst_list > table tr > td.for_edit {
+	cursor:pointer;
+}
+#inst_list > table tr > td[for=quantity] > button {
+	display: inline-grid;
+	background-color: transparent;
+	border: 0;
 }

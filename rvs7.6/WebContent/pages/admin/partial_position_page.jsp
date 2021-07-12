@@ -189,6 +189,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<table id="ext_list"></table>
 	<div id="ext_listpager"></div>
 </div>
+<div id="download_dialog" style="display:none">
+	<select id="download_kind">
+		${kOption}
+	</select>
+</div>
 <div class="referchooser ui-widget-content" tabindex="-1">
 	<table>
 		<tr>

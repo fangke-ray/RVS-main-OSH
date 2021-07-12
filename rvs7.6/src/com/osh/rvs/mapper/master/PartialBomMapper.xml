@@ -66,6 +66,35 @@
 			mls.level,mo.name
 	</select>
 
+	<select id="searchRankBom" parameterType="PartialBomEntity" resultType="PartialBomEntity">
+		<![CDATA[
+			select 
+			    mo.name as model_name,
+				pbs.level,
+				pbs.bom_code as code
+			FROM
+			    partial_rank_bom pbs
+			JOIN
+				model mo
+			ON
+				mo.model_id=pbs.model_id
+		]]>
+		<where>
+			<if test="model_id !=null and model_id !='' ">
+				<![CDATA[
+					pbs.model_id =#{model_id}
+				]]>
+			</if>
+			<if test="level !=null and level !='' ">
+				<![CDATA[
+					AND pbs.level=#{level}
+				]]>
+			</if>
+		</where>
+		order by
+			mo.name, code
+	</select>
+
 	<!--查询有效截止日期之前且零件ID修改过的零件  -->
 	<select id="searchNewPartial" resultType="PartialBomEntity">
 		<![CDATA[

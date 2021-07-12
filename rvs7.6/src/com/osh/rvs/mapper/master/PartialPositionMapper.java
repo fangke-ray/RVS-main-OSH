@@ -24,6 +24,9 @@ public interface PartialPositionMapper {
 	/* 更新零件定位表 */
 	public void updatePartialPosition(PartialPositionEntity partialPositionEntity);
 
+	/* 更新零件定位表 */
+	public void updatePartialPositionByBom(PartialPositionEntity partialPositionEntity);
+
 	/* 更新零件定位数量 */
 	public void updatePartialPositionQuantity(PartialPositionEntity partialPositionEntity);
 
@@ -38,6 +41,8 @@ public interface PartialPositionMapper {
 	public List<String> searchPartialPositionBelong(PartialPositionEntity partialPositionEntity);
 
 	public List<PartialPositionEntity> getInstructOfModel(String model_id);
+
+	public List<PartialPositionEntity> getInstructOfCategoryKind(String kind);
 
 	public List<String> getComponentOfModel(String model_id);
 }

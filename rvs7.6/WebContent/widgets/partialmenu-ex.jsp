@@ -9,8 +9,8 @@
 <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>零件基础数据管理</h3>
 			<div class="ui-accordion-content ui-helper-reset ui-widget-content">
 				<a target="_parent" href="partialManage.do">零件一览表</a><br>
-				<a target="_parent" href="partial_position.do">零件定位信息管理</a><br>
-				<a target="_parent" href="partial_bom.do">零件BOM信息管理</a><br>
+				<a target="_parent" href="partial_position.do">零件BOM与定位管理</a><br>
+				<a target="_parent" href="partial_bom.do">零件RANK信息管理</a><br>
 <% if(links.get("partial_admin")){ %>
 				<a target="_parent" href="partial_waste_modify_history.do">零件废改增履历</a>
 <% } %>

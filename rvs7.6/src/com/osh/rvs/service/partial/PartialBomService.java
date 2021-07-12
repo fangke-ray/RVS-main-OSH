@@ -56,7 +56,31 @@ public class PartialBomService {
 			return null;
 		}
 	}
-	
+
+	public List<String> searchPartialBomEntity(ActionForm form, SqlSession conn) {
+		PartialBomEntity partialBomEntity = new PartialBomEntity();
+		// 复制表单到数据对象
+		BeanUtil.copyToBean(form, partialBomEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		PartialBomMapper mapper = conn.getMapper(PartialBomMapper.class);
+		List<String> responseList = new ArrayList<String>();
+		List<PartialBomEntity> searchList = mapper.searchPartialBom(partialBomEntity);
+		for (PartialBomEntity entity : searchList) {
+			responseList.add(entity.getPartial_id());
+		}
+		return responseList;
+	}
+
+	public List<PartialBomEntity> searchRankBom(ActionForm form, SqlSession conn) {
+		PartialBomEntity partialBomEntity = new PartialBomEntity();
+		// 复制表单到数据对象
+		BeanUtil.copyToBean(form, partialBomEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		PartialBomMapper mapper = conn.getMapper(PartialBomMapper.class);
+		List<PartialBomEntity> responseList = mapper.searchRankBom(partialBomEntity);
+		return responseList;
+	}
+
 	/**
 	 * 导出BOM表
 	 * @param form

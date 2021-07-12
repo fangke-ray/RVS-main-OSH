@@ -202,7 +202,7 @@
 	    	POSITION_ID = #{position_id},
 	    	QUANTITY = #{quantity}
 	    WHERE 
-	    	MODEL_ID=#{model_id} AND PARTIAL_ID=#{partial_id} AND PARENT_PARTIAL_ID=#{parent_partial_id}
+	    	MODEL_ID=#{model_id} AND BOM_CODE=#{bom_code}
 	   ]]>
  </update>
 
@@ -219,7 +219,7 @@
  	 ]]>
  </update>
  
-  <update id="insertPartialWasteModifyHistory" parameterType="PartialPositionEntity">
+  <insert id="insertPartialWasteModifyHistory" parameterType="PartialPositionEntity">
 	   <![CDATA[
 	    INSERT INTO 
 	    	PARTIAL_WASTE_MODIFY_HISTORY(
@@ -232,11 +232,11 @@
 	   VALUES 
 	    	(#{model_id},#{partial_id},#{new_partial_id},#{updated_by},current_timestamp,#{history_limit_date})
 	   ]]>
- </update>
+ </insert>
 
  <select id="getInstructOfModel" resultType="PartialPositionEntity" parameterType="String">
 		SELECT 
-			PPB.`partial_id`, PA.code, PA.name, `parent_partial_id`, PA_P.CODE as parent_partial_code,
+			PPB.`partial_id`, PA.code, PA.name, PA.price, `parent_partial_id`, PA_P.CODE as parent_partial_code,
 			`bom_code`, sum(`quantity`) as quantity, group_concat(concat(PO.process_code, ':', `quantity`) separator ';') as process_code,
 			group_concat(PO.line_id separator ';') as line_id
 		FROM
@@ -259,6 +259,35 @@
 			current_date between active_date and history_limit_date
 		GROUP BY bom_code
 		ORDER BY parent_partial_id, code
+ </select>
+
+ <select id="getInstructOfCategoryKind" resultType="PartialPositionEntity" parameterType="String">
+		SELECT 
+			ppb.model_id, MDL.name as model_name, PPB.`partial_id`, PA.code, `parent_partial_id`, PA_P.CODE as parent_partial_code,
+            active_date,history_limit_date,
+			`bom_code`, sum(`quantity`) as quantity, group_concat(concat(PO.process_code, ':', `quantity`) separator ';') as process_code
+		FROM
+			PARTIAL_POSITION_BELONG PPB
+		JOIN 
+			PARTIAL PA
+		ON 
+			PPB.PARTIAL_ID = PA.PARTIAL_ID
+		JOIN
+			v_model MDL
+		ON
+			PPB.model_id = MDL.MODEL_ID
+		LEFT JOIN 
+			PARTIAL PA_P
+		ON 
+			PPB.parent_partial_id = PA_P.PARTIAL_ID
+		LEFT JOIN 
+			POSITION PO
+		ON 
+			PPB.POSITION_ID = PO.POSITION_ID
+		WHERE
+			MDL.kind=#{kind} and mdl.delete_flg = 0
+		GROUP BY ppb.model_id, PPB.parent_partial_id, ppb.partial_id, ppb.bom_code
+		ORDER BY model_name, parent_partial_code, code
  </select>
 
  <select id="getComponentOfModel" resultType="String" parameterType="String">

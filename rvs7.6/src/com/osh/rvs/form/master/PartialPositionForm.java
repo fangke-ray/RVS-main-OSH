@@ -72,9 +72,13 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	@BeanField(title = "UNIT零件 ID", name = "parent_partial_id",length=11)
 	private String parent_partial_id;
 	private String parent_partial_code;
-	
+
 	@BeanField(title = "指示数量", name = "quantity", type = FieldType.Integer)
 	private String quantity;
+
+	/*价格*/	
+	@BeanField(title="价格",name="price",type=FieldType.UDouble)
+	private String price;
 
 	public String getOld_partial_id() {
 		return old_partial_id;
@@ -201,6 +205,12 @@ public class PartialPositionForm extends ActionForm implements Serializable{
 	}
 	public void setLine_id(String line_id) {
 		this.line_id = line_id;
+	}
+	public String getPrice() {
+		return price;
+	}
+	public void setPrice(String price) {
+		this.price = price;
 	}
 	
 }
