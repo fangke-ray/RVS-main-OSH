@@ -203,14 +203,14 @@ var toggleListAll = function() {
 	if ($("#storagearea").css("display") === "none") {
 		$("#workarea").animate({width: '-=620'}, function(){
 			jobj.bind("click", toggleListAll);
-			$("#performance_list").jqGrid('hideCol', ['partical_order_date', 'partical_bo','arrival_plan_date','category_name','operate_result','scheduled_date','otherline_process_code']);
+			$("#performance_list").jqGrid('hideCol', ['partical_order_date', 'partical_bo','arrival_plan_date','category_name','operate_result','scheduled_date','ocm']);
 			$("#performance_list").jqGrid('showCol', 'symbol');
 			$("#performance_list").jqGrid('setGridWidth', '602');
 		});
 	} else {
 		$("#workarea").animate({width: '+=620'}, function(){
 			jobj.bind("click", toggleListAll);
-			$("#performance_list").jqGrid('showCol', ['partical_order_date', 'partical_bo','arrival_plan_date','category_name','operate_result','scheduled_date','otherline_process_code']);
+			$("#performance_list").jqGrid('showCol', ['partical_order_date', 'partical_bo','arrival_plan_date','category_name','operate_result','scheduled_date','ocm']);
 			$("#performance_list").jqGrid('hideCol', 'symbol');
 			$("#performance_list").jqGrid('setGridWidth', '1222');
 		});
@@ -268,7 +268,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 					width : 602,
 					rowheight : 23,
 					datatype : "local",
-					colNames : ['产出安排', '同意日期', '加急', '修理单号','维修站', '零件订购日','零件BO','入库预定日','剩余时间', '不良', '等级', '机身号', '机种', '型号', '状态', '位置', '', 'ns_partial_order' ,'本工程外位置',
+					colNames : ['产出安排', '同意日期', '加急', '修理单号','维修站', '零件订购日','零件BO','入库预定日','剩余时间', '不良', '等级', '机身号', '机种', '型号', '状态', '位置', '', 'ns_partial_order' ,'他工程位置',
 							'material_id', 'position_id', 'is_reworking', 'is_today', 'light_fix','overtime'],
 					colModel : [
 							{
@@ -299,7 +299,8 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 							}, {
 								name : 'ocm',
 								index : 'ocm',
-								width : 40, align:'right', formatter:'select', editoptions:{value:"1:SHRC;2:BJRC;3:GZRC;4:SYRC"} // TODO codelist
+								width : 40, align:'right', formatter:'select', editoptions:{value:"1:SHRC;2:BJRC;3:GZRC;4:SYRC",
+								hidden : true} // codelist 简短
 							}, {
 								name : 'partical_order_date',
 								index : 'partical_order_date',
@@ -366,7 +367,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 							}, {
 								name : 'process_code',
 								index : 'process_code',
-								width : 40,
+								width : 50,
 								align : 'center'
 							}, {
 								name : 'px',
@@ -377,7 +378,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 								name : 'ns_partial_order',
 								hidden : true
 							},
-						{name:'otherline_process_code',index:'otherline_process_code', width:65, align:'center', hidden:true},
+						{name:'otherline_process_code',index:'otherline_process_code', width:50, align:'center'},
 						{name : 'material_id', index : 'material_id', hidden : true, key: true},
 						{name : 'position_id', index : 'position_id', hidden : true},
 						{name : 'is_reworking', index : 'is_reworking', hidden : true},

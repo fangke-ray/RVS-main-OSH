@@ -1170,6 +1170,7 @@
 		<value code="69">开放型：69℃</value>
 		<value code="80">密闭型：80℃</value>
 		<value code="84">开放型：84℃</value>
+		<value code="85">密封型：85℃</value>
 		<value code="130">密封型：130℃</value>
 	</codelist>
 
@@ -1180,6 +1181,7 @@
 		<value code="69">60</value>
 		<value code="80">75</value>
 		<value code="84">75</value>
+		<value code="85">80</value>
 		<value code="130">125</value>
 	</codelist>
 
@@ -1190,6 +1192,7 @@
 		<value code="69">70</value>
 		<value code="80">85</value>
 		<value code="84">85</value>
+		<value code="85">90</value>
 		<value code="130">135</value>
 	</codelist>
 

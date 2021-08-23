@@ -227,6 +227,11 @@ public class ProductionFeatureService {
 //			section_id = "00000000001"; 
 //		} // 小修理361工位自动到1课
 
+		if ("00000000025".equals(fingerPositionId) 
+				|| "25".equals(fingerPositionId)) {
+			section_id = "00000000001"; // 302 工位固定1课
+		}
+
 		if (fixed) { 
 			// 固定工位生成等待区信息
 			ProductionFeatureEntity entity = new ProductionFeatureEntity();

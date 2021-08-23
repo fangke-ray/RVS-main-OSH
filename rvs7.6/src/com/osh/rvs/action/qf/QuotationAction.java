@@ -376,6 +376,10 @@ public class QuotationAction extends BaseAction {
 			} else {
 				waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
 			}
+			if (waitingPf != null && waitingPf.getProcess_code() == null) {
+				log.info("工程检查票不能没有工位号" + user.getProcess_code());
+				waitingPf.setProcess_code(user.getProcess_code());
+			}
 		}
 
 		// 检查停止维修型号

@@ -48,7 +48,7 @@
 			]]>
 		</if>
 	</select>
-	
+
 	<select id="checkServiceRepairManageExist" resultType="ServiceRepairManageEntity" parameterType="String">
 		<![CDATA[
 		SELECT

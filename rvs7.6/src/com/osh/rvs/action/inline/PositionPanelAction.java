@@ -165,10 +165,14 @@ public class PositionPanelAction extends BaseAction {
 
 		req.setAttribute("WORKINFO", service.getWorkInfo());
 
-		String pxLevel = user.getPx();
-		if ("4".equals(pxLevel)) pxLevel = "0"; // 超级员工不分线
 		String process_code = user.getProcess_code();
 
+		String pxLevel = user.getPx();
+		if ("4".equals(pxLevel)) pxLevel = "0"; // 超级员工不分线
+
+		if (!PositionService.getDividePositions(conn).contains(user.getPosition_id())) {
+			pxLevel = "0";
+		}
 		req.setAttribute("px", pxLevel);
 		req.setAttribute("otherPx", service.getOtherPx(pxLevel, process_code));
 
@@ -178,7 +182,7 @@ public class PositionPanelAction extends BaseAction {
 
 		Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
 		Map<String, List<PositionGroupEntity>> groupPositionSubs = PositionService.getGroupPositionSubs(conn);
-		if (groupSubPositions.containsKey(position_id)) {
+		if (PositionService.isGroupSubPosition(position_id, section_id, conn)) {
 			user.setGroup_position_id(groupSubPositions.get(position_id));
 
 			// 取得虚拟组工位信息
@@ -706,7 +710,7 @@ public class PositionPanelAction extends BaseAction {
 
 		if (sGroupPositionId != null) {
 			Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
-			if (groupSubPositions.get(reqPositionId) == null 
+			if (!PositionService.isGroupSubPosition(reqPositionId, user.getSection_id(), conn)
 					|| !groupSubPositions.get(reqPositionId).equals(sGroupPositionId)) {
 				MsgInfo msgInfo = new MsgInfo();
 				msgInfo.setComponentid("position_id");

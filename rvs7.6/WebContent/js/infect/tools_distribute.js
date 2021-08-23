@@ -39,6 +39,9 @@ $(function(){
 	$("#resetbutton").click(function(){
 		reset();
 	});
+	// 显示治具照片
+	$("#list").on("click", "a.icon-printer", showPhoto);
+
 	findit();
 });
 
@@ -115,7 +118,13 @@ var filed_list=function(listdata){
 			colModel:[
 				{name:'tools_check_manage_id',index:'tools_check_manage_id',hidden:true},
 				{name:'manage_code',index:'manage_code',width:100},
-				{name:'tools_no',index:'tools_no',width:120},
+				{name:'tools_no',index:'tools_no',width:120,formatter: function(value, options, rData){
+					if (rData.photo_exists) {
+						return "<a href='javascript:void(0)' class='icon-printer'>" + value + "</a>"
+					} else {
+						return value;
+					}
+				}},
 				{name:'tools_name',index:'tools_name',width:200},
 				{name:'model_name',index:'model_name',width:120,align:'center',hidden:true},
 				{name:'section_name',index:'section_name',width:80,align:'center'},
@@ -154,6 +163,33 @@ var filed_list=function(listdata){
 		});
 	}
 };
+
+var showPhoto = function(){
+	var $check_picture = $("#check_picture");
+	if ($check_picture.length == 0) {
+		$("body").append("<div id='check_picture'></div>");
+		$check_picture = $("#check_picture");
+	}
+	$check_picture.html("<img src='http://" + document.location.hostname + "/photos/jig/" 
+		+ $(this).text().trim() + "' title='点击图片关闭'>");
+	$check_picture.children("img").click(function(){$check_picture.dialog("close");});
+	$check_picture.dialog({
+		title : "治具照片",
+		width : 800,
+		height : 640 ,
+		resizable : false,
+		modal : true,
+		minHeight : 200,
+		close : function(){
+			$check_picture.html("");
+		},
+		buttons : {
+			"关闭" : function(){
+				$check_picture.dialog("close");
+			}
+		}
+	});
+}
 
 /**双击详细*/
 var showDetail=function(){

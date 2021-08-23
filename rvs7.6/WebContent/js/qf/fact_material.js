@@ -344,14 +344,14 @@ var process_set = function(rowdata) {
 			$("#pa_main").html("");
 
 			if (level < 4) {// TODO 大修
-				if(rowdata["category_kind"] == 6) {
-					$("#search_section_id").val("00000000012").trigger("change");
-				} else {
-					$("#search_section_id").val("00000000001").trigger("change");
-				}
+//				if(rowdata["category_kind"] == 6) {
+//					$("#search_section_id").val("00000000012").trigger("change");
+//				} else {
+//					$("#search_section_id").val("00000000001").trigger("change");
+//				}
 				$("#ref_template").val(fillZero(category_kind, 11)).trigger("change");
 				if (rowdata["category_name"] == "光学视管") {// 光学视管
-					$("#search_section_id").val("00000000012").trigger("change");
+//					$("#search_section_id").val("00000000012").trigger("change");
 					$("#ref_template").val(fillZero(category_kind, 11)).trigger("change");
 	
 					if (checkPart(material_id)) {
@@ -380,7 +380,7 @@ var process_set = function(rowdata) {
 					process_dialog($process_dialog, rowdata);
 				}
 			} else if (level > 50 && level < 60) {// 周边
-				$("#search_section_id").val("00000000012").trigger("change");
+//				$("#search_section_id").val("00000000012").trigger("change");
 				$("#ref_template").val(fillZero(category_kind, 11)).trigger("change");
 
 				if (level == 57) { // E2 
@@ -408,11 +408,11 @@ var process_set = function(rowdata) {
 					process_dialog($process_dialog, rowdata);
 				}
 			} else { // 小修
-				if(rowdata["category_kind"] == 6) {
-					$("#search_section_id").val("00000000012").trigger("change");
-				} else {
-					$("#search_section_id").val("00000000001").trigger("change");
-				}
+//				if(rowdata["category_kind"] == 6) {
+//					$("#search_section_id").val("00000000012").trigger("change");
+//				} else {
+//					$("#search_section_id").val("00000000001").trigger("change");
+//				}
 				$("#ref_template").parent().parent().hide();
 
 				if (checkPart(material_id)) {
@@ -467,6 +467,8 @@ var process_set = function(rowdata) {
 					process_dialog($process_dialog, rowdata);
 				}
 			}
+
+			$("#search_section_id").val(rowdata["section_id"]).trigger("change");
 		} else {
 			// 单元投线
 			$("#search_section_id").parent().parent().hide();
@@ -1052,7 +1054,7 @@ function initGrid() {
 			datatype: "local",
 			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机种', '机身号', '返还要求', '加急','level','等级', '报价日期', '客户同意日','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
 			,'CCD盖玻璃<br>/零件订购'
-			,'维护对象ID'],
+			,'投入课室 ID' ,'维护对象ID'],
 			colModel:[
 				{name:'myac', width:35, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true,delbutton:false }, hidden:true},
 				{name:'sorc_no',index:'sorc_no', width:75},
@@ -1078,6 +1080,7 @@ function initGrid() {
 				{name:'ccd_model',index:'ccd_model', hidden:true},
 				{name:'ccd_change',index:'ccd_change', hidden:true},
 				{name:'ccd_operate_result',index:'ccd_operate_result', width:60},
+				{name:'section_id', index:'section_id',hidden:true},
 				{name:'material_id', index:'material_id',hidden:true}
 				
 			],

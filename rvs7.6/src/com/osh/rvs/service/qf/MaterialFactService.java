@@ -73,6 +73,10 @@ public class MaterialFactService {
 	private static Set<String> CCD_MODEL_NAMES = null;
 	private Logger log = Logger.getLogger(getClass());
 
+	private static String SECTION_1 = "00000000001";
+	private static String SECTION_2 = "00000000003";
+	private static String SECTION_3 = "00000000012";
+
 	public List<MaterialFactForm> searchMaterial(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
 		// 表单复制到数据对象
 		MaterialFactEntity conditionBean = new MaterialFactEntity();
@@ -95,6 +99,8 @@ public class MaterialFactService {
 
 		// 数据对象复制到表单
 		for (MaterialFactEntity resultBean : lResultBean) {
+			String section_id = SECTION_1;
+
 			MaterialFactForm resultForm = new MaterialFactForm();
 			BeanUtil.copyToForm(resultBean, resultForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 			if (CCD_MODEL_NAMES.contains(resultForm.getModel_name())) {
@@ -109,13 +115,20 @@ public class MaterialFactService {
 
 			Integer level = resultBean.getLevel();
 			boolean isLightFix = RvsUtils.isLightFix(level);
+			boolean isPeripheral = RvsUtils.isPeripheral(level);
 
-//			if(level != null &&
-//					(level == 9 || level == 91 ||level == 92 ||level == 93
-//					|| level == 56 ||level == 57 ||level == 58 // TODO level
-//							)) {
-			if (isLightFix 
-					|| (level != null && (level == 56 ||level == 57 ||level == 58 || level == 59))
+			if (isLightFix) {
+				section_id = SECTION_2;
+			} else if (isPeripheral) {
+				section_id = SECTION_3;
+			} else if (resultBean.getCategory_kind() == 3
+					|| resultBean.getCategory_kind() == 6){
+				section_id = SECTION_2;
+			} else if (resultBean.getCategory_kind() == 7){
+				section_id = SECTION_3;
+			}
+
+			if (isLightFix || isPeripheral
 					|| "光学视管".equals(resultBean.getCategory_name())) {
 				MaterialPartialForm mp = mps.loadMaterialPartial(conn, resultBean.getMaterial_id(), null);
 				if (mp == null) {
@@ -132,7 +145,12 @@ public class MaterialFactService {
 			// 动物内镜强制流程
 			if (MaterialTagService.getAnmlMaterials(conn).contains(resultBean.getMaterial_id())) {
 				resultForm.setPat_id(anmlPats.get(0));
+				// section_id = SECTION_2;
 			}
+
+			// 投入课室
+			resultForm.setSection_id(section_id);
+
 			lResultForm.add(resultForm);
 		}
 

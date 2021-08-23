@@ -24,6 +24,7 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.PositionForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
+import com.osh.rvs.mapper.master.SectionMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -35,7 +36,7 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class PositionService {
 
 	private static Set<String> dividePositions = null;
-	private static Set<String> groupPositions = null;
+	private static Map<String, List<String>> groupPosSections = null;
 	private static Map<String, String> groupNextPositions = null;
 	private static Map<String, String> groupSubPositions = null;
 	private static Map<String, List<PositionGroupEntity>> groupPositionSubs = null;
@@ -47,9 +48,9 @@ public class PositionService {
 	private static Map<String, String> positionUnitizedRevers = null; // (大修)来源工位指向(动物内镜)映射工位
 	private static Map<String, String> specialPagePositions = null;
 
-	private void clearCaches() {
+	public static void clearCaches() {
 		dividePositions = null;
-		groupPositions = null;
+		groupPosSections = null;
 		groupNextPositions = null;
 		groupSubPositions = null;
 		groupPositionSubs = null;
@@ -61,6 +62,36 @@ public class PositionService {
 		specialPagePositions = null;
 		positionEntityCache.clear();
 		ReverseResolution.positionRever.clear();
+	}
+
+	private static void setGroupCaches(SqlSession conn) {
+		groupPosSections = new HashMap<String, List<String>>();
+		PositionMapper mapper = conn.getMapper(PositionMapper.class);
+		SectionMapper sMapper = conn.getMapper(SectionMapper.class);
+		List<String> l = mapper.getGroupPositions();
+		for (String pos_id : l) {
+			List<String> sections = sMapper.getSectionsOfPosition(pos_id);
+			groupPosSections.put(pos_id, sections);
+		}
+	}
+
+	private static void setGroupSubCaches(SqlSession conn) {
+		groupSubPositions = new HashMap<String, String>();
+		groupNextPositions = new HashMap<String, String>();
+		groupPositionSubs = new HashMap<String, List<PositionGroupEntity>>();
+		PositionMapper mapper = conn.getMapper(PositionMapper.class);
+		List<PositionGroupEntity> l = mapper.getAllGroupPositions();
+		for (PositionGroupEntity posGroup : l) {
+			groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
+			if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
+				groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<PositionGroupEntity> ());
+			}
+			groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup);
+
+			if (posGroup.getNext_position_id() != null) {
+				groupNextPositions.put(posGroup.getNext_position_id(), posGroup.getSub_position_id());
+			}
+		}		
 	}
 
 	/**
@@ -356,86 +387,56 @@ public class PositionService {
 	}
 
 	/**
-	 * 取得分平行线工位
+	 * 取得组合单元工位
 	 * @param conn
 	 * @return
 	 */
 	public static Set<String> getGroupPositions(SqlSession conn) {
-		if (groupPositions == null) {
-			groupPositions = new HashSet<String>();
-			PositionMapper mapper = conn.getMapper(PositionMapper.class);
-			List<String> l = mapper.getGroupPositions();
-			for (String pos_id : l) {
-				groupPositions.add(pos_id);
-			}
+		if (groupPosSections == null) {
+			setGroupCaches(conn);
 		}
-		return groupPositions;
+		return groupPosSections.keySet();
+	}
+
+	public static Map<String, List<String>> getGroupPosSections(SqlSession conn) {
+		if (groupPosSections == null) {
+			setGroupCaches(conn);
+		}
+		return groupPosSections;
 	}
 
 	public static Map<String, String> getGroupSubPositions(SqlSession conn) {
 		if (groupSubPositions == null) {
-			groupSubPositions = new HashMap<String, String>();
-			groupNextPositions = new HashMap<String, String>();
-			groupPositionSubs = new HashMap<String, List<PositionGroupEntity>>();
-			PositionMapper mapper = conn.getMapper(PositionMapper.class);
-			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
-			for (PositionGroupEntity posGroup : l) {
-				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
-				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
-					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<PositionGroupEntity> ());
-				}
-				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup);
-
-				if (posGroup.getNext_position_id() != null) {
-					groupNextPositions.put(posGroup.getNext_position_id(), posGroup.getSub_position_id());
-				}
-			}
+			setGroupSubCaches(conn);
 		}
 		return groupSubPositions;
 	}
 
 	public static Map<String, List<PositionGroupEntity>> getGroupPositionSubs(SqlSession conn) {
 		if (groupPositionSubs == null) {
-			groupSubPositions = new HashMap<String, String>();
-			groupNextPositions = new HashMap<String, String>();
-			groupPositionSubs = new HashMap<String, List<PositionGroupEntity>>();
-			PositionMapper mapper = conn.getMapper(PositionMapper.class);
-			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
-			for (PositionGroupEntity posGroup : l) {
-				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
-				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
-					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<PositionGroupEntity> ());
-				}
-				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup);
-
-				if (posGroup.getNext_position_id() != null) {
-					groupNextPositions.put(posGroup.getNext_position_id(), posGroup.getSub_position_id());
-				}
-			}
+			setGroupSubCaches(conn);
 		}
 		return groupPositionSubs;
 	}
 
 	public static Map<String, String> getGroupNextPositions(SqlSession conn) {
 		if (groupNextPositions == null) {
-			groupSubPositions = new HashMap<String, String>();
-			groupNextPositions = new HashMap<String, String>();
-			groupPositionSubs = new HashMap<String, List<PositionGroupEntity>>();
-			PositionMapper mapper = conn.getMapper(PositionMapper.class);
-			List<PositionGroupEntity> l = mapper.getAllGroupPositions();
-			for (PositionGroupEntity posGroup : l) {
-				groupSubPositions.put(posGroup.getSub_position_id(), posGroup.getGroup_position_id());
-				if (!groupPositionSubs.containsKey(posGroup.getGroup_position_id())) {
-					groupPositionSubs.put(posGroup.getGroup_position_id(), new ArrayList<PositionGroupEntity> ());
-				}
-				groupPositionSubs.get(posGroup.getGroup_position_id()).add(posGroup);
-
-				if (posGroup.getNext_position_id() != null) {
-					groupNextPositions.put(posGroup.getNext_position_id(), posGroup.getSub_position_id());
-				}
-			}
+			setGroupSubCaches(conn);
 		}
 		return groupNextPositions;
+	}
+
+	public static boolean isGroupSubPosition(String position_id, String section_id, SqlSession conn) {
+		if (groupSubPositions.containsKey(position_id)) {
+			String goroposId = groupSubPositions.get(position_id);
+			return isGroupPosition(goroposId, section_id, conn);
+		} else {
+			return false;
+		}
+	}
+	public static boolean isGroupPosition(String position_id, String section_id, SqlSession conn) {
+		if (!groupPosSections.containsKey(position_id)) return false;
+		return (section_id == null || groupPosSections.get(position_id).contains(section_id));
 	}
 
 	/**
@@ -477,7 +478,7 @@ public class PositionService {
 			Matcher m = p.matcher(parameterKey);
 			if (m.find()) {
 				String table = m.group(1);
-				groupPositions = getGroupPositions(conn);
+				Set<String> groupPositionsSet = getGroupPositions(conn);
 
 				if ("group".equals(table)) {
 					String column = m.group(2);
@@ -485,7 +486,7 @@ public class PositionService {
 					String[] value = map.get(parameterKey);
 					if ("sub_position_id".equals(column)) {
 						pgList.get(icounts).setSub_position_id(value[0]);
-						if (groupPositions.contains(value[0])) {
+						if (groupPositionsSet.contains(value[0])) {
 							MsgInfo info = new MsgInfo();
 							info.setComponentid("sub_position_id");
 							info.setErrmsg("请选取一个实际工位（不是虚拟工位组）作为所属工位。");
@@ -494,7 +495,7 @@ public class PositionService {
 						}
 					} else if ("next_position_id".equals(column)) {
 						pgList.get(icounts).setNext_position_id(value[0]);
-						if (groupPositions.contains(value[0])) {
+						if (groupPositionsSet.contains(value[0])) {
 							MsgInfo info = new MsgInfo();
 							info.setComponentid("sub_position_id");
 							info.setErrmsg("请选取一个实际工位（不是虚拟工位组）作为后序检测工位。");

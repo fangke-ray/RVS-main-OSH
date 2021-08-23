@@ -25,6 +25,7 @@ import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.form.master.PositionForm;
 import com.osh.rvs.form.master.SectionForm;
 import com.osh.rvs.mapper.master.PositionMapper;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.SectionService;
 
 import framework.huiqing.action.BaseAction;
@@ -194,6 +195,7 @@ public class SectionAction extends BaseAction {
 		if (errors.size() == 0) {
 			// 执行插入
 			service.insert(sectionForm, req.getSession(), conn, errors);
+			PositionService.clearCaches();
 		}
 
 		// 检查发生错误时报告错误信息
@@ -231,6 +233,7 @@ public class SectionAction extends BaseAction {
 		if (errors.size() == 0) {
 			// 执行更新
 			service.update(sectionForm, req.getSession(), conn, errors);
+			PositionService.clearCaches();
 		}
 
 		// 检查发生错误时报告错误信息
@@ -264,6 +267,7 @@ public class SectionAction extends BaseAction {
 		if (errors.size() == 0) {
 			// 执行删除
 			service.delete(form, req.getSession(), conn, errors);
+			PositionService.clearCaches();
 		}
 
 		// 检查发生错误时报告错误信息

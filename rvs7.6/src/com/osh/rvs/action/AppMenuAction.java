@@ -183,60 +183,74 @@ public class AppMenuAction extends BaseAction {
 
 		menuLinks.put("inlinePosition", false);
 		menuLinks.put("decomposeline", false);
+		menuLinks.put("nsline", false);
+		menuLinks.put("composeline", false);
+		menuLinks.put("repairline", false);
 
 		String inlinePosition = "";
 
 		menuLinks.put("composeStorage", false);
 
-		// 分解
-		if (LINE_DECOM.equals(user.getLine_id())) {
-			if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
-				menuLinks.put("decomposeline", true);
-				menuLinks.put("在线作业", true);
-			} 
-			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px, false, conn);
-				inlinePosition += links;
+//		if ("00000000003".equals(section_id)) {
+//			if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+//				menuLinks.put("repairline", true);
+//				menuLinks.put("在线作业", true);
+//			}
+//			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
+//				String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px, false, conn);
+//				inlinePosition += links;
+//				links = getLinksByPositions(userPositions, LINE_NS, section_id, px, false, conn);
+//				inlinePosition += links;
+//				links = getLinksByPositions(userPositions, LINE_COM, section_id, px, false, conn);
+//				inlinePosition += links;
+//			}
+//		} else {
+			// 分解
+			if (LINE_DECOM.equals(user.getLine_id())) {
+				if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+					menuLinks.put("decomposeline", true);
+					menuLinks.put("在线作业", true);
+				}
+				if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
+					String links = getLinksByPositions(userPositions, LINE_DECOM, section_id, px, false, conn);
+					inlinePosition += links;
+				}
+				if ("00000000001".equals(section_id)) {
+					menuLinks.put("composeStorage", true);
+				}
 			}
-			if ("00000000001".equals(section_id)) {
-				menuLinks.put("composeStorage", true);
-			}
-		}
 
-		menuLinks.put("nsline", false);
+			// ＮＳ
+			if (LINE_NS.equals(user.getLine_id())) {
+				if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+					menuLinks.put("nsline", true);
+					menuLinks.put("在线作业", true);
+				}
+				if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
+					String links = getLinksByPositions(userPositions, LINE_NS, section_id, px, false, conn);
+					inlinePosition += links;
+				}
+				if ("00000000001".equals(section_id)) {
+					menuLinks.put("composeStorage", true);
+				}
+			}
 
-		// ＮＳ
-		if (LINE_NS.equals(user.getLine_id())) {
-			if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
-				menuLinks.put("nsline", true);
-				menuLinks.put("在线作业", true);
-			} 
-			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_NS, section_id, px, false, conn);
-				inlinePosition += links;
+			// 总组
+			if (LINE_COM.equals(user.getLine_id())) {
+				if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+					menuLinks.put("composeline", true);
+					menuLinks.put("在线作业", true);
+					// 总组库位
+				}
+				if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
+					String links = getLinksByPositions(userPositions, LINE_COM, section_id, px, false, conn);
+					inlinePosition += links;
+				}
+				if ("00000000001".equals(section_id)) {
+					menuLinks.put("composeStorage", true);
+				}
 			}
-			if ("00000000001".equals(section_id)) {
-				menuLinks.put("composeStorage", true);
-			}
-		}
-
-		menuLinks.put("composeline", false);
-
-		// 总组
-		if (LINE_COM.equals(user.getLine_id())) {
-			if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
-				menuLinks.put("composeline", true);
-				menuLinks.put("在线作业", true);
-				// 总组库位
-			} 
-			if (privacies.contains(RvsConsts.PRIVACY_POSITION)) {
-				String links = getLinksByPositions(userPositions, LINE_COM, section_id, px, false, conn);
-				inlinePosition += links;
-			}
-			if ("00000000001".equals(section_id)) {
-				menuLinks.put("composeStorage", true);
-			}
-		}
+//		}
 
 		if (inlinePosition.length() > 0) {
 			req.setAttribute("inlinePosition", inlinePosition);
@@ -381,6 +395,7 @@ public class AppMenuAction extends BaseAction {
 			boolean getUnitized, SqlSession conn) {
 		StringBuffer ret = new StringBuffer("");
 		Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
+		Map<String, List<String>> groupPosSections = PositionService.getGroupPosSections(conn);
 		Set<String> groupPositions = new HashSet<String>();
 
 		for (PositionEntity position : positions) {
@@ -457,10 +472,18 @@ public class AppMenuAction extends BaseAction {
 						}
 					}
 				} else { // 无分线
+					boolean show = true;
 					if (groupSubPositions.containsKey(position.getPosition_id())) { // 虚拟组工位
-						groupPositions.add(groupSubPositions.get(position.getPosition_id()));
-					} else if (groupPositions.contains(position.getPosition_id())) {
-					} else {
+						String groupPositionId = groupSubPositions.get(position.getPosition_id());
+						if (groupPosSections.get(groupPositionId) != null
+								&& groupPosSections.get(groupPositionId).contains(section_id)) {
+							groupPositions.add(groupSubPositions.get(position.getPosition_id()));
+							show = false;
+						}
+					} else if (groupPosSections.containsKey(position.getPosition_id())) {
+						show = false;
+					}
+					if (show) {
 						ret.append("<a href=\"javascript:getPositionWork('" 
 								+ position.getPosition_id() + "');\">" +
 								position.getProcess_code() + " " + position.getName() + 

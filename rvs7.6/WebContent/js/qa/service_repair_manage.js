@@ -706,7 +706,7 @@ var show_analysis_Complete = function(xhrobj, textStatus,isQaManager,hidden_rece
 			rules : {
 				analysis_no : {
 					required : true,
-					maxlength : 30
+					maxlength : 32
 				}
 			},
 			ignore : "input[type='text']:hidden"

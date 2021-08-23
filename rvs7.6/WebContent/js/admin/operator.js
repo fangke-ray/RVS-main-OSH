@@ -96,11 +96,7 @@ $(function() {
 				if (notice) {
 					$evtTarget.removeClass("ui-state-highlight");
 				} else {
-					if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
-						errorPop("只能选择3个以内的关注工位。");
-					} else {
-						$evtTarget.addClass("ui-state-highlight");
-					}
+					checkNoticePositions($evtTarget);
 				}
 				
 			} else {
@@ -111,11 +107,7 @@ $(function() {
 			$tr.addClass("ui-state-active");
 
 			if ($tr.children("td").index($(evt.target)) == 2) {
-				if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
-					errorPop("只能选择3个以内的关注工位。");
-				} else {
-					$evtTarget.addClass("ui-state-highlight");
-				}
+				checkNoticePositions($evtTarget);
 			}
 
 			var main_referId = $tr.find("td:first-child").text();
@@ -135,11 +127,7 @@ $(function() {
 				if (notice) {
 					$evtTarget.removeClass("ui-state-highlight");
 				} else {
-					if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
-						errorPop("只能选择3个以内的关注工位。");
-					} else {
-						$evtTarget.addClass("ui-state-highlight");
-					}
+					checkNoticePositions($evtTarget);
 				}
 				
 			} else {
@@ -150,11 +138,9 @@ $(function() {
 			$tr.addClass("ui-state-active");
 
 			if ($tr.children("td").index($(evt.target)) == 2) {
-				if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length == 3) {
-					errorPop("只能选择3个以内的关注工位。");
-				} else {
-					$evtTarget.addClass("ui-state-highlight");
-				}
+				
+				checkNoticePositions($evtTarget);
+
 			}
 
 			var main_referId = $tr.find("td:first-child").text();
@@ -841,5 +827,22 @@ var showAnml_handleComplete = function(xhrobj, textStatus){
 				}
 			}
 		});
+	}
+}
+
+var checkNoticePositions = function ($evtTarget) {
+	var lineId = $("#input_line_id").val();
+	if (!lineId) {
+		errorPop("没有所属工程的人员不能设定关注工位。");
+		return;
+	}
+	var limit = 3;
+	if ("00000000015" == lineId) {
+		limit = 6;
+	}
+	if ($("#grid_edit_main_position .ui-state-highlight").length + $("#grid_edit_positions .ui-state-highlight").length >= limit) {
+		errorPop("只能选择" + limit + "个以内的关注工位。");
+	} else {
+		$evtTarget.addClass("ui-state-highlight");
 	}
 }

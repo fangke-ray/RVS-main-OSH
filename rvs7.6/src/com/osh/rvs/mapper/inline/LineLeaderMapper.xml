@@ -67,9 +67,14 @@
 			WHERE
 			    LINE_ID = #{line_id}
 			    AND DELETE_FLG = 0
-			    AND p.position_id NOT IN (select sub_position_id from position_group)
-			ORDER BY `p`.PROCESS_CODE, px;
+			    AND p.position_id NOT IN (select group_position_id from position_group)
 		]]>
+		<if test="section_id eq '00000000001' ">
+		<![CDATA[
+			    AND p.position_id NOT IN (select sub_position_id from position_group gr join position_of_section ps on group_position_id = ps.position_id and ps.section_id = #{section_id})
+		]]>
+		</if>
+			ORDER BY `p`.PROCESS_CODE, px;
 	</select>
 
 	<select id="getWorkingMaterials" resultType="LineLeaderEntity">

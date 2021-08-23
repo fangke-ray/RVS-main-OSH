@@ -195,8 +195,9 @@ public class PanelAction extends BaseAction {
 		ProductionFeatureEntity workingPf = service.getProcessingPf(user, conn);
 		if (workingPf != null) {
 			Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
-			if (groupSubPositions.containsKey(workingPf.getPosition_id())
-					&& groupSubPositions.get(workingPf.getPosition_id()).equals(new_position_id)) {
+			boolean isGroupSub = PositionService.isGroupSubPosition(workingPf.getPosition_id(), 
+					(new_section_id == null ? user.getSection_id() : new_section_id), conn);
+			if (isGroupSub && groupSubPositions.get(workingPf.getPosition_id()).equals(new_position_id)) {
 			} else {
 				MsgInfo msgInfo = new MsgInfo();
 				msgInfo.setErrcode("info.linework.workingRemain");

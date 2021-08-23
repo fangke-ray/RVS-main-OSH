@@ -131,7 +131,18 @@ public class TurnoverCaseService {
 			TurnoverCaseForm turnoverCaseForm = new TurnoverCaseForm();
 
 			BeanUtil.copyToForm(turnoverCaseEntity, turnoverCaseForm, CopyOptions.COPYOPTIONS_NOEMPTY);
-			turnoverCaseForm.setBound_out_ocm(CodeListUtils.getValue("material_direct_ocm", "" + turnoverCaseEntity.getBound_out_ocm()));
+			String boundOutOcm = CodeListUtils.getValue("material_direct_ocm", "" + turnoverCaseEntity.getBound_out_ocm());
+			if (boundOutOcm.length() > 3) {
+				if (boundOutOcm.startsWith("OCSM-")) {
+					boundOutOcm = boundOutOcm.substring(5);
+				} else if (boundOutOcm.indexOf("C-TEC") >= 0) {
+					boundOutOcm = boundOutOcm.substring(0, 4);
+				} else if (boundOutOcm.length() > 5) {
+					boundOutOcm = boundOutOcm.substring(0, 3);
+				}
+			}
+			turnoverCaseForm.setBound_out_ocm(boundOutOcm);
+			turnoverCaseForm.setLevel(CodeListUtils.getValue("material_level", "" + turnoverCaseEntity.getLevel()));
 
 			lcf.add(turnoverCaseForm);
 		}

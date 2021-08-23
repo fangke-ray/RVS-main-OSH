@@ -10,6 +10,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <head>
 <base href="<%=basePath%>">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style>
+.plan_list td.break_back_2 {
+	color: white;
+	background-color : darkred;
+}
+.plan_list td.keep_overflow {
+	width:35px;max-width:35px;text-overflow:ellipsis;overflow:hidden;word-break: keep-all;
+}
+</style>
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript">
 	var time_archer = (new Date()).getTime();
@@ -156,17 +165,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<tr>
 					<td class="td-title">型号</td>
 					<td class="td-title" style="width:60px;">机身号</td>
-					<td class="td-title">发送地</td>
+					<td class="td-title">发送</td>
 					<td class="td-title">库位</td>
+					<td class="td-title" style="width:25px;">等级</td>
 				</tr>
 			</thead>
 			<tbody>
 				<logic:iterate id="element" name="shippingPlanListOnShelf" type="TurnoverCaseForm" indexId="index">
 				<tr location="<bean:write name="element" property="location"/>">
-					<td><bean:write name="element" property="model_name"/></td>
-					<td><bean:write name="element" property="serial_no"/></td>
-					<td><bean:write name="element" property="bound_out_ocm"/></td>				
+					<td class="break_back_<bean:write name="element" property="execute"/>"><bean:write name="element" property="model_name"/></td>
+					<td class="break_back_<bean:write name="element" property="execute"/>"><bean:write name="element" property="serial_no"/></td>
+					<td class="keep_overflow"><bean:write name="element" property="bound_out_ocm"/></td>				
 					<td><bean:write name="element" property="location"/></td>
+					<td><bean:write name="element" property="level"/></td>
 				</tr>
 				</logic:iterate>
 			</tbody>

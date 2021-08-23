@@ -26,6 +26,7 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
+import com.osh.rvs.form.inline.LineLeaderForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.service.ProductionFeatureService;
@@ -96,26 +97,52 @@ public class LineLeaderAction extends BaseAction {
 			session.setAttribute(RvsConsts.SESSION_USER, user);
 		}
 
-		// 取得今日计划暨作业对象一览
-		listResponse.put("performance", service.getPerformanceList(section_id, line_id, null, null, null, conn));
+		// 线长处理接收工位
+//		if ("00000000003".equals(section_id)) {
+//			List<LineLeaderForm> performanceList = service.getPerformanceList(section_id, "00000000012", null, null, null, conn);
+//			performanceList.addAll(service.getPerformanceList(section_id, "00000000013", null, null, null, conn));
+//			performanceList.addAll(service.getPerformanceList(section_id, "00000000014", null, null, null, conn));
+//			listResponse.put("performance", performanceList);
+//
+//
+//			Map<String, Object> lineResponse = new HashMap<String, Object>();
+//			user.setLine_id("00000000012");
+//			service.getChartContent(user, conn, lineResponse);
+//			service.putTempChartContent(listResponse, lineResponse, conn);
+//
+//			lineResponse = new HashMap<String, Object>();
+//			user.setLine_id("00000000013");
+//			service.getChartContent(user, conn, lineResponse);
+//			service.putTempChartContent(listResponse, lineResponse, conn);
+//
+//			lineResponse = new HashMap<String, Object>();
+//			user.setLine_id("00000000014");
+//			service.getChartContent(user, conn, lineResponse);
+//			service.putTempChartContent(listResponse, lineResponse, conn);
+//
+//			user.setLine_id(line_id);
+//		} else {
 
-		service.getChartContent(user, conn, listResponse);
+			// 取得今日计划暨作业对象一览
+			listResponse.put("performance", service.getPerformanceList(section_id, line_id, null, null, null, conn));
+
+			service.getChartContent(user, conn, listResponse);
+
+			if ("00000000012".equals(line_id)) {
+				listResponse.put("receivePos" , "252");
+			}
+			else if ("00000000013".equals(line_id)) {
+				listResponse.put("receivePos" , "321");
+			}
+			else if ("00000000014".equals(line_id)) {
+				listResponse.put("receivePos" , "400");
+			}
+//		}
 
 		// 文字选项
 		listResponse.put("opt_level" ,CodeListUtils.getGridOptions("material_level"));
 		listResponse.put("opt_operate_result", CodeListUtils.getGridOptions("material_operate_result"));
 		listResponse.put("opt_px" ,CodeListUtils.getGridOptions("material_px"));
-
-		// 线长处理接收工位
-		if ("00000000012".equals(line_id)) {
-			listResponse.put("receivePos" , "252");
-		}
-		else if ("00000000013".equals(line_id)) {
-			listResponse.put("receivePos" , "321");
-		}
-		else if ("00000000014".equals(line_id)) {
-			listResponse.put("receivePos" , "400");
-		}
 
 		// 1课有分线
 		if ("00000000001".equals(section_id)) {

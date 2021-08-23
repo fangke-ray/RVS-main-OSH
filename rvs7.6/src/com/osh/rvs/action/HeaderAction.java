@@ -140,7 +140,9 @@ public class HeaderAction extends BaseAction {
 		if (RvsConsts.ROLE_LINELEADER.equals(role_id)) {
 			message_type = "le";
 		} else
-		if (RvsConsts.ROLE_OPERATOR.equals(role_id)) {
+		if (RvsConsts.ROLE_OPERATOR.equals(role_id) || RvsConsts.ROLE_QAER.equals(role_id) || RvsConsts.ROLE_QA_MANAGER.equals(role_id)) {
+			message_type = "op";
+		} else if (RvsConsts.ROLE_MANAGER.equals(role_id) && "00000000015".equals(user.getLine_id())) {
 			message_type = "op";
 		}
 

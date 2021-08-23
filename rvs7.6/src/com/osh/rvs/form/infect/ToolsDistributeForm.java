@@ -49,7 +49,9 @@ public class ToolsDistributeForm extends ActionForm implements Serializable {
 	private String status;
 	@BeanField(title="备注",name="comment",type=FieldType.String)
 	private String comment;
-	
+
+	private String photo_exists;
+
 	public String getManage_code() {
 		return manage_code;
 	}
@@ -163,6 +165,12 @@ public class ToolsDistributeForm extends ActionForm implements Serializable {
 	}
 	public void setProvider(String provider) {
 		this.provider = provider;
+	}
+	public String getPhoto_exists() {
+		return photo_exists;
+	}
+	public void setPhoto_exists(String photo_exists) {
+		this.photo_exists = photo_exists;
 	}
 	
 }
