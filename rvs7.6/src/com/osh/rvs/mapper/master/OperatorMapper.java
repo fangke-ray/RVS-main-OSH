@@ -114,4 +114,12 @@ public interface OperatorMapper {
 	public int insertOperatorNotify(OperatorNotifyEntity entity);
 
 	public int deleteOperatorNotify();
+
+	public List<OperatorEntity> getOffPositions();
+
+	public Date getOffPositionByOperator(String operator_id);
+
+	public int insertOffPositions(OperatorEntity entity);
+
+	public int deleteOffPositions(String operator_id);
 }

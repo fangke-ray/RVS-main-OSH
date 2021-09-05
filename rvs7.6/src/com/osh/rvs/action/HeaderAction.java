@@ -33,6 +33,7 @@ import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.HolidayService;
 import com.osh.rvs.service.OperatorService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.PostMessageService;
 import com.osh.rvs.service.inline.PositionPanelService;
 
@@ -143,7 +144,7 @@ public class HeaderAction extends BaseAction {
 		if (RvsConsts.ROLE_OPERATOR.equals(role_id) || RvsConsts.ROLE_QAER.equals(role_id) || RvsConsts.ROLE_QA_MANAGER.equals(role_id)) {
 			message_type = "op";
 		} else if (RvsConsts.ROLE_MANAGER.equals(role_id) && "00000000015".equals(user.getLine_id())) {
-			message_type = "op";
+			message_type = "om";
 		}
 
 		if (message_type != null) {
@@ -461,5 +462,71 @@ public class HeaderAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("HeaderAction.shiftWcf end");
+	}
+
+	public void checkOffPos(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("HeaderAction.checkOffPos start");
+
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		// 取得登录用户
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+		if (user == null || user.getSection_id() == null || user.getLine_id() == null) {
+			callbackResponse.put("existsPos", false);
+		} else {
+			OperatorService pService = new OperatorService();
+			pService.getOffposPermit(user, callbackResponse, conn);
+		}
+
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("HeaderAction.checkOffPos end");
+	}
+
+	public void doRegistOffPos(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("HeaderAction.doRegistOffPos start");
+
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		// 取得登录用户
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+		if (user == null || user.getSection_id() == null || user.getLine_id() == null) {
+			callbackResponse.put("notExistsPos", true);
+		} else {
+			OperatorService pService = new OperatorService();
+			pService.setOffpos(user, errors, callbackResponse, conn);
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("HeaderAction.doRegistOffPos end");
+	}
+
+	public void doFinishOffPos(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("HeaderAction.doFinishOffPos start");
+
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		// 取得登录用户
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+		OperatorService pService = new OperatorService();
+		pService.closeOffpos(user, conn);
+
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("HeaderAction.doFinishOffPos end");
 	}
 }

@@ -1,6 +1,8 @@
 package com.osh.rvs.service;
 
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -19,6 +21,7 @@ import com.osh.rvs.bean.master.OperatorNamedEntity;
 import com.osh.rvs.bean.master.OperatorNotifyEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.RoleEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.OperatorForm;
 import com.osh.rvs.mapper.CommonMapper;
@@ -31,6 +34,7 @@ import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.CryptTool;
+import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class OperatorService {
@@ -628,5 +632,160 @@ public class OperatorService {
 		}
 
 		return defaultManagerId;
+	}
+
+	// 离线登记
+	private static Map<String, List<String>> offPositionList = null;
+	// 离线上限
+	private static Map<String, Integer> offPositionLimit = new HashMap<String, Integer>();
+
+	/**
+	 * 清除离岗证内存记录
+	 * @param conn
+	 */
+	public static void resetOffPositionList(SqlSession conn) {
+		offPositionList = new HashMap<String, List<String>>();
+
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		List<OperatorEntity> lOffPos = mapper.getOffPositions();
+		for (OperatorEntity offPos : lOffPos) {
+			String lineKey = offPos.getSection_id() + "+" + offPos.getLine_id();
+			if (!offPositionList.containsKey(lineKey)) {
+				offPositionList.put(lineKey, new ArrayList<String>());
+			}
+			offPositionList.get(lineKey).add(offPos.getOperator_id());
+		}
+	}
+
+	/**
+	 * 查询离岗证状态与数量
+	 * @param user
+	 * @param callbackResponse
+	 * @param conn
+	 */
+	public void getOffposPermit(LoginData user,
+			Map<String, Object> callbackResponse, SqlSession conn) {
+
+		String userLineKey = user.getSection_id() + "+" + user.getLine_id();
+
+		if (offPositionList == null) {
+			resetOffPositionList(conn);
+		}
+
+		int posgot = 0;
+		List<String> lLine = offPositionList.get(userLineKey);
+		if (lLine != null) {
+			if (lLine.contains(user.getOperator_id())) {
+				OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+				Date offTime = mapper.getOffPositionByOperator(user.getOperator_id());
+				callbackResponse.put("self", user.getName());
+				callbackResponse.put("off_time", DateUtil.toString(offTime, DateUtil.ISO_TIME_PATTERN));
+				return;
+			} else {
+				posgot = lLine.size();
+			}
+		}
+
+		// 离岗证数量
+		int limit = getOffPositionLimit(user);
+
+		if (posgot < limit) {
+			callbackResponse.put("permit", (limit - posgot) + "/" + limit);
+		}
+	}
+
+	/**
+	 * 设定当前用户离岗
+	 * @param user
+	 * @param errors
+	 * @param callbackResponse
+	 * @param conn
+	 */
+	public void setOffpos(LoginData user,
+			List<MsgInfo> errors, Map<String, Object> callbackResponse, SqlSessionManager conn) {
+
+		String userLineKey = user.getSection_id() + "+" + user.getLine_id();
+
+		if (offPositionList == null) {
+			resetOffPositionList(conn);
+		}
+
+		int posgot = 0;
+		List<String> lLine = offPositionList.get(userLineKey);
+		if (lLine != null) {
+			if (lLine.contains(user.getOperator_id())) {
+				OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+				Date offTime = mapper.getOffPositionByOperator(user.getOperator_id());
+				callbackResponse.put("self", user.getName());
+				callbackResponse.put("off_time", DateUtil.toString(offTime, DateUtil.ISO_TIME_PATTERN));
+				return;
+			} else {
+				posgot = lLine.size();
+			}
+		}
+	
+		int limit = getOffPositionLimit(user);
+		if (posgot + 1 >= limit) {
+			MsgInfo e = new MsgInfo();
+			e.setErrmsg("本工程当前没有足够可用的离岗证，请稍后再试。");
+			errors.add(e);
+			return;
+		}
+
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		OperatorEntity insertBean = new OperatorEntity();
+		insertBean.setOperator_id(user.getOperator_id());
+		insertBean.setSection_id(user.getSection_id());
+		insertBean.setLine_id(user.getLine_id());
+		mapper.insertOffPositions(insertBean);
+
+		lLine = offPositionList.get(userLineKey);
+		if (lLine == null) {
+			offPositionList.put(userLineKey, new ArrayList<String>());
+			lLine = offPositionList.get(userLineKey);
+		}
+
+		lLine.add(user.getOperator_id());
+
+		callbackResponse.put("self", user.getName());
+		callbackResponse.put("off_time", DateUtil.toString(new Date(), DateUtil.ISO_TIME_PATTERN));
+	}
+
+	/**
+	 * 回归岗位
+	 * @param user
+	 * @param conn
+	 */
+	public void closeOffpos(LoginData user, SqlSessionManager conn) {
+
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		mapper.deleteOffPositions(user.getOperator_id());
+
+		resetOffPositionList(conn);
+	}
+
+	/**
+	 * 从配置取得所在工程离岗证数量
+	 * @param user
+	 * @return
+	 */
+	private int getOffPositionLimit(LoginData user) {
+		// offPosition.报价物料课.受理报价 = 2
+		String key = "offPosition." + user.getSection_name() + "." + user.getLine_name();
+		if (offPositionLimit.containsKey(key)) {
+			return offPositionLimit.get(key);
+		}
+		String limitProperty = PathConsts.POSITION_SETTINGS.getProperty(key);
+		if (limitProperty == null) {
+			return 1; 
+		} else {
+			int iLimit = 1;
+			try {
+				iLimit = Integer.parseInt(limitProperty.trim());
+			} catch (Exception e) {
+			}
+			offPositionLimit.put(key, iLimit);
+			return iLimit;
+		}
 	}
 }

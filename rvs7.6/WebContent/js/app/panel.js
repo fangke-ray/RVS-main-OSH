@@ -51,6 +51,8 @@ $(function() {
 });
 
 var changePosition_complete = function(xhrobj) {
+	$("#headarea .menulink.icon-share > .expland-offpos").hide();
+
 	var resInfo = null;
 	try {
 		// 以Object形式读取JSON

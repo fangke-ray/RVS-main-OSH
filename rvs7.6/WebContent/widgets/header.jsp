@@ -148,6 +148,10 @@ background-size: 10px 60px;*/
 			<input type="hidden" id="op_id" value="${userdata.operator_id}"/>
 			<input type="hidden" id="submenu" value="${retSub}"/>
 			</div>
+			
+<% if ("op".equals(sMessageType)) {  %>
+<jsp:include page="/widgets/off_position.jsp" flush="true"/>
+<% }  %>			
 			<div class="menulink icon-help">查询</div>
 			<div class="menulink icon-list">点检</div>
 			${(retPartialLink eq "1") ? '<div class="menulink icon-cog">零件</div>' : ''}

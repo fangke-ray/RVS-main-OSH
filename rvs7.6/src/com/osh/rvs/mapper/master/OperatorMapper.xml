@@ -546,4 +546,43 @@
 		DELETE FROM `operator_notify`;
 		]]>
 	</delete>
+
+	<select id="getOffPositions" resultType="OperatorEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT line_id, section_id, operator_id, off_time as updated_time 
+		FROM off_position;
+		]]>
+	</select>
+
+	<select id="getOffPositionByOperator" resultType="date" parameterType="String">
+		<![CDATA[ 
+		SELECT off_time 
+		FROM off_position
+		WHERE `operator_id` = #{operator_id}
+		LIMIT 1;
+		]]>
+	</select>
+
+	<insert id="insertOffPositions" parameterType="OperatorEntity">
+		<![CDATA[ 
+		INSERT INTO `off_position`
+		(`operator_id`,
+		`off_time`,
+		`line_id`,
+		`section_id`)
+		VALUES
+		(#{operator_id},
+		current_timestamp,
+		#{line_id},
+		#{section_id});
+		]]>
+	</insert>
+
+	<delete id="deleteOffPositions" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM `off_position`
+		WHERE `operator_id` = #{operator_id};
+		]]>
+	</delete>
+
 </mapper>

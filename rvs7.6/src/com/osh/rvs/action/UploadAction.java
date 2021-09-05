@@ -35,6 +35,7 @@ import com.osh.rvs.form.UploadForm;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.UploadService;
 import com.osh.rvs.service.partial.PartialAssignService;
@@ -722,6 +723,8 @@ public class UploadAction extends BaseAction {
 
 				PauseFeatureService.resetPauseReason();
 				AcceptFactService.resetMap();
+				OperatorService.resetOffPositionList(conn);
+
 				RvsUtils.initAll(conn);
 
 				List<String> triggerList = new ArrayList<String>();

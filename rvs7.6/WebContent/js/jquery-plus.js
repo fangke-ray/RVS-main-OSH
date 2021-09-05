@@ -118,7 +118,8 @@ var ajaxError = function(xhrobj, status, e) {
 		, "处理超时", "之后刷新", "立刻刷新");
 		$('div#warningstring .ui-warn-dialog').removeClass('.ui-warn-dialog').addClass(".ui-error-dialog");
 	} else {
-		window.location.href = "/break.do";
+		console.log(xhrobj.status);
+		// window.location.href = "/break.do";
 	}
 //	if ($('#pagecontent').length > 0) {
 //		window.location.hash = "#error";
@@ -183,11 +184,21 @@ function killWindowOverlay(){
 
 	$.fn.overlay = function(options) {
 
-    var opts = $.extend({}, $.fn.overlay.defaults, options);
+	    var opts = $.extend({}, $.fn.overlay.defaults, options);
+
+		if (opts.action === "close") {
+			var overlay = $(this).find(".overlay").eq(0);
+			if (overlay.length == 0) {
+				overlay = $(".overlay").eq(0);
+			}
+			close(overlay, opts);
+			return;
+		}
+
 		return this.each(function(evt) {
-      if(!$(this).hasClass('overlay-trigger')) {
-        show(create($(this), opts), opts);
-      }
+			if(!$(this).hasClass('overlay-trigger')) {
+			show(create($(this), opts), opts);
+		}
 	});
     
 	}; // end overlay
