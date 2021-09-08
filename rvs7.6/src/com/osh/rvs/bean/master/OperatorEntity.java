@@ -25,6 +25,7 @@ public class OperatorEntity implements Serializable {
 	private Integer work_count_flg = 0;
 	/** 课室 ID */
 	private String section_id;
+	private String section_name;
 	/** 线 ID */
 	private String line_id;
 	/** 主要角色 ID */
@@ -46,6 +47,9 @@ public class OperatorEntity implements Serializable {
 	private Integer px;
 
 	private Integer af_ability;
+
+	private Date active_date;
+	private Date expire_date;
 
 	/**
 	 * 取得角色 ID
@@ -251,5 +255,29 @@ public class OperatorEntity implements Serializable {
 
 	public void setAf_ability(Integer af_ability) {
 		this.af_ability = af_ability;
+	}
+
+	public Date getActive_date() {
+		return active_date;
+	}
+
+	public void setActive_date(Date active_date) {
+		this.active_date = active_date;
+	}
+
+	public Date getExpire_date() {
+		return expire_date;
+	}
+
+	public void setExpire_date(Date expire_date) {
+		this.expire_date = expire_date;
+	}
+
+	public String getSection_name() {
+		return section_name;
+	}
+
+	public void setSection_name(String section_name) {
+		this.section_name = section_name;
 	}
 }

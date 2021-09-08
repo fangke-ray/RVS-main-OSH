@@ -364,12 +364,13 @@
 		ORDER BY ROLE_ID DESC;
 		]]>
 	</select>
-	
+
 	<select id="getOperatorWithPrivacy" resultType="OperatorEntity" parameterType="int">
 		<![CDATA[
 			select 
 			    op.operator_id,
 			    op.name,
+			    op.work_count_flg,
 				ro.name as role_name   
 			from
 			    operator op
@@ -383,7 +384,9 @@
 			    op.delete_flg = 0
 			        and priv.privacy_id = #{privacy_id}
 			union select distinct
-			    op.operator_id, op.name,ro.name as role_name
+			    op.operator_id, op.name,
+			    op.work_count_flg,
+                ro.name as role_name
 			from
 			   operator op
 			        join
@@ -585,4 +588,58 @@
 		]]>
 	</delete>
 
+	<select id="findOperatorSection" resultType="OperatorEntity" parameterType="OperatorEntity">
+		<![CDATA[ 
+		SELECT 
+			`operator_id`,
+			se.`section_id`,
+			se.name as section_name,
+			`active_date`,
+			`expire_date`
+		FROM operator_section os
+		JOIN section se ON os.section_id = se.section_id
+		]]>
+		<where>
+	    <if test="operator_id!=null and operator_id != ''">
+		<![CDATA[ 
+	    	AND `operator_id` = #{operator_id}
+		]]>
+	    </if>
+	    <if test="section_id!=null and section_id != ''">
+		<![CDATA[ 
+	    	AND os.`section_id` = #{section_id}
+		]]>
+	    </if>
+	    <if test="expire_date!=null and expire_date != ''">
+		<![CDATA[ 
+	    	AND current_date between `active_date` and `expire_date`; 
+		]]>
+	    </if>
+		</where>
+	</select>
+
+	<insert id="insertOperatorSection" parameterType="OperatorEntity">
+		<![CDATA[ 
+		INSERT INTO `operator_section`
+		(`operator_id`,
+		`section_id`,
+		`active_date`,
+		`expire_date`)
+		VALUES
+		(#{operator_id},
+		#{section_id},
+		#{active_date},
+		#{expire_date});
+		]]>
+	</insert>
+
+	<update id="updateOperatorSection" parameterType="OperatorEntity">
+		<![CDATA[ 
+		UPDATE `operator_section`
+		SET
+		`active_date` = #{active_date},
+		`expire_date` = #{expire_date}
+		WHERE `operator_id` = #{operator_id} AND `section_id` = #{section_id};
+		]]>
+	</update>
 </mapper>

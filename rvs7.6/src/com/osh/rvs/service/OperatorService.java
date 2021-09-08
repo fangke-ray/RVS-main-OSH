@@ -21,6 +21,7 @@ import com.osh.rvs.bean.master.OperatorNamedEntity;
 import com.osh.rvs.bean.master.OperatorNotifyEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.RoleEntity;
+import com.osh.rvs.bean.master.SectionEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.OperatorForm;
@@ -787,5 +788,43 @@ public class OperatorService {
 			offPositionLimit.put(key, iLimit);
 			return iLimit;
 		}
+	}
+
+	/**
+	 * 查询人员可到达课室
+	 * @param operator_id
+	 * @param section_id
+	 * @param conn
+	 * @return
+	 */
+	public List<SectionEntity> getSectionsByOperator(LoginData user,
+			SqlSession conn) {
+		List<SectionEntity> retSection = new ArrayList<SectionEntity>();
+		SectionEntity selfSection = new SectionEntity();
+		if (user.getSection_id() == null) {
+			return retSection;
+		}
+		selfSection.setSection_id(user.getSection_id());
+		selfSection.setName(user.getSection_name());
+		retSection.add(selfSection);
+
+		if (!RvsConsts.ROLE_MANAGER.equals(user.getRole_id())
+				&& !RvsConsts.ROLE_SYSTEM.equals(user.getRole_id())) {
+			OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+			OperatorEntity entity = new OperatorEntity();
+			entity.setOperator_id(user.getOperator_id());
+			entity.setExpire_date(new Date());
+			List<OperatorEntity> sectionPermits = mapper.findOperatorSection(entity);
+			for (OperatorEntity sectionPermit : sectionPermits) {
+				if (!selfSection.getSection_id().equals(sectionPermit.getSection_id())) {
+					SectionEntity section = new SectionEntity();
+					section.setSection_id(sectionPermit.getSection_id());
+					section.setName(sectionPermit.getSection_name());
+					retSection.add(section);
+				}
+			}
+		}
+	
+		return retSection;
 	}
 }

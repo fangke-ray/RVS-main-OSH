@@ -231,6 +231,27 @@ public class LoginAction extends BaseAction {
 					&& !workingPf.getLine_id().equals("00000000015")) {
 				loginData.setSection_id(workingPf.getSection_id());
 				loginData.setSection_name(workingPf.getSection_name());
+				List<SectionEntity> mySections = loginData.getSections();
+				if (mySections.size() >= 1) {
+					boolean hit = false;
+					for (SectionEntity mySection : mySections) {
+						if (mySection.getSection_id().equals(loginData.getSection_id())) {
+							hit = true;
+							break;
+						}
+					}
+					if (!hit) {
+						SectionEntity workingSection = new SectionEntity();
+						workingSection.setSection_id(workingPf.getSection_id());
+						workingSection.setName(workingPf.getSection_name());
+						mySections.add(workingSection);
+					}
+				} else if (mySections.size() == 0) {
+					SectionEntity workingSection = new SectionEntity();
+					workingSection.setSection_id(workingPf.getSection_id());
+					workingSection.setName(workingPf.getSection_name());
+					mySections.add(workingSection);
+				}
 			}
 		} else if (loginData.getLine_id() != null && loginData.getLine_id().equals("00000000013")) {
 			SoloSnoutService service = new SoloSnoutService();
@@ -445,8 +466,7 @@ public class LoginAction extends BaseAction {
 		}
 		loginData.setLines(linesList);
 
-		SectionService sService = new SectionService();
-		List<SectionEntity> sectionList = sService.getSectionsByOperate(loginData.getOperator_id(), conn);
+		List<SectionEntity> sectionList = oService.getSectionsByOperator(loginData, conn);
 
 		loginData.setSections(sectionList);
 
