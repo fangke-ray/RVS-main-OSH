@@ -480,4 +480,18 @@
 			(#{model_id}, #{imbalance_line_id})
 		]]>
 	</insert>
+
+	<update id="updateDefaultPatIdFromCategory" parameterType="String">
+		<![CDATA[ 
+			update
+				model
+			set
+				default_pat_id = null
+			where
+				default_pat_id=#{default_pat_id}
+			and
+				category_id=${category_id}
+			; 
+		]]>
+	</update>
 </mapper>

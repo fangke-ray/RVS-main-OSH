@@ -16,6 +16,7 @@ import com.osh.rvs.bean.master.CategoryEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.CategoryForm;
 import com.osh.rvs.mapper.master.CategoryMapper;
+import com.osh.rvs.mapper.master.ModelMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
@@ -188,7 +189,14 @@ public class CategoryService {
 
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		updateBean.setUpdated_by(user.getOperator_id());
-		if (updateBean.getDefault_pat_id() == null) updateBean.setDefault_pat_id("00000000000"); 
+		if (updateBean.getDefault_pat_id() == null) {
+			updateBean.setDefault_pat_id("00000000000"); 
+		} else {
+			// 如果型号的默认流程与机种的一致，则要设定为null
+			ModelMapper mMapper = conn.getMapper(ModelMapper.class);
+			mMapper.updateDefaultPatIdFromCategory(updateBean.getDefault_pat_id()
+					, updateBean.getCategory_id());
+		}
 
 		// 更新数据库中记录
 		CategoryMapper dao = conn.getMapper(CategoryMapper.class);

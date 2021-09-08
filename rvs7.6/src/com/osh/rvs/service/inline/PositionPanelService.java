@@ -788,9 +788,16 @@ public class PositionPanelService {
 					showLines[1] = "NS 工程";
 					showLines[2] = "总组工程";
 				} else {
-					showLines = new String[2];
-					showLines[0] = "分解工程";
-					showLines[1] = "总组工程"; // TODO 判断有无总组返工
+					if ("1".equals(mform.getLevel())) {
+						showLines = new String[2];
+						showLines[0] = "分解工程";
+						showLines[1] = "总组工程"; // TODO 判断有无总组返工
+					} else {
+						showLines = new String[3];
+						showLines[0] = "分解工程";
+						showLines[1] = "NS 工程";
+						showLines[2] = "总组工程";
+					}
 				}
 			} else if ("00000000013".equals(sline_id)) {
 				showLines = new String[1];
@@ -867,7 +874,12 @@ public class PositionPanelService {
 
 							for (int isl = 0 ; isl < showLines.length; isl++) {
 								if ("NS 工程".equals(showLines[isl])) {
-									nsLine = pcses.get(isl);
+									nsLine = new HashMap<String, String>();
+									if (isl == 0) {
+										pcses.add(isl, nsLine);
+									} else {
+										pcses.add(isl - 1, nsLine);
+									}
 									break;
 								}
 							}

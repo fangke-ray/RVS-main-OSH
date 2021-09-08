@@ -892,6 +892,9 @@ public class ProductionFeatureService {
 	}
 
 	public void getNext(ProcessAssignProxy paProxy, String material_id, MaterialEntity mEntity, String pat_id, String position_id, Integer level, List<String> nextPositions, SqlSession conn) {
+		getNext(paProxy, material_id, mEntity, pat_id, position_id, level, nextPositions, false, conn);
+	}
+	public void getNext(ProcessAssignProxy paProxy, String material_id, MaterialEntity mEntity, String pat_id, String position_id, Integer level, List<String> nextPositions, boolean pierce, SqlSession conn) {
 		// 得到下一个工位
 		List<PositionEntity> nextPositionsByPat = paProxy.getNextPositions(position_id);
 
@@ -960,13 +963,20 @@ public class ProductionFeatureService {
 		// S1等级略过工位
 		if (level == 1 && !"00000000008".equals(pat_id) && !"00000000009".equals(pat_id)) {
 			int lNextPositions = nextPositions.size();
+			List<String> removals = new ArrayList<String>();
 			for (int i = lNextPositions - 1; i >= 0; i--) {
 				String nextPosition = nextPositions.get(i);
 				for (int j = 0; j < ProcessAssignService.S1PASSES.length; j++) {
 					if (ProcessAssignService.S1PASSES[j] == Integer.parseInt(nextPosition)) {
-						nextPositions.remove(i);
+						removals.add(nextPositions.remove(i));
 						break;
 					}
+				}
+			}
+			if (nextPositions.size() == 0 && (lNextPositions > 0 || pierce)) {
+				// 全部被略过，则必须实行穿透
+				for (String removal_position_id : removals) {
+					getNext(paProxy, material_id, mEntity, pat_id, removal_position_id, level, nextPositions, conn);
 				}
 			}
 		}

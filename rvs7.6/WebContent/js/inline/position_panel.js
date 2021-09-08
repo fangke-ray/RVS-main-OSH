@@ -1290,7 +1290,7 @@ $(function() {
 	$("#pausebutton").click(makePause);
 	$("#continuebutton").click(endPause);
 
-	$(".waiting").on('dblclick', function(){
+	$("#waitings").on('dblclick', ".waiting", function(){
 		var material_id = this.id.replace("w_", "");
 		showMaterial(material_id);
 	});

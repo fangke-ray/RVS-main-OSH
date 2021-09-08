@@ -520,8 +520,16 @@ public class MaterialService {
 						showLines[2] = "NS 工程";
 					}
 				} else {
-					showLines = new String[1];
-					showLines[0] = "分解工程";
+					if ("1".equals(mform.getLevel())) {
+						showLines = new String[2];
+						showLines[0] = "分解工程";
+						showLines[1] = "总组工程";
+					} else {
+						showLines = new String[3];
+						showLines[0] = "分解工程";
+						showLines[1] = "NS 工程";
+						showLines[2] = "总组工程";
+					}
 				}
 			} else if ("00000000013".equals(sline_id)) {
 				showLines = new String[1];
@@ -610,13 +618,34 @@ public class MaterialService {
 						if (partPcses.size() > 0) {
 							Map<String, String> nsLine = null;
 
-							for (int isl = 0 ; isl < showLines.length; isl++) {
-								if ("NS 工程".equals(showLines[isl])) {
-									nsLine = pcses.get(isl);
+							for (int isl = 0 ; isl < pcses.size(); isl++) {
+								Map<String, String> pcsLine = pcses.get(isl);
+								boolean hit = false;
+								for (String key : pcsLine.keySet()) {
+									if (key.startsWith("NS 工程")) {
+										hit = true;
+										break;
+									}
+								}
+								if (hit) {
+									nsLine = pcsLine;
 									break;
 								}
 							}
 
+							if (nsLine == null) {
+								for (int isl = 0 ; isl < showLines.length; isl++) {
+									if ("NS 工程".equals(showLines[isl])) {
+										nsLine = new HashMap<String, String>();
+										if (isl == 0) {
+											pcses.add(isl, nsLine);
+										} else {
+											pcses.add(isl - 1, nsLine);
+										}
+										break;
+									}
+								}
+							}
 							if (nsLine != null) {
 								for (String pcsName : partPcses.get(0).keySet()) {
 									if (i == 0) {

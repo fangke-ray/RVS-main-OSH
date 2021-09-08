@@ -208,6 +208,15 @@ public class ModelService {
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		updateBean.setUpdated_by(user.getOperator_id());
 
+		// 如果型号的默认流程与机种的一致，则要设定为null
+		if (updateBean.getDefault_pat_id() != null) {
+			CategoryMapper cMapper = conn.getMapper(CategoryMapper.class);
+			CategoryEntity cBean = cMapper.getCategoryByID(updateBean.getCategory_id());
+			if (updateBean.getDefault_pat_id().equals(cBean.getDefault_pat_id())) {
+				updateBean.setDefault_pat_id(null);
+			}
+		}
+
 		// 更新数据库中记录
 		ModelMapper dao = conn.getMapper(ModelMapper.class);
 

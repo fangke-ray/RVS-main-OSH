@@ -72,4 +72,8 @@ public interface ModelMapper {
 	public List<String> getLineImbalanceModel(@Param("line_id")String line_id);
 	public void deleteModelImbalanceLine(ModelEntity entity);
 	public void insertModelImbalanceLine(ModelEntity entity);
+
+
+	public int updateDefaultPatIdFromCategory(@Param("default_pat_id")String default_pat_id, @Param("category_id")String category_id);
+
 }
