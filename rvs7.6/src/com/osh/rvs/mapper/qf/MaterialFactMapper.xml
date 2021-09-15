@@ -28,6 +28,7 @@
 				ELSE NULL
 			END as inline_time, -- wip_date
 			a.wip_location,
+			a.scheduled_date,
 			a.scheduled_expedited,
 			a.unrepair_flg,
 			a.service_repair_flg,

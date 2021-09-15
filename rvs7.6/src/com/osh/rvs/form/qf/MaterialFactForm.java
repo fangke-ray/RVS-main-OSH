@@ -47,7 +47,10 @@ public class MaterialFactForm extends ActionForm {
 	
 	@BeanField(title = "同意时间", name = "agreed_date", type = FieldType.Date)
 	private String agreed_date;
-	
+
+	@BeanField(title = "纳期", name = "scheduled_date", type = FieldType.Date)
+	private String scheduled_date;
+
 	private String remark;
 	@BeanField(title = "投线时间", name = "inline_time", type = FieldType.DateTime)
 	private String inline_time;
@@ -308,5 +311,11 @@ public class MaterialFactForm extends ActionForm {
 	}
 	public void setQuotation_time(String quotation_time) {
 		this.quotation_time = quotation_time;
+	}
+	public String getScheduled_date() {
+		return scheduled_date;
+	}
+	public void setScheduled_date(String scheduled_date) {
+		this.scheduled_date = scheduled_date;
 	}
 }

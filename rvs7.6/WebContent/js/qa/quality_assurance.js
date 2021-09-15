@@ -429,16 +429,16 @@ function load_list(t_listdata) {
 			width : 992,
 			rowheight : 23,
 			datatype : "local",
-			colNames : ['受理时间', '同意时间', '总组完成时间', '修理单号', 'ESAS No.', '型号 ID', '型号', '机身号', '委托处', '等级', '加急', '特记','工程检查票出检'],
+			colNames : [ '同意日','纳期', '总组完成时间', '修理单号', 'ESAS No.', '型号 ID', '型号', '机身号', '委托处', '等级', '加急', '特记','工程检查票出检'],
 			colModel : [{
-						name : 'reception_time',
-						index : 'reception_time',
-						width : 35,
-						align : 'center', 
-						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}
-					}, {
 						name : 'agreed_date',
 						index : 'agreed_date',
+						width : 35,
+						align : 'center', 
+						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d', newformat: 'm-d'}
+					}, {
+						name : 'scheduled_date',
+						index : 'scheduled_date',
 						width : 35,
 						align : 'center', 
 						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d', newformat: 'm-d'}
@@ -456,7 +456,8 @@ function load_list(t_listdata) {
 						name : 'esas_no',
 						index : 'esas_no',
 						width : 50,
-						align : 'center'
+						align : 'center',
+						hidden : true
 					}, {
 						name : 'model_id',
 						index : 'model_id',

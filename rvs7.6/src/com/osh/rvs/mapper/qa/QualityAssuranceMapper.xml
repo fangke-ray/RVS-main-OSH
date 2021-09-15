@@ -11,7 +11,7 @@
 			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
 			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
 			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
-			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.scheduled_expedited,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.scheduled_date, `m`.scheduled_expedited,
 			  `mp`.finish_date as finish_time,m.qa_check_time,
 			  mt.tag_type is not null as anml_exp
 			FROM material m

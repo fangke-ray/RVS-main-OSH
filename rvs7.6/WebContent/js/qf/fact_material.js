@@ -1052,7 +1052,7 @@ function initGrid() {
 			width: 1248,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机种', '机身号', '返还要求', '加急','level','等级', '报价日期', '客户同意日','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
+			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机种', '机身号', '返还要求', '加急','level','等级', '报价日期', '客户同意日','纳期','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
 			,'CCD盖玻璃<br>/零件订购'
 			,'投入课室 ID' ,'维护对象ID'],
 			colModel:[
@@ -1069,6 +1069,7 @@ function initGrid() {
 				{name:'levelName',index:'levelName', width:35, align:'center'},
 				{name:'quotation_time',index:'quotation_time', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
 				{name:'agreed_date',index:'agreed_date', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
+				{name:'scheduled_date',index:'scheduled_date', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'m-d'}},
 				{name:'agreed_date_hidden', hidden:true, formatter:function(a,b,row){
 					return row.agreed_date || ""
 				}},
