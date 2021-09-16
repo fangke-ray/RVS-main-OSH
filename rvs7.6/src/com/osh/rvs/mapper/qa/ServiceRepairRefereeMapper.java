@@ -8,7 +8,8 @@ import com.osh.rvs.bean.qa.ServiceRepairManageEntity;
 
 
 public interface ServiceRepairRefereeMapper {
-	public List<ServiceRepairManageEntity> searchServiceRepair(@Param("material_id") String material_id, @Param("anml_exp") String anml_exp);
+	public List<ServiceRepairManageEntity> searchServiceRepair(@Param("material_id") String material_id, 
+			@Param("kind") String kind, @Param("anml_exp") String anml_exp);
 	
 	
 	//检查维修对象是否存在

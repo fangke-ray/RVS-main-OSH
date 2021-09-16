@@ -221,6 +221,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<option value="Q" ${(shelf eq 'Q' ? 'selected' : '' )}>Q 货架</option>
 						<option value="R" ${(shelf eq 'R' ? 'selected' : '' )}>R 货架</option>
 						<option value="S" ${(shelf eq 'S' ? 'selected' : '' )}>S 货架</option>
+						<option value="T" ${(shelf eq 'T' ? 'selected' : '' )}>T 货架</option>
 						<option value="Z1" ${(shelf eq 'Z1' ? 'selected' : '' )}>ENDOEYE 货架上</option>
 						<option value="Z2" ${(shelf eq 'Z2' ? 'selected' : '' )}>ENDOEYE 货架下</option>
 						<option value="Z4" ${(shelf eq 'Z4' ? 'selected' : '' )}>UDI 货架</option>

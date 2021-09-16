@@ -37,6 +37,16 @@
 				 AND srm.material_id=#{material_id}
 			]]>
 		</if>
+		<if test="kind eq 0">
+			<![CDATA[
+				 AND srm.kind != 7
+			]]>
+		</if>
+		<if test="kind eq 7">
+			<![CDATA[
+				 AND srm.kind = 7
+			]]>
+		</if>
 		<if test="anml_exp eq 1 ">
 			<![CDATA[
 				 AND exists (select 1 from material_tag where material_id = ma.material_id and tag_type = 1)

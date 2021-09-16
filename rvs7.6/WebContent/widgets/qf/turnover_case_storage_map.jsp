@@ -1058,6 +1058,68 @@ cursor :pointer;
 			</table>
 		</div>
 
+		<div style="margin: 15px; float: left;">
+			<div class="ui-widget-header" style="text-align: center;">T 货架</div>
+			<table class="condform wip-table">
+				<tr>
+<td location="T01">01</td>
+<td location="T02">02</td>
+<td location="T03">03</td>
+<td location="T04">04</td>
+<td location="T05">05</td>
+<td location="T06">06</td>
+<td location="T07">07</td>
+<td location="T08">08</td>
+<td location="T09">09</td>
+<td location="T10">10</td>
+<td location="T11">11</td>
+<td location="T12">12</td>
+				</tr>
+				<tr>
+<td location="T13">13</td>
+<td location="T14">14</td>
+<td location="T15">15</td>
+<td location="T16">16</td>
+<td location="T17">17</td>
+<td location="T18">18</td>
+<td location="T19">19</td>
+<td location="T20">20</td>
+<td location="T21">21</td>
+<td location="T22">22</td>
+<td location="T23">23</td>
+<td location="T24">24</td>
+				</tr>
+				<tr>
+<td location="T25">25</td>
+<td location="T26">26</td>
+<td location="T27">27</td>
+<td location="T28">28</td>
+<td location="T29">29</td>
+<td location="T30">30</td>
+<td location="T31">31</td>
+<td location="T32">32</td>
+<td location="T33">33</td>
+<td location="T34">34</td>
+<td location="T35">35</td>
+<td location="T36">36</td>
+				</tr>
+				<tr>
+<td location="T37">37</td>
+<td location="T38">38</td>
+<td location="T39">39</td>
+<td location="T40">40</td>
+<td location="T41">41</td>
+<td location="T42">42</td>
+<td location="T43">43</td>
+<td location="T44">44</td>
+<td location="T45">45</td>
+<td location="T46">46</td>
+<td location="T47">47</td>
+<td location="T48">48</td>
+				</tr>
+			</table>
+		</div>
+
 		<!--div class="clear"></div-->
 		<div style="margin: 15px; float: left;transform: scaleX(0.84);transform-origin: left top;">
 			<div class="ui-widget-header" style="text-align: center;">硬性镜货架</div>

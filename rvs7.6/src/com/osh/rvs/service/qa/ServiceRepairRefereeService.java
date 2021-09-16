@@ -35,10 +35,10 @@ public class ServiceRepairRefereeService {
 	private static final String PROCESS_CODE = "601";
 	private Logger _log=Logger.getLogger(getClass());
 
-	public List<ServiceRepairManageForm> searchServiceRepair(SqlSession conn, boolean forAnml, String material_id){
+	public List<ServiceRepairManageForm> searchServiceRepair(SqlSession conn, String kind, boolean forAnml, String material_id){
 		ServiceRepairRefereeMapper dao=conn.getMapper(ServiceRepairRefereeMapper.class);
 		List<ServiceRepairManageForm> lResultForm=new ArrayList<ServiceRepairManageForm>();
-		List<ServiceRepairManageEntity> lResultBean=dao.searchServiceRepair(material_id, (forAnml? "1" : "-1"));
+		List<ServiceRepairManageEntity> lResultBean=dao.searchServiceRepair(material_id, kind, (forAnml? "1" : "-1"));
 		if(lResultBean!=null){
 			//复制数据对象到表单
 			BeanUtil.copyToFormList(lResultBean, lResultForm, null,ServiceRepairManageForm.class);

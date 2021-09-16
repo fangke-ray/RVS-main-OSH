@@ -136,7 +136,12 @@ public class ServiceRepairRefereeAction extends BaseAction{
 
 		// 未着手数据
 		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
-		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,
+		// 分种类
+		String kind = null;
+		if (!isUnitizeds) {
+			kind = ("601".equals(user.getProcess_code()) ? "0" : "7");			
+		}
+		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn, kind,
 				isUnitizeds, null);
 		callbackResponse.put("errors", infoes);
 		callbackResponse.put("serviceRepairList", sList);
@@ -214,8 +219,14 @@ public class ServiceRepairRefereeAction extends BaseAction{
 
 		// 未着手数据
 		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
-		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,
-				PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id()), null);
+		// 分种类
+		String kind = null;
+		boolean isUnitizeds = PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id());
+		if (!isUnitizeds) {
+			kind = ("601".equals(user.getProcess_code()) ? "0" : "7");			
+		}
+		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn, kind,
+				isUnitizeds, null);
 		listResponse.put("errors", infoes);
 		listResponse.put("serviceRepairList", sList);
 
@@ -271,8 +282,13 @@ public class ServiceRepairRefereeAction extends BaseAction{
 				// 复制对象数据到表单
 				BeanUtil.copyToForm(resultEntity, resultForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 
-				List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn, 
-						PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id()), material_id);
+				// 分种类
+				String kind = null;
+				boolean isUnitizeds = PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id());
+				if (!isUnitizeds) {
+					kind = ("601".equals(user.getProcess_code()) ? "0" : "7");			
+				}
+				List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn, kind, isUnitizeds, material_id);
 				//如果扫描对象不在等待区域
 				if(sList.size()<=0){
 					// 判断在暂停区存在
@@ -400,8 +416,14 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		}
 
 		// 未着手数据
-		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn,
-				PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id()), null);
+		// 分种类
+		String kind = null;
+		boolean isUnitizeds = PositionService.getPositionUnitizeds(conn).containsKey(user.getPosition_id());
+		if (!isUnitizeds) {
+			kind = ("601".equals(user.getProcess_code()) ? "0" : "7");			
+		}
+		List<ServiceRepairManageForm> sList=service.searchServiceRepair(conn, kind,
+				isUnitizeds, null);
 		listResponse.put("serviceRepairList", sList);
 
 		// 暂停/中断中数据
