@@ -966,6 +966,44 @@ width: 2em;
 box-shadow: 2px 2px 12px #1e5799;
 }
 
+.tube-liquid .level {
+	color: white;
+	text-shadow: 1px 1px maroon;
+	border-radius: 2px;
+	border-right:none;
+	padding: 0 0.2em;
+	margin-right : .5em;
+}
+
+.tube-liquid .level_S1
+{
+background: rgba(0, 0, 0, 0) -moz-linear-gradient(to bottom , #a0a000 0%, #b5b500 100%);
+}
+
+.tube-liquid .level_S2,
+.tube-liquid .level_S3
+{
+background: rgba(0, 0, 0, 0) -moz-linear-gradient(to bottom , #00a0a0 0%, #00b5b5 100%);
+}
+
+.tube-liquid .level_D
+{
+background: rgba(0, 0, 0, 0) -moz-linear-gradient(to bottom , #00a0a0 0%, #00a843 100%);
+width: 2.1em;
+}
+
+.tube-liquid .level_M
+{
+background: rgba(0, 0, 0, 0) -moz-linear-gradient(to bottom , #00a0a0 0%, #00a843 100%);
+width: 2.1em;
+}
+
+.tube-liquid .level_E
+{
+background: rgba(0, 0, 0, 0) -moz-linear-gradient(to bottom , #3399FF 0%, #3333FF 100%);
+width: 2.1em;
+}
+
 #position_time table{
 	border:1px solid #93c3cd;
 	margin-top:-4px;

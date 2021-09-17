@@ -435,6 +435,9 @@ public class PositionService {
 		}
 	}
 	public static boolean isGroupPosition(String position_id, String section_id, SqlSession conn) {
+		if (groupPosSections == null) {
+			setGroupCaches(conn);
+		}
 		if (!groupPosSections.containsKey(position_id)) return false;
 		return (section_id == null || groupPosSections.get(position_id).contains(section_id));
 	}
@@ -819,6 +822,5 @@ public class PositionService {
 			}
 		}
 		return specialPagePositions.get(position_id);
-	}
-
+	}	
 }

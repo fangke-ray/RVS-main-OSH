@@ -33,7 +33,6 @@ import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.HolidayService;
 import com.osh.rvs.service.OperatorService;
-import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.PostMessageService;
 import com.osh.rvs.service.inline.PositionPanelService;
 

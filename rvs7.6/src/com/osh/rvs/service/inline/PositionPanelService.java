@@ -1786,30 +1786,30 @@ public class PositionPanelService {
 
 	/**
 	 * 取得虚拟组工位名显示
-	 * @param process_code
+	 * @param processName
 	 * @param user
 	 * @param subPositions
 	 * @param conn
 	 * @return
 	 */
-	public String getGroupShowPositionName(String process_code, LoginData user,
+	public String getGroupShowPositionName(String processName, LoginData user,
 			List<String> subPositions, SqlSession conn) {
 		PositionService pService = new PositionService();
 
-		String showPositionName = process_code;
-		if (process_code == null) { // 会话当前非虚拟组工位
+		String showPositionName = processName;
+		if (processName == null) { // 会话当前非虚拟组工位
 			PositionEntity pEntity = pService.getPositionEntityByKey(user.getGroup_position_id(), conn);
-			showPositionName = pEntity.getProcess_code();
+			showPositionName = pEntity.getName();
 		}
 
-		showPositionName += "(";
+		showPositionName += " (";
 		for (String subPositionId : subPositions) {
 			PositionEntity pEntity = pService.getPositionEntityByKey(subPositionId, conn);
 			if (pEntity != null) {
 				showPositionName += pEntity.getProcess_code() + ",";
 			}
 		}
-		showPositionName = showPositionName.substring(0, showPositionName.length() - 1) + ") " + user.getPosition_name();
+		showPositionName = showPositionName.substring(0, showPositionName.length() - 1) + ")";
 		return showPositionName;
 	}
 
@@ -1984,6 +1984,7 @@ public class PositionPanelService {
 		}
 
 		if (infectPassedPosition && infectPassedOperator) {
+			// 上述没有作Pass，即没有取得待点检的情况下，安排延时点检判定
 			callbackResponse.put("jsinitInfect", true);
 		}
 

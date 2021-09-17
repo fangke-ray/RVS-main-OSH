@@ -1198,6 +1198,17 @@ var getBlock = function(block_status) {
 	}
 }
 
+var getLevel = function(level) {
+	if (level) {
+		var levelText = "S" + level; // TODO
+		if (level == 9 || level == 91 || level == 92 || level == 93 || level == 99) levelText = "D";
+		if (level == 96 || level == 97 || level == 98 ) levelText = "M";
+		if (level == 56 || level == 57 || level == 58 || level == 59) levelText = "E";
+		return "<span class='level level_" + levelText + "'>" + levelText + "</span>";
+	}
+	return "";
+}
+
 var doInit=function(){
 	// Ajax提交
 	$.ajax({
@@ -2030,6 +2041,7 @@ var getWaitingHtml = function(waitings, other) {
 		waiting_html += '<div class="waiting tube' + (waiting.imbalance ? "" : " other_px") + '"' +
 							' id="w_' + waiting.material_id + '">' +
 							'<div class="tube-liquid' + expeditedColor(waiting.expedited, waiting.today, reason)  + '">'
+								+ getLevel(waiting.level)
 								+ getTubeBody(waiting) 
 								+ getFlags(waiting.expedited, waiting.direct_flg, waiting.light_fix, waiting.reworked, waiting.imbalance, waiting.anml_exp) +
 								getBlock(waiting.block_status) +

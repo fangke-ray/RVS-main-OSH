@@ -124,4 +124,8 @@ public interface OperatorMapper {
 	public int deleteOffPositions(String operator_id);
 
 	public List<OperatorEntity> findOperatorSection(OperatorEntity entity);
+
+	public int insertOperatorSection(OperatorEntity entity);
+
+	public void deleteOperatorSection(@Param("operator_id") String operator_id, @Param("section_id") String section_id);
 }

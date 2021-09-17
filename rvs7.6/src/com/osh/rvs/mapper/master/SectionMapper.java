@@ -40,4 +40,6 @@ public interface SectionMapper {
 
 	public List<SectionEntity> getSectionByOperator(String operator_id);
 
+	public List<SectionEntity> getSectionsForOperators();
+
 }

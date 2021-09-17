@@ -386,7 +386,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 						{name : 'light_fix', index : 'light_fix', hidden : true},
 						{name : 'overtime', index : 'overtime', hidden : true}
 							],
-					rowNum : 200,
+					rowNum : 300,
 					rownumbers : true,
 					toppager : false,
 					viewrecords : true,

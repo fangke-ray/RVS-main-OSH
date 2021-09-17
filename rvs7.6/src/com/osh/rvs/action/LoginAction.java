@@ -38,7 +38,6 @@ import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.RoleService;
-import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;

@@ -167,8 +167,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-title">型号</td>
 					<td class="td-title" style="width:60px;">机身号</td>
 					<td class="td-title">发送</td>
-					<td class="td-title">库位</td>
 					<td class="td-title" style="width:25px;">等级</td>
+					<td class="td-title">库位</td>
 				</tr>
 			</thead>
 			<tbody>
@@ -177,8 +177,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="break_back_<bean:write name="element" property="execute"/>"><bean:write name="element" property="model_name"/></td>
 					<td class="break_back_<bean:write name="element" property="execute"/>"><bean:write name="element" property="serial_no"/></td>
 					<td class="keep_overflow"><bean:write name="element" property="bound_out_ocm"/></td>				
-					<td><bean:write name="element" property="location"/></td>
 					<td><bean:write name="element" property="level"/></td>
+					<td><bean:write name="element" property="location"/></td>
 				</tr>
 				</logic:iterate>
 			</tbody>

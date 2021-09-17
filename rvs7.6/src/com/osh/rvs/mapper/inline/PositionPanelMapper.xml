@@ -209,6 +209,7 @@
 			(`mp`.rework_trigger_position_id is not null) as reworked,
 			coalesce(`m`.direct_flg, 0) as direct_flg,
 			m.level in (9,91,92,93,96,97,98,99) as light_fix,
+			m.level,
 	]]>
 	<if test='level == "1"'>
 	<![CDATA[ 
@@ -330,6 +331,7 @@
 			(`mp`.rework_trigger_position_id is not null) as reworked,
 			coalesce(`m`.direct_flg, 0) as direct_flg,
 			m.level in (9,91,92,93,96,97,98,99) as light_fix,
+			m.level,
 			date_format(m.scheduled_date, '%m-%d') as scheduled_monthday,
 			pos.position_id, pos.process_code,
 			coalesce(mp.scheduled_date, m.scheduled_date) as scheduled_date_inline,

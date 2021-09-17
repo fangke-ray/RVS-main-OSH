@@ -431,6 +431,11 @@ public class ConsumableApplyService {
 				operatorEntity.setRole_id(RvsConsts.ROLE_LINELEADER);
 
 				operatorNamedEntityList = operatorMapper.searchOperator(operatorEntity);
+				if (operatorNamedEntityList.size() == 0 && "00000000003".equals(section_id)) {
+					operatorEntity.setLine_id(null);
+					operatorNamedEntityList = operatorMapper.searchOperator(operatorEntity);
+					operatorEntity.setLine_id(line_id);
+				}
 				for(OperatorNamedEntity operatorNamedEntity:operatorNamedEntityList){
 					postMap.put(operatorNamedEntity.getOperator_id(),operatorNamedEntity.getOperator_id());
 				}

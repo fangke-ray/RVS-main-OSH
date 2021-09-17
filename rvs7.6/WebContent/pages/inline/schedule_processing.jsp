@@ -184,6 +184,7 @@ border-collapse: collapse;border-width: 0 1px;border-color: rgb(170, 170, 170);b
 						<input id="nogoodbutton" class="ui-button" value="处置不良" type="button"/>
 						<input id="reccdbutton" class="ui-button" value="重新更换CCD盖玻璃" type="button"/>
 						<input id="capacity_setting_button" class="ui-button" value="产能设定" type="button"/>
+						<input id="dispatchbutton" class="ui-button" value="课室调度" type="button"/>
 						<!--input id="cleanbutton" class="ui-button" value="工位作业取消申请" type="button"/>
 						<input id="capacitybutton" class="ui-button" value="设定产能" type="button"/-->
 						<input id="daily_report_button" class="ui-button" value="日报信息确认" type="button" style="float: right; right: 2px">
@@ -227,6 +228,39 @@ border-collapse: collapse;border-width: 0 1px;border-color: rgb(170, 170, 170);b
 
 		<div id="process_dialog"></div>
 		<div id="confirmmessage"></div>
+		<style>
+		#section_dispatcher td[main=true] {
+			background-color: darkblue;
+			color: white;
+		}
+		#section_dispatcher td[main=false] {
+			background-color: lightyellow;
+			cursor: pointer;
+		}
+		#section_dispatcher td[main=false][expire_date] {
+			background-color: yellow;
+		}
+		</style>
+		<div id="section_dispatcher" style="display:none;">
+			所属课室 : <select></select>
+			<hr style="clear: left;">
+			<div style="max-height:400px;overflow: auto;">
+				<table style="width:85%" cellspacing=0 border=1 cellpadding=2>
+					<thead>
+					</thead>
+					<tbody>
+					</tbody>
+				</table>
+			</div>
+		</div>
+		<div id="section_chooser" style="display:none;">
+			<table class="condform">
+			<tr><td class="ui-state-default td-title">操作者</td><td class="td-content"></td></tr>
+			<tr><td class="ui-state-default td-title">支援课室</td><td class="td-content"><input type="text" id="section_chooser_name" style="border:0;" readonly="readonly"></td></tr>
+			<tr><td class="ui-state-default td-title">起效日</td><td class="td-content"><input type="text" id="section_chooser_active_date" class="ui-widget-content" readonly="readonly"></td></tr>
+			<tr><td class="ui-state-default td-title">失效日</td><td class="td-content"><input type="text" id="section_chooser_expire_date" class="ui-widget-content" readonly="readonly"></td></tr>
+			</table>
+		</div>
 	</div>
 	<div class="referchooser ui-widget-content" id="pReferChooser" tabindex="-1">
 		<table>

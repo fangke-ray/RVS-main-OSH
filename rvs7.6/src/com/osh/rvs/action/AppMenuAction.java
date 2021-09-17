@@ -499,7 +499,7 @@ public class AppMenuAction extends BaseAction {
 				PositionEntity groupPositionEntity = pService.getPositionEntityByKey(groupPositionId, conn);
 				ret.append("<a href=\"javascript:getPositionWork('" 
 						+ groupPositionEntity.getPosition_id() + "');\">+ " +
-						groupPositionEntity.getProcess_code() + " " + groupPositionEntity.getName() + 
+						" " + groupPositionEntity.getName() + 
 						"</a><br>");
 			}
 		}

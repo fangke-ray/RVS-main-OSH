@@ -140,7 +140,7 @@ public class CheckResultService {
 		String infectPassDateKey = now.get(Calendar.DATE) + "|" + (now.get(Calendar.HOUR_OF_DAY) >= 14);
 
 		if (!infectPass.containsKey(infectPassDateKey)) {
-			clearInfectPersonalPass(infectPassDateKey);
+			clearInfectPass(infectPassDateKey);
 		}
 		
 		String infectPassPosKey = CommonStringUtil.nullToAlter(section_id, "") + "_" + position_id;
@@ -178,7 +178,7 @@ public class CheckResultService {
 		String infectPassMonthKey = now.get(Calendar.MONTH) + "";
 
 		if (!infectPersonalPass.containsKey(infectPassMonthKey)) {
-			clearInfectPass(infectPassMonthKey);
+			clearInfectPersonalPass(infectPassMonthKey);
 		}
 
 		String infectPassPosKey = CommonStringUtil.nullToAlter(section_id, "") + "_" + position_id + "_" + operator_id;

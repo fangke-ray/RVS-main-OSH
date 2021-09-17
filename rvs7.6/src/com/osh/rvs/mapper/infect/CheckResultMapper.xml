@@ -331,7 +331,7 @@
 
 	<select id="searchToolUncheckedOnPosition"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
 		<![CDATA[ 
-		select distinct tm.tools_manage_id from tools_manage tm 
+		select distinct tm.tools_manage_id as manage_id from tools_manage tm 
 		LEFT JOIN tool_check_result tcr 
 		ON tcr.manage_id = tm.tools_manage_id
 		AND check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
@@ -351,7 +351,7 @@
 
 	<select id="searchToolUncheckedOnOperator"  parameterType="CheckResultEntity" resultType="CheckResultEntity">
 		<![CDATA[ 
-		select distinct tm.tools_manage_id from tools_manage tm 
+		select distinct tm.tools_manage_id as manage_id from tools_manage tm 
 		LEFT JOIN tool_check_result tcr 
 		ON tcr.manage_id = tm.tools_manage_id
 		AND check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)

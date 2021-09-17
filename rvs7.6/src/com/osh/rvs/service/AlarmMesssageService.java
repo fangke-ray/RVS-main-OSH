@@ -112,6 +112,12 @@ public class AlarmMesssageService {
 			condBean.setRole_id(RvsConsts.ROLE_LINELEADER);
 			List<OperatorNamedEntity> leaders = oDao.searchOperator(condBean);
 
+			// 找不到时通知者按全工程查询
+			if (leaders.size() == 0) {
+				condBean.setLine_id(null);
+				leaders = oDao.searchOperator(condBean);
+			}
+
 			for(OperatorNamedEntity leader : leaders) {
 				AlarmMesssageSendationEntity sendation = new AlarmMesssageSendationEntity();
 				sendation.setAlarm_messsage_id(amId);

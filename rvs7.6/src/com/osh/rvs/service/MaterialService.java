@@ -1302,7 +1302,7 @@ public class MaterialService {
 		Date today = new Date();
 		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + uuid + "\\";
 
-		String[] showLines = new String[6];
+		String[] showLines = new String[7];
 		showLines[0] = "检查卡";
 		showLines[1] = "最终检验";
 		showLines[2] = "报价";

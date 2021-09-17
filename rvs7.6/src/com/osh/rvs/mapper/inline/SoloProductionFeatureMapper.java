@@ -22,6 +22,7 @@ public interface SoloProductionFeatureMapper {
 	public List<ProductionFeatureEntity> findUsedSnoutsByMaterial(@Param("material_id") String material_id, @Param("position_id")  String from_position_id);
 	public String findUsedSnoutsBySnouts(String serial_no);
 	/** 新建 */
+	// TODO section_id null
 	public void insert(SoloProductionFeatureEntity pfBean) throws Exception;
 	
 	public void breakWork(SoloProductionFeatureEntity entity) throws Exception;

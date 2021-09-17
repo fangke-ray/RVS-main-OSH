@@ -212,7 +212,7 @@ public class PositionPanelAction extends BaseAction {
 			// 取得工位信息
 			req.setAttribute("position", service.getPositionMap(section_id, subPositionIds, pxLevel, conn));
 
-			req.setAttribute("position_name", service.getGroupShowPositionName(process_code, user, subPositionIds, conn));
+			req.setAttribute("position_name", service.getGroupShowPositionName(user.getPosition_name(), user, subPositionIds, conn));
 			req.setAttribute("userPositionId", position_id);
 
 			actionForward = mapping.findForward("group");
@@ -560,8 +560,13 @@ public class PositionPanelAction extends BaseAction {
 					opService.getOperatorLastPause(user.getOperator_id(), listResponse, conn);
 
 					// 重置工位选择
-					if (user.getGroup_position_id() != null)
+					if (user.getGroup_position_id() != null 
+							&& !user.getGroup_position_id().equals(user.getPosition_id())) {
+						PositionService pService = new PositionService();
+						PositionEntity pEntity = pService.getPositionEntityByKey(user.getGroup_position_id(), conn);
+						user.setPosition_name(pEntity.getName());
 						user.setPosition_id(user.getGroup_position_id());
+					}
 				}
 			}
 

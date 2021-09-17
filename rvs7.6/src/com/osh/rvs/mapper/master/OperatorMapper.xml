@@ -370,6 +370,7 @@
 			select 
 			    op.operator_id,
 			    op.name,
+			    op.section_id,
 			    op.work_count_flg,
 				ro.name as role_name   
 			from
@@ -385,7 +386,7 @@
 			        and priv.privacy_id = #{privacy_id}
 			union select distinct
 			    op.operator_id, op.name,
-			    op.work_count_flg,
+			    op.section_id, op.work_count_flg,
                 ro.name as role_name
 			from
 			   operator op
@@ -620,7 +621,7 @@
 
 	<insert id="insertOperatorSection" parameterType="OperatorEntity">
 		<![CDATA[ 
-		INSERT INTO `operator_section`
+		REPLACE INTO `operator_section`
 		(`operator_id`,
 		`section_id`,
 		`active_date`,
@@ -642,4 +643,11 @@
 		WHERE `operator_id` = #{operator_id} AND `section_id` = #{section_id};
 		]]>
 	</update>
+
+	<delete id="deleteOperatorSection" parameterType="String">
+		<![CDATA[ 
+		DELETE FROM `operator_section`
+		WHERE `operator_id` = #{operator_id} AND `section_id` = #{section_id};
+		]]>
+	</delete>
 </mapper>

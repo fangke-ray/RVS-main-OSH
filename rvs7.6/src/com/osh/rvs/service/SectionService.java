@@ -257,6 +257,11 @@ public class SectionService {
 		return mapper.getSectionByOperator(operator_id);
 	}
 
+	public List<SectionEntity> getSectionsForOperators(	SqlSession conn) {
+		SectionMapper mapper = conn.getMapper(SectionMapper.class);
+		return mapper.getSectionsForOperators();
+	}
+
 	private static Map<String, List<String>> sectionLaPosition = new HashMap<String, List<String>>();
 
 	/**

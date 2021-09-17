@@ -149,4 +149,15 @@
 		]]>
 	</select>
 
+	<select id="getSectionsForOperators" resultType="SectionEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT s.section_id, s.name, s.inline_flg, count(1) as somec FROM section s join position_of_section p
+			on s.section_id = p.section_id
+			where s.delete_flg = 0
+			group by s.section_id
+			having inline_flg = 1 OR somec > 3
+			order by inline_flg desc, name;
+		]]>
+	</select>
+
 </mapper>

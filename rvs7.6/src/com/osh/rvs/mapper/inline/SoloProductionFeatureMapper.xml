@@ -15,6 +15,7 @@
 				spr.model_id,
 				COALESCE(spr.model_name, m.name) as model_name,
 				o.job_no,
+				o.name as operator_name,
 				spr.pace,
 				spr.judge_date,
 				spr.operator_id,

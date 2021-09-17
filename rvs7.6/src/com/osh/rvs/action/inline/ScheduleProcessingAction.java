@@ -32,6 +32,7 @@ import com.osh.rvs.form.inline.ScheduleForm;
 import com.osh.rvs.service.CapacityService;
 import com.osh.rvs.service.CategoryService;
 import com.osh.rvs.service.DownloadService;
+import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.ScheduleProcessService;
@@ -592,5 +593,56 @@ public class ScheduleProcessingAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("ScheduleProcessingAction.doUpdateUpperLimit end");
+	}
+
+	/**
+	 * 操作者课室权限取得
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 */
+	public void getSectionDispatch(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn){
+		log.info("ScheduleProcessingAction.getSectionDispatch start");
+		
+		Map<String,Object> callbackResponse = new HashMap<String,Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+		
+		// 课室列表（去掉线外课室）
+		SectionService sService = new SectionService();
+
+		callbackResponse.put("resultSectionNames", sService.getSectionsForOperators(conn));
+
+		// 全部作业人员
+		OperatorService oService = new OperatorService();
+		callbackResponse.put("workflgOperators", oService.getWorkflgOperators(conn));
+
+		// 全部已经分配课室（不含无效）
+		callbackResponse.put("dispatchedSections", oService.getAllOperatorSections(conn));
+
+		//检查发生错误时报告错误信息
+		callbackResponse.put("errors",errors);
+		//返回JSON格式响应信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("ScheduleProcessingAction.getSectionDispatch end");
+	}
+
+	public void doSetSectionDispatch(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn){
+		log.info("ScheduleProcessingAction.setSectionDispatch start");
+		
+		Map<String,Object> callbackResponse = new HashMap<String,Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+		
+		OperatorService oService = new OperatorService();
+		oService.insertOperatorSection(req, conn);
+
+		//检查发生错误时报告错误信息
+		callbackResponse.put("errors",errors);
+		//返回JSON格式响应信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("ScheduleProcessingAction.setSectionDispatch end");
 	}
 }

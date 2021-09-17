@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
@@ -726,7 +727,7 @@ public class OperatorService {
 		}
 	
 		int limit = getOffPositionLimit(user);
-		if (posgot + 1 >= limit) {
+		if (posgot + 1 > limit) {
 			MsgInfo e = new MsgInfo();
 			e.setErrmsg("本工程当前没有足够可用的离岗证，请稍后再试。");
 			errors.add(e);
@@ -810,6 +811,13 @@ public class OperatorService {
 
 		if (!RvsConsts.ROLE_MANAGER.equals(user.getRole_id())
 				&& !RvsConsts.ROLE_SYSTEM.equals(user.getRole_id())) {
+
+			if (RvsConsts.ROLE_LINELEADER.equals(user.getRole_id())
+					|| RvsConsts.ROLE_QA_MANAGER.equals(user.getRole_id())) {
+				SectionService sService = new SectionService();
+				return sService.getSectionsByOperate(user.getOperator_id(), conn);
+			}
+
 			OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
 			OperatorEntity entity = new OperatorEntity();
 			entity.setOperator_id(user.getOperator_id());
@@ -826,5 +834,45 @@ public class OperatorService {
 		}
 	
 		return retSection;
+	}
+
+	public List<OperatorEntity> getAllOperatorSections(SqlSession conn) {
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+
+		OperatorEntity entity = new OperatorEntity();
+		entity.setExpire_date(new Date());
+		return mapper.findOperatorSection(entity);
+	}
+
+	public List<OperatorEntity> getWorkflgOperators(SqlSession conn) {
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		List<OperatorEntity> privList = mapper.getOperatorWithPrivacy(RvsConsts.PRIVACY_POSITION);
+
+		List<OperatorEntity> ret = new ArrayList<OperatorEntity>();
+
+		for (OperatorEntity op : privList) {
+			if (op.getWork_count_flg() == 1 && op.getSection_id() != null) {
+				op.setSection_id(CommonStringUtil.fillChar(op.getSection_id(), '0', 11, true));
+				op.setOperator_id(CommonStringUtil.fillChar(op.getOperator_id(), '0', 11, true));
+				ret.add(op);
+			}
+		}
+		return ret;
+	}
+
+	public void insertOperatorSection(HttpServletRequest req,
+			SqlSessionManager conn) {
+		OperatorMapper mapper = conn.getMapper(OperatorMapper.class);
+		OperatorEntity entity = new OperatorEntity();
+		entity.setOperator_id(req.getParameter("operator_id"));
+		entity.setSection_id(req.getParameter("section_id"));
+
+		if (req.getParameter("active_date") != null) {
+			entity.setActive_date(DateUtil.toDate(req.getParameter("active_date"), DateUtil.DATE_PATTERN));
+			entity.setExpire_date(DateUtil.toDate(req.getParameter("expire_date"), DateUtil.DATE_PATTERN));
+			mapper.insertOperatorSection(entity);
+		} else {
+			mapper.deleteOperatorSection(entity.getOperator_id(), entity.getSection_id());
+		}
 	}
 }

@@ -31,6 +31,7 @@ public class WaitingEntity implements Serializable {
 	private Integer imbalance;
 	private String scheduled_monthday;
 	private String shelf_name;
+	private Integer level;
 
 	private String position_id;
 	private String process_code;
@@ -192,5 +193,11 @@ public class WaitingEntity implements Serializable {
 	}
 	public void setShelf_name(String shelf_name) {
 		this.shelf_name = shelf_name;
+	}
+	public Integer getLevel() {
+		return level;
+	}
+	public void setLevel(Integer level) {
+		this.level = level;
 	}
 }
