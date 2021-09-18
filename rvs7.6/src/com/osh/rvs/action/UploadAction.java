@@ -723,7 +723,7 @@ public class UploadAction extends BaseAction {
 
 				PauseFeatureService.resetPauseReason();
 				AcceptFactService.resetMap();
-				OperatorService.resetOffPositionList(conn);
+				OperatorService.resetOffPositionLimit();
 
 				RvsUtils.initAll(conn);
 

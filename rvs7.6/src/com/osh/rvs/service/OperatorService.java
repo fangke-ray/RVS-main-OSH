@@ -659,6 +659,10 @@ public class OperatorService {
 		}
 	}
 
+	public static void resetOffPositionLimit() {
+		offPositionLimit.clear();
+	}
+
 	/**
 	 * 查询离岗证状态与数量
 	 * @param user
