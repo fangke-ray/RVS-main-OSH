@@ -52,7 +52,7 @@ public class FilingDownloadAction extends BaseAction {
 		
 		//下载的文件名字
 		String strFileName=req.getParameter("fileName");
-		String fileName =new String(strFileName.getBytes("iso-8859-1"),"UTF-8");
+		String fileName = strFileName;
 
 		String contentType = "";
 		if (CommonStringUtil.isEmpty(fileName)) {
@@ -80,7 +80,7 @@ public class FilingDownloadAction extends BaseAction {
 	public ActionForward make(ActionMapping mapping, ActionForm form, HttpServletRequest req,
 			HttpServletResponse res, SqlSession conn) throws Exception {
 		String sEntity = req.getParameter("entity");
-		sEntity = new String(sEntity.getBytes("ISO-8859-1"), "utf-8");
+//		sEntity = new String(sEntity.getBytes("ISO-8859-1"), "utf-8");
 
 		CheckResultService service = new CheckResultService();
 

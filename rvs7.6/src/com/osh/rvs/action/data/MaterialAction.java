@@ -901,16 +901,16 @@ public class MaterialAction extends BaseAction {
 		String fileName =req.getParameter("fileName");
 
 		String contentType = DownloadService.CONTENT_TYPE_ZIP;
-		if (CommonStringUtil.isEmpty(fileName)) {
-			fileName = new String(fileName.getBytes("iso-8859-1"),"UTF-8");
-		}else{
-			fileName = new String(fileName.getBytes("iso-8859-1"),"UTF-8");
-		}
+//		if (CommonStringUtil.isEmpty(fileName)) {
+//			fileName = new String(fileName.getBytes("iso-8859-1"),"UTF-8");
+//		}else{
+//			fileName = new String(fileName.getBytes("iso-8859-1"),"UTF-8");
+//		}
 		
 		String filePath = "";
 		filePath = PathConsts.BASE_PATH + PathConsts.PCS+"\\_monthly\\"+fileName;
 
-		 res.setHeader( "Content-Disposition", "attachment;filename=" + new String( fileName.getBytes("gb2312"), "ISO8859-1" ) );  
+		 res.setHeader( "Content-Disposition", "attachment;filename=" + RvsUtils.charEncode( fileName) );  
 		res.setContentType(contentType);
 		File file = new File(filePath);
 		InputStream is = new BufferedInputStream(new FileInputStream(file));

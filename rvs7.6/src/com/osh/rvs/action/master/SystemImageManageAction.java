@@ -28,6 +28,7 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.master.SystemImageManageForm;
 import com.osh.rvs.service.SystemImageManageService;
 
@@ -235,7 +236,7 @@ public class SystemImageManageAction extends BaseAction {
 		}
 		filePath = PathConsts.BASE_PATH + PathConsts.IMAGES + "\\"+folder+"\\" + fileName;
 
-		res.setHeader("Content-Disposition","attachment;filename=\""+fileName + "\"");
+		res.setHeader("Content-Disposition","attachment;filename=\""+ RvsUtils.charEncode(fileName) + "\"");
 		res.setContentType(contentType);
 		File file = new File(filePath);
 		InputStream is = new BufferedInputStream(new FileInputStream(file));

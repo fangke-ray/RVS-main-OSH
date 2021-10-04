@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -1234,5 +1236,18 @@ public class RvsUtils {
 		countdownCache.clear();
 
 		unproceedPermitCache.clear();;
+	}
+	public static String charEncode(String tsring) {
+		if (tsring == null)
+			return null;
+		try {
+			return java.net.URLEncoder.encode(tsring, "UTF-8");
+		} catch (UnsupportedEncodingException e) {
+			 try {
+				return new String(tsring.getBytes("gb2312"), "ISO8859-1" );
+			} catch (UnsupportedEncodingException e1) {
+				return tsring;
+			}
+		}
 	}
 }

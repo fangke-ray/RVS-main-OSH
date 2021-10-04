@@ -154,8 +154,8 @@ public class DeviceBackupAction extends BaseAction {
 	public void export(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 		String filePath = req.getParameter("filePath");
 		Date today = new Date();
-		filePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + new String(filePath.getBytes("iso-8859-1"),"UTF-8");
-		String fileName = new String(("设备代替一览表.xlsx").getBytes("gbk"),"iso-8859-1");
+		filePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + filePath;
+		String fileName = new String("设备代替一览表.xlsx");
 		
 		DownloadService dservice = new DownloadService();
 		dservice.writeFile(res, DownloadService.CONTENT_TYPE_EXCEL_OPENXML, fileName, filePath);

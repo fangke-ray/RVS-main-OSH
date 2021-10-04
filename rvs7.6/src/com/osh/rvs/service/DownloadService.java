@@ -66,7 +66,7 @@ public class DownloadService {
 	 * @throws Exception
 	 */
 	public void writeFile(HttpServletResponse res, String contentType, String fileName, String filePath) throws Exception {
-		res.setHeader("Content-Disposition","attachment;filename=\""+fileName + "\"");
+		res.setHeader("Content-Disposition","attachment;filename=\""+ RvsUtils.charEncode(fileName) + "\"");
 		res.setContentType(contentType);
 		File file = new File(filePath);
 		InputStream is = new BufferedInputStream(new FileInputStream(file));

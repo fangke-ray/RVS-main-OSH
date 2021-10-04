@@ -72,9 +72,9 @@ public class DownloadAction extends BaseAction {
 		}
 		String strFileName = "";
 		if (CommonStringUtil.isEmpty(filePath)) {
-			filePath = new String(fileName.getBytes("iso-8859-1"),"UTF-8");
-		} else {
-			filePath = new String(filePath.getBytes("iso-8859-1"),"UTF-8");
+			filePath = fileName;//  new String(fileName.getBytes("iso-8859-1"),"UTF-8");
+//		} else {
+//			filePath = new String(filePath.getBytes("iso-8859-1"),"UTF-8");
 		}
 
 		strFileName = filePath.replaceAll(".*-(\\d{4}\\-\\d{2})\\-\\d{2}.*", "$1").replaceAll("-", "");
@@ -209,9 +209,9 @@ public class DownloadAction extends BaseAction {
 			if (filename == null || filename.length() < 10) {
 				return null;
 			}
-			if (filename.indexOf('月') < 0) {
-				filename = new String(req.getParameter("filename").getBytes("iso-8859-1"), req.getCharacterEncoding());
-			}
+//			if (filename.indexOf('月') < 0) {
+//				filename = new String(req.getParameter("filename").getBytes("iso-8859-1"), req.getCharacterEncoding());
+//			}
 			// filename = filename.substring(0, 9) + "月SORC维修运营月报.xlsx";
 			XlsUtil xls = null;
 			try {

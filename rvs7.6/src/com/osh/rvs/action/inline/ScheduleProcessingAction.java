@@ -423,7 +423,7 @@ public class ScheduleProcessingAction extends BaseAction {
 		Date today = new Date();
 		String folder = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM");
 
-		String fileName = new String("维修对象一览.xls".getBytes("gbk"),"iso-8859-1");
+		String fileName = new String("维修对象一览.xls");
 		
 		DownloadService dservice = new DownloadService();
 		dservice.writeFile(res, DownloadService.CONTENT_TYPE_EXCEL, fileName, folder + "\\" + filePath);
@@ -431,7 +431,7 @@ public class ScheduleProcessingAction extends BaseAction {
 
 	public void exportSchedule(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 		String filePath = req.getParameter("filePath");
-		String fileName = new String("当日计划一览.xls".getBytes("gbk"),"iso-8859-1");
+		String fileName = new String("当日计划一览.xls");
 		
 		DownloadService dservice = new DownloadService();
 		dservice.writeFile(res, DownloadService.CONTENT_TYPE_EXCEL, fileName, filePath);

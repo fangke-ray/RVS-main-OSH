@@ -371,7 +371,7 @@ public class MaterialFactAction extends BaseAction {
 	 */
 	/*public void export(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 		String filePath = req.getParameter("filePath");
-		String fileName = new String("2日内投线一览.xls".getBytes("gbk"),"iso-8859-1");
+		String fileName = new String("2日内投线一览.xls");
 		
 		DownloadService dservice = new DownloadService();
 		dservice.writeFile(res, DownloadService.CONTENT_TYPE_EXCEL, fileName, filePath);

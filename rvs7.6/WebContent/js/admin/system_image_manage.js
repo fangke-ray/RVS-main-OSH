@@ -334,10 +334,10 @@ var search_handleComplete = function(xhrobj, textStatus) {
 /*下载*/
 var downExcel = function(fileName) {
 	if ($("iframe").length > 0) {
-		$("iframe").attr("src", "system_image_manage.do"+"?method=output&fileName="+ fileName +"&from=" + nowPage);
+		$("iframe").attr("src", servicePath+"?method=output&fileName="+ fileName +"&from=" + nowPage);
 	} else {
 		var iframe = document.createElement("iframe");
-        iframe.src = "system_image_manage.do"+"?method=output&fileName="+ fileName +"&from=" + nowPage;
+        iframe.src = servicePath+"?method=output&fileName="+ fileName +"&from=" + nowPage;
         iframe.style.display = "none";
         document.body.appendChild(iframe);
 	}
