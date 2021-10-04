@@ -1120,6 +1120,130 @@ cursor :pointer;
 			</table>
 		</div>
 
+		<div style="margin: 15px; float: left;">
+			<div class="ui-widget-header" style="Uext-align: center;text-align: center;">U 货架</div>
+			<table class="condform wip-table">
+				<tr>
+<td location="U01">01</td>
+<td location="U02">02</td>
+<td location="U03">03</td>
+<td location="U04">04</td>
+<td location="U05">05</td>
+<td location="U06">06</td>
+<td location="U07">07</td>
+<td location="U08">08</td>
+<td location="U09">09</td>
+<td location="U10">10</td>
+<td location="U11">11</td>
+<td location="U12">12</td>
+				</tr>
+				<tr>
+<td location="U13">13</td>
+<td location="U14">14</td>
+<td location="U15">15</td>
+<td location="U16">16</td>
+<td location="U17">17</td>
+<td location="U18">18</td>
+<td location="U19">19</td>
+<td location="U20">20</td>
+<td location="U21">21</td>
+<td location="U22">22</td>
+<td location="U23">23</td>
+<td location="U24">24</td>
+				</tr>
+				<tr>
+<td location="U25">25</td>
+<td location="U26">26</td>
+<td location="U27">27</td>
+<td location="U28">28</td>
+<td location="U29">29</td>
+<td location="U30">30</td>
+<td location="U31">31</td>
+<td location="U32">32</td>
+<td location="U33">33</td>
+<td location="U34">34</td>
+<td location="U35">35</td>
+<td location="U36">36</td>
+				</tr>
+				<tr>
+<td location="U37">37</td>
+<td location="U38">38</td>
+<td location="U39">39</td>
+<td location="U40">40</td>
+<td location="U41">41</td>
+<td location="U42">42</td>
+<td location="U43">43</td>
+<td location="U44">44</td>
+<td location="U45">45</td>
+<td location="U46">46</td>
+<td location="U47">47</td>
+<td location="U48">48</td>
+				</tr>
+			</table>
+		</div>
+
+		<div style="margin: 15px; float: left;">
+			<div class="Vi-widget-header ui-widget-header" style="Vext-align: center;text-align: center;">V 货架</div>
+			<table class="condform wip-table">
+				<tr>
+<td location="V01">01</td>
+<td location="V02">02</td>
+<td location="V03">03</td>
+<td location="V04">04</td>
+<td location="V05">05</td>
+<td location="V06">06</td>
+<td location="V07">07</td>
+<td location="V08">08</td>
+<td location="V09">09</td>
+<td location="V10">10</td>
+<td location="V11">11</td>
+<td location="V12">12</td>
+				</tr>
+				<tr>
+<td location="V13">13</td>
+<td location="V14">14</td>
+<td location="V15">15</td>
+<td location="V16">16</td>
+<td location="V17">17</td>
+<td location="V18">18</td>
+<td location="V19">19</td>
+<td location="V20">20</td>
+<td location="V21">21</td>
+<td location="V22">22</td>
+<td location="V23">23</td>
+<td location="V24">24</td>
+				</tr>
+				<tr>
+<td location="V25">25</td>
+<td location="V26">26</td>
+<td location="V27">27</td>
+<td location="V28">28</td>
+<td location="V29">29</td>
+<td location="V30">30</td>
+<td location="V31">31</td>
+<td location="V32">32</td>
+<td location="V33">33</td>
+<td location="V34">34</td>
+<td location="V35">35</td>
+<td location="V36">36</td>
+				</tr>
+				<tr>
+<td location="V37">37</td>
+<td location="V38">38</td>
+<td location="V39">39</td>
+<td location="V40">40</td>
+<td location="V41">41</td>
+<td location="V42">42</td>
+<td location="V43">43</td>
+<td location="V44">44</td>
+<td location="V45">45</td>
+<td location="V46">46</td>
+<td location="V47">47</td>
+<td location="V48">48</td>
+				</tr>
+			</table>
+		</div>
+
 		<!--div class="clear"></div-->
 		<div style="margin: 15px; float: left;transform: scaleX(0.84);transform-origin: left top;">
 			<div class="ui-widget-header" style="text-align: center;">硬性镜货架</div>
@@ -1355,6 +1479,21 @@ cursor :pointer;
 			</table>
 		</div>
 
+		<div style="margin: 15px; float: left;">
+			<div class="ui-widget-header" style="text-align: center;">动物实验内镜货架</div>
+			<table class="condform wip-table triple-size">
+				<tr>
+<td anml_exp location="DW-B1">B1</td>
+<td anml_exp location="DW-B2">B2</td>
+<td anml_exp location="DW-B3">B3</td>
+				</tr>
+				<tr>
+<td anml_exp location="DW-B4">B4</td>
+<td anml_exp location="DW-B5">B5</td>
+<td anml_exp location="DW-B6">B6</td>
+				</tr>
+			</table>
+		</div>
 
 		<div style="margin: 15px; float: left;">
 			<div class="ui-widget-header" style="text-align: center;">M 货架</div>

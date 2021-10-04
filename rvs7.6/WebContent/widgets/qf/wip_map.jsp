@@ -722,28 +722,22 @@
 			</table>
 		</div>
 	</div>
-	<div class="clear"></div>
 	<div class="shelf_model" for="anml_exp">
 		<div style="margin: 15px; float: left;">
 			<div class="ui-widget-header" style="width: 372px; text-align: center;">货架(动物内镜)</div>
 			<table class="condform wip-table" style="width: 372px;">
 				<tr>
-					<td wipid="DW1" anml_exp>DW1</td>
-					<td wipid="DW2" anml_exp>DW2</td>
-					<td wipid="DW3" anml_exp>DW3</td>
-					<td wipid="DW4" anml_exp>DW4</td>
-					<td wipid="DW5" anml_exp>DW5</td>
-				</tr>
-				<tr>
-					<td wipid="DW6" anml_exp>DW6</td>
-					<td wipid="DW7" anml_exp>DW7</td>
-					<td wipid="DW8" anml_exp>DW8</td>
-					<td wipid="DW9" anml_exp>DW9</td>
-					<td wipid="DW10" anml_exp>DW10</td>
+					<td wipid="DWA1" anml_exp>A1</td>
+					<td wipid="DWA2" anml_exp>A2</td>
+					<td wipid="DWA3" anml_exp>A3</td>
+					<td wipid="DWA4" anml_exp>A4</td>
+					<td wipid="DWA5" anml_exp>A5</td>
+					<td wipid="DWA6" anml_exp>A6</td>
 				</tr>
 			</table>
 		</div>
 	</div>
+	<div class="clear"></div>
 	<div class="shelf_model" for="peripharial">
 		<div style="margin: 15px; float: left;">
 			<div class="ui-widget-header" style="width: 120px; text-align: center;">货架１０(周边)</div>
