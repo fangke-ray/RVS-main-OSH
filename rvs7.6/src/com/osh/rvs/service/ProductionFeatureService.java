@@ -239,7 +239,7 @@ public class ProductionFeatureService {
 			entity.setPosition_id(fingerPositionId);
 			entity.setPace(0);
 			entity.setSection_id(section_id);
-			entity.setOperate_result(getPutinOperateResult(fromPositionId, fingerPositionId, conn));
+			entity.setOperate_result(getPutinOperateResult(section_id, fromPositionId, fingerPositionId, conn));
 			entity.setRework(workingPf.getRework());
 			pfDao.insertProductionFeature(entity);
 
@@ -302,7 +302,7 @@ public class ProductionFeatureService {
 					entity.setPosition_id(fingerPositionId);
 					entity.setPace(0);
 					entity.setSection_id(section_id);
-					entity.setOperate_result(getPutinOperateResult(fromPositionId, fingerPositionId, conn));
+					entity.setOperate_result(getPutinOperateResult(section_id, fromPositionId, fingerPositionId, conn));
 
 					Integer neoRework = workingPf.getRework();
 
@@ -362,7 +362,10 @@ public class ProductionFeatureService {
 		}
 	}
 
-	private Integer getPutinOperateResult(String prePositionId, String nextPositionId, SqlSession conn) {
+	private Integer getPutinOperateResult(String sectionId, String prePositionId, String nextPositionId, SqlSession conn) {
+		if (!"00000000001".equals(sectionId)) {
+			return RvsConsts.OPERATE_RESULT_NOWORK_WAITING;
+		}
 		// 虚拟组工位后续工位
 		prePositionId = CommonStringUtil.fillChar(prePositionId, '0', 11, true);
 		nextPositionId = CommonStringUtil.fillChar(nextPositionId, '0', 11, true);
@@ -487,7 +490,7 @@ public class ProductionFeatureService {
 			if (anml_flg) {
 				nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
 			} else {
-				nextPositions.add("00000000014"); // 直送报价
+				nextPositions.add(RvsConsts.POSITION_QUOTATION_D); // 直送报价
 			}
 		} else if (RvsConsts.POSITION_ANML_QA.equals(position_id) || RvsConsts.POSITION_ANML_QA_UDI.equals(position_id)) { // 品保
 			nextPositions.add(RvsConsts.POSITION_ANML_SHPPING); // 出货
@@ -633,7 +636,7 @@ public class ProductionFeatureService {
 			if (!isLightFix && "00000000021".equals(position_id)) { // fenjieOver TODO
 
 				// if (mEntity == null) mEntity = mDao.getMaterialNamedEntityByKey(material_id);
-				if ("00000000016".equals(mEntity.getCategory_id())) { // 外科镜
+				if ("00000000016".equals(mEntity.getCategory_id()) || "00000000073".equals(mEntity.getCategory_id())) { // 外科镜
 
 					if (isFact) {
 						mpService.finishMaterialProcess(material_id, "00000000012", triggerList, conn);

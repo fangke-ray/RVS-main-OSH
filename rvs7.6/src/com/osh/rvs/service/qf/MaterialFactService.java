@@ -489,7 +489,8 @@ public class MaterialFactService {
 				}
 			} else {
 				// 大修理
-				if (!"06".equals(mEntity.getKind()) && !"07".equals(mEntity.getKind())) {
+				// 金吉路 !"06".equals(mEntity.getKind()) && 
+				if (!"00000000055".equals(mEntity.getCategory_id()) && !"07".equals(mEntity.getKind())) {
 					px = mpService.evalPx(mEntity.getModel_id(), "00000000012", lightFix, conn);
 					insertBean.setPx(px);
 

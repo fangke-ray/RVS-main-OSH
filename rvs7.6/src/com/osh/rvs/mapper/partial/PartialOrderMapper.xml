@@ -389,13 +389,13 @@
 			PPB.POSITION_ID
 		 FROM 
 			PARTIAL_POSITION_BELONG PPB
-		 LEFT 
-		 	JOIN POSITION PO
+		 JOIN 
+		 	POSITION PO
 		 ON 
 		 	PPB.POSITION_ID = PO.POSITION_ID
 		 WHERE 
 		 	PPB.model_id=#{model_id}
-		 	AND PPB.partial_id=#{partial_id}         
+		 	AND PPB.partial_id=#{partial_id}    
     </select>
     
     <!-- 查询出待确定的零件 status =0 -->

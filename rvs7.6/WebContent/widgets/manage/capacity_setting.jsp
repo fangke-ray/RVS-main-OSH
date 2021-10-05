@@ -25,11 +25,11 @@ resize:none;
 </style>
 	<form id="capacity_of_upper_limit">
 		<table class="condform" style="width:100%">
-			<!--thead>
+			<thead>
 				<tr>
-					<td class="ui-state-default td-title"></td>
+					<td class="ui-state-default td-title" colspan="5">翻修一课</td>
 				</tr>
-			</thead-->
+			</thead>
 			<tbody>
 			 <tr>
 				<th class="ui-state-default td-title">总组</td>
@@ -66,6 +66,46 @@ resize:none;
 				</td>
 				<td class="td-content">
 					<input type="number" section_id="00000000001" line_id="00000000014" px="2" light_fix_flg="1"></input>
+				</td>
+			 </tr>
+			</tbody>
+		</table>
+
+		<table class="condform" style="width:100%">
+			<thead>
+				<tr>
+					<td class="ui-state-default td-title" colspan="5">翻修二课</td>
+				</tr>
+			</thead>
+			<tbody>
+			 <tr>
+			 	<th class="ui-state-default td-title"></td>
+				<th class="ui-state-default td-title">分解</td>
+				<th class="ui-state-default td-title">NS</td>
+				<th class="ui-state-default td-title">总组</td>
+			 </tr>
+			 <tr>
+				<td class="ui-state-default td-title">大修理</td>
+				<td class="td-content">
+					<input type="number" section_id="00000000003" line_id="00000000012" px="0" light_fix_flg="0"></input>
+				</td>
+				<td class="td-content">
+					
+				</td>
+				<td class="td-content">
+					<input type="number" section_id="00000000003" line_id="00000000014" px="0" light_fix_flg="0"></input>
+				</td>
+			 </tr>
+			 <tr>
+				<td class="ui-state-default td-title">中小修理</td>
+				<td class="td-content">
+					<input type="number" section_id="00000000003" line_id="00000000012" px="0" light_fix_flg="1"></input>
+				</td>
+				<td class="td-content">
+					<input type="number" section_id="00000000003" line_id="00000000013" px="0" light_fix_flg="1"></input>
+				</td>
+				<td class="td-content">
+					<input type="number" section_id="00000000003" line_id="00000000014" px="0" light_fix_flg="1"></input>
 				</td>
 			 </tr>
 			</tbody>
