@@ -357,6 +357,14 @@
 		AND check_confirm_time between  #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		WHERE
 		tm.responsible_operator_id = #{operator_id}
+		]]>
+		<if test="position_id!= null and position_id!=''">
+		<![CDATA[ 
+		AND
+		tm.position_id = #{position_id}
+		]]>
+		</if>
+		<![CDATA[ 
 		AND
 		tcr.checked_status is null
 		AND delete_flg = 0 AND status = 1

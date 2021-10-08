@@ -1958,7 +1958,7 @@ public class PositionPanelService {
 		String infectString = "";
 
 		// 如果点检不锁定的话，初始化暂不取异常信息
-		if (!infectPassedPosition) {
+		if (!infectPassedPosition && line_id != null) {
 			// 设定待点检信息
 			CheckResultService crService = new CheckResultService();
 			crService.checkForPosition(section_id, position_id, line_id, conn);
@@ -1983,7 +1983,7 @@ public class PositionPanelService {
 			}
 		}
 
-		if (infectPassedPosition && infectPassedOperator) {
+		if (infectPassedPosition && infectPassedOperator && callbackResponse != null) {
 			// 上述没有作Pass，即没有取得待点检的情况下，安排延时点检判定
 			callbackResponse.put("jsinitInfect", true);
 		}

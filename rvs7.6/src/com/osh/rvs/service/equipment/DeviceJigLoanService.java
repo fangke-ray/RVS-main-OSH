@@ -4,6 +4,7 @@ import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -139,6 +140,11 @@ public class DeviceJigLoanService {
 		ToolsManageEntity jigDistributeEntity = new ToolsManageEntity();
 		jigDistributeEntity.setResponsible_operator_id(user.getOperator_id());
 		List<ToolsManageEntity> list = jmMapper.searchJigDistribute(jigDistributeEntity);
+
+		Map<String, Boolean> infectPassLocal = new HashMap<String, Boolean> ();
+
+		PositionPanelService pfService = new PositionPanelService();
+
 		for (ToolsManageEntity jmEntity : list) {
 			DeviceJigLoanForm ret = new DeviceJigLoanForm();
 			ret.setObject_type("2");
@@ -153,7 +159,22 @@ public class DeviceJigLoanService {
 			if (section_id == null) {
 				section_id = user.getSection_id();
 			}
-			boolean infectPassed = CheckResultService.checkInfectPass(section_id, jmEntity.getPosition_id(), user.getOperator_id());
+			boolean infectPassed = false;
+			String key = section_id + "_" + jmEntity.getPosition_id() + "_" + user.getOperator_id();
+			if (infectPassLocal.containsKey(key)) {
+				infectPassed = infectPassLocal.get(key);
+			} else {
+				infectPassed = CheckResultService.checkInfectPass(section_id, jmEntity.getPosition_id(), user.getOperator_id());
+				// 如果缓存中未点检，可能未在相应画面载入判定。需要再取一次数据库
+				if (!infectPassed) {
+					try {
+						pfService.checkPositionInfectWorkOnPass(section_id, jmEntity.getPosition_id(), null, user.getOperator_id(), conn, null);
+						infectPassed = CheckResultService.checkInfectPass(section_id, jmEntity.getPosition_id(), user.getOperator_id());
+					} catch (Exception e) {
+					}
+				}
+				infectPassLocal.put(key, infectPassed);
+			}
 
 			ret.setCheck_status(infectPassed ? "OK" : "WAIT");
 			retList.add(ret);
