@@ -139,6 +139,7 @@ public class DeviceJigLoanService {
 		ToolsManageMapper jmMapper = conn.getMapper(ToolsManageMapper.class);
 		ToolsManageEntity jigDistributeEntity = new ToolsManageEntity();
 		jigDistributeEntity.setResponsible_operator_id(user.getOperator_id());
+		jigDistributeEntity.setStatus("1,4,5");
 		List<ToolsManageEntity> list = jmMapper.searchJigDistribute(jigDistributeEntity);
 
 		Map<String, Boolean> infectPassLocal = new HashMap<String, Boolean> ();

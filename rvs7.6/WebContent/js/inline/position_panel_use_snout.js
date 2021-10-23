@@ -361,7 +361,7 @@ return {
 		}
 	},
 	getUsesnout : function(material_id) {
-		if (!pusoMaterialId) return;
+		if (!material_id) return;
 		pusoMaterialId = material_id;
 
 		// 取得可使用先端头信息

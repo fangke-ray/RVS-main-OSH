@@ -8,6 +8,7 @@
 package com.osh.rvs.action.inline;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -342,6 +343,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 				// 建立独立作业记录，作业中
 				pfBean.setModel_name(model_name);
 				pfBean.setPace(0);
+				pfBean.setAction_time(new Date());
 				pfBean.setOperate_result(RvsConsts.OPERATE_RESULT_WORKING);
 				pfBean.setSection_id(user.getSection_id());
 

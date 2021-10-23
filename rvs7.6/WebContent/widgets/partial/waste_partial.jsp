@@ -441,7 +441,7 @@ Date.prototype.addDays = function (d) {
 					
 					$("#update_case").show();
 					$("#search_case").hide();
-					
+
 					$("#updateCaseButton").unbind("click").bind("click",function(){
 						var data = {
 							"case_id" : $tr.attr("case_id"),

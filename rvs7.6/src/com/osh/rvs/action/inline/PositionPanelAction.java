@@ -245,7 +245,9 @@ public class PositionPanelAction extends BaseAction {
 					actionForward = mapping.findForward("result");
 					Map<String, String> dmMap = service.getManageNo(position_id,conn);
 					req.setAttribute("oManageNo", dmMap);
-					req.setAttribute("dm_styles", service.getDmStyles(dmMap));
+					if (dmMap.size() > 0) {
+						req.setAttribute("dm_styles", service.getDmStyles(dmMap));
+					}
 					req.setAttribute("dm_levers", JSON.encode(service.getDmLevers(dmMap)));
 				} else if (matchforward(arrSpecialForward, "simple") != null) {
 					actionForward = mapping.findForward("simple");
@@ -273,6 +275,11 @@ public class PositionPanelAction extends BaseAction {
 		// 判断是否动物实验用维修品工位
 		if (PositionService.getPositionUnitizeds(conn).containsKey(position_id)) {
 			req.setAttribute("unitizeds", "true");
+		}
+
+		// 判断是否是可追加零件订购的工位
+		if (PositionService.isAddiOrderPosition(position_id, conn) != null) {
+			req.setAttribute("addi_order", "true");
 		}
 
 		session.setAttribute(RvsConsts.SESSION_USER, user);

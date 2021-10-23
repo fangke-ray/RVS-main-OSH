@@ -1,6 +1,7 @@
 package com.osh.rvs.service.qf;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -152,6 +153,15 @@ public class SteelWireContainerWashProcessService {
 		SteelWireContainerWashProcessEntity entity = new SteelWireContainerWashProcessEntity();
 		entity.setPartial_id(partial_id);
 		entity.setMaterial_id(material_id);
+
+		// 判断是否已有等待记录
+		entity.setProcess_type(5);
+		entity.setProcess_time_start(new Date());
+		List<SteelWireContainerWashProcessEntity> list = mapper.search(entity);
+		if (list != null && list.size() > 0) {
+			return;
+		}
+		
 		mapper.insertForWaitUnpack(entity);
 	}
 	

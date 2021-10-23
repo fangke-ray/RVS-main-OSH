@@ -53,6 +53,7 @@
 				
 				<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
 					<div style="margin-left:4px;margin-top:6px;">
+						<input type="text"id="scanner_inputer" title="扫描前请点入此处" style="height: 20px;" class="dwidth-half"></input>
 						<input type="button" id="shipbutton" class="ui-button" value="制作出货单"/>
 					</div>
 				</div>

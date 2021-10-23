@@ -581,7 +581,7 @@ select so.material_id, ma.model_id, so.manage_serial_no as serial_no, ma.omr_not
 		]]>
 	<if test="material_id!=null and material_id!=''">
 		<![CDATA[ 
-	, exists (select * from solo_production_feature where model_id = ma.model_id and serial_no = so.manage_serial_no and operate_result = 2) as operate_result
+	, exists (select * from solo_production_feature where model_id = ma.model_id and serial_no = so.manage_serial_no) as operate_result
 		]]>
 			</if>
 		<![CDATA[ 

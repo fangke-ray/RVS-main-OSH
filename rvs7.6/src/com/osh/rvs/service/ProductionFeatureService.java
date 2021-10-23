@@ -452,7 +452,11 @@ public class ProductionFeatureService {
 					if (anml_flg) {
 						nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
 					} else {
-						nextPositions.add(RvsConsts.POSITION_QUOTATION_152); // 报价
+						if (mEntity.getDirect_flg()!=null && 1 == mEntity.getDirect_flg()) {
+							nextPositions.add(RvsConsts.POSITION_QUOTATION_162); // 报价
+						} else {
+							nextPositions.add(RvsConsts.POSITION_QUOTATION_152); // 报价
+						}
 					}
 				} else {
 					if (anml_flg) {

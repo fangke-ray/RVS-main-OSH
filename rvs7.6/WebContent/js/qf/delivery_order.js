@@ -1,4 +1,5 @@
 var servicePath = "delivery_order.do";
+var waitingsList = {};
 
 $(function(){
 	$("input.ui-button").button();
@@ -14,21 +15,49 @@ $(function(){
 	});
     
     $("#shipbutton").click(function(){
-    	afObj.applyProcess(241, this, makeShip, arguments);
+    	afObj.applyProcess(241, this, makeShip, null);
     });
 
     load_list([]);
     acceptted_list([]);
     findit();
+
+	// 输入框触发，配合浏览器
+	$("#scanner_inputer").keypress(function(){
+	if (this.value.length === 11) {
+		afObj.applyProcess(241, this, makeShip, [this.value]);
+	}
+	}).keyup(function(){
+	if (this.value.length >= 11) {
+		afObj.applyProcess(241, this, makeShip, [this.value]);
+	}
+	}).focus();
+
 });
 
-function makeShip(){
+function makeShip(material_id){
 	var pill = $("#list");
-	var rowid = pill.jqGrid("getGridParam", "selrow");
-	var rowData = pill.jqGrid('getRowData', rowid);
+
+	if (material_id) {
+		$("#scanner_inputer").val("");
+		for (var igridlist = 0; igridlist < waitingsList.length; igridlist++) {
+			var hit = false;
+			if (waitingsList[igridlist].material_id == material_id) {
+				hit = true;
+				break;
+			}
+		}
+		if (!hit) {
+			errorPop("此维修品不在等待制作出货单中。");
+			return;
+		}
+	} else {
+		material_id = pill.jqGrid("getGridParam", "selrow");
+	}
+
 	
 	var postData = {
-		"material_id" : rowData.material_id
+		"material_id" : material_id
 	};
 	
 	$.ajax({
@@ -79,7 +108,8 @@ function findit(){
 					// 共通出错信息框
 					treatBackMessages(null, resInfo.errors);
 				} else {
-					load_list(resInfo.waitings);
+					waitingsList = resInfo.waitings;
+					load_list(waitingsList);
 					acceptted_list(resInfo.finished);
 				}
 			}catch(e){
@@ -102,7 +132,7 @@ function load_list(listdata){
 			rowheight: 23,
 			datatype: "local",
 			colNames:['material_id','受理时间','同意时间','完成日期','修理单号', '型号' , '机身号','委托处', '等级', '加急'],
-			colModel:[{name:'material_id',index:'material_id', hidden:true},
+			colModel:[{name:'material_id',index:'material_id', hidden:true, key:true},
 			          {
 						name : 'reception_time',
 						index : 'reception_time',
@@ -233,4 +263,5 @@ function enableButtons(){
 	} else {
 		$("#shipbutton").removeClass("ui-state-focus").disable();
 	}
+	$("#scanner_inputer").focus();
 }

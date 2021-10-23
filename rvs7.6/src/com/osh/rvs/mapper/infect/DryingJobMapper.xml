@@ -186,7 +186,8 @@ and (exists
 	where drying_job_id = dj.drying_job_id
 	)
 )
-order by (dm.section_id = #{section_id} or dm.section_id is null) desc;
+order by (dm.section_id = #{section_id} or dm.section_id is null) desc,
+content;
 		]]>
 	</select>
 
@@ -211,7 +212,8 @@ and (exists
 	where drying_job_id = dj.drying_job_id
 	)
 )
-order by (dm.section_id = #{section_id} or dm.section_id is null) desc;
+order by (dm.section_id = #{section_id} or dm.section_id is null) desc,
+content;
 		]]>
 	</select>
 </mapper>
