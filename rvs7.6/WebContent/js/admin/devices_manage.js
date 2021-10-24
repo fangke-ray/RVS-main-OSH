@@ -590,7 +590,8 @@ var findit = function(arg) {
             "manage_level":$("#search_manage_level").val(),
             "manager_operator_id":$("#hidden_search_manager_operator_id").val(),
             "status":$("#search_status").val() && $("#search_status").val().toString(),//默认是选择使用中和保管中
-            "position_id":$("#hidden_search_position_id").val()
+            "position_id":$("#hidden_search_position_id").val(),
+            "comment":$("#search_comment").val()
         };
     // Ajax提交
     $.ajax({
@@ -638,6 +639,7 @@ var reset=function(){
     $("#hidden_search_manager_operator_id").val("");
 	$("#search_status").data("post","").val("").trigger("change");		
     $("#search_manage_level").data("post","").val("").trigger("change");
+    $("#search_comment").data("post","").val("");
 };
 
 function filed_list(listdata){
@@ -653,7 +655,7 @@ function filed_list(listdata){
 			datatype: "local",
 			colNames:['设备工具管理ID','设备工具品名ID','管理编号','品名','型号','放置位置',
                       '管理员ID','管理员','管理<br>等级','状态','点检表管理号','对应类型'
-                      ,'替代<br>评价','替代<br>对应'
+                      ,'替代<br>评价','对策'
                       ,'日常点检表<br>管理号','定期点检表<br>管理号',
                       '出厂编号','厂商','备注','分发课室','责任工程','分发课室ID','责任工程ID','责任工位ID',
                       '责任工位','导入日期','发放日期','发放者','废弃日期','更新时间','最后更新人'],
@@ -697,22 +699,30 @@ function filed_list(listdata){
 	                	}
 	                }},
 	                {name:'corresponding',index:'corresponding',width:35,align:'center',formatter:function(value, options, rData){
-	                	var params = "\"" + rData.devices_manage_id + "\",\"" +　rData.devices_type_id + "\",\"" + rData.model_name + "\",\"" + rData.line_name + "\"";
 	                	var ret = "";
+	                	if (!rData["backup_evaluation"]) {
 
-	                	if (value) {
-	                		ret = "<a href='javascript:showDeviceBackup(" + params +")'>有</a>";
-	                	} else {
-	                		ret = "<a href='javascript:showDeviceBackup(" + params +")'>无</a>";
+		                	var params = "\"" + rData.devices_manage_id + "\",\"" +　rData.devices_type_id + "\",\"" + rData.model_name + "\",\"" + rData.line_name + "\"";
+	
+		                	if (value) {
+		                		ret = "<a href='javascript:showDeviceBackup(" + params +")'>有</a>";
+		                	} else {
+		                		ret = "<a href='javascript:showDeviceBackup(" + params +")'>无</a>";
+		                	}
 	                	}
 	                	if(rData.borrowed == "1") {
 	                		ret += "<span style='color:orange'>▲</span>"
 	                	}
+	                	if (!ret) ret = "-";
 	                	return ret;
 	                }},
 
-	                {name:'daily_sheet_manage_no',index:'daily_sheet_manage_no',width:120,align:'center'},
-					{name:'regular_sheet_manage_no',index:'regular_sheet_manage_no',width:110,align:'center'},
+	                {name:'daily_sheet_manage_no',index:'daily_sheet_manage_no',width:120,align:'center', formatter:function(value, options, rData){
+						return value || "---";
+					}},
+					{name:'regular_sheet_manage_no',index:'regular_sheet_manage_no',width:110,align:'center', formatter:function(value, options, rData){
+						return value || "---";
+					}},
 					{name:'products_code',index:'products_code',width:100,align:'center'},
 					{name:'brand',index:'brand',width:100,align:'center'},
 					{name:'comment',index:'comment',width:100,align:'center',hidden:true},

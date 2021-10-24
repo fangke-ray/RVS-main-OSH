@@ -352,7 +352,8 @@ var findit = function(arg) {
             "import_date_start":$("#search_import_date_start").val(),
             "import_date_end":$("#search_import_date_end").val(),
             "waste_date_start":$("#search_waste_date_start").val(),
-            "waste_date_end":$("#search_waste_date_end").val()
+            "waste_date_end":$("#search_waste_date_end").val(),
+            "comment":$("#search_comment").val()
         };
     // Ajax提交
     $.ajax({
@@ -407,6 +408,7 @@ var reset = function(){
     $("#search_import_date_end").val("");
     $("#search_waste_date_start").val("");
     $("#search_waste_date_end").val("");
+    $("#search_comment").data("post","").val("");
 };
 
 var deliver_filed_list = function(listdata){

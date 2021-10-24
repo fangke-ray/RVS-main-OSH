@@ -105,7 +105,7 @@
 		   </if>
 		   <if test="manage_code!=null and manage_code!='' ">
 				<![CDATA[
-				and  dm.manage_code LIKE CONCAT('%',#{manage_code},'%')
+				and dm.manage_code LIKE CONCAT('%',#{manage_code},'%')
 			    ]]>
 			</if>
 			<if test="devices_type_id!=null and devices_type_id!='' ">
@@ -146,6 +146,11 @@
 			<if test="position_id!=null and position_id!='' ">
 				<![CDATA[
 				    and dm.position_id =#{position_id}
+			    ]]>
+			</if>
+			<if test="comment!=null and comment!=''">
+				<![CDATA[
+				and  dm.comment LIKE CONCAT('%',#{comment},'%')
 			    ]]>
 			</if>
 		</where>

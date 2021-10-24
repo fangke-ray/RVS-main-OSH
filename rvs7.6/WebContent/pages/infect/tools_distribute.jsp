@@ -82,7 +82,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div class="ui-widget-panel ui-corner-all width-full" style="align: center; padding-top: 16px;" id="body-3">
 			<div id="body-lft" style="width: 256px; float: left;">
 				<jsp:include page="/appmenu.do?method=tinit" flush="true">
-					<jsp:param name="linkto" value="设备工具/治具信息管理"/>
+					<jsp:param name="linkto" value="设备工具/治具清单"/>
 				</jsp:include>
 			</div>
 			<div style="width: 1012px; float: left;">

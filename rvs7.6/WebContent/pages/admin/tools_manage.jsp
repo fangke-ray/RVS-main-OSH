@@ -88,7 +88,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div class="ui-widget-panel ui-corner-all width-full" style="align: center; padding-top: 16px;" id="body-3">
 			<div id="body-lft" style="width: 256px; float: left;">
 				<jsp:include page="/appmenu.do?method=tinit" flush="true">
-					<jsp:param name="linkto" value="设备工具/治具信息管理"/>
+					<jsp:param name="linkto" value="设备工具/治具清单"/>
 				</jsp:include>
 			</div>
 			<div style="width: 1012px; float: left;">
@@ -128,12 +128,23 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<td class="td-content">
 							<select id="search_status" name="status" alt="使用状态" multiple>${status}</select>
 						</td>
-						<td class="ui-state-default td-title">分发课室</td>
+						<td class="ui-state-default td-title">备注</td>
 						<td class="td-content">
-							<select id="search_section_id" name="section_id"  alt="分发课室" >${sectionOptions}</select>
+							<input type="text" id="search_comment" name="comment" alt="备注"  class="ui-widget-content">
 						</td>
 						
 					<tr>
+					<tr>
+						<td class="ui-state-default td-title">分发课室</td>
+						<td class="td-content" colspan="3">
+							<select id="search_section_id" name="section_id"  alt="分发课室" >${sectionOptions}</select>
+						</td>
+						<td class="ui-state-default td-title">责任工位</td>
+						<td class="td-content">
+							<input type="text" id="search_position_id" name="position_id" alt="责任工位"  class="ui-widget-content">
+							<input type="hidden" id="hidden_search_position_id">
+						</td>
+					</tr>
 					<tr>
 						<!-- <td class="ui-state-default td-title">管理员</td>
 						<td class="td-content">
@@ -141,13 +152,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							<input type="hidden" id="hidden_search_manager_operator_id">
 						</td> -->
 						<td class="ui-state-default td-title">责任工程</td>
-						<td class="td-content">
+						<td class="td-content" colspan="3">
 							<select id="search_line_id" name="line_id"  alt="责任工程">${lineOptions}</select>
-						</td>
-						<td class="ui-state-default td-title">责任工位</td>
-						<td class="td-content">
-							<input type="text" id="search_position_id" name="position_id" alt="责任工位"  class="ui-widget-content">
-							<input type="hidden" id="hidden_search_position_id">
 						</td>
 						<td class="ui-state-default td-title">责任人员</td>
 						<td class="td-content">

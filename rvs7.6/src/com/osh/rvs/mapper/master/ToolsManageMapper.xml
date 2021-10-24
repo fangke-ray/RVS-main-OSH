@@ -169,6 +169,11 @@
 					and tm.waste_date<=#{waste_date_end}
 				]]>
 			</if>
+			<if test="comment!=null and comment!=''">
+				<![CDATA[
+				and  tm.comment LIKE CONCAT('%',#{comment},'%')
+			    ]]>
+			</if>
 		</where>
 		 ORDER BY status,updated_time DESC
 	</select>	

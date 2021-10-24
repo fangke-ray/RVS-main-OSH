@@ -48,7 +48,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div class="ui-widget-panel ui-corner-all width-full" style="align: center; padding-top: 16px;" id="body-3">
 			<div id="body-lft" style="width: 256px; float: left;">
 				<jsp:include page="/appmenu.do?method=tinit" flush="true">
-					<jsp:param name="linkto" value="设备工具/治具信息管理"/>
+					<jsp:param name="linkto" value="设备工具/治具清单"/>
 				</jsp:include>
 			</div>
 			<div style="width: 1012px; float: left;">
@@ -97,17 +97,23 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					</tr>
 					<tr>						
 						<td class="ui-state-default td-title">分发课室</td>
-						<td class="td-content">
+						<td class="td-content" colspan="3">
 							<select id="search_section_id">${sectionOptions}</select>
-						</td>
-						<td class="ui-state-default td-title">责任工程</td>
-						<td class="td-content">
-							<select id="search_line_id">${lineOptions}</select>
 						</td>
 						<td class="ui-state-default td-title">责任工位</td>
 						<td class="td-content">
 							<input type="text" id="search_position_id" readonly="readonly"  class="ui-widget-content">
 							<input type="hidden" id="hidden_search_position_id">
+						</td>
+					</tr>
+					<tr>						
+						<td class="ui-state-default td-title">责任工程</td>
+						<td class="td-content" colspan="3">
+							<select id="search_line_id">${lineOptions}</select>
+						</td>
+						<td class="ui-state-default td-title">备注</td>
+						<td class="td-content">
+							<input type="text" id="search_comment" class="ui-widget-content">
 						</td>
 					</tr>
 					
