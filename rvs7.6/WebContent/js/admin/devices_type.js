@@ -121,6 +121,9 @@ var search_handleComplete = function(xhrobj, textStatus) {
             
 /*jqgrid表格*/
 function filed_list(finished){
+	for (var i in finished) {
+		if (!finished[i].specialized) finished[i].specialized = "0";
+	}
     if ($("#gbox_list").length > 0) {
         $("#list").jqGrid().clearGridData();
         $("#list").jqGrid('setGridParam',{data:finished}).trigger("reloadGrid", [{current:false}]);
@@ -138,7 +141,7 @@ function filed_list(finished){
                        {name:'name',index:'name',width : 150},
                        {name:'specialized',index:'specialized',width : 35,formatter : 'select',
 							editoptions : {
-								value : $("#gSpecializedDeviceType").val()
+								value : ($("#gSpecializedDeviceType").val() + ";0: -;")
 							}
 						},
                        {name:'delete_flg',index:'delete_flg',hidden:true}, 

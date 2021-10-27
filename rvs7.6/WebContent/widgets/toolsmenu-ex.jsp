@@ -13,24 +13,12 @@
 			<a target="_parent" href="torsion_device.do">力矩工具一览</a><br>
 			<a target="_parent" href="electric_iron_device.do">电烙铁工具一览</a><br>
 			<a target="_parent" href="drying_oven_device_forward.do">烘箱一览</a><br>
-			<a target="_parent" href="external_adjustment.do">检查机器校验</a><br>
+			<a target="_parent" href="external_adjustment.do">计量器具一览</a><br>
 			<a target="_parent" href="tools_manage.do">治具管理</a><br>		      
 <% } else { %>
 		       <a target="_parent" href="devices_distribute.do">设备工具分布</a><br>		      
 		       <a target="_parent" href="tools_distribute.do">治具分布</a><br>		      
 <% } %>
-		    </div>
-</div>
-
-<div class="dwidth-left">
-<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>设备工具/治具维护</h3>			
-		    <div class="ui-accordion-content ui-helper-reset ui-widget-content">
-<% if(links.get("dt_admin")){ %>
-			<a target="_parent" href="devices_type.do">设备工具品名</a><br>
-			<a target="_parent" href="check_file_manage.do">点检表管理</a><br>
-			<a target="_parent" href="peripheral_infect_device.do">周边设备点检关系</a><br>
-<% } %>
-			<a target="_parent" href="device_jig_repair_record.do">设备工具维修记录</a><br>
 		    </div>
 </div>
 
@@ -42,9 +30,20 @@
 			<a target="_parent" href="device_regularly_check_result.do">定期点检结果</a><br>
 			<a target="_parent" href="tools_check_result.do">治具点检结果</a><br>
 			<a target="_parent" href="check_unqualified_record.do">点检不合格记录</a><br>
+			<a target="_parent" href="device_jig_repair_record.do">设备工具维修记录</a><br>
 			<a target="_parent" href="check_result_filing.do">点检结果归档</a><br>
 		    </div>
 </div>
 
+<% if(links.get("dt_admin")){ %>
+<div class="dwidth-left">
+<h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>设置管理</h3>
+		    <div class="ui-accordion-content ui-helper-reset ui-widget-content">
+			<a target="_parent" href="devices_type.do">设备工具品名</a><br>
+			<a target="_parent" href="check_file_manage.do">点检表管理</a><br>
+			<a target="_parent" href="peripheral_infect_device.do">周边设备点检关系</a><br>
+		    </div>
+</div>
+<% } %>
 
 </body></html>
