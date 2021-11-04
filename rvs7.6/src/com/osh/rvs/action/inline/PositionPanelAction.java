@@ -67,8 +67,10 @@ import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.inline.FoundryService;
+import com.osh.rvs.service.inline.LineLeaderService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
+import com.osh.rvs.service.partial.MaterialPartInstructService;
 import com.osh.rvs.service.partial.PartialReceptService;
 
 import framework.huiqing.action.BaseAction;
@@ -1204,7 +1206,9 @@ public class PositionPanelAction extends BaseAction {
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
 		// 取得当前作业中作业信息
-		ProductionFeatureEntity workingPf = service.getWorkingPf(user, conn); 
+		ProductionFeatureEntity workingPf = service.getWorkingPf(user, conn);
+		String material_id = null; MaterialForm mEntity = null;
+
 		// 没有进行中的作业，请刷新页面确认。
 		if (workingPf == null) {
 			MsgInfo info = new MsgInfo();
@@ -1212,12 +1216,13 @@ public class PositionPanelAction extends BaseAction {
 			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingLost"));
 			infoes.add(info);
 		} else {
+			material_id = workingPf.getMaterial_id();
 
 			PositionPlanTimeService pptS = new PositionPlanTimeService();
 			pptS.checkPositionDelay(req, workingPf, infoes, user, conn, listResponse);
 
 			// 检查对应辅助是否完成
-			service.checkSupporting(workingPf.getMaterial_id(), workingPf.getPosition_id(), infoes, conn);
+			service.checkSupporting(material_id, workingPf.getPosition_id(), infoes, conn);
 	
 			// 检查工程检查票是否全填写
 			service.checkPcsEmpty(req.getParameter("pcs_inputs"), infoes);
@@ -1227,7 +1232,7 @@ public class PositionPanelAction extends BaseAction {
 	
 			// TODO (workingPf.getLevel() == 9 || workingPf.getLevel() == 91 || workingPf.getLevel() == 92 || workingPf.getLevel() == 93);
 			MaterialService ms = new MaterialService();
-			MaterialForm mEntity = ms.loadSimpleMaterialDetail(conn, workingPf.getMaterial_id());
+			mEntity = ms.loadSimpleMaterialDetail(conn, material_id);
 //			String level = mEntity.getLevel();
 //			boolean isLightFix = level != null &&
 //					("9".equals(level.substring(0, 1))); 
@@ -1239,7 +1244,7 @@ public class PositionPanelAction extends BaseAction {
 			String special_forward = PathConsts.POSITION_SETTINGS
 					.getProperty("page." + process_code);
 			boolean use_snout = (special_forward != null && special_forward.indexOf("use_snout") >= 0);
-			boolean isAnml = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
+			boolean isAnml = MaterialTagService.getAnmlMaterials(conn).contains(material_id);
 
 			// 大修理可分工位检查零件需要检查零件全签收
 			if (isAnml ||
@@ -1247,7 +1252,7 @@ public class PositionPanelAction extends BaseAction {
 	
 				// info.partial.withoutOrder
 				MaterialPartialService mps = new MaterialPartialService();
-				MaterialPartialForm mp = mps.loadMaterialPartial(conn, workingPf.getMaterial_id(), 1);
+				MaterialPartialForm mp = mps.loadMaterialPartial(conn, material_id, 1);
 				if (mp == null || 
 						(("8".equals(mp.getBo_flg()) || "9".equals(mp.getBo_flg())) && !use_snout )
 						) {
@@ -1269,7 +1274,7 @@ public class PositionPanelAction extends BaseAction {
 						partial_position_id = null;
 					}
 					List<MaterialPartialDetailEntity> wentities = prService
-							.getPartialsForPosition(workingPf.getMaterial_id(), partial_position_id, conn, use_snout);
+							.getPartialsForPosition(material_id, partial_position_id, conn, use_snout);
 		
 					if (wentities == null || wentities.size() == 0) {
 					} else {
@@ -1327,9 +1332,9 @@ public class PositionPanelAction extends BaseAction {
 
 			// 启动下个工位
 			try {
-				List<String> fingerList = pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList, true);
+				List<String> fingerList = pfService.fingerNextPosition(material_id, workingPf, conn, triggerList, true);
 
-				String fingers = pfService.getFingerString(workingPf.getMaterial_id(), fingerList, conn, true);
+				String fingers = pfService.getFingerString(material_id, fingerList, conn, true);
 
 				// 下个工位移动信息处理
 				listResponse.put("past_fingers", fingers);
@@ -1345,6 +1350,28 @@ public class PositionPanelAction extends BaseAction {
 					infoes.add(info);
 				}
 				conn.rollback();
+			}
+
+			// 判断是否是可追加零件订购的工位
+			String addi = PositionService.isAddiOrderPosition(workingPf.getPosition_id(), conn);
+			if (addi != null && "3".equals(addi)) { // 是最后工位
+				MaterialPartInstructService mpiService = new MaterialPartInstructService();
+				// 设定
+				int confirm = mpiService.setProcedureConfirm(material_id, user.getSection_id(), user.getLine_id(), triggerList, conn);
+				if (confirm == 0 
+						&& !RvsUtils.isLightFix(mEntity.getLevel())) {
+					// 直接提交241订购工位完成 TODO
+					workingPf.setPosition_id(PositionService.ORDER_POSITION);
+					// 241工位结束
+					pfService.fingerSpecifyPosition(material_id, true, workingPf, triggerList, conn);
+
+					LineLeaderService llService = new LineLeaderService();
+					// “零件订购”工位线长处理
+					llService.partialResolve(material_id, mEntity.getModel_name(), workingPf.getSection_id(), workingPf.getPosition_id(), conn, user);
+					// 触发之后工位
+					workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+					pfService.fingerNextPosition(material_id , workingPf, conn, triggerList);
+				}
 			}
 
 			// 通知 TODO

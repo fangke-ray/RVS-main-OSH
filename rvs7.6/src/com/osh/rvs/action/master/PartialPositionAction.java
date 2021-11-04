@@ -246,9 +246,13 @@ public class PartialPositionAction extends BaseAction {
 		if (level != null && !RvsUtils.isLightFix(level)) {
 			// 获取RankBom信息
 			PartialBomService pRankBomService = new PartialBomService();
-			List<PartialBomEntity> rankBom = pRankBomService.searchRankBom(partialPositionForm, conn);
-			if (!rankBom.isEmpty()) {
-				listResponse.put("rankBom", rankBom);
+			List<PartialBomEntity> rankBomList = pRankBomService.searchRankBom(partialPositionForm, conn);
+			if (!rankBomList.isEmpty()) {
+				List<String> rankBomCodes = new ArrayList<String>();
+				for (PartialBomEntity rankBom : rankBomList) {
+					rankBomCodes.add(rankBom.getCode());
+				}
+				listResponse.put("rankBom", rankBomCodes);
 			} else {
 				List<String> partialBom = pRankBomService.searchPartialBomEntity(partialPositionForm, conn);
 				if (!partialBom.isEmpty()) {
@@ -282,10 +286,15 @@ public class PartialPositionAction extends BaseAction {
 		Map<String, Object> cbResponse = new HashMap<String, Object>();
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
-		String kind = request.getParameter("kind");
-
 		/* 查询 */
-		String file_path = service.makeBomFile(kind, conn);
+		String file_path = null;
+		String kind = request.getParameter("kind");
+		if (kind == null) {
+			String model_id = request.getParameter("model_id");
+			file_path = service.makeModelBomFile(model_id, conn);
+		} else {
+			file_path = service.makeKindBomFile(kind, conn);
+		}
 
 		cbResponse.put("file_path", file_path);
 		cbResponse.put("errors", errors);

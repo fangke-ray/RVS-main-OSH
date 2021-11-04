@@ -133,6 +133,7 @@
 
 		<form-bean name="procedureManualForm" type="com.osh.rvs.form.report.ProcedureManualForm"></form-bean>
 
+		<form-bean name="materialPartInstructForm" type="com.osh.rvs.form.partial.MaterialPartInstructForm" />
 	</form-beans>
 
 
@@ -1585,6 +1586,18 @@
 				parameter="method"
 				validate="false">
 			<forward name="detail_of_material" path="/widgets/equipment/device_jig_loan_detail.jsp" />
+		</action>
+
+		<!-- partial 工作指示单零件列表 -->
+		<action path="/materialPartInstruct"
+				type="com.osh.rvs.action.partial.MaterialPartInstructAction"
+				scope="request"
+				name="materialPartInstructForm"
+				parameter="method"
+				validate="false">
+			<forward name="init" path="/pages/partial/material_part_instruct.jsp" />
+			<forward name="main_page" path="/pages/partial/material_part_instruct-page.jsp?from=main" />
+			<forward name="qf_page" path="/pages/partial/material_part_instruct-page.jsp?from=qf" />
 		</action>
 
 	</action-mappings>

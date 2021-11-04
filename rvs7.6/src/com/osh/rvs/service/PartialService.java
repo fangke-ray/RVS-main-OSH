@@ -406,13 +406,13 @@ public class PartialService {
 			}
 
 			// 判断零件定位表是否已经存在该条记录
-			PartialPositionMapper partialPositionDao = conn.getMapper(PartialPositionMapper.class);
-			List<PartialPositionEntity> partialPositionEntityList = partialPositionDao
-					.searchPartialPosition(partialPositionEntity);
-			if (partialPositionEntityList.size() > 0) {
-				// 插入定位表
-				partialDao.insertPartialPosition(partialPositionEntity);
-			}
+//			PartialPositionMapper partialPositionDao = conn.getMapper(PartialPositionMapper.class);
+//			List<PartialPositionEntity> partialPositionEntityList = partialPositionDao
+//					.searchPartialPosition(partialPositionEntity);
+//			if (partialPositionEntityList.size() > 0) {
+//				// 插入定位表
+//				partialDao.insertPartialPosition(partialPositionEntity);
+//			}
 		}
 //
 //		for (int i = 0; i < modelIds.size(); i++) {

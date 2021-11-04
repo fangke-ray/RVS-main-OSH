@@ -12,6 +12,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
 <link rel="stylesheet" type="text/css" href="css/flowchart.css">
+<link rel="stylesheet" type="text/css" href="css/partial/instruction_sheets.css">
 <style>
 .qa_info {
 	display : none;
@@ -34,6 +35,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/qf/quotation.js?v=3433"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
+<script type="text/javascript" src="js/partial/common/instruction_sheets.js"></script>
 <script type="text/javascript">
 ${WORKINFO}
 </script>
@@ -76,6 +78,7 @@ if (request.getAttribute("unitizeds")!=null) {
 						<div id="executearea" class="dwidth-half" style="float: right;">
 							<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-half">
 								<span class="areatitle">报价处理</span>
+								<span id="instuct_obj" class="instruct_obj icon-list" style="display:none;"> 工作指示单</span>
 							</div>
 							<div class="ui-widget-content dwidth-half">
 								<div class="ui-widget-content dwidth-half" id="scanner_container">

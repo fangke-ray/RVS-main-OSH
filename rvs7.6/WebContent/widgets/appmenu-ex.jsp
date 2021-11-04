@@ -118,6 +118,7 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
 <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>进度查询</h3>
 		<div class="ui-accordion-content ui-helper-reset ui-widget-content">
 		        <a href="material.do">维修对象</a><br>
+		        <a href="materialPartInstruct.do?from=main">工作指示单</a><br>
 		        <a href="positionProduction.do">工位</a><br>
 		        <a href="operatorProduction.do">工时</a><br>
 		        <a href="alarmMessage.do">警报</a><br>

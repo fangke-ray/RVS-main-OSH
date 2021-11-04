@@ -1,8 +1,19 @@
+var INS_PROCEDURE = {
+	NONE : 0,
+	QUOTE : 1,
+	INLINE : 2,
+	CONFIRM : 3,
+	TO_SUBMIT : 4,
+	ORDERED : 5
+}
+
 var instruction_filter = '<table id="inst_filter" class="condform"><tbody><tr><td class="ui-state-default td-title">零件代码</td><td class="td-content" style="width: 128px;"><input type="text" id="inst_partial_code" alt="零件代码" class="ui-widget-content"></td>' +
-'<td class="ui-state-default td-title">Rank BOM</td><td class="td-content"><select id="inst_rank_bom" alt="Rank BOM"><option value="">(全部)</option><option value="1">BOM</option><option value="-1">非 BOM</option></select></td>' +
+'<td class="ui-state-default td-title">Rank BOM</td><td class="td-content"><select id="inst_rank_bom" alt="Rank BOM"><option value="">(全部)</option><option value="1">标配</option><option value="-1">非标</option><option value="9">★ 非标</option></select></td>' +
 '<td class="ui-state-default td-title">定位工程</td><td class="td-content"><select id="inst_line_id" alt="定位工程"><option value="">(全部)</option><option value="00000000012">分解</option><option value="00000000013">NS</option><option value="00000000014">总组</option></select></td>' +
 '<td class="ui-state-default"><input type="button" value="清除过滤"></td>' +
 '</tr></tbody></table>';
+
+var instruction_comment ="<input type='text' id='inst_comment_inputer' style='width:80%;'><hr><span class='ui-state-default' style='padding:4px;'>最近输入理由</span><br><div class='recently'></div><hr><span class='ui-state-default' style='padding:4px;'>历史输入理由</span><br><div class='history'></div>";
 
 var instruction_construct = function(modelName, instructLists, forMaterial, highprice, edittype) {
 	var $ht = $("<div id='inst_sheet'></div>");
@@ -26,12 +37,10 @@ var instruction_construct = function(modelName, instructLists, forMaterial, high
 		highprice = parseFloat(highprice);
 	}
 
-	var editable = (edittype == 1 || edittype == 2);
+	var editable = (edittype == INS_PROCEDURE.QUOTE || edittype == INS_PROCEDURE.INLINE);
 
 	for (var pageName in instructLists) {
 		var instructList = instructLists[pageName];
-		$htPage.append("<input type='radio' class='inst_page' name='inst_page' id='inst_page_" + pageName + "'></input><label for='inst_page_" + pageName + "'>" 
-			+ (pageName === "@" ? modelName : pageName) + "</label>");
 		var htTable = "<table class='ui-jqgrid-btable' for='" + pageName + "' cellspacing='0' border='0'><tbody><tr class='tr-eq0'>";
 		if (forMaterial) {
 			htTable += "<td></td><td></td></td><td for='quantity'></td><td for='price'></td><td for='process_code'></td><td></td><td></td><td></td><td></td></tr>";
@@ -70,7 +79,7 @@ var instruction_construct = function(modelName, instructLists, forMaterial, high
 		} else {
 			for (var iIl in instructList) {
 				var partial = instructList[iIl];
-				htTable += "<tr class='ui-widget-content jqgrow ui-row-ltr' partial_id='" + partial.partial_id + "'"
+				htTable += "<tr class='ui-widget-content jqgrow ui-row-ltr' bom_code='" + partial.bom_code + "' partial_id='" + partial.partial_id + "'"
 					+ (partial.level ? " level=" + partial.level : "") + ">"
 					+ "<td>" + partial.code + "</td><td>" 
 					+ (partial.name || "")  + "</td><td>" + partial.bom_code
@@ -80,18 +89,31 @@ var instruction_construct = function(modelName, instructLists, forMaterial, high
 			}
 		}
 		htTable += "</tbody></table>";
-		$htPage.buttonset();
-		$htPage.children("input").click(function(){
-			var thisFor = this.id.substring('inst_page_'.length);
-			var $sTable = $("#inst_list").children("table").hide().end()
-				.children("table[for='"+ thisFor +"']").show();
-			var $inst_head = $("#inst_head");
-			$sTable.find("tr:eq(0) > td").each(function(idx, ele){
-				$inst_head.find("th:eq(" + idx + ")").css("width", parseInt($(ele).css("width")) - 2);
-			});
-		});
 		$htList.append(htTable);
+
+		var discr = null;
+		if (pageName !== "@") {
+			$htList.children("table:eq(0)").find("tr.jqgrow").each(function(idx, ele){
+				if (discr != null) return;
+				var $tr = $(ele);
+				if ($tr.children("td:eq(0)").text() == pageName) {
+					discr = $tr.children("td:eq(1)").text();
+				}
+			});
+		}
+		$htPage.append("<input type='radio' class='inst_page' name='inst_page' id='inst_page_" + pageName + "'></input><label for='inst_page_" + pageName + "'" + (discr ? " title='" + discr + "'" : "") + ">" 
+			+ (pageName === "@" ? modelName : pageName) + "</label>");
 	}
+	$htPage.buttonset();
+	$htPage.children("input").click(function(){
+		var thisFor = this.id.substring('inst_page_'.length);
+		var $sTable = $("#inst_list").children("table").hide().end()
+			.children("table[for='"+ thisFor +"']").show();
+		var $inst_head = $("#inst_head");
+		$sTable.find("tr:eq(0) > td").each(function(idx, ele){
+			$inst_head.find("th:eq(" + idx + ")").css("width", parseInt($(ele).css("width")) - 2);
+		});
+	});
 
 	if (forMaterial) {
 		$htList.children("table").find("tr.tr-eq0").each(function(idx, ele){
@@ -152,10 +174,38 @@ var instruct_load_by_working = function(){
 				return;
 			}
 			if (resInfo.highprice) {
-				material.highprice = resInfo.highprice;
+				resInfo.material.highprice = resInfo.highprice;
 			}
+			if (resInfo.callReasons) {
+				setTimeout(resaon_load_by_working, 107);
+			}
+//			if (resInfo.job_no) cur_job_no = resInfo.job_no;
 			instruction_show($instructDialog, resInfo.material.model_name, resInfo.instructLists, resInfo.components, resInfo.material, 
 				resInfo.instuctForMaterial, resInfo.rankBom, resInfo.partialBom, resInfo.edittype);
+		}
+	});
+}
+
+var resaon_load_by_working = function(){
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'materialPartInstruct.do?method=reasonsLoadByWorking',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrObj){
+			var resInfo = $.parseJSON(xhrObj.responseText);
+			if (resInfo.errors && resInfo.errors.length) {
+				// 共通出错信息框
+				treatBackMessages(null, resInfo.errors);
+				return;
+			}
+
+			instr_reasons.history_reasons = resInfo.reasons;
 		}
 	});
 }
@@ -163,7 +213,7 @@ var instruct_load_by_working = function(){
 var instruction_show = function($container, modelName, instructLists, components, materialEntity, instuctForMaterial, rankBom, partialBom, edittype) {
 	cur_edit_type = edittype;
 
-	var editable = edittype > 0;
+	var editable = (edittype > INS_PROCEDURE.NONE && edittype < INS_PROCEDURE.ORDERED);
 	var forMaterial = !!(instuctForMaterial && instuctForMaterial.length);
 	var highprice = null;
 	if (materialEntity && materialEntity.highprice) highprice = materialEntity.highprice;
@@ -171,6 +221,7 @@ var instruction_show = function($container, modelName, instructLists, components
 	var $instruction_html = instruction_construct(modelName, instructLists, forMaterial, highprice, edittype);
 
 	$container.html($instruction_html);
+
 	var $inst_page  = $container.find("#inst_page");
 	var $inst_list  = $container.find("#inst_list");
 
@@ -196,6 +247,9 @@ var instruction_show = function($container, modelName, instructLists, components
 
 	if (forMaterial) {
 		instruction_bind($inst_list, instuctForMaterial);
+		instru_func.setSheetEdited(null);
+	} else {
+		$("#s2b_inst_rank_bom > .select-buttons > li:eq(-1)").hide();
 	}
 
 	var dialogTitle = modelName;
@@ -216,7 +270,18 @@ var instruction_show = function($container, modelName, instructLists, components
 		}
 
 		if (rankBom) {
-			alert("rankBom:" +rankBom.length);
+			var msg = "";
+			for (var iBom in rankBom) {
+				var bom_code = rankBom[iBom];
+				var $hitTr = $inst_list.find("tr.jqgrow[bom_code='" + bom_code + "']");
+				if ($hitTr.length > 0) {
+					$hitTr.attr("rank", true);
+					$hitTr.children("td[for=rank]").text("*");
+				} else {
+					msg += bom_code+";";
+				}
+			}
+			// if (msg) instr_msg.warning += ("无法匹配的bom" + msg + "\n");
 		} else if (partialBom) {
 			var msg = "";
 			for (var iBom in partialBom) {
@@ -229,9 +294,10 @@ var instruction_show = function($container, modelName, instructLists, components
 					msg += partial_id+";";
 				}
 			}
-			if (msg) instr_msg.warning += ("无法匹配的bom" + msg + "\n");
+			// if (msg) instr_msg.warning += ("无法匹配的bom" + msg + "\n");
 		}
 	}
+
 	dialogTitle += " 的工作指示单";
 
 	if (materialEntity && materialEntity.material_id) {
@@ -250,12 +316,35 @@ var instruction_show = function($container, modelName, instructLists, components
 		width: 1024,
 		height: 660,
 		title : dialogTitle,
+		open : function(){
+			if (editable) {
+				$container.after("<div id='inst_warning_content'></div><div id='inst_cascade_content' title='点击自动除去'></div>" +
+						"<div id='inst_async_content'></div><div id='inst_loss_content'></div>");
+				$("#inst_cascade_content").click(instru_func.sendCascadeRemove);
+				instru_func.countLoss();
+			}
+			if (instruct_ws != null && this_instruction_material_id) {
+				instruct_ws.send("start:"+this_instruction_material_id);
+			}
+		},
+		close : function(){
+			$container.parent().children("#inst_warning_content, #inst_async_content, #inst_cascade_content, #inst_loss_content").remove();
+			instr_msg.warning = "";
+			instr_msg.notice = "";
+			if (instruct_ws != null && this_instruction_material_id) {
+				instruct_ws.send("leave:");
+			}
+		},
 		buttons : {
 			"关闭" : function() {
 				$container.dialog("close");
 			}
 		}
 	});
+
+	if (instr_msg.warning) {
+		instru_func.setWarningMessage();		
+	}
 }
 
 var instruction_bind = function($inst_list, instuctForMaterial) {
@@ -263,30 +352,72 @@ var instruction_bind = function($inst_list, instuctForMaterial) {
 	for (var iv in instuctForMaterial) {
 		var itm = instuctForMaterial[iv];
 		var $targetTr = $inst_list.find("tr[bom_code='" + itm.bom_code + "']");
+		if ($targetTr.length == 0) {
+			var $refillTr = $("<tr class=\"ui-widget-content mismatch jqgrow ui-row-ltr\" bom_code=\"" + itm.bom_code + "\" partial_id=\"" + itm.partial_id + "\"></tr>");
+			var priceHtml = "<td for='price'>unknown</td>";
+
+			var quantityHtml = "<td for='quantity'><span>" + itm.quantity + "</span></td>";
+			var $tableMain = $("#inst_list > .ui-jqgrid-btable:eq(0) > tbody"); 
+			if ($tableMain.find("button.ui-icon").length > 0) {
+				quantityHtml = "<td for='quantity'><span>" + itm.quantity + "</span><button class='ui-icon ui-icon-plus'></button></td>";
+			}
+
+			$refillTr.html("<td>" + itm.code + "</td><td>" 
+					+ (itm.name || "(与BOM主数据不一致)") + "</td>" + quantityHtml + priceHtml
+					+ "<td for='process_code'" + instru_func.getLineAttr(itm.line_id) + ">" + instru_func.getProcessCode(itm.process_code) + "</td>"
+					+ "<td></td><td></td><td></td><td></td>");
+			$targetTr = $refillTr;
+
+			instr_msg.warning += "维修单零件列表中在[" + itm.bom_code + "]BOM数据中缺失。\n";
+			$tableMain.append($refillTr);
+		}
 		if ($targetTr.length == 1) {
-			var rankText = (itm.rank ? (itm.rank > 1 ? "SORC-R" : "RANK") : "") 
+			var rankText = ((itm.rank && itm.rank < 9) ? (itm.rank > 1 ? "SORC-R" : "RANK") : "") 
 			var $td = $targetTr.children("[for=process_code]")
 				.next().text(rankText) // RANK
 				.next(); // SHIP
 			if (itm.ship) {
 				$td.text("　√");
 			}
+			if (itm.quantity) {
+				var $qspan = $targetTr.children("td[for='quantity']").children("span");
+				if ($qspan.text() != itm.quantity) {
+					instr_msg.warning += "维修单零件列表中在[" + itm.bom_code + "]BOM数量不一致。\n";
+					$qspan.text(itm.quantity).addClass("mismatch");
+				}
+			}
+			var isCancel = false;
 			$td = $td.next(); // quote_job_no
+			$targetTr.addClass("instructed");
 			if (itm.quote_job_no) {
-				$td.html("<img src='/images/sign/"+itm.quote_job_no+"'></img>");
+				$td.html("<img src='/images/sign/"+itm.quote_job_no+"'></img>").attr("sign", "q");
+				if (itm.quote_adjust > 0) {
+					$targetTr.removeClass("instructed").addClass("append");
+				} else if (itm.quote_adjust < 0) {
+					isCancel = true;
+				}
+			} else {
+				if (itm.rank == 9) {
+					$targetTr.removeClass("instructed").addClass("append");
+				}
 			}
 			$td = $td.next(); // inline_job_no
 			if (itm.inline_job_no) {
-				$td.html("<img src='/images/sign/"+itm.inline_job_no+"'></img>");
+				$td.html("<img src='/images/sign/"+itm.inline_job_no+"'></img>").attr("sign", "i");
 				if (itm.inline_comment) {
 					$td.attr("inline_comment", itm.inline_comment);
 				}
-				if (itm.my_priv) {
-					$targetTr.attr("my_priv");
-				}
+				isCancel = !isCancel;
 			}
-			$targetTr.addClass("instructed");
-			$targetTr.find(".ui-icon-plus").removeClass("ui-icon-plus").addClass("ui-icon-minus");
+			if (isCancel && $targetTr.is(".instructed")) {
+				$targetTr.addClass("cancel");
+			} else {
+				$targetTr.find(".ui-icon-plus").removeClass("ui-icon-plus").addClass("ui-icon-minus");
+			}
+
+			if (itm.no_priv) {
+				$targetTr.attr("no_priv", itm.no_priv);
+			}
 		} else {
 			instr_msg.warning += "维修单零件列表中在[" + itm.bom_code + "]BOM数据中异常。\n";
 		}
@@ -304,6 +435,11 @@ var instruction_bind = function($inst_list, instuctForMaterial) {
 var instr_msg = {
 	warning : "",
 	notice : ""
+}
+
+var instr_reasons = {
+	recent_reason : [],
+	history_reasons : {}
 }
 
 var cur_edit_type = 0;
@@ -349,25 +485,15 @@ var triggerFilter = function(evt) {
 	} else {
 		var showRankTd =  $("#inst_list td[for=rank]").length;
 
-		$("#inst_list > table tr.jqgrow").filter(function(a, ele){
+		$("#inst_list > table tr.jqgrow").not(function(a, ele){
+
 			var $tr = $(ele);
 			if (partial_code) {
-				if ($tr.children("td:eq(0)").text().startsWith(partial_code)) {
+				if (!$tr.children("td:eq(0)").text().startsWith(partial_code)) {
 					return false;
 				}
 			}
 			if (rank_bom == 1) {
-				if (showRankTd) {
-					if ($tr.children("td[for=rank]").text()) {
-						return false;
-					}
-				} else {
-					if ($tr.attr("rank")) {
-						return false;
-					}
-				}
-			}
-			if (rank_bom == -1) {
 				if (showRankTd) {
 					if (!$tr.children("td[for=rank]").text()) {
 						return false;
@@ -377,12 +503,38 @@ var triggerFilter = function(evt) {
 						return false;
 					}
 				}
+			} else
+			if (rank_bom == -1) {
+				if (showRankTd) {
+					if ($tr.children("td[for=rank]").text()) {
+						return false;
+					}
+				} else {
+					if ($tr.attr("rank")) {
+						return false;
+					}
+				}
+			} else
+			if (rank_bom == 9) {
+				if (!showRankTd) {
+					if ($tr.attr("rank")) {
+						return false;
+					}
+					if ($tr.hasClass("instructed")) {
+					} else if ($tr.hasClass("append")) {
+						if (!$tr.children("td[sign=q]").length) {
+							return false;
+						}
+					} else {
+						return false;
+					}
+				}
 			}
 			if (line_id) {
 				var $tdProcessCode = $tr.children("td[for=process_code]")
-				if ($tdProcessCode.text() === "未设定") {
+				if (!$tdProcessCode.text() === "未设定") {
 					return false;
-				} else if ($tdProcessCode.attr("ln_" + line_id)) {
+				} else if (!$tdProcessCode.attr("ln_" + line_id)) {
 					return false;
 				}
 			}
@@ -412,6 +564,8 @@ var triggerFilter = function(evt) {
 		});
 	}
 }
+
+var $cascadeTrs = null;
 
 var instru_func = {
 	getLineAttr : function(line_id) {
@@ -476,72 +630,406 @@ var instru_func = {
 			}
 		}
 	},
+	setWarningMessage : function(){
+		if ($("#inst_warning_content").length == 0) return; 
+		$("#inst_warning_content").html(decodeText(instr_msg.warning))
+			[0].scrollTo(0, 9999);
+	},
+	setSheetEdited : function($tb){
+		if ($tb == null) {
+			$tb = $("#inst_list > table");
+		}
+		$tb.each(function(idx, ele){
+			var $table = $(ele);
+			var tbFor = $table.attr("for");
+			if (tbFor == "@") tbFor = "\\@";
+			var $radio = $("#inst_page > #inst_page_" + tbFor);
+
+			if ($table.find("tr.append, tr.cancel").length) {
+				$radio.addClass("edited");
+			} else {
+				$radio.removeClass("edited");
+			}
+		});
+	},
 	updateItem : function(){
 		var $tdQua = $(this);
 		var $trItem = $tdQua.parent();
+
+		if (cur_edit_type == INS_PROCEDURE.INLINE) {
+			var iComment = $trItem.children("td[inline_comment]").attr("inline_comment");
+			if (!iComment) {
+				instru_func.showCommentInputer($trItem, function(){
+					instru_func.updateItemForward($tdQua, $trItem);
+				});
+			} else {
+				instru_func.updateItemForward($tdQua, $trItem);
+			}
+		} else {
+			instru_func.updateItemForward($tdQua, $trItem);
+		}
+	},
+	updateItemForward : function($tdQua, $trItem){
+		if ($trItem.hasClass("instructed")) {
+			if (!$trItem.hasClass("cancel")) {
+				instru_func.updateItemPost($trItem, "cancel", function(){
+					$trItem.addClass("cancel");
+					$tdQua.children("button").removeClass("ui-icon-minus").addClass("ui-icon-plus");
+					instru_func.setSheetEdited($trItem.closest("table"));
+				});
+			} else {
+				instru_func.updateItemPost($trItem, "append", function(){
+					$trItem.removeClass("cancel");
+					$tdQua.children("button").removeClass("ui-icon-plus").addClass("ui-icon-minus");
+					instru_func.setSheetEdited($trItem.closest("table"));
+				});
+			}
+		} else {
+			if (!$trItem.hasClass("append")) {
+				if (cur_edit_type == INS_PROCEDURE.INLINE) {
+					// 追加理由
+				}
+				instru_func.updateItemPost($trItem, "append", function(){
+					$trItem.addClass("append");
+					$tdQua.children("button").removeClass("ui-icon-plus").addClass("ui-icon-minus");
+					instru_func.setSheetEdited($trItem.closest("table"));
+				});
+			} else {
+				if ($trItem.attr("no_priv") == "1") {
+					errorPop("其他在线人员追加的项目不可以取消。");
+					return;
+				}
+				instru_func.updateItemPost($trItem, "cancel", function(){
+					$trItem.removeClass("append");
+					$tdQua.children("button").removeClass("ui-icon-minus").addClass("ui-icon-plus");
+					instru_func.setSheetEdited($trItem.closest("table"));
+				});
+			}
+		}	
+	},
+	updateItemRemote : function($tdQua, $trItem){
 		if ($trItem.hasClass("instructed")) {
 			if (!$trItem.hasClass("cancel")) {
 				$trItem.addClass("cancel");
 				$tdQua.children("button").removeClass("ui-icon-minus").addClass("ui-icon-plus");
-				instru_func($trItem);
+				instru_func.setSheetEdited($trItem.closest("table"));
 			} else {
 				$trItem.removeClass("cancel");
 				$tdQua.children("button").removeClass("ui-icon-plus").addClass("ui-icon-minus");
-				instru_func($trItem);
+				instru_func.setSheetEdited($trItem.closest("table"));
 			}
 		} else {
 			if (!$trItem.hasClass("append")) {
 				$trItem.addClass("append");
 				$tdQua.children("button").removeClass("ui-icon-plus").addClass("ui-icon-minus");
-				if (cur_edit_type == 2) {
-					// 追加理由
-				}
-				// updateItemPost($trItem.attr("bom_code"), "append");
+				instru_func.setSheetEdited($trItem.closest("table"));
 			} else {
-				if ($trItem.attr("no_priv")) {
-					errorPop("其他在线人员追加的项目不可以取消。");
-					return;
-				}
 				$trItem.removeClass("append");
 				$tdQua.children("button").removeClass("ui-icon-minus").addClass("ui-icon-plus");
+				instru_func.setSheetEdited($trItem.closest("table"));
 			}
-		}
+		}	
 	},
-	updateItemPost : function(bom_code, action) {
-		var postData = {
-			"material_id" : this_instruction_material_id,
-			"bom_code" : bom_code,
-			"action" : action
-		}
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			async : true,
-			url : 'materialPartInstruct.do?method=doUpdateItem',
-			cache : false,
-			data : null,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : function(xhrObj){
-				
-			}
-		})
-	},
-	commitUpdateItem : function($trs){
+	updateItemPost : function($trs, action, success_callback){
 		if ($trs.length > 0) {
-			var postData = {};
+			var postData = {
+				"material_id" : this_instruction_material_id,
+				"upd_action" : action
+			}
 			var idx = 0;
-			$trs.each(function(idx, ele){
+			$trs.each(function(idx, ele) {
 				var $tr = $(ele);
 				postData["item[" + idx + "].partial_id"] = $tr.attr("partial_id");
 				postData["item[" + idx + "].bom_code"] = $tr.attr("bom_code");
-				if ($trItem.hasClass("append")) {
-					postData["item[" + idx + "].quantity"] = $tr.children("td[for=quantity]").children("span").text();
+				postData["item[" + idx + "].quantity"] = $tr.children("td[for=quantity]").children("span").text();
+				if (cur_edit_type == INS_PROCEDURE.INLINE) {
 					postData["item[" + idx + "].inline_comment"] = $tr.children("td[inline_comment]").attr("inline_comment");
 				}
 				idx++;
 			});
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : ($trs.length == 1),
+				url : 'materialPartInstruct.do?method=doUpdateItem',
+				cache : false,
+				data : postData,
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : function(xhrObj){
+					instru_func.updateItemPostComplete(xhrObj, $trs, success_callback);
+					$cascadeTrs = null;
+					$("#inst_cascade_content").text("");
+					if (action == "append" && $trs.length == 1) {
+						var tbFor = $trs.closest("table").attr("for");
+						if (tbFor == "@") {
+							var $subSheet = $("#inst_list > table[for='" + $trs.children("td:eq(0)").text() + "']");
+							if ($subSheet.length) {
+								$cascadeTrs = $subSheet.find("tr.instructed, tr.append").not(".cancel");
+								if ($cascadeTrs != null && $cascadeTrs.length) {
+									var text = "追加的零件有以下子零件";
+									$cascadeTrs.each(function(idx, ele){
+										text += $(ele).children("td:eq(0)").text() + ",";
+									});
+									text += "已经有指示数量，是否需要取消。"
+									$("#inst_cascade_content").text(text);
+								}
+							}
+						} else {
+							var $homeSheet = $("#inst_list > table[for='\\@']");
+							$cascadeTrs = $homeSheet.find("tr.instructed, tr.append").not(".cancel").filter(function(idx, ele){
+								return $(ele).children("td:eq(0)").text() == tbFor;
+							});
+							if ($cascadeTrs != null && $cascadeTrs.length) {
+								var text = "追加的零件有母零件" + tbFor + "已经指示，是否需要取消。"
+								$("#inst_cascade_content").text(text);
+							}
+						}
+					}
+				}
+			})
+		}
+	},
+	updateItemPostComplete : function(xhrObj, $trs, success_callback){
+		var resInfo = $.parseJSON(xhrObj.responseText);
+		if (resInfo.errors && resInfo.errors.length) {
+			for (var idxE in resInfo.errors) {
+				instr_msg.warning += resInfo.errors[idxE].errmsg + "\n";
+			}
+			instru_func.setWarningMessage();
+		} else {
+			if (typeof success_callback === "function") success_callback();
+			instru_func.updateSign($trs, resInfo.job_no, resInfo.target);
+			instru_func.countLoss();
+		}
+	},
+	updateSign : function($trs, cur_job_no, target) {
+		var tdCur = (target == "q" ? "td:eq(-2)" : "td:eq(-1)" );
+
+		if (cur_job_no) {
+			$trs.each(function(idx, ele){
+				$(ele).children(tdCur).html("<img src=\"/images/sign/" + cur_job_no + "\">").attr("sign", target);
+			})
+		} else {
+			$trs.each(function(idx, ele){
+				$(ele).children(tdCur).html("").removeAttr("sign");
+			})
+		}
+	},
+	sendCascadeRemove : function() {
+		if ($("#inst_cascade_content").text()) {
+			var needComments = (cur_edit_type == INS_PROCEDURE.INLINE);
+
+			if (needComments) {
+				var lastReason = null;
+	
+				if (instr_reasons.recent_reason.length > 0) {
+					lastReason = instr_reasons.recent_reason[0];
+				}
+				if (lastReason == null) {
+					errorPop("请输入理由。");
+					return;
+				}
+				$cascadeTrs.each(function(idx, ele){
+					ele.setAttribute("inline_comment", lastReason);
+				});
+			}
+
+			instru_func.updateItemPost($cascadeTrs, "cancel", function(){
+				$cascadeTrs.each(function(idx, ele){
+					var $trItem = $(ele);
+					if ($trItem.hasClass("instructed")) {
+						$trItem.addClass("cancel");
+					} else {
+						$trItem.removeClass("append");
+					}
+					$trItem.children("td[for='quantity']").children("button").removeClass("ui-icon-minus").addClass("ui-icon-plus");
+				})
+				instru_func.setSheetEdited($cascadeTrs.eq(0).closest("table"));
+
+				$cascadeTrs = null;
+				$("#inst_cascade_content").text("");
+			});
+		}
+	},
+	showCommentInputer : function($tr, onSuccess) {
+		var $commentDialog = $("#instruct_comment_dialog");
+		if ($commentDialog.length == 0) {
+			$(document.body).append("<div id='instruct_comment_dialog'></div>");
+			$commentDialog = $("#instruct_comment_dialog");
+		}
+		$commentDialog.html(instruction_comment);
+
+		var $tdComment = $tr.children("td[inline_comment]");
+		if ($tdComment.length) {
+			$("#inst_comment_inputer").val($tdComment.attr("inline_comment"));
+		} else {
+			$tdComment = $tr.children("td:eq(-1)");
+		}
+
+		if (instr_reasons.recent_reason) {
+			var txtHisResaons = "";
+			for (var idx in instr_reasons.recent_reason) {
+				var text = instr_reasons.recent_reason[idx];
+				if (text.length > 8) {
+					text = text.substring(0, 8) + "...";
+					txtHisResaons += "<input type='button' title='" + instr_reasons.recent_reason[idx] + "' value='" + text + "'>"
+				} else {
+					txtHisResaons += "<input type='button' value='" + text + "'>"
+				}
+			}
+			$commentDialog.children(".recently").html(txtHisResaons)
+				.children("input").button().click(function(){
+					$("#inst_comment_inputer").val(this.getAttribute("title") || this.value || "");
+				});
+		}
+
+		var partial_id = $tr.attr("partial_id");
+		if (instr_reasons.history_reasons[partial_id]) {
+			var hisResaons = instr_reasons.history_reasons[partial_id];
+			var txtHisResaons = "";
+			for (var idx in hisResaons) {
+				var text = hisResaons[idx];
+				if (text.length > 8) {
+					text = text.substring(0, 8) + "...";
+					txtHisResaons += "<input type='button' title='" + hisResaons[idx] + "' value='" + text + "'>"
+				} else {
+					txtHisResaons += "<input type='button' value='" + text + "'>"
+				}
+			}
+			$commentDialog.children(".history").html(txtHisResaons)
+				.children("input").button().click(function(){
+					$("#inst_comment_inputer").val(this.getAttribute("title") || this.value || "");
+				});
+		}
+
+		$commentDialog.dialog({
+			resizable : false,
+			modal : true,
+			width: 600,
+			height: 500,
+			title : "输入追加/取消理由",
+			buttons : {
+				"确定" : function() {
+					var postComment = $("#inst_comment_inputer").val();
+					if (postComment) {
+						postComment = postComment.trim();
+					}
+					if (!postComment) {
+						errorPop("请输入理由。");
+						return;
+					} else {
+						postComment = postComment.replaceAll("<","＜").replaceAll(">","＞").replaceAll("\"","＂");
+					}
+
+					if (instr_reasons.recent_reason.indexOf(postComment) == -1) {
+						instr_reasons.recent_reason.unshift(postComment);
+						if (instr_reasons.recent_reason.length > 5) {
+							instr_reasons.recent_reason.pop();
+						}
+					}
+					$tdComment.attr("inline_comment", postComment);
+					$commentDialog.dialog("close");
+					if (typeof onSuccess === "function") {
+						onSuccess();
+					}
+				},
+				"关闭" : function() {
+					$commentDialog.dialog("close");
+				}
+			}
+		});
+
+	},
+	countLoss : function() {
+		var loss = 0, lossSelf = 0;
+		var $trLoss = $("#inst_list").find("tr.append");
+		$trLoss.each(function(idx, ele){
+			var $tr = $(ele);
+			var no_priv = $tr.attr("no_priv");
+
+			var price = $tr.find("td[for='price']").text();
+			if (!price || price == "unknown" ) {
+				return;
+			}
+
+			var quantity = $tr.find("td[for='quantity'] > span").text();
+
+			var trPrice = parseFloat(price) * parseInt(quantity);
+			loss += trPrice;
+			if (no_priv != "1") {
+				lossSelf += trPrice;
+			}
+		});
+		if (loss) {
+			$("#inst_loss_content").text("追加损金￥ " + loss.toFixed(2) + " 。" 
+				+ (lossSelf ? ("本人追加损金￥ " + lossSelf.toFixed(2) + " 。") : "" ));
+		} else {
+			$("#inst_loss_content").text("");
+		}
+	},
+	asynTO : 0,
+	showAsycnMessage : function(item, upd_action) {
+		var actionText = ("append" == upd_action ? "追加" : "取消");
+		if (instru_func.asynTO) clearTimeout(instru_func.asynTO);
+		instru_func.asynTO = setTimeout(function(){
+			instru_func.asynTO = 0;
+			$("#inst_async_content").text("");
+		}, 10000);
+
+		var $trItem = $("#instruct_dialog tr[bom_code='" + item.bom_code + "']");
+		if ($trItem.length > 0) {
+			var $tdQua = $trItem.children("td[for=quantity]");
+			instru_func.updateItemRemote($tdQua, $trItem);
+			$("#inst_async_content").text("操作者" + (item.quote_job_no || item.inline_job_no) + actionText 
+				+ "了零件[" + $trItem.children("td:eq(0)").text() + "]，已经同步表示。");
+
+			var $td = $trItem.children("[for=process_code]")
+				.next().next().next();
+			if (item.quote_job_no) {
+				$td.html("<img src='/images/sign/"+item.quote_job_no+"'></img>").attr("sign", "q");
+				$trItem.attr("no_priv", "1");
+			} else {
+				$td.html("");
+			}
+			$td = $td.next(); // inline_job_no
+			if (item.inline_job_no) {
+				$td.html("<img src='/images/sign/"+item.inline_job_no+"'></img>").attr("sign", "i");
+				if (item.inline_comment) {
+					$td.attr("inline_comment", item.inline_comment);
+				}
+				$trItem.attr("no_priv", "1");
+			} else {
+				$td.html("");
+			}
 		}
 	}
+}
+
+var instruct_ws = null;
+try {
+	// 创建WebSocket  
+	instruct_ws = new WebSocket(wsPath + "/instruct");
+	// 收到消息时在消息框内显示  
+	instruct_ws.onmessage = function(evt) {
+    	var resInfo = {};
+    	try {
+			resInfo = $.parseJSON(evt.data);
+    		if ("asycn_message" == resInfo.method) {
+	   			instru_func.showAsycnMessage(resInfo.item, resInfo.upd_action);
+    		} else if ("ping" == resInfo.method) {
+    			instruct_ws.send("pong:"+resInfo.id + "+" + instruct_ws.readyState);
+    		}
+    	} catch(e) {
+    	}
+	};  
+	// 断开时会走这个方法  
+	instruct_ws.onclose = function() {   
+	};  
+	// 连接上时走这个方法  
+	instruct_ws.onopen = function() {     
+		instruct_ws.send("entach:"+$("#op_id").val());
+	}; 
+	} catch(e) {
 }

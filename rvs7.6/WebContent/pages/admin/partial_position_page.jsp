@@ -191,6 +191,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </div>
 <div id="download_dialog" style="display:none">
 	<select id="download_kind">
+		<option value="-1">(查询机型)</option>
 		${kOption}
 	</select>
 </div>

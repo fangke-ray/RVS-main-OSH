@@ -55,7 +55,8 @@ public class PartialPositionService {
 	public List<PartialPositionForm> searchPartialPosition(PartialPositionEntity partialPositionEntity, SqlSession conn) {
 		PartialPositionMapper dao = conn.getMapper(PartialPositionMapper.class);
 		List<PartialPositionForm> resultForm = new ArrayList<PartialPositionForm>();
-		List<PartialPositionEntity> resultList = dao.searchPartialPosition(partialPositionEntity);
+		// TODO newNot
+		List<PartialPositionEntity> resultList = dao.searchPartialPositionNew(partialPositionEntity);
 		BeanUtil.copyToFormList(resultList, resultForm, null, PartialPositionForm.class);
 		return resultForm;
 	}
@@ -672,7 +673,7 @@ public class PartialPositionService {
 		return mapper.getComponentOfModel(model_id);
 	}
 
-	public String makeBomFile(String kind,
+	public String makeKindBomFile(String kind,
 			SqlSession conn) {
 
 		PartialPositionMapper mapper = conn.getMapper(PartialPositionMapper.class);
@@ -680,6 +681,22 @@ public class PartialPositionService {
 		List<PartialPositionEntity> l = mapper.getInstructOfCategoryKind(kind);
 
 		if (l.size() == 0) return null;
+
+		return makeBomFile(l, conn);
+	}
+	public String makeModelBomFile(String model_id,
+			SqlSession conn) {
+
+		PartialPositionMapper mapper = conn.getMapper(PartialPositionMapper.class);
+
+		List<PartialPositionEntity> l = mapper.getAllInstructOfModel(model_id);
+
+		if (l.size() == 0) return null;
+
+		return makeBomFile(l, conn);
+	}
+	public String makeBomFile(List<PartialPositionEntity> l,
+			SqlSession conn) {
 
 		//Excel临时文件
 		String cacheName ="BOM_position" + new Date().getTime() + ".xlsx";

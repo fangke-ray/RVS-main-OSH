@@ -2,12 +2,14 @@ package com.osh.rvs.mapper.master;
 
 import java.util.List;
 
+import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.PartialPositionEntity;
 
 public interface PartialPositionMapper {
 
 	/* 查询数据 */
 	public List<PartialPositionEntity> searchPartialPosition(PartialPositionEntity partialPositionEntity);
+	public List<PartialPositionEntity> searchPartialPositionNew(PartialPositionEntity partialPositionEntity);
 
 	/* 插入数据 */
 	public void insertPartialPosition(PartialPositionEntity partialpositionEntity);
@@ -43,6 +45,9 @@ public interface PartialPositionMapper {
 	public List<PartialPositionEntity> getInstructOfModel(String model_id);
 
 	public List<PartialPositionEntity> getInstructOfCategoryKind(String kind);
+	public List<PartialPositionEntity> getAllInstructOfModel(String kind);
 
 	public List<String> getComponentOfModel(String model_id);
+
+	public List<ModelEntity> getNoneBelonsModels();
 }

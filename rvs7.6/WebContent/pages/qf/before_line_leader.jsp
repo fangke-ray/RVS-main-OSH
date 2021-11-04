@@ -13,6 +13,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
 <link rel="stylesheet" type="text/css" href="css/flowchart.css?v=3">
+<link rel="stylesheet" type="text/css" href="css/partial/instruction_sheets.css">
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
@@ -27,6 +28,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/qf/before_line_leader.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
+<script type="text/javascript" src="js/partial/common/instruction_sheets.js"></script>
 
 <title>现品报价课 受理报价工程</title>
 </head>
@@ -158,6 +160,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <% if (isQuotator) {%>
 		<input type="button" class="ui-button" value="未修理返还" id="stopbutton" />
 		<input type="button" class="ui-button" value="报价备注" id="quotationcommentbutton" />
+		<input type="button" class="ui-button" value="工作指示单编辑" id="instuctbutton" />
 <% } %>
 	</div>
 		<table id="performance_list"></table>

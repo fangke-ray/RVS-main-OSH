@@ -32,7 +32,10 @@
 			    ld.service_free_flg,
 			    ld.comment,
 			    ld.liability_flg,
-			    ld.nogood_description
+	            case WHEN ld.nogood_description IS NULL and belongs > 3 THEN
+	                (select inline_comment from material_part_prelist where material_id = mpd.material_id and partial_id = mpd.partial_id limit 1)
+	                ELSE ld.nogood_description
+				END as nogood_description
 			from
 			    material_partial_detail mpd
 			        left join
@@ -65,9 +68,9 @@
 				]]>
 			  </if>
 			  <if test="order_date!=null and order_date!='' ">
-					<![CDATA[
-					   and mp.order_date=#{order_date}
-					]]>
+				<![CDATA[
+				   and mp.order_date=#{order_date}
+				]]>
 			  </if>
 	    </where>
 		) mtl

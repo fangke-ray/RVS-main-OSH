@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.MaterialPartInstructMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchMaterialPartInstructInline" parameterType="MaterialPartInstructEntity" resultType="MaterialPartInstructEntity">
+		<![CDATA[
+		select ma.material_id, ma.omr_notifi_no, ma.model_id, mdl.name as model_name, ma.serial_no, ma.agreed_date,
+			ma.level, ma.inline_time, max(mp.occur_times) as occur_times, min(mp.order_date) as order_date,
+		    mpp.procedure, 
+		    case 
+			    when mpp.confirm is null then null
+			    when mpp.confirm = 0 then 1
+			    when mpp.confirm = 1 and confirmer_n_id is not null then 1
+			    when mpp.confirm = 2 and confirmer_d_id is not null then 1
+			    when mpp.confirm = 3 and (confirmer_d_id is not null and confirmer_n_id is not null) then 1
+			    else 0
+		    end as confirm, 
+		    case when mpl.material_id is null then null
+			    else 
+			    sum(mpl.inline_operator_id is not null) > 0
+		    end as inline_adjust
+		from material ma 
+		join production_feature pf on ma.material_id = pf.material_id
+		join position pos on pf.position_id = pos.position_id
+			and pos.special_page = 'quotation'
+		join model mdl
+			on ma.model_id = mdl.model_id
+		left join material_partial mp
+			on ma.material_id = mp.material_id and mp.bo_flg <> 7
+		left join material_part_procedure mpp
+			on ma.material_id = mpp.material_id
+		left join material_part_prelist mpl
+			on ma.material_id = mpl.material_id
+
+		where ma.break_back_flg = 0
+		and ma.outline_time is null
+		]]>
+	<if test="omr_notifi_no!= null and omr_notifi_no != '' ">
+		and ma.omr_notifi_no like concat('%', #{omr_notifi_no}, '%')
+	</if>
+	<if test="model_id!= null and model_id != '' ">
+		and ma.model_id = #{model_id}
+	</if>
+	<if test="serial_no!= null and serial_no != '' ">
+		and ma.serial_no = #{serial_no}
+	</if>
+	<if test="level eq 1">
+		and ma.level = 1
+	</if>
+	<if test="level eq 2">
+		and ma.level = 2
+	</if>
+	<if test="level eq 3">
+		and ma.level = 3
+	</if>
+	<if test="level eq 5">
+		and ma.level in (55,56,59)
+	</if>
+	<if test="level eq 9">
+		and ma.level in (9,91,92,93,96,97,98,99)
+	</if>
+	<if test="section_id!= null and section_id != '' ">
+		and ma.section_id = #{section_id}
+	</if>
+	<if test="occur_times eq '-1'">
+		and mp.material_id IS NULL
+	</if>
+		group by ma.material_id
+	<if test="search_procedures != null or (occur_times != null and occur_times != '' and occur_times != '-1') ">
+		<trim prefix="having" prefixOverrides="and">
+			<if test="occur_times eq '1'">
+				and occur_times = 1
+			</if>
+			<if test="occur_times eq '2'">
+				and occur_times > 1
+			</if>
+			<if test="search_procedures != null">
+				and 
+				<trim prefix="(" suffix=")" suffixOverrides="OR">
+				<foreach item="search_procedure" collection="search_procedures">
+					<if test="search_procedure eq 1">
+						(inline_adjust is not null AND inline_time IS NULL) OR
+					</if>
+					<if test="search_procedure eq 2">
+					<![CDATA[
+						(confirm IS NULL AND inline_time IS NOT NULL AND order_date IS NULL) OR
+					]]>
+					</if>
+					<if test="search_procedure eq 3">
+						(confirm = 0 AND order_date IS NULL) OR
+					</if>
+					<if test="search_procedure eq 4">
+						(confirm = 1 AND order_date IS NULL) OR
+					</if>
+					<if test="search_procedure eq 5">
+						order_date IS NOT NULL OR
+					</if>
+				</foreach> 
+				</trim>
+			</if>
+		</trim>
+	</if>
+	;
+	</select>
+
+	<select id="searchMaterialPartInstructOutline" parameterType="MaterialPartInstructEntity" resultType="MaterialPartInstructEntity">
+		<![CDATA[
+		select ma.material_id, ma.omr_notifi_no, ma.model_id, mdl.name as model_name, ma.serial_no, ma.agreed_date,
+			ma.level, ma.inline_time, max(mp.occur_times) as occur_times, min(mp.order_date) as order_date,
+		    mpp.procedure, 
+		    1 as confirm, 
+		    1 as inline_adjust
+		from material ma 
+		join model mdl
+		on ma.model_id = mdl.model_id
+		join material_partial mp
+		on ma.material_id = mp.material_id and mp.bo_flg <> 7
+		left join material_part_procedure mpp
+		on ma.material_id = mpp.material_id
+		join material_part_prelist mpl
+		on ma.material_id = mpl.material_id
+
+		where ma.break_back_flg = 0
+		and ma.outline_time is not null
+		]]>
+	<if test="omr_notifi_no!= null and omr_notifi_no != '' ">
+		and ma.omr_notifi_no like concat('%', #{omr_notifi_no}, '%')
+	</if>
+	<if test="model_id!= null and model_id != '' ">
+		and ma.model_id = #{model_id}
+	</if>
+	<if test="serial_no!= null and serial_no != '' ">
+		and ma.serial_no = #{serial_no}
+	</if>
+	<if test="level eq 1">
+		and ma.level = 1
+	</if>
+	<if test="level eq 2">
+		and ma.level = 2
+	</if>
+	<if test="level eq 3">
+		and ma.level = 3
+	</if>
+	<if test="level eq 5">
+		and ma.level in (55,56,59)
+	</if>
+	<if test="level eq 9">
+		and ma.level in (9,91,92,93,96,97,98,99)
+	</if>
+	<if test="section_id!= null and section_id != '' ">
+		and ma.section_id = #{section_id}
+	</if>
+		group by ma.material_id
+	<if test="(occur_times != null and occur_times != '') ">
+		<trim prefix="having" prefixOverrides="and">
+			<if test="occur_times != null and occur_times != ''">
+				and occur_times = #{occur_times}
+			</if>
+		</trim>
+	</if>
+	;
+	</select>
+
+	<select id="getInstuctListForMaterial" parameterType="String" resultType="MaterialPartPrelistEntity">
+		select lst.partial_id, 
+			-- [case when rank in (1,3) then ptl.code else null end as code],
+			ptl.code,
+			bom_code, quantity, rank, ship, quote_adjust,
+			q_op.job_no as quote_job_no, 
+			i_op.job_no inline_job_no, 
+			inline_comment
+		from material_part_prelist lst
+		join partial ptl on lst.partial_id = ptl.partial_id
+		left join operator q_op on lst.quote_operator_id = q_op.operator_id
+		left join operator i_op on lst.inline_operator_id = i_op.operator_id
+		where material_id = #{material_id}
+		order by bom_code;
+	</select>
+
+
+	<select id="getFocusPartialsByOperator" parameterType="String" resultType="PartialPositionEntity">
+		select ptl.partial_id, ptl.code, ptl.name, ptl.price,
+			group_concat(distinct pos.process_code  order by pos.process_code separator ' ') as process_code 
+		from partial ptl 
+		join partial_order_focus foc
+			on ptl.partial_id = foc.partial_id
+			and foc.operator_id = #{operator_id}
+		left join partial_position_belong ppb
+			on foc.partial_id = ppb.partial_id
+		left join position pos
+			on ppb.position_id = pos.position_id
+		where ptl.delete_flg = 0
+		group by foc.partial_id
+		;
+	</select>
+
+	<select id="getPartialById" parameterType="String" resultType="PartialPositionEntity">
+		select ptl.partial_id, ptl.code, ptl.name, ptl.price,
+			group_concat(distinct pos.process_code  order by pos.process_code separator ' ') as process_code 
+		from partial ptl 
+		left join partial_position_belong ppb
+			on ptl.partial_id = ppb.partial_id
+		left join position pos
+			on ppb.position_id = pos.position_id
+		where ptl.delete_flg = 0
+		and ptl.partial_id = #{partial_id}
+		group by ptl.partial_id
+		;
+	</select>
+
+	<select id="checkPartPrelist" parameterType="MaterialPartPrelistEntity" resultType="MaterialPartPrelistEntity">
+		select lst.material_id, lst.partial_id, bom_code, quantity, quote_adjust, quote_operator_id, inline_operator_id, lst.rank
+		from material_part_prelist lst
+		where material_id = #{material_id}
+        and bom_code = #{bom_code};
+	</select>
+
+	<delete id="removeFocusPartialListByOperator" parameterType="String">
+		delete from partial_order_focus
+		where operator_id = #{operator_id};
+	</delete>
+
+	<insert id="insertFocusPartialListByOperator" parameterType="String">
+		INSERT INTO `partial_order_focus`
+		(`operator_id`,
+		`partial_id`)
+		VALUES
+		(#{operator_id},
+		#{partial_id});
+	</insert>
+
+	<insert id="insertPartPrelist" parameterType="MaterialPartPrelistEntity">
+		INSERT INTO `material_part_prelist`
+		(`material_id`,
+		`partial_id`,
+		`bom_code`,
+		`quantity`,
+		`rank`,
+		`quote_adjust`,
+		`quote_operator_id`,
+		`inline_operator_id`,
+		`inline_comment`)
+		VALUES
+		(#{material_id},
+		#{partial_id},
+		#{bom_code},
+		#{quantity},
+		#{rank},
+		#{quote_adjust},
+		#{quote_operator_id},
+		#{inline_operator_id},
+		#{inline_comment});
+	</insert>
+
+	<update id="updatePartPrelist" parameterType="MaterialPartPrelistEntity">
+		UPDATE `material_part_prelist`
+		SET
+		`quantity` = #{quantity},
+		`quote_adjust` = #{quote_adjust},
+		`quote_operator_id` = #{quote_operator_id},
+		`inline_operator_id` = #{inline_operator_id},
+		`inline_comment` = #{inline_comment}
+		WHERE `material_id` = #{material_id} AND `partial_id` = #{partial_id} AND `bom_code` = #{bom_code};
+	</update>
+
+	<update id="deletePartPrelist" parameterType="MaterialPartPrelistEntity">
+		DELETE FROM `material_part_prelist`
+		WHERE `material_id` = #{material_id} AND `partial_id` = #{partial_id} AND `bom_code` = #{bom_code};
+	</update>
+
+	<select id="getPartProcedure" parameterType="String" resultType="MaterialPartInstructEntity">
+		select `procedure`, confirm
+		from material_part_procedure where material_id = #{material_id};
+	</select>
+
+	<select id="getPartNeedNotice" parameterType="String" resultType="MaterialPartPrelistEntity">
+		<![CDATA[
+		SELECT lst.partial_id, lst.quantity, order_flg, price, pos.line_id,
+			(select group_concat(operator_id) from partial_order_focus where partial_id = lst.partial_id) as inline_comment
+		FROM material_part_prelist lst
+		JOIN partial ptl
+			ON lst.partial_id = ptl.partial_id
+		JOIN material ma
+			ON lst.material_id = ma.material_id
+		LEFT JOIN partial_position_belong ppb
+			ON ma.model_id = ppb.model_id
+            AND lst.bom_code = ppb.bom_code
+		LEFT JOIN position pos
+			on ppb.position_id = pos.position_id
+		WHERE 
+			lst.material_id = #{material_id}
+		AND
+			(rank = 9 OR (quote_adjust < 0 AND inline_operator_id IS NOT NULL))
+		;
+		]]>
+	</select>
+
+	<select id="getPartCommentsFromLossDetail" parameterType="String" resultType="MaterialPartPrelistEntity">
+		select mpd.partial_id, nogood_description as inline_comment, count(1) as cnt 
+		from loss_detail ld 
+		join material_partial_detail mpd 
+		on ld.material_partial_detail_key = mpd.material_partial_detail_key
+		join material_part_prelist mpl on mpd.partial_id = mpl.partial_id and nogood_description is not null
+		where mpl.material_id = #{material_id}
+		group by mpd.partial_id, nogood_description
+		order by cnt desc
+		limit 500;
+	</select>
+
+	<select id="getAdditionalOrder" parameterType="String" resultType="MaterialPartPrelistEntity">
+		select mpl.quantity, quote_adjust, quote_operator_id, mpl.rank,
+			inline_comment, code, ptl.name, order_flg, price, quote_adjust,
+		    in_op.job_no as inline_job_no,
+		    ppb.position_id, pos.process_code, pos.line_id
+		from material_part_prelist mpl
+		join partial ptl
+		on mpl.partial_id = ptl.partial_id
+		join material ma
+		on mpl.material_id = ma.material_id
+		left join operator in_op
+		on mpl.inline_operator_id = in_op.operator_id
+		left join partial_position_belong ppb
+		on ma.model_id = ppb.model_id and mpl.bom_code = ppb.bom_code
+		left join position pos
+		on ppb.position_id = pos.position_id
+		where mpl.material_id = #{material_id}
+		and (quote_operator_id is not null OR inline_operator_id is not null)
+		order by order_flg desc, inline_comment, pos.line_id = 13 desc
+		;
+	</select>
+
+	<select id="getMaterialPartProcedure" parameterType="String" resultType="MaterialPartInstructEntity">
+		select material_id, `procedure`, confirm, 
+        concat (
+		case when confirmer_d_id is null then '-'  else (select job_no from operator where operator_id = confirmer_d_id) end,
+        '|',
+        case when confirmer_n_id is null then '-'  else (select job_no from operator where operator_id = confirmer_n_id) end
+        )as operator_id
+		from material_part_procedure mpp
+		where mpp.material_id = #{material_id};
+		;
+	</select>
+
+	<insert id="insertMaterialPartProcedure" parameterType="String">
+		insert into material_part_procedure (material_id, `procedure`) values (#{material_id}, 0);
+	</insert>
+
+	<update id="updateMaterialPartProcedure" parameterType="MaterialPartInstructEntity">
+		update `material_part_procedure`
+		set 
+			`procedure` = #{procedure},
+			`confirm` = #{confirm}
+		<if test="occur_times eq 12">
+			,`confirmer_d_id` = #{operator_id}
+		</if>
+		<if test="occur_times eq 13">
+			,`confirmer_n_id` = #{operator_id}
+		</if>
+		where
+			material_id = #{material_id};
+	</update>
+
+</mapper>

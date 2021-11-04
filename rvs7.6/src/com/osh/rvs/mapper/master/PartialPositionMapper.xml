@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.osh.rvs.mapper.master.PartialPositionMapper">
+<!-- partial_rank_bom -->
  <select id="searchPartialPosition" parameterType="PartialPositionEntity" resultType="PartialPositionEntity">
 	SELECT 
 		PA.CODE,
@@ -108,6 +109,114 @@
       PA.UPDATED_TIME
  </select>
 
+ <select id="searchPartialPositionNew" parameterType="PartialPositionEntity" resultType="PartialPositionEntity">
+	SELECT 
+		PA.CODE,
+		PA.NAME,
+		PPB.new_partial_id,
+		ppb.bom_code,
+		ppb.QUANTITY,
+		PO.PROCESS_CODE AS PROCESS_CODE,
+		PPB.HISTORY_LIMIT_DATE,
+	    O.NAME AS UPDATED_BY,
+	    PA.UPDATED_TIME,
+		PPB.ACTIVE_DATE,
+		PPB.MODEL_ID,
+		PPB.PARTIAL_ID,
+		PA_P.CODE AS parent_partial_CODE,
+		PPB.POSITION_ID,
+		M.NAME AS MODEL_NAME
+	 <if test="level!=null and level!='' ">		
+		,PBS.BOM_CODE IS NOT NULL AS BOM,
+		 p_use.p_rate as userate
+	</if>  
+	  FROM 
+	     PARTIAL_POSITION_BELONG PPB
+	  JOIN
+		 MODEL M 
+	  ON 
+	     PPB.MODEL_ID =M.MODEL_ID
+	  JOIN 
+		 PARTIAL PA
+	  ON 
+		 PPB.PARTIAL_ID = PA.PARTIAL_ID
+	  LEFT JOIN 
+		 PARTIAL PA_P
+	  ON 
+		 PPB.parent_partial_id = PA_P.PARTIAL_ID
+	  LEFT JOIN 
+		 POSITION PO
+	  ON 
+		 PPB.POSITION_ID = PO.POSITION_ID
+	  LEFT JOIN 
+	     PARTIAL_WASTE_MODIFY_HISTORY PWMH
+	  ON
+	     PWMH.MODEL_ID = PPB.MODEL_ID
+	  AND 
+	     PWMH.OLD_PARTIAL_ID = PPB.PARTIAL_ID
+	<if test="level!=null and level!='' ">
+	  LEFT JOIN 
+		PARTIAL_RANK_BOM PBS 
+		ON PPB.MODEL_ID = PBS.MODEL_ID
+		AND  PBS.level = LEFT(#{level},1)
+	  AND  PPB.BOM_CODE = PBS.BOM_CODE 
+	  	  
+	  left join
+	   (
+		select partial_id,
+		count(1) / g_m.total * 100 as p_rate from (
+		select m.material_id,partial_id from material_partial_detail mpd
+		join material m
+		on mpd.material_id = m.material_id
+		WHERE m.model_id = #{model_id} and m.level = #{level}
+		group by m.material_id,partial_id
+		) g_mp
+		join
+		(
+		select count(distinct m.material_id) as total from
+		material_partial_detail mpd
+		join material m
+		on mpd.material_id = m.material_id
+		WHERE m.model_id = #{model_id} and m.level = #{level}
+		) g_m
+		group by partial_id
+		) p_use
+	   on p_use.partial_id =PPB.partial_id 	   
+	</if>  
+      LEFT JOIN 
+         OPERATOR O
+      ON PWMH.UPDATED_BY=O.OPERATOR_ID	
+	<where>
+	<if test="history_limit_date!=null and history_limit_date!='' ">
+		<![CDATA[
+		  PPB.HISTORY_LIMIT_DATE>=CURRENT_TIMESTAMP
+		]]>
+	</if>	
+	<if test="code!=null and code!='' ">
+		<![CDATA[
+	     AND PA.CODE LIKE CONCAT(#{code},'%')
+		]]>
+	</if>
+	<if test="model_id!=null and model_id!='' ">
+		<![CDATA[
+	     AND PPB.MODEL_ID=#{model_id}
+		]]>
+	</if>
+	<if test="partial_id!=null and partial_id!='' ">
+		<![CDATA[
+		 AND  PPB.PARTIAL_ID=#{partial_id}
+		]]>
+	</if>
+	<if test="position_id!=null and position_id!='' ">
+		<![CDATA[
+		 AND  PPB.POSITION_ID=#{position_id}
+		]]>
+	</if>
+    </where>
+    ORDER BY
+      PA.UPDATED_TIME
+ </select>
+
   <select id="checkPartialPosition" resultType="String" parameterType="PartialPositionEntity">
    <![CDATA[ 
 			SELECT partial_id
@@ -121,7 +230,7 @@
 			]]>
 		</if>
 		 
-  </select>  
+  </select>
  <insert id="insertPartialPosition" parameterType="PartialPositionEntity">
    INSERT INTO PARTIAL_POSITION_BELONG (
         MODEL_ID,                                                                
@@ -290,12 +399,56 @@
 		ORDER BY model_name, parent_partial_code, code
  </select>
 
+ <select id="getAllInstructOfModel" resultType="PartialPositionEntity" parameterType="String">
+		SELECT 
+			ppb.model_id, MDL.name as model_name, PPB.`partial_id`, PA.code, `parent_partial_id`, PA_P.CODE as parent_partial_code,
+            active_date,history_limit_date,
+			`bom_code`, sum(`quantity`) as quantity, group_concat(concat(PO.process_code, ':', `quantity`) separator ';') as process_code
+		FROM
+			PARTIAL_POSITION_BELONG PPB
+		JOIN 
+			PARTIAL PA
+		ON 
+			PPB.PARTIAL_ID = PA.PARTIAL_ID
+		JOIN
+			model MDL
+		ON
+			PPB.model_id = MDL.MODEL_ID
+		LEFT JOIN 
+			PARTIAL PA_P
+		ON 
+			PPB.parent_partial_id = PA_P.PARTIAL_ID
+		LEFT JOIN 
+			POSITION PO
+		ON 
+			PPB.POSITION_ID = PO.POSITION_ID
+		WHERE
+			MDL.model_id=7 and mdl.delete_flg = 0
+		GROUP BY ppb.model_id, PPB.parent_partial_id, ppb.partial_id, ppb.bom_code
+		ORDER BY parent_partial_code, code
+ </select>
+
+
  <select id="getComponentOfModel" resultType="String" parameterType="String">
 	SELECT ptl.code FROM partial ptl
 	JOIN PARTIAL_POSITION_BELONG ppb
 	on ppb.PARTIAL_ID = ptl.PARTIAL_ID
 	and MODEL_ID=#{model_id}
 	where order_flg = 2;
+ </select>
+
+
+ <select id="getNoneBelonsModels" resultType="ModelEntity">
+	select mdl.model_id, mdl.name as name, ctg.NAME as category_name from model mdl
+	join category ctg
+		on mdl.category_id = ctg.CATEGORY_ID
+	join model_level_set mls
+		on mls.model_id = mdl.model_id
+	where mdl.delete_flg = 0
+		and not exists (select 1 from partial_position_belong where model_id = mdl.model_id)
+		and ctg.kind between 1 and 7
+	group by mdl.model_id
+	order by ctg.kind, mdl.name;
  </select>
 
 </mapper>

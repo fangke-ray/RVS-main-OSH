@@ -1,4 +1,12 @@
 ﻿@CHARSET "UTF-8";
+span.instruct_obj{
+	float: right;margin: .3em .4em .2em .3em;
+	cursor: pointer;
+	color: darkblue;
+	background-color: white;
+	padding-left:.2em;
+	padding-right:.5em;
+}
 #inst_page label.component {
 	background:lightblue;
 	color:orange;
@@ -17,6 +25,18 @@
 	border-bottom-left-radius: 2em;
 	border: 0;
 	color: whitesmoke;
+}
+#inst_page .inst_page.edited + label:after {
+	content: '+';
+	left: 1px;
+	top: -10px;
+	background-color: rgba(205,74,75,0.8);
+	position: absolute;
+	width: 1em;
+	padding: 0;
+	border-radius: 2em;
+	border: 0;
+	color: gold;
 }
 
 #inst_head th {
@@ -45,20 +65,40 @@
 	text-align:right;
 	padding-right:.5em;
 }
+#inst_list > table td[inline_comment] {
+	position:relative;
+	cursor:pointer;
+}
+#inst_list > table td[inline_comment]:hover:before {
+	position : absolute;
+	content:attr(inline_comment);
+	background-color:gold;
+	height:100%;
+	width:100%;
+	left:0;
+	line-height: 2em;
+	padding-left:2px;
+}
 #inst_list > table tr.instructed > td {
 	background-color:aliceblue;
 }
 #inst_list > table tr.instructed.cancel > td {
 	background-color:lightgray;
 }
+#inst_list > table tr.instructed.mismatch > td:nth-child(-n+2),
+#inst_list > table tr.instructed > td[for=quantity] > span.mismatch {
+	background-color: #C8FFC8;
+	text-decoration: underline double #00CC00;
+}
 #inst_list > table tr.append > td {
 	background-color:lemonchiffon;
 }
 #inst_list > table td.noticeprice {
-	background-color:orange;
+	text-decoration: underline double crimson;
 }
 #inst_list > table td[for=rank],
-#inst_list > table td[for=process_code] {
+#inst_list > table td[for=process_code],
+#inst_list > table td[sign] {
 	text-align:center;
 }
 #inst_list > table td.component {
@@ -88,11 +128,86 @@
 #inst_list > table tr.append > td[for=quantity] > span {
 	display: inline;
 }
-#inst_list > table tr > td.for_edit {
+#inst_list > table tr > td.for_edit,
+#inst_list > table tr > td.for_edit > button {
 	cursor:pointer;
 }
 #inst_list > table tr > td[for=quantity] > button {
 	display: inline-grid;
 	background-color: transparent;
 	border: 0;
+}
+#inst_warning_content {
+	position : absolute;
+	width : 400px;
+	background-color:lightyellow;
+	height: 3em;
+	bottom: 1.2em;
+	left: 0.5em;
+	overflow-x: hidden;
+	overflow-y: auto;
+	border: 1px solid #FF4131;
+	border-radius: 4px;
+	padding: 0 2px;
+	color: #FF4131;
+}
+#inst_cascade_content {
+	position: absolute;
+	width: 400px;
+	background-color: lightyellow;
+	height: 1.5em;
+	bottom: 1.1em;
+	left: 440px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	border: 1px solid goldenrod;
+	border-radius: 4px;
+	padding: 0 2px;
+	color: goldenrod;
+	word-break: keep-all;
+	cursor:pointer;
+}
+#inst_async_content {
+	position: absolute;
+	width: 400px;
+	background-color: aliceblue;
+	height: 1.5em;
+	bottom: 2.8em;
+	left: 440px;
+	overflow-x: hidden;
+	overflow-y: auto;
+	border: 1px solid #8BABE7;
+	border-radius: 4px;
+	padding: 0 2px;
+	word-break: keep-all;
+	color: #8BABE7;
+}
+#inst_loss_content {
+	position : absolute;
+	background-color:white;
+	color: darkblue;
+	width : 480px;
+	top: 2px;
+	right: 3em;
+	padding: 8px 8px;
+	font-size: 16px;
+}
+#inst_warning_content:empty,
+#inst_cascade_content:empty,
+#inst_async_content:empty,
+#inst_loss_content:empty {
+	display:none;
+}
+#instruct_comment_dialog > div {
+	min-height: 3em;
+	max-height: 18em;
+	overflow-y: auto;
+}
+#instruct_comment_dialog > div > input {
+	font-size: 12px;
+	padding : 0.25em 0.5em;
+	margin-top:0.25em;
+}
+#instruct_comment_dialog > div > input:first-child {
+	margin-top:1em;
 }

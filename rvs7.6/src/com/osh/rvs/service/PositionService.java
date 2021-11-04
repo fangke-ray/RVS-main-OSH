@@ -47,6 +47,11 @@ public class PositionService {
 	private static Map<String, List<String>> positionUnitizeds = null; // (动物内镜)映射工位指向(大修)来源工位
 	private static Map<String, String> positionUnitizedRevers = null; // (大修)来源工位指向(动物内镜)映射工位
 	private static Map<String, String> specialPagePositions = null;
+	@SuppressWarnings("unused")
+	private static Set<String> addiOrderPositions = null;
+	@SuppressWarnings("unused")
+	private static Set<String> addiOrderLastPositions = null;
+	public static final String ORDER_POSITION = "00000000109";
 
 	public static void clearCaches() {
 		dividePositions = null;
@@ -60,6 +65,8 @@ public class PositionService {
 		positionUnitizeds = null;
 		positionUnitizedRevers = null;
 		specialPagePositions = null;
+		addiOrderPositions = null;
+		addiOrderLastPositions = null;
 		positionEntityCache.clear();
 		ReverseResolution.positionRever.clear();
 	}
@@ -823,4 +830,26 @@ public class PositionService {
 		}
 		return specialPagePositions.get(position_id);
 	}	
+
+	/**
+	 * 投线后订购前追加零件工位的判定/TODO
+	 * 
+	 * @param position_id
+	 * @param conn
+	 * @return
+	 */
+	public static String isAddiOrderPosition(String position_id, SqlSession conn) {
+		// TODO
+		switch (position_id) {
+		case "00000000016":
+		case "00000000017":
+			return "0";
+		case "00000000108":
+			return "3";
+		case "00000000026":
+			return "2";
+		default :
+			return null;
+		}
+	}
 }

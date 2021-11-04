@@ -342,9 +342,9 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 						$("#sendbutton").enable();
 						// 判定
 						if (inWip >= 0 || inQuote >= 0) {
-							$("#sendqabutton, #sendccdbutton").enable();
+							$("#sendqabutton, #sendccdbutton, #instuctbutton").enable();
 						} else {
-							$("#sendqabutton, #sendccdbutton").disable();
+							$("#sendqabutton, #sendccdbutton, #instuctbutton").disable();
 						}
 
 						$("#resystembutton").enable();
@@ -375,7 +375,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 };
 
 function disableButtons(){
-	$("#expeditebutton,#nogoodbutton,#resystembutton,#stopbutton,#printbutton,#printaddbutton,#movebutton,#sendbutton,#sendqabutton,#quotationcommentbutton").disable();
+	$("#expeditebutton,#nogoodbutton,#resystembutton,#stopbutton,#printbutton,#printaddbutton,#movebutton,#sendbutton,#sendqabutton,#quotationcommentbutton,#instuctbutton").disable();
 };
 
 $(document).ready(function() {
@@ -503,6 +503,8 @@ $(document).ready(function() {
             }
         });
     });
+
+	$("#instuctbutton").click(instuctShow);
 
     /* return isFull */
     var multiSerialNo = function(serialNo) {
@@ -1382,3 +1384,63 @@ var showDetail=function(rid) {
 		});
 	});
 };
+
+var show_instruct_funcs = {
+	instructShow : function(xhrObj, model_name, material) {
+		var resInfo = $.parseJSON(xhrObj.responseText);
+		if (resInfo.errors && resInfo.errors.length) {
+			// 共通出错信息框
+			treatBackMessages(null, resInfo.errors);
+			return;
+		}
+		if (!resInfo.instuctForMaterial || !resInfo.instuctForMaterial.length) {
+			errorPop("此维修品未收到指示零件清单。");
+			return;
+		}
+		var $instructDialog = $("#instruct_dialog");
+		if ($instructDialog.length == 0) {
+			$(document.body).append("<div id='instruct_dialog'></div>");
+			$instructDialog = $("#instruct_dialog");
+		}
+		if (!(resInfo.instructLists && resInfo.instructLists['@'])) {
+			errorPop("此型号尚未导入工作指示单。");
+			return;
+		}
+		if (resInfo.highprice) {
+			material.highprice = resInfo.highprice;
+		}
+		if (typeof(instruction_show) === "function") {
+			instruction_show($instructDialog, model_name, resInfo.instructLists, resInfo.components, material, 
+				resInfo.instuctForMaterial, resInfo.rankBom, resInfo.partialBom, resInfo.edittype);
+		}
+	},
+	instructLoadMaterial : function(rowdata) {
+		var postData = {
+			"material_id": rowdata.material_id,
+			"model_id": rowdata.model_id,
+			"level": rowdata.level,
+			"procedure" : "1"
+		};
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : 'materialPartInstruct.do?method=instructLoad',
+			cache : false,
+			data : postData,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function(xhrObj){
+				postData["omr_notifi_no"] = rowdata.sorc_no;
+				show_instruct_funcs.instructShow(xhrObj, rowdata.model_name, postData);
+			}
+		});
+	}
+}
+
+var instuctShow = function() {
+	var selectedId = $("#performance_list").getGridParam("selrow");
+	var rowData = $("#performance_list").getRowData(selectedId);
+	show_instruct_funcs.instructLoadMaterial(rowData);
+}

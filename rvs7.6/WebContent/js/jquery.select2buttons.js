@@ -66,7 +66,7 @@ return this.each(function(){
 	var select = $(this);
 	var _multiselect = select.attr('multiple');
 
-	var formerCheckStatus = false; // TODO
+	var formerCheckStatus = false;
 
 	select.hide();
 
@@ -245,5 +245,7 @@ return this.each(function(){
 			}
 		}
     });
+
+    if (!formerCheckStatus && select.val()) formerCheckStatus = true;
   });
 }

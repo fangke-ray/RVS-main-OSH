@@ -29,6 +29,7 @@ import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
+import framework.huiqing.common.util.copy.IntegerConverter;
 
 public class PartialBomService {
 	/**
@@ -74,7 +75,10 @@ public class PartialBomService {
 	public List<PartialBomEntity> searchRankBom(ActionForm form, SqlSession conn) {
 		PartialBomEntity partialBomEntity = new PartialBomEntity();
 		// 复制表单到数据对象
-		BeanUtil.copyToBean(form, partialBomEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		CopyOptions cos = new CopyOptions();
+		cos.include("model_id", "level");
+		cos.converter(IntegerConverter.getInstance(), "level");
+		BeanUtil.copyToBean(form, partialBomEntity, cos);
 
 		PartialBomMapper mapper = conn.getMapper(PartialBomMapper.class);
 		List<PartialBomEntity> responseList = mapper.searchRankBom(partialBomEntity);

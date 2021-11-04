@@ -127,6 +127,7 @@ $(function() {
 		<h3 style="padding-left:30px;">进度查询</h3>
 		    <div>
 		        <a href="material.do">维修对象</a><br>
+		        <a href="materialPartInstruct.do?from=main">工作指示单</a><br>
 		        <a href="positionProduction.do">工位</a><br>
 		        <a href="operatorProduction.do">工时</a><br>
 		        <a href="alarmMessage.do">警报</a><br>

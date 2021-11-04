@@ -229,6 +229,25 @@ if (px == null || "0".equals(px)) {
 			</div>
 
 <%
+if (request.getAttribute("addi_order")!=null) {
+%>
+<script type="text/javascript">
+loadCss("css/partial/instruction_sheets.css");
+loadJs("js/partial/common/instruction_sheets.js", function(){
+	var $inst_obj = $("<span id=\"instuct_obj\" class=\"instruct_obj icon-list\"> 工作指示单</span>");
+	var $inst_obj_arc = $("#working_detail") 
+	if ($inst_obj_arc.is(":hidden")) {
+		$inst_obj.hide();
+	}
+	$inst_obj_arc.after($inst_obj);
+	$inst_obj.click(instruct_load_by_working);
+});
+</script>
+<%
+}
+%>
+
+<%
 Boolean peripheral = (Boolean) request.getAttribute("peripheral");
 if (peripheral!=null && peripheral) {
 %>

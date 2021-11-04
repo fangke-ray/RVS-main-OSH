@@ -23,6 +23,7 @@ import org.apache.log4j.Logger;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.master.ModelEntity;
+import com.osh.rvs.bean.partial.MaterialPartPrelistEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
@@ -34,6 +35,7 @@ import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.partial.ComponentSettingService;
+import com.osh.rvs.service.partial.MaterialPartInstructService;
 
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -130,6 +132,13 @@ public class QuotationService {
 
 		// 取得维修对象的作业标准时间。
 		responseBean.put("leagal_overline", RvsUtils.getZeroOverLine(mform.getModel_name(), mform.getCategory_name(), user, null));
+
+		// 判断维修品是否已经取得零件指示单
+		MaterialPartInstructService mpiService = new MaterialPartInstructService();
+		List<MaterialPartPrelistEntity> instuctListForMaterial = mpiService.getInstuctListForMaterial(material_id, conn);
+		if (instuctListForMaterial != null && instuctListForMaterial.size() > 0) {
+			responseBean.put("instuct_obj", true);
+		}
 	}
 
 	public MaterialForm getMaterialInfo(String material_id, LoginData user, SqlSession conn) {

@@ -535,6 +535,10 @@ var treatStart = function(resInfo) {
 	} else {
 		$("#confirmbutton, #wipconfirmbutton").enable();
 	}
+
+	if (resInfo.instuct_obj) {
+		$("#instuct_obj").show();
+	}
 }
 
 var getMaterialInfo = function(resInfo) {
@@ -798,6 +802,7 @@ var doFinish_ajaxSuccess=function(xhrobj, textStatus, postData){
 		} else {
 			$("#scanner_inputer").attr("value", "");
 			$("#material_details").hide();
+			$("#instuct_obj").hide();
 			$("#scanner_container").show();
 			$("#devicearea").hide();
 			$("#manualdetailarea").hide();
@@ -1247,6 +1252,10 @@ $(function() {
 				.attr("value", $("#major_pat").attr("base_id"));
 		}
 	});
+
+	if (typeof instruct_load_by_working === "function") {
+		$("#instuct_obj").click(instruct_load_by_working);
+	}
 });
 
 function load_list(listdata){

@@ -34,7 +34,8 @@
 	<% } else if(links.get("line")){ %>
 		        <a target="_parent" href="partial_recept.do">零件签收</a><br>
 	<% } %>
-		        <a target="_parent" href="materialPartial.do">零件订购·签收管理</a>
+		        <a target="_parent" href="materialPartial.do">零件订购·签收管理</a><br>
+		        <a target="_parent" href="materialPartInstruct.do?from=qf">工作指示单</a>
 		    </div>
 </div>
 <% if(links.get("analysis")){ %>

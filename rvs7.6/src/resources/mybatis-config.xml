@@ -87,6 +87,8 @@
 		<typeAlias alias="ConsumableInventoryEntity" type="com.osh.rvs.bean.partial.ConsumableInventoryEntity"/>
 		<typeAlias alias="ConsumableOnlineEntity" type="com.osh.rvs.bean.partial.ConsumableOnlineEntity"/>
 		<typeAlias alias="ConsumableApplicationDetailEntity" type="com.osh.rvs.bean.partial.ConsumableApplicationDetailEntity"/>
+		<typeAlias alias="MaterialPartInstructEntity" type="com.osh.rvs.bean.partial.MaterialPartInstructEntity" />
+		<typeAlias alias="MaterialPartPrelistEntity" type="com.osh.rvs.bean.partial.MaterialPartPrelistEntity" />
 
 		<typeAlias alias="DailyCheckResultEntity" type="com.osh.rvs.bean.infect.DailyCheckResultEntity"/>
 		<typeAlias alias="ToolsCheckResultEntity" type="com.osh.rvs.bean.infect.ToolsCheckResultEntity"/>
@@ -318,6 +320,8 @@
 		<mapper resource="com/osh/rvs/mapper/report/ProcedureManualMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/equipment/DeviceJigLoanMapper.xml"/>
+
+		<mapper resource="com/osh/rvs/mapper/partial/MaterialPartInstructMapper.xml"/>
 
 	</mappers>
 </configuration> 

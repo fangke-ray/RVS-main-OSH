@@ -338,7 +338,7 @@ function update_handleComplete(xhrobj, textStatus) {
 };
 
 
-var keepSearchData;
+var keepSearchData = {};
 var findit = function(data) {
 	if(!data){
 		 keepSearchData = {
@@ -458,6 +458,19 @@ var show_download_select = function(){
 		resizable:false,
 		buttons : {
 			"导出" : function() {
+				var postData = {};
+				var kind = $("#download_kind").val();
+				if (kind == -1) {
+					if (keepSearchData.model_id) {
+						postData.model_id = keepSearchData.model_id;
+					} else {
+						errorPop("当前没有参考的型号。");
+						return;
+					}
+				} else {
+					postData.kind = kind;
+				}
+
 				$dialog.parent().hide();
 				// Ajax提交
 				$.ajax({
@@ -465,7 +478,7 @@ var show_download_select = function(){
 					async : false,
 					url : servicePath + '?method=makefile',
 					cache : false,
-					data : {kind : $("#download_kind").val()},
+					data : postData,
 					type : "post",
 					dataType : "json",
 					success : ajaxSuccessCheck,
@@ -507,7 +520,7 @@ function filed_list(finished){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','型号ID','零件ID','工位ID','零件编码','名称', 'BOM 代码','工位','有效期','active_date','使用率','等级 BOM', '最后更新人','最后更新时间'],
+			colNames:['','型号ID','零件ID','工位ID','零件编码','名称', 'BOM 代码','指示数','工位','有效期','active_date','使用率','等级 BOM', '最后更新人','最后更新时间'],
 			colModel:[  
 				       {name:'myac', width:35, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true,delbutton:false }, hidden:true},
 			           {name:'model_id',index:'model_id',hidden:true},
@@ -516,6 +529,7 @@ function filed_list(finished){
 					   {name:'code',index:'code',width:30,align:'left'},
 					   {name:'name',index:'name',width: 100,align:'left'},
 					   {name:'bom_code',index:'bom_code',width: 50,align:'left'},
+					   {name:'quantity',index:'quantity',width: 20,datatype:'integer',align:'right'},
 					   {name:'process_code',index:'process_code',width:20,align:'center',formatter : function(value, options, rData){
 							if(value==null || value=='0'){
 								return '' ;

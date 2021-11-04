@@ -650,7 +650,8 @@ var treatPause = function(resInfo) {
 		}
 		$("#p_rate").html("<div class='tube-liquid tube-green' style='width:"+ frate +"%;text-align:right;'></div>");
 	
-		$("#working_detail").hide();
+		$("#working_detail").hide()
+			.next().hide();
 
 		if (resInfo.peripheralData && resInfo.peripheralData.length > 0) {
 			showPeripheral(resInfo);
@@ -739,7 +740,8 @@ var treatStart = function(resInfo) {
 
 	var p_operator_cost = $("#p_operator_cost").text();
 
-	$("#working_detail").show();
+	$("#working_detail").show()
+		.next().show();
 //	if (p_operator_cost.indexOf(':') < 0) {
 //		t_operator_cost = p_operator_cost;
 //	} else {
@@ -1254,7 +1256,7 @@ $(function() {
 	$("#working_detail").hide().click(function(){
 		var material_id = $("#pauseo_material_id").val();
 		showMaterial(material_id);
-	});
+	}).end().next().hide();
 
 	$("#position_status").css("color", "white");
 
@@ -1819,7 +1821,8 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 
 				if (resInfo.past_fingers) $("#flowtext").text(resInfo.past_fingers);
 
-				$("#working_detail").hide();
+				$("#working_detail").hide()
+					.next().hide();
 
 				$("#material_details td:eq(7)").text("");
 				$("#dtl_process_time label").text("");

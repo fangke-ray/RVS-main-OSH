@@ -1338,4 +1338,13 @@
 		<value code="2">大量零件</value>
 	</codelist>
 
+	<codelist name="instruct_procedure">
+		<value code="0" >无指示单</value>
+		<value code="1">报价确认</value>
+		<value code="2">分解/NS 确认</value>
+		<value code="3">线长确认</value>
+		<value code="4">可提交订单</value>
+		<value code="5">已提交订单</value>
+	</codelist>
+
 </codelist-config>
