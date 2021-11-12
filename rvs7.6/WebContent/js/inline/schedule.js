@@ -173,7 +173,7 @@ $(function() {
 	$("#cond_work_procedure_order_template_flg_set").buttonset();
 	$("#scheduled_expedited_set").buttonset();
 	$("#colchooser").buttonset();
-	$("#search_arrival_delay, #search_expedition_diff, #search_direct_flg").buttonset();
+	$("#search_arrival_delay, #search_expedition_diff, #search_direct_flg,#search_anml_exp_set").buttonset();
 
 	$("#colchooser input:checkbox").click(function (){
 		var colid = $(this).attr("id");
@@ -294,12 +294,13 @@ var findForSupport = function() {
 		"ocm" : $("#search_ocm").val(),
 		"expedition_diff": $("#search_expedition_diff input:checked").val(),
 		"bo_flg": $("#cond_work_procedure_order_template").val(),
-		"category_id":$("#search_category_id").val(),
+		"category_id":($("#search_category_id").val() || []).join(),
 		"support_date":$("#support_date").val(),
 		"support_count":$("#support_count").val(),
 		"direct_flg":$("#search_direct_flg input:checked").val(),
 		"inline_time_start" : $("#search_inline_time_start").val(),
 		"inline_time_end" : $("#search_inline_time_end").val(),
+		"anml_exp" : $("#search_anml_exp_set input:checked").val(),
 		"px" : $("#search_px").val()
 	};
 
@@ -342,10 +343,11 @@ function exportReport() {
 		"arrival_delay": $("#search_arrival_delay input:checked").val(),
 		"expedition_diff": $("#search_expedition_diff input:checked").val(),
 		"bo_flg": $("#cond_work_procedure_order_template").val(),
-		"category_id":$("#search_category_id").val(),
+		"category_id":($("#search_category_id").val() || []).join(),
 		"direct_flg":$("#search_direct_flg input:checked").val(),
 		"inline_time_start" : $("#search_inline_time_start").val(),
 		"inline_time_end" : $("#search_inline_time_end").val(),
+		"anml_exp" : $("#search_anml_exp_set input:checked").val(),
 		"px" : $("#search_px").val()
 		};
 
@@ -1215,10 +1217,11 @@ var findit = function() {
 		"arrival_delay": $("#search_arrival_delay input:checked").val(),
 		"expedition_diff": $("#search_expedition_diff input:checked").val(),
 		"bo_flg": $("#cond_work_procedure_order_template").val(),
-		"category_id":$("#search_category_id").val(),
+		"category_id":($("#search_category_id").val() || []).join(),
 		"direct_flg":$("#search_direct_flg input:checked").val(),
 		"inline_time_start" : $("#search_inline_time_start").val(),
 		"inline_time_end" : $("#search_inline_time_end").val(),
+		"anml_exp" : $("#search_anml_exp_set input:checked").val(),
 		"px" : $("#search_px").val()
 	};
 
@@ -1267,10 +1270,11 @@ var findboth = function() {
 		"arrival_delay": $("#search_arrival_delay input:checked").val(),
 		"expedition_diff": $("#search_expedition_diff input:checked").val(),
 		"bo_flg": $("#cond_work_procedure_order_template").val(),
-		"category_id":$("#search_category_id").val(),
+		"category_id":($("#search_category_id").val() || []).join(),
 		"direct_flg":$("#search_direct_flg input:checked").val(),
 		"inline_time_start" : $("#search_inline_time_start").val(),
 		"inline_time_end" : $("#search_inline_time_end").val(),
+		"anml_exp" : $("#search_anml_exp_set input:checked").val(),
 		"px" : $("#search_px").val()
 	};
 

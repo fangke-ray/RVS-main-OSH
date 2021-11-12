@@ -99,6 +99,11 @@ public class ScheduleService {
 
 		BeanUtil.copyToBean(form, conditionBean, cos);
 
+		// 复选机种
+		if (conditionBean.getCategory_id() != null && conditionBean.getCategory_id().indexOf(",") >= 0) {
+			conditionBean.setCategory_ids(conditionBean.getCategory_id().split(","));
+			conditionBean.setCategory_id(null);
+		}
 		List<String> ids = dao.searchMaterialIdsByCondition(conditionBean);
 		List<ScheduleForm> retForms = new ArrayList<ScheduleForm>();
 

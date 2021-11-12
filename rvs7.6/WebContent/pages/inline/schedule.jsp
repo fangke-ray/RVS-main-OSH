@@ -53,7 +53,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									<td class="td-content"><input type="text" id="search_sorc_no" maxlength="15" class="ui-widget-content"></td>
 									<td class="ui-state-default td-title" rowspan="4">维修对象机种</td>
 									<td class="td-content" rowspan="4" colspan="3">
-										<select name="category_id" id="search_category_id" class="ui-widget-content">${cOptions}</select>	
+										<select name="category_id" id="search_category_id" class="ui-widget-content" multiple>${cOptions}</select>	
 									</td>
 								</tr>
 								<tr>
@@ -161,16 +161,23 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 											<input type="radio" name="direct_flg" id="search_direct_flg_f" class="ui-widget-content ui-helper-hidden-accessible" value="0"><label for="search_direct_flg_f" aria-pressed="false">分室</label>
 										</div>
 									</td>
-									<td class="ui-state-default td-title">投线时间</td>
-									<td class="td-content">
+									<td class="ui-state-default td-title" rowspan="2">投线时间</td>
+									<td class="td-content" rowspan="2">
 										<input type="text" id="search_inline_time_start" class="ui-widget-content" readonly="readonly">起<br/>
 										<input type="text" id="search_inline_time_end" class="ui-widget-content" readonly="readonly">止</td>
 									</td>
-									<td class="ui-state-default td-title">总组工程分线</td>
-									<td class="td-content">
+									<td class="ui-state-default td-title" rowspan="2">总组工程分线</td>
+									<td class="td-content" rowspan="2">
 										<select name="px" id="search_px" class="ui-widget-content">
 											${pxOptions}
 										</select>
+									</td>
+								</tr>
+								<tr>
+									<td class="ui-state-default td-title">动物实验用</td>
+									<td class="td-content" id="search_anml_exp_set">
+										<input type="radio" name="anml_exp" id="search_anml_exp_a" class="ui-widget-content" checked="true" value=""><label for="search_anml_exp_a">(全)</label>
+										<input type="radio" name="anml_exp" id="search_anml_exp_y" class="ui-widget-content" value="1"><label for="search_anml_exp_y">动物实验用</label>
 									</td>
 								</tr>
 							</tbody>

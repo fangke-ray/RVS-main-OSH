@@ -28,7 +28,7 @@ public class ScheduleForm extends ActionForm {
 	private String sorc_no;
 	@BeanField(title = "ESAS No.", name = "esas_no", type = FieldType.String, length = 7)
 	private String esas_no;
-	@BeanField(title = "维修对象机种ID", name = "category_id", type = FieldType.String, length = 11)
+	@BeanField(title = "维修对象机种ID", name = "category_id", type = FieldType.String)
 	private String category_id;
 	private String category_name;
 	@BeanField(title = "维修对象型号 ID", name = "model_id", type = FieldType.String, length = 11)
@@ -166,6 +166,9 @@ public class ScheduleForm extends ActionForm {
 	private String px_ns;
 
 	private String row_no;
+
+	@BeanField(title = "动物实验用", name = "anml_exp", type = FieldType.Integer, length = 1)
+	private String anml_exp;
 
 	public String getFinish_date() {
 		return finish_date;
@@ -637,5 +640,11 @@ public class ScheduleForm extends ActionForm {
 	}
 	public void setPx_ns(String px_ns) {
 		this.px_ns = px_ns;
+	}
+	public String getAnml_exp() {
+		return anml_exp;
+	}
+	public void setAnml_exp(String anml_exp) {
+		this.anml_exp = anml_exp;
 	}
 }

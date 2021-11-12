@@ -44,6 +44,7 @@ public class ScheduleEntity implements Serializable {
 	private Integer position_eval2;
 
 	private String category_id;
+	private String[] category_ids;
 	private String category_name;
 	private String model_name;
 	private String levelName;
@@ -97,6 +98,8 @@ public class ScheduleEntity implements Serializable {
 
 	private Date expected_finish_time;
 	private Integer px;
+
+	private Integer anml_exp;
 
 	public String getLine_id() {
 		return line_id;
@@ -517,6 +520,18 @@ public class ScheduleEntity implements Serializable {
 	}
 	public void setPx(Integer px) {
 		this.px = px;
+	}
+	public String[] getCategory_ids() {
+		return category_ids;
+	}
+	public void setCategory_ids(String[] category_ids) {
+		this.category_ids = category_ids;
+	}
+	public Integer getAnml_exp() {
+		return anml_exp;
+	}
+	public void setAnml_exp(Integer anml_exp) {
+		this.anml_exp = anml_exp;
 	}
 
 }

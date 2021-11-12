@@ -87,6 +87,13 @@
 			<if test="category_id !=null and category_id != ''">
 				and a.model_id in(select model_id from model where category_id = #{category_id})					
 			</if>
+			<if test="category_ids !=null and category_ids != ''">
+				and a.model_id in(select model_id from model where category_id in
+			<foreach item="c_id" collection="category_ids" open="(" separator="," close=")">
+				#{c_id}
+ 			</foreach> 
+				)					
+			</if>
 			<if test="complete_date_start!= null">
 				<![CDATA[ 
 				and c.scheduled_assign_date >= #{complete_date_start}
@@ -189,6 +196,10 @@
 				<![CDATA[
 				AND c.px = #{px}
 				]]>
+			</if>
+			<if test="anml_exp eq 1 ">
+				and EXISTS 
+					(SELECT tag_type FROM material_tag WHERE material_id = a.material_id AND tag_type = 1)
 			</if>
 		</where>
 		group by material_id
@@ -302,7 +313,7 @@
     WHERE
         line_id = 12 and material_id = a.material_id) as dec_plan_date,
     (SELECT 
-            scheduled_assign_date
+            finish_date
     FROM
         material_process
     WHERE
