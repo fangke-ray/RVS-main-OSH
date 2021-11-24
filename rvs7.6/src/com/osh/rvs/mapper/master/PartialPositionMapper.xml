@@ -423,7 +423,7 @@
 		ON 
 			PPB.POSITION_ID = PO.POSITION_ID
 		WHERE
-			MDL.model_id=7 and mdl.delete_flg = 0
+			MDL.model_id=#{model_id} and mdl.delete_flg = 0
 		GROUP BY ppb.model_id, PPB.parent_partial_id, ppb.partial_id, ppb.bom_code
 		ORDER BY parent_partial_code, code
  </select>

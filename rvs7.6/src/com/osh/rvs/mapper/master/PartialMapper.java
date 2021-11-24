@@ -10,7 +10,7 @@ import com.osh.rvs.bean.master.PartialPositionEntity;
 public interface PartialMapper {
 
 	public List<PartialEntity> searchPartial(PartialEntity conditionBean);
-	
+
 	public List<String> checkPartial(PartialEntity partial);
 	
 	public List<PartialEntity> getPartialByCode(String code);
@@ -18,6 +18,7 @@ public interface PartialMapper {
 	public int insertPartial(PartialEntity partial) throws Exception;
 	
 	public PartialEntity getPartialByID(String id);
+	public String getPartialCodeByID(String id);
 	
 	public int insertPartialPrice(PartialEntity partial) throws Exception;
 	

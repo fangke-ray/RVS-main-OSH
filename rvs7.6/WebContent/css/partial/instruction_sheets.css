@@ -1,4 +1,7 @@
 ﻿@CHARSET "UTF-8";
+#inst_partial_code {
+	ime-mode: disabled;
+}
 span.instruct_obj{
 	float: right;margin: .3em .4em .2em .3em;
 	cursor: pointer;
@@ -38,12 +41,20 @@ span.instruct_obj{
 	border: 0;
 	color: gold;
 }
-
+#inst_page > div[role='button'] {
+	display: inline;
+	display: inline-block;
+    margin-left: 3px;
+	padding: 0em 0.4em;
+	height: 22px;
+	cursor: pointer;
+}
 #inst_head th {
 	padding: 0;
 }
 #inst_list {
-	max-height: 420px;
+	max-height: 360px;
+	/* max-height: 420px; */
 	overflow-y: scroll;
 }
 #inst_list > table {
@@ -65,11 +76,25 @@ span.instruct_obj{
 	text-align:right;
 	padding-right:.5em;
 }
-#inst_list > table td[inline_comment] {
+#inst_list > table td[adjust] {
 	position:relative;
 	cursor:pointer;
 }
-#inst_list > table td[inline_comment]:hover:before {
+#inst_list > table td[adjust]:before {
+	position : absolute;
+	content:attr(adjust);
+	background-color:blue;
+	width:1.8em;
+	text-align:center;
+	height:100%;
+	left:0;
+	line-height: 2em;
+	color: yellow;
+}
+#inst_list > table td[adjust="0"]:before {
+	display: none;
+}
+#inst_list > table td[inline_comment]:hover:after {
 	position : absolute;
 	content:attr(inline_comment);
 	background-color:gold;
@@ -120,22 +145,25 @@ span.instruct_obj{
 #inst_list > table tr[level="4"] > td:first-child {
 	padding-left:3em;
 }
-#inst_list > table td[for=quantity] > span,
-#inst_list > table tr.instructed.cancel > td[for=quantity] > span {
-	display:none;
-}
-#inst_list > table tr.instructed > td[for=quantity] > span,
-#inst_list > table tr.append > td[for=quantity] > span {
+#inst_list > table td[for=quantity] > span {
 	display: inline;
 }
-#inst_list > table tr > td.for_edit,
-#inst_list > table tr > td.for_edit > button {
+#inst_list > table tr > td.for_edit {
+	position: relative;
 	cursor:pointer;
 }
-#inst_list > table tr > td[for=quantity] > button {
+#inst_list > table tr > td.for_edit:hover {
+	background-color : lightgreen; 
+}
+#inst_list > table tr > td.for_edit > button {
+	cursor:pointer;
+	display: inline;
 	display: inline-grid;
 	background-color: transparent;
 	border: 0;
+	position: absolute;
+	right: 2px;
+	top: 2px;
 }
 #inst_warning_content {
 	position : absolute;
@@ -198,6 +226,9 @@ span.instruct_obj{
 #inst_loss_content:empty {
 	display:none;
 }
+#instruct_comment_dialog {
+	padding-top: 1em;
+}
 #instruct_comment_dialog > div {
 	min-height: 3em;
 	max-height: 18em;
@@ -210,4 +241,37 @@ span.instruct_obj{
 }
 #instruct_comment_dialog > div > input:first-child {
 	margin-top:1em;
+}
+#instruct_comment_dialog #inst_adjust_quantity {
+	width: 40%;
+	height:1em;
+	position: relative;
+	top: 2px;
+}
+#instruct_comment_dialog #inst_adjust_quantity_min {
+	background-color:darkgray;
+	color:white;
+	width: 2em;
+	text-align: center;
+	display: inline-block;
+	margin-left: 0.5em;
+	border-radius: 4px;
+	cursor:pointer;
+}
+#instruct_comment_dialog #inst_adjust_quantity_max {
+	background-color:darkblue;
+	color:white;
+	width: 2em;
+	text-align: center;
+	display: inline-block;
+	border-radius: 4px;
+	cursor:pointer;
+}
+#instruct_comment_dialog #inst_adjust_quantity_val {
+	padding:0.5em;
+}
+#instruct_comment_dialog #inst_comment_inputer {
+	margin-left: 1em;
+	width: 70%;
+	font-size: larger;
 }

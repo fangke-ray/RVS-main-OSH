@@ -27,7 +27,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <link rel="stylesheet" type="text/css" href="css/partial/instruction_sheets.css">
 
 <script type="text/javascript" src="js/partial/material_part_instruct.js"></script>
-<script type="text/javascript" src="js/partial/common/instruction_sheets.js"></script>
+<script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=2"></script>
 
 <title>工作指示单信息</title>
 </head>

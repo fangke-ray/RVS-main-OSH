@@ -34,6 +34,16 @@
 		]]>
 	</select>
 	
+    <select id="getPartialCodeByID" resultType="String" parameterType="String">
+		<![CDATA[ 
+	   SELECT 
+		    p.CODE
+		 FROM 
+		 	`partial` p 
+		 WHERE p.PARTIAL_ID = #{partial_id}
+		]]>
+	</select>
+
 	<select id="searchPartialModelNameProcessCodeActiveData" parameterType="PartialPositionEntity" resultType="PartialPositionEntity">
 		 SELECT 
 		    PA.PARTIAL_ID,

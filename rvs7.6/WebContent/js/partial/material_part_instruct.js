@@ -16,8 +16,9 @@ levelMap = selecOptions2Object($("#goMaterial_level").val());
 var enablebuttons = function() {
 	var rowid = $("#list").jqGrid("getGridParam", "selrow");
 	$("#report_button").disable();
-	$("#additional_order_button").enable();
+	$("#additional_order_button").disable();
 	if (rowid != null) {
+		$("#additional_order_button").enable();
 		var rowdata = $("#list").getRowData(rowid);
 		var procedure = rowdata["procedure"];
 		if (procedure == "1") {
@@ -233,132 +234,6 @@ function exportReport(url,method) {
 		}
 	});
 }
-
-function initView(){
-	$("input.ui-button").button();
-
-	$("a.areacloser").hover(
-		function (){$(this).addClass("ui-state-hover");},
-		function (){$(this).removeClass("ui-state-hover");}
-	);
-
-	$("#searchbutton").addClass("ui-button-primary");
-	$("#searchbutton").click(function() {
-		findit();
-	});
-
-	$("#resetbutton").click(function() {
-		$("#search_sorc_no").val("");
-		$("#search_serial_no").val("");
-		$("#search_model_id").val("");
-		$("#txt_modelname").val("");
-		$("#search_level").val("").trigger("change");
-		$("#search_procedure").val(($("#defaultCondProcedure").val() || "").split(",")).trigger("change");
-		$("#search_section").val("").trigger("change");
-		$("#search_range").val("1").trigger("change");
-		$("#search_order_step").val("").trigger("change");
-		$("#occur_times_set input:eq(0)").attr("checked","checked").trigger("change");
-	});
-	$("#search_range").val("1").trigger("change");
-
-	// autoComplete(零件code) 
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : 'partial.do?method=getAutocomplete',
-		cache : true,
-		data : null,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrobj) {
-			var resInfo = $.parseJSON(xhrobj.responseText);
-			partialCodeAc = resInfo.sPartialCode;
-		}
-	});		
-
-	$("#searcharea span.ui-icon").bind("click",function() {
-		$(this).toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
-		if ($(this).hasClass('ui-icon-circle-triangle-n')) {
-			$(this).parent().parent().next().show("blind");
-		} else {
-			$(this).parent().parent().next().hide("blind");
-		}
-	});
-	
-	$("#search_procedure").children("option:eq(1)").remove();
-	$("#search_level, #search_range, #search_procedure, #search_section, #search_order_step").select2Buttons();
-	setReferChooser($("#search_model_id"));
-
-	$("#resetbutton").trigger("click");
-
-	$("#editbobutton").click(function(){
-		var rowid = $("#list").jqGrid("getGridParam", "selrow");
-		if (rowid == null) return;
-		var data = $("#list").getRowData(rowid);
-		var material_id = data["material_id"];
-		showInstructSheet(material_id);
-	});
-
-	$("#reportbutton").click(function(){
-		exportReport(servicePath + '?method=reportPartialOrder', "exportOrder");
-		});
-
-	$("#focus_button").click(partial_focus_funcs.loadPersonalFocus);
-
-	$("#search_range").change(function(){
-		if (this.val == "2") {
-			$("#s2b_search_procedure").hide();
-		} else {
-			$("#s2b_search_procedure").show();
-		}
-	})
-
-	$("#additional_order_button").click(show_confirm_funcs.additionalOrder);
-	$("#report_button").click(function(){
-		var rowid = $("#list").jqGrid("getGridParam", "selrow");
-		if (!rowid) return;
-
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			async : true,
-			url : servicePath + '?method=makeReport',
-			cache : false,
-			data : {"material_id": rowid},
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : function(xhrobj, textStatus){
-				var resInfo = $.parseJSON(xhrobj.responseText);
-				if (resInfo.errors.length > 0) {
-					// 共通出错信息框
-					treatBackMessages(null, resInfo.errors);
-				} else {
-					var rowdata = $("#list").getRowData(rowid);
-					var dUrl = "download.do"+"?method=output&fileName=" + (rowdata.omr_notifi_no || "") + "_追加零件订购清单.xlsx&filePath=" + resInfo.filePath;
- 
-					if ($("iframe").length > 0) {
-						$("iframe").attr("src", dUrl);
-					} else {
-						var iframe = document.createElement("iframe");
-			            iframe.src = dUrl;
-			            iframe.style.display = "none";
-			            document.body.appendChild(iframe);
-					}
-				}
-			}
-		});
-	});
-
-	initGrid();
-
-	findit();
-}
-
-	initView();
-});
 
 var partial_focus_funcs = {
 	$this_dialog : null,
@@ -813,9 +688,9 @@ var show_confirm_funcs = {
 				$dialog.dialog("close");
 			}
 		}
-		if (part_procedure.procedure == 0 
-			|| (part_procedure.procedure == 1 && d_job_no != null)
-			|| (part_procedure.procedure == 3 && d_job_no != null && n_job_no != null)
+		if (part_procedure.confirm == 0 
+			|| (part_procedure.confirm == 2 && d_job_no != null)
+			|| (part_procedure.confirm == 3 && d_job_no != null && n_job_no != null)
 			) {
 			dialogButtons = {"关闭" : function() {
 				$dialog.dialog("close");
@@ -833,3 +708,130 @@ var show_confirm_funcs = {
 		
 	}
 }
+
+function initView(){
+	$("input.ui-button").button();
+
+	$("a.areacloser").hover(
+		function (){$(this).addClass("ui-state-hover");},
+		function (){$(this).removeClass("ui-state-hover");}
+	);
+
+	$("#searchbutton").addClass("ui-button-primary");
+	$("#searchbutton").click(function() {
+		findit();
+	});
+
+	$("#resetbutton").click(function() {
+		$("#search_sorc_no").val("");
+		$("#search_serial_no").val("");
+		$("#search_model_id").val("");
+		$("#txt_modelname").val("");
+		$("#search_level").val("").trigger("change");
+		$("#search_procedure").val(($("#defaultCondProcedure").val() || "").split(",")).trigger("change");
+		$("#search_section").val("").trigger("change");
+		$("#search_range").val("1").trigger("change");
+		$("#search_order_step").val("").trigger("change");
+		$("#occur_times_set input:eq(0)").attr("checked","checked").trigger("change");
+	});
+	$("#search_range").val("1").trigger("change");
+
+	// autoComplete(零件code) 
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'partial.do?method=getAutocomplete',
+		cache : true,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj) {
+			var resInfo = $.parseJSON(xhrobj.responseText);
+			partialCodeAc = resInfo.sPartialCode;
+		}
+	});		
+
+	$("#searcharea span.ui-icon").bind("click",function() {
+		$(this).toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
+		if ($(this).hasClass('ui-icon-circle-triangle-n')) {
+			$(this).parent().parent().next().show("blind");
+		} else {
+			$(this).parent().parent().next().hide("blind");
+		}
+	});
+	
+	$("#search_procedure").children("option:eq(1)").remove();
+	$("#search_level, #search_range, #search_procedure, #search_section, #search_order_step").select2Buttons();
+	setReferChooser($("#search_model_id"));
+
+	$("#resetbutton").trigger("click");
+
+	$("#editbobutton").click(function(){
+		var rowid = $("#list").jqGrid("getGridParam", "selrow");
+		if (rowid == null) return;
+		var data = $("#list").getRowData(rowid);
+		var material_id = data["material_id"];
+		showInstructSheet(material_id);
+	});
+
+	$("#reportbutton").click(function(){
+		exportReport(servicePath + '?method=reportPartialOrder', "exportOrder");
+		});
+
+	$("#focus_button").click(partial_focus_funcs.loadPersonalFocus);
+
+	$("#search_range").change(function(){
+		if (this.val == "2") {
+			$("#s2b_search_procedure").hide();
+		} else {
+			$("#s2b_search_procedure").show();
+		}
+	})
+
+	$("#additional_order_button").click(show_confirm_funcs.additionalOrder);
+	$("#report_button").click(function(){
+		var rowid = $("#list").jqGrid("getGridParam", "selrow");
+		if (!rowid) return;
+
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : servicePath + '?method=makeReport',
+			cache : false,
+			data : {"material_id": rowid},
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function(xhrobj, textStatus){
+				var resInfo = $.parseJSON(xhrobj.responseText);
+				if (resInfo.errors.length > 0) {
+					// 共通出错信息框
+					treatBackMessages(null, resInfo.errors);
+				} else {
+					var rowdata = $("#list").getRowData(rowid);
+					var dUrl = "download.do"+"?method=output&fileName=" + (rowdata.omr_notifi_no || "") + "_追加零件订购清单.xlsx&filePath=" + resInfo.filePath;
+ 
+					if ($("iframe").length > 0) {
+						$("iframe").attr("src", dUrl);
+					} else {
+						var iframe = document.createElement("iframe");
+			            iframe.src = dUrl;
+			            iframe.style.display = "none";
+			            document.body.appendChild(iframe);
+					}
+				}
+			}
+		});
+	});
+
+	initGrid();
+
+	findit();
+}
+
+initView();
+
+});

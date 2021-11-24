@@ -44,7 +44,6 @@ import com.osh.rvs.form.master.PartialForm;
 import com.osh.rvs.form.master.PartialPositionForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.PartialMapper;
-import com.osh.rvs.mapper.master.PartialPositionMapper;
 import com.osh.rvs.mapper.partial.PartialWasteModifyHistoryMapper;
 
 import framework.huiqing.bean.message.MsgInfo;

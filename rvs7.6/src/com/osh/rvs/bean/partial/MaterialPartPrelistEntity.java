@@ -44,6 +44,8 @@ public class MaterialPartPrelistEntity implements Serializable{
 	private String process_code; 
 	private String line_id;
 
+	private Integer inline_adjust = 0;
+
 	public String getMaterial_id() {
 		return material_id;
 	}
@@ -157,5 +159,11 @@ public class MaterialPartPrelistEntity implements Serializable{
 	}
 	public void setLine_id(String line_id) {
 		this.line_id = line_id;
+	}
+	public Integer getInline_adjust() {
+		return inline_adjust;
+	}
+	public void setInline_adjust(Integer inline_adjust) {
+		this.inline_adjust = inline_adjust;
 	}
 }

@@ -168,7 +168,7 @@
 		select lst.partial_id, 
 			-- [case when rank in (1,3) then ptl.code else null end as code],
 			ptl.code,
-			bom_code, quantity, rank, ship, quote_adjust,
+			bom_code, quantity, rank, ship, quote_adjust, inline_adjust,
 			q_op.job_no as quote_job_no, 
 			i_op.job_no inline_job_no, 
 			inline_comment
@@ -212,7 +212,7 @@
 	</select>
 
 	<select id="checkPartPrelist" parameterType="MaterialPartPrelistEntity" resultType="MaterialPartPrelistEntity">
-		select lst.material_id, lst.partial_id, bom_code, quantity, quote_adjust, quote_operator_id, inline_operator_id, lst.rank
+		select lst.material_id, lst.partial_id, bom_code, quantity, quote_adjust, quote_operator_id, inline_operator_id, inline_adjust, lst.rank, lst.ship
 		from material_part_prelist lst
 		where material_id = #{material_id}
         and bom_code = #{bom_code};
@@ -241,6 +241,7 @@
 		`rank`,
 		`quote_adjust`,
 		`quote_operator_id`,
+		`inline_adjust`,
 		`inline_operator_id`,
 		`inline_comment`)
 		VALUES
@@ -251,6 +252,7 @@
 		#{rank},
 		#{quote_adjust},
 		#{quote_operator_id},
+		#{inline_adjust},
 		#{inline_operator_id},
 		#{inline_comment});
 	</insert>
@@ -261,8 +263,9 @@
 		`quantity` = #{quantity},
 		`quote_adjust` = #{quote_adjust},
 		`quote_operator_id` = #{quote_operator_id},
+		`inline_adjust` = #{inline_adjust},
 		`inline_operator_id` = #{inline_operator_id},
-		`inline_comment` = #{inline_comment}
+		`inline_comment` = coalesce(#{inline_comment}, `inline_comment`)
 		WHERE `material_id` = #{material_id} AND `partial_id` = #{partial_id} AND `bom_code` = #{bom_code};
 	</update>
 
@@ -293,7 +296,7 @@
 		WHERE 
 			lst.material_id = #{material_id}
 		AND
-			(rank = 9 OR (quote_adjust < 0 AND inline_operator_id IS NOT NULL))
+			inline_operator_id IS NOT NULL
 		;
 		]]>
 	</select>
@@ -311,7 +314,7 @@
 	</select>
 
 	<select id="getAdditionalOrder" parameterType="String" resultType="MaterialPartPrelistEntity">
-		select mpl.quantity, quote_adjust, quote_operator_id, mpl.rank,
+		select mpl.quantity, quote_adjust, inline_adjust, quote_operator_id, mpl.rank,
 			inline_comment, code, ptl.name, order_flg, price, quote_adjust,
 		    in_op.job_no as inline_job_no,
 		    ppb.position_id, pos.process_code, pos.line_id

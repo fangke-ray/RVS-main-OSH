@@ -843,6 +843,7 @@ public class PositionService {
 		switch (position_id) {
 		case "00000000016":
 		case "00000000017":
+		case "00000000025":
 			return "0";
 		case "00000000108":
 			return "3";

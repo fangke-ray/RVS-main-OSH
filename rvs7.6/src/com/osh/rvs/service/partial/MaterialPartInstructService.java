@@ -31,18 +31,22 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.master.PartialBomEntity;
-import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.master.PartialPositionEntity;
 import com.osh.rvs.bean.partial.MaterialPartInstructEntity;
 import com.osh.rvs.bean.partial.MaterialPartPrelistEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.master.PartialPositionForm;
 import com.osh.rvs.form.partial.MaterialPartInstructForm;
 import com.osh.rvs.mapper.master.PartialMapper;
 import com.osh.rvs.mapper.partial.MaterialPartInstructMapper;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.ProductionFeatureService;
+import com.osh.rvs.service.inline.LineLeaderService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
@@ -300,7 +304,7 @@ public class MaterialPartInstructService {
 		case PROCEDURE_ORDERED :
 			return 0;
 		case PROCEDURE_QUOTE : {
-			if (privates.contains(RvsConsts.PRIVACY_POSITION) && "00000000011".equals(line_id)) {
+			if (privates.contains(RvsConsts.PRIVACY_RECEPT_FACT) && "00000000011".equals(line_id)) {
 				return 1;
 			}
 			return 0;
@@ -359,7 +363,30 @@ public class MaterialPartInstructService {
 						postList.get(icounts).setQuantity(quantity);
 						break;
 					}
-					case "inline_comment" : postList.get(icounts).setInline_comment(value[0]);  break;
+					case "quote_adjust" : {
+						Integer quantity = null;
+						try {
+							quantity = Integer.parseInt(value[0]);
+						} catch (Exception e) {
+						}
+						postList.get(icounts).setQuote_adjust(quantity);
+						break;
+					}
+					case "inline_adjust" : {
+						Integer quantity = null;
+						try {
+							quantity = Integer.parseInt(value[0]);
+						} catch (Exception e) {
+						}
+						postList.get(icounts).setInline_adjust(quantity);
+						break;
+					}
+					case "inline_comment" : {
+						String inline_comment = value[0];
+						if (inline_comment.length() > 200) {inline_comment = inline_comment.substring(0, 200);};
+						postList.get(icounts).setInline_comment(inline_comment);  
+						break;
+					}
 					}
 				}
 			}
@@ -369,7 +396,8 @@ public class MaterialPartInstructService {
 
 		String materialId = bussForm.getMaterial_id();
 		// 操作实行
-		String action = bussForm.getUpd_action();
+		// String action = bussForm.getUpd_action();
+		int actionPositive = 0;
 
 		MaterialService mService = new MaterialService();
 		MaterialEntity mEntity = mService.getMaterialEntityByKey(materialId, conn);
@@ -385,46 +413,34 @@ public class MaterialPartInstructService {
 			for (MaterialPartPrelistEntity plEntity : postList) {
 				boolean updated = true;
 
+				if (inline) {
+					actionPositive = plEntity.getInline_adjust();
+				} else {
+					actionPositive = plEntity.getQuote_adjust();
+				}
 				// 确认指示信息，是否零件列表中存在此记录，存在的话是否已经指示/未指示，指示的话是否本人
 				plEntity.setMaterial_id(materialId);
 				MaterialPartPrelistEntity origin = mapper.checkPartPrelist(plEntity);
 
 				if (inline) {
-					if ("append".equals(action)) {
+					if (actionPositive > 0) {
 						if (origin == null) { // 零件列表基础上增加
+							plEntity.setInline_adjust(actionPositive);
 							plEntity.setInline_operator_id(user.getOperator_id());
+							plEntity.setQuantity(0);
 							plEntity.setRank(9);
+							plEntity.setShip(9);
 							mapper.insertPartPrelist(plEntity);
 							// 负责人
 							curJobNo = user.getJob_no();
 						} else {
-							if (origin.getInline_operator_id() != null) {
-								if (origin.getQuote_adjust() < 0) {
-									// 报价取消的，标记登录在线作业者意味再追加
-									origin.setInline_operator_id(user.getOperator_id());
-									origin.setInline_comment(plEntity.getInline_comment());
-									mapper.updatePartPrelist(origin);
-									curJobNo = user.getJob_no();
-								} else if (origin.getQuote_adjust() == 0) {
-									// 不是报价增加的，取消在线作业者信息复原
-									origin.setInline_operator_id(null);
-									origin.setInline_comment(null);
-									mapper.updatePartPrelist(origin);
-								} else {
-									MsgInfo error = new MsgInfo();
-									error.setErrmsg("此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"已经存在，不能追加。");
-									errors.add(error);
-									updated = false;
-								}
-							} else {
-								// 登记在线作业者名字，恢复为报价人员没有处理过
-								origin.setInline_operator_id(user.getOperator_id());
-								origin.setInline_comment(plEntity.getInline_comment());
-								mapper.updatePartPrelist(origin);
-								curJobNo = user.getJob_no();
-							}
+							origin.setInline_adjust(actionPositive);
+							origin.setInline_operator_id(user.getOperator_id());
+							origin.setInline_comment(plEntity.getInline_comment());
+							mapper.updatePartPrelist(origin);
+							curJobNo = user.getJob_no();
 						}
-					} else if ("cancel".equals(action)) {
+					} else if (actionPositive < 0) {
 						if (origin == null) {
 							MsgInfo error = new MsgInfo();
 							error.setErrmsg("原列表没有选择此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"。");
@@ -438,61 +454,54 @@ public class MaterialPartInstructService {
 								errors.add(error);
 								updated = false;
 							} else {
-								if (origin.getRank() == 9) {
-									mapper.deletePartPrelist(origin);
-								} else if (origin.getQuote_adjust() > 0) {
-									// 报价增加的，登录在线作业者意味取消
-									origin.setInline_operator_id(user.getOperator_id());
-									origin.setInline_comment(plEntity.getInline_comment());
-									mapper.updatePartPrelist(origin);
-									// 负责人
-									curJobNo = user.getJob_no();
-								} else if (origin.getQuote_adjust() == 0) {
-									// 不是报价增加的，登录在线作业者意味取消
-									origin.setInline_operator_id(user.getOperator_id());
-									origin.setInline_comment(plEntity.getInline_comment());
-									mapper.updatePartPrelist(origin);
-									// 负责人
-									curJobNo = user.getJob_no();
-								} else if (origin.getQuote_adjust() < 0) {
-									if (origin.getInline_operator_id() != null) {
-										// 报价取消的，删除登录在线作业者还是取消
-										origin.setInline_operator_id(null);
-										origin.setInline_comment(null);
-										mapper.updatePartPrelist(origin);
-									} else {
-										MsgInfo error = new MsgInfo();
-										error.setErrmsg("此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"已经被取消，不能再次取消。");
-										errors.add(error);
-										updated = false;
-									}
+								// 扣除已选
+								origin.setInline_adjust(actionPositive);
+								origin.setInline_operator_id(user.getOperator_id());
+								origin.setInline_comment(plEntity.getInline_comment());
+								mapper.updatePartPrelist(origin);
+								// 负责人
+								curJobNo = user.getJob_no();
+							}
+						}
+					} else if (actionPositive == 0) {
+						if (origin.getInline_adjust() == 0) {
+							MsgInfo error = new MsgInfo();
+							error.setErrmsg("此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"已经被取消，不能再次取消。");
+							errors.add(error);
+							updated = false;
+						} else { 
+							if (origin.getRank() == 9) {
+								mapper.deletePartPrelist(origin);
+							} else {
+								// 扣除已选
+								origin.setInline_adjust(actionPositive);
+								origin.setInline_operator_id(null);
+								if (origin.getQuote_operator_id() == null) {
+									origin.setInline_comment("");
 								}
+								mapper.updatePartPrelist(origin);
 							}
 						}
 					}
 				} else {
-					if ("append".equals(action)) {
+					if (actionPositive > 0) {
 						if (origin == null) { // 零件列表基础上增加
-							plEntity.setQuote_adjust(plEntity.getQuantity());
+							plEntity.setQuote_adjust(actionPositive);
 							plEntity.setQuote_operator_id(user.getOperator_id());
+							plEntity.setQuantity(0);
 							plEntity.setRank(0);
+							plEntity.setShip(9);
 							mapper.insertPartPrelist(plEntity);
 							// 负责人
 							curJobNo = user.getJob_no();
 						} else {
-							if (origin.getQuote_adjust() >= 0) {
-								MsgInfo error = new MsgInfo();
-								error.setErrmsg("此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"已经存在，不能追加。");
-								errors.add(error);
-								updated = false;
-							} else if (origin.getQuote_adjust() < 0) {
-								// 恢复
-								origin.setQuote_adjust(0);
-								origin.setQuote_operator_id(null);
-								mapper.updatePartPrelist(origin);
-							}
+							origin.setQuote_adjust(actionPositive);
+							origin.setQuote_operator_id(user.getOperator_id());
+							origin.setInline_comment(plEntity.getInline_comment());
+							mapper.updatePartPrelist(origin);
+							curJobNo = user.getJob_no();
 						}
-					} else if ("cancel".equals(action)) {
+					} else if (actionPositive < 0) {
 						if (origin == null) {
 							MsgInfo error = new MsgInfo();
 							error.setErrmsg("原列表没有选择此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"。");
@@ -506,21 +515,30 @@ public class MaterialPartInstructService {
 								errors.add(error);
 								updated = false;
 							} else {
-								if (origin.getQuote_adjust() > 0) {
-									mapper.deletePartPrelist(origin);
-								} else if (origin.getQuote_adjust() == 0) {
-									// 扣除已选
-									origin.setQuote_adjust(-origin.getQuantity());
-									origin.setQuote_operator_id(user.getOperator_id());
-									mapper.updatePartPrelist(origin);
-									// 负责人
-									curJobNo = user.getJob_no();
-								} else {
-									MsgInfo error = new MsgInfo();
-									error.setErrmsg("此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"已经被取消，不能再次取消。");
-									errors.add(error);
-									updated = false;
-								}
+								// 扣除已选
+								origin.setQuote_adjust(actionPositive);
+								origin.setQuote_operator_id(user.getOperator_id());
+								origin.setInline_comment(plEntity.getInline_comment());
+								mapper.updatePartPrelist(origin);
+								// 负责人
+								curJobNo = user.getJob_no();
+							}
+						}
+					} else if (actionPositive == 0) {
+						if (origin.getQuote_adjust() == 0) {
+							MsgInfo error = new MsgInfo();
+							error.setErrmsg("此零件" + getPartialCode(plEntity.getPartial_id(), conn) +"已经被取消，不能再次取消。");
+							errors.add(error);
+							updated = false;
+						} else {
+							if (origin.getShip() == 0 && origin.getRank() == 0) {
+								mapper.deletePartPrelist(origin);
+							} else {
+								// 扣除已选
+								origin.setQuote_adjust(actionPositive);
+								origin.setQuote_operator_id(null);
+								origin.setInline_comment("");
+								mapper.updatePartPrelist(origin);
 							}
 						}
 					}
@@ -529,7 +547,7 @@ public class MaterialPartInstructService {
 				if (updated) {
 					String triggerText = "http://localhost:8080/rvspush/trigger/instruct_async/" 
 							+ materialId + "/" + plEntity.getBom_code() + "/" + target + "/" + curJobNo;
-					if (curJobNo != null && CommonStringUtil.isEmpty(plEntity.getInline_comment())) {
+					if (curJobNo != null && !CommonStringUtil.isEmpty(plEntity.getInline_comment())) {
 						try {
 							triggerText += "/" + java.net.URLEncoder.encode(plEntity.getInline_comment(), "UTF-8");
 						} catch (UnsupportedEncodingException e) {
@@ -546,12 +564,12 @@ public class MaterialPartInstructService {
 
 	private String getPartialCode(String partial_id, SqlSession conn) {
 		PartialMapper pMapper = conn.getMapper(PartialMapper.class);
-		PartialEntity partial = pMapper.getPartialByID(partial_id);
+		String code = pMapper.getPartialCodeByID(partial_id);
 
-		if (partial == null) {
+		if (code == null) {
 			return "";
 		}
-		return partial.getCode();
+		return code;
 	}
 
 	/**
@@ -579,6 +597,9 @@ public class MaterialPartInstructService {
 			for (MaterialPartPrelistEntity instuct : instuctListForMaterial) {
 				if (instuct.getBom_code().equals(rankBom.getCode())) {
 					matched = true;
+					if (instuct.getShip() == 0) {
+						instuct.setShip(2);
+					}
 					break;
 				}
 			}
@@ -586,10 +607,10 @@ public class MaterialPartInstructService {
 				MaterialPartPrelistEntity appendix = new MaterialPartPrelistEntity();
 				appendix.setBom_code(rankBom.getCode());
 				appendix.setPartial_id(rankBom.getPartial_id());
-				appendix.setQuantity(rankBom.getQuantity());
+				appendix.setQuantity(-1);
 				appendix.setQuote_adjust(0);
 				appendix.setRank(3);
-				appendix.setShip(0);
+				appendix.setShip(2); // 临时
 				instuctListForMaterialAppendix.add(appendix);
 			}
 		}
@@ -644,23 +665,11 @@ public class MaterialPartInstructService {
 			Integer quote_adjust = additionalOrder.getQuote_adjust();
 			if (additionalOrder.getQuote_operator_id() != null) {
 				if (quote_adjust > 0) {
-					quoteAdditions += additionalOrder.getCode() + " x " + additionalOrder.getQuantity() + " ";
+					quoteAdditions += additionalOrder.getCode() + " x " + quote_adjust + " ";
 				}
 			}
 			if (additionalOrder.getInline_job_no() != null) {
-				if (additionalOrder.getRank() == 9) {
-					// 在线追加
-				} else {
-					if (quote_adjust > 0) {
-						// 报价追加
-						additionalOrder.setQuantity(- additionalOrder.getQuantity());
-					} else if (quote_adjust < 0) {
-						// 报价取消
-					} else {
-						// Rank 或者 RC追加
-						additionalOrder.setQuantity(- additionalOrder.getQuantity());
-					}
-				}
+				additionalOrder.setQuantity(additionalOrder.getInline_adjust());
 				inlineAdditions.add(additionalOrder);
 			}
 		}
@@ -825,10 +834,18 @@ public class MaterialPartInstructService {
 		}
 
 		if (updated) {
-			if (decNeed == decAbility && nsNeed == nsAbility) {
+			if (!((decNeed && !decAbility) || (nsNeed && !nsAbility))) {
 				// 物料组
 				triggerList.add("http://localhost:8080/rvspush/trigger/instruct_notice/" 
 						+ material_id + "/00000000000/00000000020");
+
+				
+				// 试图完成241工位 TODO
+				try {
+					tryToFinishOrderPosition(material_id, user, triggerList, conn);
+				} catch (Exception e) {
+					_log.error(e.getMessage(), e);
+				}
 			} else if (nsNeed != nsAbility) {
 				MaterialService mService = new MaterialService();
 				MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, material_id);
@@ -841,6 +858,32 @@ public class MaterialPartInstructService {
 		}
 
 		return updated;
+	}
+
+	private void tryToFinishOrderPosition(String material_id, LoginData user,
+			List<String> triggerList, SqlSessionManager conn) throws Exception {
+		MaterialService ms = new MaterialService();
+		MaterialForm mEntity = ms.loadSimpleMaterialDetail(conn, material_id);
+
+		// 241工位结束
+		ProductionFeatureService pfService = new ProductionFeatureService();
+		ProductionFeatureEntity workingPf = new ProductionFeatureEntity();
+		workingPf.setMaterial_id(material_id);
+		workingPf.setPosition_id(PositionService.ORDER_POSITION);
+		workingPf.setSection_id(mEntity.getSection_id());
+
+		LineLeaderService llService = new LineLeaderService();
+		// “零件订购”工位线长处理
+		llService.partialResolve(material_id, mEntity.getModel_name(), workingPf.getSection_id(), workingPf.getPosition_id(), conn, user);
+
+		// 取得刚才完成的作业信息（主要需要rework）
+		workingPf = pfService.searchProductionFeatureOne(workingPf, conn);
+
+		if (workingPf == null) {
+			return;
+		}
+		workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+		pfService.fingerNextPosition(material_id ,workingPf, conn, triggerList);		
 	}
 
 	/**
@@ -892,31 +935,43 @@ public class MaterialPartInstructService {
 
 			for (MaterialPartPrelistEntity additionalOrder : listAdditionalOrder) {
 				Integer quote_adjust = additionalOrder.getQuote_adjust();
-				if (additionalOrder.getQuote_operator_id() != null) {
+				Integer inline_adjust = additionalOrder.getInline_adjust();
+				if (quote_adjust == null) quote_adjust = 0;
+				if (inline_adjust == null) inline_adjust = 0;
+
+				Integer totalAdd = quote_adjust + inline_adjust;
+				if (totalAdd == 0) continue;
+
+				if (additionalOrder.getQuote_operator_id() != null && additionalOrder.getInline_job_no() == null) {
 					if (quote_adjust > 0) {
 						if (additionalOrder.getInline_job_no() != null) {
-							writeLine(sheetAdd, ++idxAdd, additionalOrder.getCode(), quote_adjust, "Q", null);
+							if (additionalOrder.getQuote_adjust() + additionalOrder.getInline_adjust() == 0) {
+								continue;
+							}
 						}
+						writeLine(sheetAdd, ++idxAdd, additionalOrder.getCode(), totalAdd, "Q", null);
 					} else if (quote_adjust < 0) {
 						if (additionalOrder.getInline_job_no() != null) {
-							writeLine(sheetCancel, ++idxCancel, additionalOrder.getCode(), quote_adjust, "Q", styleGray);
+							if (additionalOrder.getQuote_adjust() + additionalOrder.getInline_adjust() == 0) {
+								continue;
+							}
 						}
+						writeLine(sheetCancel, ++idxCancel, additionalOrder.getCode(), quote_adjust, "Q", styleGray);
 					}
-					continue;
 				}
 				if (additionalOrder.getInline_job_no() != null) {
 					String belongs = "D";
-					if (additionalOrder.getOrder_flg() == 2) {
-						belongs = "N";
-					} else if ("00000000013".equals(additionalOrder)) {
-						belongs = "N";
-					}
-					if (additionalOrder.getRank() == 9) {
+//					if (additionalOrder.getOrder_flg() == 2) {
+//						belongs = "N";
+//					} else if ("00000000013".equals(additionalOrder)) {
+//						belongs = "N";
+//					}
+					if (totalAdd > 0) {
 						// 在线追加
-						writeLine(sheetAdd, ++idxAdd, additionalOrder.getCode(), additionalOrder.getQuantity(), belongs, null);
+						writeLine(sheetAdd, ++idxAdd, additionalOrder.getCode(), totalAdd, belongs, null);
 					} else {
 						// 在线取消
-						writeLine(sheetCancel, ++idxCancel, additionalOrder.getCode(), additionalOrder.getQuantity(), belongs, styleGray);
+						writeLine(sheetCancel, ++idxCancel, additionalOrder.getCode(), totalAdd, belongs, styleGray);
 					}
 				}
 			}

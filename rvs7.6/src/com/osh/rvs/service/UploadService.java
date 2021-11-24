@@ -911,11 +911,11 @@ public class UploadService {
 					Integer quantity = partialMap.get(partial_id);
 					if (quantity > 0) {
 						PartialMapper pMapper = conn.getMapper(PartialMapper.class);
-						PartialEntity pEntity = pMapper.getPartialByID(partial_id);
+						String code = pMapper.getPartialCodeByID(partial_id);
 						MsgInfo info=new MsgInfo();
 						info.setErrcode("info.partial.recieveOver");
 						info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.recieveOver",
-								(pEntity == null ? "" : pEntity.getCode())));
+								(code == null ? "" : code)));
 						errors.add(info);
 						return null;
 					}

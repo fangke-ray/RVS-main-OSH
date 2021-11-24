@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">8.5.3425.466</p>
+								<p id="nee">9.2.3445.474</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2021年5月13日</p>
+								<p>2021年11月4日</p>
 							</div>
 						</div>
 <%
@@ -187,7 +187,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
 								<p>--------------------------------------</p>
-								<p>21/10/24 9.2.3445.474 更新</p>
+								<p>21/11/4 9.2.3445.474 更新</p>
 								<p>报价/流水线/物料: 工作指示单无纸化（首单订购）</p>
 								<p>--------------------------------------</p>
 								<p>21/10/24 9.1.3444.471 更新</p>

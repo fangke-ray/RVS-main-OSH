@@ -277,16 +277,18 @@ public class MaterialPartInstructAction extends BaseAction {
 		Map<String, List<PartialPositionForm>> instructLists = posService.loadInstruct(model_id, conn);
 
 		String level = request.getParameter("level");
+		List<PartialBomEntity> rankBomList = null;
 		if (level != null && !RvsUtils.isLightFix(level)) {
 			// 获取RankBom信息
 			PartialBomService pRankBomService = new PartialBomService();
-			List<PartialBomEntity> rankBomList = pRankBomService.searchRankBom(form, conn);
+			rankBomList = pRankBomService.searchRankBom(form, conn);
 			if (!rankBomList.isEmpty()) {
 				List<String> rankBomCodes = new ArrayList<String>();
 				for (PartialBomEntity rankBom : rankBomList) {
 					rankBomCodes.add(rankBom.getCode());
 				}
 				listResponse.put("rankBom", rankBomCodes);
+
 			} else {
 				List<String> partialBom = pRankBomService.searchPartialBomEntity(form, conn);
 				if (!partialBom.isEmpty()) {
@@ -305,6 +307,13 @@ public class MaterialPartInstructAction extends BaseAction {
 			// 标记他人追加项目
 			if (edittype != null && edittype >= 1) {
 				service.signNoPriv(instuctListForMaterial, user.getJob_no(), user.getPrivacies().contains(RvsConsts.PRIVACY_LINE));
+			}
+
+			// 报价人员编辑时
+			if (rankBomList != null  
+					&& user.getPrivacies().contains(RvsConsts.PRIVACY_POSITION)
+					&& user.getLine_id().equals("00000000011")) {
+				service.tryToFill(material_id, instuctListForMaterial, rankBomList, conn);
 			}
 
 			// 追加理由的选项

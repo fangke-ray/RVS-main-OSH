@@ -523,7 +523,7 @@
 			(select name from model where model_id = a.model_id) as model_name,
 			(select echelon from model_level_set where level = a.level and model_id = a.model_id) as echelon,
 			(select p.code from partial p where p.partial_id = c.partial_id)as bo_item,
-			(select 1 from partial_bom_set where model_id = a.model_id and level = LEFT(a.level,1) and partial_id = c.partial_id) as type_of_bo_item,
+			exists (select 1 from partial_rank_bom where model_id = a.model_id and level = LEFT(a.level,1) and partial_id = c.partial_id) as type_of_bo_item,
 			c.arrival_plan_date IS NOT NULL and c.arrival_plan_date <> '9999/12/31'
 			AND f_getworkdays(b.order_date, c.arrival_plan_date) <= 3 as bo_within_3days,
 			(select osh_foreboard_count from v_partial_prepair_osh where partial_id = c.partial_id) as safety
@@ -1151,7 +1151,7 @@
 			where material_id = #{material_id} and occur_times = #{occur_times}
 			AND waiting_quantity > 0
 			and exists(SELECT 1 FROM premake_partial pmp
-				WHERE pmp.partial_id = part.partial_id and standard_flg = 1)
+				WHERE pmp.partial_id = part.partial_id and standard_flg in (1, 2))
 			;
 		]]>
 	</select>

@@ -25,7 +25,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/admin/partial_position.js"></script>
-<script type="text/javascript" src="js/partial/common/instruction_sheets.js"></script>
+<script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=2"></script>
 
 <title>零件BOM与定位管理</title>
 </head>
