@@ -96,7 +96,8 @@ public interface ProductionFeatureMapper {
 
 	public boolean checkPositionDid(@Param("material_id") String material_id, @Param("position_id") String position_id
 			, @Param("operate_result")  String operate_result, @Param("rework") String rework);
-
+	public List<String> checkSpecPositionDid(@Param("material_id") String material_id, @Param("special_page") String special_page
+			, @Param("operate_result")  String operate_result, @Param("rework") String rework, @Param("finish_time_status") String finish_time_status);
 	/**
 	 * 修改现有的作业课室
 	 * @param material_id

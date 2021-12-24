@@ -723,16 +723,16 @@ var update_consumable_manage = function(){
 		return;
 	}
 	$.ajax({
-			beforeSend : ajaxRequestType,
-			async : false,
-			url : servicePath + '?method=doUpdateSetting',
-			cache : false,
-			data : data,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : update_handleComplete
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=doUpdateSetting',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : update_handleComplete
 	});
 };
 

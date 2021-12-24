@@ -13,10 +13,10 @@ public class SnoutForm extends ActionForm implements Serializable {
 
 	private String model_name;
 
-	@BeanField(title = "先端头型号", name = "model_id", type = FieldType.String, length = 11)
+	@BeanField(title = "D/E 组件型号", name = "model_id", type = FieldType.String, length = 11)
 	private String model_id;
 
-	@BeanField(title = "先端头序列号", name = "serial_no", type = FieldType.String, length = 8)
+	@BeanField(title = "D/E 组件序列号", name = "serial_no", type = FieldType.String, length = 8)
 	private String serial_no;
 
 	@BeanField(title = "完成时间", name = "finish_time", type = FieldType.DateTime)
@@ -43,14 +43,23 @@ public class SnoutForm extends ActionForm implements Serializable {
 	@BeanField(title = "完成时间区间终了", name = "finish_time_to", type = FieldType.Date)
 	private String finish_time_to;
 
-	@BeanField(title = "先端头来源修理单号", name = "origin_omr_notifi_no")
+	@BeanField(title = "C 本体来源修理单号", name = "origin_omr_notifi_no")
 	private String origin_omr_notifi_no;
 
-	@BeanField(title = "先端头来源机身号", name = "new_serial_no")
+	@BeanField(title = "C 本体来源ID", name = "material_id")
+	private String origin_material_id;
+
+	@BeanField(title = "C 本体来源机身号", name = "new_serial_no")
 	private String origin_serial_no;
 
 	@BeanField(title = "作业工位", name = "position_id")
 	private String position_id;
+
+	@BeanField(title = "翻新追溯", name = "refurbished", type = FieldType.Integer)
+	private String refurbished;
+
+	@BeanField(title = "库位", name = "slot", type = FieldType.String)
+	private String slot;
 
 	public String getModel_name() {
 		return model_name;
@@ -170,5 +179,29 @@ public class SnoutForm extends ActionForm implements Serializable {
 
 	public void setPosition_id(String position_id) {
 		this.position_id = position_id;
+	}
+
+	public String getRefurbished() {
+		return refurbished;
+	}
+
+	public void setRefurbished(String refurbished) {
+		this.refurbished = refurbished;
+	}
+
+	public String getOrigin_material_id() {
+		return origin_material_id;
+	}
+
+	public void setOrigin_material_id(String origin_material_id) {
+		this.origin_material_id = origin_material_id;
+	}
+
+	public String getSlot() {
+		return slot;
+	}
+
+	public void setSlot(String slot) {
+		this.slot = slot;
 	}
 }

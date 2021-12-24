@@ -124,7 +124,7 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
 		        <a href="alarmMessage.do">警报</a><br>
 		        <a href="new_phenomenon.do">不良现象</a><br>
 	<% if(links.get("nsline")) { %>
-		        <a href="snouts.do">先端组件</a><br>
+		        <a href="snouts.do">D/E 组装</a><br>
 	<% } %>
 		        <a href="drying_process.do">烘干作业</a><br>
 		        <a href="materialPcs.do">工程检查票</a>
@@ -169,7 +169,7 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
         <a title="" target="_parent" href="show.do#finalCheck">最终检查展示</a><br>
         <a title="" target="_parent" href="show.do#free_qis_cost">无偿QIS展示</a><br>
         <a title="" target="_parent" href="show.do#consumable_list">消耗品库存展示</a><br>
-        <a title="" target="_parent" href="show.do#snout_list">先端预制看板</a><br>
+        <a title="" target="_parent" href="show.do#snout_list">D/E 组装看板</a><br>
         <a title="" target="_parent" href="show.do#turnoverCase">通箱库位展示</a><br>
         <a title="Pending Area" target="_parent" href="show.do#devicesPendingArea">设备工具PA展示</a><br>
 	间接作业人员工时图: <br>

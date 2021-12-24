@@ -99,6 +99,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/common/pcs_editor.js"></script>
 <script type="text/javascript" src="js/inline/position_panel.js"></script>
+<script type="text/javascript" src="js/inline/position_panel_clock.js"></script>
+<script type="text/javascript" src="js/inline/position_panel_pause_feature.js"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript">

@@ -3,6 +3,7 @@ package com.osh.rvs.service.partial;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,10 +17,12 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.struts.action.ActionForm;
 
+import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.form.partial.ComponentSettingForm;
 import com.osh.rvs.form.partial.PremakePartialForm;
+import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.PartialMapper;
 import com.osh.rvs.mapper.partial.ComponentSettingMapper;
 
@@ -34,6 +37,8 @@ import framework.huiqing.common.util.message.ApplicationMessage;
 public class ComponentSettingService {
 
 	private static Set<String> nsCompModels = null;
+	private static Map<String, String> snoutCompModels = null;
+	private static Map<String, String> snoutCompActiveModels = null;
 
 	/**
 	 * 取得全部型号(参照列表)
@@ -48,7 +53,7 @@ public class ComponentSettingService {
 		}
 
 		String mReferChooser = CodeListUtils.getSelectOptions(modelMap, "", "(未选择)", false);
-		
+
 		return mReferChooser;
 	}
 	
@@ -154,7 +159,7 @@ public class ComponentSettingService {
 			return 0;
 		}
 	}
-	
+
 	/**
 	 * 根据识别代码判定组件是否存在
 	 * 
@@ -349,6 +354,24 @@ public class ComponentSettingService {
 	}
 
 	/**
+	 * NS组件库存一览数据取得
+	 * @param conn
+	 * @return
+	 */
+	public List<ComponentSettingForm> searchSnoutComponentSetting(SqlSession conn) {
+		
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+
+		List<ComponentSettingEntity> lResultBean = dao.searchSnoutComponentSetting();
+		
+		List<ComponentSettingForm> lResultForm = new ArrayList<ComponentSettingForm>();
+		// 数据对象复制到表单
+		BeanUtil.copyToFormList(lResultBean, lResultForm, null, ComponentSettingForm.class);
+
+		return lResultForm;
+	}
+
+	/**
 	 * 取得NS 组件组装对应型号
 	 * 
 	 * @param conn
@@ -365,5 +388,258 @@ public class ComponentSettingService {
 			}
 		}
 		return nsCompModels;
+	}
+
+	/**
+	 * 取得NS 组件组装对应型号
+	 * 
+	 * @param conn
+	 * @return
+	 */
+	public static Map<String, String> getSnoutCompModels(SqlSession conn) {
+		if (snoutCompModels == null) {
+			snoutCompModels = new HashMap<String, String> ();
+
+			ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);
+			List<ComponentSettingEntity> csBeans = csMapper.getAllSnoutComponentModel();
+			for (ComponentSettingEntity csBean : csBeans) {
+				snoutCompModels.put(csBean.getModel_id(), csBean.getModel_name());
+			}
+		}
+		return snoutCompModels;
+	}
+
+	public static Map<String, String> getSnoutCompModelsActive(SqlSession conn) {
+		if (snoutCompActiveModels == null) {
+			snoutCompActiveModels = new HashMap<String, String> ();
+
+			ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);
+			List<ComponentSettingEntity> csBeans = csMapper.getAllSnoutComponentModel();
+			for (ComponentSettingEntity csBean : csBeans) {
+				if (!"0".equals(csBean.getSafety_lever())) {
+					snoutCompActiveModels.put(csBean.getModel_id(), csBean.getModel_name());
+				}
+			}
+		}
+		return snoutCompActiveModels;
+	}
+
+	public static String getModelReferChooser(SqlSession conn) {
+
+		if (snoutCompModels == null) {
+			snoutCompModels = new LinkedHashMap<String, String> ();
+
+			ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);
+			List<ComponentSettingEntity> csBeans = csMapper.getAllSnoutComponentModel();
+			for (ComponentSettingEntity csBean : csBeans) {
+				snoutCompModels.put(csBean.getModel_id(), csBean.getModel_name());
+			}
+		}
+		return CodeListUtils.getSelectOptions(snoutCompModels, null, "(不选)", false);
+
+	}
+
+	/**
+	 * 取得全部先端预制型号
+	 * @param conn
+	 * @return
+	 */
+	public List<ComponentSettingForm> getAllSnoutComponentSettings(SqlSession conn) {
+		
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+		SoloProductionFeatureMapper soloMapper = conn.getMapper(SoloProductionFeatureMapper.class);
+
+		// 取得设定
+		List<ComponentSettingEntity> lResultBean = dao.searchSnoutComponentSetting();
+
+		// 取得先端头数量/组装中数/组装完成数
+		List<SoloProductionFeatureEntity> snouts = soloMapper.getOnProcessesByModel();
+
+		List<ComponentSettingForm> lResultForm = new ArrayList<ComponentSettingForm>();
+		for (ComponentSettingEntity result : lResultBean) {
+			ComponentSettingForm form = new ComponentSettingForm();
+
+			// 数据对象复制到表单
+			BeanUtil.copyToForm(result, form, CopyOptions.COPYOPTIONS_NOEMPTY);
+			form.setCnt_partial_step0("0");
+			form.setCnt_partial_step2("0");
+			form.setCnt_partial_step3("0");
+			if (snouts != null) {
+				for (SoloProductionFeatureEntity snout : snouts) {
+					if (snout.getModel_id().equals(result.getModel_id())) {
+						Integer cnt_partial_step0 = snout.getPace();
+						Integer cnt_partial_step3 = snout.getUsed();
+						Integer all = snout.getOperate_result();
+						Integer cnt_partial_step2 = all - (cnt_partial_step0 + cnt_partial_step3);
+						form.setCnt_partial_step0("" + cnt_partial_step0);
+						form.setCnt_partial_step3("" + cnt_partial_step3);
+						form.setCnt_partial_step2("" + cnt_partial_step2);
+						break;
+					}
+				}
+			}
+			lResultForm.add(form);
+		}
+
+		return lResultForm;
+	}
+
+	/**
+	 * 根据型号ID判定先端组件是否存在
+	 * 
+	 * @param ComponentSettingEntity
+	 * @param conn
+	 */
+	public int isExistsSnoutByModelId(ActionForm form, SqlSessionManager conn)
+			throws Exception {
+		ComponentSettingEntity searchBean = new ComponentSettingEntity();
+		BeanUtil.copyToBean(form, searchBean, null);
+
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+		ComponentSettingEntity tempEntity = dao.getSnoutSettingDetail(searchBean.getModel_id());
+		if(tempEntity!=null){
+			return 1;
+		}else{
+			return 0;
+		}
+	}
+
+	/**
+	 * 组件设置追加
+	 * 
+	 * @param ComponentSettingEntity
+	 * @param conn
+	 */
+	public void insertSnoutSetting(ActionForm form, SqlSessionManager conn, List<MsgInfo> errors)
+			throws Exception {
+		ComponentSettingEntity insertBean = new ComponentSettingEntity();
+		BeanUtil.copyToBean(form, insertBean, null);
+
+		/* component_setting表插入数据 */
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+		if ("".equals(insertBean.getSafety_lever())) {
+			insertBean.setSafety_lever(null);
+		}
+		String shelf = "-";
+		String layer = "-";
+		String sIdentifyCode = insertBean.getIdentify_code();
+		if (sIdentifyCode != null 
+				&& !"".equals(sIdentifyCode)) {
+			if (sIdentifyCode.indexOf("|") >= 0) {
+				int lastHiphen = sIdentifyCode.lastIndexOf("|");
+				shelf = sIdentifyCode.substring(0, lastHiphen);
+				layer = sIdentifyCode.substring(lastHiphen + 1);
+			}
+		}
+		insertBean.setShelf(shelf);
+		insertBean.setLayer(layer);
+		if (!"-1".equals(insertBean.getCnt_partial_step1())) {
+			insertBean.setCnt_partial_step1("0");
+		}
+		if ("".equals(insertBean.getComponent_partial_id())) {
+			insertBean.setComponent_partial_id(null);
+		}
+		dao.insertSnoutSetting(insertBean);
+
+		snoutCompModels = null;
+		snoutCompActiveModels = null;
+	}
+
+	public ComponentSettingEntity getSnoutComponentSettingDetail(
+			String model_id, SqlSession conn) {
+		ComponentSettingMapper settingMapper = conn.getMapper(ComponentSettingMapper.class);
+		ComponentSettingEntity resultList = settingMapper.getSnoutSettingDetail(model_id);
+
+		return resultList;
+	}
+
+	/**
+	 * 组件设置更新
+	 * @param form
+	 * @param session
+	 * @param conn
+	 * @param errors
+	 * @throws Exception
+	 */
+	public void updateSnoutSetting(ActionForm form, SqlSessionManager conn, List<MsgInfo> errors)
+			throws Exception {
+		ComponentSettingEntity updateBean = new ComponentSettingEntity();
+		BeanUtil.copyToBean(form, updateBean, null);
+
+		/* component_setting表插入数据 */
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+		if ("".equals(updateBean.getSafety_lever())) {
+			updateBean.setSafety_lever(null);
+		}
+		String shelf = "-";
+		String layer = "-";
+		String sIdentifyCode = updateBean.getIdentify_code();
+		if (sIdentifyCode != null 
+				&& !"".equals(sIdentifyCode)) {
+			if (sIdentifyCode.indexOf("|") >= 0) {
+				int lastHiphen = sIdentifyCode.lastIndexOf("|");
+				shelf = sIdentifyCode.substring(0, lastHiphen);
+				layer = sIdentifyCode.substring(lastHiphen + 1);
+			}
+		}
+		updateBean.setShelf(shelf);
+		updateBean.setLayer(layer);
+		if ("".equals(updateBean.getComponent_partial_id())) {
+			updateBean.setComponent_partial_id(null);
+		}
+		dao.updateSnoutSetting(updateBean);
+	}
+
+	public void deleteSnoutSetting(ActionForm form, SqlSessionManager conn) {
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+
+		// 复制表单数据到对象
+		ComponentSettingEntity entity = new ComponentSettingEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		// 删除指定型号ID的NS组件子零件
+		dao.deleteSnoutSetting(entity);
+
+		// 清空型号集
+		snoutCompModels = null;
+		snoutCompActiveModels = null;
+	}
+
+	public void inventSnoutSubPartSets(String model_id, int sub_part_sets,
+			SqlSessionManager conn) {
+		inventSnoutSubPartSets(model_id, "" + sub_part_sets, conn);
+	}
+	public void inventSnoutSubPartSets(String model_id, String sub_part_sets,
+			SqlSessionManager conn) {
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+		ComponentSettingEntity settingEntity = new ComponentSettingEntity();
+
+		settingEntity.setCnt_partial_step1(sub_part_sets);
+		settingEntity.setModel_id(model_id);
+		dao.inventSnoutSubPartSets(settingEntity);
+	}
+
+	public String getSnoutStorageHtml(String model_id, SqlSession conn) {
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+
+		ComponentSettingEntity entity = dao.getSnoutSettingDetail(model_id);
+
+		String ret = "<div class=\"ui-widget-content\"><div style=\"margin: 15px; float: left;\">" +
+			"<div class=\"ui-widget-header\" style=\"width: 372px; text-align: center;\">D／E 组件零件放置架　　　　　　　　　　　　" + entity.getShelf() + "</div>" +
+			"<table class=\"condform wip-table\" style=\"width: 372px;\"><tbody><tr><td class=\"ui-state-default wip-empty\">" + entity.getLayer() + " <span class=\"model_indicate\">" +
+			entity.getModel_name() + "</span></td>";
+
+		int benchmark = 3;
+		try {
+			benchmark = Integer.parseInt(entity.getSafety_lever());
+		} catch(Exception e){};
+
+		for (int i = 0; i < benchmark; i++) {
+			String slot = CommonStringUtil.fillChar("" + (i+1), '0', 2, true);
+			ret += "<td slot=\"" + slot + "\" class=\"wip-empty\">" +  slot + "</td>";
+		}
+
+		ret += "</tr></tbody></table></div><div class=\"clear\"></div></div>";
+		return ret;
 	}
 }

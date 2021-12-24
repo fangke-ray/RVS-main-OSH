@@ -39,6 +39,7 @@ import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.DevicesManageEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.PositionGroupEntity;
+import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
@@ -59,6 +60,7 @@ import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
+import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
@@ -827,7 +829,17 @@ public class PositionPanelService {
 			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, mform.getModel_name(), null, material_id, 
 					RvsUtils.isLightFix(mform.getLevel()), conn);
 
-			if ("NS 工程".equals(showLine)) filterSolo(fileTempl, material_id, conn);
+			if ("NS 工程".equals(showLine)) {
+				if (!"311".equals(pf.getProcess_code())) {
+					SoloSnoutService ssService = new SoloSnoutService();
+					Map<String, String> recoverFileHtml = ssService.getRecoverFileHtml(fileTempl, material_id, mform, conn);
+					if (recoverFileHtml != null) {
+						pcses.add(recoverFileHtml);
+					}
+				}
+
+				filterSolo(fileTempl, material_id, mform.getModel_id(), pf.getProcess_code(), conn);
+			}
 
 			Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, material_id, mform.getSorc_no(),
 					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), pf.getProcess_code(), isLeader ? sline_id : null, 
@@ -903,6 +915,40 @@ public class PositionPanelService {
 	}
 
 	/**
+	 * 取得空白的回收记录表
+	 * 
+	 * @param fileTempl
+	 * @param material_id
+	 * @param mform
+	 * @param conn
+	 * @return
+	 */
+	public Map<String, String> getRecoverFileBlankHtml(
+			Map<String, String> fileTempl, MaterialEntity mOriginEntity, SqlSession conn) {
+		
+		if (!ComponentSettingService.getSnoutCompModels(conn).containsKey(mOriginEntity.getModel_id())) return null;
+
+		Map<String, String> snoutHeads = new HashMap<String, String>();
+
+		for (String key : fileTempl.keySet()) {
+			if (key.contains("回收")) {
+				snoutHeads.put(key, fileTempl.get(key));
+			}
+		}
+
+		// 如果有先端头回收工程检查票
+		if (snoutHeads.size() == 0) {
+			return null;
+		}
+
+		Map<String, String> fileHtml = PcsUtils.toHtml(snoutHeads, mOriginEntity.getMaterial_id(), mOriginEntity.getSorc_no(),
+				mOriginEntity.getModel_name(), mOriginEntity.getSerial_no(), "" + mOriginEntity.getLevel(), "311", null, 
+						false, conn);
+
+		return fileHtml;
+	}
+
+	/**
 	 * 取得工程检查票(工位全完成)
 	 * @param listResponse
 	 * @param pf
@@ -929,7 +975,9 @@ public class PositionPanelService {
 			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, mform.getModel_name(), null, 
 					material_id, RvsUtils.isLightFix(mform.getLevel()), conn);
 
-			if ("NS 工程".equals(showLine)) filterSolo(fileTempl, material_id, conn);
+			if ("NS 工程".equals(showLine)) {
+				filterSolo(fileTempl, material_id, mform.getModel_id(), "619", conn);
+			}
 
 			Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, material_id, mform.getSorc_no(),
 					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), "619", null, 
@@ -1027,21 +1075,27 @@ public class PositionPanelService {
 	 * 根据实际工作履历，过滤可选的工位相关工程检查票
 	 * @param fileTempl
 	 * @param material_id
+	 * @param model_id 
+	 * @param processCode 
 	 * @param conn
 	 */
-	private static void filterSolo(Map<String, String> fileTempl, String material_id, SqlSession conn) {
+	private static void filterSolo(Map<String, String> fileTempl, String material_id, String model_id, String processCode, SqlSession conn) {
 
 		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 
-		List<String> snouts = new ArrayList<String>(); 
+		List<String> snouts = new ArrayList<String>();
+		List<String> snoutHeads = new ArrayList<String>();
 		List<String> ccds = new ArrayList<String>(); 
 		List<String> eyeLens = new ArrayList<String>(); 
 		List<String> ccdls = new ArrayList<String>(); 
 		List<String> nscomps = new ArrayList<String>(); 
 
 		for (String key : fileTempl.keySet()) {
-			if (key.contains("先端预制")) {
+			if (key.contains("先端预制") || key.contains("D／E组装")) {
 				snouts.add(key);
+			}
+			else if (key.contains("回收")) {
+				snoutHeads.add(key);
 			}
 			else if (key.contains("CCD盖玻璃")) {
 				ccds.add(key);
@@ -1056,16 +1110,39 @@ public class PositionPanelService {
 				nscomps.add(key);
 			}
 		}
+
 		// 如果有先端预制工程检查票
 		if (snouts.size() > 0) {
 			// 检查是否做过301工位
-			if (!dao.checkPositionDid(material_id, "00000000024", null, null)) {
+			if (!ComponentSettingService.getSnoutCompModels(conn).containsKey(model_id)
+					|| !dao.checkPositionDid(material_id, "00000000024", null, null)) {
 				for (String snout : snouts) {
 					fileTempl.remove(snout);
 				}
 			}
 		}
 		
+		// 如果有先端头回收工程检查票
+		if (snoutHeads.size() > 0) {
+			// 检查是否使用为先端头来源
+			if (!"311".equals(processCode)) {
+				for (String snout : snoutHeads) {
+					fileTempl.remove(snout);
+				}
+			} else if (!ComponentSettingService.getSnoutCompModels(conn).containsKey(model_id)) {
+				for (String snout : snoutHeads) {
+					fileTempl.remove(snout);
+				}
+			} else {
+				SoloSnoutService snoutService = new SoloSnoutService();
+				if (!snoutService.checkUsedForOrigin(material_id, conn)) {
+					for (String snout : snoutHeads) {
+						fileTempl.remove(snout);
+					}
+				}
+			}
+		}
+
 		// 如果有CCD盖玻璃工程检查票
 		if (ccds.size() > 0) {
 			// 检查是否做过302工位
@@ -1173,7 +1250,7 @@ public class PositionPanelService {
 		// 取得维修对象的作业标准时间。
 		String leagal_overline = RvsUtils.getLevelOverLine(mform.getModel_name(), mform.getCategory_name(), mform.getLevel(), user, null);
 		String process_code = pf.getProcess_code();
-		Map<String, String> snoutModels = RvsUtils.getSnoutModels(conn);
+		Map<String, String> snoutModels = ComponentSettingService.getSnoutCompModels(conn);
 		Set<String> snoutSaveTime341Models = RvsUtils.getSnoutSavetime341Models(conn);
 		// 新的算法331一律55分钟，341对应机型减40分钟
 		if (("331".equals(process_code) && snoutModels.containsKey(mform.getModel_id()))
@@ -1322,6 +1399,27 @@ public class PositionPanelService {
 			triggerList.add("http://localhost:8080/rvspush/trigger/work/"
 					+ positionId + waitingPf.getMaterial_id() + "/" + user.getOperator_id());
 		}
+
+		// 341先端预制子零件工位反入库
+		if ("341".equals(processCode) && waitingPf.getOperate_result() == 0) {
+			// 判断机型
+			MaterialService mService = new MaterialService();
+			MaterialEntity mBean = mService.loadSimpleMaterialDetailEntity(conn, waitingPf.getMaterial_id());
+			if (ComponentSettingService.getSnoutCompModels(conn).containsKey(mBean.getModel_id())) {
+				// 判断使用先端头
+				ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+				if (pfMapper.checkPositionDid(waitingPf.getMaterial_id(), "00000000024", null, null)) {
+					ComponentSettingService csService = new ComponentSettingService();
+					ComponentSettingEntity settingDetail = csService.getSnoutComponentSettingDetail(mBean.getModel_id(), conn);
+					if (settingDetail != null 
+							&& settingDetail.getCnt_partial_step1() != null 
+							&& !"-1".equals(settingDetail.getCnt_partial_step1())) {
+						Integer sub_set_cnt = Integer.parseInt(settingDetail.getCnt_partial_step1());
+						csService.inventSnoutSubPartSets(mBean.getModel_id(), sub_set_cnt + 1, conn);
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -1329,7 +1427,7 @@ public class PositionPanelService {
 	 * @param position_id
 	 * @return
 	 */
-	public Map<String,String> getManageNo(String position_id,SqlSession conn) {
+	public Map<String,String> getManageNo(String position_id, SqlSession conn) {
 		if ("00000000010".equals(position_id)) {
 
 			Map<String,String> map = new LinkedHashMap<String,String>();
@@ -1351,7 +1449,7 @@ public class PositionPanelService {
 //				CodeListUtils.getSelectOptions(map, "", null, false) + "</select></span>" +
 //				"<span class=\"device_manage_item ui-state-default\">设备管理No. 选择: </span>";
 
-		} else if ("00000000011".equals(position_id)) {
+		} else if (!"11000000011".equals(position_id)) { //  131 and 132
 
 			Map<String,String> map = new LinkedHashMap<String,String>();
 
@@ -1922,6 +2020,9 @@ public class PositionPanelService {
 				workingPf.setUse_seconds(use_seconds);
 				workingPf.setPcs_comments(null);
 				pfService.finishProductionFeatureSetFinish(workingPf, conn);
+
+				// 启动下个工位
+				pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
 			} else if ("00000000011".equals(workingPf.getPosition_id())) {
 				use_seconds = this.getTotalTimeByRework(workingPf, conn);
 
@@ -1930,10 +2031,18 @@ public class PositionPanelService {
 				workingPf.setUse_seconds(use_seconds);
 				workingPf.setPcs_comments(null);
 				pfService.finishProductionFeature(workingPf, conn);
-			}
 
-			// 启动下个工位
-			pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
+				// 启动下个工位
+				pfService.fingerNextPosition(workingPf.getMaterial_id(), workingPf, conn, triggerList);
+			} else {
+				use_seconds = this.getTotalTimeByRework(workingPf, conn);
+
+				// 作业信息状态改为，作业完成
+				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+				workingPf.setUse_seconds(use_seconds);
+				workingPf.setPcs_comments(null);
+				pfService.finishProductionFeature(workingPf, conn);
+			}
 		}
 	}
 

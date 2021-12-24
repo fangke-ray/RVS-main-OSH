@@ -27,4 +27,22 @@ public interface ComponentSettingMapper {
 
 	/* 删除数据 */
 	public int deleteSetting(ComponentSettingEntity settingEntity);
+
+	public List<ComponentSettingEntity> getAllSnoutComponentModel();
+	public List<ComponentSettingEntity> searchSnoutComponentSetting();
+
+	/* 插入先端头数据 */
+	public int insertSnoutSetting(ComponentSettingEntity settingEntity);
+	
+	// 先端头配件设置信息取得
+	public ComponentSettingEntity getSnoutSettingDetail(String model_id);
+
+	/* 更新先端头数据 */
+	public int updateSnoutSetting(ComponentSettingEntity settingEntity);
+
+	/* 子零件盘点 */
+	public int inventSnoutSubPartSets(ComponentSettingEntity settingEntity);
+
+	/* 删除先端头数据 */
+	public int deleteSnoutSetting(ComponentSettingEntity settingEntity);
 }

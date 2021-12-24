@@ -18,17 +18,23 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.data.SnoutEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.inline.SnoutForm;
+import com.osh.rvs.form.partial.ComponentSettingForm;
+import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.inline.SoloSnoutService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
-import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.validator.Validators;
 
 public class SnoutsAction extends BaseAction {
@@ -47,14 +53,23 @@ public class SnoutsAction extends BaseAction {
 	@Privacies(permit = { 1, 0 })
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
+		String from = (String) req.getParameter("from");
+
+		if (from != null && !"".equals(from)) {
+			req.setAttribute("from", from);
+		}
 
 		log.info("SnoutAction.init start");
 
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
-		req.setAttribute("mOptions", CodeListUtils.getSelectOptions(RvsUtils.getSnoutModels(conn), "", "(未选择)", false));
+		req.setAttribute("mOptions", ComponentSettingService.getModelReferChooser(conn));
 		req.setAttribute("rOptions", "<option value>全部</option><option value='0'>制造中</option><option value='1' selected>待检测</option><option value='2'>已检测</option><option value='3'>已使用</option>");
+
+		ModelService modelService = new ModelService();
+		String mReferChooser = modelService.getOptions(conn);
+		req.setAttribute("mReferChooser", mReferChooser);// 维修对象型号集合
 
 		SoloSnoutService service = new SoloSnoutService();
 		// 处理者信息取得
@@ -62,7 +77,40 @@ public class SnoutsAction extends BaseAction {
 		// 处理者信息设定
 		req.setAttribute("oReferChooser", oReferChooser);
 
+		// 取得登录用户权限
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		List<Integer> privacies = user.getPrivacies();
+
+		if (privacies.contains(RvsConsts.PRIVACY_FACT_MATERIAL)) {
+			req.setAttribute("role", "fact");
+			if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+				req.setAttribute("role", "both");
+			}
+		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+			req.setAttribute("role", "line");
+		}
+
 		log.info("SnoutAction.init end");
+	}
+
+	public void getSettings(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SnoutsAction.getSettings start");
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		// 检索条件表单合法性检查
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		List<MsgInfo> msgInfos = v.validate();
+
+		ComponentSettingService settingService = new ComponentSettingService();
+		List<ComponentSettingForm> list = settingService.getAllSnoutComponentSettings(conn);
+		callbackResponse.put("list", list);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.getSettings end");
 	}
 
 	@Privacies(permit={1, 0})
@@ -101,7 +149,7 @@ public class SnoutsAction extends BaseAction {
 			String pcs = service.getSnoutPcs(serial_no, retForm.getModel_name(), conn);
 			req.setAttribute("snout", retForm);
 			req.setAttribute("pcs", pcs);
-			req.setAttribute("mOptions", CodeListUtils.getSelectOptions(RvsUtils.getSnoutModels(conn), retForm.getModel_id(), null, false));
+			req.setAttribute("mOptions", ComponentSettingService.getModelReferChooser(conn));
 		}
 
 		actionForward = mapping.findForward("detail");
@@ -198,6 +246,216 @@ public class SnoutsAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("SnoutsAction.searchSnoutsOnMonth end");
+	}
+
+	public void showPrepairSnoutList(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SnoutsAction.showPrepairSnoutList start");
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		SoloSnoutService service = new SoloSnoutService();
+		List<SnoutEntity> listEntities = service.getUsableOriginByModel(req.getParameter("model_id"), conn);
+		List<SnoutForm> list = new ArrayList<SnoutForm>();
+		BeanUtil.copyToFormList(listEntities, list, CopyOptions.COPYOPTIONS_NOEMPTY, SnoutForm.class);
+		callbackResponse.put("list", list);
+
+		// 取得登录用户权限
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		List<Integer> privacies = user.getPrivacies();
+
+		if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+			callbackResponse.put("tobe_list", service.getTobeOriginByModel(req.getParameter("model_id"), conn));
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.showPrepairSnoutList end");
+	}
+
+	/**
+	 * 操作回收先端头
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void doRecover(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("SnoutsAction.doRecover start");
+
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		SoloSnoutService service = new SoloSnoutService();
+
+		String org_material_id = req.getParameter("material_id");
+		if (msgInfos.size() == 0) {
+			// 回收预置品
+			service.setToOrigin(org_material_id, conn);
+
+			String pcs_inputs = req.getParameter("pcs_inputs");
+
+			if (pcs_inputs == null) {
+				service.getRecoverPcs(org_material_id, callbackResponse, conn);
+			} else {
+				// 取得登录用户权限
+				LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+				List<Integer> privacies = user.getPrivacies();
+
+				if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+					service.saveLeaderInput(req, user, org_material_id, conn);
+				}
+			}
+
+			// 灭菌等待
+			List<String> eogPositionId = PositionService.getPositionsBySpecialPage("snout_eog", conn);
+			if (eogPositionId != null) {
+				ProductionFeatureService pfService = new ProductionFeatureService();
+				List<String> triggerList = new ArrayList<String>();
+				ProductionFeatureEntity workingPf = new ProductionFeatureEntity();
+				workingPf.setMaterial_id(org_material_id);
+				workingPf.setPosition_id(eogPositionId.get(0));
+				workingPf.setSection_id("00000000009");
+				workingPf.setRework(0);
+				workingPf.setPace(0);
+
+				pfService.fingerSpecifyPosition(org_material_id, true, workingPf, triggerList, conn);
+				if (triggerList.size() > 0) {
+					conn.commit();
+					RvsUtils.sendTrigger(triggerList);
+				}
+			}
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.doRecover end");
+	}
+
+	public void doAbandon(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("SnoutsAction.doAbandon start");
+
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		SoloSnoutService service = new SoloSnoutService();
+
+		String org_material_id = req.getParameter("material_id");
+		if (msgInfos.size() == 0) {
+			// 删除预置品
+			service.abandon(org_material_id, conn);
+		}
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.doAbandon end");
+	}
+
+	public void getSnoutHeadHistory(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SnoutsAction.getSnoutHeadHistory start");
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		SoloSnoutService service = new SoloSnoutService();
+		callbackResponse.put("list", service.getSnoutHeadHistory(req.getParameter("material_id"), conn));
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.getSnoutHeadHistory end");
+	}
+
+	public void getRecoverPcs(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SnoutsAction.getRecoverPcs start");
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		SoloSnoutService service = new SoloSnoutService();
+		service.getRecoverPcs(req.getParameter("material_id"), callbackResponse, conn);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.getRecoverPcs end");
+	}
+
+	public void getStorage(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SnoutsAction.getStorage start");
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		SnoutEntity conBean = new SnoutEntity();
+		BeanUtil.copyToBean(form, conBean, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		ComponentSettingService settingService = new ComponentSettingService();
+
+		String snoutStorageHtml = settingService.getSnoutStorageHtml(conBean.getModel_id(), conn);
+		callbackResponse.put("snoutStorageHtml", snoutStorageHtml);
+
+		SoloSnoutService service = new SoloSnoutService();
+
+		List<String> slots = service.getSlotsFromSnoutComponentStorageByModel(conBean.getModel_id(), conn);
+		callbackResponse.put("slots", slots);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.getStorage end");
+	}
+
+	public void doMoveStorage(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("SnoutsAction.doMoveStorage start");
+
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
+
+		SoloSnoutService service = new SoloSnoutService();
+
+		SnoutEntity conBean = new SnoutEntity();
+		BeanUtil.copyToBean(form, conBean, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		service.setSnoutComponentStorage(conBean.getSerial_no(), conBean.getSlot(), conBean.getModel_id(), conn);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", msgInfos);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("SnoutsAction.doMoveStorage end");
 	}
 
 }

@@ -27,7 +27,9 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.AlarmMesssageEntity;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.data.SnoutEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
+import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
@@ -46,11 +48,11 @@ import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
-import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
@@ -181,7 +183,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 				user.getOperator_id(), process_code, 1, conn));
 
 		// 先端预制，取得可制作的型号
-		listResponse.put("modelOptions", CodeListUtils.getSelectOptions(RvsUtils.getSnoutModels(conn), "", "(未选择)", false));
+		listResponse.put("modelOptions", ComponentSettingService.getModelReferChooser(conn));
 
 		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
 		SoloProductionFeatureEntity pfBean = new SoloProductionFeatureEntity();
@@ -205,13 +207,17 @@ public class PositionPanelSnoutAction extends BaseAction {
 				// getProccessingData(listResponse, workingPf.getMaterial_id(), workingPf, user, conn);
 
 				// 取得工程检查票
-				getPcses(listResponse, workingPf, user.getLine_id(), conn);
+				MaterialEntity orginMaterial = null;
+				orginMaterial = sservice.getSnoutOriginBySerialNo(workingPf.getSerial_no() ,conn);
+				getPcses(listResponse, workingPf, user.getLine_id(), 
+						(orginMaterial != null ? orginMaterial.getMaterial_id() : null), conn);
 
 				// 取得本先端头第一次作业 的开始时间 TODO
 				listResponse.put("action_time", DateUtil.toString(sservice.getFirstPaceOnRework(workingPf, conn), "HH:mm:ss"));
 				listResponse.put("spent_mins", sservice.getTotalTime(workingPf, conn) / 60);
 
 				listResponse.put("snout_origin", sservice.getSnoutOriginNoBySerialNo(workingPf.getSerial_no() ,conn));
+				listResponse.put("model_id", workingPf.getModel_id());
 				listResponse.put("model_name", workingPf.getModel_name());
 				listResponse.put("serial_no", workingPf.getSerial_no());
 				listResponse.put("leagal_overline", RvsUtils.getZeroOverLine(workingPf.getModel_name(), null, user, "301"));
@@ -224,7 +230,10 @@ public class PositionPanelSnoutAction extends BaseAction {
 //				getProccessingData(listResponse, pauseingPf.getMaterial_id(), pauseingPf, user, conn);
 
 				// 取得工程检查票
-				getPcses(listResponse, workingPf, user.getLine_id(), conn);
+				MaterialEntity orginMaterial = null;
+				orginMaterial = sservice.getSnoutOriginBySerialNo(workingPf.getSerial_no() ,conn);
+				getPcses(listResponse, workingPf, user.getLine_id(), 
+						(orginMaterial != null ? orginMaterial.getMaterial_id() : null), conn);
 
 				//spent_mins
 				// listResponse.put("spent_mins", (Integer) listResponse.get("spent_mins") + pauseingPf.getUse_seconds() / 60);
@@ -232,6 +241,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 				listResponse.put("spent_mins", sservice.getTotalTime(workingPf, conn) / 60);
 
 				listResponse.put("snout_origin", sservice.getSnoutOriginNoBySerialNo(workingPf.getSerial_no() ,conn));
+				listResponse.put("model_id", workingPf.getModel_id());
 				listResponse.put("model_name", workingPf.getModel_name());
 				listResponse.put("serial_no", workingPf.getSerial_no());
 				listResponse.put("leagal_overline", RvsUtils.getZeroOverLine(workingPf.getModel_name(), null, user, "301"));
@@ -278,6 +288,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 		String dryingConfirmed = req.getParameter("confirmed");
 
+		listResponse.put("model_id", model_id);
 		listResponse.put("model_name", model_name);
 		listResponse.put("serial_no", serial_no);
 
@@ -295,14 +306,14 @@ public class PositionPanelSnoutAction extends BaseAction {
 			MsgInfo msg = new MsgInfo();
 			msg.setComponentid("snout_no");
 			msg.setErrcode("validator.required");
-			msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "先端头序列号"));
+			msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "D/E 组件序列号"));
 			errors.add(msg);
 		} else {
 			if (serial_no.length() != 7) {
 				MsgInfo msg = new MsgInfo();
 				msg.setComponentid("snout_no");
 				msg.setErrcode("validator.invalidParam.invalidMaxLengthValue");
-				msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidJustLengthValue", "先端头序列号", "7"));
+				msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidJustLengthValue", "D/E 组件序列号", "7"));
 				errors.add(msg);
 			}
 			SoloProductionFeatureEntity pfBean = new SoloProductionFeatureEntity();
@@ -313,7 +324,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 					MsgInfo msg = new MsgInfo();
 					msg.setComponentid("snout_no");
 					msg.setErrcode("dbaccess.columnNotUnique");
-					msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "先端头序列号", serial_no, "先端预制作业"));
+					msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.columnNotUnique", "D/E 组件序列号", serial_no, "D/E 组装作业"));
 					errors.add(msg);
 					break;
 				}
@@ -335,8 +346,26 @@ public class PositionPanelSnoutAction extends BaseAction {
 			pfBean.setSerial_no(serial_no);
 
 			if (pace == -1) {
+
+				ComponentSettingService csService = new ComponentSettingService();
+				ComponentSettingEntity settingDetail = csService.getSnoutComponentSettingDetail(model_id, conn);
+				if (settingDetail == null) {
+					MsgInfo e = new MsgInfo();
+					e.setErrmsg("此型号不是 D/E 组装对象。");
+					errors.add(e);
+				} else {
+					Integer sub_set_cnt = Integer.parseInt(settingDetail.getCnt_partial_step1());
+					if (sub_set_cnt <= 0) {
+						MsgInfo msg = new MsgInfo();
+						msg.setErrmsg("此型号子零件缺失，无法开始作业。");
+						errors.add(msg);
+					} else {
+						csService.inventSnoutSubPartSets(model_id, sub_set_cnt - 1, conn);
+					}
+				}
+
 				// 登录先端头来源
-				sservice.registSnoutOrigin(material_id, serial_no, conn);
+				sservice.registSnoutOriginSerial(material_id, serial_no, conn);
 				listResponse.put("spent_mins", "0");
 				listResponse.put("snout_origin", sservice.getSnoutOriginNoBySerialNo(serial_no ,conn));
 
@@ -365,12 +394,18 @@ public class PositionPanelSnoutAction extends BaseAction {
 			bfService.finishPauseFeature(null, user.getSection_id(), user.getPosition_id(), user.getOperator_id(), serial_no, conn);
 
 			// 取得工程检查票
-			getPcses(listResponse, pfBean, user.getLine_id(), conn);
+			// 结束烘干
+			MaterialEntity orginMaterial = null;
+			if (material_id == null) {
+				orginMaterial = sservice.getSnoutOriginBySerialNo(serial_no ,conn);
+				material_id = orginMaterial.getMaterial_id();
+			}
+			getPcses(listResponse, pfBean, user.getLine_id(), material_id, conn);
 
 			DryingProcessService dpService = new DryingProcessService();
 			if ("true".equals(dryingConfirmed)) {
 				// 结束烘干
-				MaterialEntity orginMaterial = sservice.getSnoutOriginBySerialNo(serial_no ,conn);
+				if (orginMaterial == null) orginMaterial = sservice.getSnoutOriginBySerialNo(serial_no ,conn);
 				dpService.finishDryingProcess(orginMaterial.getMaterial_id(), user.getPosition_id(), conn);
 			}
 
@@ -404,6 +439,40 @@ public class PositionPanelSnoutAction extends BaseAction {
 		MaterialForm mForm = sservice.checkOrigin(material_id, conn, errors);
 
 		if (errors.size() == 0) {
+			String modelId = mForm.getModel_id();
+			ComponentSettingService csService = new ComponentSettingService();
+			ComponentSettingEntity settingDetail = csService.getSnoutComponentSettingDetail(modelId, conn);
+			if (settingDetail == null) {
+				MsgInfo e = new MsgInfo();
+				e.setErrmsg("此型号不是D/E 组装对象。");
+				errors.add(e);
+			} else {
+				if ("0".equals(settingDetail.getCnt_partial_step1())) {
+
+					MsgInfo e = new MsgInfo();
+					e.setErrmsg("此型号子零件缺失，无法开始作业。");
+					errors.add(e);
+				} else if (mForm.getSerial_no() == null){
+					List<SnoutEntity> listTobe = sservice.getUsableOriginByModel(modelId, conn);
+					boolean hit = false;
+					List<String> nos = new ArrayList<String>();
+					for(SnoutEntity m : listTobe) {
+						if (material_id.equals(m.getMaterial_id())) {
+							hit = true;
+						}
+						nos.add(m.getOrigin_omr_notifi_no());
+					}
+					if (!hit) {
+						MsgInfo e = new MsgInfo();
+						e.setErrmsg("此维修品未入库为C 本体回收来源。\n目前入库的来源有：\n" +
+								CommonStringUtil.joinBy("\n", nos.toArray(new String[nos.size()]))
+						);
+						errors.add(e);
+					}
+				}
+			}
+		}
+		if (errors.size() == 0) {
 			List<MaterialEntity> snoutsByMonth = new ArrayList<MaterialEntity>();
 
 			// 取得本月先端管理列表
@@ -435,7 +504,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 	 * @param user
 	 * @param conn
 	 */
-	public static void getPcses(Map<String, Object> listResponse, SoloProductionFeatureEntity pf, String sline_id,
+	private static void getPcses(Map<String, Object> listResponse, SoloProductionFeatureEntity pf, String sline_id, String orgMaterialId,
 			SqlSession conn) {
 		List<Map<String, String>> pcses = new ArrayList<Map<String, String>>();
 
@@ -447,8 +516,15 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 			Map<String, String> fileTemplSolo = new HashMap<String, String>();
 			for (String key : fileTempl.keySet()) {
-				if (key.contains("先端预制")) {
+				if (key.contains("先端预制") || key.contains("D／E组装")) {
 					fileTemplSolo.put(key, fileTempl.get(key));
+				}
+			}
+			// 增加先端来源C 本体回收检查票
+			Map<String, String> fileTemplOrigin = new HashMap<String, String>();
+			for (String key : fileTempl.keySet()) {
+				if (key.contains("回收")) {
+					fileTemplOrigin.put(key, fileTempl.get(key));
 					break;
 				}
 			}
@@ -458,6 +534,20 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 			fileHtml = RvsUtils.reverseLinkedMap(fileHtml);
 			pcses.add(fileHtml);
+
+			if (!fileTemplOrigin.isEmpty()) {
+				MaterialService mService = new MaterialService();
+				MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, orgMaterialId);
+				if (mEntity != null) {
+					Map<String, String> fileOriginHtml = PcsUtils.toHtml(fileTemplOrigin, 
+							orgMaterialId, mEntity.getSorc_no(), pf.getModel_name(), mEntity.getSerial_no(), "" + mEntity.getLevel(),  
+							"301", null, false, conn);
+
+					if (fileOriginHtml != null && !fileOriginHtml.isEmpty()) {
+						pcses.add(fileOriginHtml);
+					}
+				}
+			}
 		}
 
 		listResponse.put("pcses", pcses);
@@ -741,6 +831,12 @@ public class PositionPanelSnoutAction extends BaseAction {
 				workingPf.setPcs_inputs(pcs_inputs);
 				workingPf.setPcs_comments(req.getParameter("pcs_comments"));
 				dao.finish(workingPf);
+
+				String slot = req.getParameter("slot");
+				if (slot != null) {
+					SoloSnoutService ssService = new SoloSnoutService();
+					ssService.setSnoutComponentStorage(workingPf.getSerial_no(), slot, workingPf.getModel_id(), conn);
+				}
 			}
 		} else {
 			log.error("作业已经被结束。");
@@ -792,7 +888,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 		from_position_id = "00000000024";
 
 		// 判断维修对象型号是否可做先端预制
-		if (RvsUtils.getSnoutModels(conn).containsKey(model_id)) {
+		if (ComponentSettingService.getSnoutCompModels(conn).containsKey(model_id)) {
 			// 取得用户信息
 			HttpSession session = req.getSession();
 			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
@@ -868,7 +964,7 @@ public class PositionPanelSnoutAction extends BaseAction {
 		if (CommonStringUtil.isEmpty(serial_no)) {
 			MsgInfo msginfo = new MsgInfo();
 			msginfo.setErrcode("validator.required");
-			msginfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "先端头序号"));
+			msginfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "C 本体序号"));
 			infoes.add(msginfo);
 		}
 
@@ -915,26 +1011,10 @@ public class PositionPanelSnoutAction extends BaseAction {
 
 			// 取得工作中维修对象
 			ProductionFeatureEntity workingPf = service.getWorkingOrSupportingPf(user, conn);
-			String material_id = workingPf.getMaterial_id();
 
-			SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
-			// 标准作业时间
-			Integer use_seconds = Integer.valueOf(RvsUtils.getZeroOverLine("_default", null, user, from_process_code)) * 60;
-
-			ProductionFeatureEntity pfBean = new ProductionFeatureEntity();
-			pfBean.setSerial_no(serial_no);
-			pfBean.setUse_seconds(use_seconds);
-			pfBean.setMaterial_id(material_id);
-			pfBean.setRework(workingPf.getRework());
-			pfBean.setSection_id(workingPf.getSection_id());
-			pfBean.setPosition_id(workingPf.getPosition_id());
-
-			dao.forbid(pfBean);
-
-			pfBean.setPosition_id(from_position_id);
-			dao.use(pfBean);
-			dao.useto(pfBean);
-			dao.leaderuseto(pfBean);
+			SoloSnoutService ssService = new SoloSnoutService();
+	
+			List<ProductionFeatureEntity> used_snouts = ssService.use(from_position_id, from_process_code, serial_no, workingPf, user, conn);
 
 			// 重新取得工程检查票
 			MaterialMapper mdao = conn.getMapper(MaterialMapper.class);
@@ -944,7 +1024,6 @@ public class PositionPanelSnoutAction extends BaseAction {
 			listResponse.put("mform", mform);
 			PositionPanelService.getPcses(listResponse, workingPf, user.getLine_id(), conn);
 			listResponse.put("snout_model" , SNOUT_MODEL_INCLUDED);
-			List<ProductionFeatureEntity> used_snouts = dao.findUsedSnoutsByMaterial(material_id, from_position_id);
 
 			List<String> serialNos = new ArrayList<String>();
 			for (ProductionFeatureEntity used_snout : used_snouts) {
@@ -1005,26 +1084,10 @@ public class PositionPanelSnoutAction extends BaseAction {
 			ProductionFeatureEntity workingPf = service.getWorkingOrSupportingPf(user, conn);
 			String material_id = workingPf.getMaterial_id();
 	
-			// 取得当前进行中Rework
-			int rework = workingPf.getRework();
+			SoloSnoutService ssService = new SoloSnoutService();
+			
+			ssService.unuse(from_position_id, serial_no, workingPf, conn);
 
-			SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
-
-			// 寻找维修对象已使用先端头
-			List<ProductionFeatureEntity> used_snouts = dao.findUsedSnoutsByMaterial(material_id, from_position_id);
-			for (ProductionFeatureEntity used_snout : used_snouts) {
-				if (used_snout.getRework() == rework) {
-					serial_no = used_snout.getSerial_no();
-				}
-			}
-
-			dao.unuse(serial_no, from_position_id);
-			dao.unuseto(workingPf.getMaterial_id(), "" + workingPf.getRework(), from_position_id);
-	
-			ProductionFeatureEntity pfBean = new ProductionFeatureEntity();
-			pfBean.setSerial_no(serial_no);
-			dao.leaderuseto(pfBean);
-	
 			// 重新取得工程检查票
 			MaterialMapper mdao = conn.getMapper(MaterialMapper.class);
 			MaterialForm mform = new MaterialForm();

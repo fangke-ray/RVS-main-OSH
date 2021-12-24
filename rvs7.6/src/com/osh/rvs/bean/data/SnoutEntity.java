@@ -35,9 +35,16 @@ public class SnoutEntity implements Serializable {
 
 	private String new_serial_no;
 
+	private String material_id;
 	private String origin_omr_notifi_no;
 
 	private String position_id;
+
+	private String target_serial_no;
+
+	private Integer refurbished;
+
+	private String slot;
 
 	public String getModel_name() {
 		return model_name;
@@ -165,6 +172,38 @@ public class SnoutEntity implements Serializable {
 
 	public void setPosition_id(String position_id) {
 		this.position_id = position_id;
+	}
+
+	public String getTarget_serial_no() {
+		return target_serial_no;
+	}
+
+	public void setTarget_serial_no(String target_serial_no) {
+		this.target_serial_no = target_serial_no;
+	}
+
+	public Integer getRefurbished() {
+		return refurbished;
+	}
+
+	public void setRefurbished(Integer refurbished) {
+		this.refurbished = refurbished;
+	}
+
+	public String getMaterial_id() {
+		return material_id;
+	}
+
+	public void setMaterial_id(String material_id) {
+		this.material_id = material_id;
+	}
+
+	public String getSlot() {
+		return slot;
+	}
+
+	public void setSlot(String slot) {
+		this.slot = slot;
 	}
 
 }

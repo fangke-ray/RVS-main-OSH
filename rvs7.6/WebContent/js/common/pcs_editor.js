@@ -103,44 +103,86 @@ var pcsO = {
 			pcsO.$pcs_contents.find(".pcs_content").hide();
 			$("#" + this.id.replace("pcs_page_", "pcs_content_")).show();
 		});
-		if (0) {
-			this.$pcs_contents.find("input,textarea").not(".i_sff").parent().css("background-color", "#93C3CD");
-			this.$pcs_contents.find("input[name^='EN']").button();
-			this.$pcs_contents.find("input.i_switchM").click(this._emSwitch);
-		} else {
-			this.$pcs_contents.find("input[name^='L'],textarea[name^='L']").parent().css("background-color", "#93C3CD");
-			this.$pcs_contents.find("input[name^='E'],textarea[name^='E']").not(".i_sff").parent().css("background-color", "#F8FB84");
-			this.$pcs_contents.find("input[name^='LN'],input[name^='EN']").button();
-			this.$pcs_contents.find("input.i_switchM").click(this._emSwitch);
-		}
-		this.$pcs_contents.find("input:text").autosizeInput();
 
-		var $EMs = this.$pcs_contents.find("input[name^='EM']");
-		pcsO._checkEMs($EMs);
-		$EMs.click(function(){pcsO._checkEMs($EMs)});
-		$EMs.hide().next("label").hide();
+		this._empower(this.$pcs_contents, isLeader);
 
 		// 自动选择第一个可填写页
 		var activePage = this.$pcs_contents.find("div:has(input):first");
 		if (activePage.length == 1) {
 			$("#" + activePage.attr("id").replace("pcs_content_", "pcs_page_")).trigger("click");
 		}
+	},
+	append : function(pcses, isLeader) {
+		var tabs = "";
+		var tabscount = this.$pcs_pages.children("input:radio").length;
+		var contents = "";
+		pcsO.$container.show();
+		for (var pcsline in pcses) {
+			var pcsgroup = pcses[pcsline];
+			for (var pcsseq in pcsgroup) {
+				tabs += '<input type="radio" '+(tabscount == 0 ? 'checked' : '')+' name="pcs_page" class="ui-button ui-corner-up-s ui-helper-hidden-accessible" id="pcs_page_'+tabscount+'"><label role="button" class="ui-state-default '+(tabscount == 0 ? 'ui-state-active' : '')+'" for="pcs_page_'+tabscount+'" title="'+pcsseq+'"><span class="ui-button-text">'+pcsseq+'</span></label>';
+				contents+= '<div id="pcs_content_'+tabscount+'" style="display:none" class="pcs_content">' + pcsgroup[pcsseq] + "</div>";
+				tabscount++;
+			}
+		}
+		this.$pcs_pages.append(tabs).buttonset("destroy");
+		this.$pcs_pages.buttonset();
+
+		if (pcsO.forQa) {
+			this.$pcs_pages.find(".ui-button-text").filter(function(idx, ele){
+				return ($(ele).text().indexOf("NS组件组装") >= 0);
+			}).addClass("twinkling_on");
+		}
+		this.$pcs_pages.find("input").unbind("click").click(function(){
+			$("#pcscombutton").enable();
+			pcsO.$pcs_contents.find(".pcs_content").hide();
+			$("#" + this.id.replace("pcs_page_", "pcs_content_")).show();
+		});
+
+		var $appendContents = $(contents);
+		this.$pcs_contents.append($appendContents);
+		this._empower($appendContents, isLeader);
+
+		// 自动选择第一个可填写页
+		var activePage = this.$pcs_contents.find("div:has(input):first");
+		if (activePage.length == 1) {
+			$("#" + activePage.attr("id").replace("pcs_content_", "pcs_page_")).trigger("click");
+		}
+	},
+	_empower : function($pcs_contents, isLeader){
+		if (0) {
+			$pcs_contents.find("input,textarea").not(".i_sff").parent().css("background-color", "#93C3CD");
+			$pcs_contents.find("input[name^='EN']").button();
+			$pcs_contents.find("input.i_switchM").click(this._emSwitch);
+		} else {
+			$pcs_contents.find("input[name^='L'],textarea[name^='L']").parent().css("background-color", "#93C3CD");
+			$pcs_contents.find("input[name^='E'],textarea[name^='E']").not(".i_sff").parent().css("background-color", "#F8FB84");
+			$pcs_contents.find("input[name^='LN'],input[name^='EN']").button();
+			$pcs_contents.find("input.i_switchM").click(this._emSwitch);
+		}
+		$pcs_contents.find("input:text").autosizeInput();
+
+		var $EMs = $pcs_contents.find("input[name^='EM']");
+		pcsO._checkEMs($EMs);
+		$EMs.click(function(){pcsO._checkEMs($EMs)});
+		$EMs.hide().next("label").hide();
+
 		if (this.forQa) {
-			var jdefects = this.$pcs_contents.find("td:contains('不合格')");
+			var jdefects = $pcs_contents.find("td:contains('不合格')");
 			if (jdefects.length > 0) {
 				jdefects.eq(0).html(jdefects.eq(0).html().replace("不合格", "<font color='red'>不合格</font>"));
 			}
 		}
-		this.$pcs_contents.find("td:contains('null')").text("");
+		$pcs_contents.find("td:contains('null')").text("");
 
 		// 不是最新页的就灰色化
-		this.$pcs_contents.find("div:not(:has(newstatus))").css("background-color", "gainsboro");
+		$pcs_contents.find("div:not(:has(newstatus))").css("background-color", "gainsboro");
 		// 管理员用的修正标记
 		if (isLeader == "fix") 
-			this.$pcs_contents.find("input, textarea").bind("change", function(){$(this).attr("fixed", "1")});
+			$pcs_contents.find("input, textarea").bind("change", function(){$(this).attr("fixed", "1")});
 
 		// 文本输入项目回车依序
-		var $EIs = this.$pcs_contents.find("input[name^='EI']");
+		var $EIs = $pcs_contents.find("input[name^='EI']");
 		$EIs.sort(function(a, b) {
 			return a.name > b.name ? 1 : -1;
 		});
@@ -163,7 +205,7 @@ var pcsO = {
 		});
 
 		// 常用备注信息{
-		this.$pcs_contents.find(".i_frequent").bind("keypress", function(){
+		$pcs_contents.find(".i_frequent").bind("keypress", function(){
 			$(this).attr("changed", true);
 		});
 	},

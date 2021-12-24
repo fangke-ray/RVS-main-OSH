@@ -188,7 +188,7 @@ if (privacy != null) {
 			<input type="button" class="ui-button" id="reportbobutton2" value="BO零件一览表导出" style="float:right;margin-right: 6px;"/>
 			<input type="button" class="ui-button" id="reportbobutton" value="维修对象订购一览表导出" style="float:right;margin-right: 6px;"/>
 			<input type="button" class="ui-button" id="reportappendbutton" value="零件追加明细表导出" style="float:right;margin-right: 6px;"/>
-			<input type="button" class="ui-button" id="snoutbutton" value="预制替代"/>
+			<input type="button" class="ui-button" id="snoutbutton" value="D/E 组件替代"/>
 		<% } else if("fact".equals(privacy)) { %>
 			<input type="button" class="ui-button" id="editbobutton" value="零件信息"/>
 			<input type="button" class="ui-button" id="consumablebutton" value="消耗品替代"/>

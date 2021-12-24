@@ -1331,6 +1331,7 @@
 		<value code="dismantle">分拆</value>
 		<value code="qualityAssurance">最终检查</value>
 		<value code="shipping">包装出货</value>
+		<value code="snout_eog">C本体灭菌</value>
 	</codelist>
 
 	<codelist name="compose_storage_case_spec">

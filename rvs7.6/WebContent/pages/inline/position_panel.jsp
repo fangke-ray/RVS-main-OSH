@@ -88,6 +88,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	animation: movetenseconds 60s steps(6, end) infinite;
 }
 </style>
+
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
 <script type="text/javascript" src="js/jquery.dialog.js"></script>
@@ -101,6 +102,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/common/pcs_editor.js"></script>
 <script type="text/javascript" src="js/inline/position_panel.js"></script>
+<script type="text/javascript" src="js/inline/position_panel_clock.js"></script>
+<script type="text/javascript" src="js/inline/position_panel_pause_feature.js"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript">
@@ -233,7 +236,7 @@ if (request.getAttribute("addi_order")!=null) {
 %>
 <script type="text/javascript">
 loadCss("css/partial/instruction_sheets.css");
-loadJs("js/partial/common/instruction_sheets.js", function(){
+loadJs("js/partial/common/instruction_sheets.js?v=2", function(){
 	var $inst_obj = $("<span id=\"instuct_obj\" class=\"instruct_obj icon-list\"> 工作指示单</span>");
 	var $inst_obj_arc = $("#working_detail") 
 	if ($inst_obj_arc.is(":hidden")) {
@@ -256,6 +259,37 @@ if (peripheral!=null && peripheral) {
 }
 %>
 
+<%
+String desnout = (String) request.getAttribute("desnout");
+if (desnout!=null) {
+%>
+<div id="decsnoutarea" style="margin-bottom: 16px;display:none;">
+	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
+		<span class="areatitle">回收 C 本体</span>
+	</div>
+	<div class="ui-widget-content  dwidth-full" tabindex="-1" style="z-index:80;padding: 6px 0;" id="desnout">
+		<span style="padding: 0 6px;"></span>
+	</div>
+	<div class="ui-state-default ui-corner-bottom areaencloser dwidth-full"></div>
+
+	<div class="clear"></div>
+</div>
+<%
+}
+%>
+
+<%
+boolean useSnout = (request.getAttribute("useSnout") == null ? false : true);
+if (useSnout) { 
+%>
+			<div id="usesnoutarea" style="margin-bottom: 16px;display:none;">
+<%@include file="/widgets/position_panel/use_snout_area.jsp"%>
+			</div>
+<script type="text/javascript">
+loadJs("js/inline/position_panel_use_snout.js", function(){});
+</script>
+<% } %>
+
 			<div id="manualdetailarea" style="margin-bottom: 16px;">
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
 					<span class="areatitle">工程检查票</span>
@@ -274,16 +308,10 @@ if (peripheral!=null && peripheral) {
 	<div id="process_dialog"></div>
 	<div id="break_dialog"></div>
 	<%@include file="/widgets/position_panel/countdown_unreach.jsp"%>
-	<!--div id="comments_dialog" style="display:none;">
-		<div class="ui-widget-header ui-corner-top ui-helper-clearfix">
-			<span class="areatitle icon-enter-2"> 维修对象相关信息</span>
-		</div>
-		<textarea style="width:100%;height:6em;resize:none;border:0;padding:4px;" disabled readonly>
-		</textarea>
-	</div-->
+
 	<div id="comments_sidebar" style="display:none;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix">
-			<span class="areatitle icon-enter-2">提示相关信息</span>
+			<span class="areatitle icon-enter-2" style="cursor: ew-resize;">提示相关信息</span>
 		</div>
 		<div class="comments_area">
 		</div>

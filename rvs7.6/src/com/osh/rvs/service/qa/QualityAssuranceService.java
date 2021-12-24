@@ -28,10 +28,12 @@ import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.HolidayMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 
@@ -88,8 +90,13 @@ public class QualityAssuranceService {
 			Map<String, String> fileTempl = PcsUtils.getXlsContents(showLine, mform.getModel_name(), null, 
 					mform.getMaterial_id(), RvsUtils.isLightFix(mform.getLevel()), getHistory, conn);
 
-			if ("NS 工程".equals(showLine))
+			if ("NS 工程".equals(showLine)) {
+				// 检查是否做过D/E组装
+				SoloSnoutService ssService = new SoloSnoutService();
+				ssService.getRecoverFilePdf(fileTempl, mform, folderPath, conn);
+
 				mService.filterSolo(fileTempl, mform.getMaterial_id(), mform.getLevel(), conn);
+			}
 
 			String retEmpty = PcsUtils.toPdf(fileTempl, mform.getMaterial_id(), mform.getSorc_no(), mform.getModel_name(),
 					mform.getSerial_no(), mform.getLevel(), null, folderPath, isAnmlExp, conn);

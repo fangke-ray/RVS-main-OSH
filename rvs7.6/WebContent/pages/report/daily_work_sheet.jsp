@@ -88,7 +88,7 @@
 						<input type="radio" name="infoes" class="ui-button ui-corner-up" id="unrepairebutton" value="7" role="button">
 						<label for="unrepairebutton">未修理</label>
 						<input type="radio" name="infoes" class="ui-button ui-corner-up" id="snoutbutton" value="8" role="button">
-						<label for="snoutbutton">先端回收</label>
+						<label for="snoutbutton">D/E 组装</label>
 						<input type="radio" name="infoes" class="ui-button ui-corner-up" id="washbutton" value="9" role="button">
 						<label for="washbutton">钢丝固定件清洗</label>
 						<!--当前操作者的工位-->

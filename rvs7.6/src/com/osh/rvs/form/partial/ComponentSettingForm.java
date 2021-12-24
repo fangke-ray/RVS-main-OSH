@@ -12,7 +12,7 @@ public class ComponentSettingForm extends ActionForm {
 	@BeanField(title = "型号 ID", name = "model_id", length = 11, notNull = true)
 	private String model_id;
 	private String model_name;
-	
+
 	/** 组件 ID */
 	@BeanField(title = "组件 ID", name = "component_partial_id", length = 11, notNull = true)
 	private String component_partial_id;
@@ -52,6 +52,10 @@ public class ComponentSettingForm extends ActionForm {
 	/** 组装完成数 */
 	@BeanField(title = "组装完成数", name = "cnt_partial_step3")
 	private String cnt_partial_step3;
+
+	/** 组装完成数 */
+	@BeanField(title = "翻新 C 本题", name = "refurbished_code")
+	private String refurbished_code;
 
 	public String getModel_id() {
 		return model_id;
@@ -147,6 +151,14 @@ public class ComponentSettingForm extends ActionForm {
 
 	public void setCnt_partial_step3(String cnt_partial_step3) {
 		this.cnt_partial_step3 = cnt_partial_step3;
+	}
+
+	public String getRefurbished_code() {
+		return refurbished_code;
+	}
+
+	public void setRefurbished_code(String refurbished_code) {
+		this.refurbished_code = refurbished_code;
 	}
 	
 }

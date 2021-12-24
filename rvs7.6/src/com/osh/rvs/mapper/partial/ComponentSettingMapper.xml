@@ -53,7 +53,7 @@
             order by model_name ASC
 		]]>
 	</select>
-	
+
 	<!-- 新建页面插入数据 -->
 	<insert id="insertSetting" parameterType="ComponentSettingEntity">
 		<![CDATA[ 
@@ -144,4 +144,127 @@
 			</if>
 		</where>
 	</update>
- </mapper>
+
+	<select id="getAllSnoutComponentModel" resultType="ComponentSettingEntity">
+		select 
+			cs.model_id
+			,vm.NAME as model_name
+		from 
+			snout_component_setting cs
+			join model vm on cs.model_id = vm.MODEL_ID
+		where sub_part_sets >= 0
+		order by shelf, layer, model_name ASC
+	</select>
+
+ 	<select id="searchSnoutComponentSetting" resultType="ComponentSettingEntity">
+		<![CDATA[ 
+			select 
+				cs.model_id
+                ,vm.CATEGORY_NAME as category_name
+                ,vm.NAME as model_name
+                ,pm.code as component_code
+                ,cs.shelf
+                ,cs.layer
+                ,cs.safety_lever
+                ,pps.partial_code as refurbished_code
+                ,ppc.partial_code as partial_code
+                ,sub_part_sets as cnt_partial_step1
+			from 
+			    snout_component_setting cs
+                join v_model vm on cs.model_id = vm.MODEL_ID
+                LEFT join partial pm on cs.component_partial_id = pm.partial_id
+				left join 
+                ( select pp.model_id, group_concat(pm2.code separator ' ') as partial_code
+				  from premake_partial pp
+				  left join partial pm2 on pp.partial_id = pm2.partial_id
+                  where pp.standard_flg = 1
+                  group by model_id 
+				) ppc on ppc.model_id = cs.model_id
+				left join 
+                ( select pp.model_id, group_concat(pm2.code separator ' ') as partial_code
+				  from premake_partial pp
+				  left join partial pm2 on pp.partial_id = pm2.partial_id
+                  where pp.standard_flg = 2
+                  group by model_id 
+				) pps on pps.model_id = cs.model_id
+            order by shelf, layer, model_name ASC
+        ]]>
+     </select>
+
+	<insert id="insertSnoutSetting" parameterType="ComponentSettingEntity">
+		<![CDATA[ 
+		INSERT INTO 
+			`snout_component_setting` 
+				(`model_id`, 
+				 `component_partial_id`,
+				 `shelf`,
+				 `layer`,
+				  safety_lever,
+				  sub_part_sets) 					
+        VALUES 
+	        	(#{model_id},
+	        	 #{component_partial_id},
+	        	 #{shelf},
+	        	 #{layer},
+	        	 #{safety_lever},
+				 #{cnt_partial_step1}
+				 ); 
+		]]>
+	</insert>
+
+	<select id="getSnoutSettingDetail" resultType="ComponentSettingEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT 
+			cs.model_id ,
+			md.name as model_name, 
+			cs.component_partial_id, 
+			`shelf`,
+			`layer`,
+			concat(
+			coalesce(`shelf`, '-'),
+			'|',
+			coalesce(`layer`, '-')
+			) as identify_code,
+			pm.name as partial_name,
+			pm.code as component_code,
+			cs.sub_part_sets as cnt_partial_step1, 
+			cs.safety_lever
+		FROM snout_component_setting cs
+		   join model md on md.model_id = cs.model_id
+		   LEFT join partial pm on cs.component_partial_id = pm.partial_id
+		WHERE cs.model_id = #{model_id};
+		]]>
+	</select>
+
+	<!-- 修改组件设置_更新 -->
+	<update id="inventSnoutSubPartSets" parameterType="ComponentSettingEntity">
+		<![CDATA[ 
+			UPDATE snout_component_setting 
+			SET 
+				sub_part_sets = #{cnt_partial_step1}
+			WHERE model_id = #{model_id}
+		]]>
+	</update>
+
+	<!-- 修改组件设置_更新 -->
+	<update id="updateSnoutSetting" parameterType="ComponentSettingEntity">
+		<![CDATA[ 
+			UPDATE snout_component_setting 
+			SET 
+				component_partial_id = #{component_partial_id},
+				shelf = #{shelf},
+				layer = #{layer},
+				safety_lever = #{safety_lever}
+			WHERE model_id = #{model_id}
+		]]>
+	</update>
+
+	<!-- 修改组件设置_删除 -->
+	<update id="deleteSnoutSetting" parameterType="ComponentSettingEntity">
+		<![CDATA[ 
+			DELETE FROM snout_component_setting
+			WHERE model_id = #{model_id};
+		]]>
+	</update>
+
+</mapper>

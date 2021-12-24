@@ -2,6 +2,7 @@ package com.osh.rvs.service.inline;
 
 import static framework.huiqing.common.util.CommonStringUtil.joinBy;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -38,6 +39,7 @@ import com.osh.rvs.form.inline.SnoutForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.PostMessageMapper;
 import com.osh.rvs.mapper.inline.LeaderPcsInputMapper;
+import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
@@ -45,6 +47,7 @@ import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.PostMessageService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.partial.ComponentManageService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.proxy.ProcessAssignProxy;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -276,16 +279,23 @@ public class SoloSnoutService {
 		Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, model_name, null, conn);
 
 		Map<String, String> fileTemplSolo = new HashMap<String, String>();
+		List<String> hitkeys = new ArrayList<String>();
 		for (String key : fileTempl.keySet()) {
-			if (key.contains("先端预制")) {
+			if (key.contains("先端预制") || key.contains("D／E组装")) {
+				hitkeys.add(key);
 				fileTemplSolo.put(key, fileTempl.get(key));
-				break;
+//				break;
 			}
 		}
 
 		Map<String, String> pcsHtmls = PcsUtils.toHtmlSnout(fileTemplSolo, model_name, serial_no, "301", "00000000013", conn);
 
-		return pcsHtmls.get("NS 工程-先端预制");
+		for (String hitkey : hitkeys) {
+			if (pcsHtmls.get(hitkey).length() > 0) {
+				return pcsHtmls.get(hitkey);
+			}
+		}
+		return null;
 	}
 
 	public SnoutEntity checkUpdate(HttpServletRequest req, SqlSessionManager conn, List<MsgInfo> msgInfos) {
@@ -293,7 +303,7 @@ public class SoloSnoutService {
 		if (CommonStringUtil.isEmpty(serial_no)) {
 			MsgInfo msgInfo = new MsgInfo();
 			msgInfo.setErrcode("dbaccess.recordNotExist");
-			msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "先端组件"));
+			msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "D/E 组件"));
 			msgInfos.add(msgInfo);
 			return null;
 		}
@@ -309,7 +319,7 @@ public class SoloSnoutService {
 		if (entity == null) {
 			MsgInfo msgInfo = new MsgInfo();
 			msgInfo.setErrcode("dbaccess.recordNotExist");
-			msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "先端组件"));
+			msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "D/E 组件"));
 			msgInfos.add(msgInfo);
 			return null;
 		}
@@ -367,6 +377,13 @@ public class SoloSnoutService {
 		}
 	}
 
+	/**
+	 * 按型号获取可使用的先端头一览
+	 * 
+	 * @param model_id
+	 * @param conn
+	 * @return
+	 */
 	public String getRefers(String model_id, SqlSession conn) {
 		String refer =  "";
 		// 寻找型号可使用的先端头一览
@@ -384,6 +401,7 @@ public class SoloSnoutService {
 			refer += "<td class='originId' style='display:none'>" + line.getOperator_id() + "</td>";
 			refer += "<td><nobr>" + CommonStringUtil.decodeHtmlText(line.getOperator_name()) + "</nobr></td>";
 			refer += "<td><nobr>" + CommonStringUtil.decodeHtmlText(line.getSerial_no()) + "</nobr></td>";
+			refer += "<td><nobr>" + CommonStringUtil.decodeHtmlText(line.getProcess_code()) + "</nobr></td>";
 			refer += "</tr>";
 		}
 
@@ -491,7 +509,7 @@ public class SoloSnoutService {
 				String modelName = models.get(model_id);
 
 				PostMessageEntity pmEntity = new PostMessageEntity();
-				pmEntity.setContent(modelName + " 机型的先端预制可用数量(" + available + " 件)低于安全库存量，请安排制作。");
+				pmEntity.setContent(modelName + " 机型的 D/E 组件可用数量(" + available + " 件)低于安全库存量，请安排制作。");
 				pmEntity.setSender_id("0");
 				pmEntity.setLevel(1);
 				pmEntity.setReason(PostMessageService.SNOUT_LEAK_BY_MODEL);
@@ -535,14 +553,14 @@ public class SoloSnoutService {
 		} else {
 			// 先端预制型号
 			String model_id = mBean.getModel_id();
-			Map<String, String> snoutModels = RvsUtils.getSnoutModels(conn);
-			if (!snoutModels.containsKey(model_id)) {
-				MsgInfo error = new MsgInfo();
-				error.setComponentid("material_id");
-				error.setErrcode("info.linework.notSnoutModel");
-				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.notSnoutModel"));
-				errors.add(error);
-			}
+//			Map<String, String> snoutModels = RvsUtils.getSnoutModels(conn);
+//			if (!snoutModels.containsKey(model_id)) {
+//				MsgInfo error = new MsgInfo();
+//				error.setComponentid("material_id");
+//				error.setErrcode("info.linework.notSnoutModel");
+//				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.notSnoutModel"));
+//				errors.add(error);
+//			}
 			// 先端来源已使用
 			SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
 			MaterialEntity soBean =  mapper.checkSnoutOrigin(material_id, null);
@@ -605,7 +623,7 @@ public class SoloSnoutService {
 	public void registSnoutOrigin(String material_id, String serial_no,
 			SqlSessionManager conn) {
 		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
-		mapper.registSnoutOrigin(material_id, serial_no);
+		mapper.registSnoutOrigin(material_id, null, serial_no);
 	}
 
 	/**
@@ -852,4 +870,373 @@ public class SoloSnoutService {
 			}
 		}
 	}
+
+	public void checkSettableToOrigin(MaterialEntity mEntity,
+			Map<String, Object> callbackResponse, SqlSession conn) {
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+		MaterialEntity origin = mapper.checkSnoutOrigin(mEntity.getMaterial_id(), null);
+		int historyCnt = 0;
+		if (origin == null) {
+			// 根据序列号查询先端头源
+			// 默认新建
+//			String rootOriginId = mEntity.getMaterial_id();
+
+			SnoutEntity hist = checkHistory(mEntity.getModel_id(), mEntity.getSerial_no(), mapper);
+
+			if (hist != null) {
+//				rootOriginId = hist.getMaterial_id();
+				historyCnt = hist.getRefurbished();					
+			}
+
+			// setToOrigin(mEntity.getMaterial_id(), rootOriginId, conn);
+
+			origin = new MaterialEntity();
+		}
+		String sShowSnout = "";
+		if ("00000000000".equals(origin.getCustomer_id())) {
+			sShowSnout = "此维修品标记为废弃 C 本体。";
+		} else {
+			if (origin.getSerial_no() == null) {
+				if (origin.getMaterial_id() == null) {
+					sShowSnout = "此维修品的 C 本体预备翻新用于 D/E 组装，已使用次数为 " + historyCnt + " 次。\n如果判定为可用请操作[回收]，判定为不可用则请操作[废弃]。";
+				} else {
+					sShowSnout = "此维修品的 C 本体预备翻新用于 D/E 组装，已使用次数为 " + historyCnt + " 次。\n √ 已回收";
+				}
+			} else if (origin.getOperate_result() != null && origin.getOperate_result() == 2) {
+				sShowSnout = "此维修品的 C 本体已用于 D/E 组装，序列号为：[" + mEntity.getSerial_no() +"]。";
+			} else {
+				sShowSnout = "此维修品的 C 本体正在进行 D/E 组装，序列号为：[" + mEntity.getSerial_no() +"]。";
+			}
+		}
+		callbackResponse.put("show_snout", sShowSnout);
+	}
+
+	public void setToOrigin(String originMaterialId, SqlSessionManager conn) {
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+		MaterialEntity origin = mapper.checkSnoutOrigin(originMaterialId, null);
+		// 根据序列号查询先端头源
+		String rootOriginId = originMaterialId;
+
+		MaterialService ms = new MaterialService();
+
+		if (origin == null) {
+
+			MaterialEntity mEntity = ms.getMaterialEntityByKey(originMaterialId, conn);
+
+			SnoutEntity hist = checkHistory(mEntity.getModel_id(), mEntity.getSerial_no(), mapper);
+
+			if (hist != null) {
+				rootOriginId = hist.getMaterial_id();
+			}
+
+			mapper.registSnoutOrigin(originMaterialId, rootOriginId, null); // 未曾使用的先端头
+
+		}
+	}
+
+	/**
+	 * 检查先端头使用历史，获取来源信息
+	 * 
+	 * @param model_id
+	 * @param serial_no
+	 * @param mapper
+	 * @return
+	 */
+	public SnoutEntity checkHistory(String model_id, String serial_no, SoloProductionFeatureMapper mapper) {
+		// 查询其来源
+		List<MaterialEntity> historyList = mapper.getSnoutUseHistoryBySerial(model_id, serial_no, null);
+		// 最后一次使用的先端头序列号
+		String snoutManageCode = null;
+		for (int i = historyList.size() - 1; i >= 0; i--) {
+			MaterialEntity history = historyList.get(i);
+			if (history.getProcessing_position2() != null) {
+				snoutManageCode = history.getProcessing_position2();
+				for (int j = i; j < historyList.size(); j++) {
+					MaterialEntity nexts = historyList.get(j);
+					if (nexts.getProcessing_position() != null) {
+						// 最后一次使用后，又拆除了
+						snoutManageCode = null;
+						break;
+					}
+				}
+				break;
+			}
+		}
+		if (snoutManageCode != null) { 
+			SnoutEntity condition = new SnoutEntity();
+			condition.setSerial_no(snoutManageCode);
+			List<SnoutEntity> hist = mapper.searchSnouts(condition);
+			if (hist != null && hist.size() > 0) {
+				return hist.get(0);
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * 废弃先端来源
+	 * @param org_material_id
+	 * @param conn
+	 * @throws Exception 
+	 */
+	public void abandon(String org_material_id, SqlSessionManager conn) throws Exception {
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+
+		MaterialEntity soBean = mapper.checkSnoutOrigin(org_material_id, null);
+		if (soBean == null) {
+			setToOrigin(org_material_id, conn);
+		}
+
+		// 使用->0，为废弃
+		mapper.abandonOrigin(org_material_id);
+
+		ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+		List<String> positions = pfMapper.checkSpecPositionDid(org_material_id, "snout_eog", null, null, "null");
+		for (String position_id : positions) {
+			pfMapper.removeWaiting(org_material_id, position_id);
+		}
+
+	}
+
+	public List<SnoutEntity> getUsableOriginByModel(String model_id, SqlSession conn){
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+	
+		return mapper.getUsableOriginByModel(model_id);
+	}
+	
+	public List<MaterialEntity> getTobeOriginByModel(String model_id, SqlSession conn){
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+		List<MaterialEntity> ret = mapper.getTobeOriginByModel(model_id);
+
+		for (MaterialEntity mEntity : ret) {
+			SnoutEntity so = checkHistory(model_id, mEntity.getSerial_no(), mapper);
+			if (so != null) {
+				mEntity.setIsHistory(so.getRefurbished());
+			} else {
+				mEntity.setIsHistory(0);
+			}
+		}
+		return ret;
+	}
+
+	public void registSnoutOriginSerial(String material_id, String serial_no,
+			SqlSessionManager conn) {
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+		mapper.registSnoutOriginSerial(material_id, serial_no);
+	}
+
+	public List<ProductionFeatureEntity> use(String from_position_id, String from_process_code, String serial_no,
+			ProductionFeatureEntity workingPf,
+			LoginData user, SqlSessionManager conn) throws Exception {
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+		// 标准作业时间
+		Integer use_seconds = Integer.valueOf(RvsUtils.getZeroOverLine("_default", null, user, from_process_code)) * 60;
+
+		String usage_material_id = workingPf.getMaterial_id();
+		ProductionFeatureEntity pfBean = new ProductionFeatureEntity();
+		pfBean.setSerial_no(serial_no);
+		pfBean.setUse_seconds(use_seconds);
+		pfBean.setMaterial_id(usage_material_id);
+		pfBean.setRework(workingPf.getRework());
+		pfBean.setSection_id(workingPf.getSection_id());
+		pfBean.setPosition_id(workingPf.getPosition_id());
+
+		dao.forbid(pfBean);
+
+		pfBean.setPosition_id(from_position_id);
+		dao.useto(pfBean);
+		dao.use(pfBean);
+		dao.leaderuseto(pfBean);
+		dao.registSnoutUsageBySerialNo(serial_no, usage_material_id);
+
+		return dao.findUsedSnoutsByMaterial(usage_material_id, from_position_id);
+	}
+
+	public void unuse(String from_position_id, 
+			String serial_no, ProductionFeatureEntity workingPf,
+			SqlSessionManager conn) throws Exception {
+
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+
+		// 取得当前进行中Rework
+		int rework = workingPf.getRework();
+
+		// 寻找维修对象已使用先端头
+		List<ProductionFeatureEntity> used_snouts = dao.findUsedSnoutsByMaterial(workingPf.getMaterial_id(), from_position_id);
+		for (ProductionFeatureEntity used_snout : used_snouts) {
+			if (used_snout.getRework() == rework) {
+				serial_no = used_snout.getSerial_no();
+			}
+		}
+
+		dao.unuse(serial_no, from_position_id);
+		dao.unuseto(workingPf.getMaterial_id(), "" + workingPf.getRework(), from_position_id);
+		dao.registSnoutUsageBySerialNo(serial_no, null);
+
+		ProductionFeatureEntity pfBean = new ProductionFeatureEntity();
+		pfBean.setSerial_no(serial_no);
+		dao.leaderuseto(pfBean);
+		
+	}
+
+	public List<MaterialForm> getSnoutHeadHistory(String material_id, SqlSession conn) throws Exception {
+
+		List<MaterialForm> ret = new ArrayList<MaterialForm>();
+
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+
+		List<MaterialEntity> retEntity = dao.getSnoutHeadHistory(material_id);
+		BeanUtil.copyToFormList(retEntity, ret, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
+
+		return ret; 
+	}
+
+	public boolean checkUsedForOrigin(String material_id, SqlSession conn) {
+		SoloProductionFeatureMapper mapper = conn.getMapper(SoloProductionFeatureMapper.class);
+
+		MaterialEntity soBean = mapper.checkSnoutOrigin(material_id, null);
+		if (soBean == null) {
+			return false;
+		}
+		return !"00000000000".equals(soBean.getCustomer_id());
+	}
+
+	public void getRecoverPcs(String org_material_id,
+			Map<String, Object> callbackResponse, SqlSession conn) {
+		MaterialService mService = new MaterialService();
+		MaterialEntity mOriginEntity = mService.loadSimpleMaterialDetailEntity(conn, org_material_id);
+
+		// 取得检查票
+		PositionPanelService ppService = new PositionPanelService();
+		String[] showLines = new String[1];
+		showLines[0] = "NS 工程";
+
+		for (String showLine : showLines) {
+			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, mOriginEntity.getModel_name(), null, conn);
+
+			Map<String, String> fileTemplSolo = new HashMap<String, String>();
+			for (String key : fileTempl.keySet()) {
+				if (key.contains("回收")) {
+					fileTemplSolo.put(key, fileTempl.get(key));
+					break;
+				}
+			}
+
+			List<Map<String, String>> pcses = new ArrayList<Map<String, String>>();
+			Map<String, String> pcsRecover = ppService.getRecoverFileBlankHtml(fileTemplSolo, mOriginEntity, conn);
+			pcses.add(pcsRecover);
+			callbackResponse.put("pcses", pcses);
+			break;
+		}		
+	}
+
+	/**
+	 * 取得来源的回收记录
+	 * 
+	 * @param fileTempl
+	 * @param material_id
+	 * @param mform
+	 * @param conn
+	 * @return
+	 */
+	public Map<String, String> getRecoverFileHtml(
+			Map<String, String> fileTempl, String material_id,
+			MaterialForm mformUsage, SqlSession conn) {
+		if (!ComponentSettingService.getSnoutCompModels(conn).containsKey(mformUsage.getModel_id())) return null;
+
+		List<String> snouts = new ArrayList<String>();
+		Map<String, String> snoutHeads = new HashMap<String, String>();
+
+		for (String key : fileTempl.keySet()) {
+			if (key.contains("先端预制") || key.contains("D／E组装")) {
+				snouts.add(key);
+			}
+			else if (key.contains("回收")) {
+				snoutHeads.put(key, fileTempl.get(key));
+			}
+		}
+
+		// 如果有先端头回收工程检查票
+		if (snouts.size() == 0 || snoutHeads.size() == 0) {
+			return null;
+		}
+
+		ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+
+		// 经历过先端预制的话，显示其来源进行的先端头回收
+		if (pfMapper.checkPositionDid(material_id, "00000000024", null, null)) {
+			SoloProductionFeatureMapper spfMapper = conn.getMapper(SoloProductionFeatureMapper.class);
+			String originMaterialId = spfMapper.traceOrigin(material_id);
+			if (originMaterialId == null) return null;
+			MaterialService mService = new MaterialService();
+			MaterialEntity mOriginEntity = mService.loadSimpleMaterialDetailEntity(conn, originMaterialId);
+
+			Map<String, String> fileHtml = PcsUtils.toHtml(snoutHeads, originMaterialId, mOriginEntity.getSorc_no(),
+					mOriginEntity.getModel_name(), mOriginEntity.getSerial_no(), "" + mOriginEntity.getLevel(), "399", null, 
+							false, conn);
+
+			return fileHtml;
+		}
+
+		return null;
+	}
+
+	public void getRecoverFilePdf(Map<String, String> fileTempl,
+			MaterialForm mformUsage, String folderPath, SqlSession conn) throws IOException {
+		if (!ComponentSettingService.getSnoutCompModels(conn).containsKey(mformUsage.getModel_id())) return;
+
+		List<String> snouts = new ArrayList<String>();
+		Map<String, String> snoutHeads = new HashMap<String, String>();
+
+		for (String key : fileTempl.keySet()) {
+			if (key.contains("先端预制") || key.contains("D／E组装")) {
+				snouts.add(key);
+			}
+			else if (key.contains("回收")) {
+				snoutHeads.put(key, fileTempl.get(key));
+			}
+		}
+
+		// 如果有先端头回收工程检查票
+		if (snouts.size() == 0 || snoutHeads.size() == 0) {
+			return;
+		}
+
+		String material_id = mformUsage.getMaterial_id();
+		ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+
+		// 经历过先端预制的话，显示其来源进行的先端头回收
+		if (pfMapper.checkPositionDid(material_id, "00000000024", null, null)) {
+			SoloProductionFeatureMapper spfMapper = conn.getMapper(SoloProductionFeatureMapper.class);
+			String originMaterialId = spfMapper.traceOrigin(material_id);
+			if (originMaterialId == null) return;
+
+			MaterialService mService = new MaterialService();
+			MaterialEntity mOriginEntity = mService.loadSimpleMaterialDetailEntity(conn, originMaterialId);
+
+			PcsUtils.toPdf(snoutHeads, originMaterialId, mOriginEntity.getSorc_no(),
+					mOriginEntity.getModel_name(), mOriginEntity.getSerial_no(), "" + mOriginEntity.getLevel(), null, folderPath, 
+							false, conn);
+		}
+	}
+
+	/**
+	 * 取得型号已入库
+	 * 
+	 * @param model_id
+	 * @param conn
+	 * @return
+	 */
+	public List<String> getSlotsFromSnoutComponentStorageByModel(String model_id, SqlSession conn) {
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+		return dao.getSlotsFromSnoutComponentStorageByModel(model_id);
+	}
+
+	public void setSnoutComponentStorage(String manage_serial_no, String slot, String model_id, SqlSession conn) {
+		SoloProductionFeatureMapper dao = conn.getMapper(SoloProductionFeatureMapper.class);
+		dao.unsetSnoutComponentStorageBySerialNo(manage_serial_no);
+		dao.unsetSnoutComponentStorageBySlot(slot, model_id);
+		dao.setSnoutComponentStorage(manage_serial_no, slot);
+	}
+
 }

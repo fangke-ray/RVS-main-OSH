@@ -139,6 +139,7 @@ return {
 	pauseClock : function(){
 		clearInterval(oInterval);
 		$(".roll_cell > *").addClass("anim_pause");
+		$p_rate.find("div:animated").stop();
 	},
 	startClock : function(spent_mins, spent_secs){
 		p_time = (spent_mins || 0);

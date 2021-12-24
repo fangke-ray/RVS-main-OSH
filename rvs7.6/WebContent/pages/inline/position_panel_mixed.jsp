@@ -112,11 +112,6 @@ boolean useSnout = (request.getAttribute("useSnout") == null ? false : true);
 #waitings .waiting {
 	position: relative;
 }
-<% if (useSnout) { %>
-.firstMatchSnout {
-	background-color:lightgreen;
-}
-<% } %>
 .tube-comp:before {
 	content: '组装品';
 	left: 1em;
@@ -271,7 +266,7 @@ if (work_count_flg == 1) {
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
 					<span class="areatitle">工程检查票</span>
 				</div>
-				<div class="ui-widget-content dwidth-full" id="ns_pcs">
+				<div class="ui-widget-content dwidth-full">
 					<div id="pcs_pages">
 					</div>
 					<div id="pcs_contents">

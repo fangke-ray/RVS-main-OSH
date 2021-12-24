@@ -941,4 +941,188 @@ public class ComponentManageAction extends BaseAction{
 		
 		log.info("ComponentManageAction.getPcsDetail end");
 	}
+
+	/**
+	 * 先端组件设置追加处理
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doInsertSnoutSetting(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doInsertSnoutSetting start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.delete("identify_code");
+		List<MsgInfo> errors = v.validate();
+		
+		// 型号是否存在判定
+		int isExsistByModelId = settingService.isExistsSnoutByModelId(form, conn);
+		if (isExsistByModelId == 1) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("该型号已登录 D/E 组装设置。");
+			errors.add(msg);
+		}
+
+		// 数据登录
+		if (errors.size() == 0) {
+			// 组件设置 (snout_component_setting)数据插入
+			settingService.insertSnoutSetting(form, conn, errors);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doInsertSnoutSetting end");
+	}
+
+	/**
+	 * 先端组件修改库存设置
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void editSnoutSetting(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response,
+			SqlSession conn) throws Exception {
+		log.info("ComponentManageAction.editSnoutSetting start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		/* 查询 */
+		ComponentSettingEntity detail = settingService.getSnoutComponentSettingDetail(((ComponentManageForm) form).getModel_id(), conn);
+		ComponentSettingForm returnForm = new ComponentSettingForm();
+		if (detail != null) {
+			BeanUtil.copyToForm(detail, returnForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+		}
+		listResponse.put("returnForm", returnForm);
+
+		listResponse.put("errors", errors);
+
+		returnJsonResponse(response, listResponse);
+		log.info("ComponentManageAction.editSnoutSetting end");
+	}
+
+	/**
+	 * 先端组件设置编辑处理
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	public void doUpdateSnoutSetting(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doUpdateSnoutSetting start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.delete("identify_code");
+		List<MsgInfo> errors = v.validate();
+
+		// 型号是否存在判定
+		int isExsistByModelId = settingService.isExistsSnoutByModelId(form, conn);
+		if (isExsistByModelId == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("该型号 D/E 组装设置已被删除。");
+			errors.add(msg);
+		}
+
+		// 数据登录
+		if (errors.size() == 0) {
+			// 组件设置 (component_setting)数据插入
+			settingService.updateSnoutSetting(form, conn, errors);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doUpdateSnoutSetting end");
+	}
+
+	public void doSnoutDeleteSetting(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doSnoutDeleteSetting start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.delete("identify_code");
+		List<MsgInfo> errors = v.validate();
+
+		// 型号是否存在判定
+		int isExsistByModelId = settingService.isExistsSnoutByModelId(form, conn);
+		if (isExsistByModelId == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("该型号 D/E 组装设置已被删除。");
+			errors.add(msg);
+		}
+
+		// 数据删除
+		if (errors.size() == 0) {
+			// 组件设置 (component_setting)数据删除
+			settingService.deleteSnoutSetting(form, conn);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doSnoutDeleteSetting end");
+	}	
+
+	public void doAdjustSubPartSet(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSessionManager conn) throws Exception {
+		log.info("ComponentManageAction.doAdjustSubPartSet start");
+		/* Ajax反馈对象 */
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		/* 表单合法性检查 */
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		v.delete("identify_code");
+		List<MsgInfo> errors = v.validate();
+
+		// 型号是否存在判定
+		int isExsistByModelId = settingService.isExistsSnoutByModelId(form, conn);
+		if (isExsistByModelId == 0) {
+			MsgInfo msg = new MsgInfo();
+			msg.setErrmsg("该型号 D/E 组装设置已被删除。");
+			errors.add(msg);
+		}
+
+		// 数据登录
+		if (errors.size() == 0) {
+			// 子零件数量调整
+			settingService.inventSnoutSubPartSets(req.getParameter("model_id"), 
+					req.getParameter("sub_set_cnt"), conn);
+		}
+
+		/* 检查错误时报告错误信息 */
+		callbackResponse.put("errors", errors);
+		/* 返回Json格式响应信息 */
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ComponentManageAction.doAdjustSubPartSet end");
+	}
 }

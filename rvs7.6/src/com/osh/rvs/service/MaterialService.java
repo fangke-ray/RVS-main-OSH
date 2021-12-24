@@ -72,6 +72,7 @@ import com.osh.rvs.mapper.master.ModelMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.mapper.qf.AcceptanceMapper;
 import com.osh.rvs.service.inline.PositionPanelService;
+import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 
@@ -571,7 +572,15 @@ public class MaterialService {
 					null, getHistory != null, mform.getMaterial_id(), RvsUtils.isLightFix(mform.getLevel()),   
 					conn);
 
-			if ("NS 工程".equals(showLine)) filterSolo(fileTempl, material_id, mform.getLevel(), conn);
+			if ("NS 工程".equals(showLine)) {
+				SoloSnoutService ssService = new SoloSnoutService();
+				Map<String, String> recoverFileHtml = ssService.getRecoverFileHtml(fileTempl, material_id, mform, conn);
+				if (recoverFileHtml != null) {
+					pcses.add(recoverFileHtml);
+				}
+
+				filterSolo(fileTempl, material_id, mform.getLevel(), conn);
+			}
 
 			if (!fileTempl.isEmpty()) {
 				Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, material_id, mform.getSorc_no(),
@@ -715,14 +724,18 @@ public class MaterialService {
 		}
 
 		List<String> snouts = new ArrayList<String>(); 
+		List<String> snoutHeads = new ArrayList<String>();
 		List<String> ccds = new ArrayList<String>(); 
 		List<String> lgs = new ArrayList<String>(); 
 		List<String> ccdls = new ArrayList<String>(); 
 		List<String> nscomps = new ArrayList<String>(); 
 
 		for (String key : fileTempl.keySet()) {
-			if (key.contains("先端预制")) {
+			if (key.contains("先端预制") || key.contains("D／E组装")) {
 				snouts.add(key);
+			}
+			else if (key.contains("回收")) {
+				snoutHeads.add(key);
 			}
 			else if (key.contains("CCD盖玻璃")) {
 				ccds.add(key);
@@ -747,7 +760,14 @@ public class MaterialService {
 				}
 			}
 		}
-		
+
+		// 本身C本体回收的不显示
+		if (snoutHeads.size() > 0) {
+			for (String snout : snoutHeads) {
+				fileTempl.remove(snout);
+			}
+		}
+
 		// 如果有CCD盖玻璃工程检查票
 		if (ccds.size() > 0) {
 			// 检查是否做过302工位
@@ -1093,6 +1113,12 @@ public class MaterialService {
 			Map<String, String> fileTempl = PcsUtils.getXmlContents(showLine, mform.getModel_name(), null, conn);
 
 			if ("NS 工程".equals(showLine)) {
+				// 检查是否做过D/E组装
+				SoloSnoutService ssService = new SoloSnoutService();
+				Map<String, String> recoverFileHtml = ssService.getRecoverFileHtml(fileTempl, material_id, mform, conn);
+				if (recoverFileHtml != null) {
+					pcses.add(recoverFileHtml);
+				}
 				filterSolo(fileTempl, material_id, mform.getLevel(), conn);
 			}
 

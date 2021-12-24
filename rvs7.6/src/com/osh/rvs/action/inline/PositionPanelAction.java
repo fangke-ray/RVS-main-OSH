@@ -70,6 +70,7 @@ import com.osh.rvs.service.inline.FoundryService;
 import com.osh.rvs.service.inline.LineLeaderService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.MaterialPartInstructService;
 import com.osh.rvs.service.partial.PartialReceptService;
 
@@ -243,6 +244,13 @@ public class PositionPanelAction extends BaseAction {
 					req.setAttribute("skip_position", ReverseResolution.getPositionByProcessCode(skipPosition, conn));
 				}
 
+				if (matchforward(arrSpecialForward, "desnout") != null) {
+					req.setAttribute("desnout", "desnout");
+				}
+				if (matchforward(arrSpecialForward, "use_snout") != null) {
+					req.setAttribute("useSnout", true);
+				}
+
 				if (matchforward(arrSpecialForward, "result") != null) {
 					actionForward = mapping.findForward("result");
 					Map<String, String> dmMap = service.getManageNo(position_id,conn);
@@ -257,11 +265,6 @@ public class PositionPanelAction extends BaseAction {
 					actionForward = mapping.findForward("snout");
 				} else if (matchforward(arrSpecialForward, "mixed") != null) {
 					actionForward = mapping.findForward("mixed");
-					if (matchforward(arrSpecialForward, "use_snout") != null) {
-						req.setAttribute("useSnout", true);
-					}
-				} else if (matchforward(arrSpecialForward, "use_snout") != null) {
-					actionForward = mapping.findForward("usesnout");
 				} else if (matchforward(arrSpecialForward, "decom") != null) {
 					actionForward = mapping.findForward("decom");
 				} else {
@@ -349,15 +352,26 @@ public class PositionPanelAction extends BaseAction {
 		} else {
 
 			// 判断是否有特殊页面效果
-			String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
+			String special_forwards = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
+			String[] arrSpecialForward = new String[0];
+			if (special_forwards != null) {
+				arrSpecialForward = special_forwards.split(";");
+			}
 
-			if (!"snout".equals(special_forward)) { // 非先端预制，取得等待区
+			// C 本体回收判定
+			boolean checkDesnout = false;
+
+			if (!"snout".equals(special_forwards)) { // 非先端预制，取得等待区
 
 				if (sGroupPositionId == null) { // 非虚拟组
 
 					// 取得等待区一览
 					listResponse.put("waitings", service.getWaitingMaterial(section_id, user.getPosition_id(), user.getLine_id(),
 									user.getOperator_id(), pxLevel, process_code, conn));
+
+					if (matchforward(arrSpecialForward, "desnout") != null) {
+						checkDesnout = true;
+					} 
 				} else { // 虚拟组 TODO
 
 					// 取得完成区一览
@@ -371,6 +385,7 @@ public class PositionPanelAction extends BaseAction {
 
 				// 取得工程工位待处理容许时间（分钟）
 				listResponse.put("permitMinutes", RvsUtils.getUnproceedPermit(user.getSection_name(), user.getLine_name()));
+
 			}
 
 			// 设定正常中断选项
@@ -394,8 +409,7 @@ public class PositionPanelAction extends BaseAction {
 			if (workingPf != null) {
 				triggerMaterial_id = workingPf.getMaterial_id();
 
-				if (RvsConsts.OPERATE_RESULT_SUPPORT == workingPf
-						.getOperate_result()) {
+				if (RvsConsts.OPERATE_RESULT_SUPPORT == workingPf.getOperate_result()) {
 					MsgInfo msginfo = new MsgInfo();
 					msginfo.setErrcode("info.linework.supportingRemain");
 					msginfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES
@@ -433,7 +447,7 @@ public class PositionPanelAction extends BaseAction {
 						// 取得作业信息
 						service.getProccessingData(listResponse, workingPf.getMaterial_id(), workingPf, user, conn);
 
-						if ("use_snout".equals(special_forward)) {
+						if (matchforward(arrSpecialForward, "use_snout") != null) {
 							// TODO listResponse.put("light", workingPf.get);
 						}
 
@@ -442,7 +456,7 @@ public class PositionPanelAction extends BaseAction {
 								DateUtil.toString(pfService.getFirstPaceOnRework(workingPf, conn).getAction_time(), "HH:mm:ss"));
 
 						boolean infectFinishFlag = true;
-						if ("peripheral".equals(special_forward)) {
+						if (matchforward(arrSpecialForward, "peripheral") != null) {
 
 							List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
 							// 取得周边设备检查使用设备工具 
@@ -455,9 +469,23 @@ public class PositionPanelAction extends BaseAction {
 						if (!infectFinishFlag) {
 							listResponse.put("workstauts", WORK_STATUS_PERIPHERAL_WORKING);
 						} else {
+
+							if (checkDesnout) {
+								MaterialService ms = new MaterialService();
+								MaterialEntity mEntity = ms.getMaterialEntityByKey(workingPf.getMaterial_id(), conn);
+								if (mEntity.getLevel() == 3 
+										&& ComponentSettingService.getSnoutCompModelsActive(conn).containsKey(mEntity.getModel_id())) {
+									// 提供是否要拆出先端头判断
+									SoloSnoutService ssService = new SoloSnoutService();
+									ssService.checkSettableToOrigin(mEntity, listResponse, conn);
+								} else {
+									checkDesnout = false;
+								}
+							}
+
 							// 取得工程检查票
-							if (!"simple".equals(special_forward)
-									&& !"result".equals(special_forward)) {
+							if (matchforward(arrSpecialForward, "simple") == null
+									|| matchforward(arrSpecialForward, "result") == null) {
 								PositionPanelService.getPcses(listResponse, workingPf, user.getLine_id(), conn);
 							}
 
@@ -522,9 +550,7 @@ public class PositionPanelAction extends BaseAction {
 					listResponse.put("action_time", DateUtil.toString(pauseingPf.getAction_time(), "HH:mm:ss"));
 
 					boolean infectFinishFlag = true;
-					if ("peripheral".equals(special_forward)) {
-
-
+					if (matchforward(arrSpecialForward, "peripheral") != null) {
 						List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
 						// 取得周边设备检查使用设备工具 
 						infectFinishFlag = service.getPeripheralData(pauseingPf.getMaterial_id(), pauseingPf, resultEntities, conn);
@@ -536,9 +562,23 @@ public class PositionPanelAction extends BaseAction {
 					if (!infectFinishFlag) {						
 						listResponse.put("workstauts", WORK_STATUS_PERIPHERAL_PAUSING);
 					} else {
+
+						if (checkDesnout) {
+							MaterialService ms = new MaterialService();
+							MaterialEntity mEntity = ms.getMaterialEntityByKey(pauseingPf.getMaterial_id(), conn);
+							if (mEntity.getLevel() == 3 
+									&& ComponentSettingService.getSnoutCompModelsActive(conn).containsKey(mEntity.getModel_id())) {
+								// 提供是否要拆出先端头判断
+								SoloSnoutService ssService = new SoloSnoutService();
+								ssService.checkSettableToOrigin(mEntity, listResponse, conn);
+							} else {
+								checkDesnout = false;
+							}
+						}
+
 						// 取得工程检查票
-						if (!"simple".equals(special_forward)
-								&& !"result".equals(special_forward)) {
+						if (matchforward(arrSpecialForward, "simple") == null
+								&& matchforward(arrSpecialForward, "result") == null) {
 							PositionPanelService.getPcses(listResponse, pauseingPf,
 									user.getLine_id(), conn);
 						}
@@ -833,17 +873,32 @@ public class PositionPanelAction extends BaseAction {
 
 				service.getProccessingData(listResponse, material_id, waitingPf, user, conn);
 
-				// 判断是否有特殊页面效果
-				String special_forward = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
-
 				boolean infectFinishFlag = true;
-				if ("peripheral".equals(special_forward)) {
-					List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
-					// 取得周边设备检查使用设备工具 
-					infectFinishFlag = service.getPeripheralData(material_id, waitingPf, resultEntities, conn);
 
-					if (resultEntities != null && resultEntities.size() > 0) {
-						listResponse.put("peripheralData", resultEntities);
+				// 判断是否有特殊页面效果
+				String special_forwards = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
+				if (special_forwards != null) {
+					String[] arrSpecialForward = special_forwards.split(";");
+
+					if (matchforward(arrSpecialForward, "peripheral") != null) {
+						List<PeripheralInfectDeviceEntity> resultEntities = new ArrayList<PeripheralInfectDeviceEntity>();
+						// 取得周边设备检查使用设备工具 
+						infectFinishFlag = service.getPeripheralData(material_id, waitingPf, resultEntities, conn);
+
+						if (resultEntities != null && resultEntities.size() > 0) {
+							listResponse.put("peripheralData", resultEntities);
+						}
+					}
+
+					if (matchforward(arrSpecialForward, "desnout") != null) {
+						MaterialService ms = new MaterialService();
+						MaterialEntity mEntity = ms.getMaterialEntityByKey(waitingPf.getMaterial_id(), conn);
+						if (mEntity.getLevel() == 3 
+								&& ComponentSettingService.getSnoutCompModelsActive(conn).containsKey(mEntity.getModel_id())) {
+							// 提供是否要拆出先端头判断
+							SoloSnoutService ssService = new SoloSnoutService();
+							ssService.checkSettableToOrigin(mEntity, listResponse, conn);
+						}
 					}
 				}
 
@@ -851,7 +906,7 @@ public class PositionPanelAction extends BaseAction {
 					listResponse.put("workstauts", WORK_STATUS_PERIPHERAL_WORKING);
 				} else {
 					// 取得工程检查票
-					if (!"simple".equals(special_forward) && !"result".equals(special_forward)) {
+					if (!"simple".equals(special_forwards) && !"result".equals(special_forwards)) {
 						waitingPf.setProcess_code(process_code);
 						PositionPanelService.getPcses(listResponse, waitingPf, user.getLine_id(), conn);
 					}

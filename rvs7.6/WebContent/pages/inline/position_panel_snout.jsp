@@ -196,16 +196,16 @@ ${WORKINFO}
 
 				<div id="manualarea" style="float: right;">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-half">
-						<span class="areatitle">开始新先端预制作业</span>
+						<span class="areatitle">开始新 D/E 组装作业</span>
 					</div>
 
 					<div class="ui-widget-content dwidth-half" id="scanner_container" style="min-height: 247px;">
-						<div class="ui-state-default td-title">扫描先端头来源</div>
+						<div class="ui-state-default td-title">扫描 C 本体来源</div>
 						<input type="text" id="scanner_inputer" title="扫描前请点入此处" class="dwidth-half"></input>
 						<div class="ui-state-default td-title">选择型号</div>
 						<div style="height:88px; padding: 4px;"><select id="input_model_id" readonly></select></div>
-						<div class="ui-state-default td-title">输入先端头序列号</div>
-						<input type="text" id="input_snout_no" title="输入先端头序列号" class="dwidth-half"></input>
+						<div class="ui-state-default td-title">输入 D/E 组件序列号</div>
+						<input type="text" id="input_snout_no" title="输入 D/E 组件序列号" class="dwidth-half"></input>
 						<div style="height: 44px">
 							<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="startbutton" value="开始" role="button" aria-disabled="false" style="float: right; right: 2px;">
 						</div>
@@ -223,11 +223,11 @@ ${WORKINFO}
 				<table class="condform">
 					<tbody>
 						<tr>
-							<td class="ui-state-default td-title">先端头来源</td>
+							<td class="ui-state-default td-title">C 本体来源</td>
 							<td class="td-content-text"></td>
 							<td class="ui-state-default td-title">型号</td>
 							<td class="td-content-text"></td>
-							<td class="ui-state-default td-title">先端头序列号</td>
+							<td class="ui-state-default td-title">D/E 组件序列号</td>
 							<td class="td-content-text"></td>
 						</tr>
 						<tr style="display: table-row;">

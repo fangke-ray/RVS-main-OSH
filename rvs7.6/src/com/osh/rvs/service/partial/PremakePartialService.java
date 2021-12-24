@@ -9,7 +9,6 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.partial.PremakePartialEntity;
-import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.partial.PremakePartialForm;
 import com.osh.rvs.mapper.master.PartialMapper;
 import com.osh.rvs.mapper.partial.PremakePartialMapper;
@@ -112,7 +111,8 @@ public class PremakePartialService {
 			MsgInfo msg = new MsgInfo();
 			msg.setComponentid("partial");
 			msg.setErrcode("dbaccess.recordDuplicated");
-			msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordDuplicated", "零件编码为:" + code + "型号名称为:" + RvsUtils.getSnoutModels(conn).get(entity.getModel_id())));
+			msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordDuplicated",
+					"零件编码为:" + code + "型号名称为:" + ComponentSettingService.getSnoutCompModels(conn).get(entity.getModel_id())));
 			errors.add(msg);
 			return;
 		}

@@ -32,6 +32,7 @@ import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.mapper.master.ModelMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
+import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
@@ -94,7 +95,7 @@ public class StandardWorkTimeService {
 			}
 		} else {
 			// 先端预制对象
-			if (RvsUtils.getSnoutModels(conn).containsKey(model_id)) {
+			if (ComponentSettingService.getSnoutCompModels(conn).containsKey(model_id)) {
 				PositionEntity element = new PositionEntity();
 				element.setProcess_code("301");
 				element.setName("先端预制"); // TODO

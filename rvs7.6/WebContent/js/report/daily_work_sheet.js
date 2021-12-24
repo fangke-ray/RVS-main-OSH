@@ -9,7 +9,7 @@ captions["report_disinfect"] = "每日消毒工作记录表";
 captions["report_schedule"] = "每日计划工作记录表";
 captions["report_shipping"] = "每日出货工作记录表";
 captions["report_unrepaire"] = "每周未修理翻修品清点状况记录表";
-captions["report_snout"] = "每月先端回收记录表";
+captions["report_snout"] = "每月 C 本体回收记录表";
 captions["report_wash"] = "钢丝固定件清洗记录表";
 
 $(function(){
@@ -291,7 +291,7 @@ var showmonth_handleComplete = function(xhrObj) {
 		tableHtml += "</table>";
 		$snout_renege_sheet.html(tableHtml);
 		$snout_renege_sheet.dialog({
-			title : "先端回收记录表",
+			title : "C 本体回收记录表",
 			width : 500,
 			show: "blind",
 			height : 500,

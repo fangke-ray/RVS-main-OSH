@@ -10,13 +10,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 		<div id="pcs_detail_basearea" class="dwidth-middleright">
 			<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middleright">
-				<span class="areatitle">先端组件信息</span>
+				<span class="areatitle">D/E 组件信息</span>
 			</div>
 			<div class="ui-widget-content dwidth-middleright">
 				<table class="condform">
 					<tbody>
 						<tr>
-							<td class="ui-state-default td-title">先端组件型号</td>
+							<td class="ui-state-default td-title">D/E 组件型号</td>
 							<td class="td-content" style="width: 648px;">
 								<select id="snout_detail_model_id">
 									${mOptions}
@@ -25,7 +25,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 							</td>
 						</tr>
 						<tr>
-							<td class="ui-state-default td-title">先端组件序列号</td>
+							<td class="ui-state-default td-title">D/E 组件序列号</td>
 							<td class="td-content">
 								<input id="snout_detail_serial_no" type="text" value="${snout.serial_no}">
 								<input id="snout_detail_serial_no_org" type="hidden" value="${snout.serial_no}">
@@ -55,3 +55,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div class="clear areacloser"></div>
 	</div>
 </body>
+<script type="text/javascript">
+	var modelId = $("#snout_detail_model_id_org").val();
+	$("#snout_detail_model_id").val(modelId).trigger("change");
+</script>

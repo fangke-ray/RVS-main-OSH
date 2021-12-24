@@ -70,7 +70,7 @@ public interface SoloProductionFeatureMapper {
 
 	public List<MaterialEntity> getSnoutOriginOnMonth(String month);
 
-	public void registSnoutOrigin(@Param("material_id") String material_id, @Param("manage_serial_no") String serial_no);
+	public void registSnoutOrigin(@Param("material_id") String material_id, @Param("root_origin_id") String root_origin_id, @Param("manage_serial_no") String serial_no);
 	public void removeSnoutOrigin(@Param("manage_serial_no") String serial_no);
 
 	public List<SnoutEntity> searchSnoutsOnMonth(@Param("start_date") Date start_date, @Param("end_date") Date end_date);
@@ -85,4 +85,32 @@ public interface SoloProductionFeatureMapper {
 	public void deleteSoloByModelAndSerialNo(SoloProductionFeatureEntity soloEntity);
 
 	public int startProductionFeature(SoloProductionFeatureEntity soloEntity);
+
+	// 取得各型号可用先端头数量
+	public List<SoloProductionFeatureEntity> getOnProcessesByModel();
+
+	// 按型号取得可用先端头详细信息
+	public List<SnoutEntity> getUsableOriginByModel(String model_id);
+
+	public List<MaterialEntity> getTobeOriginByModel(String model_id);
+
+	public List<MaterialEntity> getSnoutUseHistoryBySerial(@Param("model_id") String model_id, @Param("serial_no") String serial_no, @Param("material_id") String material_id);
+
+	public void abandonOrigin(String org_material_id);
+
+	public void registSnoutOriginSerial(@Param("material_id") String material_id, @Param("serial_no") String serial_no);
+
+	public void registSnoutUsageBySerialNo(@Param("serial_no") String serial_no, @Param("usage_material_id") String usage_material_id);
+
+	public List<MaterialEntity> getSnoutHeadHistory(@Param("material_id") String material_id);
+
+	public String traceOrigin(@Param("usage_material_id") String usage_material_id);
+
+	public List<String> getSlotsFromSnoutComponentStorageByModel(@Param("model_id") String model_id);
+
+	public void setSnoutComponentStorage(@Param("manage_serial_no") String serial_no, @Param("slot") String slot);
+
+	public void unsetSnoutComponentStorageBySlot(@Param("slot") String slot, @Param("model_id") String model_id);
+
+	public void unsetSnoutComponentStorageBySerialNo(@Param("manage_serial_no") String serial_no);
 }

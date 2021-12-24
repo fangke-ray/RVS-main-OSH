@@ -14,14 +14,13 @@ import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
-import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.partial.PremakePartialForm;
 import com.osh.rvs.service.PartialService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.PremakePartialService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
-import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.validator.Validators;
 
@@ -41,8 +40,8 @@ public class PremakePartialAction extends BaseAction {
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response, SqlSession conn) throws Exception {
 		log.info("PremakePartialAction.init start");
 
-		String mReferChooser = CodeListUtils.getSelectOptions(RvsUtils.getSnoutModels(conn), null, "", false);
-		request.setAttribute("mReferChooser", mReferChooser);// 维修对象型号集合
+		// String mReferChooser = CodeListUtils.getSelectOptions(RvsUtils.getSnoutModels(conn), null, "", false);
+		request.setAttribute("mReferChooser", ComponentSettingService.getModelReferChooser(conn));// 维修对象型号集合
 
 		actionForward = mapping.findForward(FW_INIT);
 

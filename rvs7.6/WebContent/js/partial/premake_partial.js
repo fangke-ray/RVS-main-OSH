@@ -85,7 +85,7 @@ var premake_partial_list = function filed_list(finished){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','','型号名称','零件编码','零件说明','数量','标配零件'],
+			colNames:['','','型号名称','零件编码','零件说明','数量','关联子零件'],
 			colModel:[  
 					 {name:'partial_id',index:'partial_id',hidden:true},
 			         {name:'model_id',index:'model_id',hidden:true},
@@ -93,7 +93,7 @@ var premake_partial_list = function filed_list(finished){
 			         {name:'code',index:'code',width: 40},
 			         {name:'partial_name',index:'partial_name',width: 150},
 			         {name:'quantity',index:'quantity',width: 30, align:'right'},
-					 {name:'standard_flg',index:'standard_flg', width:35, align:'center', formatter:'select', editoptions:{value:"0:否;1:是"}}						
+					 {name:'standard_flg',index:'standard_flg', width:35, align:'center', formatter:'select', editoptions:{value:"0:非标;1:标配;2:C 本体"}}						
 			],
 			rowNum : 35,
 			toppager : false,

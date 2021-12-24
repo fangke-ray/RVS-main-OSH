@@ -391,7 +391,7 @@ var treatPause = function(resInfo) {
 
 	if (resInfo) {
 		$("#material_details td:eq(1)").text(resInfo.snout_origin);
-		$("#material_details td:eq(3)").text(resInfo.model_name);
+		$("#material_details td:eq(3)").text(resInfo.model_name).attr("model_id", resInfo.model_id);
 		$("#material_details td:eq(5)").text(resInfo.serial_no);
 
 		if (resInfo.action_time) {
@@ -440,7 +440,7 @@ var treatStart = function(resInfo) {
 	if ($pause_clock != null) $pause_clock.text("");
 
 	$("#material_details td:eq(1)").text(resInfo.snout_origin);
-	$("#material_details td:eq(3)").text(resInfo.model_name);
+	$("#material_details td:eq(3)").text(resInfo.model_name).attr("model_id", resInfo.model_id);
 	$("#material_details td:eq(5)").text(resInfo.serial_no);
 
 	if (resInfo.action_time) {
@@ -933,16 +933,82 @@ var doFinish=function(){
 
 	if (empty) {
 		warningConfirm("存在没有填的工程检查票选项，可以就这样提交吗？"
-		, function(){doFinishPost(data)}
+		, function(){doFinishStorage(data)}
 		, function(){
 			$('div#errstring').dialog("close");
 		});
 	}
 
 	if (!empty) {
-		doFinishPost(data);
+		doFinishStorage(data);
 	}
 };
+
+var doFinishStorage = function(data) {
+	
+	var postModelId = $("#material_details td[model_id]").attr("model_id");
+
+	if (postModelId) {
+		var postData = {"model_id": postModelId};
+	
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : true,
+			url : 'snouts.do?method=getStorage',
+			cache : false,
+			data : postData,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function(xhrObj){
+				showMoveStorage(xhrObj, data);
+			}
+		});
+	} else {
+		doFinishPost(data);
+	}
+}
+
+var showMoveStorage = function(xhrobj, postData){
+	var resInfo = $.parseJSON(xhrobj.responseText);
+
+	var $popDialog = $("#shelf_pop"); 
+	if ($popDialog.length == 0) {
+		$("body").append("<div id='shelf_pop'></div>");
+		$popDialog = $("#shelf_pop"); 
+	}
+	$popDialog.hide();
+	$popDialog.html(resInfo.snoutStorageHtml);
+		
+	$popDialog.dialog({
+		title : "完成 D/E 组件入库",
+		width : 512,
+		show: "blind",
+		height : 'auto' ,
+		resizable : false,
+		modal : true,
+		buttons : {"关闭" : function(){$popDialog.dialog("close")}}
+	});
+
+	$popDialog.find("td").addClass("wip-empty");
+	for (var iheap in resInfo.slots) {
+		$popDialog.find("td[slot="+resInfo.slots[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
+	}
+
+	$popDialog.find(".ui-widget-content .wip-table").not(".close").click(function(e){
+		if ("TD" == e.target.tagName) {
+			if (!$(e.target).hasClass("wip-heaped")) {
+				var selslot = $(e.target).attr("slot");
+				if (selslot) {
+					$popDialog.dialog("close");
+					postData.slot = selslot;
+					doFinishPost(postData);
+				}
+			}
+		}
+	});
+}
 
 var prevzero =function(i) {
 	if (i < 10) {

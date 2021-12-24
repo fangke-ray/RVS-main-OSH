@@ -16,7 +16,7 @@ public class ComponentSettingEntity implements Serializable {
 	
 	/** 识别代号 */
 	private String identify_code;
-	
+
 	/** 安全库存*/
 	private String safety_lever;
 	
@@ -43,6 +43,14 @@ public class ComponentSettingEntity implements Serializable {
 	
 	/** 组装完成数 */
 	private String cnt_partial_step3;
+
+	/** 翻新先端头 */
+	private String refurbished_code;
+
+	/** 翻新先端头 */
+	private String shelf;
+	/** 翻新先端头 */
+	private String layer;
 
 	public String getPartial_name() {
 		return partial_name;
@@ -150,6 +158,30 @@ public class ComponentSettingEntity implements Serializable {
 
 	public void setCnt_partial_step3(String cnt_partial_step3) {
 		this.cnt_partial_step3 = cnt_partial_step3;
+	}
+
+	public String getRefurbished_code() {
+		return refurbished_code;
+	}
+
+	public void setRefurbished_code(String refurbished_code) {
+		this.refurbished_code = refurbished_code;
+	}
+
+	public String getShelf() {
+		return shelf;
+	}
+
+	public void setShelf(String shelf) {
+		this.shelf = shelf;
+	}
+
+	public String getLayer() {
+		return layer;
+	}
+
+	public void setLayer(String layer) {
+		this.layer = layer;
 	}
 	
 }

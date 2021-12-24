@@ -829,7 +829,30 @@ public class PositionService {
 			}
 		}
 		return specialPagePositions.get(position_id);
-	}	
+	}
+
+	public static List<String> getPositionsBySpecialPage(String special_page, SqlSession conn) {
+		if (special_page == null) return null;
+
+		List<String> ret = new ArrayList<String>();
+		if (specialPagePositions == null) {
+			specialPagePositions = new HashMap<String, String>();
+			PositionMapper mapper = conn.getMapper(PositionMapper.class);
+			List<PositionEntity> l = mapper.getSpecialPagePositions();
+			for (PositionEntity pos : l) {
+				specialPagePositions.put(pos.getPosition_id(), pos.getSpecial_page());
+			}
+		}
+		for (String position_id : specialPagePositions.keySet()) {
+			if (special_page.equals(specialPagePositions.get(position_id))) {
+				ret.add(position_id);
+			}
+		}
+		if (ret.size() == 0) {
+			return null;
+		}
+		return ret;
+	}
 
 	/**
 	 * 投线后订购前追加零件工位的判定/TODO

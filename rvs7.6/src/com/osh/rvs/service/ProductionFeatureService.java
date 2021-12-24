@@ -893,7 +893,15 @@ public class ProductionFeatureService {
 //				(mEntity.getLevel() == 9 || mEntity.getLevel() == 91 || mEntity.getLevel() == 92 || mEntity.getLevel() == 93);
 		boolean isLightFix = RvsUtils.isLightFix(level);
 
-		ProcessAssignProxy paProxy = new ProcessAssignProxy(material_id, mEntity.getPat_id(), mEntity.getSection_id(), isLightFix, conn);
+		String section_id = mEntity.getSection_id();
+		if (fixed) {
+			if (workingPf.getSection_id() != null) {
+				section_id = workingPf.getSection_id();
+			}
+		} else {
+			if (section_id == null) workingPf.getSection_id();
+		}
+		ProcessAssignProxy paProxy = new ProcessAssignProxy(material_id, mEntity.getPat_id(), section_id, isLightFix, conn);
 
 		fingerPosition(workingPf.getPosition_id(), mEntity, fixed, workingPf, conn, pfDao, paProxy, null, triggerList);
 	}

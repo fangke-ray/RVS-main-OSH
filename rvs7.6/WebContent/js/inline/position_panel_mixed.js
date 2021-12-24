@@ -473,6 +473,9 @@ var treatPause = function(resInfo) {
 
 	if (resInfo) {
 		$("#anml_attendtion").remove();
+
+		$("#working_detail").hide();
+
 		if (resInfo.mform) {
 			var $hidden_id = $("#material_details td:eq(0) input:hidden");
 			$hidden_id.val(resInfo.mform.material_id);
@@ -492,8 +495,6 @@ var treatPause = function(resInfo) {
 
 		posClockObj.setLeagalAndSpent(resInfo.leagal_overline, resInfo.spent_mins, resInfo.spent_secs);
 	
-		$("#working_detail").hide();
-
 		if (resInfo.peripheralData && resInfo.peripheralData.length > 0) {
 			showPeripheral(resInfo);
 		}
@@ -553,6 +554,8 @@ var treatStart = function(resInfo) {
 	}
 
 	$("#anml_attendtion").remove();
+	$("#working_detail").hide();
+
 	if (resInfo.mform) {
 		var $hidden_id = $("#material_details td:eq(0) input:hidden");
 		$hidden_id.val(resInfo.mform.material_id);
@@ -763,27 +766,6 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 //				$("#pauseo_material_id").val(resInfo.waitings[0].material_id);
 //			}
 
-			// 如果打开作业中但是没有
-			var flowtext = resInfo.past_fingers;
-			if (!resInfo.fingers && resInfo.mform) {
-				if (resInfo.mform.material_id) {
-					getJustWorkingFingers(resInfo.mform.material_id);
-				} else {
-					getJustWorkingFingers(null, resInfo.mform.model_id, resInfo.mform.serial_no);
-				}
-			} else {
-				if (resInfo.lightFix) flowtext = resInfo.lightFix + (flowtext ? "<br>" + flowtext : "");
-				if (resInfo.fingers) flowtext = resInfo.fingers + (flowtext ? "<br>" + flowtext : "");
-
-				if (flowtext) {
-					$("#flowtext").html(flowtext);
-					if (flowtext.indexOf("<input") >= 0) {
-						setCompInstore($("#flowtext"), resInfo.stock_code);
-					}
-				}
-			}
-
-			
 			// 设备安全手册信息
 			if (resInfo.position_hcsgs) device_safety_guide = resInfo.position_hcsgs;
 
@@ -816,6 +798,27 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 						}
 					}
 
+					// 如果打开作业中但是没有
+					var flowtext = resInfo.past_fingers;
+					if (!resInfo.fingers && resInfo.mform) {
+						if (resInfo.mform.material_id) {
+							getJustWorkingFingers(resInfo.mform.material_id);
+						} else {
+							getJustWorkingFingers(null, resInfo.mform.model_id, resInfo.mform.serial_no);
+						}
+					} else {
+						if (resInfo.lightFix) flowtext = resInfo.lightFix + (flowtext ? "<br>" + flowtext : "");
+						if (resInfo.fingers) flowtext = resInfo.fingers + (flowtext ? "<br>" + flowtext : "");
+
+						if (flowtext) {
+							$("#flowtext").html(flowtext);
+							if (flowtext.indexOf("<input") >= 0) {
+								setCompInstore($("#flowtext"), resInfo.stock_code);
+							}
+						}
+					}
+
+			
 				});
 			});
 
@@ -947,6 +950,17 @@ var getBlock = function(block_status) {
 	} else {
 		return "";
 	}
+}
+
+var getLevel = function(level) {
+	if (level) {
+		var levelText = "S" + level; // TODO
+		if (level == 9 || level == 91 || level == 92 || level == 93 || level == 99) levelText = "D";
+		if (level == 96 || level == 97 || level == 98 ) levelText = "M";
+		if (level == 56 || level == 57 || level == 58 || level == 59) levelText = "E";
+		return "<span class='level level_" + levelText + "'>" + levelText + "</span>";
+	}
+	return "";
 }
 
 var doInit=function(){
@@ -1482,7 +1496,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 			$("#hidden_workstauts").val(resInfo.workstauts);
 			if (resInfo.workstauts == 2 || resInfo.workstauts == 5) {
 				treatPause(resInfo);
-			} else if (xhrobj.status == 200){
+			} else if (xhrobj.status == 200) {
 				$("#scanner_inputer").attr("value", "");
 				$("#material_details").hide();
 				$(".other_px_change_button").enable();
@@ -1555,7 +1569,7 @@ var doFinish=function(evt, hr){
 	}
 
 	if (empty) {
-		errorPop("请填写完所有的工程检查票选项后，再完成本工位作业。");
+		errorPop(WORKINFO.pcsCheck);
 	}
 
 	var postUrl = servicePath + '?method=dofinish';
@@ -1667,6 +1681,7 @@ var getWaitingHtml = function(waitings, other) {
 			waiting_html += '<div class="waiting tube' + (waiting.imbalance ? "" : " other_px") + '"' +
 								' id="w_' + waiting.material_id + '">' +
 								'<div class="tube-liquid' + expeditedColor(waiting.expedited, waiting.today, reason)  + '">'
+									+ getLevel(waiting.level)
 									+ getTubeBody(waiting) 
 									+ getFlags(waiting.expedited, waiting.direct_flg, waiting.light_fix, waiting.reworked, waiting.imbalance, waiting.anml_exp) +
 									getBlock(waiting.block_status) +

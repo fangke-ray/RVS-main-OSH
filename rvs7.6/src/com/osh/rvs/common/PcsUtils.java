@@ -510,6 +510,9 @@ public class PcsUtils {
 
 						if (mProcessCode.find() || mlProcessCode.find()) {
 
+							// 如果有本工位的标签，进行替换
+							bReplacedAtPosition = true;
+
 							String sPcs_inputs = pf.getPcs_inputs();
 							if (!CommonStringUtil.isEmpty(sPcs_inputs)) {
 								// 解析输入值

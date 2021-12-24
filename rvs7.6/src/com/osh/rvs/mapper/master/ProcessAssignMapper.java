@@ -60,7 +60,7 @@ public interface ProcessAssignMapper {
 
 //	public int get32(String material_id);
 
-	public int get20(String material_id);
+//	public int get20(String material_id);
 
 	/** 得到工程中已经完成的工作信息 **/ 
 	public List<ProductionFeatureEntity> getFinishedPositionsByLine(@Param("material_id") String material_id, @Param("line_id") String line_id);

@@ -65,12 +65,13 @@
 										</td>
 									</tr>
 									<tr>
-										<td class="ui-state-default td-title">标配零件</td>
+										<td class="ui-state-default td-title">关联子零件</td>
 										<td class="td-content">
 											<div id="search_standard_flg">
-												<input type="radio" name="tandard_flg" id="search_standard_flg_all" class="ui-widget-content" value="" checked="checked"><label for="search_standard_flg_all">(全)</label>
-												<input type="radio" name="tandard_flg" id="search_standard_flg_yes" class="ui-widget-content" value="1"><label for="search_standard_flg_yes">是</label>
-												<input type="radio" name="tandard_flg" id="search_standard_flg_no" class="ui-widget-content" value="-1"><label for="search_standard_flg_no">否</label>
+												<input type="radio" name="standard_flg" id="search_standard_flg_all" class="ui-widget-content" value="" checked="checked"><label for="search_standard_flg_all">(全)</label>
+												<input type="radio" name="standard_flg" id="search_standard_flg_yes" class="ui-widget-content" value="1"><label for="search_standard_flg_yes">标配零件</label>
+												<input type="radio" name="standard_flg" id="search_standard_flg_no" class="ui-widget-content" value="-1"><label for="search_standard_flg_no">非标配零件</label>
+												<input type="radio" name="standard_flg" id="search_standard_flg_snout" class="ui-widget-content" value="2"><label for="search_standard_flg_snout">C 本体零件</label>
 											</div>
 										</td>
 									</tr>
@@ -100,7 +101,7 @@
 				<!-- 新建  -->
 				<div id="create" style="display:none;">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-					   <span class="areatitle">新建零件预制</span>
+					   <span class="areatitle">登记预制零件</span>
 					    <a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 							<span class="ui-icon ui-icon-circle-triangle-w"></span>
 						</a>
@@ -129,12 +130,13 @@
 									</td>
 								</tr>
 								<tr>
-									<td class="ui-state-default td-title">标配零件</td>
+									<td class="ui-state-default td-title">关联子零件</td>
 									<td class="td-content">
 										<div id="insert_standard_flg">
-											<input type="radio" name="insert_standard_flg" id="insert_standard_flg_all" class="ui-widget-content" checked="checked" value=""><label for="insert_standard_flg_all">(全)</label>
-											<input type="radio" name="insert_standard_flg" id="insert_standard_flg_yes" class="ui-widget-content" value="1"><label for="insert_standard_flg_yes">是</label>
-											<input type="radio" name="insert_standard_flg" id="insert_standard_flg_no" class="ui-widget-content" value="0"><label for="insert_standard_flg_no">否</label>
+											<input type="radio" name="insert_standard_flg" id="insert_standard_flg_all" class="ui-widget-content" checked="checked" value=""><label for="insert_standard_flg_all">(未选)</label>
+											<input type="radio" name="insert_standard_flg" id="insert_standard_flg_snout" class="ui-widget-content" value="2"><label for="insert_standard_flg_snout">C 本体零件</label>
+											<input type="radio" name="insert_standard_flg" id="insert_standard_flg_yes" class="ui-widget-content" value="1"><label for="insert_standard_flg_yes">标配零件</label>
+											<input type="radio" name="insert_standard_flg" id="insert_standard_flg_no" class="ui-widget-content" value="0"><label for="insert_standard_flg_no">非标配零件</label>
 										</div>
 									</td>
 								</tr>
@@ -150,7 +152,7 @@
 				<!-- 更新 -->
 				<div id="update" style="display:none;">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-					   <span class="areatitle">修改零件预制</span>
+					   <span class="areatitle">修改预制零件</span>
 					    <a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 							<span class="ui-icon ui-icon-circle-triangle-w"></span>
 						</a>
@@ -178,11 +180,12 @@
 									</td>
 								</tr>
 								<tr>
-									<td class="ui-state-default td-title">标配零件</td>
+									<td class="ui-state-default td-title">关联子零件</td>
 									<td class="td-content">
 										<div id="update_standard_flg">
-											<input type="radio" name="update_tandard_flg" id="update_standard_flg_yes" class="ui-widget-content" value="1"><label for="update_standard_flg_yes">是</label>
-											<input type="radio" name="update_tandard_flg" id="update_standard_flg_no" class="ui-widget-content" value="0"><label for="update_standard_flg_no">否</label>
+											<input type="radio" name="update_standard_flg" id="update_standard_flg_snout" class="ui-widget-content" value="2"><label for="update_standard_flg_snout">C 本体零件</label>
+											<input type="radio" name="update_standard_flg" id="update_standard_flg_yes" class="ui-widget-content" value="1"><label for="update_standard_flg_yes">标配零件</label>
+											<input type="radio" name="update_standard_flg" id="update_standard_flg_no" class="ui-widget-content" value="0"><label for="update_standard_flg_no">非标配零件</label>
 										</div>
 									</td>
 								</tr>

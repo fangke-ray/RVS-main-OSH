@@ -9,7 +9,7 @@ var drawer = {
 
 	options: {
 		selections : [
-			{plbl : "NS工程", value: 29, text: "先端预制"}
+			{}
 		],
 		editable : false,
 		groupcode : 9000000

@@ -524,6 +524,25 @@ and a.inline_time is null -- [SpeedUp]
 		]]>
 	</select>
 
+	<select id="checkSpecPositionDid" resultType="String" parameterType="java.lang.String">
+		<![CDATA[ 
+			select position_id from PRODUCTION_FEATURE where MATERIAL_ID = #{material_id} and POSITION_ID in 
+			(select position_id from position where special_page = #{special_page})
+		]]>
+		<if test="operate_result != null and operate_result != ''">
+			and operate_result = #{operate_result}
+		</if>
+		<if test="finish_time_status != null and finish_time_status eq 'null'">
+			and finish_time IS NULL
+		</if>
+		<if test="rework != null and rework != ''">
+			and rework = #{rework}
+		</if>
+		<![CDATA[ 
+		;
+		]]>
+	</select>
+
 	<select id="checkLineDid" resultType="boolean" parameterType="java.lang.String">
 		<![CDATA[ 
 			select exists(select 1 from PRODUCTION_FEATURE where MATERIAL_ID = #{material_id} and POSITION_ID IN 

@@ -36,7 +36,7 @@
 			</if>
 			<if test="standard_flg == null">
 				<![CDATA[
-					AND (pp.standard_flg = 1 OR pp.standard_flg = 0)
+					AND (pp.standard_flg in (0,1,2))
 				]]>
 			</if>
 			<if test="standard_flg!=null and standard_flg==1">
@@ -49,9 +49,19 @@
 					AND pp.standard_flg = 0
 				]]>
 			</if>
+			<if test="standard_flg!=null and standard_flg==2">
+				<![CDATA[
+					AND pp.standard_flg = 2
+				]]>
+			</if>
 			<if test="standard_flg!=null and standard_flg==3">
 				<![CDATA[
 					AND pp.standard_flg = 3
+				]]>
+			</if>
+			<if test="standard_flg!=null and standard_flg==9">
+				<![CDATA[
+					AND pp.standard_flg = 9
 				]]>
 			</if>
 		</where>
@@ -68,12 +78,16 @@
 				partial_id = #{partial_id}
 			AND
 				model_id = #{model_id}
+			AND
+				standard_flg != 3
 		]]>
 	</update>
 	
 	<select id="checkExist" parameterType="PremakePartialEntity" resultType="PremakePartialEntity">
 		<![CDATA[
 			select * from premake_partial where partial_id = #{partial_id} and model_id = #{model_id}
+			AND
+				standard_flg != 3
 		]]>
 	</select>
 	
@@ -101,6 +115,11 @@
 			<if test="standard_flg!=null and standard_flg==-1">
 				<![CDATA[
 					AND standard_flg = 0
+				]]>
+			</if>
+			<if test="standard_flg!=null and standard_flg==2">
+				<![CDATA[
+					AND standard_flg = 2
 				]]>
 			</if>
 			<if test="standard_flg!=null and standard_flg==3">

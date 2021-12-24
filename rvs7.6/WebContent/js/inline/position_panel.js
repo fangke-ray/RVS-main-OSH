@@ -5,18 +5,9 @@ var listdata = {};
 var servicePath = "position_panel" + (parseInt(Math.random() * 5) + 1) + ".do";
 var hasPcs = (typeof pcsO === "object");
 
-// 已启动作业时间
-var p_time = 0;
 // 定时处理对象
-var oInterval, ttInterval, wtInterval;
-// 定时处理间隔（1分钟）
-var iInterval = 60000;
-// 取到的标准作业时间
-var leagal_overline;
+var wtInterval;
 
-var t_operator_cost = 0;
-var t_run_cost = 0;
-var p_start_at = 0;
 var pauseOptions = "";
 var pauseComments = {};
 var breakOptions = "";
@@ -24,7 +15,7 @@ var stepOptions = "";
 var dryProcesses = "";
 
 var partial_closer = true;
-var $pause_clock = null;
+
 var isDivision = false;
 var device_safety_guide = {};
 
@@ -99,7 +90,10 @@ var makeBreakDialog = function(jBreakDialog) {
 											try {
 												// 以Object形式读取JSON
 												eval('resInfo =' + xhrobj.responseText);
-												if (resInfo.errors.length === 0) {
+												if (resInfo.errors.length !== 0) {
+													// 共通出错信息框
+													treatBackMessages(null, resInfo.errors);
+												} else {
 													getWaitings();
 													jBreakDialog.dialog("close");
 												}
@@ -445,164 +439,6 @@ var endPause = function() {
 	});
 };
 
-var douse_complete = function(xhrobj) {
-	var resInfo = $.parseJSON(xhrobj.responseText);
-	if (resInfo.errors.length > 0) {
-		// 共通出错信息框
-		treatBackMessages("#inlineForm", resInfo.errors);
-		if (resInfo.sReferChooser) {
-			$("#snouts").find("tbody").html(resInfo.sReferChooser);
-			mySetReferChooser();
-		}
-		return;
-	}
-
-	treatUsesnout(xhrobj);
-	// 工程检查票
-	if (resInfo.pcses && resInfo.pcses.length > 0 && hasPcs) {
-		pcsO.generate(resInfo.pcses);
-	}
-}
-
-var mySetReferChooser = function() {
-	var target = $("#input_snout");
-	var shower = target.prev("input:text");
-	var jthis = $("#usesnoutarea .referchooser");
-	jthis.css({"top" : shower.position().top, "left" : shower.position().left - 40}).show("fast");
-}
-
-var dounuse = function(serial_no) {
-	var data = {serial_no : serial_no};
-	// Ajax提交
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : false,
-		url : "position_panel_snout.do" + '?method=dounusesnout',
-		cache : false,
-		data : data,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : douse_complete
-	});
-}
-
-var douse = function(serial_no) {
-	var data = {serial_no : serial_no};
-	// 检查是否第一个
-	if (!(serial_no == $("#snouts tr.firstMatchSnout .referId").text())) {
-		warningConfirm(WORKINFO.confirmSelectFirstSnout
-		, function(){douse_send(data);}
-		);
-	} else {
-		douse_send(data);
-	}
-}
-var douse_send = function(data) {
-	// Ajax提交
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : false,
-		url : "position_panel_snout.do" + '?method=dousesnout',
-		cache : false,
-		data : data,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : douse_complete
-	});
-}
-
-var treatUsesnout = function(xhrobj) {
-	var resInfo = null;
-
-	// 以Object形式读取JSON
-	eval('resInfo =' + xhrobj.responseText);
-
-	if (resInfo.errors.length > 0) {
-		// 共通出错信息框
-		treatBackMessages(null, resInfo.errors);
-	} else {
-		var isLightFix = false;
-		if (resInfo.mform && resInfo.mform.level) {
-			var level = resInfo.mform.level;
-//			isLightFix = (level == 9 || level == 91 || level == 92 || level == 93);
-			isLightFix = f_isLightFix(level);
-		}
-		if (resInfo.snout_model >= 1 && !isLightFix) {
-			$("#usesnoutarea").show();
-			$("#snoutpane td:eq(1)").text($("#material_details td:eq(3)").text());
-			if (resInfo.snout_model == 2) {
-				$("#snoutpane td:eq(2), #snoutpane td:eq(3), #snoutpane td:eq(6), #snoutpane td:eq(7), #snouts").show();
-				$("#snoutpane td:eq(4), #snoutpane td:eq(5), #unusesnoutbutton").hide();
-				// 已使用先端头
-				if (resInfo.used_snout){
-					$("#snoutpane td:eq(4), #snoutpane td:eq(5)").show();
-					$("#snoutpane td:eq(5)").text(resInfo.used_snout);
-				}
-				// 关联先端头参照
-				if (resInfo.sReferChooser != null) {
-					$("#snouts").find("tbody").html(resInfo.sReferChooser);
-					mySetReferChooser();
-				}
-			} else if (resInfo.used_snout){
-				$("#snoutpane td:eq(2), #snoutpane td:eq(3), #snoutpane td:eq(6), #snoutpane td:eq(7), #snouts").hide();
-				$("#snoutpane td:eq(4), #snoutpane td:eq(5), #unusesnoutbutton").show();
-				// 使用中的先端头
-				$("#snoutpane td:eq(5)").text(resInfo.used_snout);
-
-				$("#unusesnoutbutton").unbind("click");
-				$("#unusesnoutbutton").click(function() {
-					dounuse($("#snoutpane td:eq(5)").text());
-				});
-			} else {
-				$("#snoutpane td:eq(2), #snoutpane td:eq(3), #snoutpane td:eq(6), #snoutpane td:eq(7), #snouts").show();
-				$("#snoutpane td:eq(4), #snoutpane td:eq(5), #unusesnoutbutton").hide();
-				// 关联先端头参照
-				if (resInfo.sReferChooser != null) {
-					$("#snouts").find("tbody").html(resInfo.sReferChooser);
-					mySetReferChooser();
-				}
-			}
-			$("#input_snout").val("").prev().val("");
-
-			if (resInfo.leagal_overline) {
-				leagal_overline = (resInfo.leagal_overline || 120);
-				$("#material_details td:eq(9)").text(minuteFormat(leagal_overline) + (leagal_overline ? ":00" : ""));
-			
-				var nspent_mins = convertMinute($("#dtl_process_time label").text());
-				var frate = parseInt(nspent_mins / leagal_overline * 100);
-				if (frate > 99) {
-					frate = 99;
-				}
-				$("#p_rate").html("<div class='tube-liquid tube-green' style='width:"+ frate +"%;text-align:right;'></div>");
-			}
-		} else {
-			$("#usesnoutarea").hide();
-		}
-	}
-}
-
-var getUsesnout = function(material_id) {
-	// 取得可使用先端头信息
-	var data = {material_id : material_id};
-	// Ajax提交
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : false,
-		url : "position_panel_snout.do" + '?method=getMaterialUse',
-		cache : false,
-		data : data,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : treatUsesnout
-	});
-}
-
 var treatPause = function(resInfo) {
 	$("#scanner_container").hide();
 	$("#material_details").show();
@@ -617,7 +453,6 @@ var treatPause = function(resInfo) {
 //	$("#usesnoutbutton").disable();
 	$("#unusesnoutbutton").disable();
 	$("#continuebutton").show();
-	$("#p_rate div:animated").stop();
 
 	if (resInfo) {
 		var $hidden_id = $("#material_details td:eq(0) input:hidden");
@@ -631,26 +466,11 @@ var treatPause = function(resInfo) {
 		$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 		$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
 
-		if (resInfo.action_time) {
-			$("#material_details td:eq(7)").text(resInfo.action_time);
-		} else {
-			var thistime=new Date();
-			var hours=thistime.getHours();
-			var minutes=thistime.getMinutes();
+		posClockObj.setAction(resInfo.action_time);
+
+		posClockObj.setLeagalAndSpent(resInfo.leagal_overline, resInfo.spent_mins, resInfo.spent_secs);
 	
-			$("#material_details td:eq(7)").text(fillZero(hours, 2) + ":" + fillZero(minutes, 2));
-		}
-		$("#material_details td:eq(9)").text(minuteFormat(resInfo.leagal_overline) +  + (leagal_overline ? ":00" : ""));
-		leagal_overline = resInfo.leagal_overline;
-	
-		$("#dtl_process_time label").text(minuteFormat(resInfo.spent_mins));
-		var frate = parseInt((resInfo.spent_mins) / leagal_overline * 100);
-		if (frate > 99) {
-			frate = 99;
-		}
-		$("#p_rate").html("<div class='tube-liquid tube-green' style='width:"+ frate +"%;text-align:right;'></div>");
-	
-		$("#working_detail").hide()
+		$("#working_detail").show()
 			.next().hide();
 
 		if (resInfo.peripheralData && resInfo.peripheralData.length > 0) {
@@ -668,14 +488,15 @@ var treatPause = function(resInfo) {
 			}
 		}
 
-		if ($("#usesnoutarea").length > 0) getUsesnout(resInfo.mform.material_id);
+		if (typeof(posUseSnoutObj) === "object" && resInfo.mform && resInfo.mform.material_id) 
+			posUseSnoutObj.getUsesnout(resInfo.mform.material_id);
 
 		if (resInfo.processingPauseStart) {
 			setPauseClock(resInfo.processingPauseStart);
 		}
 	}
 
-	clearInterval(oInterval);
+	posClockObj.pauseClock();
 }
 
 var treatStart = function(resInfo) {
@@ -704,9 +525,9 @@ var treatStart = function(resInfo) {
 		$("#stepbutton").show();
 	}
 
+	$("#anml_attendtion").remove();
 	var $hidden_id = $("#material_details td:eq(0) input:hidden");
 	$hidden_id.val(resInfo.mform.material_id);
-	$("#anml_attendtion").remove();
 	if (resInfo.mform.anml_exp && $("#manualdetailarea").length > 0) { // 虚拟工位不显 专用工位不显
 		if ($("#device_rent_area").length == 0) {
 			infoPop(WORKINFO.animalExpNotice);
@@ -718,38 +539,16 @@ var treatStart = function(resInfo) {
 	$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 	$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
 
-	if (resInfo.action_time) {
-		$("#material_details td:eq(7)").text(resInfo.action_time);
-	} else {
-		var thistime=new Date();
-		var hours=thistime.getHours();
-		var minutes=thistime.getMinutes();
+	posClockObj.setAction(resInfo.action_time);
 
-		$("#material_details td:eq(7)").text(fillZero(hours, 2) + ":" + fillZero(minutes, 2));
-	}
-	$("#material_details td:eq(9)").text(minuteFormat(resInfo.leagal_overline) + (leagal_overline ? ":00" : ""));
-	leagal_overline = resInfo.leagal_overline;
+	posClockObj.setLeagalAndSpent(resInfo.leagal_overline, resInfo.spent_mins);
 
-	$("#dtl_process_time label").text(minuteFormat(resInfo.spent_mins));
-	var frate = parseInt((resInfo.spent_mins) / leagal_overline * 100);
-	if (frate > 99) {
-		frate = 99;
-	}
-	$("#p_rate").html("<div class='tube-liquid tube-green' style='width:"+ frate +"%;text-align:right;'></div>");
-	p_time = resInfo.spent_mins - 1;
+	posClockObj.startClock(resInfo.spent_mins);
 
-	var p_operator_cost = $("#p_operator_cost").text();
+	posClockObj.recountTopClock();
 
 	$("#working_detail").show()
 		.next().show();
-//	if (p_operator_cost.indexOf(':') < 0) {
-//		t_operator_cost = p_operator_cost;
-//	} else {
-		t_operator_cost = convertMinute(p_operator_cost);// + resInfo.spent_mins;
-//	}
-
-	ctime();
-	oInterval = setInterval(ctime,iInterval);
 
 	var section_id = $("#g_pos_id").val().substring(0,11);
 //	if (section_id == "00000000001") {
@@ -812,7 +611,7 @@ var treatStart = function(resInfo) {
 	$("#stepbutton").enable();
 	$("#pausebutton").show();
 	$("#finishbutton").enable();
-//	$("#usesnoutbutton").enable();
+
 	$("#unusesnoutbutton").enable();
 	// 3课分解无提前分支
 	if (section_id == "00000000012") {
@@ -856,6 +655,64 @@ var treatStart = function(resInfo) {
 		showPeripheral(resInfo);
 	}
 
+	// New 回收
+	if ($("#decsnoutarea").length) {
+
+		$("#desnout > button").remove();
+		if (resInfo.show_snout) {
+			$("#decsnoutarea").show();
+			$("#desnout > span").html(resInfo.show_snout);
+			if (resInfo.show_snout.indexOf("[废弃]") > 0) {
+				$("#desnout").append(
+					$("<button>回收</button>").button().click(function(){
+						// Ajax提交
+						$.ajax({
+							beforeSend : ajaxRequestType,
+							async : true,
+							url : 'snouts.do?method=doRecover',
+							cache : false,
+							data : {material_id : $("#pauseo_material_id").val()},
+							type : "post",
+							dataType : "json",
+							success : ajaxSuccessCheck,
+							error : ajaxError,
+							complete : function(xhrObj){
+								$("#desnout > button:eq(0)").after("<span> √ 已回收</span>")
+								$("#desnout > button").remove();
+								var resInfo = $.parseJSON(xhrObj.responseText);
+								if (hasPcs && resInfo.pcses && resInfo.pcses.length > 0) {
+									pcsO.append(resInfo.pcses);
+								}
+							}
+						});
+					})
+				).append(
+					$("<button>废弃</button>").button().click(function(){
+						// Ajax提交
+						$.ajax({
+							beforeSend : ajaxRequestType,
+							async : true,
+							url : 'snouts.do?method=doAbandon',
+							cache : false,
+							data : {material_id : $("#pauseo_material_id").val()},
+							type : "post",
+							dataType : "json",
+							success : ajaxSuccessCheck,
+							error : ajaxError,
+							complete : function(xhrObj){
+								$("#desnout > button:eq(0)").after("<span> ＃ 已废弃</span>")
+								$("#desnout > button").remove();
+							}
+						});
+					})
+				);
+			}
+		} else {
+			$("#decsnoutarea").hide();
+			$("#desnout > span").html("");
+		}
+	}
+
 	if (resInfo.workstauts == 1) {
 		$("#device_details table tbody").find(".manageCode").disable();
 		$("#device_details table tbody").find("input[type=button]").disable();
@@ -876,7 +733,11 @@ var treatStart = function(resInfo) {
 			pcsO.generate(resInfo.pcses);
 		};
 
-		if ($("#usesnoutarea").length > 0) getUsesnout(resInfo.mform.material_id);
+		if (resInfo.mform && resInfo.mform.material_id) {
+			if (typeof(posUseSnoutObj) === "object" && resInfo.mform.material_id) 
+				posUseSnoutObj.getUsesnout(resInfo.mform.material_id);
+		}
+
 	};
 };
 
@@ -935,6 +796,7 @@ var refreshCurPositionTime = function(cur_process_code){
 		$("#plan_process td[process_code='"+ cur_process_code +"']").addClass("plan_half");
 		$("#acture_process td[process_code='"+ cur_process_code +"']").addClass("acture_half");
 	}
+	$("#scanner_inputer").focus();
 	$("#position_time").attr("plan", "2");
 };
 
@@ -966,22 +828,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 				showCompletes(resInfo.completes);
 			}
 
-			// 计算当前用时
-			var p_operator_cost = $("#p_operator_cost").text();
-			if (p_operator_cost.indexOf(':') < 0) {
-				t_operator_cost = p_operator_cost;
-				$("#p_operator_cost").text(minuteFormat(t_operator_cost));
-			}
-
-			// 计算总用时
-			var p_run_cost = $("#p_run_cost").text();
-			if (p_run_cost.indexOf(':') < 0) {
-				if (p_run_cost != "0" && p_run_cost != "") {
-					t_run_cost = p_run_cost;
-					$("#p_run_cost").text(minuteFormat(t_run_cost));
-					ttInterval = setInterval(ttime, iInterval);
-				}
-			}
+			posClockObj.initTopClock();
 
 			if (resInfo.infectString) {
 				$("#toInfect").show()
@@ -1260,6 +1107,9 @@ $(function() {
 
 	$("#position_status").css("color", "white");
 
+	posClockObj.init($("#material_details td:eq(7)"), $("#material_details td:eq(9)"), $("#dtl_process_time"), $("#p_rate"));
+	if (typeof(posUseSnoutObj) === "object") posUseSnoutObj.init(hasPcs, $("#usesnoutarea")); 
+
 	if (hasPcs) {
 		pcsO.init($("#manualdetailarea"), false);
 	}
@@ -1277,25 +1127,6 @@ $(function() {
 		doStart();
 	}
 	});
-
-	if ($("#snout_origin").length > 0) {
-	$("#snout_origin").keypress(function(){
-	if (this.value.length === 11) {
-		var snout_origin = this.value;
-		this.value = "";
-		var serial_no = $("#snouts .originId:contains(" + snout_origin + ")").parent().children(".referId").text();
-		if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop(WORKINFO.abnormalSnoutOrigin);
-	}
-	});
-	$("#snout_origin").keyup(function(){
-	if (this.value.length >= 11) {
-		var snout_origin = this.value;
-		this.value = "";
-		var serial_no = $("#snouts .originId:contains(" + snout_origin + ")").parent().children(".referId").text();
-		if (serial_no) checkSnoutPartial(function(){douse(serial_no)}); else errorPop(WORKINFO.abnormalSnoutOrigin);
-	}
-	});
-	}
 
 	$("#finishbutton").click(doFinish);
 	$("#breakbutton").click(makeBreak);
@@ -1613,23 +1444,7 @@ var showPartialRecept = function(resInfo, finish){
 	});
 
 	if (resInfo.notMatch) {
-		if ($('div#errstring').length == 0) {
-			$("body").append("<div id='errstring'/>");
-		}
-		$('div#errstring').show();
-		$('div#errstring').html("<span class='errorarea'>您在本工位清点的零件情况与定位设定不符。<br>请确认您的点检结果，或者报告线长处理。</span>");
-		$('div#errstring').dialog({
-			dialogClass : 'ui-error-dialog',
-			modal : true,
-			resizable:false,
-			width : 450,
-			title : "提示信息",
-			buttons :{
-				"关闭":function(){
-					$('div#errstring').dialog("close");
-				}
-			}
-		});
+		errorPop("您在本工位清点的零件情况与定位设定不符。<br>请确认您的点检结果，或者报告线长处理。");
 	}
 }
 
@@ -1727,7 +1542,6 @@ var doStart=function(){
 
 };
 
-
 var showSidebar = function(material_comment) {
 
 	var $ul = $("<ul/>");
@@ -1824,11 +1638,8 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 				$("#working_detail").hide()
 					.next().hide();
 
-				$("#material_details td:eq(7)").text("");
-				$("#dtl_process_time label").text("");
-				$("#p_rate").html("");
-				p_time = 0;
-				clearInterval(oInterval);
+				posClockObj.stopClock();
+
 				$("#pauseo_edit").hide();
 				$("#pauseo_show").show();
 				$("#pauseo_show_sorc_no").text($("#material_details td:eq(1)").text());
@@ -1872,6 +1683,10 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 				}
 
 				checkAnmlAlert();
+
+				if ($("#decsnoutarea").length) {
+					$("#decsnoutarea").hide();
+				}
 			}
 		}
 	} catch (e) {
@@ -1881,6 +1696,13 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 }
 
 var doFinish=function(evt, hr){
+	if ($("#desnout:visible").length > 0) {
+		if ($("#desnout").children("button").length > 0) {
+			errorPop("请选择 C 本体需要回收还是废弃。");
+			return;
+		}
+	}
+
 	var data = {};
 	var empty = false;
 	if (hasPcs) {
@@ -1913,65 +1735,6 @@ var doFinish=function(evt, hr){
 		});
 	}
 };
-
-// 进行中效果
-var ctime=function(){
-	p_time++;
-	$("#dtl_process_time label").text(minuteFormat(p_time));
-
-	var rate = parseInt((p_time + 1) / leagal_overline * 100);
-	//var nextrate = 
-	if (rate == 99) return;
-	if (rate >= 100) rate = 99;
-	var liquid = $("#p_rate div");
-	liquid.animate({width : rate + "%"}, iInterval, "linear");
-	if (rate > 80) {
-		liquid.removeClass("tube-green");
-		if (rate > 95) {
-			liquid.removeClass("tube-yellow");
-			liquid.addClass("tube-orange");
-		} else {
-			liquid.addClass("tube-yellow");
-		}
-	} else {
-		liquid.addClass("tube-green");
-	}
-
-	$("#p_operator_cost").text(minuteFormat(t_operator_cost));
-	t_operator_cost++;
-};
-
-// 进行中效果
-var ttime=function(){
-	$("#p_run_cost").text(minuteFormat(t_run_cost));
-	t_run_cost++;
-};
-
-// 暂停中
-var wttime = function(){
-	var minute = Math.floor((new Date().getTime() - p_start_at) / 60000);
-	if (minute < 0) {
-		$pause_clock.text("当日下班");
-		$(".opd_re_comment").hide();
-	} else {
-		$pause_clock.text(minuteFormat(minute));
-	}
-}
-
-var minuteFormat =function(iminute) {
-	if (!iminute) return "-";
-	var hours = parseInt(iminute / 60);
-	var minutes = iminute % 60;
-
-	return fillZero(hours, 2) + ":" + fillZero(minutes, 2);
-}
-
-var convertMinute =function(sminute) {
-	var hours = sminute.replace(/(.*):(.*)/, "$1");
-	var minutes = sminute.replace(/(.*):(.*)/, "$2");
-
-	return hours * 60 + parseInt(minutes);
-}
 
 var showMaterial = function(material_id) {
 	$process_dialog = $("#process_dialog");
@@ -2222,175 +1985,6 @@ var pxChange = function() {
 	})
 }
 
-var checkSnoutPartial = function(callback) {
-	var material_id = $("#pauseo_material_id").val();
-	var occur_times = 1;
-	var data = {
-		material_id: material_id,
-		occur_times: occur_times
-	};
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : 'materialPartial.do?method=getSnouts',
-		cache : false,
-		data : data,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrObj) {
-			edit_snout_Complete(xhrObj, material_id, occur_times, $("#material_details > table td:eq(1)").text(), callback);
-		}
-	});
-}
-
-var edit_snout_Complete = function(xhrObj, material_id, occur_times, sorc_no, callback) {
-	var resInfo = null;
-	try {
-		// 以Object形式读取JSON
-		eval('resInfo =' + xhrObj.responseText);
-		if (resInfo.errors && resInfo.errors.length > 0) {
-			if (resInfo.never_order) {
-				warningConfirm("尚未做成零件订单，目前无法替代。");
-			} else {
-				// 这里是无需替代零件的情况下(error是无可替代零件) 
-				callback();
-			}
-			return;
-		}
-		setInsteadList(resInfo.Snouts_list);
-		$("#consumables_dialog").dialog({
-			title : "预制零件替代",
-			width : 800,
-			show : "blind",
-			height : 'auto' ,
-			resizable : false,
-			modal : true,
-			minHeight : 200,
-			buttons : {
-			"确定":function(){
-					$("#consumables_dialog").dialog('close');
-
-					var postData = {material_id:material_id, occur_times:occur_times,
-					sorc_no:sorc_no};
-					var iii = 0;
-					$("#consumables_list").find("tr").each(function(idx, ele) {
-						
-						$input = $(ele).find("input[type=number]");
-						if ($input && $input.val()) {
-							var ival = $input.val();
-							var ilimit = $input.attr("limit");
-							var iTotal = $input.attr("total");
-							if (ival.match(/^0*$/) == null && ival.match(/^[0-9]*$/) != null) {
-								if (ival > ilimit) $input.val(ilimit);
-								postData["exchange.quantity[" + iii + "]"] = $input.val();
-								postData["exchange.total[" + iii + "]"] = iTotal;
-								postData["exchange.material_partial_detail_key[" + iii + "]"] = $(ele).find("td[aria\\-describedby=consumables_list_material_partial_detail_key]").text();
-								iii ++;
-							}
-						};
-					});
-					if (postData["exchange.material_partial_detail_key[0]"] != null) {
-						$.ajax({
-							beforeSend : ajaxRequestType,
-							async : false,
-							url : 'materialPartial.do?method=doUpdateSnouts',
-							cache : false,
-							data : postData,
-							type : "post",
-							dataType : "json",
-							success : ajaxSuccessCheck,
-							error : ajaxError,
-							complete : function(){
-								callback();
-							}
-						});
-					} else {
-						callback();
-					}
-				},
-				"取消": function(){
-					$("#consumables_dialog").dialog('close');
-				}
-			}
-		});
-		
-		$("#consumables_dialog").show();
-	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-				+ e.lineNumber + " fileName: " + e.fileName + " 1606");
-	};
-}
-
-/*jqgrid表格*/
-function setInsteadList(consumables_list){
-	if ($("#gbox_consumables_list").length > 0) {
-		$("#consumables_list").jqGrid().clearGridData();
-		$("#consumables_list").jqGrid('setGridParam',{data:consumables_list}).trigger("reloadGrid", [{current:false}]);
-	} else {
-		$("#consumables_list").jqGrid({
-			data:consumables_list,
-			height: 461,
-			width: 768,
-			rowheight: 23,
-			datatype: "local",
-			colNames:['','零件编号','零件名称','可签收数量','工位','目前签收状态','签收日期','消耗品'],
-			colModel:[
-				{name:'material_partial_detail_key',index:'material_partial_detail_key', hidden:true},		   
-				{name : 'code',index : 'code',width : 60,align : 'left'},
-				{name : 'partial_name',index : 'partial_name',width : 300,align : 'left'},
-				{name : 'waiting_quantity',index : 'waiting_quantity',width : 100,align : 'right',formatter:function(r,i,rowData){
-					return '<input type="number" value="0" limit="'+r+'" total="'+rowData.quantity+'" > / ' + r;
-				}},
-				{name :'process_code',index:'process_code',width:60,align:'center' },
-				{name :'status',index:'status',width:60,align:'center', formatter:'select', editoptions:{value:"1:未发放;2:已签收无BO;3:BO中;4:BO解决;5:消耗品签收"} },
-				{name :'recent_receive_time',index:'recent_receive_time',width:60,align:'center',
-						formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
-				{name:'append',index:'append', hidden:true}		   
-			 ],
-			rowNum: 100,
-			toppager: false,
-			pager: "#consumables_listpager",
-			viewrecords: true,
-			multiselect: true,
-			hidegrid : false,
-			gridview: true,
-			pagerpos: 'right',
-			pgbuttons: true,			
-			pginput: false,
-			recordpos: 'left',
-			viewsortcols : [true,'vertical',true],
-			onSelectRow : changevalue,
-			onSelectAll : changevalue,
-			gridComplete:function(){
-				changevalue([] ,false);
-			}
-		});
-	}
-};
-
-var changevalue = function(rowid,status,e){
-	if (rowid instanceof Array) {
-		// 全选
-		var $inum = $("#consumables_list").find("input[type=number]");
-		$inum.each(function(){
-			if (status) {
-				$(this).val($(this).attr("limit"));
-			} else {
-				$(this).val(0);
-			}
-		});
-	} else {
-		var $inum = $("#consumables_list").find("tr#"+rowid).find("input[type=number]");
-		if (status) {
-			$inum.val($inum.attr("limit"));
-		} else {
-			$inum.val(0);
-		}
-	}
-}
-
 var getDryProcessesTable = function(dryProcesses){
 	if (dryProcesses && dryProcesses.length) {
 		if ("follow" === dryProcesses) return window.dryProcesses;
@@ -2469,47 +2063,6 @@ var foundryChange = function(){
 		});
 	}
 };
-
-// 间隔时间计时
-var setPauseClock = function(processingPauseStart) {
-	var leak = processingPauseStart.leak;
-	if ($("#td_of_operator").attr("work_count_flg") != "1") {
-		leak = "0";
-	}
-	$(".opd_re_comment").html(processingPauseStart.comments || "(未设定)")
-		.attr({"pause_start_time": processingPauseStart.pause_start_time,
-		leak: leak,
-		reason: processingPauseStart.reason,
-		title: processingPauseStart.comments || ""});
-	// 计算暂停用时
-	p_start_at = new Date(processingPauseStart.pause_start_time).getTime();
-	$pause_clock = $(".opd_re_comment").parent().next();
-	wttime();
-	wtInterval = setInterval(wttime, 30000);
-}
-
-var saveLeakDataCallback = function(data){
-	if (!data.leak)  {
-		$('.opd_re_comment').attr({leak: 0,
-				reason: data.reason, title: data.full_comments})
-			.text(data.full_comments);
-	} else {
-		var leak = "1";
-		if ($("#td_of_operator").attr("work_count_flg") != "1") {
-			leak = "0";
-		}
-		$('.opd_re_comment').attr({leak: leak,
-				reason: null, title: null, pause_start_time: formatDatetime(new Date())})
-			.text("(未设定)");
-		p_start_at = new Date().getTime();
-		wttime();
-	}
-}
-
-var formatDatetime = function(d){
-	return d.getFullYear() + "/" +　fillZero(d.getMonth() + 1) + "/" + fillZero(d.getDate())
-		+ " " + fillZero(d.getHours()) + ":" + fillZero(d.getMinutes()) + ":" + fillZero(d.getSeconds());
-}
 
 var checkAnmlAlert = function() {
 	if ($("#anml_attendtion").length > 0) {

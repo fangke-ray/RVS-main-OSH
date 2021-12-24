@@ -466,6 +466,11 @@ $(function() {
 		$("#rcbutton").on("click",function(){
 			doStartAll("rc", null);
 		});
+	} else if ($("#g_process_code").val() == "132") {
+		$("#sparebutton, #packagebutton").hide();
+		$("#rcbutton").val("C 本体投入").show().on("click",function(){
+			doStartAll("cbody", null);
+		});
 	} else {
 		$("#rcbutton, #sparebutton, #packagebutton").show();
 		$("#rcbutton").on("click",function(){
@@ -950,7 +955,7 @@ var doStartAll = function(wk_type, processType) {
 
 	$("#waitings > div.tube:visible").each(function(idx, ele){
 		var $wk = $(ele);
-		if ($wk.find("." + wk_type).length > 0) {
+		if (wk_type == "cbody" || $wk.find("." + wk_type).length > 0) {
 			var wk_id = $wk.attr("id").replace("w_", "");
 			material_ids[index] = wk_id;
 			index++;
@@ -970,6 +975,8 @@ var doStartAll = function(wk_type, processType) {
 			errorPop("没有待作业备品，请选择其他作业对象。");
 		} else if (wk_type == "rc") {
 			errorPop("没有待作业协助RC CDS品，请选择其他作业对象。");
+		} else if (wk_type == "cbody") {
+			errorPop("没有待作业 C 本体，请选择其他作业对象。");
 		} else {
 			errorPop("没有待作业通箱，请选择其他作业对象。");
 		}
