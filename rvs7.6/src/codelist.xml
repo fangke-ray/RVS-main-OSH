@@ -56,6 +56,12 @@
 		<value code="2">BJRC</value>
 		<value code="3">GZRC</value>
 		<value code="4">SYRC</value>
+		<value code="9">CDRC</value>
+		<value code="6">HZRC</value>
+		<value code="7">XARC</value>
+		<!--value code="6">CM26</value>
+		<value code="7">CM27</value>
+		<value code="9">CM25</value-->
 	</codelist>
 	
 	<codelist name="material_level">
@@ -336,7 +342,12 @@
 		<value code="32">SYRC</value>
 		<value code="51">C-TEC</value>
 		<value code="52">C-TEC'</value>
+		<value code="69">CD</value>
+		<value code="66">HZ</value>
+		<value code="67">XA</value>
 		<value code="80">直送</value>
+		<value code="90">OSH</value>
+		<value code="91">OGZ</value>
 	</codelist>
 
 	<codelist name="workshop_new">
@@ -344,6 +355,9 @@
 		<value code="11">SH</value>
 		<value code="21">GZ</value>
 		<value code="31">SY</value>
+		<value code="69">CD</value>
+		<value code="66">HZ</value>
+		<value code="67">XA</value>
 		<value code="80">直送</value>
 		<value code="90">OSH</value>
 		<value code="91">OGZ</value>
@@ -402,6 +416,9 @@
 		<value code="86">北京C-TEC</value>
 		<value code="87">上海C-TEC</value>
 		<value code="88">广州C-TEC</value>
+		<value code="9">OCSM-CDRC</value>
+		<value code="6">OCSM-HZRC</value>
+		<value code="7">OCSM-XARC</value>
 	</codelist>
 
 	<codelist name="material_direct_area">

@@ -15,7 +15,7 @@
 		    service_repair_flg,
 		    CASE
 		    	WHEN temp_fact_recept >= 1 THEN null
-		    	WHEN ocm = 4 THEN f_addworkdays(reception_time,2)
+		    	WHEN (ocm = 4 OR ocm = 7 OR ocm = 9) THEN f_addworkdays(reception_time,2)
 		    	ELSE f_addworkdays(reception_time,1)
 		    END AS expect_arrive_time,
 		    model_name,
