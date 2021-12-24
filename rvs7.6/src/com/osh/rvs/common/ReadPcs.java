@@ -27,7 +27,7 @@ public class ReadPcs {
 	private static Map<String, String> styleidmap = new HashMap<String, String>();
 
 	// ss:WrapText="1"
-	private static final String SS_WRAPTEXT_1 = "white-space:normal; word-break:break-all; overflow:hidden; ";
+	// private static final String SS_WRAPTEXT_1 = "white-space:normal; word-break:break-all; overflow:hidden; ";
 
 	public static void main(String[] args) {
 //		@SuppressWarnings("unused")
@@ -601,14 +601,19 @@ public class ReadPcs {
 		StringBuffer retContent = new StringBuffer("");
 		NodeList childNodes = textdata.getChildNodes();
 		for (int i = 0; i < childNodes.getLength(); i++) {
-			Element childNode = (Element) childNodes.item(i);
-			
-			String tagName = childNode.getTagName();
-			switch (tagName) {
-			case "S": 
-				retContent.append("<span class=\"StTh\">" + childNode.getTextContent() + "</span>");
-				break;
-			default:
+			Node childNode = childNodes.item(i);
+			if (childNode instanceof Element) {
+				Element childNodeEle = (Element) childNodes.item(i);
+				
+				String tagName = childNodeEle.getTagName();
+				switch (tagName) {
+				case "S": 
+					retContent.append("<span class=\"StTh\">" + childNodeEle.getTextContent() + "</span>");
+					break;
+				default:
+					retContent.append(childNodeEle.getTextContent());
+				}
+			} else {
 				retContent.append(childNode.getTextContent());
 			}
 		}

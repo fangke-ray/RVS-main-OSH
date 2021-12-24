@@ -18,7 +18,6 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
-import com.osh.rvs.bean.master.PartialEntity;
 import com.osh.rvs.bean.partial.ComponentManageEntity;
 import com.osh.rvs.bean.partial.ConsumableListEntity;
 import com.osh.rvs.bean.partial.ConsumableSubstituteEntity;
@@ -274,9 +273,9 @@ public class PartialReleaseService {
 						errors.add(msg);
 					}
 				} else {
-					PartialEntity partial = pMapper.getPartialByID(entity.getPartial_id());
+					String partialCode = pMapper.getPartialCodeByID(entity.getPartial_id());
 					MsgInfo msg = new MsgInfo();
-					msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.consumableStorageLeak",partial.getCode()));
+					msg.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.consumableStorageLeak",partialCode));
 					errors.add(msg);
 				}
 			}

@@ -156,8 +156,10 @@ public class AlarmMesssageService {
 			triggerList.add(noticeString);
 		}
 
-		triggerList.add("http://localhost:8080/rvsTouch/beep/" + entity.getSection_id() +
+		if (triggerList != null) {
+			triggerList.add("http://localhost:8080/rvsTouch/beep/" + entity.getSection_id() +
 					"/" + entity.getLine_id());
+		}
 
 		return amId;
 	}

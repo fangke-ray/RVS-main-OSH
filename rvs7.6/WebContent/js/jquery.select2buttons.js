@@ -67,6 +67,7 @@ return this.each(function(){
 	var _multiselect = select.attr('multiple');
 
 	var formerCheckStatus = false;
+	var groupSwitchTO = null;
 
 	select.hide();
 
@@ -146,12 +147,19 @@ return this.each(function(){
 				$(item).find("a").addClass("ui-corner-tr");
 			}
 			$(item).mouseover(function() {
-				buttonsHtml.find("ul[uid]").hide();
-				buttonsHtml.find("ul[uid='"+$(this).text()+"']").show();
+				if (groupSwitchTO) clearTimeout(groupSwitchTO);
+				groupSwitchTO = setTimeout(function(groupText){
+					buttonsHtml.find("ul[uid]").hide();
+					buttonsHtml.find("ul[uid='"+groupText+"']").show();
+					groupSwitchTO = null;
+				}, 200, $(this).text());
 			});
 		});
 		buttonsHtml.find("ul[uid]").hide();
 		buttonsHtml.find("ul[uid]:eq(0)").show();
+		buttonsHtml.bind("mouseover", function(){
+			if (groupSwitchTO) clearTimeout(groupSwitchTO);
+		})
 
 		select.parent().bind("mouseleave", function(){
 			groups.filter(function(){return $(this).find("a.picked").length > 0}).trigger("mouseover");
@@ -193,8 +201,8 @@ return this.each(function(){
 
     select.change(function(e, _inner){
 
-    	groupsHtml.find("a.picked").removeClass("picked");
- 		buttonsHtml.find('a.picked').removeClass('picked');
+		groupsHtml.find("a.picked").removeClass("picked");
+		buttonsHtml.find('a.picked').removeClass('picked');
  
  		if (_multiselect) {
 			var selectvals = select.val();

@@ -103,7 +103,7 @@ var instruction_construct = function(modelName, instructLists, forMaterial, high
 			+ (pageName === "@" ? modelName : pageName) + "</label>");
 	}
 	$htPage.buttonset();
-	if ($("#inst_page > .inst_page").length > 1) {
+	if ($htPage.children("input:radio").length > 1) {
 		var $titleChanger = $("<div role='button' class='ui-widget-header'><span class='ui-icon ui-icon-transferthick-e-w'></span></div>")
 			.click(function(){
 				$(this).nextAll().filter("label").each(	function(idx, ele){

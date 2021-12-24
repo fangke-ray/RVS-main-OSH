@@ -83,6 +83,16 @@
 		AND sw.operator_id = #{operator_id}
 	]]>
 	</if>
+	<if test="partial_id!=null and partial_id!='' ">
+	<![CDATA[
+		AND sw.partial_id = #{partial_id}
+	]]>
+	</if>
+	<if test="material_id!=null and material_id!='' ">
+	<![CDATA[
+		AND sw.material_id = #{material_id}
+	]]>
+	</if>
 	</where>
 	ORDER BY
 		sw.process_time ASC
