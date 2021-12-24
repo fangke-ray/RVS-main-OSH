@@ -93,7 +93,7 @@ resize:none;
 				</tr>
 				<tr for="intime_complete">
 					<td class="ui-state-default td-title">大修理5天内纳期遵守比率</td>
-					<td class="ui-state-default td-subtitle">≧85%</td>
+					<td class="ui-state-default td-subtitle">≧90%</td>
 					<td class="td-content" weekday_index="1"></td>
 					<td class="td-content" weekday_index="2"></td>
 					<td class="td-content" weekday_index="3"></td>
@@ -113,7 +113,7 @@ resize:none;
 				</tr>
 				<tr for="section1_plan_processed">
 					<td class="ui-state-default td-title">周边修理4天内纳期遵守比率</td>
-					<td class="ui-state-default td-subtitle">≧90%</td>
+					<td class="ui-state-default td-subtitle">≧91%</td>
 					<td class="td-content" weekday_index="1"></td>
 					<td class="td-content" weekday_index="2"></td>
 					<td class="td-content" weekday_index="3"></td>
