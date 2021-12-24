@@ -43,11 +43,9 @@
 					<th class="ui-state-default" style="width: 14px;">04</th>
 				</tr>
 				<tr>
-					<td class="ui-state-default">001<span class="model_indicate">GIF-HQ290|CF-H260AZI</span></td>
+					<td class="ui-state-default">001<span class="model_indicate">GIF-HQ290</span></td>
 					<td nsid="Z0200101">01</td>
 					<td nsid="Z0200102">02</td>
-					<td nsid="Z0200103">03</td>
-					<td nsid="Z0200104">04</td>
 				</tr>
 				<tr>
 					<td class="ui-state-default">002<span class="model_indicate">PCF-Q260AZI</span></td>
@@ -88,11 +86,31 @@
 					<td nsid="Z0200703">03</td>
 				</tr>
 				<tr>
-					<td class="ui-state-default">008<span class="model_indicate">CF-H260AI|CF-H290I</span></td>
+					<td class="ui-state-default">008<span class="model_indicate">CF-H260AI</span></td>
 					<td nsid="Z0200801">01</td>
 					<td nsid="Z0200802">02</td>
-					<td nsid="Z0200803">03</td>
-					<td nsid="Z0200804">04</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">009<span class="model_indicate">CF-H260AZI</span></td>
+					<td nsid="Z0200901">01</td>
+					<td nsid="Z0200902">02</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">010<span class="model_indicate">CF-H290I</span></td>
+					<td nsid="Z0201001">01</td>
+					<td nsid="Z0201002">02</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">011<span class="model_indicate">CF-Q260AI</span></td>
+					<td nsid="Z0201101">01</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">012<span class="model_indicate">GIF-Q260</span></td>
+					<td nsid="Z0201201">01</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">013<span class="model_indicate">GIF-H290</span></td>
+					<td nsid="Z0201301">01</td>
 				</tr>
 			</table>
 		</div>
@@ -151,16 +169,31 @@
 					<td nsid="Z0100703">03</td>
 				</tr>
 				<tr>
-					<td class="ui-state-default">008<span class="model_indicate">CF-H260AI|CF-H290I</span></td>
+					<td class="ui-state-default">008<span class="model_indicate">CF-H260AI</span></td>
 					<td nsid="Z0100801">01</td>
 					<td nsid="Z0100802">02</td>
-					<td nsid="Z0100803">03</td>
-					<td nsid="Z0100803">04</td>
 				</tr>
 				<tr>
 					<td class="ui-state-default">009<span class="model_indicate">CF-H260AZI</span></td>
 					<td nsid="Z0100901">01</td>
 					<td nsid="Z0100902">02</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">010<span class="model_indicate">CF-H290I</span></td>
+					<td nsid="Z0101001">01</td>
+					<td nsid="Z0101002">02</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">011<span class="model_indicate">CF-Q260AI</span></td>
+					<td nsid="Z0101101">01</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">012<span class="model_indicate">GIF-Q260</span></td>
+					<td nsid="Z0101201">01</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default">013<span class="model_indicate">GIF-H290</span></td>
+					<td nsid="Z0101301">01</td>
 				</tr>
 			</table>
 		</div>
