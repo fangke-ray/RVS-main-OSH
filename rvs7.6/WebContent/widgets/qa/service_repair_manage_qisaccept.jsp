@@ -33,6 +33,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<select id="accept_add_service_repair_flg" name="service_repair_flg"  alt="类别" ></select>
 					</td>
 				</tr>
+			   <tr>
+					<td class="ui-state-default td-title">产品分类</td>
+					<td class="td-content">
+						<select id="accept_add_kind" class="ui-widget-content"></select>
+					</td>
+				</tr>
 				<tr>
 					<td class="ui-state-default td-title">RC邮件发送日</td>
 					<td class="td-content">

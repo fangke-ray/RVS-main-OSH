@@ -134,6 +134,9 @@ $(function(){
 			countermeasures : {
 				maxlength : 120
 			},
+			actual_fault : {
+				maxlength : 40
+			},
 			comment : {
 				maxlength : 120
 			}
@@ -183,6 +186,7 @@ $(function(){
 				"service_free_flg":$("#add_search_service_free_flg").val(),
 				"workshop":$("#add_workshop").val(),
 				"countermeasures":$("#add_countermeasures").val(),
+				"actual_fault":$("#add_actual_fault").val(),
 				"comment":$("#add_comment").val(),
 				"qis_invoice_no":$("#add_qis_invoice_no").val(),
                 "charge_amount":$("#add_charge_amount").val(),
@@ -248,6 +252,7 @@ $(function(){
 			"service_free_flg":$("#add_search_service_free_flg").val(),
 			"workshop":$("#add_workshop").val(),
 			"countermeasures":$("#add_countermeasures").val(),
+			"actual_fault":$("#add_actual_fault").val(),
 			"comment":$("#add_comment").val(),
 			"qis_invoice_no":$("#add_qis_invoice_no").val(),
 			"qis_invoice_date":$("#add_qis_invoice_date").val(),
@@ -412,6 +417,8 @@ var show_analysis_Complete = function(xhrobj, textStatus) {// 点击分析button
                 }
                 //再修理方案
                 $("#label_countermeasures").text(resInfo.returnForm.countermeasures);
+                // 实发故障
+                $("#label_actual_fault").text(resInfo.returnForm.actual_fault);
                 //原因--结论
                 $("#text_trouble_cause").val(resInfo.returnForm.trouble_cause);
                 //故障--技术检测/分析详述
@@ -886,6 +893,7 @@ var data_list = function(resultdata){
 //	  });
 	$("#add_workshop").val(resultdata.workshop).trigger("change");
 	$("#add_countermeasures").val(resultdata.countermeasures);
+	$("#add_actual_fault").val(resultdata.actual_fault);
 	$("#add_comment").val(resultdata.comment);
 	$("#mention").html(resultdata.mention || "");
 	$("#add_kind").val(resultdata.kind).trigger("change");

@@ -246,7 +246,13 @@ if (request.getAttribute("unitizeds")!=null) {
 					<td class="ui-state-default td-title">处理对策</td>
 				    <td class="td-content">
 					<textarea name="countermeasures" alt="处理对策" id="add_countermeasures"  cols=35 rows=2 class="ui-widget-content"></textarea>
-				</td>
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">实发故障</td>
+				    <td class="td-content">
+				    	<textarea id="add_actual_fault" name="actual_fault" alt="实发故障" cols=35 rows=2 class="ui-widget-content"></textarea>
+					</td>
 				</tr>
 				<tr>
 				    <td class="ui-state-default td-title">QIS发送单号</td>

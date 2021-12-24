@@ -341,7 +341,11 @@ public class ServiceRepairManageService {
 				  HSSFCell countermeasuresCell =  row.createCell(yPos++);
 				  countermeasuresCell.setCellValue(form.getCountermeasures());
 				  countermeasuresCell.setCellStyle(styleAlignLeft);
-				  
+
+				  HSSFCell actualFaultCell =  row.createCell(yPos++);
+				  actualFaultCell.setCellValue(form.getActual_fault());
+				  actualFaultCell.setCellStyle(styleAlignLeft);
+
 				  HSSFCell workshopCell =  row.createCell(yPos++);
 				  workshopCell.setCellValue(CodeListUtils.getValue("workshop", form.getWorkshop())); 
 				  workshopCell.setCellStyle(styleAlignLeft);

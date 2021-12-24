@@ -140,6 +140,8 @@ public class ServiceRepairManageEntity implements Serializable {
 
 	private String use_elapse;// 使用累计时间
 
+	private String actual_fault;// 实发故障
+
 	public String getAnalysis_correspond_suggestion() {
 		return analysis_correspond_suggestion;
 	}
@@ -783,6 +785,14 @@ public class ServiceRepairManageEntity implements Serializable {
 
 	public void setPae_no(String pae_no) {
 		this.pae_no = pae_no;
+	}
+
+	public String getActual_fault() {
+		return actual_fault;
+	}
+
+	public void setActual_fault(String actual_fault) {
+		this.actual_fault = actual_fault;
 	}
 
 }

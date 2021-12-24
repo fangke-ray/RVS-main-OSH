@@ -91,8 +91,14 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</tr>				
 				<tr>
 					<td class="ui-state-default td-title">处理对策</td>
+				    <td class="td-content" colspan="3">
+						<textarea id="add_countermeasures" name="countermeasures" alt="处理对策" cols=80 rows=2 class="ui-widget-content"></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">实发故障</td>
 				    <td class="td-content">
-						<textarea id="add_countermeasures" name="countermeasures" alt="处理对策"   cols=35 rows=2 class="ui-widget-content"></textarea>
+				    	<textarea id="add_actual_fault" name="actual_fault"  alt="实发故障"  cols=35 rows=2 class="ui-widget-content"></textarea>
 					</td>
 					<td class="ui-state-default td-title">备注</td>
 				    <td class="td-content">

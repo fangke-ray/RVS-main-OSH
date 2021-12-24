@@ -992,7 +992,10 @@ var showedit_accept = function(xhrobj, textStatus) {// 点击受理按钮触发D
 //		$("#accept_add_service_repair_flg").find("option[value='9']").remove();
 //		$("#accept_add_service_repair_flg").find("option[value='8']").remove();
 		$("#accept_add_service_repair_flg").select2Buttons();
-		
+
+		$("#accept_add_kind").html($("#search_kind").html());
+		$("#accept_add_kind").select2Buttons();
+
 		$("#add_model_name").autocomplete({
 			source : acModelName,
 			minLength : 0,
@@ -1027,7 +1030,7 @@ var showedit_accept = function(xhrobj, textStatus) {// 点击受理按钮触发D
 			ignore : "input[type='text']:hidden"
 		});
 		$("#show_Accept").dialog({
-			width : 320,
+			width : 420,
 			height: 'auto',
 			show: "blind",
 			modal : true,
@@ -1040,6 +1043,7 @@ var showedit_accept = function(xhrobj, textStatus) {// 点击受理按钮触发D
 							"serial_no" : $("#add_serial_no").val(),
 							"sorc_no" : $("#add_sorc_no").val(),
 							"service_repair_flg" : $("#accept_add_service_repair_flg").val(),
+							"kind" : $("#accept_add_kind").val(),
 							"rc_mailsend_date" : $("#add_rc_mailsend_date").val(),
 							"quality_info_no":$("#add_quality_info_no").val()
 						};			
@@ -1184,6 +1188,7 @@ var showedit_aditComplete = function(xhrobj,textStatus) {// 点击受理按钮�
 				$("#add_search_service_free_flg").val(resInfo.returnForm.service_free_flg).trigger("change");
 				$("#add_workshop").val(resInfo.returnForm.workshop).trigger("change");
 				$("#add_countermeasures").val(resInfo.returnForm.countermeasures);
+				$("#add_actual_fault").val(resInfo.returnForm.actual_fault);
 				$("#add_comment").val(resInfo.returnForm.comment);
 				$("#add_quality_judgment").val(resInfo.returnForm.quality_judgment).trigger("change");
 				$("#add_qis_isuse").val(resInfo.returnForm.qis_isuse).trigger("change");
@@ -1303,6 +1308,7 @@ var showedit_aditComplete = function(xhrobj,textStatus) {// 点击受理按钮�
 							"service_free_flg" : $("#add_search_service_free_flg").val(),
 							"workshop" : $("#add_workshop").val(),
 							"countermeasures" : $("#add_countermeasures").val(),
+							"actual_fault" : $("#add_actual_fault").val(),
 							"comment" : $("#add_comment").val(),
 							"quality_judgment" : $("#add_quality_judgment").val(),
 							"qis_isuse" : $("#add_qis_isuse").val(),

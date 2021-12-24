@@ -164,6 +164,9 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	@BeanField(title = "处理对策", name = "countermeasures", length = 120)
 	private String countermeasures;// 处理对策
 
+	@BeanField(title = "实发故障", name = "actual_fault", length = 45)
+	private String actual_fault;
+
 	@BeanField(title = "SORC报价日", name = "quotation_date", type = FieldType.Date)
 	private String quotation_date;// SORC报价日
 
@@ -903,6 +906,14 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 
 	public void setPae_no(String pae_no) {
 		this.pae_no = pae_no;
+	}
+
+	public String getActual_fault() {
+		return actual_fault;
+	}
+
+	public void setActual_fault(String actual_fault) {
+		this.actual_fault = actual_fault;
 	}
 
 }

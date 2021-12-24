@@ -37,6 +37,7 @@
 			RANK,
 			WORKSHOP,
 			COUNTERMEASURES,
+			actual_fault,
 			COMMENT,
 			MENTION) 
 		VALUES 
@@ -56,6 +57,7 @@
 			#{rank},
 			#{workshop},
 			#{countermeasures},
+			#{actual_fault},
 			#{comment},
 			#{mention});
 		]]>
@@ -146,6 +148,7 @@
 			    srm.service_free_flg,
 			    srm.workshop,
 			    srm.countermeasures,
+			    srm.actual_fault,
 			    COALESCE(pr.finish_time, srpm.quotation_date) AS quotation_date,
 			    COALESCE(ma.agreed_date, srpm.agreed_date) AS agreed_date,
 			    COALESCE(ma.inline_time, srpm.inline_date) AS inline_date,
@@ -495,6 +498,11 @@ and rc_mailsend_date=#{rc_mailsend_date};
 				etq_no = #{etq_no},
 				pae_no = #{pae_no},
 				countermeasures=#{countermeasures},
+		]]>
+		<if test="actual_fault!=null and actual_fault!='' ">
+				actual_fault=#{actual_fault},
+		</if>
+		<![CDATA[
 				comment=#{comment},
 				quality_judgment=#{quality_judgment},
 				qis_isuse=#{qis_isuse}

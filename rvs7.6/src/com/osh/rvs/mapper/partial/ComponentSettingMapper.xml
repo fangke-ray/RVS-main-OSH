@@ -148,7 +148,8 @@
 	<select id="getAllSnoutComponentModel" resultType="ComponentSettingEntity">
 		select 
 			cs.model_id
-			,vm.NAME as model_name
+			,vm.NAME as model_name,
+			cs.safety_lever
 		from 
 			snout_component_setting cs
 			join model vm on cs.model_id = vm.MODEL_ID
