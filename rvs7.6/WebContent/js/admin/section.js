@@ -41,6 +41,7 @@ $(function() {
 		$("#cond_id").data("post", $("#cond_id").val());
 		$("#cond_name").data("post", $("#cond_name").val());
 		$("#cond_inline_flg_set").data("post", $("#cond_inline_flg_set input:checked").val());
+		$("#cond_full_name").data("post", $("#cond_full_name").val());
 		// 查询
 		findit();
 	});
@@ -51,6 +52,7 @@ $(function() {
 		$("#cond_name").val("").data("post", "");
 		$("#cond_inline_flg_set").data("post", "")
 			.find("input:radio:eq(0)").attr("checked", true).trigger("change");
+		$("#cond_full_name").val("").data("post", "");
 	});
 
 	// 编辑权限
@@ -97,7 +99,7 @@ var search_handleComplete = function(xhrobj, textStatus) {
 					width : gridWidthMiddleRight,
 					rowheight : 23,
 					datatype : "local",
-					colNames : ['', '课室 ID', '课室名称', '在线维修', '最后更新人', '最后更新时间'],
+					colNames : ['', '课室 ID', '课室名称', '全称', '在线维修', '最后更新人', '最后更新时间'],
 					colModel : [
 					{name:'myac', width:60, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true, editbutton:false}},
 					{ // 课室 ID
@@ -109,6 +111,10 @@ var search_handleComplete = function(xhrobj, textStatus) {
 						name : 'name',
 						index : 'name',
 						width : 160
+					}, { // 全称
+						name : 'full_name',
+						index : 'full_name',
+						width : 220
 					}, { // 在线维修
 						name : 'inline_flg',
 						index : 'inline_flg',
@@ -208,6 +214,7 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 			// 详细数据
 			$("#label_edit_id").text(resInfo.sectionForm.id);
 			$("#input_name").val(resInfo.sectionForm.name);
+			$("#input_full_name").val(resInfo.sectionForm.full_name);
 			$("#input_inline_flg_set input[value='"+ resInfo.sectionForm.inline_flg +"']").attr("checked", true).trigger("change");
 			$("#label_edit_updated_by").text(resInfo.sectionForm.updated_by);
 			$("#label_edit_updated_time").text(resInfo.sectionForm.updated_time);
@@ -252,7 +259,8 @@ var showedit_handleComplete = function(xhrobj, textStatus) {
 								var data = {
 									"id" : $("#label_edit_id").text(),
 									"inline_flg" : $("#input_inline_flg_set input:checked").val(),
-									"name" : $("#input_name").val()
+									"name" : $("#input_name").val(),
+									"full_name" : $("#input_full_name").val()
 								}
 								$("#editarea .subform tr.ui-state-active").each(function(i,item){
 									data["positions[" + i + "]"] = $(item).find(".referId").html();
@@ -295,7 +303,8 @@ var findit = function() {
 	var data = {
 		"id" : $("#cond_id").data("post"),
 		"name" : $("#cond_name").data("post"),
-		"inline_flg" : $("#cond_inline_flg_set").data("post")
+		"inline_flg" : $("#cond_inline_flg_set").data("post"),
+		"full_name" : $("#cond_full_name").data("post")
 	}
 
 	// Ajax提交
@@ -363,8 +372,9 @@ var showAdd = function() {
 			$("#editbutton").disable();
 		// 新建画面输入项提交给后台
 		var data = {
-				"inline_flg" : $("#input_inline_flg_set input:checked").val(),
-			"name" : $("#input_name").val()
+			"inline_flg" : $("#input_inline_flg_set input:checked").val(),
+			"name" : $("#input_name").val(),
+			"full_name" : $("#input_full_name").val()
 		}
 
 		$("#editarea .subform tr.ui-state-active").each(function(i,item){

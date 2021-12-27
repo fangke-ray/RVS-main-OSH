@@ -50,8 +50,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<input type="radio" name="inline_flg" alt="是否在线维修课室" id="cond_inline_flg_yes" value="1" class="ui-widget-content">
 						<label for="cond_inline_flg_yes" radio>是</label>
 					</td>
-					<td class="ui-state-default td-title"></td>
-					<td class="td-content"></td>
+					<td class="ui-state-default td-title">全称</td>
+					<td class="td-content">
+						<input type="text" name="full_name" id="cond_full_name" maxlength="45" class="ui-widget-content">
+					</td>
 				</tr>
 			</table>
 			<div style="height:44px">
@@ -87,6 +89,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="ui-state-default td-title">课室名称</td>
 					<td class="td-content">
 						<input type="text" name="name" id="input_name" maxlength="20" class="ui-widget-content">
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">全称</td>
+					<td class="td-content">
+						<input type="text" name="full_name" id="input_full_name" maxlength="45" class="ui-widget-content">
 					</td>
 				</tr>
 				<tr>

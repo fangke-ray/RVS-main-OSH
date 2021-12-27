@@ -31,6 +31,9 @@ public class SectionForm extends ActionForm {
 
 	/** 拥有工位 */
 	private List<String> positions = new AutofillArrayList<String>(String.class);
+	/** 全称 **/
+	@BeanField(title = "全称", name = "full_name", type = FieldType.String, length=45)
+	private String full_name;
 
 	/**
 	 * 取得课室 ID
@@ -120,4 +123,11 @@ public class SectionForm extends ActionForm {
 		this.positions = positions;
 	}
 
+	public String getFull_name() {
+		return full_name;
+	}
+
+	public void setFull_name(String full_name) {
+		this.full_name = full_name;
+	}
 }

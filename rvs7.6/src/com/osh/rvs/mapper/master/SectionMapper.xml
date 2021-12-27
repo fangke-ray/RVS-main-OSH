@@ -9,6 +9,7 @@
 		<![CDATA[ 
 		SELECT SECTION_ID,
 			NAME,
+			FULL_NAME,
 			INLINE_FLG,
 			UPDATED_BY,
 			UPDATED_TIME
@@ -49,6 +50,7 @@
 		SELECT SECTION_ID,
 			NAME,
 			INLINE_FLG,
+			FULL_NAME,
 			UPDATED_BY,
 			UPDATED_TIME
 		FROM V_SECTION
@@ -64,6 +66,9 @@
 			<if test="inline_flg!=null and inline_flg!='' ">
 				AND INLINE_FLG = #{inline_flg}
 			</if>
+			<if test="full_name!=null and full_name!='' ">
+				AND FULL_NAME LIKE CONCAT('%', #{full_name},'%')
+			</if>
 		</where> 
 		<![CDATA[ 
 		ORDER BY UPDATED_TIME DESC;
@@ -73,9 +78,9 @@
 	<insert id="insertSection" parameterType="SectionEntity">
 		<![CDATA[ 
 		INSERT INTO SECTION 
-			(NAME, UPDATED_BY, INLINE_FLG, UPDATED_TIME) 
+			(NAME, UPDATED_BY, INLINE_FLG, FULL_NAME, UPDATED_TIME) 
 		VALUES 
-			(#{name}, #{updated_by}, #{inline_flg}, current_timestamp);
+			(#{name}, #{updated_by}, #{inline_flg}, #{full_name}, current_timestamp);
 		]]>
 	</insert>
 
@@ -84,6 +89,7 @@
 		UPDATE SECTION SET NAME = #{name},
 			UPDATED_BY = #{updated_by},
 			INLINE_FLG = #{inline_flg},
+			FULL_NAME = #{full_name},
 			UPDATED_TIME = current_timestamp
 		WHERE SECTION_ID = #{section_id};
 		]]>

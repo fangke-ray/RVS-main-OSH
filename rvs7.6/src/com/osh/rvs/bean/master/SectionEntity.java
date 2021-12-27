@@ -19,6 +19,8 @@ public class SectionEntity implements Serializable {
 	private String updated_by;
 	/** 最后更新时间 */
 	private Timestamp updated_time;
+	/** 全称 **/
+	private String full_name;
 
 	/**
 	 * 取得课室 ID
@@ -118,5 +120,13 @@ public class SectionEntity implements Serializable {
 
 	public void setInline_flg(Boolean inline_flg) {
 		this.inline_flg = inline_flg;
+	}
+
+	public String getFull_name() {
+		return full_name;
+	}
+
+	public void setFull_name(String full_name) {
+		this.full_name = full_name;
 	}
 }
