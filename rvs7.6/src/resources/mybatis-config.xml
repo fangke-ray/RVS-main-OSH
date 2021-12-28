@@ -157,6 +157,10 @@
 		<typeAlias alias="ProcedureManualEntity" type="com.osh.rvs.bean.report.ProcedureManualEntity"/>
 
 		<typeAlias alias="OperatorNotifyEntity" type="com.osh.rvs.bean.master.OperatorNotifyEntity" />
+		<typeAlias alias="SuppliesReferListEntity" type="com.osh.rvs.bean.master.SuppliesReferListEntity" />
+		
+		<typeAlias alias="SuppliesDetailEntity" type="com.osh.rvs.bean.support.SuppliesDetailEntity" />
+		<typeAlias alias="SuppliesOrderEntity" type="com.osh.rvs.bean.support.SuppliesOrderEntity" />
 
 	</typeAliases>
 	<typeHandlers />
@@ -197,6 +201,7 @@
 		<mapper resource="com/osh/rvs/mapper/master/LightFixMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/PartialUnpackMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/PartialBussinessStandardMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/SuppliesReferListMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/data/AlarmMesssageMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/data/MaterialMapper.xml" />
@@ -322,6 +327,8 @@
 		<mapper resource="com/osh/rvs/mapper/equipment/DeviceJigLoanMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/partial/MaterialPartInstructMapper.xml"/>
-
+		
+		<mapper resource="com/osh/rvs/mapper/support/SuppliesDetailMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/support/SuppliesOrderMapper.xml"/>
 	</mappers>
 </configuration> 

@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.support.SuppliesDetailMapper">
+	
+	<select id="search" resultType="SuppliesDetailEntity" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		SELECT
+			sd.supplies_key,
+			sd.product_name,
+			sd.model_name,
+			sd.unit_price,
+			sd.unit_text,
+			sd.quantity,
+			sd.section_id,
+			section.name AS section_name,
+			sd.applicator_id,
+			applicator_op.name AS applicator_name,
+			sd.nesssary_reason,
+			sd.applicate_date,
+			sd.confirmer_id,
+			confirmer_op.name AS confirmer_name,
+			sd.order_key,
+			so.order_no,
+			sd.supplier,
+			sd.scheduled_date,
+			sd.recept_date,
+			sd.budget_month,
+			sd.inline_recept_date,
+			sd.comments,
+			sd.invoice_no
+		FROM
+			supplies_detail sd
+		JOIN
+			section	ON sd.section_id = section.section_id
+		JOIN
+			operator applicator_op ON applicator_op.operator_id = sd.applicator_id
+		LEFT JOIN
+			operator confirmer_op ON confirmer_op.operator_id = sd.confirmer_id
+		LEFT JOIN
+			supplies_order so ON so.order_key = sd.order_key
+	]]>
+	<where>
+	<if test="product_name!=null and product_name!=''">
+	<![CDATA[
+		AND sd.product_name LIKE CONCAT('%', #{product_name}, '%')
+	]]>
+	</if>
+	<if test="model_name!=null and model_name!=''">
+	<![CDATA[
+		AND sd.model_name LIKE CONCAT('%', #{model_name}, '%')
+	]]>
+	</if>
+	<if test="section_id!=null and section_id!=''">
+	<![CDATA[
+		AND sd.section_id = #{section_id}
+	]]>
+	</if>
+	<if test="applicator_id!=null and applicator_id!=''">
+	<![CDATA[
+		AND sd.applicator_id = #{applicator_id}
+	]]>
+	</if>
+	<if test="applicate_date_start!=null and applicate_date_start!=''">
+	<![CDATA[
+		AND sd.applicate_date >= #{applicate_date_start}
+	]]>
+	</if>
+	<if test="applicate_date_end!=null and applicate_date_end!=''">
+	<![CDATA[
+		AND sd.applicate_date <= #{applicate_date_end}
+	]]>
+	</if>
+	<if test="confirmer_id!=null and confirmer_id!=''">
+	<![CDATA[
+		AND sd.confirmer_id = #{confirmer_id}
+	]]>
+	</if>
+	<if test="order_no!=null and order_no!=''">
+	<![CDATA[
+		AND so.order_no = #{order_no}
+	]]>
+	</if>
+	<if test="scheduled_date_start!=null and scheduled_date_start!=''">
+	<![CDATA[
+		AND sd.scheduled_date >= #{scheduled_date_start}
+	]]>
+	</if>
+	<if test="scheduled_date_end!=null and scheduled_date_end!=''">
+	<![CDATA[
+		AND sd.scheduled_date <= #{scheduled_date_end}
+	]]>
+	</if>
+	<if test="recept_date_start!=null and recept_date_start!=''">
+	<![CDATA[
+		AND sd.recept_date >= #{recept_date_start}
+	]]>
+	</if>
+	<if test="recept_date_end!=null and recept_date_end!=''">
+	<![CDATA[
+		AND sd.recept_date <= #{recept_date_end}
+	]]>
+	</if>
+	<if test="budget_month!=null and budget_month!=''">
+	<![CDATA[
+		AND sd.budget_month = #{budget_month}
+	]]>
+	</if>
+	<if test="inline_recept_date_start!=null and inline_recept_date_start!=''">
+	<![CDATA[
+		AND sd.inline_recept_date >= #{inline_recept_date_start}
+	]]>
+	</if>
+	<if test="inline_recept_date_end!=null and inline_recept_date_end!=''">
+	<![CDATA[
+		AND sd.inline_recept_date <= #{inline_recept_date_end}
+	]]>
+	</if>
+	<if test="invoice_no!=null and invoice_no!=''">
+	<![CDATA[
+		AND sd.invoice_no = #{invoice_no}
+	]]>
+	</if>
+	</where>
+	<![CDATA[
+		ORDER BY
+			sd.applicate_date DESC
+	]]>
+	</select>
+
+	<insert id="insert" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		INSERT INTO supplies_detail
+		(
+			product_name,
+			model_name,
+			unit_price,
+			unit_text,
+			quantity,
+			section_id,
+			applicator_id,
+			nesssary_reason,
+			applicate_date,
+			confirmer_id,
+			order_key,
+			supplier,
+			scheduled_date,
+			recept_date,
+			budget_month,
+			inline_recept_date,
+			comments,
+			invoice_no
+		)
+		VALUES
+		(
+			#{product_name},
+			#{model_name},
+			#{unit_price},
+			#{unit_text},
+			#{quantity},
+			#{section_id},
+			#{applicator_id},
+			#{nesssary_reason},
+			#{applicate_date},
+			#{confirmer_id},
+			#{order_key},
+			#{supplier},
+			#{scheduled_date},
+			#{recept_date},
+			#{budget_month},
+			#{inline_recept_date},
+			#{comments},
+			#{invoice_no}
+		)
+	]]>
+	</insert>
+	
+	<select id="getDetailByKey" resultType="SuppliesDetailEntity" parameterType="string">
+	<![CDATA[
+		SELECT
+			sd.supplies_key,
+			sd.product_name,
+			sd.model_name,
+			sd.unit_price,
+			sd.unit_text,
+			sd.quantity,
+			sd.section_id,
+			section.name AS section_name,
+			sd.applicator_id,
+			applicator_op.name AS applicator_name,
+			sd.nesssary_reason,
+			sd.applicate_date,
+			sd.confirmer_id,
+			confirmer_op.name AS confirmer_name,
+			sd.order_key,
+			so.order_no,
+			sd.supplier,
+			sd.scheduled_date,
+			sd.recept_date,
+			sd.budget_month,
+			sd.inline_recept_date,
+			sd.comments,
+			sd.invoice_no
+		FROM
+			supplies_detail sd
+		JOIN
+			section	ON sd.section_id = section.section_id
+		JOIN
+			operator applicator_op ON applicator_op.operator_id = sd.applicator_id
+		LEFT JOIN
+			operator confirmer_op ON confirmer_op.operator_id = sd.confirmer_id
+		LEFT JOIN
+			supplies_order so ON so.order_key = sd.order_key
+		WHERE
+			sd.supplies_key = #{supplies_key}
+	]]>
+	</select>
+	
+	<delete id="delete" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		DELETE FROM supplies_detail WHERE supplies_key = #{supplies_key}
+	]]>
+	</delete>
+	
+	<select id="searchComfirmAndNoOrderKey" resultType="SuppliesDetailEntity">
+	<![CDATA[
+		SELECT
+			sd.supplies_key,
+			sd.product_name,
+			sd.model_name,
+			sd.unit_price,
+			sd.unit_text,
+			sd.quantity,
+			sd.section_id,
+			section.name AS section_name,
+			sd.applicator_id,
+			applicator_op.name AS applicator_name,
+			sd.nesssary_reason,
+			sd.applicate_date,
+			sd.confirmer_id,
+			confirmer_op.name AS confirmer_name,
+			sd.order_key,
+			sd.supplier,
+			sd.scheduled_date,
+			sd.recept_date,
+			sd.budget_month,
+			sd.inline_recept_date,
+			sd.comments,
+			sd.invoice_no
+		FROM
+			supplies_detail sd
+		JOIN
+			section	ON sd.section_id = section.section_id
+		JOIN
+			operator applicator_op ON applicator_op.operator_id = sd.applicator_id
+		LEFT JOIN
+			operator confirmer_op ON confirmer_op.operator_id = sd.confirmer_id
+		WHERE
+			sd.order_key IS NULL
+		AND
+			sd.confirmer_id IS NOT NULL
+		ORDER BY
+			sd.applicate_date
+	]]>
+	</select>
+	
+	<update id="confirm" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		UPDATE
+			supplies_detail
+		SET
+			confirmer_id = #{confirmer_id}
+	]]>
+	<if test="order_key!=null and order_key!=''">
+	<![CDATA[
+			,order_key = #{order_key}
+	]]>
+	</if>
+	<![CDATA[
+		WHERE
+			supplies_key = #{supplies_key}
+	]]>
+	</update>
+	
+	<update id="updateOrderKey" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		UPDATE
+			supplies_detail
+		SET
+			order_key = #{order_key}
+		WHERE
+			supplies_key = #{supplies_key}
+	]]>
+	</update>
+	
+	<update id="updateApplication" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		UPDATE
+			supplies_detail
+		SET
+			product_name = #{product_name},
+			model_name = #{model_name},
+			unit_price = #{unit_price},
+			unit_text = #{unit_text},
+			quantity = #{quantity},
+			supplier = #{supplier},
+			nesssary_reason = #{nesssary_reason},
+			comments = #{comments},
+			scheduled_date = #{scheduled_date},
+			budget_month = #{budget_month}			
+		WHERE
+			supplies_key = #{supplies_key}
+	]]>
+	</update>
+	
+	<select id="searchWaittingRecept" resultType="SuppliesDetailEntity">
+	<![CDATA[
+		SELECT
+			sd.supplies_key,
+			sd.product_name,
+			sd.model_name,
+			sd.unit_price,
+			sd.unit_text,
+			sd.quantity,
+			sd.section_id,
+			section.name AS section_name,
+			sd.applicator_id,
+			applicator_op.name AS applicator_name,
+			sd.nesssary_reason,
+			sd.applicate_date,
+			sd.confirmer_id,
+			confirmer_op.name AS confirmer_name,
+			sd.order_key,
+			so.order_no,
+			sd.supplier,
+			sd.scheduled_date,
+			sd.recept_date,
+			sd.budget_month,
+			sd.inline_recept_date,
+			sd.comments,
+			sd.invoice_no
+		FROM
+			supplies_detail sd
+		JOIN
+			section	ON sd.section_id = section.section_id
+		JOIN
+			operator applicator_op ON applicator_op.operator_id = sd.applicator_id
+		LEFT JOIN
+			operator confirmer_op ON confirmer_op.operator_id = sd.confirmer_id
+		LEFT JOIN
+			supplies_order so ON so.order_key = sd.order_key
+		WHERE
+			sd.order_key IS NOT NULL
+		AND
+			sd.recept_date IS NULL
+		ORDER BY
+			sd.order_key
+	]]>
+	</select>
+	
+	<update id="updateReceptDate" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		UPDATE
+			supplies_detail
+		SET
+			recept_date = #{recept_date}
+		WHERE
+			supplies_key = #{supplies_key}
+	]]>
+	</update>
+	
+	<update id="updateInlineReceptDate" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		UPDATE
+			supplies_detail
+		SET
+			inline_recept_date = #{inline_recept_date}
+		WHERE
+			supplies_key = #{supplies_key}
+	]]>
+	</update>
+	
+	<update id="updateInvoiceNo" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		UPDATE
+			supplies_detail
+		SET
+			invoice_no = #{invoice_no}
+		WHERE
+			supplies_key = #{supplies_key}
+	]]>
+	</update>
+	
+	<select id="getDetailByOrderKey" resultType="SuppliesDetailEntity" parameterType="string">
+	<![CDATA[
+		SELECT
+			sd.supplies_key,
+			sd.product_name,
+			sd.model_name,
+			sd.unit_price,
+			sd.unit_text,
+			sd.quantity,
+			sd.section_id,
+			section.name AS section_name,
+			section.full_name AS section_full_name,
+			sd.applicator_id,
+			applicator_op.name AS applicator_name,
+			sd.nesssary_reason,
+			sd.applicate_date,
+			sd.confirmer_id,
+			confirmer_op.name AS confirmer_name,
+			sd.order_key,
+			sd.supplier,
+			sd.scheduled_date,
+			sd.recept_date,
+			sd.budget_month,
+			sd.inline_recept_date,
+			sd.comments,
+			sd.invoice_no
+		FROM
+			supplies_detail sd
+		JOIN
+			section	ON sd.section_id = section.section_id
+		JOIN
+			operator applicator_op ON applicator_op.operator_id = sd.applicator_id
+		LEFT JOIN
+			operator confirmer_op ON confirmer_op.operator_id = sd.confirmer_id
+		WHERE
+			sd.order_key = #{order_key}
+	]]>
+	</select>
+
+</mapper>

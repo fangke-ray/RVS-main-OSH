@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.support.SuppliesOrderMapper">
+
+	<select id="search" resultType="SuppliesOrderEntity" parameterType="SuppliesOrderEntity">
+	<![CDATA[
+		SELECT
+			so.order_key,
+			so.order_no,
+			so.order_date,
+			so.operator_id,
+			operator.name AS operator_name,
+			so.sign_manager_id,
+			operator_manager.name AS manager_name,
+			so.sign_minister_id,
+			operator_minister.name AS minister_name,
+			so.spec
+		FROM 
+			supplies_order so
+		JOIN
+			operator ON so.operator_id = operator.operator_id
+		LEFT JOIN
+			operator operator_manager ON so.sign_manager_id = operator_manager.operator_id
+		LEFT JOIN
+			operator operator_minister ON so.sign_minister_id = operator_minister.operator_id
+		ORDER BY 
+			(sign_manager_id IS NULL AND sign_minister_id IS NULL) DESC,so.order_date DESC
+	]]>
+	</select>
+
+	<insert id="insert" parameterType="SuppliesOrderEntity">
+	<![CDATA[
+		INSERT INTO supplies_order
+		(
+			order_no,
+			order_date,
+			operator_id,
+			sign_manager_id,
+			sign_minister_id,
+			spec
+		)
+		VALUES
+		(
+			#{order_no},
+			#{order_date},
+			#{operator_id},
+			#{sign_manager_id},
+			#{sign_minister_id},
+			#{spec}
+		)
+	]]>
+	</insert>
+	
+	<select id="getByOrderNo" resultType="SuppliesOrderEntity" parameterType="string">
+	<![CDATA[
+		SELECT
+			order_key,
+			order_no,
+			order_date,
+			operator_id,
+			sign_manager_id,
+			sign_minister_id,
+			spec
+		FROM
+			supplies_order
+		WHERE
+			order_no = #{order_no}
+	]]>
+	</select>
+	
+	<select id="getByOrderKey" resultType="SuppliesOrderEntity" parameterType="string">
+	<![CDATA[
+		SELECT
+			so.order_key,
+			so.order_no,
+			so.order_date,
+			so.operator_id,
+			operator.name AS operator_name,
+			section.full_name AS section_full_name,
+			so.sign_manager_id,
+			operator_manager.name AS manager_name,
+			operator_manager.job_no AS manager_job_no,
+			so.sign_minister_id,
+			operator_minister.name AS minister_name,
+			operator_minister.job_no AS minister_job_no,
+			so.spec
+		FROM 
+			supplies_order so
+		JOIN
+			operator ON so.operator_id = operator.operator_id
+		JOIN
+			section ON section.section_id = operator.section_id
+		LEFT JOIN
+			operator operator_manager ON so.sign_manager_id = operator_manager.operator_id
+		LEFT JOIN
+			operator operator_minister ON so.sign_minister_id = operator_minister.operator_id
+		WHERE
+			so.order_key = #{order_key}
+	]]>
+	</select>
+	
+	<update id="sign" parameterType="SuppliesOrderEntity">
+	<![CDATA[
+		UPDATE
+			supplies_order
+		SET
+			sign_manager_id = #{sign_manager_id},
+			sign_minister_id = #{sign_minister_id}
+		WHERE
+			order_key = #{order_key}
+	]]>
+	</update>
+</mapper>

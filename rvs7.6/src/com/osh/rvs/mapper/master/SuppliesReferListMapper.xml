@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.SuppliesReferListMapper">
+
+	<select id="search" resultType="SuppliesReferListEntity" parameterType="SuppliesReferListEntity">
+	<![CDATA[
+		SELECT
+			refer_key,
+			product_name,
+			model_name,
+			unit_price,
+			unit_text,
+			supplier,
+			photo_uuid
+		FROM
+			supplies_refer_list
+	]]>
+	<where>
+	<if test="product_name!=null and product_name!=''">
+	<![CDATA[
+		AND product_name LIKE CONCAT('%', #{product_name}, '%')
+	]]>
+	</if>
+	<if test="model_name!=null and model_name!=''">
+	<![CDATA[
+		AND model_name LIKE CONCAT('%', #{model_name}, '%')
+	]]>
+	</if>
+	<if test="supplier!=null and supplier!=''">
+	<![CDATA[
+		AND supplier LIKE CONCAT('%', #{supplier}, '%')
+	]]>
+	</if>
+	</where>
+	</select>
+
+	<insert id="insert" parameterType="SuppliesReferListEntity">
+	<![CDATA[ 
+		INSERT INTO supplies_refer_list
+			(
+			product_name,
+			model_name,
+			unit_price,
+			unit_text,
+			supplier,
+			photo_uuid
+			) 
+		VALUES 
+			(
+			#{product_name},
+			#{model_name},
+			#{unit_price},
+			#{unit_text},
+			#{supplier},
+			#{photo_uuid}
+			)
+	]]>
+	</insert>
+
+	<update id="update" parameterType="SuppliesReferListEntity">
+	<![CDATA[
+		UPDATE
+			supplies_refer_list
+		SET 
+			product_name = #{product_name},
+			model_name = #{model_name},
+			unit_price = #{unit_price},
+			unit_text = #{unit_text},
+			supplier = #{supplier}
+	]]>
+	<if test="photo_uuid!=null and photo_uuid!=''">
+	<![CDATA[
+			,photo_uuid = #{photo_uuid}
+	]]>
+	</if>
+	<![CDATA[
+		WHERE
+			refer_key = #{refer_key}
+	]]>
+	</update>
+	
+	<select id="getSuppliesReferByKey" resultType="SuppliesReferListEntity" parameterType="string">
+	<![CDATA[
+		SELECT
+			refer_key,
+			product_name,
+			model_name,
+			unit_price,
+			unit_text,
+			supplier,
+			photo_uuid
+		FROM
+			supplies_refer_list
+		WHERE
+			refer_key = #{refer_key}
+	]]>
+	</select>
+	
+	<delete id="delete" parameterType="string">
+	<![CDATA[
+		DELETE FROM supplies_refer_list WHERE refer_key = #{refer_key}
+	]]>
+	</delete>
+
+	<select id="searchEmptyModel" resultType="SuppliesReferListEntity" parameterType="SuppliesReferListEntity">
+	<![CDATA[
+		SELECT
+			refer_key,
+			product_name,
+			model_name,
+			unit_price,
+			unit_text,
+			supplier,
+			photo_uuid
+		FROM
+			supplies_refer_list
+		WHERE
+			product_name = #{product_name}
+		AND
+			model_name IS NULL
+	]]>
+	<if test="refer_key!=null and refer_key!=''">
+	<![CDATA[
+		AND refer_key <> #{refer_key}
+	]]>
+	</if>
+	</select>
+	
+	<update id="updatePhotoUuid" parameterType="SuppliesReferListEntity">
+	<![CDATA[
+		UPDATE
+			supplies_refer_list
+		SET
+			photo_uuid = #{photo_uuid}
+		WHERE
+			refer_key = #{refer_key}
+	]]>
+	</update>
+</mapper>

@@ -28,6 +28,7 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.service.PositionService;
 
 import framework.huiqing.action.BaseAction;
+import framework.huiqing.common.util.CommonStringUtil;
 
 public class AppMenuAction extends BaseAction {
 
@@ -374,6 +375,26 @@ public class AppMenuAction extends BaseAction {
 			menuLinks.put("tech", true);
 		} else {
 			menuLinks.put("tech", false);
+		}
+		
+		// 常用采购清单管理
+		if ("00000000006".equals(section_id)) {
+			menuLinks.put("support_admin", true);
+		} else {
+			menuLinks.put("support_admin", false);
+		}
+		
+		//物品申购
+		if (user.getRole_id().equals(RvsConsts.ROLE_MANAGER) 
+				|| "00000000006".equals(section_id) 
+				|| (!CommonStringUtil.isEmpty(section_id) && (privacies.contains(RvsConsts.PRIVACY_LINE) 
+						|| privacies.contains(RvsConsts.PRIVACY_RECEPT_EDIT) 
+						|| privacies.contains(RvsConsts.PRIVACY_QA_MANAGER)
+						|| privacies.contains(RvsConsts.PRIVACY_TECHNOLOGY) 
+						|| privacies.contains(RvsConsts.PRIVACY_TECHNICAL_MANAGE)))) {
+			menuLinks.put("supplies_operation", true);
+		} else {
+			menuLinks.put("supplies_operation", false);
 		}
 
 		// 可用链接设定到画面

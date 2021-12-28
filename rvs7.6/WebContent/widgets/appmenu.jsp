@@ -192,7 +192,13 @@ $(function() {
 	<% } %>
 		        <a href="standard_work_time.do">标准工时参考</a><br>
 		        <a href="pcsTemplate.do">工程检查票模板</a><br>
-		        <a href="password.do">用户密码修改</a>
+		        <a href="password.do">用户密码修改</a><br>
+	<% if(links.get("support_admin")) { %>
+		        <a href="supplies_refer_list.do">常用采购清单</a><br>
+	<% } %>
+	<% if(links.get("supplies_operation")) { %>
+				<a href="supplies_detail.do">物品申购</a><br>
+	<% } %>
 		    </div>
 		</div>
 	</div>
