@@ -2,6 +2,7 @@ package com.osh.rvs.service.inline;
 
 import static framework.huiqing.common.util.CommonStringUtil.joinBy;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -1166,14 +1167,29 @@ public class SoloSnoutService {
 		// 经历过先端预制的话，显示其来源进行的先端头回收
 		if (pfMapper.checkPositionDid(material_id, "00000000024", null, null)) {
 			SoloProductionFeatureMapper spfMapper = conn.getMapper(SoloProductionFeatureMapper.class);
-			String originMaterialId = spfMapper.traceOrigin(material_id);
-			if (originMaterialId == null) return null;
+			List<String> originMaterialIds = spfMapper.traceOrigin(material_id);
+			if (originMaterialIds == null || originMaterialIds.size() == 0) return null;
 			MaterialService mService = new MaterialService();
-			MaterialEntity mOriginEntity = mService.loadSimpleMaterialDetailEntity(conn, originMaterialId);
 
-			Map<String, String> fileHtml = PcsUtils.toHtml(snoutHeads, originMaterialId, mOriginEntity.getSorc_no(),
-					mOriginEntity.getModel_name(), mOriginEntity.getSerial_no(), "" + mOriginEntity.getLevel(), "399", null, 
-							false, conn);
+			Map<String, String> fileHtml = new HashMap<String, String>();
+
+			int iSize = originMaterialIds.size() - 1;
+			for (int i = 0; i <= iSize; i++) {
+				String originMaterialId = originMaterialIds.get(i);
+				MaterialEntity mOriginEntity = mService.loadSimpleMaterialDetailEntity(conn, originMaterialId);
+
+				Map<String, String> tfileHtml = PcsUtils.toHtml(snoutHeads, originMaterialId, mOriginEntity.getSorc_no(),
+						mOriginEntity.getModel_name(), mOriginEntity.getSerial_no(), "" + mOriginEntity.getLevel(), "399", null, 
+								false, conn);
+
+				if (i == iSize) {
+					fileHtml.putAll(tfileHtml);
+				} else {
+					for (String key : tfileHtml.keySet()) {
+						fileHtml.put(key + " 第" + (i+1) + "次返工", tfileHtml.get(key));
+					}
+				}
+			}
 
 			return fileHtml;
 		}
@@ -1208,15 +1224,27 @@ public class SoloSnoutService {
 		// 经历过先端预制的话，显示其来源进行的先端头回收
 		if (pfMapper.checkPositionDid(material_id, "00000000024", null, null)) {
 			SoloProductionFeatureMapper spfMapper = conn.getMapper(SoloProductionFeatureMapper.class);
-			String originMaterialId = spfMapper.traceOrigin(material_id);
-			if (originMaterialId == null) return;
+			List<String> originMaterialIds = spfMapper.traceOrigin(material_id);
+			if (originMaterialIds == null || originMaterialIds.size() == 0) return;
 
 			MaterialService mService = new MaterialService();
-			MaterialEntity mOriginEntity = mService.loadSimpleMaterialDetailEntity(conn, originMaterialId);
 
-			PcsUtils.toPdf(snoutHeads, originMaterialId, mOriginEntity.getSorc_no(),
-					mOriginEntity.getModel_name(), mOriginEntity.getSerial_no(), "" + mOriginEntity.getLevel(), null, folderPath, 
-							false, conn);
+			int iSize = originMaterialIds.size() - 1;
+			for (int i = 0; i <= iSize; i++) {
+				String originMaterialId = originMaterialIds.get(i);
+				MaterialEntity mOriginEntity = mService.loadSimpleMaterialDetailEntity(conn, originMaterialId);
+				PcsUtils.toPdf(snoutHeads, originMaterialId, mOriginEntity.getSorc_no(),
+						mOriginEntity.getModel_name(), mOriginEntity.getSerial_no(), "" + mOriginEntity.getLevel(), null, folderPath, 
+								false, conn);
+				if (i < iSize) {
+					for (String snoutHead :snoutHeads.keySet()) {
+						File pdfFile = new File(folderPath + "\\" + snoutHead + ".pdf");
+						if (pdfFile.exists()) {
+							pdfFile.renameTo(new File(folderPath + "\\" + snoutHead + " 第" + (i + 1) + "次返工.pdf"));
+						}
+					}
+				}
+			}
 		}
 	}
 

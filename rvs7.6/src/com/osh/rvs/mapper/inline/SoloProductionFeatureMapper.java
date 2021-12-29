@@ -104,7 +104,7 @@ public interface SoloProductionFeatureMapper {
 
 	public List<MaterialEntity> getSnoutHeadHistory(@Param("material_id") String material_id);
 
-	public String traceOrigin(@Param("usage_material_id") String usage_material_id);
+	public List<String> traceOrigin(@Param("usage_material_id") String usage_material_id);
 
 	public List<String> getSlotsFromSnoutComponentStorageByModel(@Param("model_id") String model_id);
 
