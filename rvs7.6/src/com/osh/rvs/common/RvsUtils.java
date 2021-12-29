@@ -1245,6 +1245,88 @@ public class RvsUtils {
 		unproceedPermitCache.clear();;
 	}
 
+	private static final long COUNT_TICK_BASE = 1262304000000l; // new Date("2010-1-1").getTime()
+
+/**	
+ * 	JS encPwdCode	
+/	 var _enc=function(reqPwd){
+/		if(!reqPwd){return""}
+/		var c=function(i,m)
+/		{if(i==61){return"|"}
+/		var l=null;l=i+m;if(l<48){l=123-(48-l)}
+/		else{if(l>122){l=47+(l-122)}}
+/		return String.fromCharCode(l)};
+/		var g=btoa(reqPwd);
+/		var decPwd="";var j=true;
+/		var nTies=parseInt((new Date().getTime()-1262304000000)/1800000);
+/		var h=nTies%7;var a=nTies%11;var shift=nTies%3;
+/		for(var e=0;e<g.length;e++)
+/		{if(j){
+/		decPwd+=c(g.charCodeAt(e),h)}
+/		else{decPwd+=c(g.charCodeAt(e),-a)}j=!j}
+/		switch(shift){case 1:decPwd=decPwd.substring(1)+decPwd.substring(0,1);break;
+/		case 2:decPwd=decPwd.substring(decPwd.length-1)+decPwd.substring(0,decPwd.length-1);break}
+/		return decPwd};
+ */
+	/**
+	 * 解密页面加密密码
+	 * @param reqPwd
+	 * @param now
+	 * @return
+	 */
+	public static String _decPwd(String reqPwd, long now) {
+		if (CommonStringUtil.isEmpty(reqPwd)) return "";
+		long nTies = (now - COUNT_TICK_BASE) / 1800000; 
+		int oddFix = (int)nTies % 7; 
+		int evenFix = (int)nTies % 11;
+		int shift =(int) nTies % 3; 
+
+		String pwd = reqPwd;
+		switch (shift) {
+		case 1:
+			pwd = pwd.substring(pwd.length() - 1)
+			+ pwd.substring(0, pwd.length() - 1);
+			break;
+		case 2:
+			pwd = pwd.substring(1) + pwd.substring(0, 1);
+			break;
+		}
+
+		String _asc = "";
+		boolean isOdd = true;
+
+		for (int i = 0; i < pwd.length(); i++) {
+			if (isOdd) {
+				_asc += _justify(pwd.charAt(i), -oddFix);
+			} else {
+				_asc += _justify(pwd.charAt(i), evenFix);
+			}
+			isOdd = !isOdd;
+		}
+
+		final Base64 base64 = new Base64();
+
+		return new String(base64.decode(_asc));
+	}
+
+	/**
+	 * 加减后的字符设回范围内
+	 * @param _char
+	 * @param _jus
+	 * @return
+	 */
+	private static String _justify(char _char, int _jus) {
+		if (_char == 124) return "="; 
+		char ret = 0; 
+		ret = (char) (_char + _jus);
+		if (ret < 48) {
+			ret = (char) (123 - (48 - ret));
+		} else if (ret > 122) {
+			ret = (char) (47 + (ret - 122));
+		}
+		return String.valueOf(ret);
+	}
+
 	/**
 	 * 取得访问者真实IP
 	 * @param request

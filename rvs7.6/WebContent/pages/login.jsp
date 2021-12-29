@@ -15,7 +15,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		margin: auto;
 		padding: 15px;
 		position: relative;
-	 
+	 display: block;
 		/* Styles */
 		background: #fffaf6;
 		border-radius: 4px;
@@ -347,7 +347,7 @@ $(function() {
 	$("#submitbutton").click(function() {
 		var data = {
 			job_no : jobno.val(),
-			pwd : jpwd.val()
+			pwd : _enc(jpwd.val())
 		}
 
 		if ($("#captcha_key").css("backgroundImage") == "none") {
@@ -381,6 +381,8 @@ $(function() {
 	});
 	jobno[0].focus();
 
+	loadJs("js/frontEnc.js");
+
 	var captcha_key_dragged = false;
 	$("#captcha_key")
 	.on("mousedown", function(evt){
@@ -392,12 +394,12 @@ $(function() {
 			captcha_key_dragged = false;
 			var left = (evt.pageX - $("#captchaarea").position().left - 16);
 			if (left < 0) left = 0;
-			else if (left > 368) left = 368;
+			else if (left > 308) left = 308;
 			$("#captcha_key").css("left", left + "px");
 	
 			var data = {
 				job_no : jobno.val(),
-				pwd : jpwd.val(),
+				pwd : _enc(jpwd.val()),
 				"captcha_solution" : parseInt(left - 40)
 			}
 			// Ajax提交
@@ -419,7 +421,7 @@ $(function() {
 		if (captcha_key_dragged) {
 			var left = (evt.pageX - $("#captchaarea").position().left - 16);
 			if (left < 0) left = 0;
-			else if (left > 368) left = 368;
+			else if (left > 308) left = 308;
 			$("#captcha_key").css("left", left + "px");
 		}
 	})

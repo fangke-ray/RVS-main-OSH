@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -379,26 +380,52 @@ public class LoginAction extends BaseAction {
 		}
 
 		// 按工号密码查询
-		String password = operator.getPwd();
-		password = CryptTool.encrypttoStr(password);
+		long lNow = new Date().getTime();
+		String decPassword = RvsUtils._decPwd(operator.getPwd(), lNow);
+
+		String password = CryptTool.encrypttoStr(decPassword);
 		password = CryptTool.encrypttoStr(password + conditionBean.getJob_no().toUpperCase());
 		conditionBean.setPwd(password);
 		LoginData loginData = dao.searchLoginOperator(conditionBean);
 
 		// 密码不匹配
 		if (loginData == null) {
-			MsgInfo error = new MsgInfo();
-			error.setComponentid("pwd");
-			error.setErrcode("login.invalidPassword");
-			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("login.invalidPassword"));
-			errors.add(error);
+			// 可能重拾超时
 
-			OperatorService.recordInvalidAccess(clientIp);
-			invalidAccess = OperatorService.checkInvalidAccess(clientIp);
-			callbackResponse.put("captcha_key", invalidAccess.getBase64_key());
-			callbackResponse.put("captcha", invalidAccess.getBase64_captcha());
+			try {
+				password = RvsUtils._decPwd(operator.getPwd(), lNow - 600000); // 按10分钟前 
+				if (!decPassword.equals(password)) {
+					password = CryptTool.encrypttoStr(password);
+					password = CryptTool.encrypttoStr(password + conditionBean.getJob_no().toUpperCase());
+					conditionBean.setPwd(password);
+					loginData = dao.searchLoginOperator(conditionBean);
+				}
+				if (loginData == null) {
+					password = RvsUtils._decPwd(operator.getPwd(), lNow + 600000); // 按10分钟后 
+					if (!decPassword.equals(password)) {
+						password = CryptTool.encrypttoStr(password);
+						password = CryptTool.encrypttoStr(password + conditionBean.getJob_no().toUpperCase());
+						conditionBean.setPwd(password);
+						loginData = dao.searchLoginOperator(conditionBean);
+					}
+				}
+			}catch (Exception e) {
+			}
 
-			return null;
+			if (loginData == null) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("pwd");
+				error.setErrcode("login.invalidPassword");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("login.invalidPassword"));
+				errors.add(error);
+
+				OperatorService.recordInvalidAccess(clientIp);
+				invalidAccess = OperatorService.checkInvalidAccess(clientIp);
+				callbackResponse.put("captcha_key",	invalidAccess.getBase64_key());
+				callbackResponse.put("captcha", invalidAccess.getBase64_captcha());
+
+				return null;
+			}
 		}
 
 		if (errors.isEmpty()) {
