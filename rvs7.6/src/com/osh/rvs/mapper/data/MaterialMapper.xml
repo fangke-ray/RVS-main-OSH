@@ -189,14 +189,32 @@
 				a.level,
 				a.section_id,
 				a.scheduled_date,
+		]]>
+		<if test="int_search_addition eq 1 or int_search_addition eq 3 or int_search_addition eq 5 or int_search_addition eq 7">
+		<![CDATA[
 				(select name from section where section_id = a.section_id) as section_name,
 				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
 				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id = 13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position2,
+		]]>
+		</if>
+		<![CDATA[
 				a.inline_time,
 				mpr.scheduled_assign_date as scheduled_date_end,
 				mpr.finish_date as outline_time,
+		]]>
+		<if test="int_search_addition eq 4 or int_search_addition eq 5 or int_search_addition eq 6 or int_search_addition eq 7">
+		<![CDATA[
 				max(mpt.arrival_plan_date) as arrival_plan_date,
 				min(mpt.order_date) as partial_order_date,
+		]]>
+		</if>
+		<if test="int_search_addition eq 2 or int_search_addition eq 3 or int_search_addition eq 6 or int_search_addition eq 7">
+		<![CDATA[
+				(select finish_time from production_feature where material_id = a.material_id and position_id in (10,11) and operate_result = 2) as quotation_date_start,
+				max(pos_fs.finish_time) as quotation_time, 
+		]]>
+		</if>
+		<![CDATA[
 				a.reception_time,
 				a.agreed_date,
 				a.ocm_shipping_date,
@@ -207,8 +225,17 @@
 		</if>
 		<![CDATA[
 			 from Material a left join material_process mpr on mpr.material_id = a.material_id and mpr.line_id = 14
+		]]>
+		<if test="int_search_addition eq 4 or int_search_addition eq 5 or int_search_addition eq 6 or int_search_addition eq 7">
+		<![CDATA[
 			 left join material_partial mpt on mpt.material_id = a.material_id
 		]]>
+		</if>
+		<if test="int_search_addition eq 2 or int_search_addition eq 3 or int_search_addition eq 6 or int_search_addition eq 7 or quotation_date_start!= null or quotation_date_end!= null">
+		<![CDATA[
+			 left join production_feature pos_fs on pos_fs.material_id = a.material_id and pos_fs.operate_result = 2 and pos_fs.position_id in (select position_id from position where process_code != '160' and special_page = 'quotation') 
+		]]>
+		</if>
 		<if test="category_id=='00000000055'">
 			left join serial_ring on a.material_id = serial_ring.material_id
 		</if>
@@ -283,13 +310,13 @@
 			</if>
 			<if test="find_history!= null and find_history== 1">
 				<![CDATA[
-				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- TODO history
+				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- [TODO history]
 				and a.break_back_flg = 0
 				]]>
 			</if>
 			<if test="find_history!= null and find_history== 2">
 				<![CDATA[
-				and a.outline_time IS NOT NULL -- TODO history
+				and a.outline_time IS NOT NULL -- [TODO history]
 				]]>
 			</if>
 			<if test="finish_time_start!= null and finish_time_start!= '' ">
@@ -349,6 +376,18 @@
 				)
 				]]>
 			</if>
+			<if test="quotation_date_start!= null or quotation_date_end!= null">
+				<if test="quotation_date_start!= null">
+				<![CDATA[
+					and pos_fs.finish_time >= #{quotation_date_start}
+				]]>
+				</if>	
+				<if test="quotation_date_end!= null">
+				<![CDATA[
+					and pos_fs.finish_time < date_add(#{quotation_date_end}, INTERVAL 1 day)
+				]]>
+				</if>	
+			</if>
 			<if test="arrival_plan_date_start!= null or arrival_plan_date_end!= null or partial_order_date_start!= null or partial_order_date_end!= null">
 				<![CDATA[
 				and EXISTS (
@@ -390,7 +429,6 @@
 			<if test="scheduled_expedited!= null and scheduled_expedited== 2 ">
 				and scheduled_expedited = 2
 			</if>
-
 		</where>
 		group by a.material_id;
 	</select>
@@ -401,7 +439,7 @@
 				a.material_id,
 				coalesce(omr_notifi_no, sorc_no) as sorc_no,
 				a.break_back_flg,
-				-- a.filing_time,
+				-- [a.filing_time,]
 				a.model_id,
 				(select name from model where model_id = a.model_id) as model_name,
 				pf.finish_time,
@@ -494,7 +532,7 @@
 
 			<if test="find_history!= null and find_history== 1">
 				<![CDATA[
-				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- TODO history
+				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- [TODO history]
 				]]>
 			</if>
 			<if test="find_history!= null and find_history== 2">
@@ -607,12 +645,12 @@
 			</if>
 			<if test="find_history!= null and find_history== 1 ">
 				<![CDATA[
-				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- TODO history
+				and (a.outline_time IS NULL OR NOT a.outline_time < current_date) -- [TODO history]
 				]]>
 			</if>
 			<if test="find_history!= null and find_history== 2 ">
 				<![CDATA[
-				and a.outline_time IS NOT NULL -- TODO history
+				and a.outline_time IS NOT NULL -- [TODO history]
 				]]>
 			</if>
 			<if test="break_back_flg!= null ">

@@ -6,13 +6,28 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <base href="<%=basePath%>">
 <script type="text/javascript" src="js/data/list_materials.js"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
-
+<style>
+#searchAdditional {
+	float: right;margin-right:4em;margin-top: 4px;
+}
+#searchAdditional span {
+	font-size:12px;
+}
+</style>
 	<div id="searcharea" class="dwidth-middleright">
+<%
+Integer sectionPart = (Integer)request.getAttribute("sectionPart");
+%>
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
 			<span class="areatitle">检索条件</span>
 			<a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 				<span class="ui-icon ui-icon-circle-triangle-n"></span>
 			</a>
+			<div id="searchAdditional">
+				<input type="checkbox" name="searchAdditional" <%=sectionPart == 5 ? "checked" : ""%> value="1" id="searchAdditional_process"><label title="包含'维修课室','当前位置','NS当前位置'" for="searchAdditional_process">当前维修进度</label>
+				<input type="checkbox" name="searchAdditional" <%=sectionPart == 2 ? "checked" : ""%> value="2" id="searchAdditional_quote"><label title="包含'消毒灭菌完成','报价完成'" for="searchAdditional_quote">报价信息</label>
+				<input type="checkbox" name="searchAdditional" <%=(sectionPart == 4 || sectionPart == 5) ? "checked" : ""%> value="4" id="searchAdditional_partorder"><label title="包含'零件订购日','入库预定日'" for="searchAdditional_partorder">零件订购</label>
+			</div>
 		</div>
 		<div class="ui-widget-content">
 			<form id="searchform" method="POST">
@@ -72,8 +87,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						</td>
 					</tr>
 					<tr style="display:none;">
-						<td class="ui-state-default td-title" rowspan="2">ESAS No.</td>
-						<td class="td-content" rowspan="2"><input type="text" name="esas_no" id="search_esas_no" maxlength="8" class="ui-widget-content"></td>
+						<td class="ui-state-default td-title">报价完成日期</td>
+						<td class="td-content"><input type="text" name="quotation_date_start" id="search_quotation_date_start" maxlength="50" class="ui-widget-content" readonly="readonly">起<br/><input type="text" name="quotation_date_end" id="search_quotation_date_end" class="ui-widget-content" readonly="readonly">止</td>
 						<td class="ui-state-default td-title" rowspan="2">维修等级</td>
 						<td class="td-content" rowspan="2">
 							<select name="search_level" id="search_level" class="ui-widget-content" multiple>
@@ -90,6 +105,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						</td>
 					</tr>
 					<tr style="display:none;">
+						<td class="ui-state-default td-title">ESAS No.</td>
+						<td class="td-content"><input type="text" name="esas_no" id="search_esas_no" maxlength="8" class="ui-widget-content"></td>
 						<td class="ui-state-default td-title">动物实验用</td>
 						<td class="td-content" id="anml_exp_set">
 							<input type="radio" name="anml_exp" id="anml_exp_a" class="ui-widget-content" checked="true" value=""><label for="anml_exp_a">全部</label>
@@ -134,7 +151,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div id="listpager"></div>
 	</div>
 	
-	<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase" style="padding-top:4px;margin-top:24px;">
+	<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase" style="padding-top:4px;">
 		<input type="button" id="exportbutton" class="ui-button ui-widget ui-state-default ui-corner-all" value="结果导出" role="button" style="float:right;right:4px;">
 	</div>
 	<div id="detail_dialog">

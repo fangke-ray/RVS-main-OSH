@@ -119,6 +119,12 @@ J = '{' + S.join(',') + '}';
 return J;
 };
 
+function ymdTextOfDate(d) {
+	if (!d) return "-";
+	var yr = (""+(d.getFullYear())).substring(2, 4);
+	return yr + "-" + mdTextOfDate(d);
+}
+
 function mdTextOfDate(d) {
 	if (!d) return "-";
 	var mh = ""+(d.getMonth()+1);

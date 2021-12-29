@@ -33,6 +33,7 @@ import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFDataFormat;
 import org.apache.poi.hssf.usermodel.HSSFFont;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
@@ -132,6 +133,7 @@ public class MaterialService {
 		BeanUtil.copyToBean(form, conditionBean, null);
 
 		conditionBean.setFind_history(completed);
+
 		List<MaterialEntity> lResultBean = new ArrayList<MaterialEntity>();
 		MaterialMapper dao = conn.getMapper(MaterialMapper.class);
 //		if (!"".equals(conditionBean.getScheduled_date_start()) || !"".equals(conditionBean.getScheduled_date_end())) {
@@ -892,7 +894,7 @@ public class MaterialService {
 		return v.validate();
 	}
 
-	public void createReport(String fileFullPath, List<MaterialForm> lResultForm, SqlSession conn) {
+	public void createReport(String fileFullPath, List<MaterialForm> lResultForm, String searchAddition, SqlSession conn) {
 		FileUtils.copyFile(PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\维修对象一览报表模板.xls", fileFullPath);
 		
 		POIFSFileSystem fs;
@@ -918,6 +920,8 @@ public class MaterialService {
 			defaultCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
 			defaultCell.setBorderTop(HSSFCellStyle.BORDER_THIN);//上边框
 			defaultCell.setBorderRight(HSSFCellStyle.BORDER_THIN);//右边框
+            HSSFDataFormat thdf= book.createDataFormat();
+            defaultCell.setDataFormat(thdf.getFormat("@"));
 			defaultCell.setFont(fontYH);
 
 			HSSFCellStyle highlightCell = book.createCellStyle(); // 亮色
@@ -929,6 +933,15 @@ public class MaterialService {
 			highlightCell.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
 			highlightCell.setFont(fontYH);
 
+			HSSFCellStyle dateCell = book.createCellStyle(); // 居中
+			dateCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
+			dateCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
+			dateCell.setBorderTop(HSSFCellStyle.BORDER_THIN);//上边框
+			dateCell.setBorderRight(HSSFCellStyle.BORDER_THIN);//右边框
+			dateCell.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+			dateCell.setDataFormat(book.createDataFormat().getFormat("yy-mm-dd")); 
+			dateCell.setFont(fontYH);
+
 			HSSFCellStyle centerCell = book.createCellStyle(); // 居中
 			centerCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
 			centerCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
@@ -937,6 +950,14 @@ public class MaterialService {
 			centerCell.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 			centerCell.setFont(fontYH);
 
+			int intSearchAddition = 0;
+			if (searchAddition != null) {
+				intSearchAddition = Integer.parseInt(searchAddition);
+			}
+			boolean showProcess = (intSearchAddition & 1) == 1;
+			boolean showQuote = (intSearchAddition & 2) == 2;
+			boolean showPartorder = (intSearchAddition & 4) == 4;
+			HSSFRow rowHeader = listSheet.getRow(0);
 			int colCur = -1;
 
 			listSheet.setDefaultColumnStyle(++colCur, highlightCell);
@@ -945,38 +966,58 @@ public class MaterialService {
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-			listSheet.setDefaultColumnStyle(++colCur, centerCell);
-			listSheet.setDefaultColumnStyle(++colCur, centerCell);
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+
+			// 维修课室 ～ NS当前位置
+			if (showProcess) {
+				listSheet.setDefaultColumnStyle(++colCur, centerCell);
+				listSheet.setDefaultColumnStyle(++colCur, centerCell);
+				listSheet.setDefaultColumnStyle(++colCur, centerCell);
+			} else {
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
+			}
+
+			listSheet.setDefaultColumnStyle(++colCur, dateCell);
+
+			// 消毒灭菌完成	报价日期
+			if (showQuote) {
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+			} else {
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
+			}
+
+			listSheet.setDefaultColumnStyle(++colCur, dateCell);
+			listSheet.setDefaultColumnStyle(++colCur, dateCell);
 
 			MaterialProcessMapper mapper = null;
+			// 投线时间 ～ NS 完成
 			if (needAddition) {
 				mapper = conn.getMapper(MaterialProcessMapper.class);
-				row = listSheet.getRow(0);
-				for (int irest = 0; irest < 5; irest++) {
-					HSSFCell distCell = row.getCell(colCur + 8 - irest);
-					if (distCell == null) distCell = row.createCell(colCur + 8 - irest);
-					// 插入行
-					HSSFCell srcCell = row.getCell(colCur + 5 - irest);
-					CopyByPoi.copyCell(srcCell, distCell, true);
 
-					listSheet.setColumnWidth(colCur + 8 - irest, 
-							listSheet.getColumnWidth(colCur + 5 - irest));
-				}
-				listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-				row.getCell(colCur).setCellValue("投线时间");
-				listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-				row.getCell(colCur).setCellValue("分解完成");
-				listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-				row.getCell(colCur).setCellValue("NS 完成");
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+			} else {
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
 			}
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
-			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+
+			listSheet.setDefaultColumnStyle(++colCur, dateCell);
+			listSheet.setDefaultColumnStyle(++colCur, dateCell);
+
+			// 零件订购日	入库预定日
+			if (showPartorder) {
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+			} else {
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
+			}
+
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
 
 			for (int i=0; i < lResultForm.size(); i++) {
@@ -988,7 +1029,7 @@ public class MaterialService {
 				cell.setCellValue(i+1);
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue("'" + resultForm.getSorc_no());
+				cell.setCellValue(resultForm.getSorc_no());
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getModel_name());
@@ -1002,7 +1043,7 @@ public class MaterialService {
 				cell.setCellValue(sLevel);
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue("'" + resultForm.getSerial_no());
+				cell.setCellValue(resultForm.getSerial_no());
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				String sOcm = resultForm.getOcm();
@@ -1012,20 +1053,30 @@ public class MaterialService {
 				sOcm = ocms.get(sOcm);
 				cell.setCellValue(sOcm);
 
-				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getSection_name());
+				if (showProcess) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					cell.setCellValue(resultForm.getSection_name());
 
-				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getProcessing_position());
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					cell.setCellValue(resultForm.getProcessing_position());
 
-				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getProcessing_position2());
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					cell.setCellValue(resultForm.getProcessing_position2());
+				}
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				String sReceptionTime = resultForm.getReception_time();
 				if (sReceptionTime != null && sReceptionTime.length() > 10)
 					sReceptionTime = sReceptionTime.substring(0, 10);
 				cell.setCellValue(sReceptionTime);
+
+				if (showQuote) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					cell.setCellValue(resultForm.getQuotation_date_start());
+
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					cell.setCellValue(resultForm.getQuotation_time());
+				}
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getAgreed_date());
@@ -1068,14 +1119,16 @@ public class MaterialService {
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getOutline_time());
 
-				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getPartial_order_date());
+				if (showPartorder) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					cell.setCellValue(resultForm.getPartial_order_date());
 
-				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				if("9999-12-31".equals(resultForm.getArrival_plan_date())){
-					cell.setCellValue("未定");
-				}else{
-					cell.setCellValue(resultForm.getArrival_plan_date());
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					if("9999-12-31".equals(resultForm.getArrival_plan_date())){
+						cell.setCellValue("未定");
+					}else{
+						cell.setCellValue(resultForm.getArrival_plan_date());
+					}
 				}
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
@@ -1088,6 +1141,22 @@ public class MaterialService {
 		} catch (Exception e) {
 			logger.error(e.getMessage(), e);
 		}
+	}
+
+	private void removeHeaderColumn(HSSFRow rowHeader, int colCur) {
+		HSSFCell shiftCell = rowHeader.getCell(colCur);
+		if (shiftCell != null) {
+			rowHeader.removeCell(shiftCell);
+		}
+		shiftCell = rowHeader.getCell(++colCur);
+		do {
+			if (shiftCell == null) break;
+			HSSFCell distCell = rowHeader.createCell(colCur - 1);
+			CopyByPoi.copyCell(shiftCell, distCell, true);
+			shiftCell = rowHeader.getCell(++colCur);
+		} while(shiftCell != null);
+
+		rowHeader.removeCell(rowHeader.getCell(colCur - 1));
 	}
 
 	public void getPcses4Fix(Map<String, Object> listResponse, MaterialForm mform, String material_id, SqlSession conn) {

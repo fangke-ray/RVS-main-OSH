@@ -113,6 +113,10 @@ public class MaterialForm extends ActionForm {
 	private String finish_time;// 报价日期
 	@BeanField(title = "报价日期", name = "quotation_time", type = FieldType.DateTime)
 	private String quotation_time;// 报价时间
+	@BeanField(title = "报价日期", name = "quotation_date_start", type = FieldType.Date)
+	private String quotation_date_start;
+	@BeanField(title = "报价日期", name = "quotation_date_end", type = FieldType.Date)
+	private String quotation_date_end;
 
 	private String status;
 	private String operate_result;
@@ -182,6 +186,9 @@ public class MaterialForm extends ActionForm {
 
 	@BeanField(title = "动物实验用", name = "anml_exp", type = FieldType.Integer, length = 1)
 	private String anml_exp;
+
+	@BeanField(title = "-", name = "int_search_addition", type = FieldType.Integer, length = 1)
+	private String search_addition;
 
 	public String getCategory_id() {
 		return category_id;
@@ -879,6 +886,30 @@ public class MaterialForm extends ActionForm {
 
 	public void setAnml_exp(String anml_exp) {
 		this.anml_exp = anml_exp;
+	}
+
+	public String getQuotation_date_start() {
+		return quotation_date_start;
+	}
+
+	public void setQuotation_date_start(String quotation_date_start) {
+		this.quotation_date_start = quotation_date_start;
+	}
+
+	public String getSearch_addition() {
+		return search_addition;
+	}
+
+	public void setSearch_addition(String search_addition) {
+		this.search_addition = search_addition;
+	}
+
+	public String getQuotation_date_end() {
+		return quotation_date_end;
+	}
+
+	public void setQuotation_date_end(String quotation_date_end) {
+		this.quotation_date_end = quotation_date_end;
 	}
 
 }

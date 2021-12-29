@@ -76,6 +76,8 @@ public class MaterialEntity implements Serializable {
 	private Date finish_time_start;
 	private Date finish_time_end;
 	private Date quotation_time;
+	private Date quotation_date_start;
+	private Date quotation_date_end;
 	private Integer operate_result;
 	private String find_history;
 
@@ -117,6 +119,8 @@ public class MaterialEntity implements Serializable {
 	private String ring_code;
 
 	private Integer anml_exp;
+
+	private Integer int_search_addition;
 
 	public String getCategory_id() {
 		return category_id;
@@ -792,6 +796,30 @@ public class MaterialEntity implements Serializable {
 
 	public void setAnml_exp(Integer anml_exp) {
 		this.anml_exp = anml_exp;
+	}
+
+	public Date getQuotation_date_start() {
+		return quotation_date_start;
+	}
+
+	public void setQuotation_date_start(Date quotation_date_start) {
+		this.quotation_date_start = quotation_date_start;
+	}
+
+	public Integer getInt_search_addition() {
+		return int_search_addition;
+	}
+
+	public void setInt_search_addition(Integer int_search_addition) {
+		this.int_search_addition = int_search_addition;
+	}
+
+	public Date getQuotation_date_end() {
+		return quotation_date_end;
+	}
+
+	public void setQuotation_date_end(Date quotation_date_end) {
+		this.quotation_date_end = quotation_date_end;
 	}
 	
 }

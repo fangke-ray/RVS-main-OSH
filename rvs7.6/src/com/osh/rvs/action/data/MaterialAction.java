@@ -131,7 +131,20 @@ public class MaterialAction extends BaseAction {
 			privacy = "isPrivacy";
 		}
 		req.setAttribute("privacy", privacy);
-		
+
+		int sectionPart = 0;
+		if (user.getLine_name() != null) {
+			switch (user.getLine_name()) {
+			case "受理报价" : sectionPart = 2; break;
+			case "物料组" : sectionPart = 4; break;
+			case "分解工程" : 
+			case "NS 工程" : 
+			case "总组工程" : 
+				sectionPart = 5; break;
+			}
+		}
+		req.setAttribute("sectionPart", sectionPart);
+
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
@@ -845,10 +858,12 @@ public class MaterialAction extends BaseAction {
 		String filePath = "Chaxunjieguo" + user.getJob_no() + today.getTime() + ".xls";
 		String fileFullPath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(today, "yyyyMM") + "\\" + filePath;
 
+		String search_addition = req.getParameter("search_addition");
+
 		if (user.getRole_id().equals(RvsConsts.ROLE_SYSTEM) || "00000000006".equals(user.getSection_id())) { // 支援课
-			materialService.createReport(fileFullPath, lResultForm, conn);
+			materialService.createReport(fileFullPath, lResultForm, search_addition, conn);
 		} else {
-			materialService.createReport(fileFullPath, lResultForm, null);
+			materialService.createReport(fileFullPath, lResultForm, search_addition, null);
 		}
 
 		listResponse.put("filePath", filePath);

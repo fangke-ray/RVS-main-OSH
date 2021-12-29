@@ -39,6 +39,8 @@ var findit = function(data) {
 			"partial_order_date_end":$("#partial_order_date_end").val(),
 			"ocm_shipping_date_start":$("#search_ocm_shipping_date_start").val(),
 			"ocm_shipping_date_end":$("#search_ocm_shipping_date_end").val(),
+			"quotation_date_start":$("#search_quotation_date_start").val(),
+			"quotation_date_end":$("#search_quotation_date_end").val(),
 			"ocm":$("#search_ocm").val(),
 			"fix_type":$("#search_fix_type").val(),
 			"anml_exp":$("#anml_exp_set input:checked").val()
@@ -47,6 +49,14 @@ var findit = function(data) {
 		keepSearchData = data;
 	}
 	keepSearchData["completed"] = $("#completed_set input:checked").val();
+
+	var search_addition = 0;
+	$("#searchAdditional > input:checked").each(function(idx, ele) {
+		search_addition += parseInt(ele.value);
+	});
+	$("#searchform").data("search_addition", search_addition);
+	keepSearchData["search_addition"] = search_addition;
+
 	$.ajax({
 		beforeSend : ajaxRequestType,
 		async : false,
@@ -91,6 +101,8 @@ var reset = function() {
 	$("#partial_order_date_end").val("");
 	$("#search_ocm_shipping_date_start").val("");
 	$("#search_ocm_shipping_date_end").val("");
+	$("#search_quotation_date_start").val("");
+	$("#search_quotation_date_end").val("");
 	$("#search_fix_type").val("").trigger("change");
 	
 	$("#anml_exp_set input").removeAttr("checked");
@@ -103,7 +115,7 @@ var downResult = function() {
 		async : true,
 		url : servicePath + '?method=export',
 		cache : false,
-		data : null,
+		data : {search_addition : $("#searchform").data("search_addition")},
 		type : "post",
 		dataType : "json",
 		success : ajaxSuccessCheck,
@@ -146,6 +158,8 @@ $(function() {
 		downResult();
 	}); 
 
+	$("#searchAdditional").buttonset();
+
 	$("#searcharea span.ui-icon,#wiparea span.ui-icon").bind("click", function() {
 		$(this).toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
 		if ($(this).hasClass('ui-icon-circle-triangle-n')) {
@@ -158,7 +172,8 @@ $(function() {
 	$("#reception_time_start, #reception_time_end, #inline_time_start, #inline_time_end, #scheduled_date_start, #scheduled_date_end, " +
 			"#search_arrival_plan_date_start, #search_arrival_plan_date_end, #search_complete_date_start, #search_complete_date_end, " +
 			"#search_outline_time_start, #search_outline_time_end, #search_agreed_date_start, #search_agreed_date_end, " +
-			"#partial_order_date_start, #partial_order_date_end, #search_ocm_shipping_date_start, #search_ocm_shipping_date_end").datepicker({
+			"#partial_order_date_start, #partial_order_date_end, #search_ocm_shipping_date_start, #search_ocm_shipping_date_end," +
+			"#search_quotation_date_start,#search_quotation_date_end").datepicker({
 		showButtonPanel:true,
 		dateFormat: "yy/mm/dd",
 		currentText: "今天"
@@ -178,6 +193,10 @@ $(function() {
 
 });
 
+var colsname_process = ['section_name','processing_position','processing_position2'];
+var colsname_quote = ['quotation_date_start','quotation_time'];
+var colsname_partorder = ['partial_order_date','arrival_plan_date'];
+
 function initGrid() {
 	$("#list").jqGrid({
 		toppager : true,
@@ -186,7 +205,10 @@ function initGrid() {
 		width : 992,
 		rowheight : 23,
 		datatype : "local",
-		colNames : ['维修对象ID','修理单号','型号','等级', '机身号', '委托处', '维修课室' , '当前位置', 'NS<br>当前位置', '受理日期','同意日期',
+		colNames : ['维修对象ID','修理单号','型号','等级', '机身号', '委托处', 
+				'维修课室' , '当前位置', 'NS<br>当前位置', 
+				'消毒灭菌' , '报价完成', 
+				'受理日期','同意日期',
 				'纳期','总组出货<br>安排','总组出货','零件订购日','入库预定日','延误','返还','环序号'],
 		colModel : [
 			{name:'material_id',index:'material_id', hidden:true, key: true},
@@ -194,13 +216,15 @@ function initGrid() {
 			{name:'model_name',index:'model_name', width:105},
 			{name:'level',index:'level', width:20, align:'center', formatter:'select', editoptions:{value:lOptions}},
 			{name:'serial_no',index:'serial_no', width:50},
-			{name:'ocmName',index:'ocmName', width:55},
+			{name:'ocmName',index:'ocmName', width:45},
 			{name:'section_name',index:'section_name', width:45},
 			{name:'processing_position',index:'processing_position', width:45, align:'center'},
 			{name:'processing_position2',index:'processing_position2', width:45, align:'center'},
-			{name:'reception_time',index:'reception_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
-			{name:'agreed_date',index:'agreed_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
-			{name:'scheduled_date',index:'scheduled_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
+			{name:'quotation_date_start',index:'quotation_date_start', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			{name:'quotation_time',index:'quotation_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			{name:'reception_time',index:'reception_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			{name:'agreed_date',index:'agreed_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			{name:'scheduled_date',index:'scheduled_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
 			{name:'scheduled_date_end',index:'scheduled_date_end', width:45, align:'center', formatter:function(a,b,row) {
 				if ("9999/12/31" == a) {
 					return "另行通知";
@@ -208,13 +232,13 @@ function initGrid() {
 
 				if (a) {
 					var d = new Date(a);
-					return mdTextOfDate(d);
+					return ymdTextOfDate(d);
 				}
 
 				return "";
 			}},
-			{name:'outline_time',index:'outline_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
-			{name:'partial_order_date',index:'partial_order_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'m-d'}},
+			{name:'outline_time',index:'outline_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			{name:'partial_order_date',index:'partial_order_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'y-m-d'}},
 			{name:'arrival_plan_date',index:'arrival_plan_date', width:45, align:'center', 
 				formatter:function(a,b,row) {
 				if ("9999-12-31" == a || "9999/12/31" == a) {
@@ -223,7 +247,7 @@ function initGrid() {
 
 				if (a) {
 					var d = new Date(a);
-					return mdTextOfDate(d);
+					return ymdTextOfDate(d);
 				}
 
 				return "";
@@ -268,23 +292,46 @@ function initGrid() {
  */
 function search_handleComplete(xhrobj, textStatus) {
 	var listdata = null;
+	var $searchList = $("#list"); 
 	eval('listdata =' + xhrobj.responseText);
 	if ($("#gbox_list").length > 0) {
-		$("#list").jqGrid().clearGridData();
-		$("#list").jqGrid('setGridParam', {data : listdata.list}).trigger("reloadGrid", [{current : false}]);
+		$searchList.jqGrid().clearGridData();
+		$searchList.jqGrid('setGridParam', {data : listdata.list}).trigger("reloadGrid", [{current : false}]);
 	} else {
-		$("#list").jqGrid().clearGridData();
-		$("#list").jqGrid('setGridParam', {data : listdata.list}).trigger("reloadGrid", [{current : false}]);
+		$searchList.jqGrid().clearGridData();
+		$searchList.jqGrid('setGridParam', {data : listdata.list}).trigger("reloadGrid", [{current : false}]);
 		// $("#list").gridResize({minWidth:1248,maxWidth:1248,minHeight:200,
 		// maxHeight:900});
 	}
-	
-	if(keepSearchData.category_id == '00000000055'){
-		$("#list").jqGrid('showCol','ring_code');
-	}else{
-		$("#list").jqGrid('hideCol','ring_code');
+
+	var showCols = [], hideCols = [];
+
+	if($("#searchAdditional_process").is(":checked")) {
+		Array.prototype.push.apply(showCols, colsname_process)
+	} else {
+		Array.prototype.push.apply(hideCols, colsname_process)
 	}
-	$("#list").jqGrid('setGridWidth', '992');
+
+	if($("#searchAdditional_quote").is(":checked")) {
+		Array.prototype.push.apply(showCols, colsname_quote)
+	} else {
+		Array.prototype.push.apply(hideCols, colsname_quote)
+	}
+
+	if($("#searchAdditional_partorder").is(":checked")) {
+		Array.prototype.push.apply(showCols, colsname_partorder)
+	} else {
+		Array.prototype.push.apply(hideCols, colsname_partorder)
+	}
+
+	if(keepSearchData.category_id == '00000000055'){
+		Array.prototype.push.apply(showCols, ['ring_code'])
+	}else{
+		Array.prototype.push.apply(hideCols, ['ring_code'])
+	}
+	$searchList.jqGrid('showCol',showCols);
+	$searchList.jqGrid('hideCol',hideCols);
+	$searchList.jqGrid('setGridWidth', '992');
 
 };
 
