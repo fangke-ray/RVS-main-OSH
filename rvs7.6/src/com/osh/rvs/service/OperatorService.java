@@ -1,5 +1,6 @@
 package com.osh.rvs.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -14,8 +15,10 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
+import com.osh.rvs.bean.LoginAccess;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
@@ -40,6 +43,8 @@ import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class OperatorService {
+
+	protected static final Logger _logger = Logger.getLogger(OperatorService.class);
 
 	/**
 	 * 检索记录列表
@@ -879,4 +884,61 @@ public class OperatorService {
 			mapper.deleteOperatorSection(entity.getOperator_id(), entity.getSection_id());
 		}
 	}
+
+	private static Map<String, LoginAccess> IpAccessRecorder = new HashMap<String, LoginAccess>();
+	private static final int[] CHAR_ADJUST = {3, 36, 50, 78, 113, 140, 168};
+
+	public static LoginAccess checkInvalidAccess(String clientIp) {
+		return IpAccessRecorder.get(clientIp);
+	}
+
+	public static void recordInvalidAccess(String clientIp) {
+		String base64 = null;
+		try {
+			base64 = ImageService.createCaptcha();
+		} catch (IOException e) {
+			_logger.error(e.getMessage(), e);
+		}
+		if (base64 == null) return;
+		String[] getor = base64.split(";");
+		if (getor == null || getor.length != 2) return;
+		int adjustor = Integer.parseInt(getor[0]);
+		int keyIdx = calcPlayer(getor[1], adjustor);
+		try {
+			base64 = ImageService.getCaptchaKey(keyIdx);
+		} catch (IOException e) {
+			_logger.error(e.getMessage(), e);
+			return;
+		}
+		int solution = adjustor + CHAR_ADJUST[keyIdx];
+
+		synchronized (IpAccessRecorder) {
+			if (!IpAccessRecorder.containsKey(clientIp)) {
+				LoginAccess la = new LoginAccess();
+				IpAccessRecorder.put(clientIp, la);
+			}
+
+			LoginAccess la = IpAccessRecorder.get(clientIp);
+
+			la.setAccess_timestamp((new Date()).getTime());
+			la.setBase64_captcha(getor[1]);
+			la.setBase64_key(base64);
+			la.setSolution(solution);
+		}		
+	}
+
+	public static void passInvalidAccess(String clientIp) {
+		synchronized (IpAccessRecorder) {
+			IpAccessRecorder.remove(clientIp);
+		}
+	}
+
+	private static int calcPlayer(String base64_captcha, int adjustor) {
+		int pinfator = adjustor % 3;
+		int winfator = adjustor % 5;
+		int cinfator = adjustor % 7;
+
+		return (base64_captcha.charAt(pinfator) + base64_captcha.charAt(winfator) + base64_captcha.charAt(cinfator)) % 7;
+	}
+
 }

@@ -2,6 +2,7 @@ package com.osh.rvs.action;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -19,6 +20,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginAccess;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.inline.MaterialProcessEntity;
@@ -29,6 +31,7 @@ import com.osh.rvs.bean.master.OperatorNamedEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.SectionEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.RedirectRes;
 import com.osh.rvs.form.master.OperatorForm;
 import com.osh.rvs.mapper.master.OperatorMapper;
@@ -56,6 +59,13 @@ public class LoginAction extends BaseAction {
 
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
 		_logger.info("LoginAction.init start");
+
+		String clientIp = RvsUtils.getClientIp(req);
+		LoginAccess invalidAccess = OperatorService.checkInvalidAccess(clientIp);
+		if (invalidAccess != null) {
+			req.setAttribute("captcha_key", invalidAccess.getBase64_key());
+			req.setAttribute("captcha", invalidAccess.getBase64_captcha());
+		}
 
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
@@ -97,7 +107,7 @@ public class LoginAction extends BaseAction {
 		}
 
 		// 建立会话用户信息
-		Map<String, String> roles = makeSession((OperatorForm)form, req.getSession(), errors, conn);
+		Map<String, String> roles = makeSession((OperatorForm)form, req, errors, callbackResponse, conn);
 
 		// 检查发生错误时报告错误信息
 		callbackResponse.put("errors", errors);
@@ -295,12 +305,18 @@ public class LoginAction extends BaseAction {
 	 * 做成登录的Session项目
 	 *
 	 * @param operator
+	 * @param callbackResponse 
 	 * @param conn
 	 * @param company
 	 * @param errorsDto
 	 * @return 是否多角色
 	 */
-	public Map<String, String> makeSession(OperatorForm operator, HttpSession session, List<MsgInfo> errors, SqlSession conn) {
+	public Map<String, String> makeSession(OperatorForm operator, HttpServletRequest req, List<MsgInfo> errors, 
+			Map<String, Object> callbackResponse, SqlSession conn) {
+
+		HttpSession session = req.getSession();
+
+		String clientIp = RvsUtils.getClientIp(req);
 
 		// 表单复制到数据对象
 		OperatorEntity conditionBean = new OperatorEntity();
@@ -326,6 +342,42 @@ public class LoginAction extends BaseAction {
 			}
 		}
 
+		LoginAccess invalidAccess = OperatorService.checkInvalidAccess(clientIp);
+		if (invalidAccess != null) {
+			String captcha_solution = req.getParameter("captcha_solution");
+			if (captcha_solution == null) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("captcha_solution");
+				error.setErrcode("login.invalidCaptcha");
+				error.setErrmsg("请操作验证。");
+				errors.add(error);
+
+				callbackResponse.put("captcha_key", invalidAccess.getBase64_key());
+				callbackResponse.put("captcha", invalidAccess.getBase64_captcha());
+
+				return null;
+			} else {
+				int iCaptchaSolution = new BigDecimal(captcha_solution).setScale(0, BigDecimal.ROUND_HALF_UP).intValueExact();
+				int comp = iCaptchaSolution - invalidAccess.getSolution();
+				if (comp > 6 || comp < -6) {
+					MsgInfo error = new MsgInfo();
+					error.setComponentid("captcha_solution");
+					error.setErrcode("login.invalidCaptcha");
+					error.setErrmsg("请重新验证。");
+					errors.add(error);
+
+					OperatorService.recordInvalidAccess(clientIp);
+					invalidAccess = OperatorService.checkInvalidAccess(clientIp);
+					callbackResponse.put("captcha_key", invalidAccess.getBase64_key());
+					callbackResponse.put("captcha", invalidAccess.getBase64_captcha());
+
+					return null;
+				} else {
+					OperatorService.passInvalidAccess(clientIp);
+				}
+			}
+		}
+
 		// 按工号密码查询
 		String password = operator.getPwd();
 		password = CryptTool.encrypttoStr(password);
@@ -340,6 +392,12 @@ public class LoginAction extends BaseAction {
 			error.setErrcode("login.invalidPassword");
 			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("login.invalidPassword"));
 			errors.add(error);
+
+			OperatorService.recordInvalidAccess(clientIp);
+			invalidAccess = OperatorService.checkInvalidAccess(clientIp);
+			callbackResponse.put("captcha_key", invalidAccess.getBase64_key());
+			callbackResponse.put("captcha", invalidAccess.getBase64_captcha());
+
 			return null;
 		}
 

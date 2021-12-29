@@ -1,17 +1,26 @@
 package com.osh.rvs.service;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.awt.image.ImageObserver;
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 
+import sun.misc.BASE64Decoder;
+
+import com.lowagie.text.pdf.codec.Base64;
 import com.osh.rvs.common.PathConsts;
 import com.sun.image.codec.jpeg.ImageFormatException;
 import com.sun.image.codec.jpeg.JPEGCodec;
@@ -226,5 +235,44 @@ public class ImageService {
 		// encoder.encode(tag);
 		// JPEG格式保存
 		newimage.close();
+	}
+	public static String createCaptcha() throws IOException {
+
+		BufferedImage bi = new BufferedImage(300, 48, BufferedImage.TYPE_3BYTE_BGR);
+		Graphics g = bi.createGraphics();
+		g.setColor(Color.WHITE);
+		g.fillRect(0, 0, 300, 48);
+
+		Random rand = new Random();
+
+		Color[] colors = {new Color(64, 64, 192), new Color(192, 64, 64), Color.GREEN};
+		for (int i = 0; i < 255; i++) {
+			g.setColor(colors[rand.nextInt(3)]);
+			int x1 = rand.nextInt(298);
+			int y1 = rand.nextInt(46);
+			g.drawLine(x1, y1, x1 + 2, y1 + 2);
+		}
+
+		int x = rand.nextInt(100);
+		File fileOlympus = new File(PathConsts.BASE_PATH + PathConsts.IMAGES + "/verify/logo.png");
+		BufferedImage imgOlympus = ImageIO.read(fileOlympus);
+		g.drawImage(imgOlympus, x, 0, null);
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ImageIO.write(bi, "png", out);
+		byte[] bytes = out.toByteArray();
+		
+		return x + ";" + Base64.encodeBytes(bytes).replaceAll("\n", "");
+	}
+
+	public static String getCaptchaKey(int keyIdx) throws IOException {
+		File fileOlympusChar = new File(PathConsts.BASE_PATH + PathConsts.IMAGES + "/verify/chara-" + keyIdx + ".png");
+		BufferedImage imgOlympusChar = ImageIO.read(fileOlympusChar);
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ImageIO.write(imgOlympusChar, "png", out);
+		byte[] bytes = out.toByteArray();
+		
+		return Base64.encodeBytes(bytes).replaceAll("\n", "");
 	}
 }

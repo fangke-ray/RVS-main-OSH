@@ -223,7 +223,54 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
  	box-shadow: 0 1px rgba(255,255, 255, 0.3) inset , 0 20px 40px rgba(255,255,255, 0.15) inset;
 }
 
-
+#captchaarea {
+	position: relative;
+	left: 610px;
+	top: 400px;
+	width: 340px;
+	border-radius: 4px;
+	box-shadow: 0 2px 2px rgba(0,0,0,0.2), 0 1px 5px rgba(0,0,0,0.2), 0 0 0 12px rgba(255,255,255,0.4);
+	background-color:white;
+	display:none;
+}
+#captcha_key {
+	float:left;
+	position:relative;width:32px;height:48px;
+	cursor:e-resize;
+	display: block;
+	background-color:transparent;
+	z-index:11;
+	background-repeat: no-repeat;
+}
+#captcha_key:before {
+	position:absolute;
+	width:32px;
+	height: 16px;
+	content: '　';
+	top: -16px;
+	background-color: lightgray;
+	border-top-left-radius: 4px;
+	border-top-right-radius: 4px;
+}
+#captcha_key:after {
+	position:absolute;
+	width:32px;
+	height: 16px;
+	content: '　';
+	bottom: -16px;
+	background-color: lightgray;
+	border-bottom-left-radius: 4px;
+	border-bottom-right-radius: 4px;
+}
+#captcha {
+	position:relative;width:300px;height:48px;
+	left: 40px;
+	border-top-right-radius: 4px;
+	border-bottom-right-radius: 4px;
+	display: block;
+	background-color:white;
+	z-index:10;
+}
 </style>
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
@@ -240,11 +287,26 @@ $(function() {
 		try {
 			// 以Object形式读取JSON
 			eval('resInfo =' + xhrobj.responseText);
-	
+
 			if (resInfo.errors.length > 0) {
 				// 共通出错信息框
 				treatBackMessages("#searcharea", resInfo.errors);
+				if (resInfo.captcha_key) {
+					$("#captcha_key").css({"left": 0, "backgroundImage" : "url('data:image/png;base64," + resInfo.captcha_key + "')"});
+					$("#captcha").css({"backgroundImage" : "url('data:image/png;base64," + resInfo.captcha + "')"});
+					if (resInfo.errors[0].errcode != "login.invalidCaptcha") {
+						$("#captchaarea").hide();
+					} else {
+						$("#captchaarea").show();
+					}
+				} else {
+					$("#captcha_key").css({"left": 0, "backgroundImage" : "none"});
+					$("#captchaarea").hide();
+				}
 			} else if (resInfo.roles) {
+				$("#captchaarea").hide();
+				$("#captcha_key").css({"left": 0, "backgroundImage" : "none"});
+
 				var roleHtml = "<h1>选择登录角色</h1>";
 				for (var role_id in resInfo.roles) {
 					roleHtml += '<p style="height:30px;"><input type="button" name="submit" id="'+ role_id 
@@ -288,19 +350,24 @@ $(function() {
 			pwd : jpwd.val()
 		}
 
-		// Ajax提交
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			async : true,
-			url : 'login.do?method=login',
-			cache : false,
-			data : data,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : handleComplete
-		});
+		if ($("#captcha_key").css("backgroundImage") == "none") {
+			// Ajax提交
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : true,
+				url : 'login.do?method=login',
+				cache : false,
+				data : data,
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : handleComplete
+			});
+		} else {
+			$("#captcha_key").css("left", 0);
+			$("#captchaarea").show();
+		}
 	});
 	jobno.keydown(function(e){
 		if(e.keyCode === 13) {
@@ -313,6 +380,49 @@ $(function() {
 		}
 	});
 	jobno[0].focus();
+
+	var captcha_key_dragged = false;
+	$("#captcha_key")
+	.on("mousedown", function(evt){
+		captcha_key_dragged = true;
+	});
+	$("body")
+	.on("mouseup", function(evt){
+		if (captcha_key_dragged) {
+			captcha_key_dragged = false;
+			var left = (evt.pageX - $("#captchaarea").position().left - 16);
+			if (left < 0) left = 0;
+			else if (left > 368) left = 368;
+			$("#captcha_key").css("left", left + "px");
+	
+			var data = {
+				job_no : jobno.val(),
+				pwd : jpwd.val(),
+				"captcha_solution" : parseInt(left - 40)
+			}
+			// Ajax提交
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : true,
+				url : 'login.do?method=login',
+				cache : false,
+				data : data,
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : handleComplete
+			});
+		}
+	})
+	.on("mousemove", function(evt){
+		if (captcha_key_dragged) {
+			var left = (evt.pageX - $("#captchaarea").position().left - 16);
+			if (left < 0) left = 0;
+			else if (left > 368) left = 368;
+			$("#captcha_key").css("left", left + "px");
+		}
+	})
 });
 
 </script>
@@ -338,6 +448,23 @@ $(function() {
 	    </p>      
 	</form>
 </div>
+<% 
+if (request.getAttribute("captcha_key") == null) {
+%>
+<div id="captchaarea">
+	<div id="captcha_key"></div>
+	<div id="captcha"></div>
+</div>
+<% 
+} else {
+%>
+<div id="captchaarea">
+	<div id="captcha_key" style="background-image:url('data:image/png;base64,${captcha_key}');"></div>
+	<div id="captcha" style="background-color:white;background-image:url('data:image/png;base64,${captcha}');"></div>
+</div>
+<% 
+}
+%>
 <div style="position:relative;left: 155px;top: 375px;display:none;">
 	<form class="loginput" id="rolearea">
 	    <h1>选择登录角色</h1>

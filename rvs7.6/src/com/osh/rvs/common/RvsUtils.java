@@ -28,6 +28,7 @@ import java.util.TreeMap;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
@@ -1243,7 +1244,34 @@ public class RvsUtils {
 
 		unproceedPermitCache.clear();;
 	}
-	
+
+	/**
+	 * 取得访问者真实IP
+	 * @param request
+	 * @return
+	 */
+	public static String getClientIp(HttpServletRequest request) {
+		String ip = request.getHeader("X-Forwarded-For");
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("X-Real-IP");
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getRemoteAddr();
+		}
+
+		if (ip == null) return "";
+		if (ip.indexOf(",") >= 0) {
+			String[] ipArr = ip.split(",");
+			for (String ipSingle : ipArr) {
+				if (ipSingle.startsWith("10.220.")) {
+					return ipSingle;
+				}
+			}
+			return ipArr[0];
+		}
+		return ip;
+	}
+
 	public static Integer SYS_ENC_TYPE = null;
 	public static String charRecorgnize(String tsring) {
 		if (tsring == null)
