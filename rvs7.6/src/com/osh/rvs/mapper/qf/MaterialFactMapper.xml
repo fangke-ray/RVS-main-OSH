@@ -232,7 +232,7 @@
 
 	<select id="getInlinePlanInfo" parameterType="java.lang.String" resultType="MaterialFactEntity">
 		<![CDATA[ 			
-SELECT ma.level, ma.agreed_date, ma.fix_type, ma.scheduled_expedited, 
+SELECT ma.level, ma.agreed_date, ma.fix_type, ma.scheduled_expedited, ma.model_id,
 	ip.pat_id, ma.material_id, ip.section_id,
 	case when
 		ma.quotation_first = 9

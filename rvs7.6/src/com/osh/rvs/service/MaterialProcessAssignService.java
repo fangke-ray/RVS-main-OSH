@@ -22,11 +22,13 @@ import com.osh.rvs.bean.inline.MaterialProcessAssignEntity;
 import com.osh.rvs.bean.inline.MaterialProcessEntity;
 import com.osh.rvs.bean.master.LightFixEntity;
 import com.osh.rvs.bean.master.LineEntity;
+import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.ProcessAssignEntity;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.inline.MaterialProcessAssignForm;
 import com.osh.rvs.form.master.LightFixForm;
+import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.form.master.ProcessAssignForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.mapper.inline.MaterialProcessAssignMapper;
@@ -287,16 +289,18 @@ public class MaterialProcessAssignService {
 
 			if (decToogle == 1 || nsToogle == 1 || comToogle == 1) { // 新建时计算纳期
 				MaterialService mService = new MaterialService();
-				MaterialEntity mBean = mService.loadMaterialDetailBean(conn, material_id);
+				MaterialEntity mBean = mService.getMaterialEntityByKey(material_id, conn);
+				ModelService mdlService = new ModelService();
+				ModelEntity model = mdlService.getDetailEntity(mBean.getModel_id(), conn);
 				if (decToogle == 1 || nsToogle == 1) {
 					Date[] dSchedulePlans = RvsUtils.getTimeLimit(mBean.getAgreed_date(), 
-							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), conn, true);
+							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), model.getSeries(), conn, true);
 					scheduledDate = dSchedulePlans[0];
 					beforeScheduledDate = dSchedulePlans[1];
 				}
 				if (comToogle == 1 && scheduledDate == null) {
 					Date[] dSchedulePlans = RvsUtils.getTimeLimit(mBean.getAgreed_date(), 
-							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), conn, false);
+							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), model.getSeries(), conn, false);
 					scheduledDate = dSchedulePlans[0];
 				}
 			}

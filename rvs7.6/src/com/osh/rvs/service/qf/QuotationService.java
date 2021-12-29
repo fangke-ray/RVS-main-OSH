@@ -64,8 +64,14 @@ public class QuotationService {
 			entity.setCustomer_id(cservice.getCustomerStudiedId(entity.getCustomer_name(), entity.getOcm(), conn));
 		}
 
+		String series = null;
+		if (entity.getModel_id() != null) {
+			ModelService mdlService = new ModelService();
+			ModelEntity model = mdlService.getDetailEntity(entity.getModel_id(), conn);
+			series = model.getSeries();
+		}
 		Date[] workDates = RvsUtils.getTimeLimit(entity.getAgreed_date(), entity.getLevel(), 
-				entity.getFix_type(), entity.getScheduled_expedited(), conn, false);
+				entity.getFix_type(), entity.getScheduled_expedited(), series, conn, false);
 		Date workDate = workDates[0];
 		entity.setScheduled_date(workDate);
 

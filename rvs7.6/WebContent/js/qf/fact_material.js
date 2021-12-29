@@ -502,6 +502,7 @@ function checkPart(material_id) {
 function process_dialog($process_dialog, rowdata) {
 
 	var material_id = rowdata["material_id"];
+	var model_id = rowdata["model_id"];
 	var fix_type = rowdata["fix_type"];
 	var agreed_date = rowdata["agreed_date_hidden"];
 	var ccd_change = rowdata["ccd_change"];
@@ -535,6 +536,7 @@ $process_dialog.dialog({
 			}
 			var data = {
 				"material_id": material_id,
+				"model_id": model_id,
 				"pat_id" : ref_template_id,
 				"section_id": section_id,
 				"fix_type" : fix_type,

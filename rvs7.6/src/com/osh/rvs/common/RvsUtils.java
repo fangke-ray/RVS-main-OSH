@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
 import org.apache.http.nio.client.HttpAsyncClient;
@@ -1151,7 +1152,7 @@ public class RvsUtils {
 	 * @return 0：纳期 ；1：分解完成纳期
 	 */
 	public static Date[] getTimeLimit(Date agreedDate, Integer level, Integer fixType,
-			Integer scheduledExpedite, SqlSession conn, boolean needSub) {
+			Integer scheduledExpedite, String series, SqlSession conn, boolean needSub) {
 		if (agreedDate == null || level == null || agreedDate.getTime() > 32503564800000l) return new Date[]{null};
 
 		boolean lightFix = isLightFix(level);
@@ -1170,6 +1171,9 @@ public class RvsUtils {
 //				timeLimit = +4;
 //			}
 //		}
+		if ("URF".equals(series)) {
+			timeLimit = +2;
+		}
 		if (lightFix) {
 			timeLimit = +2;
 		}
@@ -1241,7 +1245,6 @@ public class RvsUtils {
 		initCcdModels(conn);
 
 		countdownCache.clear();
-
 		unproceedPermitCache.clear();;
 	}
 

@@ -60,6 +60,7 @@
 				`m`.agreed_date,
 				mdl.kind,
 				mdl.with_case as unrepair_flg,
+				mdl.series as processing_position,
 				(CASE
 					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98 OR `m`.level = 99
 						THEN 7
@@ -1034,8 +1035,9 @@
 	<select id="getInlineScheduled" resultType="MaterialEntity">
 		<![CDATA[
 			SELECT material_id, omr_notifi_no, agreed_date, scheduled_date,
-				level, fix_type, scheduled_expedited
-			FROM material where inline_time is not null and outline_time is null;
+				level, fix_type, scheduled_expedited, series as kind
+			FROM material ma join model mdl on ma.model_id = mdl.model_id
+			 where inline_time is not null and outline_time is null;
 		]]>
 	</select>
 

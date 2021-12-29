@@ -115,10 +115,11 @@ public class HolidayService {
 			Integer level = me.getLevel();
 			Integer fixType = me.getFix_type();
 			Integer scheduledExpedite = me.getScheduled_expedited();
-			String agreedDateGetTimeKey = agreedDate.getTime() + "_" + level + "_" + fixType + "_" + scheduledExpedite;
+			String series = me.getKind();
+			String agreedDateGetTimeKey = agreedDate.getTime() + "_" + level + "_" + fixType + "_" + scheduledExpedite + "_" + series;
 
 			if (!catchMap.containsKey(agreedDateGetTimeKey)) {
-				Date[] timeLimit = RvsUtils.getTimeLimit(agreedDate, level, fixType, scheduledExpedite, conn, false);
+				Date[] timeLimit = RvsUtils.getTimeLimit(agreedDate, level, fixType, scheduledExpedite, series, conn, false);
 
 				catchMap.put(agreedDateGetTimeKey, timeLimit[0].getTime());
 			}

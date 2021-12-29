@@ -410,6 +410,30 @@ public class DownloadService {
 			printTimes =1;
 		}
 
+		String sSchedulePlan = "";
+		if (mBean.getAgreed_date() != null) {
+//			// 取得总组工程设定的计划产出日
+//			MaterialProcessMapper dao = conn.getMapper(MaterialProcessMapper.class);
+//			MaterialProcessEntity mpBean = dao.loadMaterialProcess(mBean.getMaterial_id());
+//			if (mpBean != null && mpBean.getCom_plan_date() != null) {
+//				sSchedulePlan = DateUtil.toString(mpBean.getCom_plan_date(), DateUtil.ISO_DATE_PATTERN);
+//			}
+			if (mBean.getScheduled_date() == null) {
+				
+				if (mBean.getLevel() == null) {
+					Date dSchedulePlan = RvsUtils.switchWorkDate(mBean.getAgreed_date(), RvsConsts.TIME_LIMIT, conn);
+					sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
+				} else {
+					// Processing_position = model.series
+					Date dSchedulePlan = RvsUtils.getTimeLimit(mBean.getAgreed_date(), mBean.getLevel(), 
+							mBean.getFix_type(), mBean.getScheduled_expedited(), mBean.getProcessing_position(), conn, false)[0];
+					sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
+				}
+			} else {
+				sSchedulePlan = DateUtil.toString(mBean.getScheduled_date(), DateUtil.ISO_DATE_PATTERN);
+			}
+		}
+
 		for(int i=0;i<printTimes;i++) {
 			PdfPTable mainTable = new PdfPTable(1);
 			mainTable.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -539,28 +563,6 @@ public class DownloadService {
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 			topTable.addCell(cell);
 
-			String sSchedulePlan = "";
-			if (mBean.getAgreed_date() != null) {
-//				// 取得总组工程设定的计划产出日
-//				MaterialProcessMapper dao = conn.getMapper(MaterialProcessMapper.class);
-//				MaterialProcessEntity mpBean = dao.loadMaterialProcess(mBean.getMaterial_id());
-//				if (mpBean != null && mpBean.getCom_plan_date() != null) {
-//					sSchedulePlan = DateUtil.toString(mpBean.getCom_plan_date(), DateUtil.ISO_DATE_PATTERN);
-//				}
-				if (mBean.getScheduled_date() == null) {
-					
-					if (mBean.getLevel() == null) {
-						Date dSchedulePlan = RvsUtils.switchWorkDate(mBean.getAgreed_date(), RvsConsts.TIME_LIMIT, conn);
-						sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
-					} else {
-						Date dSchedulePlan = RvsUtils.getTimeLimit(mBean.getAgreed_date(), mBean.getLevel(), 
-								mBean.getFix_type(), mBean.getScheduled_expedited(), conn, false)[0];
-						sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
-					}
-				} else {
-					sSchedulePlan = DateUtil.toString(mBean.getScheduled_date(), DateUtil.ISO_DATE_PATTERN);
-				}
-			}
 			cell = new PdfPCell(new Paragraph(sSchedulePlan, detailFont));
 			cell.setFixedHeight(14);
 			cell.setHorizontalAlignment(Element.ALIGN_CENTER);

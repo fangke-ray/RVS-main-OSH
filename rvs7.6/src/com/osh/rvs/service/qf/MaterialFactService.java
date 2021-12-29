@@ -32,6 +32,7 @@ import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.inline.MaterialFactEntity;
 import com.osh.rvs.bean.inline.MaterialProcessEntity;
 import com.osh.rvs.bean.master.LineEntity;
+import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.ProcessAssignTemplateEntity;
 import com.osh.rvs.common.FseBridgeUtil;
@@ -409,8 +410,10 @@ public class MaterialFactService {
 
 		Date agreedDate = entity.getAgreed_date();
 
+		ModelService mdlService = new ModelService();
+		ModelEntity model = mdlService.getDetailEntity(entity.getModel_id(), conn);
 		Date[] workDates = RvsUtils.getTimeLimit(agreedDate, entity.getLevel(), 
-				entity.getFix_type(), entity.getScheduled_expedited(), conn, true);
+				entity.getFix_type(), entity.getScheduled_expedited(), model.getSeries(), conn, true);
 
 		Date workDate = workDates[0];
 		entity.setScheduled_date(workDate);
@@ -618,8 +621,6 @@ public class MaterialFactService {
 		} else
 		if (fix_type != null && fix_type == 2) { // //如果是单元进展记录
 			// 判断是否EndoEye TODO
-			ModelService mdlService = new ModelService();
-			ModelForm modelForm = mdlService.getDetail(mEntity.getModel_id(), conn);
 //			if (modelForm != null && "06".equals(modelForm.getKind())) {
 //				// 插入1条记录到material_process
 //
@@ -644,7 +645,7 @@ public class MaterialFactService {
 //			}
 
 			// 如果是单元的话，送到611。  
-			if (modelForm != null && !"06".equals(modelForm.getKind())) {
+			if (model != null && !"06".equals(model.getKind())) {
 				String qa_position = "00000000046";
 				Integer serviceRepairFlg = mEntity.getService_repair_flg();
 				if (serviceRepairFlg == null) serviceRepairFlg = 0;

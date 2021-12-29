@@ -171,6 +171,7 @@ var makeBreakDialog = function(jBreakDialog) {
 	var b_request = {
 		sorc_no : $("#edit_sorc_no").val(),
 		esas_no : $("#edit_esas_no").val(),
+		model_id : $("#editform td[model_id]").attr("model_id"),
 		ocm : $("#edit_ocm").val(),
 		customer_name : $("#edit_customer_name").val(),
 		ocm_rank : $("#edit_ocm_rank").val(),
@@ -852,6 +853,7 @@ var doFinish=function(){
 		var data = {
 			sorc_no : $("#edit_sorc_no").val(),
 			esas_no : $("#edit_esas_no").val(),
+			model_id : $("#editform td[model_id]").attr("model_id"),
 			ocm : $("#edit_ocm").val(),
 			customer_name : $("#edit_customer_name").val(),
 			ocm_rank : $("#edit_ocm_rank").val(),

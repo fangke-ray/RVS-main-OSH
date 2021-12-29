@@ -24,7 +24,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 <script type="text/javascript" src="js/jquery.flowchart.js"></script>
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
-<script type="text/javascript" src="js/qf/fact_material.js"></script>
+<script type="text/javascript" src="js/qf/fact_material.js?v=3458"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
 <script type="text/javascript" src="js/qf/wip_locate.js"></script>
 
