@@ -208,7 +208,7 @@ function filed_list(listdata) {
 				{name:'budget_month',index:'budget_month',width : 40,},
 				{name:'inline_recept_date',index:'inline_recept_date',width : 60,sorttype:'date'},
 				{name:'invoice_no',index:'invoice_no',width : 60},
-				{name:'applicator_id',index:'applicator_id',hidden : true},
+				{name:'applicator_id',index:'applicator_id',hidden : true}
 			],
 			rowNum: 40,
 			toppager : false,
@@ -422,8 +422,7 @@ function showEdit(){
 					treatBackMessages(null, resInfo.errors);
 				} else {
 					//物品申购明细
-					let suppliesDetail = resInfo.detail;
-					setEditContent(suppliesDetail);
+					setEditContent(resInfo);
 				}
 			}catch(e){}
 		}
@@ -453,21 +452,33 @@ let updateTemplate = `<table class="condform">
 						</tr>
 						<tr>
 							<td class="ui-state-default td-title">申请课室</td>
-							<td class="td-content">#{sectionName}</td>
+							<td class="td-content">
+								<label id="update_label_section_name"></label>
+							</td>
 							<td class="ui-state-default td-title">申购人员</td>
-							<td class="td-content">#{applicatorName}</td>
+							<td class="td-content">
+								<label id="update_label_applicator_name"></label>
+							</td>
 						</tr>
 						<tr>
 							<td class="ui-state-default td-title">申请日期</td>
-							<td class="td-content">#{applicateDate}</td>
+							<td class="td-content">
+								<label id="update_label_applicate_date"></label>
+							</td>
 							<td class="ui-state-default td-title">申购单号</td>
-							<td class="td-content">#{orderNo}</td>
+							<td class="td-content">
+								<label id="update_label_order_no"></label>
+							</td>
 						</tr>
 						<tr>
 							<td class="ui-state-default td-title">上级确认者</td>
-							<td class="td-content">#{confirmerName}</td>
+							<td class="td-content">
+								<label id="update_label_confirmer_name"></label>
+							</td>
 							<td class="ui-state-default td-title">确认结果</td>
-							<td class="td-content">#{confirmerResult}</td>
+							<td class="td-content">
+								<label id="update_label_confirmer_result"></label>
+							</td>
 						</tr>
 						<tr>
 							<td class="ui-state-default td-title">用途</td>
@@ -481,17 +492,23 @@ let updateTemplate = `<table class="condform">
 							<td class="ui-state-default td-title">预计到货日期</td>
 							<td class="td-content">#{scheduledDate}</td>
 							<td class="ui-state-default td-title">收货日期</td>
-							<td class="td-content">#{receptDate}</td>
+							<td class="td-content">
+								<label id="update_label_recept_date"></label>
+							</td>
 						</tr>
 						<tr>
 							<td class="ui-state-default td-title">预算月</td>
 							<td class="td-content">#{budgetMonth}</td>
 							<td class="ui-state-default td-title">验收日期</td>
-							<td class="td-content">#{inlineReceptDate}</td>
+							<td class="td-content">
+								<label id="update_label_inline_recept_date"></label>
+							</td>
 						</tr>
 						<tr>
 							<td class="ui-state-default td-title">发票号</td>
-							<td class="td-content">#{invoiceNo}</td>
+							<td class="td-content">
+								<label id="update_label_invoice_no"></label>
+							</td>
 						</tr>
 					  </table>
 					  <div style="height:44px">
@@ -513,7 +530,7 @@ let inputObjTemplate = {
 	'comments' : '<textarea id="update_comments" name="comments" class="ui-widget-content" alt="备注"></textarea>',
 	'scheduledDate' : '<input type="text" id="update_scheduled_date" name="scheduled_date" class="ui-widget-content" alt="预计到货日期" readonly="readonly">',
 	'budgetMonth' : '<input type="text" id="update_budget_month" name="budget_month" class="ui-widget-content" alt="预算月" readonly="readonly">'
-}
+};
 
 let labelObjTemplate = {
 	'productName' : '<label id="update_label_product_name"></label>',
@@ -522,20 +539,11 @@ let labelObjTemplate = {
 	'unitText' : '<label id="update_label_unit_text"></label>',
 	'quantity' : '<label id="update_label_quantity"></label>',
 	'supplier' : '<label id="update_label_supplier"></label>',
-	'sectionName' : '<label id="update_label_section_name"></label>',
-	'applicatorName' : '<label id="update_label_applicator_name"></label>',
-	'applicateDate' : '<label id="update_label_applicate_date"></label>',
-	'orderNo' : '<label id="update_label_order_no"></label>',
-	'confirmerName' : '<label id="update_label_confirmer_name"></label>',
-	'confirmerResult' : '<label id="update_label_confirmer_result"></label>',
 	'nesssaryReason' : '<label id="update_label_nesssary_reason"></label>',
 	'comments' : '<label id="update_label_comments"></label>',
 	'scheduledDate' : '<label id="update_label_scheduled_date"></label>',
-	'receptDate' : '<label id="update_label_recept_date"></label>',
-	'budgetMonth' : '<label id="update_label_budget_month"></label>',
-	'inlineReceptDate' : '<label id="update_label_inline_recept_date"></label>',
-	'invoiceNo' : '<label id="update_label_invoice_no"></label>'
-}
+	'budgetMonth' : '<label id="update_label_budget_month"></label>'
+};
 
 let buttonObjTemplate = {
 	'updateButton' : '<input class="ui-button" id="updateButton" value="更新" style="float:right;right:2px" type="button">',
@@ -548,7 +556,10 @@ let buttonObjTemplate = {
  * 设置画面内容
  * @param {*} suppliesDetail
  */
-function setEditContent(suppliesDetail) {
+function setEditContent(resInfo) {
+	let suppliesDetail = resInfo.detail;
+	let order = resInfo.order;
+
 	//经理标识
 	let isMamager = $("#isMamager").val();
 	//线长标识
@@ -566,8 +577,10 @@ function setEditContent(suppliesDetail) {
 	let confirmer_name = suppliesDetail.confirmer_name || '';
 	//收货日期
 	let recept_date = suppliesDetail.recept_date || '';
+	//订购单KEy
+	let order_key = suppliesDetail.order_key || '';
 
-	//已确认
+	//已确认（确认或者驳回）
 	if(confirmer_name) {
 		template = template.replace("#{productName}",labelObjTemplate.productName);
 		template = template.replace("#{modelName}",labelObjTemplate.modelName);
@@ -575,35 +588,45 @@ function setEditContent(suppliesDetail) {
 		template = template.replace("#{unitText}",labelObjTemplate.unitText);
 		template = template.replace("#{quantity}",labelObjTemplate.quantity);
 		template = template.replace("#{supplier}",labelObjTemplate.supplier);
-		template = template.replace("#{sectionName}",labelObjTemplate.sectionName);
-		template = template.replace("#{applicatorName}",labelObjTemplate.applicatorName);
-		template = template.replace("#{applicateDate}",labelObjTemplate.applicateDate);
-		template = template.replace("#{orderNo}",labelObjTemplate.orderNo);
-		template = template.replace("#{confirmerName}",labelObjTemplate.confirmerName);
-		template = template.replace("#{confirmerResult}",labelObjTemplate.confirmerResult);
 		template = template.replace("#{nesssaryReason}",labelObjTemplate.nesssaryReason);
-		template = template.replace("#{comments}",labelObjTemplate.comments);
-		//登录者是支援课人员,还未收货
-		if(isSupport === "true" && !recept_date) {
-			template = template.replace("#{scheduledDate}",inputObjTemplate.scheduledDate);
-			template = template.replace("#{budgetMonth}",inputObjTemplate.budgetMonth);
-		} else {
+		
+		//驳回明细
+		if(order_key == "0" || order_key == "00000000000") {
+			template = template.replace("#{comments}",labelObjTemplate.comments);
 			template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
 			template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+		} else {//确认明细
+			if(isSupport === "true") {//支援课
+				template = template.replace("#{comments}",inputObjTemplate.comments);
+			} else {
+				template = template.replace("#{comments}",labelObjTemplate.comments);
+			}
+			//登录者是支援课人员,还未收货
+			if(isSupport === "true" && !recept_date) {
+				//支援科上级盖章
+				if(order && order.sign_manager_id && order.sign_minister_id) {
+					template = template.replace("#{scheduledDate}",inputObjTemplate.scheduledDate);
+					template = template.replace("#{budgetMonth}",inputObjTemplate.budgetMonth);
+				} else {
+					//支援科上级没有盖章
+					template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
+					template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+				}
+			} else {
+				template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
+				template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+			}
 		}
-		template = template.replace("#{receptDate}",labelObjTemplate.receptDate);
-		template = template.replace("#{inlineReceptDate}",labelObjTemplate.inlineReceptDate);
-		template = template.replace("#{invoiceNo}",labelObjTemplate.invoiceNo);
-		
+
 		template = template.replace("#{okInput}","");
 		template = template.replace("#{ngInput}","");
 		template = template.replace("#{deleteInput}","");
-		if(template.includes('type="text"')) {
+		if(template.includes('type="text"') || template.includes('textarea')) {
 			template = template.replace("#{updateInput}",buttonObjTemplate.updateButton);
 		} else {
 			template = template.replace("#{updateInput}","");
 		}
-	} else {//未确认
+	} else {//上级未确认,这个时候还没有生成订购单，支援课上级还不能进行盖章
 		//经理
 		if(isMamager === "true") {
 			//申请人是自己
@@ -615,30 +638,19 @@ function setEditContent(suppliesDetail) {
 				template = template.replace("#{unitText}",inputObjTemplate.unitText);
 				template = template.replace("#{quantity}",inputObjTemplate.quantity);
 				template = template.replace("#{supplier}",inputObjTemplate.supplier);
-				template = template.replace("#{sectionName}",labelObjTemplate.sectionName);
-				template = template.replace("#{applicatorName}",labelObjTemplate.applicatorName);
-				template = template.replace("#{applicateDate}",labelObjTemplate.applicateDate);
-				template = template.replace("#{orderNo}",labelObjTemplate.orderNo);
-				template = template.replace("#{confirmerName}",labelObjTemplate.confirmerName);
-				template = template.replace("#{confirmerResult}",labelObjTemplate.confirmerResult);
 				template = template.replace("#{nesssaryReason}",inputObjTemplate.nesssaryReason);
-				template = template.replace("#{comments}",inputObjTemplate.comments);
-				//经理是支援课的,还未收货
-				if(isSupport === "true" && !recept_date) {
-					template = template.replace("#{scheduledDate}",inputObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",inputObjTemplate.budgetMonth);
+				if(isSupport === "true") {//支援课
+					template = template.replace("#{comments}",inputObjTemplate.comments);
 				} else {
-					template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+					template = template.replace("#{comments}",labelObjTemplate.comments);
 				}
-				template = template.replace("#{receptDate}",labelObjTemplate.receptDate);
-				template = template.replace("#{inlineReceptDate}",labelObjTemplate.inlineReceptDate);
-				template = template.replace("#{invoiceNo}",labelObjTemplate.invoiceNo);
+				template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
+				template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
 
 				template = template.replace("#{okInput}",buttonObjTemplate.okButton);
 				template = template.replace("#{ngInput}",buttonObjTemplate.ngButton);
 				template = template.replace("#{deleteInput}",buttonObjTemplate.deleteButton);
-				if(template.includes('type="text"')) {
+				if(template.includes('type="text"') || template.includes('textarea')) {
 					template = template.replace("#{updateInput}",buttonObjTemplate.updateButton);
 				} else {
 					template = template.replace("#{updateInput}","");
@@ -653,7 +665,6 @@ function setEditContent(suppliesDetail) {
 					template = template.replace("#{quantity}",inputObjTemplate.quantity);
 					template = template.replace("#{supplier}",inputObjTemplate.supplier);
 					template = template.replace("#{nesssaryReason}",inputObjTemplate.nesssaryReason);
-					template = template.replace("#{comments}",inputObjTemplate.comments);
 				} else {
 					template = template.replace("#{productName}",labelObjTemplate.productName);
 					template = template.replace("#{modelName}",labelObjTemplate.modelName);
@@ -662,32 +673,19 @@ function setEditContent(suppliesDetail) {
 					template = template.replace("#{quantity}",labelObjTemplate.quantity);
 					template = template.replace("#{supplier}",labelObjTemplate.supplier);
 					template = template.replace("#{nesssaryReason}",labelObjTemplate.nesssaryReason);
+				}
+				if(isSupport === "true") {//支援课
+					template = template.replace("#{comments}",inputObjTemplate.comments);
+				} else {
 					template = template.replace("#{comments}",labelObjTemplate.comments);
 				}
-				
-				template = template.replace("#{sectionName}",labelObjTemplate.sectionName);
-				template = template.replace("#{applicatorName}",labelObjTemplate.applicatorName);
-				template = template.replace("#{applicateDate}",labelObjTemplate.applicateDate);
-				template = template.replace("#{orderNo}",labelObjTemplate.orderNo);
-				template = template.replace("#{confirmerName}",labelObjTemplate.confirmerName);
-				template = template.replace("#{confirmerResult}",labelObjTemplate.confirmerResult);
-				
-				//经理是支援课的,还未收货
-				if(isSupport === "true" && !recept_date) {
-					template = template.replace("#{scheduledDate}",inputObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",inputObjTemplate.budgetMonth);
-				} else {
-					template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
-				}
-				template = template.replace("#{receptDate}",labelObjTemplate.receptDate);
-				template = template.replace("#{inlineReceptDate}",labelObjTemplate.inlineReceptDate);
-				template = template.replace("#{invoiceNo}",labelObjTemplate.invoiceNo);
-				
+				template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
+				template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+
 				template = template.replace("#{okInput}",buttonObjTemplate.okButton);
 				template = template.replace("#{ngInput}",buttonObjTemplate.ngButton);
 				template = template.replace("#{deleteInput}","");
-				if(template.includes('type="text"')) {
+				if(template.includes('type="text"') || template.includes('textarea')) {
 					template = template.replace("#{updateInput}",buttonObjTemplate.updateButton);
 				} else {
 					template = template.replace("#{updateInput}","");
@@ -704,29 +702,19 @@ function setEditContent(suppliesDetail) {
 				template = template.replace("#{unitText}",inputObjTemplate.unitText);
 				template = template.replace("#{quantity}",inputObjTemplate.quantity);
 				template = template.replace("#{supplier}",inputObjTemplate.supplier);
-				template = template.replace("#{sectionName}",labelObjTemplate.sectionName);
-				template = template.replace("#{applicatorName}",labelObjTemplate.applicatorName);
-				template = template.replace("#{applicateDate}",labelObjTemplate.applicateDate);
-				template = template.replace("#{orderNo}",labelObjTemplate.orderNo);
-				template = template.replace("#{confirmerName}",labelObjTemplate.confirmerName);
-				template = template.replace("#{confirmerResult}",labelObjTemplate.confirmerResult);
 				template = template.replace("#{nesssaryReason}",inputObjTemplate.nesssaryReason);
-				template = template.replace("#{comments}",inputObjTemplate.comments);
-				if(isSupport === "true" && !recept_date) {
-					template = template.replace("#{scheduledDate}",inputObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",inputObjTemplate.budgetMonth);
+				if(isSupport === "true") {//支援课
+					template = template.replace("#{comments}",inputObjTemplate.comments);
 				} else {
-					template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+					template = template.replace("#{comments}",labelObjTemplate.comments);
 				}
-				template = template.replace("#{receptDate}",labelObjTemplate.receptDate);
-				template = template.replace("#{inlineReceptDate}",labelObjTemplate.inlineReceptDate);
-				template = template.replace("#{invoiceNo}",labelObjTemplate.invoiceNo);
-
+				template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
+				template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+				
 				template = template.replace("#{okInput}","");
 				template = template.replace("#{ngInput}","");
 				template = template.replace("#{deleteInput}",buttonObjTemplate.deleteButton);
-				if(template.includes('type="text"')) {
+				if(template.includes('type="text"') || template.includes('textarea')) {
 					template = template.replace("#{updateInput}",buttonObjTemplate.updateButton);
 				} else {
 					template = template.replace("#{updateInput}","");
@@ -738,29 +726,19 @@ function setEditContent(suppliesDetail) {
 				template = template.replace("#{unitText}",labelObjTemplate.unitText);
 				template = template.replace("#{quantity}",labelObjTemplate.quantity);
 				template = template.replace("#{supplier}",labelObjTemplate.supplier);
-				template = template.replace("#{sectionName}",labelObjTemplate.sectionName);
-				template = template.replace("#{applicatorName}",labelObjTemplate.applicatorName);
-				template = template.replace("#{applicateDate}",labelObjTemplate.applicateDate);
-				template = template.replace("#{orderNo}",labelObjTemplate.orderNo);
-				template = template.replace("#{confirmerName}",labelObjTemplate.confirmerName);
-				template = template.replace("#{confirmerResult}",labelObjTemplate.confirmerResult);
 				template = template.replace("#{nesssaryReason}",labelObjTemplate.nesssaryReason);
-				template = template.replace("#{comments}",labelObjTemplate.comments);
-				if(isSupport === "true" && !recept_date) {
-					template = template.replace("#{scheduledDate}",inputObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",inputObjTemplate.budgetMonth);
+				if(isSupport === "true") {//支援课
+					template = template.replace("#{comments}",inputObjTemplate.comments);
 				} else {
-					template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
-					template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
+					template = template.replace("#{comments}",labelObjTemplate.comments);
 				}
-				template = template.replace("#{receptDate}",labelObjTemplate.receptDate);
-				template = template.replace("#{inlineReceptDate}",labelObjTemplate.inlineReceptDate);
-				template = template.replace("#{invoiceNo}",labelObjTemplate.invoiceNo);
+				template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
+				template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
 
 				template = template.replace("#{okInput}","");
 				template = template.replace("#{ngInput}","");
 				template = template.replace("#{deleteInput}","");
-				if(template.includes('type="text"')) {
+				if(template.includes('type="text"') || template.includes('textarea')) {
 					template = template.replace("#{updateInput}",buttonObjTemplate.updateButton);
 				} else {
 					template = template.replace("#{updateInput}","");
@@ -774,19 +752,10 @@ function setEditContent(suppliesDetail) {
 			template = template.replace("#{unitText}",labelObjTemplate.unitText);
 			template = template.replace("#{quantity}",labelObjTemplate.quantity);
 			template = template.replace("#{supplier}",labelObjTemplate.supplier);
-			template = template.replace("#{sectionName}",labelObjTemplate.sectionName);
-			template = template.replace("#{applicatorName}",labelObjTemplate.applicatorName);
-			template = template.replace("#{applicateDate}",labelObjTemplate.applicateDate);
-			template = template.replace("#{orderNo}",labelObjTemplate.orderNo);
-			template = template.replace("#{confirmerName}",labelObjTemplate.confirmerName);
-			template = template.replace("#{confirmerResult}",labelObjTemplate.confirmerResult);
 			template = template.replace("#{nesssaryReason}",labelObjTemplate.nesssaryReason);
 			template = template.replace("#{comments}",labelObjTemplate.comments);
 			template = template.replace("#{scheduledDate}",labelObjTemplate.scheduledDate);
-			template = template.replace("#{receptDate}",labelObjTemplate.receptDate);
 			template = template.replace("#{budgetMonth}",labelObjTemplate.budgetMonth);
-			template = template.replace("#{inlineReceptDate}",labelObjTemplate.inlineReceptDate);
-			template = template.replace("#{invoiceNo}",labelObjTemplate.invoiceNo);
 			
 			template = template.replace("#{okInput}","");
 			template = template.replace("#{ngInput}","");
@@ -1042,7 +1011,15 @@ function doUpdate(suppliesDetail){
 	if($("#update_comments").length == 1) {
 		data["comments"] = $("#update_comments").val();
 	} else {
-		data["comments"] = suppliesDetail.comments || "";
+		if($("#isLiner").val() === "true") {
+			if($("#update_supplier").length == 1) {
+				data["comments"] = $("#update_supplier").val();
+			} else {
+				data["comments"] = suppliesDetail.supplier || "";
+			}
+		} else {
+			data["comments"] = suppliesDetail.comments || "";
+		}
 	}
 
 	if($("#update_scheduled_date").length == 1) {
@@ -1200,6 +1177,21 @@ function addDetailDialog(list){
 	$("#add_supplies_detail").find("input[type='text'],textarea").val("").removeClass("errorarea-single");
 	setSuppliseView(list);
 
+	let arrModelName = ['慧采','亚速旺','易优佰','京东','心承','定制'];
+	list.map(item => {
+		!arrModelName.includes(item.model_name) && arrModelName.splice(arrModelName.length - 1, 0, item.model_name);
+	});
+	$("#add_comment").autocomplete({
+		source : arrModelName, 
+		minLength: 0, 
+		delay: 100
+	});
+	$("#add_comment").unbind("focus").bind("focus",function() {
+		!this.value && $(this).autocomplete("search");
+	}).unbind("blur").bind("blur",function() {
+		$(this).autocomplete("close");
+	});
+
 	//前台验证
 	$("#addForm").validate({
         rules:{
@@ -1247,7 +1239,7 @@ function addDetailDialog(list){
 	let $thisDialg = $("#add_supplies_detail").dialog({
 		title : "申请物品",
 		width : 1250,
-		height : 780,
+		height : 790,
 		resizable : false,
 		modal : true,
 		show:"blind",

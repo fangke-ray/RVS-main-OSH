@@ -252,7 +252,7 @@
 			section	ON sd.section_id = section.section_id
 		JOIN
 			operator applicator_op ON applicator_op.operator_id = sd.applicator_id
-		LEFT JOIN
+		JOIN
 			operator confirmer_op ON confirmer_op.operator_id = sd.confirmer_id
 		WHERE
 			sd.order_key IS NULL
@@ -344,14 +344,18 @@
 			section	ON sd.section_id = section.section_id
 		JOIN
 			operator applicator_op ON applicator_op.operator_id = sd.applicator_id
-		LEFT JOIN
+		JOIN
 			operator confirmer_op ON confirmer_op.operator_id = sd.confirmer_id
-		LEFT JOIN
+		JOIN
 			supplies_order so ON so.order_key = sd.order_key
 		WHERE
-			sd.order_key IS NOT NULL
+			sd.order_key IS NOT NULL AND (sd.order_key <> '0' OR sd.order_key <> '00000000000')
 		AND
 			sd.recept_date IS NULL
+		AND
+			so.sign_manager_id IS NOT NULL
+		AND
+			so.sign_minister_id IS NOT NULL
 		ORDER BY
 			sd.order_key
 	]]>

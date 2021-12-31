@@ -19,9 +19,11 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.support.SuppliesDetailForm;
+import com.osh.rvs.form.support.SuppliesOrderForm;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.support.SuppliesDetailService;
+import com.osh.rvs.service.support.SuppliesOrderService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -40,6 +42,7 @@ import framework.huiqing.common.util.validator.Validators;
 public class SuppliesDetailAction extends BaseAction {
 	private Logger log = Logger.getLogger(getClass());
 	private SuppliesDetailService suppliesDetailService = new SuppliesDetailService();
+	private SuppliesOrderService suppliesOrderService = new SuppliesOrderService();
 	private SectionService sectionService = new SectionService();
 	private OperatorService operatorService = new OperatorService();
 
@@ -226,6 +229,16 @@ public class SuppliesDetailAction extends BaseAction {
 				errors.add(error);
 			} else {
 				listResponse.put("detail", respForm);
+				
+				// 查找订购单信息
+				String orderKey = respForm.getOrder_key();
+				if(!CommonStringUtil.isEmpty(orderKey) && !"0".equals(orderKey) && !"00000000000".equals(orderKey)){
+					SuppliesOrderForm order = suppliesOrderService.getOrderByOrderKey(orderKey, conn);
+					listResponse.put("order", order);
+				} else {
+					listResponse.put("order", "");
+				}
+				
 			}
 		}
 
