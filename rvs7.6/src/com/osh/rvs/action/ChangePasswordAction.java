@@ -20,6 +20,7 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.mapper.master.OperatorMapper;
 
 import framework.huiqing.action.BaseAction;
@@ -118,8 +119,12 @@ public class ChangePasswordAction extends BaseAction {
 		conditionBean.setJob_no(job_no);
 
 		// 按工号密码查询
+		long lNow = new Date().getTime();
+
 		OperatorMapper dao = conn.getMapper(OperatorMapper.class);
-		String password = old_input;
+		String decOldPassword = RvsUtils._decPwd(old_input, lNow);
+
+		String password = decOldPassword;
 		password = CryptTool.encrypttoStr(password);
 		password = CryptTool.encrypttoStr(password + conditionBean.getJob_no().toUpperCase());
 		conditionBean.setPwd(password);
@@ -127,14 +132,31 @@ public class ChangePasswordAction extends BaseAction {
 
 		// 密码不匹配
 		if (loginData == null) {
-			MsgInfo error = new MsgInfo();
-			error.setComponentid("old_input");
-			error.setErrcode("login.invalidPassword");
-			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("login.invalidPassword"));
-			errors.add(error);
+			// 可能重拾超时
+
+			try {
+				password = RvsUtils._decPwd(old_input, lNow - 600000); // 按10分钟前 
+				if (!decOldPassword.equals(password)) {
+					password = CryptTool.encrypttoStr(password);
+					password = CryptTool.encrypttoStr(password + conditionBean.getJob_no().toUpperCase());
+					conditionBean.setPwd(password);
+					loginData = dao.searchLoginOperator(conditionBean);
+				}
+			}catch (Exception e) {
+			}
+			if (loginData == null) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("old_input");
+				error.setErrcode("login.invalidPassword");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("login.invalidPassword"));
+				errors.add(error);
+			} else {
+				lNow -= 600000; // 按10分钟前  
+			}
 		}
 
 		// validator.required
+		String decNewPassword = null;
 		if (CommonStringUtil.isEmpty(new_input)) {
 			MsgInfo info = new MsgInfo();
 			info.setComponentid("new_input");
@@ -142,28 +164,36 @@ public class ChangePasswordAction extends BaseAction {
 			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "新密码"));
 			errors.add(info);
 		} else {
-			if (new_input.length() < 6 || new_input.length() > 12) {
+			decNewPassword = RvsUtils._decPwd(new_input, lNow);
+			if (decNewPassword.length() < 6 || decNewPassword.length() > 12) {
 				MsgInfo info = new MsgInfo();
 				info.setComponentid("new_input");
 				info.setErrcode("validator.invalidParam.invalidRangedLengthValue");
 				info.setErrmsg("请为新密码输入一个长度在6到12之间的值。");
 				errors.add(info);
 			}
-			if (!new_input.matches("^.*\\d.*$") || !new_input.matches("^.*[A-Za-z].*$")) {
+			if (!decNewPassword.matches("^.*\\d.*$") || !decNewPassword.matches("^.*[A-Za-z].*$")) {
 				MsgInfo info = new MsgInfo();
 				info.setComponentid("new_input");
 				info.setErrcode("validator.regex");
 				info.setErrmsg("新密码至少需要一个半角英文字母及一个数字。");
 				errors.add(info);
 			}
-			if (!new_input.equals(new_confirm)) {
+			if (decNewPassword.equals(decOldPassword)) {
+				MsgInfo info = new MsgInfo();
+				info.setComponentid("new_input");
+				info.setErrcode("validator.equals");
+				info.setErrmsg("请输入一个与旧密码不同的新密码。");
+				errors.add(info);
+			}
+			if (!decNewPassword.equals(new_confirm)) {
 				MsgInfo info = new MsgInfo();
 				info.setComponentid("new_confirm");
 				info.setErrcode("validator.notequals");
 				info.setErrmsg("两次输入的的新密码不一致，请重新确认后输入。");
 				errors.add(info);
 			}
-			if (new_input.toLowerCase().contains(job_no.toLowerCase()) || job_no.toLowerCase().contains(new_input.toLowerCase())) {
+			if (decNewPassword.toLowerCase().contains(job_no.toLowerCase()) || job_no.toLowerCase().contains(decNewPassword.toLowerCase())) {
 				MsgInfo info = new MsgInfo();
 				info.setComponentid("new_input");
 				info.setErrcode("validator.jobn");
@@ -173,7 +203,7 @@ public class ChangePasswordAction extends BaseAction {
 		}
 
 		if (errors.size() == 0) {
-			String encryptedPwd = CryptTool.encrypttoStr(new_input);
+			String encryptedPwd = CryptTool.encrypttoStr(decNewPassword);
 			// 加密
 			Date pwdDate = new Date();
 

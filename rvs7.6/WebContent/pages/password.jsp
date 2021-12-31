@@ -29,8 +29,8 @@ $(function() {
 
 	$("#changebutton").button().click(function() {
 		var data = {
-			old_input : $("#input_old_input").val(),
-			new_input : $("#input_new_input").val(),
+			old_input : _enc($("#input_old_input").val()),
+			new_input : _enc($("#input_new_input").val()),
 			new_confirm : $("#input_new_confirm").val()
 		};
 
@@ -66,6 +66,8 @@ $(function() {
 			}
 		});
 	});
+
+	loadJs("js/frontEnc.js");
 });
 
 </script>
