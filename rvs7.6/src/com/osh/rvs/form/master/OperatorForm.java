@@ -23,7 +23,7 @@ public class OperatorForm extends ActionForm {
 	@BeanField(title = "工号", name = "job_no", notNull=true, length = 8)
 	private String job_no;
 	/** 密码 */
-	@BeanField(title = "密码", name = "pwd", type = FieldType.String, cipher = true, length = 15)
+	@BeanField(title = "密码", name = "pwd", type = FieldType.String, cipher = true)
 	private String pwd;
 	/** 密码修改日 */
 	@BeanField(title = "密码修改日", name = "pwd_date", type = FieldType.Date)

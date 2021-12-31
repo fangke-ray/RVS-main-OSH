@@ -70,7 +70,8 @@ public class PcsTemplateAction extends BaseAction {
 		String mReferChooser = service.getOptions(conn);
 		/*型号*/
 		req.setAttribute("mReferChooser", mReferChooser);	
-		req.setAttribute("isAdmin", user.getPrivacies().contains(RvsConsts.PRIVACY_ADMIN));	
+		req.setAttribute("isAdmin", user.getPrivacies().contains(RvsConsts.PRIVACY_ADMIN) 
+				|| user.getPrivacies().contains(RvsConsts.PRIVACY_TECHNICAL_MANAGE));	
 
 		log.info("PcsTemplateAction.init end");
 	}
