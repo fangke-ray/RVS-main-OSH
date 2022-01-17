@@ -125,11 +125,18 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<input type="button" class="ui-button" value="调整入库" id="placeButton" />
 					<input type="button" class="ui-button" value="调整出库" id="removeButton" />
 					<input type="button" class="ui-button" value="移动库位" id="moveButton" />
+					<input type="button" class="ui-button" value="联机打印" id="printButton" />
 					<span style="margin-right: 10px; float: right; height: 44px; line-height: 36px; display:none;">通箱库位积荷率：<label id="heaprate">16</label>%</span>
 				</div>
 			</div>
-			<div class="clear areaencloser"></div>
+<% } else { %>
+			<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
+				<div id="executes" style="margin-left: 4px; margin-top: 4px;">
+					<input type="button" class="ui-button" value="联机打印" id="printButton" />
+				</div>
+			</div>
 <% } %>
+			<div class="clear areaencloser"></div>
 		</div>
 
 		<div id="wiparea" class="wiparea dwidth-middleright">

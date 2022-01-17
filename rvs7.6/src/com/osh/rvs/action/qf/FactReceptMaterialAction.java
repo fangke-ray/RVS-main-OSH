@@ -139,8 +139,12 @@ public class FactReceptMaterialAction extends BaseAction {
 		factMaterialForm.setAction_time_start(DateUtil.toString(start.getTime(), DateUtil.DATE_PATTERN));
 		factMaterialForm.setAction_time_end(DateUtil.toString(end.getTime(), DateUtil.DATE_PATTERN));
 
-		// 取得预打印通箱库位
+		// 取得全部可用通箱库位
 		TurnoverCaseService tcServive = new TurnoverCaseService();
+		List<TurnoverCaseEntity> allEmptyLocations = tcServive.getAllEmptyLocations(conn);
+		callbackResponse.put("allEmptyLocations", allEmptyLocations);
+
+		// 取得预打印通箱库位
 		List<TurnoverCaseEntity> preprintedLocations = tcServive.gerPreprintedLocations(conn);
 		callbackResponse.put("preprintedLocations", preprintedLocations);
 

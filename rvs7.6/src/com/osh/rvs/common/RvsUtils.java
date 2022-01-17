@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.SocketTimeoutException;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,9 +35,23 @@ import org.apache.batik.transcoder.TranscoderInput;
 import org.apache.batik.transcoder.TranscoderOutput;
 import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.http.Header;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
 import org.apache.http.nio.client.HttpAsyncClient;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionManager;
@@ -1025,6 +1040,59 @@ public class RvsUtils {
 		List<String> triggerList = new ArrayList<String>();
 		triggerList.add(trigger);
 		sendTrigger(triggerList);
+	}
+
+	public static FutureMultipartResponse sendMultipartFormData(String url,
+			Map<String, String> params, String local_file_path)
+			throws ClientProtocolException, IOException {
+		HttpClient httpclient = new DefaultHttpClient();
+		httpclient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 10000); 
+
+		HttpPost httppost = new HttpPost(url);
+
+		FileBody filebody = new FileBody(new File(local_file_path));
+		MultipartEntity entity = new MultipartEntity(
+				HttpMultipartMode.BROWSER_COMPATIBLE, null,
+				Charset.forName("UTF-8"));
+		ContentType contentType = ContentType.create("text/plain",
+				Charset.forName("UTF-8"));
+		if (params != null) {
+			for (String key : params.keySet()) {
+				entity.addPart(key, new StringBody(params.get(key)));
+			}
+		}
+		entity.addPart("file", filebody);
+		httppost.setEntity(entity);
+
+		// Future response
+		FutureMultipartResponse response = new FutureMultipartResponse();
+		try {
+			httpclient.execute(httppost, response);
+		} catch (SocketTimeoutException e) {
+			logger.error("No response", e);
+			response = null;
+		}
+		return response;
+	}
+
+	public static final class FutureMultipartResponse implements
+			ResponseHandler<HttpResponse> {
+
+		@Override
+		public HttpResponse handleResponse(HttpResponse res)
+				throws ClientProtocolException, IOException {
+			// TODO Auto-generated method stub
+			Header header = res.getFirstHeader("Content-Type");
+			logger.info("Content-Type:" + header.getValue());
+			HttpEntity resEntity = res.getEntity();
+			byte[] tt = new byte[1024];
+			InputStream in = resEntity.getContent();
+			int b;
+			while((b=in.read(tt))!=-1);
+			logger.info("Content:" + new String(tt, "UTF-8"));
+
+			return null;
+		}
 	}
 
 	private static final Map<String, Integer> countdownCache = new HashMap<String, Integer>();

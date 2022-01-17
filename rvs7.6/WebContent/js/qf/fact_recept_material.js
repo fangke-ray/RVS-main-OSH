@@ -457,7 +457,7 @@ function findit() {
                     let nextNum = 0;
                     for (let i in materialList) {
                         let obj = materialList[i];
-                        console.log(obj.serial_no + ":" + obj.expect_arrive_time + " " + obj.fact_recept);
+                       //  console.log(obj.serial_no + ":" + obj.expect_arrive_time + " " + obj.fact_recept);
                         if (obj.fact_recept == '0') {
                             let arriveDate = new Date(obj.expect_arrive_time);
                             arriveDate.setHours(0);
@@ -472,7 +472,7 @@ function findit() {
                     }
                     $("#nextday_num").text(nextNum);
 
-                    setPreprintedLocations(resInfo.preprintedLocations, resInfo.animalExpLocations);
+                    setPreprintedLocations(resInfo.preprintedLocations, resInfo.animalExpLocations, resInfo.allEmptyLocations);
 
                     filterSerialNO($("#screen").text());
 
@@ -483,11 +483,16 @@ function findit() {
 }
 
 var gPreprintedLocations = {};
-var setPreprintedLocations = function(preprintedLocations, animalExpLocations) {
+var gShelfLocations = {};
+
+var setPreprintedLocations = function(preprintedLocations, animalExpLocations, allEmptyLocations) {
 	gPreprintedLocations["normal"] = [];
 	gPreprintedLocations["endoeye"] = [];
 	gPreprintedLocations["udi"] = [];
 	gPreprintedLocations["animal"] = [];
+	gShelfLocations["normal"] = [];
+	gShelfLocations["endoeye"] = [];
+	gShelfLocations["udi"] = [];
 
 	for (var i in preprintedLocations) {
 		var preprintedLocation = preprintedLocations[i];
@@ -501,6 +506,18 @@ var setPreprintedLocations = function(preprintedLocations, animalExpLocations) {
 		}
 	}
 
+	for (var i in allEmptyLocations) {
+		var allEmptyLocation = allEmptyLocations[i];
+		switch (allEmptyLocation.direct_flg) {
+			case 0 :
+			gShelfLocations["normal"].push(allEmptyLocation); break;
+			case 1 :
+			gShelfLocations["endoeye"].push(allEmptyLocation); break;
+			case 2 :
+			gShelfLocations["udi"].push(allEmptyLocation); break;
+		}
+	}
+
 	if (animalExpLocations) {
 		for (var i in animalExpLocations) {
 			gPreprintedLocations["animal"].push(animalExpLocations[i].location);
@@ -508,21 +525,21 @@ var setPreprintedLocations = function(preprintedLocations, animalExpLocations) {
 	}
 	var info = "", infoAn = "";
 
-	if (gPreprintedLocations["normal"].length == 0) {
-		info += "普通内窥镜的通箱标签预打印已用完。\n";
+	if (gShelfLocations["normal"].length == 0) {
+		info += "普通内窥镜的通箱库位已满。\n";
 	}
-	if (gPreprintedLocations["endoeye"].length == 0) {
-		info += "Endoeye的通箱标签预打印已用完。\n";
+	if (gShelfLocations["endoeye"].length == 0) {
+		info += "Endoeye的通箱库位已满。\n";
 	}
-	if (gPreprintedLocations["udi"].length == 0) {
-		info += "光学视管的通箱标签预打印已用完。\n";
+	if (gShelfLocations["udi"].length == 0) {
+		info += "光学视管的通箱库位已满。\n";
 	}
 	if (gPreprintedLocations["animal"].length == 0) {
 		infoAn = "已经没有动物实验用周转箱库位，请确认。";
 	}
 
 	if (info && info.length) {
-		infoPop(info + "请预先打印一批。");
+		infoPop(info);
 	}
 	if (infoAn && infoAn.length) {
 //		infoPop(infoAn);
@@ -1329,15 +1346,26 @@ function showEditDialog(initData) {
 
 var chooseTcLocation = function(category_id, $target) {
 	var preprintedLocations = null;
+	var emptyLocations = null;
 
+	var category_kind = null;
 	switch(category_id) {
-		case CATEGORY_ENDOEYE_ID : preprintedLocations = gPreprintedLocations["endoeye"]; break; 
-		case CATEGORY_UDI_ID : preprintedLocations = gPreprintedLocations["udi"]; break;
-		default : preprintedLocations = gPreprintedLocations["normal"];
+		case CATEGORY_ENDOEYE_ID : 
+			category_kind = "endoeye";
+			break; 
+		case CATEGORY_UDI_ID : 
+			category_kind = "udi";
+			break;
+		default : 
+			category_kind = "normal";
 	}
+
+	preprintedLocations = gPreprintedLocations[category_kind]; 
+	emptyLocations = gShelfLocations[category_kind];
 
 	if ($target.closest("table.condform").find("span.animal").is(".checked")) {
 		preprintedLocations = gPreprintedLocations["animal"];
+		emptyLocations = [];
 	}
 
 	var $tcLocationCoverery = $("#tc_location_pop");
@@ -1347,11 +1375,19 @@ var chooseTcLocation = function(category_id, $target) {
 		$(document.body).append("<div id='tc_location_pop'/>")
 		$tcLocationCoverery = $("#tc_location_pop");
 		$tcLocationCoverery.hammer().on("touch", function(e){
-
-			if (e.target.className.indexOf("tc_location") >= 0) {
+			var eClass = e.target.className;
+			if (eClass.indexOf("tc_location") >= 0) {
 				$("#" + $tcLocationCoverery.attr("target_id")).text(e.target.innerText);
-			} else if (e.target.className.indexOf("tc_no_location") >= 0) {
+			} else if (eClass.indexOf("tc_no_location") >= 0) {
 				$("#" + $tcLocationCoverery.attr("target_id")).text("不分配");
+			} else if (eClass.indexOf("tc_shelf") >= 0) {
+				$tcLocationCoverery.find(".location_group").hide();
+				$tcLocationCoverery.find(".location_group[for='" + $(e.target).attr("for") +"']").show();
+				return;
+			} else if (eClass.indexOf("tc_pre_location") >= 0) {
+				$tcLocationCoverery.find(".location_group").hide();
+				$tcLocationCoverery.find(".location_group[for='pre']").show();
+				return;
 			}
     		$("body > .overlay").remove();
 			$tcLocationCoverery.hide();
@@ -1359,9 +1395,38 @@ var chooseTcLocation = function(category_id, $target) {
 	}
 
 	var tcLocationHtml = "<span class='tc_no_location'>不分配库位</span>";
-	for (var i in preprintedLocations) {
-		tcLocationHtml += "<span class='tc_location'>" + preprintedLocations[i] + "</span>"
+	var tcGroupHtml = "<div class='tc_group'>";
+
+	var groupCount = 0;
+	if (preprintedLocations.length) {
+		tcGroupHtml += "<span class='tc_pre_location'>预分配</span>";
+
+		tcLocationHtml += "<div class='location_group' for='pre'>";
+		for (var i in preprintedLocations) {
+			tcLocationHtml += "<span class='tc_location'>" + preprintedLocations[i] + "</span>"
+		}
+		groupCount = 1;
 	}
+
+	if (emptyLocations.length) {
+		var shelf = "-";
+		for (var i in emptyLocations) {
+			var emptyloc = emptyLocations[i];
+			if (emptyloc.shelf != shelf) {
+				tcGroupHtml += "<span class='tc_shelf' for='" + emptyloc.shelf + "'>" + emptyloc.shelf + " 货架</span>";
+				shelf = emptyloc.shelf;
+				if (groupCount > 0) tcLocationHtml += "</div>";
+				tcLocationHtml += "<div class='location_group' for='" + emptyloc.shelf + "'>";
+			}
+
+			tcLocationHtml += "<span class='tc_location'>" + emptyloc.location + "</span>"
+		}
+	}
+
+	if (groupCount > 0) tcLocationHtml += "</div>";
+
+	tcGroupHtml += "</div>";
+	tcLocationHtml += tcGroupHtml;
 
 	$(window).overlay();
 	var zIndex = 1050;
@@ -1371,6 +1436,71 @@ var chooseTcLocation = function(category_id, $target) {
 	}
 	$("body > .overlay").css("zIndex", zIndex);
 	$tcLocationCoverery.html(tcLocationHtml).css("zIndex", zIndex + 1).show();
+	$tcLocationCoverery.find(".location_group").hide(); // .eq(0).show();
+
+	var shelfRecord = null;
+	if (!localStorage.shelfRecordDay || localStorage.shelfRecordDay != new Date().getDay()) {
+		setupShelfRecords();
+	}
+	shelfRecord = getShelfRecord(category_kind);
+	if (shelfRecord) {
+		$tcLocationCoverery.find(".location_group[for='" + shelfRecord +"']").show();
+	} else {
+		$tcLocationCoverery.find(".location_group").eq(0).show();
+	}
+}
+
+function setupShelfRecords() {
+	setupShelfRecord("endoeye", gShelfLocations["endoeye"]);
+	setupShelfRecord("udi", gShelfLocations["udi"]);
+	setupShelfRecord("normal", gShelfLocations["normal"]);
+	localStorage.shelfRecordDay = new Date().getDay();
+}
+
+function setupShelfRecord(category_kind, emptyLocations) {
+	var maxShelf = null, shelf = null, maxCount = 0, count = 0;
+	for (var i in emptyLocations) {
+		var emptyloc = emptyLocations[i];
+		if (emptyloc.shelf != shelf) {
+			if (count > maxCount) {
+				maxCount = count;
+				maxShelf = shelf;
+			}
+			count = 0; shelf = emptyloc.shelf;
+		}
+		count++;
+	}
+	if (maxShelf) {
+		localStorage["todayShelf_" + category_kind] = maxShelf;
+	}
+}
+
+function getShelfRecord(category_kind) {
+	if ("animal" == category_kind) {
+		return null;
+	}
+	var retShelf = localStorage["todayShelf_" + category_kind];
+	if ($("#tc_location_pop").find(".location_group[for='" + retShelf +"']").length == 0) {
+		var hitNext = null;
+		var $location_groups = $("#tc_location_pop").find(".location_group").not("[for='pre']");
+		if ($location_groups.length == 0) return null;
+		$location_groups.each(function(idx, ele){
+			if (hitNext != null) {
+				return;
+			}
+			var thisFor = $(ele).attr("for");
+			if (thisFor > retShelf) {
+				hitNext = thisFor;
+			}
+		});
+		if (hitNext == null) {
+			localStorage["todayShelf_" + category_kind] = $location_groups.eq(0).attr("for");
+		} else {
+			localStorage["todayShelf_" + category_kind] = hitNext;
+		}
+	}
+
+	return localStorage["todayShelf_" + category_kind];
 }
 
 //直送/非直送临时编辑弹窗

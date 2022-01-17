@@ -688,7 +688,7 @@ public class AcceptanceAction extends BaseAction {
 		String path = service.printLabels(labels);
 
 		String passMessage = service.setToPrepare(labels, conn);
-		
+
 		cbResponse.put("path", path);
 		cbResponse.put("passMessage", passMessage);
 

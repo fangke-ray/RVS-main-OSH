@@ -407,7 +407,7 @@ label.tc_location:empty {
 #tc_location_pop {
 	position : fixed;
 	width : 75%;
-	height : 50%;
+	min-height : 50%;
 	background-color: rgba(255,255,255,0.75);
 	left: 12.5%;
 	top: 12.5%;
@@ -442,7 +442,28 @@ label.tc_location:empty {
 	border-left: 10px solid transparent;
 	border-right: 10px solid transparent;
 }
-
+#tc_location_pop .tc_group {
+	position: absolute;
+	min-height: 100%;
+	width: 6em;
+	left: -6em;
+	top: 0;
+	padding-left: 0.2em;
+	border-top-left-radius: .5em;
+	border-bottom-left-radius: 0.5em;
+	font-size: 14px;
+	background-color:white;
+	padding-bottom: 2px;
+}
+#tc_location_pop .tc_group > span {
+	display: block;
+	background-color:gold;
+	margin-top: 2px;
+	padding-left: 2px;
+	color: darkblue;
+	border-bottom-right-radius: 5em 3em;
+	border-top-right-radius: 5em 3em;
+}
 #model_keyboard_pop {
 	position : fixed;
 	width : 98%;

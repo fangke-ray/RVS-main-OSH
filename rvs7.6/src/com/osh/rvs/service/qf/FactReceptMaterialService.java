@@ -19,6 +19,7 @@ import com.osh.rvs.bean.data.MaterialTagEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
+import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialTagForm;
@@ -97,7 +98,15 @@ public class FactReceptMaterialService {
 		FactReceptMaterialEntity entity = new FactReceptMaterialEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
+		TurnoverCaseService tcService = new TurnoverCaseService();
+
 		dao.insertFactReceptMaterialTemp(entity);
+
+		
+		if (entity.getTag_types() == null || entity.getTag_types().indexOf("1") < 0) {
+			String path = tcService.printLabels(entity.getTc_location());
+			tcService.printRemote(path, conn);
+		}
 	}
 
 	public List<FactReceptMaterialForm> searchFactReceptMaterialTemp(ActionForm form, SqlSession conn) {
@@ -195,7 +204,7 @@ public class FactReceptMaterialService {
 				// 受理时间覆盖导入时间
 				acceptanceService.updateFormalReception(materialID, new Date(), conn);
 			}
-			
+
 			//维修对象属性标签
 			materialTagService.deleteByMaterialId(materialID, conn);
 			MaterialTagService.resetAnmlMaterials(conn);
@@ -207,7 +216,12 @@ public class FactReceptMaterialService {
 			// 设定通箱库位
 			if (factReceptMaterialForm.getTc_location() != null) {
 				TurnoverCaseService tcService = new TurnoverCaseService();
-				tcService.setToLocation(factReceptMaterialForm.getMaterial_id(), factReceptMaterialForm.getTc_location(), errors, conn);
+				Integer anml = tcService.setToLocation(factReceptMaterialForm.getMaterial_id(), factReceptMaterialForm.getTc_location(), errors, conn);
+
+				if (anml != null && anml != 1) {
+					String path = tcService.printLabels(factReceptMaterialForm.getTc_location());
+					tcService.printRemote(path, conn);
+				}
 
 				// 尝试触发通箱消毒等待
 				RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/assign_tc_space/" + materialID

@@ -48,4 +48,6 @@ public interface TurnoverCaseMapper {
 	public List<TurnoverCaseEntity> gerPreprintedLocations();
 
 	public List<TurnoverCaseEntity> getAnimalExpLocations();
+
+	public List<TurnoverCaseEntity> getAllEmptyLocations();
 }

@@ -36,12 +36,15 @@ import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.qf.TurnoverCaseForm;
 import com.osh.rvs.mapper.qf.TurnoverCaseMapper;
+import com.osh.rvs.service.UserDefineCodesService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
@@ -626,6 +629,14 @@ public class TurnoverCaseService {
 		return preEntity;
 	}
 
+	public List<TurnoverCaseEntity> getAllEmptyLocations(SqlSession conn) {
+		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+
+		List<TurnoverCaseEntity> allEntity = mapper.getAllEmptyLocations();
+
+		return allEntity;
+	}
+
 	/**
 	 * 库位设定给维修品
 	 * 
@@ -657,23 +668,66 @@ public class TurnoverCaseService {
 			error.setErrmsg("库位不存在。");
 			errors.add(error);
 		} else {
-			TurnoverCaseEntity loc = ret.get(0);
-			if ((loc.getAnml_exp() == null || loc.getAnml_exp() != 1) &&
-					(loc.getExecute() == null || loc.getExecute() != 9)) {
-				MsgInfo error = new MsgInfo();
-				error.setErrmsg("此库位没有打印标签，或者已经被使用，请重新选择。");
-				errors.add(error);
-			}
+//			TurnoverCaseEntity loc = ret.get(0);
+//			if ((loc.getAnml_exp() == null || loc.getAnml_exp() != 1) &&
+//					(loc.getExecute() == null || loc.getExecute() != 9)) {
+//				MsgInfo error = new MsgInfo();
+//				error.setErrmsg("此库位没有打印标签，或者已经被使用，请重新选择。");
+//				errors.add(error);
+//			}
 		}
 	}
 
-	public void setToLocation(String material_id, String location,
+	public Integer setToLocation(String material_id, String location,
 			List<MsgInfo> errors, SqlSessionManager conn) {
 		TurnoverCaseMapper mapper = conn.getMapper(TurnoverCaseMapper.class);
+
+		TurnoverCaseEntity condition = new TurnoverCaseEntity();
+		condition.setLocation(location);
+		List<TurnoverCaseEntity> ret = mapper.searchTurnoverCase(condition);
+		if (ret.size() == 0) {
+			MsgInfo error = new MsgInfo();
+			error.setErrmsg("库位不存在。");
+			errors.add(error);
+			return null;
+		} else if (ret.get(0).getMaterial_id() != null) {
+			MsgInfo error = new MsgInfo();
+			error.setErrmsg("库位已占有。");
+			errors.add(error);
+			return null;
+		}
 
 		// 指定库位
 		if (errors.size() == 0) {
 			mapper.setToLocation(location, material_id);
+		}
+		return ret.get(0).getAnml_exp();
+	}
+
+	public String printRemote(String filePath, SqlSession conn) {
+		String reqID = "" + new Date().getTime();
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("reqId", reqID);
+
+		String remoteUrl = "127.0.0.1";
+		if (conn != null) {
+			UserDefineCodesService udService = new UserDefineCodesService();
+			String udHost = udService.searchUserDefineCodesValueByCode("TC_TICKET_PRINT_HOST", conn);
+			if (!CommonStringUtil.isEmpty(udHost)) {
+				remoteUrl = udHost;
+			}
+		}
+		remoteUrl = "http://" + remoteUrl + ":8081/printReq";
+		_log.info("remoteUrl=" + remoteUrl);
+
+		filePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\" + filePath;
+
+		try {
+			RvsUtils.sendMultipartFormData(remoteUrl, params, filePath);
+			return reqID;
+		} catch (IOException e) {
+			_log.error(e.getMessage(), e);
+			return null;
 		}
 	}
 

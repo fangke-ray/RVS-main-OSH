@@ -42,6 +42,7 @@ var enablebuttons = function() {
 	$("#placeButton").disable();
 	$("#removeButton").disable();
 	$("#moveButton").disable();
+	$("#printButton").disable();
 
 	var rowid = $("#list").jqGrid("getGridParam", "selrow");
 	if (!rowid) {
@@ -59,6 +60,7 @@ var enablebuttons = function() {
 			$("#removeButton").disable();
 			$("#moveButton").disable();
 		}
+		$("#printButton").enable();
 	}
 };
 
@@ -214,6 +216,7 @@ $(function() {
 	$("#placeButton").click(showIdleMaterialList);
 	$("#removeButton").click(warehousing);
 	$("#moveButton").click(doMove);
+	$("#printButton").click(remotePrint);
 
 	// 清空检索条件
 	$("#resetbutton").click(function() {
@@ -573,3 +576,24 @@ var doPutin = function($this_dialog, location, material_id) {
 		}
 	})	
 } 
+
+var remotePrint = function() {
+	var rowid = $("#list").jqGrid("getGridParam", "selrow");
+	var rowdata = $("#list").getRowData(rowid);
+	var postData = {'location' : rowdata.location	};
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=printTcLabel',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj) {
+			
+		}
+	});
+}

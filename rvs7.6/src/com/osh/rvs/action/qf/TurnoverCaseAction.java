@@ -394,4 +394,29 @@ public class TurnoverCaseAction extends BaseAction {
 		log.info("TurnoverCaseAction.doPutin end");
 	}
 
+	@Privacies(permit = { 100, 0 })
+	public void printTcLabel(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
+			SqlSession conn) throws Exception {
+
+		log.info("TurnoverCaseAction.printTcLabel start");
+		// Ajax回馈对象
+		Map<String, Object> calbackResponse = new HashMap<String, Object>();
+
+		// 执行检索
+		TurnoverCaseService service = new TurnoverCaseService();
+
+		String location = req.getParameter("location");
+		String path = service.printLabels(location);
+
+		service.printRemote(path, conn);
+
+		// 检查发生错误时报告错误信息
+		calbackResponse.put("errors", new ArrayList<MsgInfo>());
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, calbackResponse);
+
+		log.info("TurnoverCaseAction.printTcLabel end");
+	}
+
 }
