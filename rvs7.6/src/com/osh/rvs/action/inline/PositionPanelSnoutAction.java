@@ -457,6 +457,9 @@ public class PositionPanelSnoutAction extends BaseAction {
 					boolean hit = false;
 					List<String> nos = new ArrayList<String>();
 					for(SnoutEntity m : listTobe) {
+						if (m.getFinish_time() == null) {
+							continue;
+						}
 						if (material_id.equals(m.getMaterial_id())) {
 							hit = true;
 						}

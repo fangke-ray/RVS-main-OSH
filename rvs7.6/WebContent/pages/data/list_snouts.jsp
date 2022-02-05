@@ -117,6 +117,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<% } else if (isLine) { %>
 			<div class="ui-widget-header areabase" style="padding-top: 4px; margin-button: 6px; margin-bottom: 16px;">
 				<div id="executes" style="margin-left: 4px; margin-top: 2px;">
+					<input id="st_adjust_button" class="ui-button" value="调整目镜·软管筒数" role="button" type="button" style="float:right; margin-right: 4px;">
 					<input id="st_snout_list_button" class="ui-button" value="C 本体详细" role="button" type="button" style="float:right; margin-right: 4px;">
 					<div class="clear"></div>
 				</div>
@@ -373,6 +374,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	<div class="ui-widget-header" style="padding: 4px;">
 		<input id="sth_add_button" class="ui-button" value="补充 C 本体" role="button" type="button">
 		<input id="sth_remove_button" class="ui-button" value="废弃 C 本体" role="button" type="button">
+		<input id="sth_wash_button" class="ui-button" value="回收清洗 C 本体" role="button" type="button">
 	</div>
 <% } %>
 </div>

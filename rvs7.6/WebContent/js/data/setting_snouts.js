@@ -457,7 +457,7 @@ var st_func = {
 					rowheight : 23,
 					datatype : "local",
 					colNames : [ 'material_id', '来源修理单号', '修理等级',
-							'C 本体翻新', '灭菌时间'],
+							'C 本体翻新', 'confirmer_name', '灭菌时间'],
 					colModel : [
 					{name:'origin_material_id',index:'origin_material_id', hidden:true, key: true},
 					{
@@ -485,6 +485,10 @@ var st_func = {
 							}
 						}
 					}, {
+						name : 'confirmer_name',
+						index : 'confirmer_name',
+						hidden:true
+					}, {
 						name :'finish_time',
 						index :'finish_time',
 						align : 'center',
@@ -498,6 +502,12 @@ var st_func = {
 					gridview : true, // Speed up
 					onSelectRow: function(rid){
 						$("#sth_remove_button").enable();
+						var rowData = $("#snout_prepairlist").getRowData(rid);
+						if (rowData["confirmer_name"] == "0") {
+							$("#sth_wash_button").enable();
+						} else {
+							$("#sth_wash_button").disable();
+						}
 					},
 					pagerpos : 'right',
 					pgbuttons : true,
@@ -505,7 +515,7 @@ var st_func = {
 					recordpos : 'left',
 					viewsortcols : [true, 'vertical', true],
 					gridComplete: function(){
-						$("#sth_remove_button").disable();
+						$("#sth_remove_button, #sth_wash_button").disable();
 					}
 				});
 			}
@@ -518,6 +528,8 @@ var st_func = {
 			$("#sth_add_button").disable().off("click");
 		}
 		$("#sth_remove_button").off("click").on("click", st_func.abandonSnout);
+		$("#sth_wash_button").off("click").on("click", st_func.continueCycle);
+
 		$("#st_pop_window_prepairlist").dialog({
 			resizable : false,
 			width : 'auto',
@@ -546,7 +558,7 @@ var st_func = {
 			tbodyHtml += "<tr material_id='" + tobe.material_id + "'><td>" + tobe.sorc_no + "</td>";
 			tbodyHtml += "<td>" + tobe.serial_no + "</td>";
 			tbodyHtml += "<td>S" + tobe.level + "</td>";
-			if (value == '0') {
+			if (tobe.isHistory == '0') {
 				tbodyHtml += "<td>" + tobe.isHistory + " 次</td></tr>";
 			} else {
 				tbodyHtml += "<td><a href='javascript:showRefurb(" + tobe.material_id + ")'>" + tobe.isHistory + " 次</a></td></tr>";
@@ -586,18 +598,18 @@ var st_func = {
 				var resInfo = $.parseJSON(xhrobj.responseText);
 
 				if (typeof pcsO === "object") {
-					st_func.confirmRecover(material_id, resInfo.pcses);
+					st_func.confirmRecover(material_id, resInfo.pcses, resInfo.registed); // resInfo.registed == "true"??
 				} else {
 					loadJs("js/common/pcs_editor.js",
 						function(){
-							st_func.confirmRecover(material_id, resInfo.pcses);
+							st_func.confirmRecover(material_id, resInfo.pcses, resInfo.registed);
 						}
 					);
 				}
 			}
 		});		
 	},
-	confirmRecover : function(material_id, pcses){
+	confirmRecover : function(material_id, pcses, registed){
 		var $confirm_recover_dialog = $("#confirm_recover_dialog"); 
 		if ($confirm_recover_dialog.length == 0) {
 			$(document.body).append("<div id='confirm_recover_dialog'></div>");
@@ -607,26 +619,41 @@ var st_func = {
 		var $pcs_container = $confirm_recover_dialog.children("#dialog_pcs_container");
 		pcsO.init($pcs_container, false);
 		pcsO.generate(pcses, true);
+
+		var cycleButtons = {
+			"仅登录" : function(){
+				var postData = {"material_id" : material_id, step : 1};
+
+				st_func.recoverSnout(postData);
+			},
+			"回收清洗" : function(){
+				var postData = {"material_id" : material_id};
+				if (registed) {
+					postData.step = 3;
+				}
+				var empty = pcsO.valuePcs(postData);
+
+				if (empty) {
+					errorPop("请填完的全部的工程检查票选项。");
+					return;
+				}
+				st_func.recoverSnout(postData);
+			},
+			"关闭" : function(){
+				$confirm_recover_dialog.dialog("close");
+			}
+		}
+
+		if (registed) {
+			delete cycleButtons["仅登录"];
+		}
+
 		$confirm_recover_dialog.dialog({
 			resizable : false,
 			modal : true,
 			width:960,
 			title : "确认回收",
-			buttons : {
-				"提交" : function(){
-					var postData = {"material_id" : material_id};
-					var empty = pcsO.valuePcs(postData);
-
-					if (empty) {
-						errorPop("请填完的全部的工程检查票选项。");
-						return;
-					}
-					st_func.recoverSnout(postData);
-				},
-				"关闭" : function(){
-					$confirm_recover_dialog.dialog("close");
-				}
-			}
+			buttons : cycleButtons
 		});
 	},
 	recoverSnout : function(postData){
@@ -651,27 +678,36 @@ var st_func = {
 	},
 	abandonSnout : function(){
 		var material_id = $("#snout_prepairlist").jqGrid("getGridParam", "selrow");// 得到选中行的ID
-		var data = {
-			"material_id" : material_id
-		};
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			async : false,
-			url : 'snouts.do?method=doAbandon',
-			cache : false,
-			data : data,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : function(xhrobj) {
-				st_func.snoutListUpd = true;
-				griddata_remove(st_func.snoutListdata, "material_id", material_id, false);
-				$("#snout_prepairlist").jqGrid().clearGridData();
-				$("#snout_prepairlist").jqGrid('setGridParam', {data : st_func.snoutListdata}).trigger("reloadGrid", [{current : false}]);
-			}
+		var rowData = $("#snout_prepairlist").getRowData(material_id);
+
+		warningConfirm("确认要废弃源自【" + encodeText(rowData.origin_omr_notifi_no) + "】的 C 本体吗？", function() {
+
+			var data = {
+				"material_id" : material_id
+			};
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : false,
+				url : 'snouts.do?method=doAbandon',
+				cache : false,
+				data : data,
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : function(xhrobj) {
+					st_func.snoutListUpd = true;
+					griddata_remove(st_func.snoutListdata, "origin_material_id", material_id, false);
+					$("#snout_prepairlist").jqGrid().clearGridData();
+					$("#snout_prepairlist").jqGrid('setGridParam', {data : st_func.snoutListdata}).trigger("reloadGrid", [{current : false}]);
+				}
+			});
 		});
 	}, 
+	continueCycle : function(){
+		var material_id = $("#snout_prepairlist").jqGrid("getGridParam", "selrow");
+		st_func.getRecoverPcs(material_id);
+	},
 	autoSearch : function ($tr, mode){
 		var component_code;
 		if (mode == 1) {

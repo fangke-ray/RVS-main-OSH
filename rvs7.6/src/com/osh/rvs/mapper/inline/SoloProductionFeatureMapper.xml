@@ -763,18 +763,20 @@ order by manage_serial_no
 				(select count(1) from snout_origin where root_origin_id = so.root_origin_id 
 					and manage_serial_no IS NOT NULL)
 				as refurbished,
-				pf132.finish_time
+                pf132.material_id is not null as confirmer_name,
+				case when operate_result = 2 then pf132.finish_time else null end as finish_time
 			FROM snout_origin so
 			join material ma on so.material_id = ma.material_id
 			left join production_feature pf132 
 				on pf132.material_id = so.material_id 
-				and operate_result = 2 
 				and position_id in (select position_id from position where special_page = 'snout_eog')
 			where manage_serial_no IS NULL
 			and root_origin_id is not null
 			and usage_material_id is null
 			and ma.model_id = #{model_id}
-			order by finish_time IS NULL, finish_time;
+            group by so.material_id
+			order by finish_time IS NULL, finish_time
+            ;
 		]]>
 	</select>
 
@@ -782,7 +784,7 @@ order by manage_serial_no
 		select ma.material_id, ma.omr_notifi_no as sorc_no, ma.level, ma.serial_no 
 		from material ma
         join material_process mp
-        on ma.material_id = mp.material_id and mp.line_id = 12
+        on ma.material_id = mp.material_id and mp.line_id = 14
 		where 
 			break_back_flg = 0
 			and outline_time is null

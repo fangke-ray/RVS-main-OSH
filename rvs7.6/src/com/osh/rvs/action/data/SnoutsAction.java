@@ -298,40 +298,46 @@ public class SnoutsAction extends BaseAction {
 		SoloSnoutService service = new SoloSnoutService();
 
 		String org_material_id = req.getParameter("material_id");
+		String step = req.getParameter("step");
+
 		if (msgInfos.size() == 0) {
 			// 回收预置品
-			service.setToOrigin(org_material_id, conn);
-
-			String pcs_inputs = req.getParameter("pcs_inputs");
-
-			if (pcs_inputs == null) {
-				service.getRecoverPcs(org_material_id, callbackResponse, conn);
-			} else {
-				// 取得登录用户权限
-				LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
-				List<Integer> privacies = user.getPrivacies();
-
-				if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
-					service.saveLeaderInput(req, user, org_material_id, conn);
-				}
+			if (!"3".equals(step)) { // 3 = 已登陆的清洗回收
+				service.setToOrigin(org_material_id, conn);
 			}
 
-			// 灭菌等待
-			List<String> eogPositionId = PositionService.getPositionsBySpecialPage("snout_eog", conn);
-			if (eogPositionId != null) {
-				ProductionFeatureService pfService = new ProductionFeatureService();
-				List<String> triggerList = new ArrayList<String>();
-				ProductionFeatureEntity workingPf = new ProductionFeatureEntity();
-				workingPf.setMaterial_id(org_material_id);
-				workingPf.setPosition_id(eogPositionId.get(0));
-				workingPf.setSection_id("00000000009");
-				workingPf.setRework(0);
-				workingPf.setPace(0);
+			if (!"1".equals(step)) { // 1 = 仅登录
+				String pcs_inputs = req.getParameter("pcs_inputs");
 
-				pfService.fingerSpecifyPosition(org_material_id, true, workingPf, triggerList, conn);
-				if (triggerList.size() > 0) {
-					conn.commit();
-					RvsUtils.sendTrigger(triggerList);
+				if (pcs_inputs == null) {
+					service.getRecoverPcs(org_material_id, callbackResponse, conn);
+				} else {
+					// 取得登录用户权限
+					LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+					List<Integer> privacies = user.getPrivacies();
+
+					if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+						service.saveLeaderInput(req, user, org_material_id, conn);
+					}
+				}
+
+				// 灭菌等待
+				List<String> eogPositionId = PositionService.getPositionsBySpecialPage("snout_eog", conn);
+				if (eogPositionId != null) {
+					ProductionFeatureService pfService = new ProductionFeatureService();
+					List<String> triggerList = new ArrayList<String>();
+					ProductionFeatureEntity workingPf = new ProductionFeatureEntity();
+					workingPf.setMaterial_id(org_material_id);
+					workingPf.setPosition_id(eogPositionId.get(0));
+					workingPf.setSection_id("00000000009");
+					workingPf.setRework(0);
+					workingPf.setPace(0);
+
+					pfService.fingerSpecifyPosition(org_material_id, true, workingPf, triggerList, conn);
+					if (triggerList.size() > 0) {
+						conn.commit();
+						RvsUtils.sendTrigger(triggerList);
+					}
 				}
 			}
 		}
@@ -395,7 +401,12 @@ public class SnoutsAction extends BaseAction {
 		List<MsgInfo> msgInfos = new ArrayList<MsgInfo>();
 
 		SoloSnoutService service = new SoloSnoutService();
-		service.getRecoverPcs(req.getParameter("material_id"), callbackResponse, conn);
+		String originId =  req.getParameter("material_id");
+		service.getRecoverPcs(originId, callbackResponse, conn);
+
+		// 检查是否已经登录
+		boolean bExist = service.checkUsedForOrigin(originId, conn);
+		callbackResponse.put("registed", bExist);
 
 		// 检查发生错误时报告错误信息
 		callbackResponse.put("errors", msgInfos);
