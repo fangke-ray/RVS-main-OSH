@@ -1038,8 +1038,14 @@ var getFlags = function(expedited, direct_flg, light_fix,reworked, imbalance, an
 var getBlock = function(block_status) {
 	if (block_status) {
 		var retDiv = "<div class='pa_flags'>";
-		if (block_status == 1) retDiv += "<div class='bo_flg'><span>BO</span></div>";
-		if (block_status == 2) retDiv += "<div class='bo_flg'><span>PA</span></div>";
+		switch (block_status) {
+			case 1:
+				retDiv += "<div class='bo_flg'><span>BO</span></div>";
+				break;
+			case 2: 
+				retDiv += "<div class='bo_flg'><span>PA</span></div>";
+				break;
+		}
 		retDiv += "</div>";
 		return retDiv;
 	} else {
@@ -1814,6 +1820,7 @@ var getWaitingHtml = function(waitings, other) {
 								// getInPlaceTime(waiting.in_place_time) +   
 								getDryingTime(waiting.drying_process) +   
 								getProcessCode(waiting.position_id, waiting.process_code) +   
+								getConcern(waiting.concern) +   
 							'</div>' +
 						'</div>';
 		if (other && !waiting.imbalance) {
@@ -1915,6 +1922,28 @@ var getProcessCode = function(positionId, processCode) {
 	} else {
 		return "";
 	}
+}
+var getConcern = function(concern) {
+	if (concern) {
+		if (concern.operate_result == 1) {
+			return "<div class='concern concern_end'>" + showDateOrMinute(concern.finish_time) + "</div>";
+		} else {
+			return "<div class='concern concern_start'>" + showDateOrMinute(concern.action_time) + "</div>";
+		}
+	}
+}
+
+var showDateOrMinute = function(pTimestamp) {
+	if (pTimestamp) {
+		var pTime = new Date(pTimestamp);
+		var pToday = new Date();
+		if (pTime.getDate() == pToday.getDate()) {
+			return fillZero(pTime.getHours()) + ":" + fillZero(pTime.getMinutes())
+		} else {
+			return fillZero(pTime.getMonth() + 1) + "-" + fillZero(pTime.getDate())
+		}
+	}
+	return "-";
 }
 var getWaitings = function() {
 	$.ajax({

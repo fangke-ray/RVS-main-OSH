@@ -225,6 +225,11 @@ public class PositionPanelAction extends BaseAction {
 
 			user.setGroup_position_id(null);
 
+			PositionEntity concernPosition = PositionService.getConcernPosition(position_id, conn);
+			if (concernPosition != null) {
+				req.setAttribute("concernPosition", concernPosition.getProcess_code() + " " + concernPosition.getName());
+			}
+
 			String special_forwards = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
 
 			if (special_forwards == null) {

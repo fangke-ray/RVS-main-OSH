@@ -391,6 +391,7 @@ and a.inline_time is null -- [SpeedUp]
 			 order by a.action_time asc
 		]]>
 	</select>
+
 	<select id="getNoBeforeRework" parameterType="java.lang.String" resultType="ProductionFeatureEntity">
 		<![CDATA[ 
 			SELECT 
@@ -707,4 +708,16 @@ and a.inline_time is null -- [SpeedUp]
 			AND finish_time IS NOT NULL
 		]]>
 	</select>
+
+	<select id="getPeriodInPositionOfMaterialId" parameterType="ProductionFeatureEntity" resultType="ProductionFeatureEntity">
+		SELECT 
+			min(action_time) as action_time,
+			max(finish_time) as finish_time,
+			sum(operate_result = 2) as operate_result
+		from production_feature
+        where material_id = #{material_id}
+        and position_id = #{position_id}
+        and action_time is not null
+	</select>
+
 </mapper>

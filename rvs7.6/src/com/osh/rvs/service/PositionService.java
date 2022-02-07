@@ -14,11 +14,13 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.PositionGroupEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.ReverseResolution;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.PositionForm;
@@ -34,6 +36,8 @@ import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class PositionService {
+
+	protected static final Logger logger = Logger.getLogger(PositionService.class);
 
 	private static Set<String> dividePositions = null;
 	private static Map<String, List<String>> groupPosSections = null;
@@ -51,6 +55,8 @@ public class PositionService {
 	private static Set<String> addiOrderPositions = null;
 	@SuppressWarnings("unused")
 	private static Set<String> addiOrderLastPositions = null;
+	private static Map<String, PositionEntity> concernPositions = null;
+
 	public static final String ORDER_POSITION = "00000000109";
 
 	public static void clearCaches() {
@@ -68,6 +74,7 @@ public class PositionService {
 		addiOrderPositions = null;
 		addiOrderLastPositions = null;
 		positionEntityCache.clear();
+		concernPositions = null;
 		ReverseResolution.positionRever.clear();
 	}
 
@@ -875,5 +882,45 @@ public class PositionService {
 		default :
 			return null;
 		}
+	}
+
+	/**
+	 * 取得本工位的关注工位
+	 * 
+	 * @param viewPositionId
+	 * @param conn
+	 * @return
+	 */
+	public static PositionEntity getConcernPosition(String viewPositionId, SqlSession conn) {
+		if (concernPositions == null) {
+			concernPositions = new HashMap<String, PositionEntity>();
+			String concernPositionsProp = PathConsts.POSITION_SETTINGS.getProperty("concern.positions");
+			if (concernPositionsProp != null) {
+				String[] concernProcessCodes = concernPositionsProp.split(",");
+
+				try {
+					for (String concernProcessCode : concernProcessCodes) {
+						concernProcessCode = concernProcessCode.trim();
+						String sPositionId = ReverseResolution.getPositionByProcessCode(concernProcessCode, conn);
+						String targetProcessCode = PathConsts.POSITION_SETTINGS.getProperty("concern." + concernProcessCode);
+						if (targetProcessCode != null) {
+							targetProcessCode = targetProcessCode.trim();
+							String tPositionId = ReverseResolution.getPositionByProcessCode(targetProcessCode, conn);
+							if (tPositionId != null) {
+								PositionService oThis = new PositionService();
+								PositionEntity entity = oThis.getPositionEntityByKey(tPositionId, conn);
+								if (entity != null) {
+									concernPositions.put(sPositionId, entity);
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+					logger.error("错误的关注工位配置：" + e.getMessage());
+				}
+			}
+			
+		}
+		return concernPositions.get(viewPositionId);
 	}
 }

@@ -130,4 +130,6 @@ public interface ProductionFeatureMapper {
 	public List<ProductionFeatureEntity> getFinishedProductionFeatureByMaterialId(@Param("material_id") String material_id, @Param("line_id") String line_id);
 
 	public int checkFinishedDisinfection(@Param("material_id") String material_id);
+
+	public ProductionFeatureEntity getPeriodInPositionOfMaterialId(ProductionFeatureEntity entity);
 }

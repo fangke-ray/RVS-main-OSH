@@ -2,6 +2,7 @@ package com.osh.rvs.bean.inline;
 
 import java.io.Serializable;
 
+import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.form.inline.DryingProcessForm;
 
 /**
@@ -37,6 +38,8 @@ public class WaitingEntity implements Serializable {
 	private String process_code;
 	private String fix_type;
 	private Integer anml_exp;
+
+	private ProductionFeatureEntity concern;
 
 	public String getMaterial_id() {
 		return material_id;
@@ -199,5 +202,11 @@ public class WaitingEntity implements Serializable {
 	}
 	public void setLevel(Integer level) {
 		this.level = level;
+	}
+	public ProductionFeatureEntity getConcern() {
+		return concern;
+	}
+	public void setConcern(ProductionFeatureEntity concern) {
+		this.concern = concern;
 	}
 }

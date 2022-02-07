@@ -579,6 +579,20 @@ public class PositionPanelService {
 	}
 	private void signWaitingEntity(List<WaitingEntity> ret, String singlePositionId, String singleProcessCode, String groupPositionId,
 			List<WaitingEntity> completes, SqlSession conn) {
+
+		ProductionFeatureEntity concernCondi = null;
+		ProductionFeatureMapper pfMapper = null;
+
+		if (groupPositionId == null) {
+
+			PositionEntity concernPosition = PositionService.getConcernPosition(singlePositionId, conn);
+			if (concernPosition != null) {
+				concernCondi = new ProductionFeatureEntity();
+				concernCondi.setPosition_id(concernPosition.getPosition_id());
+				pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+			}
+		}
+
 		boolean checkComStorage = "410".equals(singleProcessCode) || "411".equals(singleProcessCode) || "412".equals(singleProcessCode); // TODO
 		Map<String, String> comStorageMap = null;
 		if (checkComStorage) {
@@ -638,6 +652,14 @@ public class PositionPanelService {
 			else if ("3".equals(we.getWaitingat())) we.setWaitingat("中断等待再开");
 			else if ("7".equals(we.getWaitingat())) we.setWaitingat("待投入");
 			else if ("5".equals(we.getWaitingat())) we.setWaitingat("通箱");
+
+			if (concernCondi != null) {
+
+				// 取得维修品关注工位当前进度
+				concernCondi.setMaterial_id(we.getMaterial_id());
+				we.setConcern(
+						pfMapper.getPeriodInPositionOfMaterialId(concernCondi));
+			}
 		}
 
 		// 根据后工程的仕挂量数提升优先度
