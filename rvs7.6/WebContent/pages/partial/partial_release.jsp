@@ -15,6 +15,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <style>
 #arrive_partial_list .ui-state-highlight {
 background-color:white;}
+
+#cb_chooser {
+	position:absolute;
+	display:none;
+	left:0;
+}
+#cb_chooser.ui-widget-header span {
+	font-size:12px;
+}
 </style>
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
@@ -26,7 +35,7 @@ background-color:white;}
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
-<script type="text/javascript" src="js/partial/partial_release.js"></script>
+<script type="text/javascript" src="js/partial/partial_release.js?v=3461"></script>
 <title>零件发放</title>
 </head>
 <body class="outer" style="align: center;">
@@ -153,10 +162,15 @@ background-color:white;}
 				</div>
 				
 				<div class="clear areaencloser"></div>
-				
+
 				<div id="mpd_listarea" class="ui-widget-content">
-					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
+					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser" style="position:relative;">
 						<span class="areatitle">零件一览</span>
+						<div id="cb_chooser" class="ui-widget-header">
+							<button>全部选择</button>
+							<button>仅NS 工程选择</button>
+							<button>全部取消</button>
+						</div>
 						<a target="_parent" role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 							<span class="ui-icon ui-icon-circle-triangle-w"></span>
 						</a>
