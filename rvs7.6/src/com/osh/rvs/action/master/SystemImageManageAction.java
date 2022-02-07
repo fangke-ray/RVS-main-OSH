@@ -218,7 +218,7 @@ public class SystemImageManageAction extends BaseAction {
     	log.info("SystemImageManageAction.output start");
 
 		String from = req.getParameter("from");
-		String fileName =req.getParameter("fileName");
+		String fileName =RvsUtils.charRecorgnize(req.getParameter("fileName"));
 
 		String contentType = "";
 		if (CommonStringUtil.isEmpty(fileName)) {

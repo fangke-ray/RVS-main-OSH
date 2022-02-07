@@ -16,6 +16,7 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.infect.CheckedFileStorageEntity;
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DownloadService;
 import com.osh.rvs.service.FilingDownloadService;
@@ -52,7 +53,7 @@ public class FilingDownloadAction extends BaseAction {
 		
 		//下载的文件名字
 		String strFileName=req.getParameter("fileName");
-		String fileName = strFileName;
+		String fileName = RvsUtils.charRecorgnize(strFileName);
 
 		String contentType = "";
 		if (CommonStringUtil.isEmpty(fileName)) {
@@ -80,7 +81,7 @@ public class FilingDownloadAction extends BaseAction {
 	public ActionForward make(ActionMapping mapping, ActionForm form, HttpServletRequest req,
 			HttpServletResponse res, SqlSession conn) throws Exception {
 		String sEntity = req.getParameter("entity");
-//		sEntity = new String(sEntity.getBytes("ISO-8859-1"), "utf-8");
+		sEntity = RvsUtils.charRecorgnize(sEntity);
 
 		CheckResultService service = new CheckResultService();
 

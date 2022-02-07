@@ -1425,7 +1425,7 @@ public class RvsUtils {
 		return ip;
 	}
 
-	public static Integer SYS_ENC_TYPE = null;
+	public static Integer SYS_ENC_TYPE = 4; // null
 	public static String charRecorgnize(String tsring) {
 		if (tsring == null)
 			return null;		
@@ -1452,11 +1452,12 @@ public class RvsUtils {
 						if (Arrays.equals(readSys, readGb2312)) {
 							SYS_ENC_TYPE = 2;
 							logger.info("SYS_ENC_TYPE = gb2312;");
-						}
-						byte[] readGbk = tsring.getBytes("gbk");
-						if (Arrays.equals(readSys, readGbk)) {
-							SYS_ENC_TYPE = 3;
-							logger.info("SYS_ENC_TYPE = gbk;");
+						} else {
+							byte[] readGbk = tsring.getBytes("gbk");
+							if (Arrays.equals(readSys, readGbk)) {
+								SYS_ENC_TYPE = 3;
+								logger.info("SYS_ENC_TYPE = gbk;");
+							}
 						}
 
 						return new String(tsring.getBytes("ISO8859-1"), "UTF-8");
@@ -1495,6 +1496,15 @@ public class RvsUtils {
 		if (tsring == null)
 			return null;
 		try {
+			if (SYS_ENC_TYPE == 2) {
+				return java.net.URLEncoder.encode(new String(tsring.getBytes("UTF-8"), "ISO8859-1"), "gb2312");
+//				return java.net.URLEncoder.encode(tsring, "gb2312");
+			} else if (SYS_ENC_TYPE == 3) {
+				return java.net.URLEncoder.encode(new String(tsring.getBytes("UTF-8"), "ISO8859-1"), "gbk");
+//				return java.net.URLEncoder.encode(tsring, "gbk");
+			} else if (SYS_ENC_TYPE == 4) {
+				return java.net.URLEncoder.encode(tsring, "UTF-8");
+			}
 			return java.net.URLEncoder.encode(tsring, "UTF-8");
 		} catch (UnsupportedEncodingException e) {
 			 try {

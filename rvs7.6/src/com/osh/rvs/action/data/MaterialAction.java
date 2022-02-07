@@ -913,7 +913,7 @@ public class MaterialAction extends BaseAction {
 			HttpServletResponse res, SqlSession conn) throws Exception {
     	log.info("MaterialAction.output start");
 
-		String fileName =req.getParameter("fileName");
+		String fileName = RvsUtils.charRecorgnize(req.getParameter("fileName"));
 
 		String contentType = DownloadService.CONTENT_TYPE_ZIP;
 //		if (CommonStringUtil.isEmpty(fileName)) {
@@ -925,7 +925,7 @@ public class MaterialAction extends BaseAction {
 		String filePath = "";
 		filePath = PathConsts.BASE_PATH + PathConsts.PCS+"\\_monthly\\"+fileName;
 
-		 res.setHeader( "Content-Disposition", "attachment;filename=" + RvsUtils.charEncode( fileName) );  
+		res.setHeader( "Content-Disposition", "attachment;filename=" + RvsUtils.charEncode(fileName));  
 		res.setContentType(contentType);
 		File file = new File(filePath);
 		InputStream is = new BufferedInputStream(new FileInputStream(file));

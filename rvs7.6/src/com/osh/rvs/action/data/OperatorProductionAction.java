@@ -375,7 +375,7 @@ public class OperatorProductionAction extends BaseAction {
 			HttpServletResponse res, SqlSession conn) throws Exception {
     	log.info("OperatorProductionAction.output start");
 
-		String fileName =req.getParameter("fileName");
+		String fileName = RvsUtils.charRecorgnize(req.getParameter("fileName"));
 
 		String contentType = "";
 //		if (CommonStringUtil.isEmpty(fileName)) {

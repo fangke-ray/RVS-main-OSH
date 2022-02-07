@@ -14,6 +14,7 @@ import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.common.XlsUtil;
 import com.osh.rvs.common.ZipUtility;
 import com.osh.rvs.form.data.MaterialForm;
@@ -52,7 +53,7 @@ public class DownloadAction extends BaseAction {
 
 		String filePath = req.getParameter("filePath");
 		String from = req.getParameter("from");
-		String fileName =req.getParameter("fileName");
+		String fileName = req.getParameter("fileName");
 
 		String contentType = "";
 		if (CommonStringUtil.isEmpty(fileName)) {
@@ -72,9 +73,9 @@ public class DownloadAction extends BaseAction {
 		}
 		String strFileName = "";
 		if (CommonStringUtil.isEmpty(filePath)) {
-			filePath = fileName;//  new String(fileName.getBytes("iso-8859-1"),"UTF-8");
-//		} else {
-//			filePath = new String(filePath.getBytes("iso-8859-1"),"UTF-8");
+			filePath = RvsUtils.charRecorgnize(fileName);//  new String(fileName.getBytes("iso-8859-1"),"UTF-8");
+		} else {
+			filePath = RvsUtils.charRecorgnize(filePath);
 		}
 
 		strFileName = filePath.replaceAll(".*-(\\d{4}\\-\\d{2})\\-\\d{2}.*", "$1").replaceAll("-", "");
@@ -203,7 +204,7 @@ public class DownloadAction extends BaseAction {
 		logger.info("DownloadAction.saveRPdf start");
 
 		String path = req.getParameter("path");
-		String filename = req.getParameter("filename");
+		String filename = RvsUtils.charRecorgnize(req.getParameter("filename"));
 
 		if (path == null || path.length() == 0) {
 			if (filename == null || filename.length() < 10) {
@@ -223,9 +224,6 @@ public class DownloadAction extends BaseAction {
 				}
 			}
 		} else {
-//			logger.info("filename:" + filename);
-//			logger.info("filenameI:" + new String(filename.getBytes("iso-8859-1"),"UTF-8"));
-//			logger.info("filenameG:" + new String(filename.getBytes("gbk"),"UTF-8"));
 //			filename = new String(filename.getBytes("iso-8859-1"),"UTF-8");
 			filename = "每日KPI指标达成情况-" + filename + ".xls";
 			XlsUtil xls = null;
