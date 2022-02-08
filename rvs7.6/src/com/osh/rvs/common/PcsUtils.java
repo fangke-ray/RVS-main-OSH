@@ -502,16 +502,17 @@ public class PcsUtils {
 							processCode = "(4|5|8)\\d{2}";
 						}
 
-						Pattern pProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"E\" type=\"\\w\" position=\"" + processCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
+						Pattern pProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"[EL]\" type=\"\\w\" position=\"" + processCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
 						Matcher mProcessCode = pProcessCode.matcher(specify);
 
-						Pattern plProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"L\" type=\"\\w\" position=\"\\d{3}\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
-						Matcher mlProcessCode = plProcessCode.matcher(specify);
+						Pattern plAllAvalible = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"L\" type=\"\\w\" position=\"\\d{3}\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
+						Matcher mlAllAvalible = plAllAvalible.matcher(specify);
 
-						if (mProcessCode.find() || mlProcessCode.find()) {
+						boolean hitProcessCode = mProcessCode.find();
+						if (hitProcessCode || mlAllAvalible.find()) {
 
 							// 如果有本工位的标签，进行替换
-							bReplacedAtPosition = true;
+							bReplacedAtPosition = bReplacedAtPosition || hitProcessCode;
 
 							String sPcs_inputs = pf.getPcs_inputs();
 							if (!CommonStringUtil.isEmpty(sPcs_inputs)) {
@@ -2029,81 +2030,87 @@ public class PcsUtils {
 									char sIype = pcid.charAt(1);
 
 									if (!"".equals(sInput)) {
-										switch (sIype) {
-										
-										case 'I': {
-											// 输入：I
-											if (!CommonStringUtil.isEmpty(sInput)) {
-												xls.Replace("@#"+pcid+"??", sInput);
-											}
-											break;
-										}
-										case 'R': {
-											// 单选：R
-											if (!CommonStringUtil.isEmpty(sInput)) {
-												xls.Replace("@#"+pcid+sInput, CHECKED);
-												xls.Replace("@#"+pcid+"??", UNCHECKED);
-											}
-											break;
-										}
-										case 'M': {
-											// 合格确认：M
-											if ("1".equals(sInput)) {
-												xls.Replace("@#"+pcid+"??", CHECKED);
-											} else if ("-1".equals(sInput)) {
-												Dispatch cell = xls.Locate("@#"+pcid+"??");
-												if (cell != null) {
-													XlsUtil.SetCellBackGroundColor(cell, "255");
-													Dispatch font = xls.GetCellFont(cell);
-													Dispatch.put(font, "Color", "16777215"); // FFFFFF
-												}
-												xls.Replace("@#"+pcid+"??", FORBIDDEN);
-											}
-											xls.Replace("@#"+pcid+"??", NOCARE);
-											break;
-										}
-										case 'N': {
-											// 签章：N
-											if ("1".equals(sInput)) {
-												// 按钮
-												Dispatch cell = xls.Locate("@#"+pcid+"??");
-												if (cell != null) {
-													xls.sign(PathConsts.BASE_PATH + PathConsts.IMAGES + "\\sign\\" + pf.getJob_no().toUpperCase(),
-															cell);
-												}
-												xls.Replace("@#"+pcid+"??", ""); // sign
-												Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
-												if (dateCell != null) {
-													xls.SetNumberFormatLocal(dateCell, "m-d;@");
-													xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
-												}
-											} else if ("-1".equals(sInput)) { 
-												// 不做
-												// if 611
-												if (pcid.indexOf("N611") >= 0) {
-													Dispatch cell = xls.Locate("@#"+pcid+"??");
-													if (cell != null)  XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
-													cell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
-													if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
-												} else {
-													xls.Replace("@#"+pcid+"??", NOCARE);
-												}
-												Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
-												if (dateCell != null) {
-													xls.SetNumberFormatLocal(dateCell, "m-d;@");
-													xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
-												}
-											}
-											break;
-										}
-										}
+										boolean hit = xls.Hit("@#" + pcid + "??");
+										if (hit) {
+											bReplacedAtPosition = true;
 
-										// 删除复工位标签
-										if (multiPosMap.containsKey(pcid)) {
-											for (String multiId : multiPosMap.get(pcid)) {
-												xls.Replace("@#"+multiId+"??", "");
-												if (sIype == 'N') {
-													xls.Replace("@#"+multiId.substring(0,1)+"D" + multiId.substring(2) + "??", "");
+
+											switch (sIype) {
+											
+											case 'I': {
+												// 输入：I
+												if (!CommonStringUtil.isEmpty(sInput)) {
+													xls.Replace("@#"+pcid+"??", sInput);
+												}
+												break;
+											}
+											case 'R': {
+												// 单选：R
+												if (!CommonStringUtil.isEmpty(sInput)) {
+													xls.Replace("@#"+pcid+sInput, CHECKED);
+													xls.Replace("@#"+pcid+"??", UNCHECKED);
+												}
+												break;
+											}
+											case 'M': {
+												// 合格确认：M
+												if ("1".equals(sInput)) {
+													xls.Replace("@#"+pcid+"??", CHECKED);
+												} else if ("-1".equals(sInput)) {
+													Dispatch cell = xls.Locate("@#"+pcid+"??");
+													if (cell != null) {
+														XlsUtil.SetCellBackGroundColor(cell, "255");
+														Dispatch font = xls.GetCellFont(cell);
+														Dispatch.put(font, "Color", "16777215"); // FFFFFF
+													}
+													xls.Replace("@#"+pcid+"??", FORBIDDEN);
+												}
+												xls.Replace("@#"+pcid+"??", NOCARE);
+												break;
+											}
+											case 'N': {
+												// 签章：N
+												if ("1".equals(sInput)) {
+													// 按钮
+													Dispatch cell = xls.Locate("@#"+pcid+"??");
+													if (cell != null) {
+														xls.sign(PathConsts.BASE_PATH + PathConsts.IMAGES + "\\sign\\" + pf.getJob_no().toUpperCase(),
+																cell);
+													}
+													xls.Replace("@#"+pcid+"??", ""); // sign
+													Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
+													if (dateCell != null) {
+														xls.SetNumberFormatLocal(dateCell, "m-d;@");
+														xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
+													}
+												} else if ("-1".equals(sInput)) { 
+													// 不做
+													// if 611
+													if (pcid.indexOf("N611") >= 0) {
+														Dispatch cell = xls.Locate("@#"+pcid+"??");
+														if (cell != null)  XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+														cell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
+														if (cell != null) XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
+													} else {
+														xls.Replace("@#"+pcid+"??", NOCARE);
+													}
+													Dispatch dateCell = xls.Locate("@#"+pcid.replaceAll("EN", "ED").replaceAll("LN", "LD")+"??");
+													if (dateCell != null) {
+														xls.SetNumberFormatLocal(dateCell, "m-d;@");
+														xls.SetValue(dateCell, DateUtil.toString(pf.getFinish_time(), "MM-dd"));
+													}
+												}
+												break;
+											}
+											}
+
+											// 删除复工位标签
+											if (multiPosMap.containsKey(pcid)) {
+												for (String multiId : multiPosMap.get(pcid)) {
+													xls.Replace("@#"+multiId+"??", "");
+													if (sIype == 'N') {
+														xls.Replace("@#"+multiId.substring(0,1)+"D" + multiId.substring(2) + "??", "");
+													}
 												}
 											}
 										}
