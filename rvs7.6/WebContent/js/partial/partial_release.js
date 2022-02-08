@@ -7,7 +7,7 @@ var privacy;
 var subPartDict = {}
 
 $(function(){
-	$("input.ui-button").button();
+	$("input.ui-button, #cb_chooser > button").button();
 	
 	$("a.areacloser").hover(
 		function (){$(this).addClass("ui-state-hover");},
@@ -86,6 +86,43 @@ $(function(){
 	privacy=$("#privacy").val();
 
 	$("#check_use_ns_component").change(changeNsCompSet);
+
+	$("#cb_chooser").on("click", "button", function(){
+		var $trs = $("#arrive_partial_list tr[id]");
+		switch($(this).text()) {
+			case "全部选择": {
+				$trs.each(function(idx, ele){
+					var $tr = $(ele);
+					if (!$tr.hasClass("ui-state-highlight")) $tr.trigger("click");
+				});
+				break;
+			}
+			case "仅NS 工程选择": {
+				// aria-describedby="arrive_partial_list_line_name"
+				$trs.each(function(idx, ele){
+					var $tr = $(ele);
+					if ($tr.children("[aria\\-describedby=arrive_partial_list_line_name]").text() === "NS 工程") {
+						if (!$tr.hasClass("ui-state-highlight")) $tr.trigger("click");
+					} else {
+						if ($tr.hasClass("ui-state-highlight")) $tr.trigger("click");
+					}
+				});
+				break;
+			}
+			case "全部取消": {
+				$trs.each(function(idx, ele){
+					var $tr = $(ele);
+					if ($tr.hasClass("ui-state-highlight")) $tr.trigger("click");
+				});
+			}
+		}
+		$("#cb_chooser").data("choosed", true);
+	})
+	$("#cb_chooser").on("mouseleave", function(){
+		if ($(this).data("choosed")) {
+			$(this).hide();
+		}
+	});
 });
 
 /*清除检索条件*/
@@ -106,16 +143,16 @@ var findit=function(){
 	}
 	
 	 $.ajax({
-			beforeSend : ajaxRequestType,
-			async : true,
-			url : servicePath + '?method=search',
-			cache : false,
-			data : data,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : search_Complete
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=search',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : search_Complete
 	});
 };
 
@@ -284,7 +321,7 @@ var showPartialDetail=function(material_id,occur_times,bo_flg,section_id){
 
 	if(privacy!="pm"){
 		if(bo_flg==9 || bo_flg==9.1){
-			$("#submitbutton").hide();
+			$("#submitbutton").val("小单发放").show();
 			$("#bigsubmitbutton").show();
 			$("#evalbobutton").show();
 			if (occur_times > 1) {
@@ -294,7 +331,7 @@ var showPartialDetail=function(material_id,occur_times,bo_flg,section_id){
 			}
 			if(section_id) $("#submit_dest").text("发送课室：" + section_id); else $("#submit_dest").text("");
 		}else{
-			$("#submitbutton").show();
+			$("#submitbutton").val("发放").show();
 			$("#bigsubmitbutton").hide();
 			$("#evalbobutton").hide();
 			if(section_id) $("#submit_dest").text("发送课室：" + section_id); else $("#submit_dest").text("");
@@ -569,8 +606,12 @@ var arrive_partial_list=function(responseList){
 					}
 					changevalue();
 					//$pill_parent.append(pill);
-
 				}
+				var $cbAllTh = $("#jqgh_arrive_partial_list_cb").closest("th");
+				$("#cb_arrive_partial_list").after("<button/>");
+				$("#cb_arrive_partial_list").remove();
+				$cbAllTh.unbind("click").click(cbChoose);
+				$("#cb_chooser").hide();
 			},
 			loadComplete:function(){
 				if ($("#ns_partial_set").hasClass("needNp")) {
@@ -584,6 +625,14 @@ var arrive_partial_list=function(responseList){
 		});
 	}
 };
+var cbChoose = function(){
+	if ($("#cb_chooser").is(":visible")) {
+		$("#cb_chooser").hide();
+	} else {
+		$("#cb_chooser").show(150);
+		$("#cb_chooser").data("choosed", false);
+	}
+}
 var changevalue = function(rowid,status,e){
 	if (rowid instanceof Array) {
 		// 全选

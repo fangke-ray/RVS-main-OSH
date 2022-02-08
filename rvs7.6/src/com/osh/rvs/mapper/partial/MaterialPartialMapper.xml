@@ -1565,4 +1565,22 @@ arrival_plan_date END
 				material_partial_detail_key=#{material_partial_detail_key}
 		]]>
 	</update>
+
+	<select id="getPromptToOrder" resultType="MaterialEntity" parameterType="String">
+		<![CDATA[ 
+			select ma.material_id, ma.omr_notifi_no as sorc_no, ma.level
+			from production_feature pf311 join material ma
+			on pf311.material_id = ma.material_id
+			left join material_partial mp
+			on mp.material_id = ma.material_id
+			and mp.occur_times = 1
+			where ma.inline_time is not null
+			and ma.level in (2, 3)
+			and ma.outline_time is null
+			and pf311.position_id = 26
+			and mp.material_id is null
+			group by material_id;
+		]]>
+	</select>
+
 </mapper>

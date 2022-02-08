@@ -214,6 +214,24 @@
 #af_part_order_editor .part_order_highlight {
 	background-color : paleturquoise;
 }
+#af_timer .af_prompt {
+	width: 1.5em;
+	height: 1.5em;
+	background-color:rgb(255,153,51);
+	position: absolute;
+	right: -.25em;
+	top: -.25em;
+	border-radius:0.5em;
+	text-align: center;
+	color: snow;
+}
+#af_timer .af_prompt:hover {
+	filter: drop-shadow(-2px 2px 1px gray);
+}
+#af_prompt td {
+	border: 1px solid #93C3CD;
+	text-align:center;
+}
 </style>
 
 <div id="af_timer" switch="no" hdir="left" vdir="down">
@@ -236,6 +254,7 @@
 <div class="af_state_tool" for="102">▲</div>
 <div class="af_state_tool" for="221">▲</div>
 <div class="af_state_tool" for="164">▲</div>
+<div class="af_prompt" title="加紧订购零件提示"></div>
 </div>
 
 <script type="text/javascript">
@@ -292,6 +311,16 @@ var refreshAf = function(init) {
 				}
 			}
 
+			if (init == "init") {
+				if (resInfo.neadPrompt) {
+					setInterval(refreshPrompt, 90000);
+					refreshPrompt();
+					$("#af_timer .af_prompt").click(showPrompt);
+				} else {
+					$("#af_timer .af_prompt").remove();
+				}
+			}
+
 			clearInterval(af_clockTo);
 
 			if(resInfo.processForm) {
@@ -324,12 +353,11 @@ var setProcessForm = function(processForm){
 		"is_working": processForm.is_working
 	});
 
+	$(".af_state_tool").hide();
 	if (processForm.is_working === "1" && (type_code == "102" || type_code == "221")) {
 		$(".af_state_tool[for='" + type_code + "']").show();
 	} else if (processForm.is_working === "0" && (type_code == "164")) {
 		$(".af_state_tool[for='" + type_code + "']").show();
-	} else {
-		$(".af_state_tool").hide();
 	}
 	refreshRate();
 	af_clockTo = setInterval(refreshRate, 60000);
@@ -438,6 +466,37 @@ var stateTool = function(){
 				break;
 		}
 	}
+}
+
+var showPrompt = function(){
+	var $this_dialog = $("#af_prompt");
+	if ($this_dialog.length === 0) {
+		$("body.outer").append("<div id='af_prompt'><table><thead><th class='ui-widget-header'>修理单号</th><th class='ui-widget-header'>修理等级</th></thead><tbody></tbody></table></div>");
+		$this_dialog = $("#af_prompt");
+	}
+	$this_dialog.hide();
+
+	var promptToOrder = $("#af_timer .af_prompt").data("promptToOrder");
+	if (promptToOrder == undefined) {
+		return;
+	}
+	var toBodyText = "";
+	for (var idx in promptToOrder) {
+		var material = promptToOrder[idx];
+		toBodyText += "<tr><td>" + material.sorc_no + "</td><td>S" + material.level + "</td></tr>";
+	}
+	$this_dialog.find("table > tbody").html(toBodyText);
+
+	$this_dialog.dialog({
+		modal : true, 
+		title : "加紧订购提示维修品", 
+		width : 220,
+		height: 500,
+		resizable:false,
+		buttons : {
+			"关闭" : function(){$this_dialog.dialog("close");}
+		}
+	});
 }
 
 	var af_dragged = false;
@@ -780,6 +839,31 @@ var showPartialOrderList = function(){
 		}
 	});
 };
+
+var refreshPrompt = function(){
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : 'af_production_feature.do?method=refreshPrompt',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhjObj) {
+			var resInfo = $.parseJSON(xhjObj.responseText);
+			var $af_prompt = $("#af_timer .af_prompt");
+			if (resInfo.promptToOrder.length) {
+				$af_prompt.show();
+			} else {
+				$af_prompt.hide();
+			}
+			$af_prompt.text(resInfo.promptToOrder.length);
+			$af_prompt.data("promptToOrder", resInfo.promptToOrder);
+		}
+	});
+}
 
 var showWastePartialList = function(){
 	var $this_dialog = $("#waste_partial_editor");

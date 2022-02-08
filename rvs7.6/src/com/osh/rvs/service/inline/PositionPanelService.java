@@ -1397,7 +1397,7 @@ public class PositionPanelService {
 
 			// 开始作业定制警报
 			triggerList.add("http://localhost:8080/rvspush/trigger/work/"
-					+ positionId + waitingPf.getMaterial_id() + "/" + user.getOperator_id());
+					+ positionId + "/" + waitingPf.getMaterial_id() + "/" + user.getOperator_id());
 		}
 
 		// 341先端预制子零件工位反入库
@@ -1419,6 +1419,14 @@ public class PositionPanelService {
 					}
 				}
 			}
+		}
+
+		// 211提示开始订购
+		if ("211".equals(processCode) && waitingPf.getOperate_result() == 0
+				&& "00000000001".equals(user.getSection_id())) {
+			// 开始作业定制警报
+			triggerList.add("http://localhost:8080/rvspush/trigger/work/"
+					+ positionId + "/" + waitingPf.getMaterial_id());
 		}
 	}
 

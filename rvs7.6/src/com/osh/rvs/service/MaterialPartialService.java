@@ -44,6 +44,7 @@ import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.PostMessageEntity;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
@@ -1869,5 +1870,18 @@ public class MaterialPartialService {
 	public void updateBoFlgWithDetailMaintance(MaterialPartialEntity materialPartialEntity, SqlSessionManager conn) throws Exception {
 		MaterialPartialMapper mapper = conn.getMapper(MaterialPartialMapper.class);
 		mapper.updateBoFlgWithDetailMantains(materialPartialEntity);
+	}
+
+	private List<MaterialEntity> promptToOrders = null;
+	private long promptToOrderUpdate = 0; 
+	public List<MaterialEntity> getPromptToOrder(SqlSession conn) {
+		long nowTs = new Date().getTime();
+		if (promptToOrders == null || nowTs - promptToOrderUpdate > 90000l) {
+			promptToOrderUpdate = nowTs;
+
+			MaterialPartialMapper mapper = conn.getMapper(MaterialPartialMapper.class);
+			promptToOrders = mapper.getPromptToOrder();
+		}
+		return promptToOrders;
 	}
 }

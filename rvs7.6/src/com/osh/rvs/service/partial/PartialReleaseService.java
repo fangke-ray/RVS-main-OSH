@@ -588,12 +588,12 @@ public class PartialReleaseService {
 		return respFormList;
 	}
 
-	public void finishNsPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
-		finishPartialRelease(material_id, "00000000027", user, triggerList, conn);
+	public void finishNsPartialRelease(String material_id, LoginData user, List<String> triggerList, boolean checkWaiting, SqlSessionManager conn) throws Exception {
+		finishPartialRelease(material_id, "00000000027", user, triggerList, checkWaiting, conn);
 	}
 
 	public void finishDecPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
-		finishPartialRelease(material_id, "00000000021", user, triggerList, conn);
+		finishPartialRelease(material_id, "00000000021", user, triggerList, true, conn);
 	}
 
 	public void finishAnmlPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
@@ -606,11 +606,13 @@ public class PartialReleaseService {
 			anmlRecPositionId = positionUnitizedRevers.get("00000000027");
 		}
 		if (anmlRecPositionId != null) {
-			finishPartialRelease(material_id, anmlRecPositionId, user, triggerList, conn);
+			finishPartialRelease(material_id, anmlRecPositionId, user, triggerList, true, conn);
 		}
 	}
 
-	public void finishPartialRelease(String material_id, String position_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
+	public void finishPartialRelease(String material_id, String position_id, LoginData user, List<String> triggerList, 
+			boolean checkWaiting, SqlSessionManager conn) throws Exception {
+
 		// 检查工位等待存在
 		ProductionFeatureService pfService = new ProductionFeatureService();
 
@@ -618,8 +620,29 @@ public class PartialReleaseService {
 		workingPf.setMaterial_id(material_id);
 		workingPf.setPosition_id(position_id);
 		workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_NOWORK_WAITING);
-		workingPf = pfService.searchProductionFeatureOne(workingPf, conn);
+		ProductionFeatureEntity workingPfHit = pfService.searchProductionFeatureOne(workingPf, conn);
 
+		boolean created = false;
+
+		if (workingPfHit == null && !checkWaiting) {
+			workingPf.setOperate_result(null); // 此工位所有作业记录
+			workingPfHit = pfService.searchProductionFeatureOne(workingPf, conn);
+			// 没有等待记录，也没有进行或完成记录
+			if (workingPfHit == null) {
+				// 即使没有等待记录，先建立等待记录
+				workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_NOWORK_WAITING);
+				workingPf.setRework(0);
+				workingPf.setPace(0);
+				pfService.fingerSpecifyPosition(material_id, true, workingPf, triggerList, conn);
+				workingPf = pfService.searchProductionFeatureOne(workingPf, conn);
+				created = true;
+			} else {
+				// 有进行或完成记录则不处理
+				return;
+			}
+		} else {
+			workingPf = workingPfHit;
+		}
 		if (workingPf != null) {
 			// 自动完成
 			LineLeaderService lService = new LineLeaderService();
@@ -627,8 +650,10 @@ public class PartialReleaseService {
 
 			workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
 
-			// 触发之后工位
-			pfService.fingerNextPosition(material_id, workingPf, conn, triggerList);
+			if (!created) {
+				// 触发之后工位
+				pfService.fingerNextPosition(material_id, workingPf, conn, triggerList);
+			}
 		}
 	}
 

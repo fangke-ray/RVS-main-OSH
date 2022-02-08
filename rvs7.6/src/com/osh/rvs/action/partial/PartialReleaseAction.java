@@ -32,6 +32,7 @@ import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -195,7 +196,14 @@ public class PartialReleaseAction extends BaseAction {
 					MaterialPartialService mpService = new MaterialPartialService();
 					MaterialPartialEntity materialPartialEntity = new MaterialPartialEntity();
 					BeanUtil.copyToBean(form, materialPartialEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
-					mpService.updateBoFlgWithDetail(materialPartialEntity, conn);
+
+					MaterialPartialForm orginEntity = mpService.loadMaterialPartial(conn, materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times());
+
+					if ("9".equals(orginEntity.getBo_flg()) && "small".equals(flag)) {
+						// 一次小单发放
+					} else {
+						mpService.updateBoFlgWithDetail(materialPartialEntity, conn);
+					}
 					// service.updateBoFlg(form,conn,flag);
 
 					MaterialService mService = new MaterialService();
@@ -259,8 +267,6 @@ public class PartialReleaseAction extends BaseAction {
 								// 零件发放者完成24D工位
 								service.finishAnmlPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
 							} else {
-								// 零件发放者完成321工位
-								service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
 								// 零件发放者完成252工位
 								service.finishDecPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
 							}
@@ -271,6 +277,26 @@ public class PartialReleaseAction extends BaseAction {
 							}
 						}
 					} else {
+						if ("small".equals(flag)) {
+
+							mBean = mService.loadSimpleMaterialDetailEntity(conn, materialPartialEntity.getMaterial_id());
+
+							if (!RvsUtils.isLightFix(mBean.getLevel())) {
+								ProcessAssignService paService = new ProcessAssignService();
+								if (paService.checkPatHasNs(mBean.getPat_id(), conn)) {
+									List<String> triggerList = new ArrayList<String> ();
+
+									// 零件发放者完成321工位
+									service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, false, conn);
+
+									if (triggerList.size() > 0) {
+										conn.commit();
+										RvsUtils.sendTrigger(triggerList);
+									}
+								}
+							}
+						}
+
 						// 检查工位上BO零件为解除
 						fsoService.solveBo(materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times(), user.getOperator_id(), conn);
 					}

@@ -6,6 +6,7 @@ import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 
@@ -109,4 +110,6 @@ public interface MaterialPartialMapper {
 	public String getBoPartialOfLineOfPosition(@Param("material_id") String material_id, @Param("position_id") String position_id);
 	public List<MaterialPartialDetailEntity> getMpdForComponent(String material_id);
 	public int updateComponentRelease(String key) throws Exception;
+
+	public List<MaterialEntity> getPromptToOrder();
 }

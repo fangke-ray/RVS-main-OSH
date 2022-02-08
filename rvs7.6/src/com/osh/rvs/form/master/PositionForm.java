@@ -25,7 +25,7 @@ public class PositionForm extends ActionForm {
 	/** 进度代码 */
 	@BeanField(title = "进度代码", name = "process_code", notNull = true, length = 3)
 	private String process_code;
-	/** 工程名称 */
+	/** 特殊工位页面 */
 	@BeanField(title = "特殊工位页面", name = "special_page")
 	private String special_page;
 	/** 最后更新人 */

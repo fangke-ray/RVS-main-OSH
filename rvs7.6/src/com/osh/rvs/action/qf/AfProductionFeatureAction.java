@@ -32,6 +32,7 @@ import com.osh.rvs.form.partial.WastePartialArrangementForm;
 import com.osh.rvs.form.partial.WastePartialRecycleCaseForm;
 import com.osh.rvs.form.qf.AfProductionFeatureForm;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.partial.WastePartialArrangementService;
 import com.osh.rvs.service.partial.WastePartialRecycleCaseService;
@@ -90,6 +91,18 @@ public class AfProductionFeatureAction extends BaseAction {
 			// 可做工位
 			List<PositionEntity> afAbilities = user.getAfAbilities();
 			callbackResponse.put("afAbilities", afAbilities);
+			if ("init".equals(init)) { 
+				boolean hasPartOrder = false;
+				for (PositionEntity afAbility : afAbilities) {
+					if ("221".equals(afAbility.getPosition_id())) { // 维修零件订购单 221
+						hasPartOrder = true;
+						break;
+					}
+				}
+				if (hasPartOrder) {
+					callbackResponse.put("neadPrompt", "partOrder");
+				}
+			}
 
 			callbackResponse.put("pauseReasonGroup", PauseFeatureService.getPauseReasonIndirectGroupMap());
 		}
@@ -371,6 +384,35 @@ public class AfProductionFeatureAction extends BaseAction {
 		returnJsonResponse(res, callbackResponse);
 
 		log.info("AfProductionFeatureAction.wastePartialScan end");
+	}
+
+	/**
+	 * 刷新提示信息（订购）
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void refreshPrompt(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+
+		log.info("AfProductionFeatureAction.refreshPrompt start");
+
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		MaterialPartialService mpServ = new MaterialPartialService();
+		// 取得到达311仍未订购维修品一览
+		callbackResponse.put("promptToOrder", mpServ.getPromptToOrder(conn));
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", new ArrayList<MsgInfo>());
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("AfProductionFeatureAction.refreshPrompt end");
 	}
 
 }
