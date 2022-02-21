@@ -37,6 +37,7 @@ import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PauseFeatureService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.UploadService;
 import com.osh.rvs.service.partial.PartialAssignService;
 import com.osh.rvs.service.partial.PartialBaseLineValueService;
@@ -724,6 +725,7 @@ public class UploadAction extends BaseAction {
 				PauseFeatureService.resetPauseReason();
 				AcceptFactService.resetMap();
 				OperatorService.resetOffPositionLimit();
+				PositionService.clearCaches();
 
 				RvsUtils.initAll(conn);
 

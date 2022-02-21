@@ -29,6 +29,10 @@
 	border-left:none;
 }
 </style>
+
+<%
+String concernPosition = (String) request.getAttribute("concernPosition");
+%>
 <div id="storagearea" style="float: left;">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-golden_section_large_part">
 		<span class="areatitle">等待区信息</span>

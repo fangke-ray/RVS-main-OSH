@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!DOCTYPE html>
 <%@ page language="java" pageEncoding="UTF-8" contentType="text/html;charset=UTF-8" isELIgnored="false"%>
 <html>
 <head>
@@ -27,6 +27,10 @@
 	border-left:none;
 }
 </style>
+
+<%
+String concernPosition = (String) request.getAttribute("concernPosition");
+%>
 <div id="storagearea" style="float: left;">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-golden_section_large_part">
 		<span class="areatitle">等待区信息</span>

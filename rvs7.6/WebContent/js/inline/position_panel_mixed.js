@@ -1831,6 +1831,7 @@ var getConcern = function(concern) {
 			return "<div class='concern concern_start'>" + showDateOrMinute(concern.action_time) + "</div>";
 		}
 	}
+	return '';
 }
 
 var showDateOrMinute = function(pTimestamp) {
