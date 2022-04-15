@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -55,7 +56,10 @@ public class PositionService {
 	private static Set<String> addiOrderPositions = null;
 	@SuppressWarnings("unused")
 	private static Set<String> addiOrderLastPositions = null;
+
 	private static Map<String, PositionEntity> concernPositions = null;
+	private static Map<String, PositionEntity> inlineStoragePositions = null;
+	private static Map<String, List<String>> inlineStorageFromPositions = null;
 
 	public static final String ORDER_POSITION = "00000000109";
 
@@ -74,8 +78,13 @@ public class PositionService {
 		addiOrderPositions = null;
 		addiOrderLastPositions = null;
 		positionEntityCache.clear();
-		concernPositions = null;
 		ReverseResolution.positionRever.clear();
+	}
+
+	public static void clearPropertiesCaches() {
+		concernPositions = null;
+		inlineStoragePositions = null;
+		inlineStorageFromPositions = null;
 	}
 
 	private static void setGroupCaches(SqlSession conn) {
@@ -871,14 +880,14 @@ public class PositionService {
 	public static String isAddiOrderPosition(String position_id, SqlSession conn) {
 		// TODO
 		switch (position_id) {
-		case "00000000016":
-		case "00000000017":
-		case "00000000025":
-			return "0";
-		case "00000000108":
-			return "3";
-		case "00000000026":
-			return "2";
+//		case "00000000016":
+//		case "00000000017":
+//		case "00000000025":
+//			return "0";
+//		case "00000000108":
+//			return "3";
+//		case "00000000026":
+//			return "2";
 		default :
 			return null;
 		}
@@ -922,5 +931,94 @@ public class PositionService {
 			
 		}
 		return concernPositions.get(viewPositionId);
+	}
+
+	/**
+	 * 取得在线周转库存工位
+	 * 
+	 * @param viewPositionId
+	 * @param conn
+	 * @return
+	 */
+	public static Map<String, PositionEntity> getInlineStoragePositions(SqlSession conn) {
+		if (inlineStoragePositions == null) {
+			inlineStoragePositions = new TreeMap<String, PositionEntity>();
+			inlineStorageFromPositions = new HashMap<String, List<String>>();
+
+			String inlineStoragePositionsProp = PathConsts.POSITION_SETTINGS.getProperty("inlineStorage.positions");
+			if (inlineStoragePositionsProp != null) {
+				String[] inlineStorageProcessCodes = inlineStoragePositionsProp.split(",");
+
+				PositionService oThis = new PositionService();
+
+				try {
+					for (String inlineStorageProcessCode : inlineStorageProcessCodes) {
+						inlineStorageProcessCode = inlineStorageProcessCode.trim();
+						String sPositionId = ReverseResolution.getPositionByProcessCode(inlineStorageProcessCode, conn);
+						inlineStoragePositions.put(sPositionId, oThis.getPositionEntityByKey(sPositionId, conn));
+
+						String fromProcessCodes = PathConsts.POSITION_SETTINGS.getProperty("inlineStorage.position." + inlineStorageProcessCode + ".from");
+						if (fromProcessCodes != null) {
+							String[] fromProcessCodeArr = fromProcessCodes.split(",");
+							for (String fromProcessCode : fromProcessCodeArr) {
+								fromProcessCode = fromProcessCode.trim();
+								String fPositionId = ReverseResolution.getPositionByProcessCode(fromProcessCode, conn);
+								if (fPositionId != null) {
+									if (!inlineStorageFromPositions.containsKey(fPositionId)) {
+										inlineStorageFromPositions.put(fPositionId, new ArrayList<String>());
+									}
+									inlineStorageFromPositions.get(fPositionId).add(sPositionId);
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+					logger.error("错误的在线周转库存工位配置：" + e.getMessage());
+				}
+			}
+			
+		}
+		return inlineStoragePositions;
+	}
+
+	public static Map<String, List<String>> getInlineStorageFromPositions(SqlSession conn) {
+		if (inlineStorageFromPositions == null) {
+			inlineStoragePositions = new HashMap<String, PositionEntity>();
+			inlineStorageFromPositions = new HashMap<String, List<String>>();
+
+			String inlineStoragePositionsProp = PathConsts.POSITION_SETTINGS.getProperty("inlineStorage.positions");
+			if (inlineStoragePositionsProp != null) {
+				String[] inlineStorageProcessCodes = inlineStoragePositionsProp.split(",");
+
+				PositionService oThis = new PositionService();
+
+				try {
+					for (String inlineStorageProcessCode : inlineStorageProcessCodes) {
+						inlineStorageProcessCode = inlineStorageProcessCode.trim();
+						String sPositionId = ReverseResolution.getPositionByProcessCode(inlineStorageProcessCode, conn);
+						inlineStoragePositions.put(sPositionId, oThis.getPositionEntityByKey(sPositionId, conn));
+
+						String fromProcessCodes = PathConsts.POSITION_SETTINGS.getProperty("inlineStorage.position." + inlineStorageProcessCode + ".from");
+						if (fromProcessCodes != null) {
+							String[] fromProcessCodeArr = fromProcessCodes.split(",");
+							for (String fromProcessCode : fromProcessCodeArr) {
+								fromProcessCode = fromProcessCode.trim();
+								String fPositionId = ReverseResolution.getPositionByProcessCode(fromProcessCode, conn);
+								if (fPositionId != null) {
+									if (!inlineStorageFromPositions.containsKey(fPositionId)) {
+										inlineStorageFromPositions.put(fPositionId, new ArrayList<String>());
+									}
+									inlineStorageFromPositions.get(fPositionId).add(sPositionId);
+								}
+							}
+						}
+					}
+				} catch (Exception e) {
+					logger.error("错误的在线周转库存工位配置：" + e.getMessage());
+				}
+			}
+			
+		}
+		return inlineStorageFromPositions;
 	}
 }

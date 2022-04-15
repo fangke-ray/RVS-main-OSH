@@ -190,8 +190,12 @@ public class AppMenuAction extends BaseAction {
 
 		String inlinePosition = "";
 
+		menuLinks.put("disassembleStorage", false);
 		menuLinks.put("composeStorage", false);
 
+		if (privacies.contains(RvsConsts.PRIVACY_ADMIN)) {
+			menuLinks.put("disassembleStorage", true);
+		}
 //		if ("00000000003".equals(section_id)) {
 //			if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
 //				menuLinks.put("repairline", true);
@@ -217,6 +221,7 @@ public class AppMenuAction extends BaseAction {
 					inlinePosition += links;
 				}
 				if ("00000000001".equals(section_id)) {
+					menuLinks.put("disassembleStorage", true);
 					menuLinks.put("composeStorage", true);
 				}
 			}

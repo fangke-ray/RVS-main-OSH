@@ -34,6 +34,7 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.inline.ComposeStorageService;
+import com.osh.rvs.service.inline.DisassembleStorageService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.proxy.ProcessAssignProxy;
 
@@ -755,6 +756,34 @@ public class ProductionFeatureService {
 			fingerPosition(workingPf.getPosition_id(), mEntity, fixed, nPf, conn, pfDao, paProxy, ret, triggerList, isFact);
 		}
 
+		// 库位（分解）
+		if (!isLightFix && PositionService.getInlineStorageFromPositions(conn).containsKey(position_id)) {
+			List<String> targetPosList = PositionService.getInlineStorageFromPositions(conn).get(position_id);
+			if (level == 1) {
+				List<String> targetPosS1List = new ArrayList<String>();
+				for (String targetPos : targetPosList) {
+					boolean passed = false;
+					for (int j = 0; j < ProcessAssignService.S1PASSES.length; j++) {
+						if (ProcessAssignService.S1PASSES[j] == Integer.parseInt(targetPos)) {
+							passed = true;
+							break;
+						}
+					}
+					if (!passed) {
+						targetPosS1List.add(targetPos);
+					}
+				}
+				targetPosList = targetPosS1List;
+			}
+			if (!targetPosList.isEmpty()) {
+
+				DisassembleStorageService dsService = new DisassembleStorageService();
+				ret = dsService.getStorageByMaterial(isFact, material_id, targetPosList, ret, conn);
+				return ret;
+			}
+		}
+
+		// 库位（总组）
 		if (inStorage != null && !RvsConsts.COM_STORAGE_INSTABLE.equals(inStorage) && !RvsConsts.COM_STORAGE_PROCESSED.equals(inStorage)) {
 			if (isFact) {
 				ComposeStorageService csService= new ComposeStorageService();

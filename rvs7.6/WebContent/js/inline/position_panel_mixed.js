@@ -808,13 +808,18 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 						}
 					} else {
 						if (resInfo.lightFix) flowtext = resInfo.lightFix + (flowtext ? "<br>" + flowtext : "");
-						if (resInfo.fingers) flowtext = resInfo.fingers + (flowtext ? "<br>" + flowtext : "");
+						if (resInfo.fingers) flowtext = decodeText(resInfo.fingers) + (flowtext ? "<br>" + flowtext : "");
 
 						if (flowtext) {
 							$("#flowtext").html(flowtext);
 							if (flowtext.indexOf("<input") >= 0) {
 								setCompInstore($("#flowtext"), resInfo.stock_code);
 							}
+						}
+
+						if (resInfo.fingers && resInfo.fingers.indexOf("[lick") >= 0
+							&& typeof setChooseStorageButtons === "function") {
+							setChooseStorageButtons();
 						}
 					}
 
@@ -894,11 +899,17 @@ var getJustWorkingFingers = function(material_id, model_id, serial_no) {
 			eval('resInfo =' + xhrobj.responseText);
 
 			if (resInfo.fingers) {
-				flowtext = resInfo.fingers + (resInfo.past_fingers ? "<br>" + resInfo.past_fingers : "");
+				flowtext = decodeText(resInfo.fingers) + (resInfo.past_fingers ? "<br>" + resInfo.past_fingers : "");
 				$("#flowtext").html(flowtext);
 				if (flowtext.indexOf("<input") >= 0) {
 					setCompInstore($("#flowtext"), resInfo.stock_code);
 				}
+
+				if (resInfo.fingers && resInfo.fingers.indexOf("[lick") >= 0
+					&& typeof setChooseStorageButtons === "function") {
+					setChooseStorageButtons();
+				}
+
 			}
 		}
 	});
@@ -1562,6 +1573,10 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 }
 
 var doFinish=function(evt, hr){
+	if ((typeof checkStorageSent === "function") && checkStorageSent()) {
+		return;
+	}
+
 	var data = {};
 	var empty = false;
 	if (hasPcs) {

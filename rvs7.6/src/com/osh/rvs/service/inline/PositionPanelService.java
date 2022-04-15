@@ -550,7 +550,7 @@ public class PositionPanelService {
 			ret = mapper.getWaitingMaterial(line_id, section_id, position_id, null, operator_id, pxLevel, null);
 		}
 
-		signWaitingEntity(ret, position_id, process_code, null, null, conn);
+		signWaitingEntity(ret, section_id, position_id, process_code, null, null, conn);
 
 		return ret;
 	}
@@ -561,7 +561,7 @@ public class PositionPanelService {
 
 		List<WaitingEntity> ret = mapper.getWaitingMaterial(line_id, section_id, null, group_position_id, operator_id, pxLevel, null);
 
-		signWaitingEntity(ret, null, null, group_position_id, completes, conn);
+		signWaitingEntity(ret, section_id,  null, null, group_position_id, completes, conn);
 
 		// 组仕挂量提前
 		List<WaitingEntity> retUp = new ArrayList<WaitingEntity>();
@@ -577,7 +577,7 @@ public class PositionPanelService {
 
 		return retUp;
 	}
-	private void signWaitingEntity(List<WaitingEntity> ret, String singlePositionId, String singleProcessCode, String groupPositionId,
+	private void signWaitingEntity(List<WaitingEntity> ret, String section_id, String singlePositionId, String singleProcessCode, String groupPositionId,
 			List<WaitingEntity> completes, SqlSession conn) {
 
 		ProductionFeatureEntity concernCondi = null;
@@ -615,6 +615,15 @@ public class PositionPanelService {
 			}
 		}
 
+		boolean checkInlineStorage = singlePositionId != null 
+				&& PositionService.getInlineStoragePositions(conn).containsKey(singlePositionId);
+		Map<String, String> inlineStorageMap = null;
+		if (checkInlineStorage) {
+			DisassembleStorageService dsServ = new DisassembleStorageService();
+			inlineStorageMap = dsServ.getFingersOfPosition(section_id, singlePositionId, conn);
+			if (inlineStorageMap == null) checkInlineStorage = false;
+		}
+
 		for (WaitingEntity we : ret) {
 			String position_id = singlePositionId;
 			if (position_id == null) position_id = we.getPosition_id();
@@ -626,6 +635,8 @@ public class PositionPanelService {
 				we.setWaitingat("未处理");
 				if (checkComStorage) { // 总组库位显示
 					we.setShelf_name(comStorageMap.get(we.getMaterial_id()));
+				} else if (checkInlineStorage) {
+					we.setShelf_name(inlineStorageMap.get(we.getMaterial_id()));
 				}
 			}
 			else if ("4".equals(we.getWaitingat())) { // 暂停
@@ -1380,11 +1391,21 @@ public class PositionPanelService {
 		String positionId = waitingPf.getPosition_id();
 		String processCode = user.getProcess_code();
 
-		boolean checkComStorage = "410".equals(processCode) || "411".equals(processCode) || "412".equals(processCode); // TODO
-		if (checkComStorage && waitingPf.getOperate_result() == 0 ) {
-			ComposeStorageService scService = new ComposeStorageService();
-			scService.checkAstockRemoval(waitingPf.getMaterial_id(), conn);
+		if (waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_NOWORK_WAITING ) {
+			boolean checkComStorage = "410".equals(processCode) || "411".equals(processCode) || "412".equals(processCode); // TODO
+			if (checkComStorage) {
+				ComposeStorageService scService = new ComposeStorageService();
+				scService.checkAstockRemoval(waitingPf.getMaterial_id(), conn);
+			}
+			
+			boolean checkInlineStorage = positionId != null 
+					&& PositionService.getInlineStoragePositions(conn).containsKey(positionId);
+			if (checkInlineStorage) {
+				DisassembleStorageService dsService = new DisassembleStorageService();
+				dsService.warehouseInPosition(waitingPf.getMaterial_id(), positionId, conn);
+			}
 		}
+
 //		if (waitingPf.getOperate_result() == 0 
 //				&& ("00000000033".equals(positionId) || "00000000042".equals(positionId) 
 //						|| "00000000048".equals(positionId) || "00000000050".equals(positionId))) { // TODO properties?

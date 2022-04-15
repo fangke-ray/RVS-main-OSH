@@ -137,6 +137,8 @@
 		<form-bean name="SuppliesReferListForm" type="com.osh.rvs.form.master.SuppliesReferListForm" />
 		<form-bean name="SuppliesOrderForm" type="com.osh.rvs.form.support.SuppliesOrderForm" />
 		<form-bean name="SuppliesDetailForm" type="com.osh.rvs.form.support.SuppliesDetailForm" />
+
+		<form-bean name="disassembleStorageForm" type="com.osh.rvs.form.inline.DisassembleStorageForm"/>
 	</form-beans>
 
 
@@ -1630,6 +1632,17 @@
 				parameter="method"
 				validate="false">
 			<forward name="init" path="/pages/support/supplies_detail.jsp" />
+		</action>
+
+
+		<!-- 分解库位 -->
+		<action path="/disassemble_storage"
+				type="com.osh.rvs.action.inline.DisassembleStorageAction"
+				scope="request"
+				name="disassembleStorageForm"
+				parameter="method"
+				validate="false">
+			<forward name="init" path="/pages/inline/disassemble_storage.jsp" />
 		</action>
 
 	</action-mappings>

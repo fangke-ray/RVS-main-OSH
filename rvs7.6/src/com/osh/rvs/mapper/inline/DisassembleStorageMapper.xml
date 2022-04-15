@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.inline.DisassembleStorageMapper">
+	<select id="searchStorage" resultType="DisassembleStorageEntity" parameterType="DisassembleStorageEntity">
+		<![CDATA[
+		SELECT
+			ds.material_id,
+			ds.position_id,
+			pos.process_code,
+			ds.shelf,
+			ds.case_code,
+			ds.layer,
+			ds.auto_arrange,
+			mdl.CATEGORY_NAME,
+			ma.omr_notifi_no,
+			ma.serial_no
+		FROM `disassemble_storage` ds
+		JOIN `position` pos
+			ON ds.position_id = pos.position_id
+		LEFT JOIN `material` ma
+			ON ds.material_id = ma.material_id
+		LEFT JOIN `v_model` mdl
+			ON ma.model_id = mdl.model_id
+		]]>
+		<where>
+		<if test="category_id!=null and category_id!='' ">
+		<![CDATA[
+			AND mdl.category_id=#{category_id}
+		]]>
+		</if>
+		<if test="position_id!=null and position_id!='' ">
+		<![CDATA[
+			AND ds.position_id=#{position_id}
+		]]>
+		</if>
+		<if test="omr_notifi_no!=null and omr_notifi_no!='' ">
+		<![CDATA[
+			AND (ma.omr_notifi_no LIKE CONCAT('%', #{omr_notifi_no},'%'))
+		]]>
+		</if>
+		<if test="level eq 1 or level eq 2 or level eq 3">
+		<![CDATA[
+				AND ma.level = #{level}
+		]]>
+		</if>
+		<if test="level eq 5">
+		<![CDATA[
+				AND ma.level in (56,57,58,59)
+		]]>
+		</if>
+		<if test="level eq 9">
+		<![CDATA[
+				AND ma.level  in (9,91,92,93,96,97,98,99)
+		]]>
+		</if>
+		<if test="case_code!=null and case_code!='' ">
+		<![CDATA[
+			AND (ds.case_code LIKE CONCAT(#{case_code},'%'))
+		]]>
+		</if>
+		</where>
+		<![CDATA[
+		ORDER BY
+			ds.position_id, ds.shelf, ds.layer, ds.case_code
+		;
+		]]>
+	</select>
+
+	<select id="getStorageByKey" resultType="DisassembleStorageEntity" parameterType="DisassembleStorageEntity">
+		SELECT `position_id`,
+		    `case_code`,
+		    `material_id`,
+		    `refresh_time`,
+		    `auto_arrange`,
+		    `layer`,
+		    `shelf`
+		FROM `disassemble_storage`
+		WHERE 
+			`position_id` = #{position_id}
+		AND
+			`case_code` = #{case_code}
+		;
+	</select>
+
+	<select id="getStorageOfPosition" resultType="DisassembleStorageEntity" parameterType="String">
+		SELECT `position_id`,
+		    `case_code`,
+		    `material_id`,
+		    `refresh_time`,
+		    `auto_arrange`,
+		    `layer`,
+		    `shelf`
+		FROM `disassemble_storage`
+		WHERE 
+			`position_id` = #{position_id}
+		ORDER BY `shelf`, `layer`, `case_code`
+		;
+	</select>
+
+	<select id="getStorageByMaterialInPosition" resultType="DisassembleStorageEntity" parameterType="DisassembleStorageEntity">
+		SELECT `position_id`,
+		    `case_code`,
+		    `material_id`,
+		    `refresh_time`,
+		    `auto_arrange`,
+		    `layer`,
+		    `shelf`
+		FROM `disassemble_storage`
+		WHERE 
+			`position_id` = #{position_id}
+		AND
+			`material_id` = #{material_id}
+		;
+	</select>
+
+	<insert id="create" parameterType="DisassembleStorageEntity">
+		INSERT INTO `disassemble_storage`
+			(`position_id`,
+			`case_code`,
+			`auto_arrange`,
+			`layer`,
+			`shelf`)
+		VALUES
+			(#{position_id},
+			#{case_code},
+			#{auto_arrange},
+			#{layer},
+			#{shelf});
+	</insert>
+
+	<update id="changeSetting" parameterType="DisassembleStorageEntity">
+		UPDATE 
+			`disassemble_storage`
+		SET
+			`auto_arrange` = #{auto_arrange},
+			`layer` = #{layer},
+			`shelf` = #{shelf}
+		WHERE
+			`position_id` = #{position_id}
+		AND
+			`case_code` = #{case_code}
+		;
+	</update>
+
+	<delete id="remove" parameterType="DisassembleStorageEntity">
+		DELETE FROM `disassemble_storage`
+		WHERE
+			`position_id` = #{position_id}
+		AND
+			`case_code` = #{case_code}
+		;
+	</delete>
+
+	<update id="putin" parameterType="DisassembleStorageEntity">
+		UPDATE 
+			`disassemble_storage`
+		SET
+			`material_id` = #{material_id},
+			`refresh_time` = #{refresh_time}
+		WHERE
+			`position_id` = #{position_id}
+		AND
+			`case_code` = #{case_code}
+		;
+	</update>
+
+	<update id="warehouse" parameterType="DisassembleStorageEntity">
+		UPDATE 
+			`disassemble_storage`
+		SET
+			`material_id` = null
+		WHERE
+			`position_id` = #{position_id}
+		AND
+			`case_code` = #{case_code}
+		;
+	</update>
+
+	<select id="getStorageByMaterial" resultType="DisassembleStorageEntity" parameterType="DisassembleStorageEntity">
+		SELECT pos.position_id, pos.process_code, ds.case_code
+		FROM `position` pos
+		LEFT JOIN `disassemble_storage` ds
+			ON ds.position_id = pos.position_id 
+            AND ds.material_id = #{material_id}
+		WHERE pos.position_id in 
+		<foreach item="position_id" collection="positions" open="(" separator="," close=")">
+			#{position_id}
+		</foreach> 
+		ORDER BY pos.process_code
+		;
+	</select>
+
+	<select id="getStorageFingerOfPosition" resultType="DisassembleStorageEntity" parameterType="String">
+		select pf.material_id, group_concat(concat(ps.process_code, ':', ds.case_code) separator '; ') as case_code
+		from production_feature pf
+		join disassemble_storage ds
+		on pf.material_id = ds.material_id
+		join position ps
+		on ds.position_id = ps.position_id
+		where pf.section_id = #{section_id} and pf.position_id = #{position_id} and finish_time is null
+		group by pf.material_id;
+	</select>
+
+</mapper>

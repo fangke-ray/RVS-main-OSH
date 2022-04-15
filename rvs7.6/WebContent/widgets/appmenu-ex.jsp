@@ -39,6 +39,9 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
 	<% if(links.get("inlinePosition")) { %>
 		        ${inlinePosition}
 	<% } %>
+	<% if(links.get("disassembleStorage")) { %>
+		        <a href="disassemble_storage.do">分解在线库位</a><br>
+	<% } %>
 	<% if(links.get("composeStorage")) { %>
 		        <a href="compose_storage.do">总组签收库位</a><br>
 	<% } %>

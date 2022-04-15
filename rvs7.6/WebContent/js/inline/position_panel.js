@@ -923,8 +923,13 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 						getJustWorkingFingers(resInfo.mform.material_id);
 					} else {
 						if (resInfo.lightFix) flowtext = resInfo.lightFix + (flowtext ? "<br>" + flowtext : "");
-						if (resInfo.fingers) flowtext = resInfo.fingers + (flowtext ? "<br>" + flowtext : "");
+						if (resInfo.fingers) flowtext = decodeText(resInfo.fingers) + (flowtext ? "<br>" + flowtext : "");
 						if (flowtext) $("#flowtext").html(flowtext);
+						if (resInfo.fingers && resInfo.fingers.indexOf("[lick") >= 0
+							&& typeof setChooseStorageButtons === "function") {
+							setChooseStorageButtons();
+						}
+
 					}
 				});
 			});
@@ -990,8 +995,12 @@ var getJustWorkingFingers = function(material_id) {
 				// 以Object形式读取JSON
 				eval('resInfo =' + xhrobj.responseText);
 
-				if (resInfo.fingers) flowtext = resInfo.fingers + (resInfo.past_fingers ? "<br>" + resInfo.past_fingers : "");
+				if (resInfo.fingers) flowtext = decodeText(resInfo.fingers) + (resInfo.past_fingers ? "<br>" + resInfo.past_fingers : "");
 				$("#flowtext").html(flowtext);
+				if (resInfo.fingers && resInfo.fingers.indexOf("[lick") >= 0
+					&& typeof setChooseStorageButtons === "function") {
+					setChooseStorageButtons();
+				}
 //			} catch (e) {
 //				alert("doPointOut error");
 //			};
@@ -1200,6 +1209,7 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus, postData){
 				});
 			} else if (resInfo.infectString) {
 				showBreakOfInfect(resInfo.infectString);
+
 				return;
 			} else {
 				// 共通出错信息框
@@ -1707,6 +1717,10 @@ var doFinish=function(evt, hr){
 			errorPop("请选择 C 本体需要回收还是废弃。");
 			return;
 		}
+	}
+
+	if ((typeof checkStorageSent === "function") && checkStorageSent()) {
+		return;
 	}
 
 	var data = {};

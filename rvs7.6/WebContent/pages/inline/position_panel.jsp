@@ -189,6 +189,13 @@ if (work_count_flg == 1) {
 								<td class="ui-state-default td-title">等待件数</td>
 								<td class="td-content-text" id="p_waiting_count">0台</td>
 							</tr>
+<%
+if (request.getAttribute("sendStoragePosition") != null) {
+%>
+<%@include file="/widgets/position_panel/send_to_storage.jsp"%>
+<%
+}
+%>
 							<tr>
 								<td class="ui-state-default td-title">维修流程提示</td>
 								<td class="td-content-text" colspan="6" id="flowtext" style="text-align: left;"></td>

@@ -230,6 +230,10 @@ public class PositionPanelAction extends BaseAction {
 				req.setAttribute("concernPosition", concernPosition.getProcess_code() + " " + concernPosition.getName());
 			}
 
+			if (PositionService.getInlineStorageFromPositions(conn).containsKey(position_id)) {
+				req.setAttribute("sendStoragePosition", "1");
+			}
+
 			String special_forwards = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
 
 			if (special_forwards == null) {
@@ -838,7 +842,7 @@ public class PositionPanelAction extends BaseAction {
 			pfService.startProductionFeature(waitingPf, conn);
 
 			// 工位首次开始作业
-			if (waitingPf.getOperate_result() == 0){
+			if (waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_NOWORK_WAITING){
 				MaterialService ms = new MaterialService();
 				MaterialForm mEntity = ms.loadSimpleMaterialDetail(conn, waitingPf.getMaterial_id());
 //				String level = mEntity.getLevel();
@@ -1582,7 +1586,7 @@ public class PositionPanelAction extends BaseAction {
 			jsonPcs_inputs = JSON.decode(sPcs_inputs, Map.class);
 			for (ProductionFeatureEntity workingPf : workingPfs) {
 				String material_id = workingPf.getMaterial_id();
-				if (workingPf.getOperate_result() == 5) {
+				if (workingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_SUPPORT) {
 					material_id = material_id + "_5";
 				}
 				if (!jsonPcs_inputs.containsKey(material_id)) {
@@ -1603,7 +1607,7 @@ public class PositionPanelAction extends BaseAction {
 
 				for (ProductionFeatureEntity workingPf : workingPfs) {
 					String material_id = workingPf.getMaterial_id();
-					if (workingPf.getOperate_result() == 5) {
+					if (workingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_SUPPORT) {
 						material_id = material_id + "_5";
 					}
 

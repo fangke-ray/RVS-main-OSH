@@ -69,6 +69,7 @@
 		<typeAlias alias="ForSolutionAreaEntity" type="com.osh.rvs.bean.inline.ForSolutionAreaEntity"/>
 		<typeAlias alias="ForSolutionAreaEventEntity" type="com.osh.rvs.bean.inline.ForSolutionAreaEventEntity"/>
 		<typeAlias alias="DailyKpiDataEntity" type="com.osh.rvs.bean.inline.DailyKpiDataEntity"/>
+		<typeAlias alias="DisassembleStorageEntity" type="com.osh.rvs.bean.inline.DisassembleStorageEntity"/>
 
 		<typeAlias alias="MaterialPartialEntity" type="com.osh.rvs.bean.partial.MaterialPartialEntity" />
 		<typeAlias alias="MaterialPartialDetailEntity" type="com.osh.rvs.bean.partial.MaterialPartialDetailEntity"/>
@@ -247,6 +248,7 @@
 		<mapper resource="com/osh/rvs/mapper/inline/ScheduleProcessMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/inline/SoloProductionFeatureMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/inline/SupportMapper.xml" />
+		<mapper resource="com/osh/rvs/mapper/inline/DisassembleStorageMapper.xml" />
 
 		<mapper resource="com/osh/rvs/mapper/manage/CapacityMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/manage/EchelonAllocateMapper.xml"/>
@@ -330,5 +332,6 @@
 		
 		<mapper resource="com/osh/rvs/mapper/support/SuppliesDetailMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/support/SuppliesOrderMapper.xml"/>
+
 	</mappers>
 </configuration> 
