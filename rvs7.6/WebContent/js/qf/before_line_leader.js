@@ -140,7 +140,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 					width : 1246,
 					rowheight : 23,
 					datatype : "local",
-					colNames : ['修理单号', '型号', '机身号', '条码参照', '不良', '等级', '处理对策', '受理日期', '报价日期', '客户同意', '优先报价', '位置', '状态', '备注',
+					colNames : ['修理单号', '型号', '机身号', '条码参照', '不良', '等级', '处理对策', '受理日期', 'outline_time', '报价日期', '客户同意', '优先报价', '位置', '状态', '备注',
 						'position', 'esas_no', 'direct_flg', 'fix_type', 'service_repair_flg', 'model_id', 'selectable', 'anml_exp', 'ts', '', '', '', '' ,'','','vip','scheduled_expedited', '直送区域'],
 					colModel : [{
 								name : 'sorc_no',
@@ -149,7 +149,14 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 							},{
 								name : 'model_name',
 								index : 'model_name',
-								width : 125
+								width : 125, 
+								formatter : function(value, options, rData){
+									if (rData['scheduled_expedited'] && rData['scheduled_expedited'] >= 4) {
+										return "<span class='top_speed'>" + rData['model_name'] + "</span>";
+									} else {
+										return rData['model_name'];
+									}
+								}
 							},{
 								name : 'serial_no',
 								index : 'serial_no',
@@ -178,6 +185,10 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 								index : 'reception_time',
 								width : 50,
 								align : 'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'m-d'}
+							}, {
+								name : 'outline_time',
+								index : 'outline_time',
+								hidden: true
 							}, {
 								name : 'quotation_time',
 								index : 'quotation_time',
@@ -1145,7 +1156,14 @@ var showDetail=function(rid) {
 		$("#edit_sorcno").val(rowData.sorc_no);
 		$("#edit_esasno").val(rowData.esas_no);
 		$("#edit_modelname").val(rowData.model_id);
-		$("#edit_label_modelname").text(rowData.model_name);
+
+		var scheduled_expedited = rowData.scheduled_expedited;
+		if (scheduled_expedited >= 4) {
+			$("#edit_label_modelname").html(rowData.model_name + "<span class='ui-state-default' style='margin-left: 2em;padding: 4px;'>出货日期</span><span class='top_speed'>" + rowData.outline_time + "</span>");
+		} else {
+			$("#edit_label_modelname").text(rowData.model_name);
+		}
+
 		$("#edit_serialno").val(rowData.serial_no);
 		$("#edit_label_serialno").text(rowData.serial_no);
 		$("#edit_level").val(rowData.level); 
@@ -1155,7 +1173,8 @@ var showDetail=function(rid) {
 		if (rowData.direct_flg != 1) {
 			$("#direct_rapid").next().hide();
 		} else {
-			if (rowData.scheduled_expedited == 2) {
+			if (scheduled_expedited >= 4) scheduled_expedited -= 4;
+			if (scheduled_expedited == 2) {
 				var $for = $("#direct_rapid").attr("checked", "checked")
 					.next().show().children("span").text("快速");
 			} else {

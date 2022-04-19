@@ -1206,3 +1206,23 @@ span.textlink {
 	text-align: center;
 	background-color:navy;
 }
+@keyframes speedflag{
+	0%{left: 0%}
+	100%{left: 90%;}
+}
+span.top_speed {
+	color : forestgreen;
+	border : 1px solid brown;
+	padding :0 4px;
+	mix-blend-mode: difference;
+	position: relative;
+}
+span.top_speed:before {
+	position: absolute;
+	animation: speedflag .6s infinite linear;
+	top: 0;
+	color: chocolate;
+	display: block;
+	content: '》';
+	z-index: -1;
+}

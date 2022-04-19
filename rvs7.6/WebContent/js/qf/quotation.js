@@ -386,7 +386,9 @@ var paused_list = function(paused) {
 							'<div class="tube-liquid  ' +
 							(waiting.agreed_date ? 'tube-green' : 'tube-gray') +
 							'">' +
-								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') + waiting.model_name + ' | ' + waiting.serial_no +
+								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') 
+								+ (waiting.scheduled_expedited >=4 ? ("<span class='top_speed'>" + waiting.model_name + "</span>") : waiting.model_name) + ' | ' 
+								+ waiting.serial_no +
 								getFlags(waiting.quotation_first, waiting.scheduled_expedited, waiting.direct_flg, waiting.light_fix, waiting.service_repair_flg, waiting.anml_exp) +
 							'</div>' +
 						'</div>';
@@ -567,7 +569,13 @@ var getMaterialInfo = function(resInfo) {
 	$("#material_details").show();
 
 	if (!resInfo.finish_check) {
-		$("#material_details td:eq(1)").text(resInfo.mform.model_name).attr("model_id", resInfo.mform.model_id);
+		var scheduled_expedited = resInfo.mform.scheduled_expedited;
+		if (scheduled_expedited >= 4) {
+			$("#material_details td:eq(1)").html("<span class='top_speed'>" + resInfo.mform.model_name + "</span><span class='ui-state-default' style='margin-left: 2em;padding: 4px;'>出货日期</span><span class='top_speed'>" + resInfo.mform.outline_time + "</span>")
+				.attr("model_id", resInfo.mform.model_id);
+		} else {
+			$("#material_details td:eq(1)").text(resInfo.mform.model_name).attr("model_id", resInfo.mform.model_id);
+		}
 		$("#material_details td.td-content:eq(1)").text(resInfo.mform.serial_no);
 		$("#edit_sorc_no").val(resInfo.mform.sorc_no);
 		$("#edit_esas_no").val(resInfo.mform.esas_no);
@@ -626,7 +634,7 @@ var getMaterialInfo = function(resInfo) {
 			$("#direct_rapid").next().hide();
 		} else {
 			$("#edit_direct_flg").text("直送").addClass("fit2rapid");
-			if (resInfo.mform.scheduled_expedited == 2) {
+			if (scheduled_expedited == 2 || scheduled_expedited == 6) {
 				$("#direct_rapid").attr("checked", "checked")
 					.next().show().children("span").text("快速");
 			} else {
@@ -946,7 +954,7 @@ function acceptted_list(quotation_listdata){
 				{name:'quotation_time',index:'quotation_time', width:70, align:'center',
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d H:i'}},
 				{name:'sorc_no',index:'sorc_no', width:105},
-				{name:'esas_no',index:'esas_no', width:50, align:'center'},
+				{name:'esas_no',index:'esas_no', width:50, align:'center',hidden:true},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_id', width:125},
 				{name:'serial_no',index:'serial_no', width:50, align:'center'},
@@ -954,7 +962,7 @@ function acceptted_list(quotation_listdata){
 				{name:'agreed_date',index:'agreed_date', width:50, align:'center',
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d', newformat: 'm-d'}},
 				{name:'level',index:'level', width:35, align:'center', formatter: 'select', editoptions:{value: lOptions}},
-				{name:'fix_type',index:'fix_type', width:100, formatter : function(value, options, rData){
+				{name:'fix_type',index:'fix_type', width:120, formatter : function(value, options, rData){
 					return rData['remark'];
 				}},
 				{name:'wip_location',index:'wip_location', width:60},
@@ -1277,17 +1285,23 @@ function load_list(listdata){
 				{name:'reception_time',index:'reception_time', width:70, align:'center',
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}},
 				{name:'sorc_no',index:'sorc_no', width:80},
-				{name:'esas_no',index:'esas_no', width:50, align:'center'},
+				{name:'esas_no',index:'esas_no', width:50, align:'center',hidden:true},
 				{name:'model_id',index:'model_id', hidden:true},
-				{name:'model_name',index:'model_id', width:125},
+				{name:'model_name',index:'model_id', width:125, formatter : function(value, options, rData){
+					if (rData['scheduled_expedited'] && rData['scheduled_expedited'] >= 4) {
+						return "<span class='top_speed'>" + rData['model_name'] + "</span>";
+					} else {
+						return rData['model_name'];
+					}
+				}},
 				{name:'serial_no',index:'serial_no', width:50, align:'center'},
 				{name:'ocm',index:'ocm', width:65, formatter: 'select', editoptions:{value: oOptions}},
 				{name:'agreed_date',index:'agreed_date', width:50, align:'center',
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d', newformat: 'm-d'}},
-				{name:'quotation_first',index:'quotation_first', width:35, align:'center', formatter: 'select', editoptions:{value: "0:;1:优先"}},
+				{name:'quotation_first',index:'quotation_first', width:35, align:'center', formatter: 'select', editoptions:{value: "0:;1:优先;10:超时;11:超时"}},
 				{name:'level',index:'level', width:35, align:'center', formatter: 'select', editoptions:{value: lOptions}},
-				{name:'fix_type',index:'fix_type', width:125, formatter : function(value, options, rData){
-					return rData['remark'] + (rData['anml_exp'] == '1' ? " 动物实验用" : "");
+				{name:'fix_type',index:'fix_type', width:150, formatter : function(value, options, rData){
+					return rData['remark'] + (rData['anml_exp'] == '1' ? " 动物实验用" : "") + (rData['scheduled_expedited'] && rData['scheduled_expedited'] >= 4 ? "极速修理" : "");
 				}}//formatter: 'select', editoptions:{value: tOptions}}
 			],
 			rowNum: 20,
@@ -1310,6 +1324,9 @@ function load_list(listdata){
 };
 
 var getFlags = function(over_time, expedited, direct_flg, light_fix, f_service_repair_flg, anml_exp) {
+	if (expedited >= 4) {
+		expedited -= 4;
+	}
 	if (over_time || expedited || direct_flg || light_fix || anml_exp) {
 		var retDiv = "<div class='material_flags'>";
 		if (f_service_repair_flg > 0) {

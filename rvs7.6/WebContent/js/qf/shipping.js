@@ -205,7 +205,18 @@ function load_list(listdata){
 				{name:'sorc_no',index:'sorc_no', width:100},
 				{name:'filing_time',index:'filing_time', width:50, align:'center',sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}},
 				{name:'model_id',index:'model_id', hidden:true},
-				{name:'model_name',index:'model_id', width:125},
+				{
+					name : 'model_name',
+					index : 'model_name',
+					width : 125, 
+					formatter : function(value, options, rData){
+						if (rData['scheduled_expedited'] && rData['scheduled_expedited'] >= 4) {
+							return "<span class='top_speed'>" + rData['model_name'] + "</span>";
+						} else {
+							return rData['model_name'];
+						}
+					}
+				},
 				{name:'serial_no',index:'serial_no', width:50, align:'center'},
 				{
 					name : 'ocm',
@@ -220,7 +231,7 @@ function load_list(listdata){
 					name : 'scheduled_expedited',
 					index : 'scheduled_expedited',
 					width : 35,
-					align : 'center', formatter: 'select', editoptions:{value: "0:;1:加急;2:直送快速"}
+					align : 'center', formatter: 'select', editoptions:{value: "0:;1:加急;2:直送快速;3:极速修理;4:极速修理"}
 				}, {
 					name : 'wip_location',
 					index : 'wip_location',

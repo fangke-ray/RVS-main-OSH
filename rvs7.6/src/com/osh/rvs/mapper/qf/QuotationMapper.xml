@@ -11,8 +11,10 @@
 			  coalesce(omr_notifi_no, sorc_no) as sorc_no,
 			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
 			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
-			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.quotation_first,
-				mt.tag_type is not null as anml_exp
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, 
+			  (current_timestamp - `m`.reception_time  > 2000000) * 10 +`m`.quotation_first as quotation_first,
+			  `m`.scheduled_expedited + (mdl.series = 'URF') * 4 as  scheduled_expedited,
+			  mt.tag_type is not null as anml_exp
 			FROM material m
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
 			JOIN production_feature pf
@@ -27,7 +29,7 @@
 			  AND `pf`.action_time is null
 			LEFT JOIN `material_tag` mt
 				ON `m`.material_id = mt.material_id AND tag_type = 1
-			ORDER BY operate_result DESC, reception_time
+			ORDER BY mdl.series = 'URF' desc, operate_result DESC, reception_time
 		]]>
 	</select>
 
@@ -41,7 +43,8 @@
 			  `m`.reception_time, `m`.fix_type,
 			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result as now_operate_result,
 			  `psf`.reason as now_pause_reason, `pf`.position_id as processing_position, 
-			  (current_timestamp - `wpf`.action_time) > 2000000 as quotation_first, `m`.scheduled_expedited,
+			  (current_timestamp - `wpf`.action_time) > 2000000 as quotation_first, 
+			  `m`.scheduled_expedited + (mdl.series = 'URF') * 4 as  scheduled_expedited,
 				mt.tag_type is not null as anml_exp
 			FROM material m
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
@@ -142,7 +145,7 @@
 			`m`.selectable,
 			`m`.agreed_date,
 			`m`.bound_out_ocm,
-			`m`.scheduled_expedited
+			`m`.scheduled_expedited + (mdl.series = 'URF') * 4 as scheduled_expedited
 		 FROM material m 
 		 JOIN v_model mdl
 		 	ON `m`.model_id = `mdl`.model_id

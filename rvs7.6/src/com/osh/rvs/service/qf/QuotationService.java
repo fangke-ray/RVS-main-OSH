@@ -151,7 +151,11 @@ public class QuotationService {
 		MaterialForm materialForm = new MaterialForm();
 		QuotationMapper dao = conn.getMapper(QuotationMapper.class);
 		MaterialEntity materialEntity = dao.getMaterialDetail(material_id);
+		if (materialEntity.getScheduled_expedited() != null && materialEntity.getScheduled_expedited() >= 4) {
+			materialEntity.setOutline_time(RvsUtils.switchWorkDate(materialEntity.getReception_time(), 4, conn));
+		}
 		BeanUtil.copyToForm(materialEntity, materialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+
 		// 取得维修对象备注
 		MaterialCommentMapper mapper = conn.getMapper(MaterialCommentMapper.class);
 		String comment = mapper.getMyMaterialComment(material_id, user.getOperator_id());

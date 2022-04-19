@@ -211,7 +211,7 @@
 						THEN 8
 					ELSE 14
 				END + (coalesce(`m`.service_repair_flg, 0) = 2)) as ticket_flg,
-				`m`.scheduled_expedited,
+				`m`.scheduled_expedited + (mdl.series = 'URF') * 4 as  scheduled_expedited,
 				`ppf1`.position_id as category_id,
 				`m`.bound_out_ocm,
 				coalesce(`m`.pat_id, mdl.default_pat_id) as pat_id,
@@ -255,7 +255,7 @@
 			 	ON coalesce(`m`.pat_id, mdl.default_pat_id) = pat.process_assign_template_id
 			LEFT JOIN material_tag mt
 				ON `m`.material_id = mt.material_id AND tag_type = 1
-			WHERE `m`.inline_time IS NULL AND outline_time IS NULL
+			WHERE `m`.inline_time IS NULL AND m.outline_time IS NULL
 			AND break_back_flg = 0
 			AND `m`.fix_type in (1,2)
 		]]>

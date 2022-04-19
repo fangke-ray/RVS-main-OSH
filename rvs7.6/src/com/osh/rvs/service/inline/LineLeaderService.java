@@ -55,6 +55,7 @@ import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.copy.DateUtil;
 // import java.util.HashMap;
 
 public class LineLeaderService {
@@ -476,10 +477,22 @@ public class LineLeaderService {
 		ProcessAssignService paService = new ProcessAssignService();
 		List<String> anmlProcesses = ProcessAssignService.getAnmlProcesses(conn);
 		Map<String, String> anmlProcessMap = new HashMap<String, String>();
+		Map<String, String> add4DaysMapper = new HashMap<String, String>();
 
 		for (MaterialEntity entity : listEntities) {
 			MaterialForm retForm = new MaterialForm();
+
 			BeanUtil.copyToForm(entity, retForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+			if (entity.getScheduled_expedited() != null && entity.getScheduled_expedited() >= 4) {
+				String receptionDate = retForm.getReception_time().substring(0, 10);
+				if (!add4DaysMapper.containsKey(receptionDate)) {
+					Date outlineDate = RvsUtils.switchWorkDate(entity.getReception_time(), 4, conn);
+					add4DaysMapper.put(receptionDate, 
+							DateUtil.toString(outlineDate, DateUtil.DATE_PATTERN));
+				}
+				retForm.setOutline_time(add4DaysMapper.get(receptionDate));
+			}
+
 			if (!ccdLineModels.contains(entity.getModel_id())) { // 非304作业对象
 				retForm.setPat_id(null);
 			}
