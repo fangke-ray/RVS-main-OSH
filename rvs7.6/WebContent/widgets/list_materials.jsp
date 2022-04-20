@@ -27,6 +27,7 @@ Integer sectionPart = (Integer)request.getAttribute("sectionPart");
 				<input type="checkbox" name="searchAdditional" <%=sectionPart == 5 ? "checked" : ""%> value="1" id="searchAdditional_process"><label title="包含'维修课室','当前位置','NS当前位置'" for="searchAdditional_process">当前维修进度</label>
 				<input type="checkbox" name="searchAdditional" <%=sectionPart == 2 ? "checked" : ""%> value="2" id="searchAdditional_quote"><label title="包含'消毒灭菌完成','报价完成'" for="searchAdditional_quote">报价信息</label>
 				<input type="checkbox" name="searchAdditional" <%=(sectionPart == 4 || sectionPart == 5) ? "checked" : ""%> value="4" id="searchAdditional_partorder"><label title="包含'零件订购日','入库预定日'" for="searchAdditional_partorder">零件订购</label>
+				<input type="checkbox" name="searchAdditional" value="8" id="searchAdditional_outshore"><label title="包含'品保完成','出货时间'" for="searchAdditional_outshore">出检出货</label>
 			</div>
 		</div>
 		<div class="ui-widget-content">

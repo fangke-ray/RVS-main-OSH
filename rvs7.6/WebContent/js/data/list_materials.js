@@ -196,6 +196,7 @@ $(function() {
 var colsname_process = ['section_name','processing_position','processing_position2'];
 var colsname_quote = ['quotation_date_start','quotation_time'];
 var colsname_partorder = ['partial_order_date','arrival_plan_date'];
+var colsname_outshore = ['outline_time','finish_time'];
 
 function initGrid() {
 	$("#list").jqGrid({
@@ -209,7 +210,7 @@ function initGrid() {
 				'维修课室' , '当前位置', 'NS<br>当前位置', 
 				'消毒灭菌' , '报价完成', 
 				'受理日期','同意日期',
-				'纳期','总组出货<br>安排','总组出货','零件订购日','入库预定日','延误','返还','环序号'],
+				'纳期','总组出货<br>安排','总组完成','品保通过','出货时间','零件订购日','入库预定日','延误','返还','环序号'],
 		colModel : [
 			{name:'material_id',index:'material_id', hidden:true, key: true},
 			{name:'sorc_no',index:'sorc_no', width:55},
@@ -237,7 +238,10 @@ function initGrid() {
 
 				return "";
 			}},
+			{name:'finish_time_end',index:'finish_time_end', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'y-m-d'}},
 			{name:'outline_time',index:'outline_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			{name:'finish_time',index:'finish_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			
 			{name:'partial_order_date',index:'partial_order_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'y-m-d'}},
 			{name:'arrival_plan_date',index:'arrival_plan_date', width:45, align:'center', 
 				formatter:function(a,b,row) {
@@ -324,6 +328,12 @@ function search_handleComplete(xhrobj, textStatus) {
 		Array.prototype.push.apply(hideCols, colsname_partorder)
 	}
 
+	if($("#searchAdditional_outshore").is(":checked")) {
+		Array.prototype.push.apply(showCols, colsname_outshore)
+	} else {
+		Array.prototype.push.apply(hideCols, colsname_outshore)
+	}
+	
 	if(keepSearchData.category_id == '00000000055'){
 		Array.prototype.push.apply(showCols, ['ring_code'])
 	}else{

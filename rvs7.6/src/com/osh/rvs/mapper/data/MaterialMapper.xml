@@ -191,7 +191,7 @@
 				a.section_id,
 				a.scheduled_date,
 		]]>
-		<if test="int_search_addition eq 1 or int_search_addition eq 3 or int_search_addition eq 5 or int_search_addition eq 7">
+		<if test="(int_search_addition band 1) eq 1">
 		<![CDATA[
 				(select name from section where section_id = a.section_id) as section_name,
 				(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
@@ -201,18 +201,24 @@
 		<![CDATA[
 				a.inline_time,
 				mpr.scheduled_assign_date as scheduled_date_end,
-				mpr.finish_date as outline_time,
+				mpr.finish_date as finish_time_end,
+				outline_time,
 		]]>
-		<if test="int_search_addition eq 4 or int_search_addition eq 5 or int_search_addition eq 6 or int_search_addition eq 7">
+		<if test="(int_search_addition band 4) eq 4">
 		<![CDATA[
 				max(mpt.arrival_plan_date) as arrival_plan_date,
 				min(mpt.order_date) as partial_order_date,
 		]]>
 		</if>
-		<if test="int_search_addition eq 2 or int_search_addition eq 3 or int_search_addition eq 6 or int_search_addition eq 7">
+		<if test="(int_search_addition band 2) eq 2">
 		<![CDATA[
 				(select finish_time from production_feature where material_id = a.material_id and position_id in (10,11) and operate_result = 2) as quotation_date_start,
 				max(pos_fs.finish_time) as quotation_time, 
+		]]>
+		</if>
+		<if test="(int_search_addition band 8) eq 8">
+		<![CDATA[
+				(select finish_time from production_feature where material_id = a.material_id and position_id = 47 and operate_result = 2) as finish_time,
 		]]>
 		</if>
 		<![CDATA[
@@ -227,12 +233,12 @@
 		<![CDATA[
 			 from Material a left join material_process mpr on mpr.material_id = a.material_id and mpr.line_id = 14
 		]]>
-		<if test="int_search_addition eq 4 or int_search_addition eq 5 or int_search_addition eq 6 or int_search_addition eq 7">
+		<if test="(int_search_addition band 4) eq 4">
 		<![CDATA[
 			 left join material_partial mpt on mpt.material_id = a.material_id
 		]]>
 		</if>
-		<if test="int_search_addition eq 2 or int_search_addition eq 3 or int_search_addition eq 6 or int_search_addition eq 7 or quotation_date_start!= null or quotation_date_end!= null">
+		<if test="(int_search_addition band 2) eq 2 or quotation_date_start!= null or quotation_date_end!= null">
 		<![CDATA[
 			 left join production_feature pos_fs on pos_fs.material_id = a.material_id and pos_fs.operate_result = 2 and pos_fs.position_id in (select position_id from position where process_code != '160' and special_page = 'quotation') 
 		]]>

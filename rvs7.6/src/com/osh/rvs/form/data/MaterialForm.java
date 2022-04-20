@@ -109,7 +109,7 @@ public class MaterialForm extends ActionForm {
 	@BeanField(title = "纳期", name = "scheduled_date", type = FieldType.Date)
 	private String scheduled_date;
 	private String doreception_time;// 受理时间
-	@BeanField(title = "报价日期", name = "finish_time", type = FieldType.Date)
+	@BeanField(title = "完成时间", name = "finish_time", type = FieldType.DateTime)
 	private String finish_time;// 报价日期
 	@BeanField(title = "报价日期", name = "quotation_time", type = FieldType.DateTime)
 	private String quotation_time;// 报价时间

@@ -942,6 +942,16 @@ public class MaterialService {
 			dateCell.setDataFormat(book.createDataFormat().getFormat("yy-mm-dd")); 
 			dateCell.setFont(fontYH);
 
+			HSSFCellStyle timeCell = book.createCellStyle(); // 居中
+			timeCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
+			timeCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
+			timeCell.setBorderTop(HSSFCellStyle.BORDER_THIN);//上边框
+			timeCell.setBorderRight(HSSFCellStyle.BORDER_THIN);//右边框
+			timeCell.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+			timeCell.setDataFormat(book.createDataFormat().getFormat("MM/dd h:mm")); // HSSFDataFormat.getBuiltinFormat("MM/dd h:mm")
+			timeCell.setFillForegroundColor((short) 1);
+			timeCell.setFont(fontYH);
+
 			HSSFCellStyle centerCell = book.createCellStyle(); // 居中
 			centerCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
 			centerCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
@@ -957,6 +967,7 @@ public class MaterialService {
 			boolean showProcess = (intSearchAddition & 1) == 1;
 			boolean showQuote = (intSearchAddition & 2) == 2;
 			boolean showPartorder = (intSearchAddition & 4) == 4;
+			boolean showOutshore = (intSearchAddition & 8) == 8;
 			HSSFRow rowHeader = listSheet.getRow(0);
 			int colCur = -1;
 
@@ -1008,6 +1019,16 @@ public class MaterialService {
 
 			listSheet.setDefaultColumnStyle(++colCur, dateCell);
 			listSheet.setDefaultColumnStyle(++colCur, dateCell);
+
+			// 品保通过 出货时间
+			if (showOutshore) {
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+				listSheet.setDefaultColumnStyle(++colCur, timeCell);
+				listSheet.setColumnWidth(colCur, 3290);
+			} else {
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
+			}
 
 			// 零件订购日	入库预定日
 			if (showPartorder) {
@@ -1117,7 +1138,28 @@ public class MaterialService {
 				}
 				
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getOutline_time());
+				if (resultForm.getFinish_time_end() != null) {
+					cell.setCellValue(resultForm.getFinish_time_end().replace('/', '-'));
+				} else {
+					cell.setCellValue("-");
+				}
+
+				if (showOutshore) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					cell.setCellValue(resultForm.getOutline_time());
+
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					if (!isEmpty(resultForm.getFinish_time())) {
+						String outshoreTime = resultForm.getFinish_time();
+						if (outshoreTime.length() > 16) {
+							outshoreTime = outshoreTime.substring(5, 16);
+							outshoreTime = outshoreTime.replace('/', '-');
+						}
+						cell.setCellValue(outshoreTime);
+					} else {
+						cell.setCellValue("");
+					}
+				}
 
 				if (showPartorder) {
 					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
