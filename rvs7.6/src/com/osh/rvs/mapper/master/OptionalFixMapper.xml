@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.OptionalFixMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+
+	<select id="searchOptionalFix" parameterType="OptionalFixEntity" resultType="OptionalFixEntity">
+		<![CDATA[ 
+		SELECT
+			opf.optional_fix_id,
+			opf.standard_code,
+			opf.infection_item,
+			group_concat(opfr.rank) as rank,
+			opf.updated_by,
+			opf.updated_time
+		FROM optional_fix opf
+		LEFT JOIN optional_fix_for_rank opfr ON opfr.optional_fix_id = opf.optional_fix_id
+		]]>
+		<where>
+			opf.delete_flg = 0
+		<if test="optional_fix_id != null and optional_fix_id != '' ">
+			AND opf.optional_fix_id = #{optional_fix_id}
+		</if>
+		<if test="standard_code != null and standard_code != '' ">
+			AND opf.standard_code = #{standard_code}
+		</if>
+		<if test="infection_item != null and infection_item != '' ">
+			AND opf.infection_item LIKE CONCAT('%', #{infection_item}, '%')
+		</if>
+		<if test="rank != null and rank != '' ">
+			AND EXISTS(select 1 from optional_fix_for_rank where optional_fix_id = opf.optional_fix_id and rank = #{rank})
+		</if>
+		</where>
+		GROUP BY opf.optional_fix_id
+	</select>
+
+	<select id="getOptionalFix" parameterType="String" resultType="OptionalFixEntity">
+		<![CDATA[ 
+		SELECT
+			optional_fix_id,
+			standard_code,
+			infection_item,
+			(select name from operator where operator_id = Optional_fix.updated_by) as updated_by,
+			updated_time
+		FROM optional_fix
+		WHERE optional_fix_id = #{optional_fix_id}
+		  and delete_flg = 0
+		]]>
+	</select>
+
+	<select id="checkCodeIsExist" parameterType="String" resultType="Integer">
+		<![CDATA[ 
+		SELECT
+			count(optional_fix_id)
+		FROM optional_fix
+		WHERE standard_code = #{standard_code}
+		  and delete_flg = 0
+		]]>
+		<if test="optional_fix_id!= null and optional_fix_id!= '' ">
+			AND optional_fix_id != #{optional_fix_id}
+		</if>
+	</select>
+
+	<insert id="insertOptionalFix" parameterType="OptionalFixEntity">
+		<![CDATA[ 
+		INSERT INTO Optional_fix 
+			(standard_code, infection_item, delete_flg, updated_by, updated_time) 
+		VALUES 
+			(#{standard_code}, #{infection_item}, 0, #{updated_by}, current_timestamp)
+		]]>
+	</insert>
+
+	<update id="updateOptionalFix" parameterType="OptionalFixEntity">
+		<![CDATA[ 
+		UPDATE Optional_fix SET
+			standard_code = #{standard_code},
+			infection_item = #{infection_item},
+			updated_by = #{updated_by},
+			updated_time = current_timestamp
+		WHERE optional_fix_id = #{optional_fix_id}
+		  and delete_flg = 0
+		]]>
+	</update>
+
+	<update id="deleteOptionalFix" parameterType="OptionalFixEntity">
+		<![CDATA[ 
+		UPDATE Optional_fix SET
+			delete_flg = 1,
+			updated_by = #{updated_by},
+			updated_time = current_timestamp
+		WHERE optional_fix_id = #{optional_fix_id}
+		  and delete_flg = 0
+		]]>
+	</update>
+
+	<select id="getRanks" resultType="String">
+		<![CDATA[ 
+		SELECT rank FROM optional_fix_for_rank WHERE optional_fix_id = #{optional_fix_id}
+		]]>
+	</select>
+
+	<insert id="insertRank" parameterType="OptionalFixEntity">
+		<![CDATA[ 
+		INSERT INTO optional_fix_for_rank (optional_fix_id, rank) VALUES (#{optional_fix_id}, #{rank})
+		]]>
+	</insert>
+
+	<update id="deleteRank" parameterType="String">
+		<![CDATA[ 
+		DELETE from optional_fix_for_rank WHERE optional_fix_id = #{optional_fix_id}
+		]]>
+	</update>
+	
+	<select id="getOptionalFixByRank" parameterType="String" resultType="OptionalfixEntity">
+		<![CDATA[ 
+			SELECT 
+				opf.optional_fix_id,
+				opf.standard_code,
+				opf.infection_item
+			FROM
+				optional_fix_for_rank opfr
+				     JOIN
+				optional_fix opf ON opf.optional_fix_id = opfr.optional_fix_id
+			WHERE 
+				opfr.rank = #{rank}
+			order by
+				opf.standard_code asc
+		]]>
+	</select>
+</mapper>

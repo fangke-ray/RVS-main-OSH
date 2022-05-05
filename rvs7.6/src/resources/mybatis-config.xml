@@ -30,6 +30,7 @@
 		<typeAlias alias="LightFixEntity" type="com.osh.rvs.bean.master.LightFixEntity"/>
 		<typeAlias alias="SystemImageManageEntity" type="com.osh.rvs.bean.master.SystemImageManageEntity"/>
 		<typeAlias alias="PcsRequestEntity" type="com.osh.rvs.bean.master.PcsRequestEntity"/>
+		<typeAlias alias="OptionalFixEntity" type="com.osh.rvs.bean.master.OptionalFixEntity"/>
 
 		<typeAlias alias="PartialEntity" type="com.osh.rvs.bean.master.PartialEntity"/>
 		<typeAlias alias="PartialPositionEntity" type="com.osh.rvs.bean.master.PartialPositionEntity"/>
@@ -203,6 +204,7 @@
 		<mapper resource="com/osh/rvs/mapper/master/PartialUnpackMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/PartialBussinessStandardMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/SuppliesReferListMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/OptionalFixMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/data/AlarmMesssageMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/data/MaterialMapper.xml" />

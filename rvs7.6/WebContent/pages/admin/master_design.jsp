@@ -79,6 +79,7 @@ $(function() {
 				        <a href="adminmenu.do#process_assign_template">修理流程模板管理</a><br>
 				        <a href="adminmenu.do#operator">用户信息管理</a><br>
 				        <a href="adminmenu.do#light_fix">中小修理标准编制管理</a><br>
+				        <a href="adminmenu.do#optional_fix">选择修理管理</a><br>
 				        <a href="adminmenu.do#drying_oven_device">烘干作业管理</a><br>
 				    </div>
 				    <h3 style="padding-left:30px;">系统信息管理</h3>

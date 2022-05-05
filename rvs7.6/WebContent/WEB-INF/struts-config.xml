@@ -100,6 +100,7 @@
 		<form-bean name="MaterialProcessAssignForm" type="com.osh.rvs.form.inline.MaterialProcessAssignForm"></form-bean>
 		<form-bean name="LightFixForm" type="com.osh.rvs.form.master.LightFixForm"></form-bean>
 		<form-bean name="PremakePartialForm" type="com.osh.rvs.form.partial.PremakePartialForm"></form-bean>
+		<form-bean name="optionalFixForm" type="com.osh.rvs.form.master.OptionalFixForm"></form-bean>
 		
 		<form-bean name="TurnoverCaseForm" type="com.osh.rvs.form.qf.TurnoverCaseForm"></form-bean>
 		<form-bean name="PeripheralInfectDeviceForm" type="com.osh.rvs.form.infect.PeripheralInfectDeviceForm"></form-bean>
@@ -1643,6 +1644,16 @@
 				parameter="method"
 				validate="false">
 			<forward name="init" path="/pages/inline/disassemble_storage.jsp" />
+		</action>
+
+		<!-- 选择修理管理 -->
+		<action path="/optional_fix"
+				type="com.osh.rvs.action.master.OptionalFixAction"
+				name="optionalFixForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+				<forward name="init" path="/pages/admin/optional_fix.jsp"></forward>
 		</action>
 
 	</action-mappings>
