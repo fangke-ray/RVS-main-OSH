@@ -25,7 +25,7 @@
 			    `pr`.`delete_flg`,
 			    `pr`.`reacted_model`
 			FROM `pcs_request` `pr`
-			JOIN model mdl
+			LEFT JOIN model mdl
 			on `pr`.`target_model_id` = mdl.model_id
 			LEFT JOIN operator o
 			on pr.importer_id = o.operator_id
@@ -42,7 +42,7 @@
 			    `pr`.`description`,
 			    `pr`.`line_type`,
 			    `pr`.`line_id`,
-			    mdl.name as target_model_name,
+			    coalesce(mdl.name, '全机型') as target_model_name,
 			    `pr`.`target_model_id`,
 			    `pr`.`file_name`,
 			    `pr`.`org_file_name`,
@@ -54,7 +54,7 @@
 			    `pr`.`delete_flg`,
 			    `pr`.`reacted_model`
 			FROM `pcs_request` `pr`
-			JOIN model mdl
+			LEFT JOIN model mdl
 			on `pr`.`target_model_id` = mdl.model_id
 			LEFT JOIN operator o
 			on pr.importer_id = o.operator_id

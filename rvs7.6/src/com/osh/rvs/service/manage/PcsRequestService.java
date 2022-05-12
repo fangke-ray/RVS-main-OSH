@@ -36,6 +36,7 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.OperatorEntity;
+import com.osh.rvs.bean.master.OptionalFixEntity;
 import com.osh.rvs.bean.master.PcsRequestEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.PathConsts;
@@ -46,6 +47,7 @@ import com.osh.rvs.form.master.PcsRequestForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.ModelMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
+import com.osh.rvs.mapper.master.OptionalFixMapper;
 import com.osh.rvs.mapper.master.PcsRequestMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -70,6 +72,8 @@ public class PcsRequestService {
 	private static final String UNCHECKED = "　";
 	private static final String FORBIDDEN = "×";
 	private static final String NOCARE = "不操作";
+
+	private static final String PCS_FOR_OPTIONAL_FIX = "1100";
 
 	public static Logger _logger = Logger.getLogger(PcsRequestService.class);
 
@@ -139,16 +143,23 @@ public class PcsRequestService {
 		for (ModelEntity model : insert.getModelList()) {
 			insert.setTarget_model_id(model.getModel_id());
 			mapper.createPcsRequest(insert);
+
 			String lastInsertID = commonMapper.getLastInsertID();
 
-			for (String modelId : modelIds) {
-				mapper.setReactedModels(lastInsertID, modelId);
+			if (modelIds != null) {
+				for (String modelId : modelIds) {
+					mapper.setReactedModels(lastInsertID, modelId);
+				}
 			}
 
 			String oldTargetFile = null;
 			if(CHANGE_MEANS_EDIT.equals(""+insert.getChange_means())
 					|| CHANGE_MEANS_REFRESH.equals(""+insert.getChange_means())) {
-				oldTargetFile = PcsUtils.getFileName(path, model, conn);
+				if (!PCS_FOR_OPTIONAL_FIX.equals("" + insert.getLine_type())) {
+					oldTargetFile = PcsUtils.getFileName(path, model, conn);
+				} else {
+					oldTargetFile = PcsUtils.getFileName(path, insert.getOrg_file_name());
+				}
 				// if(oldTargetFile!= null) oldTargetFile = oldTargetFile.replaceAll("\\.html$", ".xls");
 			}
 			String savePath = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\_request\\" + lastInsertID;
@@ -196,10 +207,11 @@ public class PcsRequestService {
 	 * @param parameterMap
 	 * @param httpSession 
 	 * @param msgErrors
+	 * @param conn 
 	 */
 	public void customValidate(ActionForm form, Map<String, String[]> parameterMap, 
 			HttpSession httpSession, List<MsgInfo> msgErrors, List<MsgInfo> msgInfoes
-			, Map<String, Object> lResponseResult) {
+			, Map<String, Object> lResponseResult, SqlSessionManager conn) {
 		PcsRequestForm testForm = (PcsRequestForm) form;
 		PcsRequestEntity insert = new PcsRequestEntity();
 
@@ -226,6 +238,7 @@ public class PcsRequestService {
 			error.setErrcode("file.notExist");
 			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("file.notExist"));
 			msgErrors.add(error);
+			return;
 		} else {
 			fileName = cropExt(file.getFileName());
 			testForm.setFile_name(fileName);
@@ -237,37 +250,75 @@ public class PcsRequestService {
 		Pattern p = Pattern.compile("(\\w+).(\\w+)\\[(\\d+)\\]");
 
 		List<ModelEntity> models = new AutofillArrayList<ModelEntity>(ModelEntity.class);
-		// 整理提交数据取得对应的
-		for (String parameterKey : parameterMap.keySet()) {
-			Matcher m = p.matcher(parameterKey);
-			if (m.find()) {
-				String entity = m.group(1);
-				if ("models".equals(entity)) {
-					String column = m.group(2);
+		if (PCS_FOR_OPTIONAL_FIX.equals(testForm.getLine_type())) {
+			ModelEntity forAllModel = new ModelEntity();
+			forAllModel.setModel_id("00000000000");
+			forAllModel.setName("全机型");
+			models.set(0, forAllModel);
 
-					String[] value = parameterMap.get(parameterKey);
-
-					// TODO 全
-					if ("id".equals(column)) {
-						int index = Integer.parseInt(m.group(3));
-						models.get(index).setModel_id(value[0]);
-					} else
-					if ("name".equals(column)) {
-						int index = Integer.parseInt(m.group(3));
-						models.get(index).setName(value[0]);
+			// 取得对应选择修理项
+			OptionalFixMapper ofMapper = conn.getMapper(OptionalFixMapper.class);
+			List<OptionalFixEntity> ofList = ofMapper.getAllOptionalFix();
+			String hitName = null;
+			for (OptionalFixEntity of : ofList) {
+				if (fileName.equals(of.getStandard_code()) 
+						|| fileName.equals(of.getInfection_item())) {
+					hitName = of.getInfection_item();
+					break;
+				}
+			}
+			if (hitName == null) {
+				for (OptionalFixEntity of : ofList) {
+					if (fileName.indexOf(of.getStandard_code()) >= 0 
+							|| fileName.indexOf(of.getInfection_item()) >= 0) {
+						hitName = of.getInfection_item();
+						break;
 					}
 				}
 			}
-		}
-		if (models.isEmpty()) {
-			MsgInfo error = new MsgInfo();
-			error.setErrcode("validator.required.multidetail");
-			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required.multidetail", "型号"));
-			msgErrors.add(error);
-			return;
+			if (hitName == null) {
+				MsgInfo error = new MsgInfo();
+				error.setErrcode("dbaccess.recordNotExist");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "选择修理"));
+				msgErrors.add(error);
+				return;
+			}
+			if (!fileName.equals(hitName)) {
+				insert.setFile_name(hitName);
+			}
 		} else {
-			insert.setModelList(models);
+			// 整理提交数据取得对应的
+			for (String parameterKey : parameterMap.keySet()) {
+				Matcher m = p.matcher(parameterKey);
+				if (m.find()) {
+					String entity = m.group(1);
+					if ("models".equals(entity)) {
+						String column = m.group(2);
+	
+						String[] value = parameterMap.get(parameterKey);
+	
+						// TODO 全
+						if ("id".equals(column)) {
+							int index = Integer.parseInt(m.group(3));
+							models.get(index).setModel_id(value[0]);
+						} else
+						if ("name".equals(column)) {
+							int index = Integer.parseInt(m.group(3));
+							models.get(index).setName(value[0]);
+						}
+					}
+				}
+			}
+			if (models.isEmpty()) {
+				MsgInfo error = new MsgInfo();
+				error.setErrcode("validator.required.multidetail");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required.multidetail", "型号"));
+				msgErrors.add(error);
+				return;
+			}
 		}
+			
+		insert.setModelList(models);
 
 		// 如果是变更,假如源文件不存在,要求选择对应
 		if (CHANGE_MEANS_EDIT.equals(testForm.getChange_means())
@@ -557,7 +608,7 @@ public class PcsRequestService {
 				if (FoundValue.indexOf("@#EC") < 0 && FoundValue.indexOf("@#LC") < 0 && FoundValue.indexOf("@#GI") < 0) {
 					XlsUtil.SetCellBackGroundColor(cell, "12566463"); // BFBFBF;
 				}
-				xls.SetValue(cell, FoundValue.replaceAll("@#\\w{2}\\d{7}", ""));
+				xls.SetValue(cell, elapseTag(FoundValue));
 				cell = xls.Locate("@#?????????");
 				if (cell == null) {
 					FoundValue = null;
@@ -580,6 +631,14 @@ public class PcsRequestService {
 		return cacheFile + ".pdf";
 	}
 	
+	private String elapseTag(String foundValue) {
+		String ret = foundValue.replaceAll("@#\\w{2}\\d{7}", "");
+		if (foundValue.equals(ret)) {
+			return "------";
+		}
+		return ret;
+	}
+
 	private String getXmlContent(String xmlfile) {
 		BufferedReader input = null;
 		try {

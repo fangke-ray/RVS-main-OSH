@@ -134,7 +134,7 @@ public class PcsRequestAction extends BaseAction {
 		PcsRequestService service = new PcsRequestService();
 		if (msgErrors.size() == 0) {
 			service.customValidate(form, req.getParameterMap(), req.getSession(), 
-					msgErrors, msgInfos, lResponseResult);
+					msgErrors, msgInfos, lResponseResult, conn);
 			if (msgErrors.size() == 0 && msgInfos.size() == 0) {
 				service.create(req.getSession(), conn);
 			}

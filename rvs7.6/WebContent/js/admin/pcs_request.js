@@ -559,7 +559,21 @@ var loadFile = function(){
 			}
 		};
 
-		$("#import_line_type").html($("#h_line_type_op").html()).select2Buttons();
+		$("#import_line_type")
+			.html($("#h_line_type_op").html())
+			.change(function(){
+				var $modelSel = $("#import_target_model");
+				if (this.value == "1100") {
+					$modelSel.hide()
+						.nextAll().hide()
+						.end().prev().show();
+				} else if ($modelSel.is(":hidden")) {
+					$modelSel.show()
+						.nextAll().show()
+						.end().prev().hide();
+				}
+			})
+			.select2Buttons();
 		$("#import_change_means").html($("#h_change_means_op").html()).select2Buttons();
 		$("#import_target_model_plus").button().click(function(){
 			var import_target_model_id_val = $("#import_target_model_id").val();

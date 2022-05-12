@@ -10,6 +10,8 @@ public interface OptionalFixMapper {
 
 	public List<OptionalFixEntity> searchOptionalFix(OptionalFixEntity entity);
 
+	public List<OptionalFixEntity> getAllOptionalFix();
+
 	public OptionalFixEntity getOptionalFix(String optional_fix_id);
 
 	public int checkCodeIsExist(@Param("standard_code")String standard_code, @Param("optional_fix_id")String optional_fix_id);

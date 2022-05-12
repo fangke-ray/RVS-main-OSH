@@ -27,13 +27,14 @@
 
 				<tr>
 					<td class="ui-state-default td-title">工程检查票类型</td>
-					<td class="td-content">
+					<td class="td-content" style="width: 320px;">
 						<select alt="工程检查票类型" name="line_type" id="import_line_type" class="ui-widget-content">
 							
 						</select>
 					</td>
 					<td class="ui-state-default td-title">针对型号</td>
 					<td class="td-content">
+						<span style="display:none;color:orangered;">选择修理检查表针对全部型号。请上传包含选择修理项目的文件名。<br>并确保其中的输入标签，需与任意现有其他选择修理检查表中的标签均不重复。</span>
 						<input type="text" id="import_target_model" maxlength="100" class="ui-widget-content"/>
 						<input type="hidden" name="target_model_id" id="import_target_model_id"/>
 						<input type="button" id="import_target_model_plus" value="＋" style="padding: 0;"/>

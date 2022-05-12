@@ -35,6 +35,18 @@
 		GROUP BY opf.optional_fix_id
 	</select>
 
+	<select id="getAllOptionalFix" resultType="OptionalFixEntity">
+		<![CDATA[ 
+		SELECT
+			opf.optional_fix_id,
+			opf.standard_code,
+			opf.infection_item
+		FROM optional_fix opf
+		WHERE
+			opf.delete_flg = 0
+		]]>
+	</select>
+
 	<select id="getOptionalFix" parameterType="String" resultType="OptionalFixEntity">
 		<![CDATA[ 
 		SELECT

@@ -184,6 +184,7 @@ public class PcsUtils {
 		return "99";
 	}
 	private static String toPartCode(String name) {
+		if ("选择修理".equals(name)) return "00";
 		String ret = "";
 		for (byte b : name.getBytes()) {
 			ret += (b % 10);
@@ -303,48 +304,57 @@ public class PcsUtils {
 				}
 			}
 			if (filename != null) {
-				File xmlfile = new File(filename);
-				if (xmlfile.exists()) {
-					if (xmlfile.isFile()) {
-
-//						if (lightFix) {
-//							String lightFilename = filename.replaceAll("\\\\xml", "\\\\_lightmedium\\\\xml");
-//							File lxmlfile = new File(lightFilename);
-//							if (lxmlfile.exists()) {
-//								if (lxmlfile.isFile()) {
-//									xmlfile = lxmlfile;
-//								}
-//							}
-//						}
-
-						BufferedReader input = null;
-						try {
-							input = new BufferedReader(new InputStreamReader(new FileInputStream(xmlfile),"UTF-8"));
-							StringBuffer buffer = new StringBuffer();
-							String text;
-
-							while ((text = input.readLine()) != null)
-								buffer.append(text);
-
-							System.out.println(buffer.length());
-							String content = buffer.toString();
-							if (!CommonStringUtil.isEmpty(content)) {
-								ret.put(lineName + ("".equals(pace) ? "" : ("-"  + pace)), content);
-							}
-						} catch (IOException ioException) {
-						} finally {
-							try {
-								input.close();
-							} catch (IOException e) {
-							}
-							input = null;
-						}
-					}
+				String fileContent = getContentFromPath(filename);
+				if (fileContent != null) {
+					ret.put(lineName + ("".equals(pace) ? "" : ("-"  + pace)), fileContent);
 				}
 			}
 		}
 
 		return ret;
+	}
+
+	public static String getContentFromPath(String filename) {
+
+		File xmlfile = new File(filename);
+		if (xmlfile.exists()) {
+			if (xmlfile.isFile()) {
+
+//				if (lightFix) {
+//					String lightFilename = filename.replaceAll("\\\\xml", "\\\\_lightmedium\\\\xml");
+//					File lxmlfile = new File(lightFilename);
+//					if (lxmlfile.exists()) {
+//						if (lxmlfile.isFile()) {
+//							xmlfile = lxmlfile;
+//						}
+//					}
+//				}
+
+				BufferedReader input = null;
+				try {
+					input = new BufferedReader(new InputStreamReader(new FileInputStream(xmlfile),"UTF-8"));
+					StringBuffer buffer = new StringBuffer();
+					String text;
+
+					while ((text = input.readLine()) != null)
+						buffer.append(text);
+
+					System.out.println(buffer.length());
+					String content = buffer.toString();
+					if (!CommonStringUtil.isEmpty(content)) {
+						return content;
+					}
+				} catch (IOException ioException) {
+				} finally {
+					try {
+						input.close();
+					} catch (IOException e) {
+					}
+					input = null;
+				}
+			}
+		}
+		return null;
 	}
 
 	private static String getPackName(String packkind, ModelEntity modelEntity) {
@@ -3434,6 +3444,10 @@ public class PcsUtils {
 //			return firstStep + "\\" + getTemplateFileName(filePareMap.get(modelName));
 //		}
 	}
+	public static String getFileName(String path, String knownFileName) {
+		return PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\xml\\" + getFilePath(path) + knownFileName + ".html";
+	}
+
 	public static String getFilePath(String path) {
 		String[] tpath = path.split("\n");
 		String firstStep = "";

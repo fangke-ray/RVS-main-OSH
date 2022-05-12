@@ -147,6 +147,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div id="pcs_empty" style="padding: 1.5em;line-height: 2em;font-size: 1.25em;">
 			此选择维修项目暂无相关检查票，<br>请使用《工程检查票修正履历》画面功能<br>将检查票模板以检查项目名称的文件名<br>上传到“报价选择维修”的类型中。
 		</div>
+		<div id="pcs_content">
+		</div>
 	</div>
 	<div class="ui-state-default ui-corner-bottom areaencloser dwidth-middleright"></div>
 </div>

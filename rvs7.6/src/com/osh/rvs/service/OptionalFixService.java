@@ -12,6 +12,7 @@ import org.apache.ibatis.session.SqlSessionManager;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OptionalFixEntity;
+import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.master.OptionalFixForm;
 import com.osh.rvs.mapper.CommonMapper;
@@ -125,7 +126,7 @@ public class OptionalFixService {
 		
 		// 检查修理代码和机种是否存在
 		int duplicatedCode = mapper.checkCodeIsExist(updateBean.getStandard_code(), updateBean.getOptional_fix_id());
-		
+
 		if(duplicatedCode > 0){
 			MsgInfo error = new MsgInfo();
 			error.setComponentid("standard_code");
@@ -173,4 +174,15 @@ public class OptionalFixService {
 		return rankTextCache.get(rank);
 	}
 
+	public Map<String, String> getPcsByItemName(String infection_item) {
+		String pcsContent = PcsUtils.getContentFromPath(
+				PcsUtils.getFileName("报价\n选择修理", infection_item));
+		if (pcsContent == null) {
+			return null;
+		}
+		Map<String, String> pcsContents = new HashMap<String, String>();
+		pcsContents.put("htmlContent", pcsContent);
+		Map<String, String> pcsHtml = PcsUtils.toHtmlBlank(pcsContents , "（修理型号）");
+		return pcsHtml;
+	}
 }

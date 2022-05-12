@@ -276,6 +276,25 @@ var showEdit = function() {
 
 				$("#label_edit_updated_by").text(detail.updated_by);
 				$("#label_edit_updated_time").text(detail.updated_time);
+
+				// 检查票
+				var pcsContent = resInfo.pcsContent;
+				if (pcsContent) {
+					$("#pcs_empty").hide();
+					
+					$("#pcs_content").html(pcsContent.htmlContent).show();
+
+					$("#pcs_content input,#pcs_contents textarea").parent().css("background-color", "#93C3CD");
+					$("#pcs_content input:text").autosizeInput();
+					$("#pcs_content input[name^='EN'], #pcs_content input[name^='LN']").button();
+
+					$("#editarea span.areatitle:eq(1)").text("【" + detail.infection_item + "】 检查票样式 ");
+				} else {
+					$("#pcs_empty").show();
+					
+					$("#pcs_content").html("").hide();
+					$("#editarea span.areatitle:eq(1)").text("检查票样式");
+				}
 			}
 		}
 	});

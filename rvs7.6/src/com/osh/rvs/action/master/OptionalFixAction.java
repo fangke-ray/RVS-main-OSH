@@ -130,6 +130,8 @@ public class OptionalFixAction extends BaseAction {
 			 OptionalFixForm resultForm = service.getDetail(OptionalFixForm.getOptional_fix_id(), conn);
 			 // 查询结果放入Ajax响应对象
 			 listResponse.put("detail", resultForm);
+
+			 listResponse.put("pcsContent", service.getPcsByItemName(resultForm.getInfection_item()));
 		}
 
 		// 检查发生错误时报告错误信息
