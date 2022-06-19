@@ -28,8 +28,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/qf/before_line_leader.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
+<script type="text/javascript" src="js/qf/set_optional_fix.js"></script>
 <script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=2"></script>
-
 <title>现品报价课 受理报价工程</title>
 </head>
 <body class="outer">
@@ -47,7 +47,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	boolean isManager = ("true").equals(manager);
 	String quotator = (String) request.getAttribute("quotator");
 	boolean isQuotator = ("true").equals(quotator);
-	
+
+	if (isEditor) {
+%>
+
+<script type="text/javascript">
+${WORKINFO}
+</script>
+
+<% 
+	} // isEditor
 %>
 <div class="ui-widget-panel width-full" style="align:center;padding-top:16px;overflow-x: hidden;" id="body-3">
 	

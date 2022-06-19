@@ -1104,6 +1104,7 @@ var showDetail=function(rid) {
 	jthis.hide();
 	// 导入编辑画面
 	jthis.load("widgets/qf/acceptance-edit.jsp", function(responseText, textStatus, XMLHttpRequest) {
+		
 		$("#inp_modelname").hide();
 		$("#edit_modelname").hide();
 		$("#edit_label_modelname").show();
@@ -1401,6 +1402,25 @@ var showDetail=function(rid) {
 				});
 			}
 		});
+
+		if (!f_isPeripheralFix(level)) {
+			var $optional_fix = $('<tr><td class="ui-state-default td-title">选择修理项</td><td class="td-content" colspan="3"><label id="optional_fix_label" style="min-width: 10em;display: inline-block;text-align: center;"></label><input alt="选择修理" type="button" id="optional_fix_button" class="ui-button" value="设置"></td></tr>');
+			$("#ins_material table").append($optional_fix);
+			$optional_fix.find(".ui-button").button().click(function(){
+				var $optional_fix_dialog = $("#optional_fix_dialog");
+				if ($optional_fix_dialog.length == 0) {
+					$("body").append("<div id='optional_fix_dialog'></div>");
+					$optional_fix_dialog = $("#optional_fix_dialog");
+				}
+				setOpfObj.initDialog($optional_fix_dialog, $("#material_id").val(), $("#edit_level").val(), 
+					optional_fix_funcs.ofPcsOnChanged);
+			});
+			if (gridvalue.optional_fix_id == "1") {
+				optional_fix_funcs.getLabel($("#material_id").val());
+			} else {
+				$("#optional_fix_label").text('（无选择修理项）');
+			}
+		}
 	});
 };
 
@@ -1463,3 +1483,84 @@ var instuctShow = function() {
 	var rowData = $("#performance_list").getRowData(selectedId);
 	show_instruct_funcs.instructLoadMaterial(rowData);
 }
+
+var optional_fix_funcs = {
+	ofPcsOnChanged : function(resInfo){
+		$("#optional_fix_label").text(resInfo.labelText);
+
+		var updatevalue = "0";
+		if ("（无选择修理项）" != resInfo.labelText) {
+			updatevalue = "1";
+		}
+		griddata_update(listdata, "material_id", $("#material_id").val(), "optional_fix_id", updatevalue, false);
+
+		if (resInfo.appendPcses) {
+			if (typeof pcsO === "undefined") {
+				loadJs("js/common/pcs_editor.js", function(){
+					optional_fix_funcs.showOfPcs(resInfo.appendPcses);
+				})
+			} else {
+				optional_fix_funcs.showOfPcs(resInfo.appendPcses);
+			}
+		}
+	},
+	showOfPcs : function(appendPcses) {
+		var $pcsDialog = $("#optional_fix_pcs_dialog");
+		if ($pcsDialog.length == 0) {
+			$("body").append("<div id='optional_fix_pcs_dialog'><div class=\"ui-widget-content dwidth-half\"><div id=\"pcs_pages\"></div><div id=\"pcs_contents\"></div></div></div>");
+			$pcsDialog = $("#optional_fix_pcs_dialog");
+			$pcsDialog.hide();
+			pcsO.init($pcsDialog, false);
+		}
+		pcsO.generate({"_1":appendPcses});
+		$pcsDialog.dialog({
+			title : "追加选择维修项目检查票确认",
+			width : 618,
+			show : "blind",
+			height : 'auto',
+			resizable : false,
+			modal : true,
+			minHeight : 200,
+			closeOnEscape : false,
+			closeText : '',
+			open : function() {
+				$pcsDialog.prev().find(".ui-dialog-titlebar-close").hide();
+			},
+			buttons : {"提交": function(){
+				var postData = {material_id : $("#material_id").val(), line_id : "00000000011"};
+				var empty = false;
+				empty = pcsO.valuePcs(postData);
+				if (empty) {
+					errorPop(WORKINFO.pcsCheck);
+					return;
+				}
+
+				if (postData.pcs_inputs == "{}" && postData.pcs_comments == "{}") {
+					$pcsDialog.dialog("close");
+					return;
+				}
+
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : true,
+					url : 'material.do?method=dowritepcs',
+					cache : false,
+					data : postData,
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function(xhrObj){
+						$pcsDialog.dialog("close");
+					}
+				});
+			}}
+		});
+	},
+	getLabel : function(material_id) {
+		setOpfObj.getLabelByMaterial(material_id, function(optionalFixLabelText){
+			$("#optional_fix_label").text(optionalFixLabelText);
+		});
+	}
+}
+

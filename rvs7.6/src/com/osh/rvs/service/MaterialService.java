@@ -820,7 +820,11 @@ public class MaterialService {
 	}
 
 	public void saveLeaderInput(HttpServletRequest req, String material_id, LoginData user, SqlSessionManager conn) throws Exception {
-		saveLeaderInput(req.getParameter("pcs_inputs"), req.getParameter("pcs_comments"), material_id, user.getOperator_id(), user.getLine_id(), conn);
+		String line_id = req.getParameter("line_id");
+		if (line_id == null) {
+			line_id = user.getLine_id();
+		}
+		saveLeaderInput(req.getParameter("pcs_inputs"), req.getParameter("pcs_comments"), material_id, user.getOperator_id(), line_id, conn);
 	}
 	public void saveLeaderInput(String pcs_inputs, String pcs_comments, String material_id, String operator_id, String line_id, SqlSessionManager conn) throws Exception {
 		// 取得最新rework在line_id

@@ -33,6 +33,7 @@ import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.OptionalFixService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.MaterialPartInstructService;
@@ -144,6 +145,12 @@ public class QuotationService {
 		List<MaterialPartPrelistEntity> instuctListForMaterial = mpiService.getInstuctListForMaterial(material_id, conn);
 		if (instuctListForMaterial != null && instuctListForMaterial.size() > 0) {
 			responseBean.put("instuct_obj", true);
+		}
+
+		// 取得维修品的选择报价一览
+		if (!RvsUtils.isPeripheral(mform.getLevel())) {
+			OptionalFixService ofService = new OptionalFixService();
+			ofService.getMaterialOptionalFix(material_id, mform, responseBean, conn);
 		}
 	}
 

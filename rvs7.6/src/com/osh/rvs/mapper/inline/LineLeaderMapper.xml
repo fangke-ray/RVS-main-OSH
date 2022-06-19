@@ -216,7 +216,8 @@
 				`m`.bound_out_ocm,
 				coalesce(`m`.pat_id, mdl.default_pat_id) as pat_id,
 				pat.name as section_name,
-				mt.tag_type is not null as anml_exp
+				mt.tag_type is not null as anml_exp,
+				exists (select 1 from material_optional_fix where material_id = `m`.material_id) as optional_fix_id
 			FROM material m
 			JOIN v_model mdl
 				ON `m`.model_id = `mdl`.model_id

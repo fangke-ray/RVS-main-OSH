@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.qf.MaterialOptionalFixMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="searchMaterialOptionalFix" parameterType="OptionalFixEntity" resultType="OptionalFixEntity">
+		<![CDATA[
+			select material_id, mof.optional_fix_id, infection_item 
+			from material_optional_fix  mof
+			JOIN optional_fix lf 
+			ON mof.optional_fix_id = lf.optional_fix_id
+			where material_id = #{material_id}
+			ORDER BY infection_item
+		]]>
+	</select>
+	
+	<delete id="deleteMaterialOptionalFix" parameterType="String">
+		<![CDATA[
+			delete from material_optional_fix where material_id = #{material_id} AND optional_fix_id = #{optional_fix_id}
+		]]>
+	</delete>
+
+	<insert id="insertMaterialOptionalFix" parameterType="OptionalFixEntity">
+		<![CDATA[
+			insert material_optional_fix(material_id,optional_fix_id) values(#{material_id},#{optional_fix_id})
+		]]>
+	</insert>
+
+</mapper>

@@ -364,6 +364,7 @@ var instruction_show = function($container, modelName, instructLists, components
 				instruct_ws.send("start:"+this_instruction_material_id);
 			}
 		},
+		closeOnEscape : false,
 		close : function(){
 			$container.parent().children("#inst_warning_content, #inst_async_content, #inst_cascade_content, #inst_loss_content").remove();
 			instr_msg.warning = "";

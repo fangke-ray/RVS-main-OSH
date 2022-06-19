@@ -9,14 +9,19 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OptionalFixEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
+import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.master.OptionalFixForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.master.OptionalFixMapper;
+import com.osh.rvs.mapper.qf.MaterialOptionalFixMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
@@ -184,5 +189,170 @@ public class OptionalFixService {
 		pcsContents.put("htmlContent", pcsContent);
 		Map<String, String> pcsHtml = PcsUtils.toHtmlBlank(pcsContents , "（修理型号）");
 		return pcsHtml;
+	}
+
+	public List<String> searchMaterialOptionalFix(ActionForm form,
+			SqlSession conn) {
+		MaterialOptionalFixMapper mapper = conn.getMapper(MaterialOptionalFixMapper.class);
+
+		OptionalFixForm opfForm = (OptionalFixForm) form;
+		OptionalFixEntity condition = new OptionalFixEntity();
+		condition.setMaterial_id(opfForm.getMaterial_id());
+		List<OptionalFixEntity> lEntities = mapper.searchMaterialOptionalFix(condition);
+
+		List<String> ret = new ArrayList<String>();
+		for (OptionalFixEntity entity : lEntities) {
+			ret.add(entity.getOptional_fix_id());
+		}
+		return ret;
+	}
+
+	public void getMaterialOptionalFix(String material_id,
+			MaterialForm mform, Map<String, Object> cbResponse, SqlSession conn) {
+		MaterialOptionalFixMapper mapper = conn.getMapper(MaterialOptionalFixMapper.class);
+		
+		OptionalFixEntity condition = new OptionalFixEntity();
+		condition.setMaterial_id(material_id);
+		List<OptionalFixEntity> lEntities = mapper.searchMaterialOptionalFix(condition);
+
+		if (lEntities.size() == 0) {
+			cbResponse.put("optionalFixLabelText", "（无选择修理项）");
+		} else {
+			List<String> itemNames = new ArrayList<String>();
+			for (OptionalFixEntity ofEntity : lEntities) {
+				itemNames.add(ofEntity.getInfection_item());
+			}
+			cbResponse.put("optionalFixLabelText", CommonStringUtil.joinBy("；", itemNames.toArray()));
+
+			if (mform != null) {
+				cbResponse.put("appendPcses", getOptionalFixPcses(itemNames, mform, null, conn));
+			}
+		}
+
+	}
+
+	public List<OptionalFixForm> getOptionalFixByRank(ActionForm form, SqlSession conn) {
+		List<OptionalFixForm> retF = new ArrayList<OptionalFixForm>();
+		OptionalFixMapper mapper = conn.getMapper(OptionalFixMapper.class);
+
+		OptionalFixForm opfForm = (OptionalFixForm) form;
+
+		String rank = opfForm.getRank();
+		if (CommonStringUtil.isEmpty(rank)) {
+			rank = null;
+		} else if (RvsUtils.isLightFix(rank)) {
+			rank = "9";
+		} else if (RvsUtils.isPeripheral(rank)) {
+			rank = "5";
+		}
+
+		List<OptionalFixEntity> retE = mapper.getOptionalFixByRank(rank);
+
+		BeanUtil.copyToFormList(retE, retF, CopyOptions.COPYOPTIONS_NOEMPTY, OptionalFixForm.class);
+		return retF;
+	}
+
+	public boolean compareAndUpdate(List<String> orgSelList, ActionForm form,
+			Map<String, Object> cbResponse, SqlSession conn) {
+		boolean changed = false;
+
+		MaterialOptionalFixMapper mapper = conn.getMapper(MaterialOptionalFixMapper.class);
+
+		List<String> appendList = new ArrayList<String>();
+		List<String> removeList = new ArrayList<String>();
+
+		OptionalFixForm opfForm = (OptionalFixForm) form;
+		String optionalFixIds = opfForm.getOptional_fix_id();
+		String[] arrOptionalFixId = new String[0];
+		if (!CommonStringUtil.isEmpty(optionalFixIds)) {
+			arrOptionalFixId = optionalFixIds.split(",");
+		}
+
+		for (String optionalFixId : arrOptionalFixId) {
+			if (!orgSelList.contains(optionalFixId)) {
+				appendList.add(optionalFixId);
+			}
+		}
+	
+		for (String optionalFixId : orgSelList) {
+			boolean hit = false;
+			for (String orgOptionalFixId : arrOptionalFixId) {
+				if (orgOptionalFixId.equals(optionalFixId)) {
+					hit = true;
+					break;
+				}
+			}
+			if (!hit) {
+				removeList.add(optionalFixId);
+			}
+		}
+
+		if (!removeList.isEmpty()) {
+			OptionalFixEntity delEntity = new OptionalFixEntity();
+			delEntity.setMaterial_id(opfForm.getMaterial_id());
+			for (String optionalFixId : removeList) {
+				delEntity.setOptional_fix_id(optionalFixId);
+				mapper.deleteMaterialOptionalFix(delEntity);
+			}
+			cbResponse.put("removeList", removeList);
+			changed = true;
+		}
+
+		if (!appendList.isEmpty()) {
+			OptionalFixEntity insEntity = new OptionalFixEntity();
+			insEntity.setMaterial_id(opfForm.getMaterial_id());
+			for (String optionalFixId : appendList) {
+				insEntity.setOptional_fix_id(optionalFixId);
+				mapper.insertMaterialOptionalFix(insEntity);
+			}
+
+			changed = true;
+		}
+
+		if (CommonStringUtil.isEmpty(optionalFixIds)) {
+			cbResponse.put("labelText", "（无选择修理项）");
+		} else {
+			OptionalFixEntity condition = new OptionalFixEntity();;
+			condition.setMaterial_id(opfForm.getMaterial_id());
+			// 取得新选择修理项目
+			List<OptionalFixEntity> list = mapper.searchMaterialOptionalFix(condition);
+
+			String labelText = "";
+			List<String> itemNames = new ArrayList<String>();
+			for (OptionalFixEntity ofEntity: list) {
+				labelText += ofEntity.getInfection_item() + "；";
+				// 获得增加的工程检查表
+				if (appendList.contains(ofEntity.getOptional_fix_id())) {
+					itemNames.add(ofEntity.getInfection_item());
+				}
+			}
+			if (labelText.length() > 0) {
+				labelText = labelText.substring(0, labelText.length() - 1);
+			}
+			cbResponse.put("labelText", labelText);
+
+			if (itemNames.size() > 0) {
+				MaterialService mService = new MaterialService();
+				MaterialForm mform = mService.loadSimpleMaterialDetail(conn, opfForm.getMaterial_id());
+				cbResponse.put("appendPcses", getOptionalFixPcses(itemNames, mform, null, conn));
+			}
+		}
+
+		return changed;
+	}
+
+// PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\xml\\" + targetPath + entity.getFile_name() + ".html"
+
+	public Map<String, String> getOptionalFixPcses(List<String> itemNames, MaterialForm mform, String getHistory, SqlSession conn) {
+		Map<String, String> fileTempl = PcsUtils.getOptionalFixXmlContents(itemNames, getHistory != null, mform.getMaterial_id(), conn);
+
+		if (!fileTempl.isEmpty()) {
+			Map<String, String> fileHtml = PcsUtils.toHtml(fileTempl, mform.getMaterial_id(), mform.getSorc_no(),
+					mform.getModel_name(), mform.getSerial_no(), mform.getLevel(), "151", null, 
+					false, conn);
+			return fileHtml;
+		}
+
+		return null;
 	}
 }

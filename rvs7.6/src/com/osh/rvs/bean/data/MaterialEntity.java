@@ -120,6 +120,8 @@ public class MaterialEntity implements Serializable {
 
 	private Integer anml_exp;
 
+	private String optional_fix_id;
+
 	private Integer int_search_addition;
 
 	public String getCategory_id() {
@@ -820,6 +822,14 @@ public class MaterialEntity implements Serializable {
 
 	public void setQuotation_date_end(Date quotation_date_end) {
 		this.quotation_date_end = quotation_date_end;
+	}
+
+	public String getOptional_fix_id() {
+		return optional_fix_id;
+	}
+
+	public void setOptional_fix_id(String optional_fix_id) {
+		this.optional_fix_id = optional_fix_id;
 	}
 	
 }

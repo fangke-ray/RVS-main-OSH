@@ -106,23 +106,45 @@ var pcsO = {
 
 		this._empower(this.$pcs_contents, isLeader);
 
-		// 自动选择第一个可填写页
-		var activePage = this.$pcs_contents.find("div:has(input):first");
-		if (activePage.length == 1) {
-			$("#" + activePage.attr("id").replace("pcs_content_", "pcs_page_")).trigger("click");
+		this._activePage();
+	},
+	removeByTitle : function(title) {
+		var removePage = $("#pcs_pages > label[title='" + title + "']").attr("for");
+		if (removePage) {
+			this.$pcs_pages.buttonset("destroy");
+			this.$pcs_pages.children("#" + removePage).next().remove().end().remove();
+			this.$pcs_pages.buttonset();
+	
+			var $rmvContents = this.$pcs_contents.children("#" + removePage.replace("pcs_page_", "pcs_content_"));
+			var isActive = $rmvContents.is(":visible");
+			$rmvContents.remove();
+
+			if (isActive) {
+				this._activePage();
+			}
 		}
 	},
 	append : function(pcses, isLeader) {
 		var tabs = "";
 		var tabscount = this.$pcs_pages.children("input:radio").length;
+		if (tabscount > 0) {
+			tabscount = parseInt(this.$pcs_pages.children("input:radio").last().attr("id").replace("pcs_page_", "")) + 1;
+		}
+
 		var contents = "";
 		pcsO.$container.show();
 		for (var pcsline in pcses) {
 			var pcsgroup = pcses[pcsline];
-			for (var pcsseq in pcsgroup) {
-				tabs += '<input type="radio" '+(tabscount == 0 ? 'checked' : '')+' name="pcs_page" class="ui-button ui-corner-up-s ui-helper-hidden-accessible" id="pcs_page_'+tabscount+'"><label role="button" class="ui-state-default '+(tabscount == 0 ? 'ui-state-active' : '')+'" for="pcs_page_'+tabscount+'" title="'+pcsseq+'"><span class="ui-button-text">'+pcsseq+'</span></label>';
-				contents+= '<div id="pcs_content_'+tabscount+'" style="display:none" class="pcs_content">' + pcsgroup[pcsseq] + "</div>";
+			if (typeof pcsgroup === "string") {
+				tabs += '<input type="radio" '+(tabscount == 0 ? 'checked' : '')+' name="pcs_page" class="ui-button ui-corner-up-s ui-helper-hidden-accessible" id="pcs_page_'+tabscount+'"><label role="button" class="ui-state-default '+(tabscount == 0 ? 'ui-state-active' : '')+'" for="pcs_page_'+tabscount+'" title="'+pcsline+'"><span class="ui-button-text">'+pcsline+'</span></label>';
+				contents+= '<div id="pcs_content_'+tabscount+'" style="display:none" class="pcs_content">' + pcsgroup + "</div>";
 				tabscount++;
+			} else {
+				for (var pcsseq in pcsgroup) {
+					tabs += '<input type="radio" '+(tabscount == 0 ? 'checked' : '')+' name="pcs_page" class="ui-button ui-corner-up-s ui-helper-hidden-accessible" id="pcs_page_'+tabscount+'"><label role="button" class="ui-state-default '+(tabscount == 0 ? 'ui-state-active' : '')+'" for="pcs_page_'+tabscount+'" title="'+pcsseq+'"><span class="ui-button-text">'+pcsseq+'</span></label>';
+					contents+= '<div id="pcs_content_'+tabscount+'" style="display:none" class="pcs_content">' + pcsgroup[pcsseq] + "</div>";
+					tabscount++;
+				}
 			}
 		}
 		this.$pcs_pages.append(tabs).buttonset("destroy");
@@ -143,10 +165,19 @@ var pcsO = {
 		this.$pcs_contents.append($appendContents);
 		this._empower($appendContents, isLeader);
 
+		this._activePage();
+	},
+	_activePage : function(){
 		// 自动选择第一个可填写页
-		var activePage = this.$pcs_contents.find("div:has(input):first");
-		if (activePage.length == 1) {
-			$("#" + activePage.attr("id").replace("pcs_content_", "pcs_page_")).trigger("click");
+		var $activePage = this.$pcs_contents.find("div:has(input):first");
+		if ($activePage.length == 1) {
+			setTimeout(function(){
+				$("#" + $activePage.attr("id").replace("pcs_content_", "pcs_page_")).trigger("click");
+			}, 100);
+		} else if ($activePage.length == 0) {
+			setTimeout(function(){
+				pcsO.$container.find("#pcs_pages").children().first().trigger("click");
+			}, 100);
 		}
 	},
 	_empower : function($pcs_contents, isLeader){

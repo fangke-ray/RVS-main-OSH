@@ -187,6 +187,9 @@ public class MaterialForm extends ActionForm {
 	@BeanField(title = "动物实验用", name = "anml_exp", type = FieldType.Integer, length = 1)
 	private String anml_exp;
 
+	@BeanField(title = "选择修", name = "optional_fix_id", type = FieldType.String, length = 11)
+	private String optional_fix_id;
+
 	@BeanField(title = "-", name = "int_search_addition", type = FieldType.Integer, length = 1)
 	private String search_addition;
 
@@ -910,6 +913,14 @@ public class MaterialForm extends ActionForm {
 
 	public void setQuotation_date_end(String quotation_date_end) {
 		this.quotation_date_end = quotation_date_end;
+	}
+
+	public String getOptional_fix_id() {
+		return optional_fix_id;
+	}
+
+	public void setOptional_fix_id(String optional_fix_id) {
+		this.optional_fix_id = optional_fix_id;
 	}
 
 }

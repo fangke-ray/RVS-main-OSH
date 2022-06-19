@@ -249,6 +249,8 @@ public class PcsUtils {
 		}
 
 		for (String pace : lineBinder.keySet()) {
+			if ("选择修理".equals(pace)) continue;
+
 			String filename = null;
 			// 如果因改废订而指定了
 			if (material_id != null) {
@@ -504,12 +506,13 @@ public class PcsUtils {
 						// logger.info("line_id"+ line_id);
 
 						String processCode = ""; // TODO 强制判断
-						if("00000000012".equals(line_id)) {
-							processCode = "2\\d{2}";
-						} else if("00000000013".equals(line_id)) {
-							processCode = "3\\d{2}";
-						} else if("00000000014".equals(line_id)) {
-							processCode = "(4|5|8)\\d{2}";
+						if (line_id != null) {
+							switch (line_id) {
+							case "00000000011" : processCode = "1\\d{2}"; break;
+							case "00000000012" : processCode = "(2|3)\\d{2}"; break;
+							case "00000000013" : processCode = "3\\d{2}"; break;
+							case "00000000014" : processCode = "(4|5|8)\\d{2}"; break;
+							}
 						}
 
 						Pattern pProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"[EL]\" type=\"\\w\" position=\"" + processCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
@@ -646,7 +649,7 @@ public class PcsUtils {
 					} else {
 						if (isAnmlExp) {
 							processCode = checkInAnmlExpProcessGroup(processCode, null, conn);
-						} else { // TODO 其实在OSH没有用了
+						} else { // 
 							processCode = checkOverAll(processCode);
 						}
 					}
@@ -1230,6 +1233,11 @@ public class PcsUtils {
 	 * @return
 	 */
 	private static String checkOverAll(String currentProcessCode) {
+		switch(currentProcessCode) {
+		case "160":
+		case "161":
+			return "151";
+		}
 		if ("500".equals(currentProcessCode)) {
 			return "[45]\\d\\d";
 		} else if ("400".equals(currentProcessCode)) {
@@ -2934,6 +2942,80 @@ public class PcsUtils {
 	}
 
 	/**
+	 * 取得选择报价维修品信息
+	 * 
+	 * @param lineName
+	 * @param modelName
+	 * @param modelEntity
+	 * @param checkHistory
+	 * @param material_id
+	 * @param lightFix
+	 * @param conn
+	 * @return
+	 */
+	public static Map<String, String> getOptionalFixXmlContents(List<String> item_names, boolean checkHistory,
+			String material_id, SqlSession conn) {
+		logger.info("getXmlContents for =" + item_names + " material_id=" + material_id);
+
+		Map<String, String> ret = new LinkedHashMap<String, String>();
+
+		// 取得选择报价对应的文件夹
+		Map<String, Map<String, String>> lineBinder = fileBinder.get("");
+
+		List<PcsRequestEntity> lM = null;
+		List<PcsRequestEntity> lH = null;
+		if (material_id != null) {
+			PcsRequestMapper prMapper = conn.getMapper(PcsRequestMapper.class);
+			lM = prMapper.checkMaterialAssignAsOld(material_id);
+
+			// 如果参照历史,取得指定机型的修改履历
+			if (checkHistory) {
+				lH= prMapper.getFixHistoryOfMaterial(material_id);
+			}
+		}
+
+		for (String infection_item : item_names) {
+			String filename = null;
+			// 如果因改废订而指定了
+			if (material_id != null) {
+//				String folderTypesKey = getFolderTypesKey(lineName, pace, folderTypes);
+//
+//				for (PcsRequestEntity pre : lM) {
+//					Integer lineType = pre.getLine_type();
+//					if ((""+lineType).equals(folderTypesKey)) {
+//						filename = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\_request\\" + trimZero(pre.getPcs_request_key())
+//								+ "\\old.html";
+//						break;
+//					}
+//				}
+//				if (checkHistory && filename == null) {
+//					for (PcsRequestEntity pre : lH) {
+//						Integer lineType = pre.getLine_type();
+//						if ((""+lineType).equals(folderTypesKey)) {
+//							filename = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\_request\\" + trimZero(pre.getPcs_request_key())
+//									+ "\\old.html";
+//							if (!new File(filename).exists()) {
+//								filename = null;
+//							}
+//							break;
+//						}
+//					}
+//				}
+			}
+
+			if (filename == null) {
+				String fileContent = PcsUtils.getContentFromPath(
+						PcsUtils.getFileName("报价\n选择修理", infection_item));
+				if (fileContent != null) {
+					ret.put("选择修理-" + infection_item, fileContent);
+				}
+			}
+		}
+
+		return ret;
+	}
+
+	/**
 	 * 独立工位（先端预制）用工程检查票显示
 	 * @param fileTempl
 	 * @param model_name
@@ -3009,12 +3091,13 @@ public class PcsUtils {
 					logger.info("line_id"+ line_id);
 
 					String process_code = ""; // TODO 强制判断
-					if("00000000012".equals(line_id)) {
-						process_code = "2\\d{2}";
-					} else if("00000000013".equals(line_id)) {
-						process_code = "3\\d{2}";
-					} else if("00000000014".equals(line_id)) {
-						process_code = "(4|5)\\d{2}";
+					if (line_id != null) {
+						switch (line_id) {
+						case "00000000011" : process_code = "1\\d{2}"; break;
+						case "00000000012" : process_code = "(2|3)\\d{2}"; break;
+						case "00000000013" : process_code = "3\\d{2}"; break;
+						case "00000000014" : process_code = "(4|5|8)\\d{2}"; break;
+						}
 					}
 
 					Pattern pProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"E\" type=\"\\w\" position=\"" + process_code + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");

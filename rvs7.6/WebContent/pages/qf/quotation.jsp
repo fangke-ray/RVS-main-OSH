@@ -35,6 +35,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/qf/quotation.js?v=3458"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
+<script type="text/javascript" src="js/qf/set_optional_fix.js"></script>
 <script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=2"></script>
 <script type="text/javascript">
 ${WORKINFO}
@@ -213,6 +214,13 @@ if (request.getAttribute("unitizeds")!=null) {
 													<td class="td-content">
 														<input type="checkbox" id="partake" value="1"></input><label for="partake">■</label>
 														<label>选择式报价</label>
+													</td>
+												</tr>
+												<tr>
+													<td class="ui-state-default td-title">选择修理项</td>
+													<td class="td-content">
+														<label id="optional_fix_label" style="min-width: 10em;display: inline-block;text-align: center;">（无选择修理项）</label>
+														<input alt="选择修理" type="button" id="optional_fix_button" class="ui-button" value="设置">
 													</td>
 												</tr>
 												<!-- <tr>

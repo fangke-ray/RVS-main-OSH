@@ -24,6 +24,7 @@ import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.inline.LineLeaderService;
+import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qa.ServiceRepairManageService;
 
 import framework.huiqing.action.BaseAction;
@@ -81,6 +82,10 @@ public class BeforeLineLeaderAction extends BaseAction {
 		}
 		if (privacies.contains(RvsConsts.PRIVACY_RECEPT_FACT)) {
 			req.setAttribute("editor", "true");
+
+			PositionPanelService ppService = new PositionPanelService();
+			req.setAttribute("WORKINFO", ppService.getWorkInfo());
+
 		} else {
 			req.setAttribute("editor", "false");
 		}
@@ -95,7 +100,6 @@ public class BeforeLineLeaderAction extends BaseAction {
 			}
 		}
 		req.setAttribute("quotator", quotator);
-		
 
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);

@@ -798,6 +798,7 @@ public class PositionPanelService {
 			SqlSession conn) {
 		getPcses(listResponse, pf, sline_id, false, conn);
 	}
+	@SuppressWarnings("unchecked")
 	public static void getPcses(Map<String, Object> listResponse, ProductionFeatureEntity pf, String sline_id,
 			boolean isLeader, SqlSession conn) {
 		String material_id = pf.getMaterial_id();
@@ -942,6 +943,12 @@ public class PositionPanelService {
 					}
 				}
 			}
+		}
+
+
+		// 取得维修品的选择报价一览
+		if (listResponse.get("appendPcses") != null) {
+			pcses.add((Map<String, String>) listResponse.get("appendPcses"));
 		}
 
 		listResponse.put("pcses", pcses);

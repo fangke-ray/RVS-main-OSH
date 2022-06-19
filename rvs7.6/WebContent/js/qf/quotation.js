@@ -542,6 +542,10 @@ var treatStart = function(resInfo) {
 	if (resInfo.instuct_obj) {
 		$("#instuct_obj").show();
 	}
+
+	if (resInfo.optionalFixLabelText) {
+		$("#optional_fix_label").text(resInfo.optionalFixLabelText);
+	}
 }
 
 var getMaterialInfo = function(resInfo) {
@@ -1266,6 +1270,30 @@ $(function() {
 	if (typeof instruct_load_by_working === "function") {
 		$("#instuct_obj").click(instruct_load_by_working);
 	}
+
+	$("#optional_fix_button").click(function(){
+		var $optional_fix_dialog = $("#optional_fix_dialog");
+		if ($optional_fix_dialog.length == 0) {
+			$("body").append("<div id='optional_fix_dialog'></div>");
+			$optional_fix_dialog = $("#optional_fix_dialog");
+		}
+		setOpfObj.initDialog($optional_fix_dialog, $("#hide_material_id").val(), $("#edit_level").val(), 
+			callbackOnChanged = function(resInfo){
+				$("#optional_fix_label").text(resInfo.labelText);
+				if (resInfo.removeList) {
+					for (var i in resInfo.removeList) {
+						var removeId = resInfo.removeList[i];
+						var removeItem = $("#optional_fix_sel > option[value=" + removeId + "]").text();
+						if (removeItem) {
+							pcsO.removeByTitle("选择修理-" + removeItem);
+						}
+					}
+				}
+				if (resInfo.appendPcses) {
+					pcsO.append(resInfo.appendPcses);
+				}
+			});
+	});
 });
 
 function load_list(listdata){

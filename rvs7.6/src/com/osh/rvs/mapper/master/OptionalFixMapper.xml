@@ -134,8 +134,14 @@
 				optional_fix_for_rank opfr
 				     JOIN
 				optional_fix opf ON opf.optional_fix_id = opfr.optional_fix_id
+		]]>
+		<if test="rank != null and rank != '' ">
 			WHERE 
 				opfr.rank = #{rank}
+		</if>
+		<![CDATA[ 
+			group by 
+				opf.optional_fix_id
 			order by
 				opf.standard_code asc
 		]]>

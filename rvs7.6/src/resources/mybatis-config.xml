@@ -307,6 +307,7 @@
 		<mapper resource="com/osh/rvs/mapper/qf/FactMaterialMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qf/SteelWireContainerWashProcessMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/qf/FactReceptMaterialMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/qf/MaterialOptionalFixMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/qa/QualityAssuranceMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/qa/ServiceRepairManageMapper.xml" />

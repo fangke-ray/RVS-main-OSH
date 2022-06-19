@@ -1656,6 +1656,14 @@
 				<forward name="init" path="/pages/admin/optional_fix.jsp"></forward>
 		</action>
 
+		<action path="/material_optional_fix"
+				type="com.osh.rvs.action.qf.MaterialOptionalFixAction"
+				name="optionalFixForm"
+				parameter="method"
+		        validate="false" 
+				scope="request">
+		</action>
+
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->
 
