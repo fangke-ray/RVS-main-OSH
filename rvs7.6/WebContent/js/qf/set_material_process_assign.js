@@ -19,12 +19,12 @@ var showeditLightHandleComplete = function(xhrobj){
 		} else {
 			$("#pa_main").flowchart("fill", resInfo.processAssigns);
 			//对象机型
-			if (resInfo.isCcdModel)
-				// 增加302工位选择
-				$("#pa_main").prepend('<div class="edgeposition"><div class="just"><div code="25" posid="25" nextcode="9999999" prevcode="0" class="pos"><span>302\nCCD 盖玻璃更换</span></div></div>');
 			if (resInfo.isLgModel)
 				// 增加303工位选择
 				$("#pa_main").prepend('<div class="edgeposition"><div class="just"><div code="60" posid="60" nextcode="0" prevcode="0" class="pos"><span>303\nLG 玻璃更换</span></div></div>');
+			if (resInfo.isCcdModel)
+				// 增加302工位选择
+				$("#pa_main").prepend('<div class="edgeposition"><div class="just"><div code="25" posid="25" nextcode="9999999" prevcode="0" class="pos"><span>302\nCCD 盖玻璃更换</span></div></div>');
 			if ($("#major_pat").attr("value")) {
 				var $pos331 = $(".pos[code=28]").closest(".edgeposition");
 				// 增加304工位选择
