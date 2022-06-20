@@ -52,6 +52,7 @@ import com.osh.rvs.service.MaterialProcessService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.OptionalFixService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.SectionService;
@@ -216,7 +217,7 @@ public class MaterialAction extends BaseAction {
 	 * @param conn
 	 */
 	public void getDetial(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) {
-		log.info("MaterialAction.getDetial start");
+		log.info("MaterialAction.getDetail start");
 		// Ajax响应对象	
 		Map<String, Object> detailResponse = new HashMap<String, Object>();
 
@@ -299,6 +300,14 @@ public class MaterialAction extends BaseAction {
 		detailResponse.put("processForm", processForm);
 		detailResponse.put("timesOptions", occutTimes);
 		detailResponse.put("caseId", caseId);
+
+		if (!RvsUtils.isPeripheral(materialForm.getLevel())) {
+			OptionalFixService ofService = new OptionalFixService();
+			List<String> optional_fix_items = ofService.getMaterialOptionalFixItems(id, conn);
+
+			if (optional_fix_items != null && optional_fix_items.size() > 0)
+			materialForm.setOptional_fix_id(CommonStringUtil.joinBy("；", optional_fix_items.toArray()));
+		}
 		
 		session.setAttribute("caseId", Integer.valueOf(caseId).toString());
 //		String sOptions = sectionService.getOptions(conn, null);
@@ -308,7 +317,7 @@ public class MaterialAction extends BaseAction {
 		
 		returnJsonResponse(res, detailResponse);
 		
-		log.info("MaterialAction.getDetial end");
+		log.info("MaterialAction.getDetail end");
 	}
 
 	/**

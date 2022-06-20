@@ -672,6 +672,16 @@ public class MaterialService {
 			}
 		}
 
+		// 取得选择修理检查票
+		OptionalFixService ofService = new OptionalFixService();
+		List<String> selectedItems = ofService.getMaterialOptionalFixItems(material_id, conn);
+		if (selectedItems != null) {
+			Map<String, String> optionalPcs = ofService.getOptionalFixPcses(selectedItems, mform, getHistory, conn);
+			if (optionalPcs != null) {
+				pcses.add(optionalPcs);
+			}
+		}
+
 		listResponse.put("pcses", pcses);
 		
 	}

@@ -106,8 +106,13 @@ Integer sectionPart = (Integer)request.getAttribute("sectionPart");
 						</td>
 					</tr>
 					<tr style="display:none;">
-						<td class="ui-state-default td-title">ESAS No.</td>
-						<td class="td-content"><input type="text" name="esas_no" id="search_esas_no" maxlength="8" class="ui-widget-content"></td>
+						<td class="ui-state-default td-title">选择修理</td>
+						<td class="td-content" id="optional_fix_set">
+							<input type="radio" name="optional_fix" id="optional_fix_a" class="ui-widget-content" checked="true" value=""><label for="optional_fix_a">全部</label>
+							<input type="radio" name="optional_fix" id="optional_fix_y" class="ui-widget-content" value="99999"><label for="optional_fix_y">有选择修理项</label>
+						</td>
+						<!--td class="ui-state-default td-title">ESAS No.</td>
+						<td class="td-content"><input type="text" name="esas_no" id="search_esas_no" maxlength="8" class="ui-widget-content"></td-->
 						<td class="ui-state-default td-title">动物实验用</td>
 						<td class="td-content" id="anml_exp_set">
 							<input type="radio" name="anml_exp" id="anml_exp_a" class="ui-widget-content" checked="true" value=""><label for="anml_exp_a">全部</label>

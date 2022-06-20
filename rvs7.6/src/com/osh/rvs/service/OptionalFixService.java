@@ -13,7 +13,6 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OptionalFixEntity;
-import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -209,6 +208,23 @@ public class OptionalFixService {
 
 	public void getMaterialOptionalFix(String material_id,
 			MaterialForm mform, Map<String, Object> cbResponse, SqlSession conn) {
+		OptionalFixEntity condition = new OptionalFixEntity();
+		condition.setMaterial_id(material_id);
+
+		List<String> itemNames = getMaterialOptionalFixItems(material_id, conn);
+
+		if (itemNames == null) {
+			cbResponse.put("optionalFixLabelText", "（无选择修理项）");
+		} else {
+			cbResponse.put("optionalFixLabelText", CommonStringUtil.joinBy("；", itemNames.toArray()));
+			
+			if (mform != null) {
+				cbResponse.put("appendPcses", getOptionalFixPcses(itemNames, mform, null, conn));
+			}
+		}
+	}
+
+	public List<String> getMaterialOptionalFixItems(String material_id, SqlSession conn) {
 		MaterialOptionalFixMapper mapper = conn.getMapper(MaterialOptionalFixMapper.class);
 		
 		OptionalFixEntity condition = new OptionalFixEntity();
@@ -216,19 +232,15 @@ public class OptionalFixService {
 		List<OptionalFixEntity> lEntities = mapper.searchMaterialOptionalFix(condition);
 
 		if (lEntities.size() == 0) {
-			cbResponse.put("optionalFixLabelText", "（无选择修理项）");
+			return null;
 		} else {
 			List<String> itemNames = new ArrayList<String>();
 			for (OptionalFixEntity ofEntity : lEntities) {
 				itemNames.add(ofEntity.getInfection_item());
 			}
-			cbResponse.put("optionalFixLabelText", CommonStringUtil.joinBy("；", itemNames.toArray()));
 
-			if (mform != null) {
-				cbResponse.put("appendPcses", getOptionalFixPcses(itemNames, mform, null, conn));
-			}
+			return itemNames;
 		}
-
 	}
 
 	public List<OptionalFixForm> getOptionalFixByRank(ActionForm form, SqlSession conn) {

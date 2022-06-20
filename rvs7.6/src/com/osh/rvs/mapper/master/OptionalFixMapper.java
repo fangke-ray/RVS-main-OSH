@@ -28,5 +28,5 @@ public interface OptionalFixMapper {
 
 	public void deleteRank(String optional_fix_id);
 
-	public List<OptionalFixEntity> getOptionalFixByRank(String rank);
+	public List<OptionalFixEntity> getOptionalFixByRank(@Param("rank") String rank);
 }

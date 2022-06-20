@@ -353,6 +353,10 @@
 				and EXISTS 
 					(SELECT tag_type FROM material_tag WHERE material_id = a.material_id AND tag_type = 1)
 			</if>
+			<if test="optional_fix_id eq 99999 ">
+				and EXISTS 
+					(SELECT 1 FROM material_optional_fix WHERE material_id = a.material_id)
+			</if>
 			<if test="scheduled_date_start!= null or scheduled_date_end!= null or complete_date_start!= null or complete_date_end!= null">
 				<![CDATA[
 				and EXISTS (

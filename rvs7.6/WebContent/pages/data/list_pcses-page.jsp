@@ -62,24 +62,29 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<table class="condform">
 			<tbody>
 					<tr>
-						<td class="ui-state-default td-title" rowspan="2">维修对象机种</td>
-						<td class="td-content" rowspan="2"><select name="category_id" id="search_category_id" class="ui-widget-content" multiple>${cOptions}</select></td>
+						<td class="ui-state-default td-title" rowspan="4">维修对象机种</td>
+						<td class="td-content" colspan="3" rowspan="4"><select name="category_id" id="search_category_id" class="ui-widget-content" multiple>${cOptions}</select></td>
+						<td class="ui-state-default td-title">修理单号</td>
+						<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content"></td>
+					</tr>
+					<tr>
 						<td class="ui-state-default td-title">维修对象型号</td>
 						<td class="td-content">
 							<input type="text" class="ui-widget-content" readonly="readonly" id="txt_modelname">
 							<input type="hidden" name="modelname" id="search_modelname">
 						</td>
+					</tr>
+					<tr>
 						<td class="ui-state-default td-title">机身号</td>
 						<td class="td-content"><input type="text" id="search_serialno" maxlength="20" class="ui-widget-content"></td>
 					</tr>
 					<tr>
-						<td class="ui-state-default td-title">修理单号</td>
-						<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content"></td>
 						<td class="ui-state-default td-title">维修课室</td>
 						<td class="td-content">
 							<select name="section_id" id="search_section_id" class="ui-widget-content">${sOptions}</select>
 						</td>
 					</tr>
+
 					<tr>
 						<td class="ui-state-default td-title">受理日期</td>
 						<td class="td-content"><input type="text" name="reception_time" id="reception_time_start" maxlength="50" class="ui-widget-content" readonly="readonly">起<br/><input type="text" name="name" id="reception_time_end" maxlength="50" class="ui-widget-content" readonly="readonly">止</td>
@@ -110,19 +115,24 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						</td>
 					</tr>
 					<tr style="display:none;">
-						<td class="ui-state-default td-title">ESAS No.</td>
-						<td class="td-content"><input type="text" name="esas_no" id="search_esas_no" maxlength="8" class="ui-widget-content"></td>
-						<td class="ui-state-default td-title">维修等级</td>
-						<td class="td-content">
-							<select name="search_level" id="search_level" class="ui-widget-content">
-								${lOptions}
-							</select>
-						</td>
 						<td class="ui-state-default td-title">直送</td>
 						<td class="td-content" id="direct_set">
 							<input type="radio" name="direct_flg" id="direct_flg_a" class="ui-widget-content" checked="true" value=""><label for="direct_flg_a">全部</label>
 							<input type="radio" name="direct_flg" id="direct_flg_n" class="ui-widget-content" value="0"><label for="direct_flg_n">分室</label>
 							<input type="radio" name="direct_flg" id="direct_flg_y" class="ui-widget-content" value="1"><label for="direct_flg_y">直送</label>
+						</td>
+						<td class="ui-state-default td-title" rowspan="2">维修等级</td>
+						<td class="td-content" colspan="3" rowspan="2">
+							<select name="search_level" id="search_level" class="ui-widget-content">
+								${lOptions}
+							</select>
+						</td>
+					</tr>
+					<tr style="display:none;">
+						<td class="ui-state-default td-title">选择修理</td>
+						<td class="td-content" id="optional_fix_set">
+							<input type="radio" name="optional_fix" id="optional_fix_a" class="ui-widget-content" checked="true" value=""><label for="optional_fix_a">全部</label>
+							<input type="radio" name="optional_fix" id="optional_fix_y" class="ui-widget-content" value="99999"><label for="optional_fix_y">有选择修理项</label>
 						</td>
 					</tr>
 					<tr style="display:none;">

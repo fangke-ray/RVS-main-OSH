@@ -43,7 +43,8 @@ var findit = function(data) {
 			"quotation_date_end":$("#search_quotation_date_end").val(),
 			"ocm":$("#search_ocm").val(),
 			"fix_type":$("#search_fix_type").val(),
-			"anml_exp":$("#anml_exp_set input:checked").val()
+			"anml_exp":$("#anml_exp_set input:checked").val(),
+			"optional_fix_id":$("#optional_fix_set input:checked").val()
 		};
 	} else {
 		keepSearchData = data;
@@ -107,6 +108,9 @@ var reset = function() {
 	
 	$("#anml_exp_set input").removeAttr("checked");
 	$("#anml_exp_set input:eq(0)").attr("checked", true).trigger("change");
+
+	$("#optional_fix_set input").removeAttr("checked");
+	$("#optional_fix_set input:eq(0)").attr("checked", true).trigger("change");
 };
 
 var downResult = function() {
@@ -142,7 +146,7 @@ var downResult = function() {
 $(function() {
 	
 	$("input.ui-button").button();
-	$("#completed_set, #direct_set, #anml_exp_set").buttonset();
+	$("#completed_set, #direct_set, #anml_exp_set, #optional_fix_set").buttonset();
 
 	$("#searchbutton").addClass("ui-button-primary");
 	$("#searchbutton").click(function() {

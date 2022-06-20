@@ -263,6 +263,20 @@ function setLabelText(data, data2, data3, times, material_id, occur_times) {
 		$("#label_scheduled_date").text(data.scheduled_date);
 		$("#label_outline_time").text(data.outline_time);
 		$("#label_scheduled_manager_comment").text(data.scheduled_manager_comment);
+
+		if (data.optional_fix_id && data.optional_fix_id.length) {
+			var content = '';
+			var optional_fix_items = data.optional_fix_id.split("；");
+			for (var iofi in optional_fix_items) {
+				content += '<tr><td class="td-content">' + decodeText(optional_fix_items[iofi]) + '</td></tr>';
+			}
+			$("#optional_fix_items > table").html(content);
+			$("#optional_fix_items").show();
+			
+		} else {
+			$("#optional_fix_items").hide();
+		}
+
 		//====
 		$("#edit_sorc_no").val(data.sorc_no);
 		$("#edit_esas_no").val(data.esas_no);

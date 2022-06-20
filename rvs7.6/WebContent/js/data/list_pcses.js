@@ -36,7 +36,8 @@ var findit = function(data) {
 			"agreed_date_end":$("#search_agreed_date_end").val(),
 			"partial_order_date_start":$("#partial_order_date_start").val(),
 			"partial_order_date_end":$("#partial_order_date_end").val(),
-			"ocm":$("#search_ocm").val()
+			"ocm":$("#search_ocm").val(),
+			"optional_fix_id":$("#optional_fix_set input:checked").val()
 		};
 	} else {
 		keepSearchData = data;
@@ -84,13 +85,16 @@ var reset = function() {
 	$("#search_agreed_date_end").val("");
 	$("#partial_order_date_start").val("");
 	$("#partial_order_date_end").val("");
+
+	
+	$("#optional_fix_set input").removeAttr("checked");
+	$("#optional_fix_set input:eq(0)").attr("checked", true).trigger("change");
 };
 
 $(function() {
 	
 	$("input.ui-button").button();
-	$("#completed_set").buttonset();
-	$("#direct_set").buttonset();
+	$("#completed_set, #direct_set, #optional_fix_set").buttonset();
 
 	$("#searchbutton").addClass("ui-button-primary");
 	$("#searchbutton").click(function() {

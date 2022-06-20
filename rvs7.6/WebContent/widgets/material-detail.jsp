@@ -210,13 +210,19 @@ if (hasDecom!=null && hasDecom) {
 				</tr>
 				<tr>
 					<td class="ui-state-default td-title">备注</td>
-					<td class="td-content" colspan="3">
+					<td class="td-content" colspan="3" style="position:relative;">
 						<label id="label_scheduled_manager_comment"></label>
 						<textarea id="edit_scheduled_manager_comment" style="width:350px;height:80px;"></textarea>
 						
 						<select id="edit_am_pm" class="ui-widget-content">
 							<%=CodeListUtils.getSelectOptions("material_time",null,"",false) %>
 						</select>
+
+						<div id="optional_fix_items" style="position:absolute;top:0;right:1em;">
+							<div class="ui-state-default" style="padding-left:.5em;">选择修理项目</div>
+							<table style="width:10em;">
+							</table>
+						</div>
 <%
 String level = (String)request.getAttribute("level");
 if(level != null && ("1".equals(level) || "2".equals(level))) {

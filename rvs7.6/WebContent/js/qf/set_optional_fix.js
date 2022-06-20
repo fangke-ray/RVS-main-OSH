@@ -79,7 +79,7 @@ return {
 
 		var postData={
 			"material_id": opf_material_id,
-			"level" : arr_level
+			"rank" : arr_level
 		}
 
 		$.ajax({
