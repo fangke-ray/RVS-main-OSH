@@ -830,5 +830,36 @@ and rc_mailsend_date=#{rc_mailsend_date};
 				and rc_mailsend_date=#{rc_mailsend_date}
 		]]>
 	</update>
-	
+
+	<update id="updateRcMailsendDateForQisPayout" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				qis_payout
+			SET
+				rc_mailsend_date=#{rc_mailsend_date}
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date_org}
+		]]>
+	</update>
+
+	<select id="checkServiceRepairAnalysis" resultType="date" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			SELECT rc_mailsend_date
+			FROM
+				service_repair_analysis
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date}
+		]]>
+	</select>
+
+	<update id="updateRcMailsendDateForServiceRepairAnalysis" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				service_repair_analysis
+			SET
+				rc_mailsend_date=#{rc_mailsend_date}
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date_org}
+		]]>
+	</update>
 </mapper>

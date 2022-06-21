@@ -116,7 +116,7 @@
 		</where>
 	</update>
 	
-	<!-- <select id="searchQisPayout" resultType="ServiceRepairManageEntity" parameterType="ServiceRepairManageEntity">
+	<select id="searchQisPayout" resultType="ServiceRepairManageEntity" parameterType="ServiceRepairManageEntity">
 		<![CDATA[
 			select
 				quality_info_no,
@@ -144,7 +144,7 @@
 				]]>
 			</if>
 		</where>
-	</select> -->
+	</select>
 	
 	<update id="updateServiceRepair" parameterType="ServiceRepairManageEntity">
 		<![CDATA[
@@ -223,7 +223,7 @@
 		<if test="position_id!=null and position_id!='' ">
 			<![CDATA[
 				 AND exists (select 1 from solo_production_feature where serial_no = srm.serial_no and model_name = srm.model_name
-				-- [and judge_date=srm.rc_mailsend_date] 
+				 and judge_date=srm.rc_mailsend_date
 				 and position_id = #{position_id}
 				)
 			]]>
@@ -254,5 +254,26 @@
 				model_name=#{model_name} AND serial_no=	#{serial_no} AND rc_mailsend_date=#{rc_mailsend_date}
 		]]>
 	</update>
-	
+
+	<select id="checkSoloPf" resultType="ServiceRepairManageEntity" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			SELECT judge_date as rc_mailsend_date, pace as quantity
+			FROM
+				solo_production_feature
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND judge_date=#{rc_mailsend_date}
+		]]>
+	</select>
+
+	<update id="updateRcMailsendDateForSoloPf" parameterType="ServiceRepairManageEntity">
+		<![CDATA[
+			UPDATE
+				solo_production_feature
+			SET
+				judge_date=#{rc_mailsend_date}
+			WHERE
+				model_name=#{model_name} AND serial_no=#{serial_no} AND judge_date=#{rc_mailsend_date_org}
+		]]>
+	</update>
+
 </mapper>

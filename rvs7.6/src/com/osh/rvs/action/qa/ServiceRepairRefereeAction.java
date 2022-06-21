@@ -36,6 +36,7 @@ import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
+import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 import framework.huiqing.common.util.validator.Validators;
 
@@ -375,8 +376,9 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		//检查合法性
 		Validators v=BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 		msgInfos = v.validate();
-		
+
 		ServiceRepairManageForm serviceRepairManageForm=(ServiceRepairManageForm)form;
+
 		//ETQ单号
 		String etq_no = serviceRepairManageForm.getEtq_no();
 		//QIS发送日期
@@ -394,6 +396,8 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		HttpSession session = request.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
+		SoloProductionFeatureEntity org = service.checkWorkingPfServiceRepair(user.getOperator_id(), conn, msgInfos);
+
 		if(msgInfos.size()==0){
 			service.updateServiceRepair(form,conn);
 			ServiceRepairManageForm tempForm=(ServiceRepairManageForm)form;
@@ -404,7 +408,7 @@ public class ServiceRepairRefereeAction extends BaseAction{
 					service.deleteQisPayout(tempForm, conn);
 				}else{
 					//更新QIS请款信息
-					service.updateQisPayout(tempForm, conn);
+					service.updateQisPayout(tempForm, org.getJudge_date(), conn);
 				}
 			//}
 
@@ -413,6 +417,11 @@ public class ServiceRepairRefereeAction extends BaseAction{
 			String pcs_comments = request.getParameter("pcs_comments");
 			// 结束工时计算 
 			service.finishWorkingServiceRepair(tempForm, operator_id, pcs_comments, conn, msgInfos);	// qa_referee_time
+
+			String orgDate = DateUtil.toString(org.getJudge_date(), DateUtil.DATE_PATTERN);
+			if (!orgDate.equals(tempForm.getRc_mailsend_date())) {
+				manageService.updateRelationRcMailsendDate(tempForm, org.getJudge_date(), conn);
+			}
 		}
 
 		// 未着手数据

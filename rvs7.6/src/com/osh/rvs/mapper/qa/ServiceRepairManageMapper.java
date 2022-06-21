@@ -90,4 +90,8 @@ public interface ServiceRepairManageMapper {
 	public String getMaxSeqNo(ServiceRepairManageEntity conditionEntity);
 
 	public void undoRefeeWork(ServiceRepairManageEntity entity) throws Exception;
+
+	public int updateRcMailsendDateForQisPayout(ServiceRepairManageEntity conditionEntity);
+	public Date checkServiceRepairAnalysis(ServiceRepairManageEntity conditionEntity);
+	public int updateRcMailsendDateForServiceRepairAnalysis(ServiceRepairManageEntity conditionEntity);
 }

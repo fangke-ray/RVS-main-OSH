@@ -61,6 +61,8 @@ public class ServiceRepairManageEntity implements Serializable {
 	private String sorc_no;
 	private Integer service_repair_flg;
 	private Date rc_mailsend_date;
+	private Date rc_mailsend_date_org;
+
 	private Date rc_ship_assign_date;
 	private Date qa_reception_time;
 	private Date qa_reception_time_end;
@@ -588,10 +590,6 @@ public class ServiceRepairManageEntity implements Serializable {
 		this.operate_result = operate_result;
 	}
 
-	public void setRc_mailsend_date(String rc_mailsend_date2) {
-
-	}
-
 	public String getImage_uuid() {
 		return image_uuid;
 	}
@@ -793,6 +791,14 @@ public class ServiceRepairManageEntity implements Serializable {
 
 	public void setActual_fault(String actual_fault) {
 		this.actual_fault = actual_fault;
+	}
+
+	public Date getRc_mailsend_date_org() {
+		return rc_mailsend_date_org;
+	}
+
+	public void setRc_mailsend_date_org(Date rc_mailsend_date_org) {
+		this.rc_mailsend_date_org = rc_mailsend_date_org;
 	}
 
 }

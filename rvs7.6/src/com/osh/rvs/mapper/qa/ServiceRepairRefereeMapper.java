@@ -18,7 +18,7 @@ public interface ServiceRepairRefereeMapper {
 	public void updateQareceptionTime(@Param("material_id") String material_id);
 	
 	//查询QIS请款信息
-	//public ServiceRepairManageEntity searchQisPayout(ServiceRepairManageEntity entity);
+	public ServiceRepairManageEntity searchQisPayout(ServiceRepairManageEntity entity);
 
 	public void updateServiceRepair(ServiceRepairManageEntity entity);
 
@@ -30,9 +30,14 @@ public interface ServiceRepairRefereeMapper {
 	 */
 	public List<ServiceRepairManageEntity> findPausing(@Param("material_id") String material_id, @Param("position_id") String position_id);
 
-	/**删除QIS请款信息**/
-	public void deleteQisPayout(ServiceRepairManageEntity entity);
-	
-	/**更新QIS请款信息**/
-	public void updateQisPayout(ServiceRepairManageEntity entity);
+//	/**删除QIS请款信息**/
+//	public void deleteQisPayout(ServiceRepairManageEntity entity);
+//	
+//	/**更新QIS请款信息**/
+//	public void updateQisPayout(ServiceRepairManageEntity entity);
+
+
+	public List<ServiceRepairManageEntity> checkSoloPf(ServiceRepairManageEntity entity);
+	public int updateRcMailsendDateForSoloPf(ServiceRepairManageEntity entity);
+
 }

@@ -130,8 +130,9 @@ public class ServiceRepairRefereeService {
 		dao.deleteQisPayout(entity);
 	}
 	
-	/**更新QIS请款信息**/
-	public void updateQisPayout(ActionForm form,SqlSessionManager conn){
+	/**更新QIS请款信息
+	 * @param date **/
+	public void updateQisPayout(ActionForm form, Date orgDate, SqlSessionManager conn){
 		ServiceRepairManageMapper dao=conn.getMapper(ServiceRepairManageMapper.class);
 		ServiceRepairManageEntity entity=new ServiceRepairManageEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
@@ -139,6 +140,7 @@ public class ServiceRepairRefereeService {
 		// 增加作为主键
 		if (entity.getQuality_info_no() == null)
 			entity.setQuality_info_no("");
+		entity.setRc_mailsend_date(orgDate);
 
 		dao.updateQisPayout(entity);
 	}

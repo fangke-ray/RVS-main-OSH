@@ -42,6 +42,7 @@ import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.qa.ServiceRepairManageForm;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.qa.ServiceRepairManageMapper;
+import com.osh.rvs.mapper.qa.ServiceRepairRefereeMapper;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.partial.ComponentManageService;
@@ -1075,5 +1076,57 @@ public class ServiceRepairManageService {
 		srMapper.undoRefeeWork(conditionEntity);
 		// 删除作业信息
 		spfMapper.undoWorkingByModelName(conditionEntity);
+	}
+
+	/**
+	 * 分析中修改RC邮件发送日
+	 * 更新全部关联表
+	 * `qis_payout`
+	 * `service_repair_analysis` IF EXISTS
+	 * `solo_production_feature`
+	 * 
+	 * @param form
+	 * @param judge_date
+	 * @param conn
+	 */
+	public void updateRelationRcMailsendDate(ServiceRepairManageForm updForm, Date judge_date,
+			SqlSessionManager conn) {
+		ServiceRepairManageEntity newCondEntity = new ServiceRepairManageEntity();
+		ServiceRepairManageEntity oldCondEntity = new ServiceRepairManageEntity();
+		CopyOptions co = new CopyOptions();
+		co.include("model_name","serial_no","rc_mailsend_date");
+		BeanUtil.copyToBean(updForm, newCondEntity, co);
+		newCondEntity.setRc_mailsend_date_org(judge_date);
+
+		oldCondEntity.setModel_name(newCondEntity.getModel_name());
+		oldCondEntity.setSerial_no(newCondEntity.getSerial_no());
+		oldCondEntity.setRc_mailsend_date(judge_date);
+
+		ServiceRepairManageMapper manageMapper = conn.getMapper(ServiceRepairManageMapper.class);
+		ServiceRepairRefereeMapper refereeMapper = conn.getMapper(ServiceRepairRefereeMapper.class);
+
+		// `qis_payout`
+		ServiceRepairManageEntity qisPayoutEntity = refereeMapper.searchQisPayout(newCondEntity);
+		if (qisPayoutEntity == null) {
+			manageMapper.updateRcMailsendDateForQisPayout(newCondEntity);
+		}
+
+		// `service_repair_analysis`
+		Date analysisDate = manageMapper.checkServiceRepairAnalysis(newCondEntity);
+		if (analysisDate == null) {
+			analysisDate = manageMapper.checkServiceRepairAnalysis(oldCondEntity);
+			if (analysisDate != null) {
+				manageMapper.updateRcMailsendDateForServiceRepairAnalysis(newCondEntity);
+			}
+		}
+
+		// `solo_production_feature`
+		List<ServiceRepairManageEntity> soloPfs = refereeMapper.checkSoloPf(newCondEntity);
+		if (soloPfs.size() == 0) {
+			soloPfs = refereeMapper.checkSoloPf(oldCondEntity);
+			if (soloPfs.size() > 0) {
+				refereeMapper.updateRcMailsendDateForSoloPf(newCondEntity);
+			}
+		}
 	}
 }
