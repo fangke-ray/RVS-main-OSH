@@ -778,7 +778,7 @@ public class ProductionFeatureService {
 			if (!targetPosList.isEmpty()) {
 
 				DisassembleStorageService dsService = new DisassembleStorageService();
-				ret = dsService.getStorageByMaterial(isFact, material_id, targetPosList, ret, conn);
+				ret = dsService.getStorageByMaterial(isFact, material_id, workingPf.getSection_id(), workingPf.getRework(), targetPosList, ret, conn);
 				return ret;
 			}
 		}

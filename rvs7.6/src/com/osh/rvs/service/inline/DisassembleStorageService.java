@@ -11,11 +11,13 @@ import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
+import org.apache.log4j.Logger;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.inline.DisassembleStorageEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.inline.DisassembleStorageForm;
 import com.osh.rvs.mapper.inline.DisassembleStorageMapper;
 import com.osh.rvs.service.PositionService;
@@ -33,6 +35,8 @@ import framework.huiqing.common.util.message.ApplicationMessage;
  *
  */
 public class DisassembleStorageService {
+
+	Logger _log = Logger.getLogger(DisassembleStorageService.class);
 
 	/**
 	 * 查询库位
@@ -397,7 +401,8 @@ public class DisassembleStorageService {
 	 * @param conn
 	 * @return
 	 */
-	public List<String> getStorageByMaterial(boolean isFact, String material_id, List<String> storagePositions, List<String> nextFingers, SqlSession conn) {
+	public List<String> getStorageByMaterial(boolean isFact, String material_id, String section_id, Integer rework,
+			List<String> storagePositions, List<String> nextFingers, SqlSession conn) {
 		DisassembleStorageMapper mapper = conn.getMapper(DisassembleStorageMapper.class);
 		List<String> newFingers = new ArrayList<String>();
 
@@ -407,20 +412,38 @@ public class DisassembleStorageService {
 		List<DisassembleStorageEntity> l = mapper.getStorageByMaterial(condition);
 
 		for (DisassembleStorageEntity posi : l) {
+			boolean hitNext = false;
+			for (int i  = 0; i < nextFingers.size(); i++) {
+				String nextFinger = nextFingers.get(i);
+				if (CommonStringUtil.fillChar(nextFinger, '0', 11, true).equals(posi.getPosition_id())) {
+					nextFingers.remove(i);
+					hitNext = true;
+					break;
+				}
+
+				if (nextFinger.indexOf(posi.getProcess_code()) > 0) {
+					nextFingers.remove(i);
+					hitNext = true;
+					break;
+				}
+			}
+			if (!hitNext && rework > 0) {
+				continue;
+			}
+
 			if (posi.getCase_code() != null) {
 				newFingers.add(posi.getProcess_code() + " 库位: " + posi.getCase_code());
 			} else {
 				if (isFact) {
 					newFingers.add(posi.getProcess_code() + " 库位: (未选择)");
 				} else {
-					newFingers.add(posi.getProcess_code() + " 库位: [lick\tposition_id='" + posi.getPosition_id() + "'\tprocess_code='" + posi.getProcess_code() + "'>(请选择)]");
-				}
-			}
-			for (int i  = 0; i < nextFingers.size(); i++) {
-				String nextFinger = nextFingers.get(i);
-				if (CommonStringUtil.fillChar(nextFinger, '0', 11, true).equals(posi.getPosition_id())) {
-					nextFingers.remove(i);
-					break;
+					String recommendCaseCode = setRecommendCaseCode(material_id, section_id, posi.getPosition_id(), conn);
+					_log.info("get recommendCaseCode = " + recommendCaseCode);
+					if (recommendCaseCode == null) {
+						newFingers.add(posi.getProcess_code() + " 库位: [lick\tposition_id='" + posi.getPosition_id() + "'\tprocess_code='" + posi.getProcess_code() + "'>(请选择)]");
+					} else {
+						newFingers.add(posi.getProcess_code() + " 库位: " + recommendCaseCode);
+					}
 				}
 			}
 		}
@@ -470,4 +493,95 @@ public class DisassembleStorageService {
 		}
 		return ret;
 	}
+
+	/**
+	 * 自动分配库位
+	 * （需额外connection）
+	 * 
+	 * @param section_id
+	 * @param position_id
+	 * @return
+	 */
+	private String setRecommendCaseCode(String material_id, String section_id, String position_id, SqlSession tempConn) {
+		
+		DisassembleStorageMapper mapper = tempConn.getMapper(DisassembleStorageMapper.class);
+		List<DisassembleStorageEntity> storageOfPosition = mapper.getStorageOfPosition(position_id);
+
+		long maxRefreshTimestamp = 0l;
+		long maxRefreshTimestampLv2 = 0l;
+		DisassembleStorageEntity recommentPos = null;
+		DisassembleStorageEntity firstEmptyPos = null;
+		DisassembleStorageEntity recommentPosLv2 = null;
+		DisassembleStorageEntity firstEmptyPosLv2 = null;
+
+		for (DisassembleStorageEntity storage : storageOfPosition) {
+			if (storage.getAuto_arrange() == 1) {
+				if (storage.getMaterial_id() == null) {
+					if (recommentPos == null) {
+						recommentPos = storage;
+					}
+					if (firstEmptyPos == null) {
+						firstEmptyPos = storage;
+					}
+				} else {
+					if (storage.getRefresh_time().getTime() > maxRefreshTimestamp) {
+						maxRefreshTimestamp = storage.getRefresh_time().getTime();
+						recommentPos = null;
+					}
+				}
+			} else {
+				if (storage.getMaterial_id() == null) {
+					if (recommentPosLv2 == null) {
+						recommentPosLv2 = storage;
+					}
+					if (firstEmptyPosLv2 == null) {
+						firstEmptyPosLv2 = storage;
+					}
+				} else {
+					if (storage.getRefresh_time().getTime() > maxRefreshTimestampLv2) {
+						maxRefreshTimestampLv2 = storage.getRefresh_time().getTime();
+						recommentPosLv2 = null;
+					}
+				}
+			}
+		}
+		if (recommentPos == null) {
+			recommentPos = firstEmptyPos;
+		}
+		if (recommentPos == null) {
+			recommentPos = (recommentPosLv2 == null ? firstEmptyPosLv2 : recommentPosLv2);
+		}
+		if (recommentPos == null) {
+			return null;
+		}
+
+		// 临时采用可写连接
+		SqlSessionManager writableConn = RvsUtils.getTempWritableConn();
+
+		try {
+			writableConn.startManagedSession(false);
+
+			DisassembleStorageMapper writableMapper = writableConn.getMapper(DisassembleStorageMapper.class);
+
+			recommentPos.setRefresh_time(new Date());
+			recommentPos.setMaterial_id(material_id);
+			writableMapper.putin(recommentPos);
+
+			writableConn.commit();
+		} catch (Exception e) {
+			if (writableConn != null && writableConn.isManagedSessionStarted()) {
+				writableConn.rollback();
+			}
+		} finally {
+			try {
+				writableConn.close();
+			} catch (Exception e) {
+			} finally {
+				writableConn = null;
+			}
+		}
+
+		return recommentPos.getCase_code();
+	}
+
 }

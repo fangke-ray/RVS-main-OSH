@@ -138,8 +138,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<tr>
 				<td class="ui-state-default td-title">自动分配</td>
 				<td class="td-content" id="edit_auto_arrange">
-					<input type="radio" name="auto_arrange" id="edit_auto_arrange_y" value="1" class="ui-widget-content"><label for="edit_auto_arrange_y">将会自动分配</label>
-					<input type="radio" name="auto_arrange" id="edit_auto_arrange_n" value="0" class="ui-widget-content"><label for="edit_auto_arrange_n">不会</label>
+					<input type="radio" name="auto_arrange" id="edit_auto_arrange_y" value="1" class="ui-widget-content"><label for="edit_auto_arrange_y">一级优先</label>
+					<input type="radio" name="auto_arrange" id="edit_auto_arrange_n" value="0" class="ui-widget-content"><label for="edit_auto_arrange_n">二级优先</label>
 				</td>
 			</tr>
 			<tr>

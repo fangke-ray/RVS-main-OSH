@@ -983,7 +983,7 @@ public class PositionService {
 
 	public static Map<String, List<String>> getInlineStorageFromPositions(SqlSession conn) {
 		if (inlineStorageFromPositions == null) {
-			inlineStoragePositions = new HashMap<String, PositionEntity>();
+			inlineStoragePositions = new TreeMap<String, PositionEntity>();
 			inlineStorageFromPositions = new HashMap<String, List<String>>();
 
 			String inlineStoragePositionsProp = PathConsts.POSITION_SETTINGS.getProperty("inlineStorage.positions");
