@@ -119,7 +119,10 @@ var downResult = function() {
 		async : true,
 		url : servicePath + '?method=export',
 		cache : false,
-		data : {search_addition : $("#searchform").data("search_addition")},
+		data : {
+			search_addition : $("#searchform").data("search_addition"),
+			optional_fix_id : keepSearchData.optional_fix_id
+		},
 		type : "post",
 		dataType : "json",
 		success : ajaxSuccessCheck,
@@ -231,7 +234,7 @@ function initGrid() {
 			{name:'agreed_date',index:'agreed_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
 			{name:'scheduled_date',index:'scheduled_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
 			{name:'scheduled_date_end',index:'scheduled_date_end', width:45, align:'center', formatter:function(a,b,row) {
-				if ("9999/12/31" == a) {
+				if ("9999-12-31" == a || "9999/12/31" == a) {
 					return "另行通知";
 				}
 
@@ -302,6 +305,12 @@ function search_handleComplete(xhrobj, textStatus) {
 	var listdata = null;
 	var $searchList = $("#list"); 
 	eval('listdata =' + xhrobj.responseText);
+
+	if (listdata.errors && listdata.errors.length > 0) {
+		treatBackMessages(null, resInfo.errors);
+		return;
+	}
+
 	if ($("#gbox_list").length > 0) {
 		$searchList.jqGrid().clearGridData();
 		$searchList.jqGrid('setGridParam', {data : listdata.list}).trigger("reloadGrid", [{current : false}]);

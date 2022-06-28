@@ -33,6 +33,7 @@ import com.osh.rvs.mapper.master.HolidayMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.OptionalFixService;
 import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -126,6 +127,15 @@ public class QualityAssuranceService {
 					
 				}
 			}
+		}
+
+		// 取得选择修理检查票
+		OptionalFixService ofService = new OptionalFixService();
+		List<String> selectedItems = ofService.getMaterialOptionalFixItems(mform.getMaterial_id(), conn);
+		if (selectedItems != null) {
+			Map<String, String> fileTempl = ofService.makeOptionalFixPcses(selectedItems, mform, conn);
+			PcsUtils.toPdf(fileTempl, mform.getMaterial_id(), mform.getSorc_no(), mform.getModel_name(),
+					mform.getSerial_no(), mform.getLevel(), null, folderPath, isAnmlExp, conn);
 		}
 	}
 

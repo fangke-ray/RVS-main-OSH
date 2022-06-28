@@ -395,7 +395,7 @@ public class PcsUtils {
 	 * @param conn 
 	 * @return
 	 */
-	public static Map<String, String> toHtml(Map<String, String> srcPcses, String materialId, String sorcNo,
+	public static Map<String, String> toHtml(Map<String, String> srcPcses, String materialId, String sorcNo, // Map<String, List<ProductionFeatureEntity>> pfCache,
 			String modelName, String serialNo, String level, String currentProcessCode, String leaderLineId, boolean isAnmlExp, SqlSession conn) {
 		logger.info("getXmlContents for material=" + materialId + " currentProcessCode=" + currentProcessCode);
 		String currentProcessCodeOrg = currentProcessCode;
@@ -453,6 +453,11 @@ public class PcsUtils {
 			condEntity.setRework(iRework);
 			// 取得每次返工中作业记录
 			List<ProductionFeatureEntity> pfEntities = dao.getProductionPcsOnRework(condEntity);
+//			List<ProductionFeatureEntity> pfEntities = null;
+//			if (!pfCache.containsKey("p_" + iRework)) {
+//				pfCache.put("p_" + iRework, dao.getProductionPcsOnRework(condEntity));
+//			}
+//			pfEntities = pfCache.get("p_" + iRework);
 
 			// 取得每次返工中线长作业人记录
 			List<ProductionFeatureEntity> lpcs = llDao.searchLeaderPcsInput(condEntity);
@@ -624,12 +629,16 @@ public class PcsUtils {
 				}
 
 				Set<String> hasProcess = new HashSet<String>();
+				Set<String> hasnotProcess = new HashSet<String>();
+				hasnotProcess.add("121"); hasnotProcess.add("131");
+
 				for (ProductionFeatureEntity pf : pfEntities) {
 					// 工位代码
 					String processCode = pf.getProcess_code();
 					if ("612".equals(processCode)) processCode = "611";
 					// logger.info("process_code"+ process_code);
 					String orgProcessCode = processCode;
+					if (hasnotProcess.contains(orgProcessCode)) continue;
 
 					boolean isCurrent = processCode.equals(currentProcessCode);
 					if (currentProcessCode != null && currentProcessCode.indexOf("\\d") >= 0) {
@@ -655,6 +664,7 @@ public class PcsUtils {
 					}
 
 					Pattern pProcessCode = Pattern.compile("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"E\" type=\"\\w\" position=\"" + processCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>");
+					logger.info(pProcessCode.pattern());
 					Matcher mProcessCode = pProcessCode.matcher(specify);
 
 					if (hasProcess.contains(orgProcessCode) || mProcessCode.find()) {
@@ -911,6 +921,8 @@ public class PcsUtils {
 								}
 							}
 						}
+					} else {
+						hasnotProcess.add(orgProcessCode);
 					}
 					// 所在工位有备注 TODO
 				} // for 工位
@@ -950,7 +962,7 @@ public class PcsUtils {
 						int subGroupIdx = (currentProcessCode.indexOf("(") >= 0 ? 3 : 2);
 
 						logger.info("subGroupIdx:" + subGroupIdx);
-						logger.info("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"R\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>");
+//						logger.info("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"R\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>");
 						
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"R\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
 								"<input type=\"radio\" name=\"$1\" value=\"$" + subGroupIdx + "\"/>");
@@ -967,6 +979,8 @@ public class PcsUtils {
 								"<input type=\"hidden\" value=\"#date#\"></input>");
 						specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"E\" type=\"T\" position=\"" + currentProcessCode + "\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
 								"<section class=\"i_total\">-</section><input type=\"hidden\" name=\"$1\" value=\"\" class=\"i_total_hidden\">");
+					} else {
+						logger.info("sPcs_inputs not for:" + mCurrentProcessCode.pattern());
 					}
 
 					// 线长空格
@@ -1794,6 +1808,8 @@ public class PcsUtils {
 		}
 
 		for (String pace : lineBinder.keySet()) {
+			if ("选择修理".equals(pace)) continue;
+
 			// 如果因改废订而指定了
 			String filename = null;
 			if (material_id != null) {
@@ -3009,6 +3025,74 @@ public class PcsUtils {
 				if (fileContent != null) {
 					ret.put("选择修理-" + infection_item, fileContent);
 				}
+			}
+		}
+
+		return ret;
+	}
+
+	/** 取得归档模板 **/
+	public static Map<String, String> getOptionalFixXlsContents(List<String> item_names,
+			String material_id, SqlSession conn) {
+		logger.info("getXlsContents for =" + item_names + " material_id=" + material_id);
+
+		boolean checkHistory = true;
+		Map<String, String> ret = new HashMap<String, String>();
+
+		// 取得选择报价对应的文件夹
+		Map<String, Map<String, String>> lineBinder = fileBinder.get("");
+
+		List<PcsRequestEntity> lM = null;
+		List<PcsRequestEntity> lH = null;
+		if (material_id != null) {
+			PcsRequestMapper prMapper = conn.getMapper(PcsRequestMapper.class);
+			lM = prMapper.checkMaterialAssignAsOld(material_id);
+
+			// 如果参照历史,取得指定机型的修改履历
+			if (checkHistory) {
+				lH= prMapper.getFixHistoryOfMaterial(material_id);
+			}
+		}
+
+		for (String infection_item : item_names) {
+
+			// 如果因改废订而指定了
+			String filename = null;
+			// 如果因改废订而指定了
+			if (material_id != null) {
+//				String folderTypesKey = getFolderTypesKey(lineName, pace, folderTypes);
+//
+//				for (PcsRequestEntity pre : lM) {
+//					Integer lineType = pre.getLine_type();
+//					if ((""+lineType).equals(folderTypesKey)) {
+//						filename = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\_request\\" + trimZero(pre.getPcs_request_key())
+//							+ "\\old.xls";
+//						break;
+//					}
+//				}
+//				if (checkHistory && filename == null) {
+//					for (PcsRequestEntity pre : lH) {
+//						Integer lineType = pre.getLine_type();
+//						if ((""+lineType).equals(folderTypesKey)) {
+//							filename = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\_request\\" + trimZero(pre.getPcs_request_key())
+//									+ "\\old.xls";
+//							if (!new File(filename).exists()) {
+//								filename = null;
+//							}
+//							break;
+//						}
+//					}
+//				}
+			}
+
+			if (filename == null) {
+				filename = PcsUtils.getFileName("报价\n选择修理", infection_item);
+
+				if (filename != null) {
+					ret.put("选择修理（" + infection_item + "）", filename.replaceAll("\\\\xml\\\\", "\\\\excel\\\\").replaceAll(ext, xls_ext));
+				}
+			} else {
+				ret.put("选择修理（" + infection_item + "）", filename);
 			}
 		}
 

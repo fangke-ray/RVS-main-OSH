@@ -353,8 +353,15 @@ public class OptionalFixService {
 		return changed;
 	}
 
-// PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\xml\\" + targetPath + entity.getFile_name() + ".html"
-
+	/**
+	 * 按已取得的选择修理项目取得显示检查票
+	 * 
+	 * @param itemNames
+	 * @param mform
+	 * @param getHistory
+	 * @param conn
+	 * @return
+	 */
 	public Map<String, String> getOptionalFixPcses(List<String> itemNames, MaterialForm mform, String getHistory, SqlSession conn) {
 		Map<String, String> fileTempl = PcsUtils.getOptionalFixXmlContents(itemNames, getHistory != null, mform.getMaterial_id(), conn);
 
@@ -367,4 +374,9 @@ public class OptionalFixService {
 
 		return null;
 	}
+
+	public Map<String, String> makeOptionalFixPcses(List<String> itemNames, MaterialForm mform, SqlSession conn) {
+		return PcsUtils.getOptionalFixXlsContents(itemNames, mform.getMaterial_id(), conn);
+	}
+
 }

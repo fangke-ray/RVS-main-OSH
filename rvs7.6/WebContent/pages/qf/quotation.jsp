@@ -9,7 +9,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" type="text/css" href="css/custom.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
-<link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
+<link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css?v=3476">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
 <link rel="stylesheet" type="text/css" href="css/flowchart.css">
 <link rel="stylesheet" type="text/css" href="css/partial/instruction_sheets.css">
@@ -32,11 +32,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.flowchart.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
-<script type="text/javascript" src="js/qf/quotation.js?v=3458"></script>
+<script type="text/javascript" src="js/qf/quotation.js?v=3476"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
 <script type="text/javascript" src="js/qf/set_optional_fix.js"></script>
-<script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=2"></script>
+<script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=3476"></script>
 <script type="text/javascript">
 ${WORKINFO}
 </script>
@@ -270,7 +270,7 @@ if (peripheral!=null && peripheral) {
 	Boolean needPcs = (Boolean) request.getAttribute("needPcs");
 	if (needPcs!=null && needPcs) {
 %>
-	<script type="text/javascript" src="js/common/pcs_editor.js"></script>
+	<script type="text/javascript" src="js/common/pcs_editor.js?v=3476"></script>
 	<div id="manualdetailarea" style="margin-bottom: 16px;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
 			<span class="areatitle">工程检查票</span>

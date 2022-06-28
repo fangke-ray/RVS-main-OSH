@@ -27,6 +27,7 @@ var douse_complete = function(xhrobj) {
 	// 工程检查票
 	if (resInfo.pcses && resInfo.pcses.length > 0 && pusoHasPcs) {
 		pcsO.generate(resInfo.pcses);
+		pcsO.setOptionalSign();
 	}
 }
 

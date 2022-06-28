@@ -9,7 +9,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <link rel="stylesheet" type="text/css" href="css/custom.css">
-<link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
+<link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css?v=3476">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
 
@@ -142,7 +142,7 @@ boolean useSnout = (request.getAttribute("useSnout") == null ? false : true);
 
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
-<script type="text/javascript" src="js/common/pcs_editor.js"></script>
+<script type="text/javascript" src="js/common/pcs_editor.js?v=3476"></script>
 <script type="text/javascript" src="js/inline/position_panel_clock.js"></script>
 <script type="text/javascript" src="js/inline/position_panel_pause_feature.js"></script>
 <% if (useSnout) { %>

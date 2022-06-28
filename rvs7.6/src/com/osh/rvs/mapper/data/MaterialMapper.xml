@@ -178,7 +178,7 @@
 	]]>
 	</select>
 
-	<select id="searchMaterial" resultType="MaterialEntity" parameterType="MaterialEntity">
+	<select id="searchMaterial" resultType="MaterialEntity" parameterType="MaterialEntity" timeout="90">
 		<![CDATA[
 			SELECT
 				a.material_id,

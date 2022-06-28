@@ -908,12 +908,12 @@ public class MaterialService {
 		return v.validate();
 	}
 
-	public void createReport(String fileFullPath, List<MaterialForm> lResultForm, String searchAddition, SqlSession conn) {
+	public void createReport(String fileFullPath, List<MaterialForm> lResultForm, String searchAddition, 
+			boolean fromSupport, boolean additionOptional, SqlSession conn) {
 		FileUtils.copyFile(PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\维修对象一览报表模板.xls", fileFullPath);
 		
 		POIFSFileSystem fs;
 		HSSFWorkbook book = null;
-		boolean needAddition = (conn != null);
 
 		try {
 			fs = new POIFSFileSystem(new FileInputStream(fileFullPath));
@@ -1019,7 +1019,7 @@ public class MaterialService {
 
 			MaterialProcessMapper mapper = null;
 			// 投线时间 ～ NS 完成
-			if (needAddition) {
+			if (fromSupport) {
 				mapper = conn.getMapper(MaterialProcessMapper.class);
 
 				listSheet.setDefaultColumnStyle(++colCur, dateCell);
@@ -1054,6 +1054,17 @@ public class MaterialService {
 			}
 
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+
+			// 备注-选择修理
+			OptionalFixService ofService = null;
+			if (additionOptional) {
+				listSheet.setDefaultColumnStyle(++colCur, defaultCell);
+				listSheet.setColumnWidth(colCur, 6000);
+				row = listSheet.getRow(0);
+				HSSFCell cell = row.createCell(colCur);
+				cell.setCellValue("选择修理项");
+				ofService = new OptionalFixService();
+			}
 
 			for (int i=0; i < lResultForm.size(); i++) {
 				colCur = -1;
@@ -1119,7 +1130,7 @@ public class MaterialService {
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getScheduled_date());
 
-				if (needAddition) {
+				if (fromSupport) {
 					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 					if (resultForm.getInline_time() != null) {
 						cell.setCellValue(resultForm.getInline_time().replace('/', '-'));
@@ -1189,6 +1200,14 @@ public class MaterialService {
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getIs_late());
+
+				if (additionOptional) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					List<String> optional_fix_items =ofService.getMaterialOptionalFixItems(resultForm.getMaterial_id(), conn);
+
+					if (optional_fix_items != null && optional_fix_items.size() > 0)
+						cell.setCellValue(CommonStringUtil.joinBy("；", optional_fix_items.toArray()));
+				}
 			}
 			// 保存文件
 			FileOutputStream fileOut = new FileOutputStream(fileFullPath);

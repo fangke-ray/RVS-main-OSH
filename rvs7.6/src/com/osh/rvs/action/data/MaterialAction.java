@@ -859,6 +859,8 @@ public class MaterialAction extends BaseAction {
 		HttpSession session = req.getSession();
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
+		boolean additionOptional = !isEmpty(req.getParameter("optional_fix_id"));
+
 		MaterialService materialService = new MaterialService();
 		
 		@SuppressWarnings("unchecked")
@@ -869,10 +871,11 @@ public class MaterialAction extends BaseAction {
 
 		String search_addition = req.getParameter("search_addition");
 
-		if (user.getRole_id().equals(RvsConsts.ROLE_SYSTEM) || "00000000006".equals(user.getSection_id())) { // 支援课
-			materialService.createReport(fileFullPath, lResultForm, search_addition, conn);
+		boolean fromSupport = user.getRole_id().equals(RvsConsts.ROLE_SYSTEM) || "00000000006".equals(user.getSection_id());
+		if (fromSupport || additionOptional) { // 支援课
+			materialService.createReport(fileFullPath, lResultForm, search_addition, fromSupport, additionOptional, conn);
 		} else {
-			materialService.createReport(fileFullPath, lResultForm, search_addition, null);
+			materialService.createReport(fileFullPath, lResultForm, search_addition, false, false, null);
 		}
 
 		listResponse.put("filePath", filePath);

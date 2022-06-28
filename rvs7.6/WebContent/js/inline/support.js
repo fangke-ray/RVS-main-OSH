@@ -105,6 +105,7 @@ var treatStart = function(resInfo) {
 	// 工程检查票
 	if (resInfo.pcses && resInfo.pcses.length > 0 && hasPcs) {
 		pcsO.generate(resInfo.pcses);
+		pcsO.setOptionalSign();
 	}
 }
 

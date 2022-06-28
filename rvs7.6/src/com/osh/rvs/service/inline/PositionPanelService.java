@@ -62,6 +62,7 @@ import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
 import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.OptionalFixService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.equipment.DeviceJigLoanService;
@@ -949,6 +950,17 @@ public class PositionPanelService {
 		// 取得维修品的选择报价一览
 		if (listResponse.get("appendPcses") != null) {
 			pcses.add((Map<String, String>) listResponse.get("appendPcses"));
+			listResponse.remove("appendPcses");
+		} else if (!"00000000011".equals(sline_id)){
+			// 取得选择修理检查票
+			OptionalFixService ofService = new OptionalFixService();
+			List<String> selectedItems = ofService.getMaterialOptionalFixItems(material_id, conn);
+			if (selectedItems != null) {
+				Map<String, String> optionalPcs = ofService.getOptionalFixPcses(selectedItems, mform, null, conn);
+				if (optionalPcs != null) {
+					pcses.add(optionalPcs);
+				}
+			}
 		}
 
 		listResponse.put("pcses", pcses);
@@ -1472,7 +1484,7 @@ public class PositionPanelService {
 		}
 
 		// 211提示开始订购
-		if ("211".equals(processCode) && waitingPf.getOperate_result() == 0
+		if ("211".equals(processCode) && waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_NOWORK_WAITING
 				&& "00000000001".equals(user.getSection_id())) {
 			// 开始作业定制警报
 			triggerList.add("http://localhost:8080/rvspush/trigger/work/"

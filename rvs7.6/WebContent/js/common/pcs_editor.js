@@ -108,6 +108,11 @@ var pcsO = {
 
 		this._activePage();
 	},
+	setOptionalSign : function(){
+		this.$pcs_pages.find(".ui-button-text").filter(function(idx, ele){
+			return ($(ele).text().indexOf("选择修理") >= 0);
+		}).closest(".ui-state-default").addClass("ui-priority-primary");
+	},
 	removeByTitle : function(title) {
 		var removePage = $("#pcs_pages > label[title='" + title + "']").attr("for");
 		if (removePage) {

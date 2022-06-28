@@ -190,7 +190,7 @@ public class MaterialForm extends ActionForm {
 	@BeanField(title = "选择修", name = "optional_fix_id", type = FieldType.String, length = 11)
 	private String optional_fix_id;
 
-	@BeanField(title = "-", name = "int_search_addition", type = FieldType.Integer, length = 1)
+	@BeanField(title = "-", name = "int_search_addition", type = FieldType.Integer, length = 2)
 	private String search_addition;
 
 	public String getCategory_id() {
