@@ -64,7 +64,7 @@ public class SnoutsAction extends BaseAction {
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
-		req.setAttribute("mOptions", ComponentSettingService.getModelReferChooser(conn));
+		req.setAttribute("mOptions", ComponentSettingService.getModelHistoryChooser(conn));
 		req.setAttribute("rOptions", "<option value>全部</option><option value='0'>制造中</option><option value='1' selected>待检测</option><option value='2'>已检测</option><option value='3'>已使用</option>");
 
 		ModelService modelService = new ModelService();

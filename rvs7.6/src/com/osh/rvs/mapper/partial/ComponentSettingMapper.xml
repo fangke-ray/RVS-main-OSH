@@ -12,7 +12,7 @@
 			cs.safety_lever
 		from component_setting cs
 		   join model md on md.model_id = cs.model_id
-		order by model_id;
+		order by model_name;
 		]]>
 	</select>
 
@@ -268,4 +268,24 @@
 		]]>
 	</update>
 
+	<select id="getHistoryComponentModel" resultType="ComponentSettingEntity" parameterType="String">
+		<![CDATA[ 
+		select cm.model_id, mdl.name as model_name
+		from component_manage cm 
+		join model mdl on cm.model_id = mdl.model_id
+		group by cm.model_id
+		order by model_name;
+		]]>
+	</select>
+
+	<select id="getAllHsitoryModel" resultType="ComponentSettingEntity" parameterType="String">
+		<![CDATA[ 
+			select pf.model_id, mdl.name as model_name 
+			from solo_production_feature pf
+			join model mdl on pf.model_id = mdl.model_id
+			where position_id = 24
+			group by pf.model_id
+			order by model_name
+		]]>
+	</select>
 </mapper>

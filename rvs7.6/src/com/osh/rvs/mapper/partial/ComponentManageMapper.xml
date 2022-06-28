@@ -376,7 +376,12 @@
 
 		WHERE inline_time is not null AND outline_time is null
 		AND level = 1
-		AND ma.model_id = #{model_id}
+		AND ma.model_id in (
+select setting.model_id from component_setting setting
+JOIN component_setting setting_refer
+ON setting.component_partial_id = setting_refer.component_partial_id
+where setting_refer.model_id = #{model_id}
+            )
 		AND ma.material_id <> #{origin_material_id}
 		GROUP BY ma.material_id
 		;

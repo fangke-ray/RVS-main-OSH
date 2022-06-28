@@ -91,7 +91,12 @@
 			ON so.material_id = ma.material_id
 			WHERE s.operate_result = 2
 			AND s.used = 0
-			AND mdl.model_id = #{model_id}
+			AND mdl.model_id in (
+select setting.model_id from snout_component_setting setting
+JOIN snout_component_setting setting_refer
+ON setting.component_partial_id = setting_refer.component_partial_id
+where setting_refer.model_id = #{model_id}
+            )
 			ORDER BY finish_time;
 		]]>
 		<!-- ORDER BY mdl.model_id = #{model_id} desc, model_name, finish_time; -->

@@ -725,7 +725,8 @@ public class UploadAction extends BaseAction {
 				PauseFeatureService.resetPauseReason();
 				AcceptFactService.resetMap();
 				OperatorService.resetOffPositionLimit();
-				PositionService.clearCaches();
+				PositionService.clearPropertiesCaches();
+				ComponentSettingService.clearComps();
 
 				RvsUtils.initAll(conn);
 

@@ -40,6 +40,12 @@ public class ComponentSettingService {
 	private static Map<String, String> snoutCompModels = null;
 	private static Map<String, String> snoutCompActiveModels = null;
 
+	public static void clearComps() {
+		nsCompModels = null;
+		snoutCompModels = null;
+		snoutCompActiveModels = null;
+	}
+
 	/**
 	 * 取得全部型号(参照列表)
 	 * @param conn
@@ -47,8 +53,14 @@ public class ComponentSettingService {
 	 */
 	public String getComponentSettings(SqlSession conn) {
 		List<ComponentSettingForm> allModel = this.getAllComponentSettings(conn);
-		Map<String, String> modelMap = new HashMap<String, String>();
+		Map<String, String> modelMap = new LinkedHashMap<String, String>();
 		for (ComponentSettingForm model: allModel) {
+			modelMap.put(model.getModel_id(), model.getModel_name());
+		}
+
+		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
+		List<ComponentSettingForm> historyModel = dao.getHistoryComponentModel(conn);
+		for (ComponentSettingForm model: historyModel) {
 			modelMap.put(model.getModel_id(), model.getModel_name());
 		}
 
@@ -437,6 +449,17 @@ public class ComponentSettingService {
 		}
 		return CodeListUtils.getSelectOptions(snoutCompModels, null, "(不选)", false);
 
+	}
+
+	public static String getModelHistoryChooser(SqlSession conn) {
+		LinkedHashMap<String, String> historyModels = new LinkedHashMap<String, String> ();
+
+		ComponentSettingMapper csMapper = conn.getMapper(ComponentSettingMapper.class);
+		List<ComponentSettingEntity> csBeans = csMapper.getAllHsitoryModel();
+		for (ComponentSettingEntity csBean : csBeans) {
+			historyModels.put(csBean.getModel_id(), csBean.getModel_name());
+		}
+		return CodeListUtils.getSelectOptions(historyModels, null, "(不选)", false);
 	}
 
 	/**
