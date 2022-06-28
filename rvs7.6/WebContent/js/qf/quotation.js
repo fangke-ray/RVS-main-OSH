@@ -401,7 +401,7 @@ var paused_list = function(paused) {
 
 var showBreakOfInfect = function(infectString) {
 	var $break_dialog = $('#break_dialog');
-	$break_dialog.html(decodeText(infectString));
+	$break_dialog.html(decodeClick(decodeText(infectString)));
 	var closeButtons = {
 		"退出回首页":function() {
 			window.location.href = "./panel.do?method=init";

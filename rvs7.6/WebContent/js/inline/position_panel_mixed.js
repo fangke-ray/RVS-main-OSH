@@ -717,7 +717,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 
 			if (resInfo.infectString) {
 				$("#toInfect").show()
-				.find("td:eq(1)").html(decodeText(resInfo.infectString));
+				.find("td:eq(1)").html(decodeClick(decodeText(resInfo.infectString)));
 			} else {
 				$("#toInfect").hide();
 			}
@@ -739,7 +739,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 							var resInfoIn = $.parseJSON(xhrObj.responseText);
 							if (resInfoIn.infectString) {
 								$("#toInfect").show()
-								.find("td:eq(1)").html(decodeText(resInfoIn.infectString));
+								.find("td:eq(1)").html(decodeClick(decodeText(resInfoIn.infectString)));
 							} else {
 								$("#toInfect").hide();
 							}
@@ -810,7 +810,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 						}
 					} else {
 						if (resInfo.lightFix) flowtext = resInfo.lightFix + (flowtext ? "<br>" + flowtext : "");
-						if (resInfo.fingers) flowtext = decodeText(resInfo.fingers) + (flowtext ? "<br>" + flowtext : "");
+						if (resInfo.fingers) flowtext = decodeClick(resInfo.fingers) + (flowtext ? "<br>" + flowtext : "");
 
 						if (flowtext) {
 							$("#flowtext").html(flowtext);
@@ -838,7 +838,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 
 var showBreakOfInfect = function(infectString) {
 	var $break_dialog = $('#break_dialog');
-	$break_dialog.html(decodeText(infectString));
+	$break_dialog.html(decodeClick(decodeText(infectString)));
 	if ($break_dialog.html().indexOf("opd_pop") >= 0) {
 		$break_dialog.find("span").attr("id", "opd_loader_past");
 	}
@@ -901,7 +901,7 @@ var getJustWorkingFingers = function(material_id, model_id, serial_no) {
 			eval('resInfo =' + xhrobj.responseText);
 
 			if (resInfo.fingers) {
-				flowtext = decodeText(resInfo.fingers) + (resInfo.past_fingers ? "<br>" + resInfo.past_fingers : "");
+				flowtext = decodeClick(resInfo.fingers) + (resInfo.past_fingers ? "<br>" + resInfo.past_fingers : "");
 				$("#flowtext").html(flowtext);
 				if (flowtext.indexOf("<input") >= 0) {
 					setCompInstore($("#flowtext"), resInfo.stock_code);

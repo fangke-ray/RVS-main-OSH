@@ -224,7 +224,7 @@ var treatStart = function(resInfo) {
 
 var showBreakOfInfect = function(infectString) {
 	var $break_dialog = $('#break_dialog');
-	$break_dialog.html(decodeText(infectString));
+	$break_dialog.html(decodeClick(decodeText(infectString)));
 	if ($break_dialog.html().indexOf("opd_pop") >= 0) {
 		$break_dialog.find("span").attr("id", "opd_loader_past");
 	}
@@ -378,7 +378,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 
 			if (resInfo.infectString) {
 				$("#toInfect").show()
-				.find("td:eq(1)").html(resInfo.infectString);
+				.find("td:eq(1)").html(decodeClick(resInfo.infectString));
 			} else {
 				$("#toInfect").hide();
 			}

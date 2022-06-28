@@ -933,7 +933,7 @@ var pause_list = function(serviceRepairPausedList){
 
 var showBreakOfInfect = function(infectString) {
 	var $break_dialog = $('#break_dialog');
-	$break_dialog.html(decodeText(infectString));
+	$break_dialog.html(decodeClick(decodeText(infectString)));
 	var closeButtons = {
 		"退出回首页":function() {
 				window.location.href = "./panel.do?method=init";
