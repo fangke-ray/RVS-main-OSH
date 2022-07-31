@@ -1206,9 +1206,13 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus, postData){
 						dataType : "json",
 						success : ajaxSuccessCheck,
 						error : ajaxError,
-						complete : doStart_ajaxSuccess
+						complete : function(xhrobj, textStatus){
+							doStart_ajaxSuccess(xhrobj, textStatus, postData);
+						}
 					});
 				});
+			} else if (postData && postData.scan_part == "1" && resInfo.mform) {
+				secondaryConfirm(postData, resInfo.mform);
 			} else if (resInfo.infectString) {
 				showBreakOfInfect(resInfo.infectString);
 
@@ -1602,6 +1606,12 @@ var showSidebar = function(material_comment) {
 }
 
 var doStartForward=function(data){
+
+	if ($("#devicearea").length) {
+		// 周边设备匹配扫描
+		data.scan_part = "1";
+	}
+
 	// Ajax提交
 	$.ajax({
 		beforeSend : ajaxRequestType,
@@ -2114,4 +2124,84 @@ var checkAnmlAlert = function() {
 	if ($("#anml_attendtion").length > 0) {
 		errorPop(WORKINFO.animalExpClean);
 	}
+}
+
+var secondaryConfirm = function(postData, mform) {
+	var $secondaryDialog = $("#secondary_scanner");
+	if ($secondaryDialog.length == 0) {
+		$("body").append("<div id='secondary_scanner'>" +
+				"<div class='ui-state-default' style='padding:.5em;'>请再次扫描维修品实物附带小票上的条码确认。</div>" +
+				"<div class='ui-widget-content' style='font-size:14px;padding-left: .5em;'></div>" +
+				"<input type='text' title='扫描前请点入此处' class='scanner_inputer dwidth-half'></input><div style='text-align: center;'><img src='images/barcode.png' style='margin: auto; width: 150px; padding-top: 4px;'></div></div>");
+		$secondaryDialog = $("#secondary_scanner");
+	}
+
+	var materialMessage = "修理单号：" + mform.sorc_no + "　型号：" + mform.model_name + "　机身号：" + mform.serial_no;
+	if (mform.wip_location) {
+		materialMessage += "　库位：" + mform.wip_location;
+	}
+
+	$secondaryDialog.children("div").eq(1).html(materialMessage);
+
+	var $scanner_inputer = $secondaryDialog.find(".scanner_inputer");
+	$scanner_inputer.val("");
+
+	// 输入框触发，配合浏览器
+	$scanner_inputer.unbind("keypress"); $scanner_inputer.unbind("keyup");
+	$scanner_inputer.keypress(function(){
+		if (this.value.length === 11) {
+			if (this.value == mform.material_id) {
+				secondaryScanPost(postData);
+			} else {
+				setTimeout(function(){
+					errorPop("两次扫描的维修品编号不一致，请确认后重试。");
+				}, 300);
+			}
+			$secondaryDialog.dialog("close");
+		}
+	});
+	$scanner_inputer.keyup(function(){
+		if (this.value.length >= 11) {
+			if (this.value == mform.material_id) {
+				secondaryScanPost(postData);
+			} else {
+				setTimeout(function(){
+					errorPop("两次扫描的维修品编号不一致，请确认后重试。");
+				}, 300);
+			}
+			$secondaryDialog.dialog("close");
+		}
+	});
+
+	$secondaryDialog.dialog({
+		title : "请操作第二次扫描",
+		dialogClass : 'ui-warn-dialog',
+		width : 640,
+		height : 320,
+		resizable : false,
+		modal : true,
+		minHeight : 220,
+		open: function() {
+//			$secondaryDialog.parent().find(".ui-dialog-titlebar-close").hide();
+		}
+	});
+}
+
+var secondaryScanPost = function(postData){
+	postData.scan_part = 2;
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=doscan',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj, textStatus){
+			doStart_ajaxSuccess(xhrobj, textStatus, postData);
+		}
+	});
 }

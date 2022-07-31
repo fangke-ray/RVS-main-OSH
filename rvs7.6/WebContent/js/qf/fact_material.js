@@ -508,6 +508,10 @@ function process_dialog($process_dialog, rowdata) {
 	var ccd_change = rowdata["ccd_change"];
 	var scheduled_expedited = rowdata["scheduled_expedited"] || "0";
 	var level = rowdata["level"];
+	var wip_location = null;
+	if (f_isPeripheralFix(level)) {
+		wip_location = rowdata["wip_location"];
+	}
 
 $process_dialog.dialog({
 	title : "投线设置",
@@ -543,7 +547,8 @@ $process_dialog.dialog({
 				"agreed_date": agreed_date,
 				ccd_change : ccd_change,
 				scheduled_expedited :  scheduled_expedited,
-				level : level
+				level : level,
+				wip_location : wip_location
 			}
 			// 指定投线后先进行CCD盖玻璃更换
 			if (rowdata["ccd_operate_result"] == "已指定"){

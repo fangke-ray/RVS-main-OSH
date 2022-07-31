@@ -145,7 +145,7 @@
 				inline_time = now(),
 				scheduled_date = #{scheduled_date},
 				section_id = #{section_id},
-				wip_location = null,
+				wip_location = #{wip_location},
 				pat_id = COALESCE(#{pat_id}, pat_id),
 				scheduled_expedited = #{scheduled_expedited},
 				quotation_first = #{quotation_first}

@@ -58,6 +58,7 @@ import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.DevicesManageMapper;
 import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
+import com.osh.rvs.mapper.qf.WipMapper;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
 import com.osh.rvs.service.MaterialService;
@@ -1489,6 +1490,18 @@ public class PositionPanelService {
 			// 开始作业定制警报
 			triggerList.add("http://localhost:8080/rvspush/trigger/work/"
 					+ positionId + "/" + waitingPf.getMaterial_id());
+		}
+
+		// 周边设备WIP出库
+		if ("811".equals(processCode) && waitingPf.getOperate_result() == RvsConsts.OPERATE_RESULT_NOWORK_WAITING) {
+			MaterialService mService = new MaterialService();
+			MaterialEntity mBean = mService.loadSimpleMaterialDetailEntity(conn, waitingPf.getMaterial_id());
+
+			if (mBean.getWip_location() != null) {
+				mBean.setWip_location(null);
+				WipMapper wMapper = conn.getMapper(WipMapper.class);
+				wMapper.warehousing(mBean);
+			}
 		}
 	}
 

@@ -40,7 +40,6 @@ import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.form.qf.MaterialFactForm;
 import com.osh.rvs.mapper.data.MaterialMapper;
@@ -438,6 +437,9 @@ public class MaterialFactService {
 			}
 		}
 
+		if (!peripheral) {
+			entity.setWip_location(null);
+		}
 		dao.updateInline(entity);
 
 		String materialId = entity.getMaterial_id();
