@@ -354,4 +354,41 @@ public class BeforeLineLeaderAction extends BaseAction {
 		log.info("BeforeLineLeaderAction.doJudge end");
 	}
 
+	public void getPlanTarget(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn){
+		log.info("BeforeLineLeaderAction.getPlanTarget start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		callbackResponse.put("plan_target", service.getPlanTarget(conn));
+		
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("BeforeLineLeaderAction.getPlanTarget end");
+	}
+
+	@Privacies(permit = { 107 })
+	public void doSetPlanTarget(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("BeforeLineLeaderAction.doSetPlanTarget start");
+		// Ajax回馈对象
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		Map<Integer, Integer> mapPlans = service.checkPlans(req, errors);
+
+		if (errors.size() == 0) {
+			service.updateSparePlan(mapPlans, conn);
+		}
+
+		cbResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+		log.info("BeforeLineLeaderAction.doSetPlanTarget end");
+	}
 }

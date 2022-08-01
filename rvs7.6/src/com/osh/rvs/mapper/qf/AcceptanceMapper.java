@@ -3,6 +3,8 @@ package com.osh.rvs.mapper.qf;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ibatis.annotations.Param;
+
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 
@@ -35,4 +37,9 @@ public interface AcceptanceMapper {
 	public List<MaterialEntity> searchReceptionsWithoutFact();
 
 	public void updateReceptionTime(ProductionFeatureEntity pfEntity);
+
+	public Integer getSparePlan(int position);
+
+	public void updateSparePlan(@Param("position")int position, @Param("plan_target")int plan_target);
+
 }

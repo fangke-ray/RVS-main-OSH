@@ -488,4 +488,14 @@ public class AcceptanceService {
 
 		return lRet;
 	}
+
+	public Integer getPlanTarget(SqlSession conn) {
+		AcceptanceMapper mapper = conn.getMapper(AcceptanceMapper.class);
+		return mapper.getSparePlan(8);
+	}
+
+	public void updateSparePlan(Integer iPlanTarget, SqlSessionManager conn) {
+		AcceptanceMapper mapper = conn.getMapper(AcceptanceMapper.class);
+		mapper.updateSparePlan(8, iPlanTarget);
+	}
 }

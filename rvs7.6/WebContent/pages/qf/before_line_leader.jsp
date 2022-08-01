@@ -8,7 +8,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <base href="<%=basePath%>">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
-<link rel="stylesheet" type="text/css" href="css/custom.css">
+<link rel="stylesheet" type="text/css" href="css/custom.css?v=3476">
 <link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
@@ -170,6 +170,7 @@ ${WORKINFO}
 		<input type="button" class="ui-button" value="未修理返还" id="stopbutton" />
 		<input type="button" class="ui-button" value="报价备注" id="quotationcommentbutton" />
 		<input type="button" class="ui-button" value="工作指示单编辑" id="instuctbutton" />
+<%@include file="/widgets/qf/record_quotation.jsp"%>
 <% } %>
 	</div>
 		<table id="performance_list"></table>

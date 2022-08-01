@@ -219,4 +219,24 @@ WHERE `record_date` = current_date;
  		]]>
  		;
 	</update>
+
+	<select id="getSparePlan" parameterType="int" resultType="int">
+		SELECT `plan_target`
+		FROM `daily_position_plan`
+		WHERE `plan_date` = current_date
+		AND `position_id` = #{position}
+		;
+	</select>
+
+	<update id="updateSparePlan" parameterType="int">
+		REPLACE INTO `daily_position_plan`
+			(`plan_date`,
+			`position_id`,
+			`plan_target`)
+		VALUES
+			(current_date,
+			#{position},
+			#{plan_target});
+	</update>
+
 </mapper>

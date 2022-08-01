@@ -166,7 +166,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					</select>
 				</td>
 				</tr>
-				<tr>
 			</tbody>
 		</table>
 	</form>

@@ -43,6 +43,7 @@ import com.osh.rvs.mapper.inline.MaterialProcessAssignMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
+import com.osh.rvs.mapper.qf.AcceptanceMapper;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
@@ -57,6 +58,7 @@ import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
 // import java.util.HashMap;
+import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class LineLeaderService {
 	Logger _log = Logger.getLogger(LineLeaderService.class);
@@ -633,5 +635,74 @@ public class LineLeaderService {
 		}
 	}
 
+	public Map<String, Integer> getPlanTarget(SqlSession conn) {
+		AcceptanceMapper mapper = conn.getMapper(AcceptanceMapper.class);
+		Map<String, Integer> ret = new HashMap<String, Integer>();
+		ret.put("1", mapper.getSparePlan(1));
+		ret.put("2", mapper.getSparePlan(2));
+
+		ret.put("3", mapper.getSparePlan(3));
+		ret.put("13", mapper.getSparePlan(13));
+		ret.put("4", mapper.getSparePlan(4));
+
+		return ret;
+	}
+
+	public Map<Integer, Integer> checkPlans(HttpServletRequest req, List<MsgInfo> errors) {
+		Map<Integer, Integer> ret = new HashMap<Integer, Integer>();
+
+		ret.put(1, checkPlan("QIS/返品报价计划数", req.getParameter("plan_target_1"), errors));
+		ret.put(2, checkPlan("非直送：中小修报价计划数", req.getParameter("plan_target_2"), errors));
+		ret.put(3, checkPlan("直送品", req.getParameter("plan_target_3"), errors));
+		ret.put(13, checkPlan("非直送：大修理", req.getParameter("plan_target_13"), errors));
+		ret.put(4, checkPlan("光学试管/ENDOEYE", req.getParameter("plan_target_4"), errors));
+
+		return ret;
+	}
+
+	public Integer checkPlan(String name, String plan_target, List<MsgInfo> errors) {
+		if (CommonStringUtil.isEmpty(plan_target)) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("plan_target");
+			error.setErrcode("validator.required");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", name));
+			errors.add(error);
+		} else {
+			if (plan_target.length() > 3) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("plan_target");
+				error.setErrcode("validator.invalidParam.invalidMaxLengthValue");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", name));
+				errors.add(error);
+			} else {
+				Integer iPlanTarget = null;
+				
+				try {
+					iPlanTarget = Integer.parseInt(plan_target);
+				} catch (Exception e) {
+					MsgInfo error = new MsgInfo();
+					error.setComponentid("plan_target");
+					error.setErrcode("validator.invalidParam.invalidNumberValu");
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidNumberValue", name));
+					errors.add(error);
+				}
+
+				return iPlanTarget;
+			}
+		}
+		return null;
+	}
+
+	public void updateSparePlan(Map<Integer, Integer> mapPlans,
+			SqlSessionManager conn) {
+		AcceptanceMapper mapper = conn.getMapper(AcceptanceMapper.class);
+
+		for (Integer position_id : mapPlans.keySet()) {
+			if (mapPlans.get(position_id) != null) {
+				mapper.updateSparePlan(position_id, mapPlans.get(position_id));
+			}
+		}
+		
+	}
 
 }

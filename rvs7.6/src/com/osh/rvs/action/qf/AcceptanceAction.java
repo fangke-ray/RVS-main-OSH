@@ -53,8 +53,10 @@ import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.DateUtil;
+import framework.huiqing.common.util.message.ApplicationMessage;
 import framework.huiqing.common.util.validator.Validators;
 
 
@@ -762,5 +764,70 @@ public class AcceptanceAction extends BaseAction {
 		// 返回Json格式响应信息
 		returnJsonResponse(res, cbResponse);
 		log.info("AcceptanceAction.doFactmatch end");
+	}
+
+	public void getPlanTarget(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn){
+		log.info("AcceptanceAction.getPlanTarget start");
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		callbackResponse.put("plan_target", service.getPlanTarget(conn));
+		
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("AcceptanceAction.getPlanTarget end");
+	}
+
+	@Privacies(permit = { 107 })
+	public void doSetPlanTarget(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("AcceptanceAction.doSetPlanTarget start");
+		// Ajax回馈对象
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String plan_target = req.getParameter("plan_target");
+		if (CommonStringUtil.isEmpty(plan_target)) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("plan_target");
+			error.setErrcode("validator.required");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required", "当日备品到货数"));
+			errors.add(error);
+		} else {
+			if (plan_target.length() > 3) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("plan_target");
+				error.setErrcode("validator.invalidParam.invalidMaxLengthValue");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidMaxLengthValue", "当日备品到货数"));
+				errors.add(error);
+			} else {
+				Integer iPlanTarget = null;
+				
+				try {
+					iPlanTarget = Integer.parseInt(plan_target);
+				} catch (Exception e) {
+					MsgInfo error = new MsgInfo();
+					error.setComponentid("plan_target");
+					error.setErrcode("validator.invalidParam.invalidNumberValu");
+					error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.invalidParam.invalidNumberValue", "当日备品到货数"));
+					errors.add(error);
+				}
+
+				if (errors.size() == 0) {
+					service.updateSparePlan(iPlanTarget, conn);
+				}
+			}
+		}
+
+		cbResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+		log.info("AcceptanceAction.doSetPlanTarget end");
 	}
 }

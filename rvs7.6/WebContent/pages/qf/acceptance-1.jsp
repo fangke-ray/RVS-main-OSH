@@ -77,8 +77,9 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<div class="ui-widget-content areabase dwidth-middleright">
 					<div id="executes" style="margin-left: 4px; margin-top: 4px;">
 						<input type="button" class="ui-button" value="导入" id="importbutton" /> <input type="button" class="ui-button" value="手工添加" id="manualbutton" />
+<%@include file="/widgets/qf/record_spare_plan.jsp"%>
 <!-- OGZ -->
-<input type="button" class="ui-button" value="OGZ作业现状" id="ogzbutton" />
+<!--input type="button" class="ui-button" value="OGZ作业现状" id="ogzbutton" />
 <script type="text/javascript">
 var ogzPop = function(){
 	var $ogzinput = $("#ogzinput");
@@ -181,7 +182,7 @@ $("#ogzbutton").click(function(){
 			</tr>
 		</tbody>
 	</table>
-</div>
+</div-->
 <!-- OGZ -->
 			<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="tcStorageButton" value="通箱入库" role="button" aria-disabled="false">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float: right; right: 2px">

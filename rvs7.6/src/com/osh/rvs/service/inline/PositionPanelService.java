@@ -34,6 +34,7 @@ import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
 import com.osh.rvs.bean.inline.ComposeStorageEntity;
 import com.osh.rvs.bean.inline.DryingProcessEntity;
 import com.osh.rvs.bean.inline.ForSolutionAreaEntity;
+import com.osh.rvs.bean.inline.PauseFeatureEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.inline.WaitingEntity;
 import com.osh.rvs.bean.master.DevicesManageEntity;
@@ -41,6 +42,7 @@ import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.master.PositionGroupEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
 import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
+import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsConsts;
@@ -52,6 +54,7 @@ import com.osh.rvs.mapper.infect.CheckUnqualifiedRecordMapper;
 import com.osh.rvs.mapper.infect.PeripheralInfectDeviceMapper;
 import com.osh.rvs.mapper.inline.AbnormalWorkStateMapper;
 import com.osh.rvs.mapper.inline.ComposeStorageMapper;
+import com.osh.rvs.mapper.inline.PauseFeatureMapper;
 import com.osh.rvs.mapper.inline.PositionPanelMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
@@ -2067,6 +2070,7 @@ public class PositionPanelService {
 		switch (process_code) {
 		case "331":
 		case "242":
+		case "231":
 		case "304":
 			return true;
 		case "252":
@@ -2181,6 +2185,50 @@ public class PositionPanelService {
 		}
 
 		return infectString;
+	}
+
+	/**
+	 * 检查维修品在工位中是否进行过“追加零件”的中断
+	 * 
+	 * @param material_id
+	 * @param position_id
+	 * @param process_code
+	 * @param conn
+	 * @return
+	 */
+	public boolean checkAdditionalPartSet(String material_id, String position_id, String process_code,
+			SqlSessionManager conn) {
+		// 检查维修品的订购清单
+		MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
+		MaterialPartialEntity searchForAddtional = new MaterialPartialEntity();
+		searchForAddtional.setMaterial_id(material_id);
+
+		List<MaterialPartialEntity> l = mpMapper.searchPartialAddtionalInf(searchForAddtional);
+		boolean addForD = false;
+		for (MaterialPartialEntity addtional : l) {
+			if (addtional.getBelongs() == 4) {
+				addForD = true;
+				break;
+			}
+		}
+
+		// 如果已订购追加零件则跳过
+		if (addForD) {
+			return true;
+		}
+
+		// 检查本工位的“零件追加”
+		PauseFeatureMapper pauseMapper = conn.getMapper(PauseFeatureMapper.class);
+		List<PauseFeatureEntity> hitList = pauseMapper.checkPauseFeature(material_id, null, position_id);
+
+		for (PauseFeatureEntity hitBreak : hitList) {
+			String sReasonText = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + hitBreak.getReason());
+			if (sReasonText != null && sReasonText.indexOf("追加") >= 0) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 }
