@@ -84,18 +84,13 @@ ${(px eq 3) ? '<span style="background-color: #2FB1BE;">C 线</span><span style=
 				<tr style="display: table-row;">
 					<td class="ui-state-default td-title">开始时间</td>
 					<td class="td-content-text"></td>
-					<td class="ui-state-default td-title">作业标准时间</td>
-					<td class="td-content-text"></td>
 					<td class="ui-state-default td-title">作业经过时间</td>
 					<td class="td-content-text" id="dtl_process_time"><div class="roll_cell"><div class="roll_seconds">0 1 2 3 4 5 6 7 8 9</div></div><div class="roll_cell"><div class="roll_tenseconds">0 1 2 3 4 5 6</div></div><label style="float:right;"></label></td>
+					<td class="ui-state-default td-title"></td>
+					<td class="td-content-text"></td>
 				</tr>
 				<tr>
-					<td class="ui-state-default td-title">完成度</td>
-					<td colspan="5" class="td-content-text slim">
-						<div class="waiting tube" id="p_rate" style="height: 20px; margin: auto;"></div>
-					</td>
-				</tr>
-				<tr>
+					<td style="border:0; height:6em;"></td>
 				</tr>
 			</tbody>
 		</table>

@@ -26,14 +26,6 @@ var _ctime=function(){
 	p_time++;
 	$material_detail_spend_lbl.text(_minuteFormat(p_time));
 
-	var rate = parseInt((p_time + 1) / leagal_overline * 100);
-
-	if (rate >= 100) rate = 99;
-
-	t_operator_cost++;
-
-	var $liquid = $p_rate.find("div");
-
 	var $resets = $(".roll_cell > .anim_act");
 	if ($resets.length > 0) {
 		if (!$resets.eq(0).css("top") != "0px") {
@@ -41,6 +33,16 @@ var _ctime=function(){
 			setTimeout(function(){$resets.addClass("anim_act");} , 4);
 		}
 	}
+
+	if ($p_rate == null) return;
+
+	var rate = parseInt((p_time + 1) / leagal_overline * 100);
+
+	if (rate >= 100) rate = 99;
+
+	t_operator_cost++;
+
+	var $liquid = $p_rate.find("div");
 
 	if ($liquid.css("width") != "99%") {
 		$liquid.css({width : rate + "%"});
@@ -96,9 +98,12 @@ return {
 	init : function($action_container, $standard_container, $spend_container, $rate_viewer) {
 		$material_detail_action = $action_container;
 		$material_detail_standard = $standard_container;
-		$material_detail_spend = $spend_container;
-		$material_detail_spend_lbl = $material_detail_spend.find("label");
-		$p_rate = $rate_viewer;
+		if ($spend_container != null && $spend_container.length) {
+			$material_detail_spend = $spend_container;
+			$material_detail_spend_lbl = $material_detail_spend.find("label");
+		}
+		if ($rate_viewer && $rate_viewer.length)
+			$p_rate = $rate_viewer;
 	},
 	setAction : function(action_time){
 		if (action_time) {
@@ -115,7 +120,10 @@ return {
 	setLeagalAndSpent : function(param_leagal_overline, spent_mins) {
 		leagal_overline = param_leagal_overline;
 
-		$material_detail_standard.text(_minuteFormat(leagal_overline));
+		if ($material_detail_standard && $material_detail_standard.length)
+			$material_detail_standard.text(_minuteFormat(leagal_overline));
+
+		if ($material_detail_spend == null) return;
 
 		if (!spent_mins) {
 			spent_mins = _convertMinute($material_detail_spend_lbl.text()) || 0;
@@ -126,6 +134,8 @@ return {
 			$material_detail_spend_lbl.text(_minuteFormat(spent_mins));
 			$(".roll_cell > *").addClass("anim_pause");
 		}
+
+		if ($p_rate == null) return;
 
 		var frate = 0;
 		frate = parseInt(spent_mins / leagal_overline * 100);
@@ -139,9 +149,14 @@ return {
 	pauseClock : function(){
 		clearInterval(oInterval);
 		$(".roll_cell > *").addClass("anim_pause");
+
+		if ($p_rate == null) return;
+
 		$p_rate.find("div:animated").stop();
 	},
 	startClock : function(spent_mins, spent_secs){
+		if ($material_detail_spend == null) return;
+
 		p_time = (spent_mins || 0);
 
 		spent_secs = (spent_secs || 0) % 60;
@@ -165,8 +180,11 @@ return {
 		}
 	},
 	stopClock : function(){
-		if ($material_detail_action) $material_detail_action.text("");
-		$material_detail_spend_lbl.text("");
+		if ($material_detail_action && $material_detail_action.length) $material_detail_action.text("");
+		if ($material_detail_spend && $material_detail_spend.length) $material_detail_spend_lbl.text("");
+
+		if ($p_rate == null) return;
+
 		$p_rate.html("");
 		p_time = 0;
 		clearInterval(oInterval);

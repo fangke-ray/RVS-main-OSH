@@ -1124,7 +1124,8 @@ $(function() {
 
 	$("#position_status").css("color", "white");
 
-	posClockObj.init($("#material_details td:eq(7)"), $("#material_details td:eq(9)"), $("#dtl_process_time"), $("#p_rate"));
+//	posClockObj.init($("#material_details td:eq(7)"), $("#material_details td:eq(9)"), $("#dtl_process_time"), $("#p_rate"));
+	posClockObj.init($("#material_details td:eq(7)"), null, $("#dtl_process_time"));
 	if (typeof(posUseSnoutObj) === "object") posUseSnoutObj.init(hasPcs, $("#usesnoutarea")); 
 
 	if (hasPcs) {
