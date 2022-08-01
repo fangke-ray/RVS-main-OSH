@@ -368,6 +368,9 @@ public class ProcessAssignService {
 			synchronized (hasNsMap) {
 				ProcessAssignMapper mapper = conn.getMapper(ProcessAssignMapper.class);
 				ProcessAssignTemplateEntity patEntity = mapper.getProcessAssignTemplateByID(pat_id);
+				if (patEntity == null) {
+					return false;
+				}
 				if (patEntity.getDerive_kind() != null
 						&& patEntity.getDerive_kind() == 2) {
 					// 补胶不排NS计划

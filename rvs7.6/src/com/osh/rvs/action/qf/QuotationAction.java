@@ -579,7 +579,7 @@ public class QuotationAction extends BaseAction {
 			// 判断竞合
 			if (iReason > 70) {
 				MaterialForm materialForm = (MaterialForm) form;
-				if (materialForm.getWip_location() != null) {
+				if (!isEmpty(materialForm.getWip_location())) {
 					materialForm.setMaterial_id(workingPf.getMaterial_id());
 					WipService wipService = new WipService();
 					if (wipService.checkLocateInuse(materialForm, conn, errors)) {

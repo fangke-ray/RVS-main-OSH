@@ -171,6 +171,7 @@ LEFT join devices_manage dm
 on dj.device_manage_id = dm.devices_manage_id
 
 where dj.position_id = #{position_id}
+and dj.delete_flg = 0
 and (exists
 	(select 1 from drying_job_of_category djoc
 	join v_model mdl

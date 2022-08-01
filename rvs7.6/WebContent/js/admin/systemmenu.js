@@ -73,5 +73,7 @@ function initialiseStateFromURL() {
 		return;
 	}
 
-	$("#body-mdl").load(links[anchor], function(responseText, textStatus, XMLHttpRequest) {});
+	$("#body-mdl").load(links[anchor], function(responseText, textStatus, XMLHttpRequest) {
+		document.title = $("#body-mdl title").text() || document.title;
+	});
 }

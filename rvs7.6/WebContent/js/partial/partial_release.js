@@ -727,7 +727,13 @@ var changeMaterialStatus=function(flag){
 			if (ival.match(/^[0-9]*$/) != null) { // ival.match(/^0*$/) == null && 可以等于0
 				if (ival > iTotal) $input.val(iTotal);
 				if (ival < 0) $input.val(0);
-				postData["exchange.cur_quantity[" + iii + "]"] = $input.val();
+
+				ival = $input.val();
+				if (flag == "small" && ival == 0 && postData.occur_times == 1) {
+					return;
+				}
+
+				postData["exchange.cur_quantity[" + iii + "]"] = ival;
 				postData["exchange.material_partial_detail_key[" + iii + "]"] = $tr.find("td[aria\\-describedby=arrive_partial_list_material_partial_detail_key]").text();
 				postData["exchange.status["+iii+"]"]=ckValue;
 				postData["exchange.partial_id[" + iii + "]"] = $input.parent().parent().find("td[aria\\-describedby='arrive_partial_list_partial_id']").text();

@@ -59,8 +59,8 @@ public class ComponentSettingService {
 		}
 
 		ComponentSettingMapper dao = conn.getMapper(ComponentSettingMapper.class);
-		List<ComponentSettingForm> historyModel = dao.getHistoryComponentModel(conn);
-		for (ComponentSettingForm model: historyModel) {
+		List<ComponentSettingEntity> historyModel = dao.getHistoryComponentModel(conn);
+		for (ComponentSettingEntity model: historyModel) {
 			modelMap.put(model.getModel_id(), model.getModel_name());
 		}
 

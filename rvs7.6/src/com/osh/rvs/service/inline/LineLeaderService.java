@@ -486,13 +486,15 @@ public class LineLeaderService {
 
 			BeanUtil.copyToForm(entity, retForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 			if (entity.getScheduled_expedited() != null && entity.getScheduled_expedited() >= 4) {
-				String receptionDate = retForm.getReception_time().substring(0, 10);
-				if (!add4DaysMapper.containsKey(receptionDate)) {
-					Date outlineDate = RvsUtils.switchWorkDate(entity.getReception_time(), 4, conn);
-					add4DaysMapper.put(receptionDate, 
-							DateUtil.toString(outlineDate, DateUtil.DATE_PATTERN));
+				if (retForm.getReception_time() != null) {
+					String receptionDate = retForm.getReception_time().substring(0, 10);
+					if (!add4DaysMapper.containsKey(receptionDate)) {
+						Date outlineDate = RvsUtils.switchWorkDate(entity.getReception_time(), 4, conn);
+						add4DaysMapper.put(receptionDate, 
+								DateUtil.toString(outlineDate, DateUtil.DATE_PATTERN));
+					}
+					retForm.setOutline_time(add4DaysMapper.get(receptionDate));
 				}
-				retForm.setOutline_time(add4DaysMapper.get(receptionDate));
 			}
 
 			if (!ccdLineModels.contains(entity.getModel_id())) { // 非304作业对象

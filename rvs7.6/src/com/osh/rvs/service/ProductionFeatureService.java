@@ -687,14 +687,10 @@ public class ProductionFeatureService {
 			 // 维修流程参照
 			 getNext(paProxy, material_id, mEntity, pat_id, position_id, mEntity.getLevel(), nextPositions, conn);
 
-			 // 一堆品保 TODO
-			 if (nextPositions.size() == 1 && "00000000046".equals(nextPositions.get(0))) fixed = true;
-			 else if (nextPositions.size() == 1 && "00000000052".equals(nextPositions.get(0))) fixed = true;
-			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_QA_P_613.equals(nextPositions.get(0))) fixed = true;
-			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_QA_P_614.equals(nextPositions.get(0))) fixed = true;
-			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_ANML_QA.equals(nextPositions.get(0))) fixed = true;
-			 else if (nextPositions.size() == 1 && RvsConsts.POSITION_ANML_QA_UDI.equals(nextPositions.get(0))) fixed = true;
-			 else fixed = false;
+			// 一堆品保
+			if (nextPositions.size() == 1 &&
+				 "qualityAssurance".equals(PositionService.getPositionSpecialPage(nextPositions.get(0), conn))) fixed = true;
+			else fixed = false;
 
 			// 没投线无流程 TODO 小修理报价中先做CCD盖玻璃更换
 			if (mEntity.getInline_time() == null && "00000000025".equals(position_id)) {
@@ -757,7 +753,8 @@ public class ProductionFeatureService {
 		}
 
 		// 库位（分解）
-		if (!isLightFix && PositionService.getInlineStorageFromPositions(conn).containsKey(position_id)) {
+		if (!isLightFix && "00000000001".equals(workingPf.getSection_id())
+				&& PositionService.getInlineStorageFromPositions(conn).containsKey(position_id)) {
 			List<String> targetPosList = PositionService.getInlineStorageFromPositions(conn).get(position_id);
 			if (level == 1) {
 				List<String> targetPosS1List = new ArrayList<String>();

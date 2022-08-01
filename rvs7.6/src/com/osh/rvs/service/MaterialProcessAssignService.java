@@ -442,7 +442,7 @@ public class MaterialProcessAssignService {
 			if(lighFixList.size()==0){
 				MsgInfo msgInfo = new MsgInfo();
 				msgInfo.setErrcode("validator.required.multidetail");
-				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required.multidetail", "小修理流程"));
+				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("validator.required.multidetail", "中小修理流程"));
 				errors.add(msgInfo);
 			}
 		}

@@ -5,7 +5,6 @@ import java.util.List;
 import org.apache.ibatis.session.SqlSession;
 
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
-import com.osh.rvs.form.partial.ComponentSettingForm;
 
 public interface ComponentSettingMapper {
 
@@ -49,7 +48,7 @@ public interface ComponentSettingMapper {
 	/* 删除先端头数据 */
 	public int deleteSnoutSetting(ComponentSettingEntity settingEntity);
 
-	public List<ComponentSettingForm> getHistoryComponentModel(
+	public List<ComponentSettingEntity> getHistoryComponentModel(
 			SqlSession conn);
 
 	public List<ComponentSettingEntity> getAllHsitoryModel();

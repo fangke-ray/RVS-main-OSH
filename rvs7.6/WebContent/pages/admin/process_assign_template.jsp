@@ -90,7 +90,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			</div>
 		</form>
 		<div style="height:44px">
-			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="savebutton" value="保存" role="button" aria-disabled="false" style="float:right;right:2px">
+			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="savebutton" value="保存" role="button" aria-disabled="false" style="float:left;left:4px">
+			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="cancelbutton" value="取消" role="button" aria-disabled="false" style="float:left;left:4px;">
 			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="referbutton" value="参照读入" role="button" aria-disabled="false" style="float:right;right:2px">
 		</div>
 	</div>

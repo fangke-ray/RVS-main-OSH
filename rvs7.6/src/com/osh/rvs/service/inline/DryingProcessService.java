@@ -98,6 +98,8 @@ public class DryingProcessService {
 					if (dryingJobs.size() > 0) {
 						DryingProcessEntity dryingJob = dryingJobs.get(0);
 						devices.put(sdeviceManageId, dryingJob);
+					} else {
+						break;
 					}
 				}
 

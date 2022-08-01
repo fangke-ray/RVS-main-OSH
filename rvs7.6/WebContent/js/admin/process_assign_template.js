@@ -117,6 +117,13 @@ $(function() {
 		findit();
 	});
 
+	$("#resetbutton").click(function() {
+		// 保存检索条件
+		$("#cond_id").val("").data("post", "");
+		$("#cond_name").val("").data("post", "");
+		$("#cond_derive_kind").val("").data("post", "").trigger("change");
+	});
+
 	// Ajax提交
 	$.ajax({
 		beforeSend : ajaxRequestType,

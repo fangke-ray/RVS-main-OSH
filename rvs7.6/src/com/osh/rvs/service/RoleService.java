@@ -113,6 +113,17 @@ public class RoleService {
 		}
 	}
 
+	public String getRoleName(String id, SqlSession conn) {
+		// 从数据库中查询记录
+		RoleMapper dao = conn.getMapper(RoleMapper.class);
+		RoleEntity resultBean = dao.getRoleByID(id);
+
+		if (resultBean == null) {
+			return null;
+		}
+		return resultBean.getName();
+	}
+
 	/**
 	 * 标准检查以外的合法性检查
 	 * @param roleForm 表单

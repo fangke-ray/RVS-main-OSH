@@ -205,6 +205,7 @@ LIMIT 1;
 	JOIN model mdl ON ma.model_id = mdl.model_id
 	WHERE ma.outline_time is null
 		and break_back_flg = 0
+        and fix_type in (1,2)
 		and exists (select 1 from production_feature where material_id = ma.material_id)
 		and not exists
 		(

@@ -462,6 +462,16 @@ public class LoginAction extends BaseAction {
 						loginData.setWorking_role_id(RvsConsts.ROLE_OPERATOR);
 					}
 
+					// 如果当前角色无权限进行工位作业，则强制切换成进行中角色
+					if (loginData.getWorking_role_id() != null) {
+						if (!getPrivacies(loginData.getRole_id(), conn).contains(RvsConsts.PRIVACY_POSITION)) {
+							loginData.setRole_id(loginData.getWorking_role_id());
+							RoleService rServ = new RoleService();
+
+							loginData.setRole_name(rServ.getRoleName(loginData.getWorking_role_id(), conn));
+						}
+					}
+
 					setDetail(loginData, conn, workingPf);
 
 					// 用户信息保存在会话中

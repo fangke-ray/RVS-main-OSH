@@ -86,12 +86,12 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 			// 小修理工位
 			if (resInfo.isLightFix) {
 				$("#light_fix_content").text(resInfo.light_fix_content).parent().show();
-				if (resInfo.isCcdModel)
-					// 增加302工位选择  
-					$("#pa_red").prepend('<div class="edgeposition"><div class="just"><div code="25" posid="25" nextcode="0" prevcode="0" class="pos"><span>302 CCD 盖玻璃更换</span></div></div>');
 				if (resInfo.isLgModel)
 					// 增加303工位选择  
 					$("#pa_red").prepend('<div class="edgeposition"><div class="just"><div code="60" posid="60" nextcode="0" prevcode="0" class="pos"><span>303 LG 玻璃更换</span></div></div>');
+				if (resInfo.isCcdModel)
+					// 增加302工位选择  
+					$("#pa_red").prepend('<div class="edgeposition"><div class="just"><div code="25" posid="25" nextcode="0" prevcode="0" class="pos"><span>302 CCD 盖玻璃更换</span></div></div>');
 
 				var light_positions = resInfo.light_positions;
 
@@ -139,10 +139,15 @@ var getFlowchart_handleComplete = function(xhrobj, textStatus, callback) {
 				$("#light_fix_content").text("").parent().hide();
 			}
 
-			$("#pa_red span:empty").parent().parent().parent().each(function(){
-				$(this).hide();
-				if ($(this).parent().hasClass("pos")) {
-					$(this).parent().hide();
+			$("#pa_red span:empty").closest(".edgeposition").each(function(){
+				var $edgeposition = $(this);
+				if ($edgeposition.find("span").not(":empty").length == 0) {
+					$edgeposition.hide();
+					if ($edgeposition.parent().hasClass("pos")) {
+						$edgeposition.parent().hide();
+					}
+				} else {
+					$edgeposition.find("span:empty").closest(".pos").hide();
 				}
 			});
 			var resultlen = resInfo.result.length;

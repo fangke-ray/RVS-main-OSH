@@ -72,6 +72,7 @@ var warningConfirm = function(warnData, yesFunction, noFunction, title, yesButto
 	$errstring.show();
 	$errstring.dialog({dialogClass : 'ui-warn-dialog', modal : true, width : 450, title : (title || "提示信息"), 
 		buttons : buttons,
+		closeOnEscape: false,
 		open: function() {
 		$errstring.nextAll(".ui-dialog-buttonpane").bind("keypress", function(event) { 
 	      if (event.keyCode == $.ui.keyCode.ENTER) { 
