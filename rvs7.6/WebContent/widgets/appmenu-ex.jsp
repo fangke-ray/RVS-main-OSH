@@ -158,8 +158,8 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
 <div class="dwidth-left">
 <h3 class="ui-accordion-header ui-helper-reset ui-state-default ui-corner-top ui-accordion-icons" tabindex="0"><span class="ui-accordion-header-icon ui-icon ui-icon-triangle-1-s"></span>展示一览</h3>
 		<div class="ui-accordion-content ui-helper-reset ui-widget-content">
-        <a target="_parent" href="show.do#globalProgress">全工程</a><br>
-        <a target="_parent" href="show.do#acceptFact">受理报价展示</a><br>
+        <a target="_parent" href="show.do#receptionCds">受理CDS/出货</a><br>
+        <a target="_parent" href="show.do#quotationIndn">报价展示</a><br>
         <a target="_parent" href="show.do#wipProgress">WIP库位</a><br>
 	一课工程展示: <br>
         <a title="分解工程线长界面" target="_parent" href="show.do#lineLeaderD1">分解</a> <a title="NS工程线长界面" target="_parent" href="show.do#lineLeaderN1">NS</a> <a title="总组工程线长界面" target="_parent" href="show.do#lineSituationP1">总组</a><br>

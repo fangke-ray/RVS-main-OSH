@@ -379,6 +379,7 @@
 			<forward name="capacity_setting" path="/widgets/manage/capacity_setting.jsp"/>
 
 			<forward name="daily_report" path="/widgets/report/daily_report.jsp" />
+			<forward name="attendance" path="/widgets/manage/attendance.jsp"/>
 		</action>
 		<!-- data 作业 -->
 		<action path="/productFeature" type="com.osh.rvs.action.data.ProductionFeatureAction" parameter="method" validate="false" name="productionFeatureForm" scope="request">

@@ -616,29 +616,36 @@ public class ProductionFeatureService {
 //			if (!isLightFix && "00000000022".equals(position_id)) { // 试图触发400 不要5.18
 //				nextPositions.add("00000000032");
 //			} else
-			if (!isLightFix && "00000000110".equals(position_id)) { // fenjieOver TODO
-				if (isFact) {
-					mpService.finishMaterialProcess(material_id, "00000000012", triggerList, conn);
-
-					// 检查是否存在未签收的零件
-					MaterialPartialMapper mpDao = conn.getMapper(MaterialPartialMapper.class);
-					List<MaterialPartialDetailEntity> wP = mpDao.searchWaitingMaterialPartialDetail(material_id, "00000000012");
-					if (wP.size() > 0) {
-						conn.rollback();
-						throw new Exception(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.lineWaiting", wP.get(0).getPartial_code() + "等" + wP.size()));
-					}
-					// FSE 数据同步
-					try{
-						FseBridgeUtil.toUpdateMaterialProcess(material_id, "DEC");
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+			if (!isLightFix && ("00000000110".equals(position_id) || "00000000108".equals(position_id))) { // fenjieOver TODO
+				boolean isTrueEnd = true;
+				if ("00000000108".equals(position_id)) {
+					// 流程里有110
+					isTrueEnd = (paProxy.getProcessAssign("00000000110") == null);
 				}
+				if (isTrueEnd) {
+					if (isFact) {
+						mpService.finishMaterialProcess(material_id, "00000000012", triggerList, conn);
 
-				ComposeStorageService csService= new ComposeStorageService();
-				inStorage = csService.checkRecommendCase(mEntity, "00000000012", workingPf.getRework(), conn);
+						// 检查是否存在未签收的零件
+						MaterialPartialMapper mpDao = conn.getMapper(MaterialPartialMapper.class);
+						List<MaterialPartialDetailEntity> wP = mpDao.searchWaitingMaterialPartialDetail(material_id, "00000000012");
+						if (wP.size() > 0) {
+							conn.rollback();
+							throw new Exception(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.lineWaiting", wP.get(0).getPartial_code() + "等" + wP.size()));
+						}
+						// FSE 数据同步
+						try{
+							FseBridgeUtil.toUpdateMaterialProcess(material_id, "DEC");
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+
+					ComposeStorageService csService= new ComposeStorageService();
+					inStorage = csService.checkRecommendCase(mEntity, "00000000012", workingPf.getRework(), conn);
+				}
 			} else
-			if (!isLightFix && "00000000021".equals(position_id)) { // fenjieOver TODO
+			if (!isLightFix && "00000000016".equals(position_id)) { // fenjieOver TODO
 
 				// if (mEntity == null) mEntity = mDao.getMaterialNamedEntityByKey(material_id);
 				if ("00000000016".equals(mEntity.getCategory_id()) || "00000000073".equals(mEntity.getCategory_id())) { // 外科镜
@@ -776,7 +783,7 @@ public class ProductionFeatureService {
 
 				DisassembleStorageService dsService = new DisassembleStorageService();
 				ret = dsService.getStorageByMaterial(isFact, material_id, workingPf.getSection_id(), workingPf.getRework(), targetPosList, ret, conn);
-				return ret;
+//				return ret;
 			}
 		}
 
@@ -814,6 +821,9 @@ public class ProductionFeatureService {
 		PositionMapper ps = conn.getMapper(PositionMapper.class);
 		for (int i = 0; i < ret.size(); i++) {
 			String ret_position_id = ret.get(i);
+			if (ret_position_id.indexOf("库位") >= 0) {
+				continue;
+			}
 			if (ret_position_id.indexOf("[") < 0) { 
 				PositionEntity position = ps.getPositionByID(ret_position_id);
 				if ("00000000001".equals(workingPf.getSection_id())

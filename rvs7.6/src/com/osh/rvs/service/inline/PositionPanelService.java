@@ -267,6 +267,7 @@ public class PositionPanelService {
 		if (resPositionId != null) {
 			userPositionId = resPositionId;
 		}
+		String process_code = user.getProcess_code();
 
 		MsgInfo msgInfo;
 		if (errors.size() == 0) {
@@ -325,10 +326,15 @@ public class PositionPanelService {
 									String blockReason = CodeListUtils.getValue("offline_reason", ""+block.getReason());
 									msgInfo = new MsgInfo();
 									msgInfo.setComponentid("material_id");
-									msgInfo.setErrcode("info.linework.notInWaiting");
+									msgInfo.setErrcode("info.linework.blockedForSolve");
 									msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.blockedForSolve"
 											, waiting.getSorc_no(), blockReason, block.getComment()));
-									errors.add(msgInfo);
+
+									if (block.getReason() == 1 && "231".equals(process_code)) { // TODO 231不检测是临时设定
+										
+									} else {
+										errors.add(msgInfo);
+									}
 								}
 							}
 						}
@@ -353,7 +359,6 @@ public class PositionPanelService {
 					msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.notInWaiting"));
 					errors.add(msgInfo);
 				} else {
-					String process_code = user.getProcess_code();
 					if ("241".equals(process_code) || "252".equals(process_code) || "321".equals(process_code) || "400".equals(process_code)) { // 代线长工位不按次序
 //					} else if (scan.getExpedited() >= 10) { // 本身是计划加急 
 //					} else if (!"0".equals(scan.getWaitingat())) { // 中断的无关

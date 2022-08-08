@@ -163,8 +163,8 @@ $(function() {
 <% if(links.get("viewer")) { %>
 <h3 style="padding-left:30px;" class="ui-accordion-header ui-helper-reset ui-state-default ui-accordion-icons ui-corner-top" role="tab" id="ui-accordion-accordion-header-2" aria-controls="ui-accordion-accordion-panel-2" aria-selected="true" tabindex="0"><span></span>展示一览</h3>
 <div class="ui-accordion-content ui-helper-reset ui-widget-content ui-corner-bottom ui-accordion-content-active" style="display: block;" id="ui-accordion-accordion-panel-2" aria-labelledby="ui-accordion-accordion-header-2" role="tabpanel" aria-expanded="true" aria-hidden="false">
-        <a target="_parent" href="show.do#globalProgress">全工程</a><br>
-        <a target="_parent" href="show.do#acceptFact">受理报价展示</a><br>
+        <a target="_parent" href="show.do#receptionCds">受理CDS/出货</a><br>
+        <a target="_parent" href="show.do#quotationIndn">报价展示</a><br>
         <a target="_parent" href="show.do#wipProgress">WIP库位</a><br>
 	一课工程展示: <br>
         <a title="分解工程" target="_parent" href="show.do#lineLeaderD1">分解</a> <a title="NS工程" target="_parent" href="show.do#lineLeaderN1">NS</a> <a title="总组工程" target="_parent" href="show.do#lineSituationP1">总组</a><br>

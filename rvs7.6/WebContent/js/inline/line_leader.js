@@ -664,6 +664,8 @@ $(document).ready(function() {
 
 	$("#pxbutton").click(px_exchange);
 
+	$("#attendance_button").click(show_attendance);
+
 	// Ajax提交
 	$.ajax({
 		beforeSend : ajaxRequestType,
@@ -882,4 +884,36 @@ var px_exchange = function() {
 			refreshChart();
 		}
 	});
+};
+
+var show_attendance = function(){
+	var $jdialog = $("#attendance_setting");
+	if ($jdialog.length == 0) {
+		$("body").append("<div id='attendance_setting'></div>");
+		$jdialog = $("#attendance_setting");
+	}
+	$jdialog.hide();
+	
+	$jdialog.load("scheduleProcessing.do?method=attendance", function(responseText,textStatus,XMLHttpRequest){
+		$jdialog.dialog({
+			title : "出勤记录",
+			width : 600,
+			show  : "blind",
+			resizable : false,//不可改变弹出框大小
+			modal : true,
+			minHeight:200,
+			close :function(){
+				$jdialog.html("");
+			},
+			buttons:{
+				"修改" : function() {
+					if (typeof doUpdateAttendance === "function") {
+						doUpdateAttendance();
+					}
+				}, "关闭" : function() {
+					$jdialog.dialog("close");
+				}
+			}
+		});
+	});	
 };

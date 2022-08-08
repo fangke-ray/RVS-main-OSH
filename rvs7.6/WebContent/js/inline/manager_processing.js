@@ -389,6 +389,40 @@ var dispatchSectionShow = function(resInfo) {
 	});
 }
 
+
+var show_attendance = function(){
+	var $jdialog = $("#attendance_setting");
+	if ($jdialog.length == 0) {
+		$("body").append("<div id='attendance_setting'></div>");
+		$jdialog = $("#attendance_setting");
+	}
+	$jdialog.hide();
+	
+	$jdialog.load("scheduleProcessing.do?method=attendance", function(responseText,textStatus,XMLHttpRequest){
+		$jdialog.dialog({
+			title : "出勤记录",
+			width : 600,
+			show  : "blind",
+			height: 'auto',
+			resizable : false,//不可改变弹出框大小
+			modal : true,
+			minHeight:200,
+			close :function(){
+				$jdialog.html("");
+			},
+			buttons:{
+				"修改" : function() {
+					if (typeof doUpdateAttendance === "function") {
+						doUpdateAttendance();
+					}
+				}, "关闭" : function() {
+					$jdialog.dialog("close");
+				}
+			}
+		});
+	});	
+};
+
 $(document).ready(function() {
 	$("#nogoodbutton").disable();
 	$("#nogoodbutton").click(function() {
@@ -410,6 +444,11 @@ $(document).ready(function() {
 	
 	$("#daily_report_button").click(function() {
 		show_daily_report();
+	});
+
+	// 出勤设定
+	$("#attendance_button").click(function() {
+		show_attendance();
 	});
 
 	$("#dispatchbutton").click(dispatch_section);

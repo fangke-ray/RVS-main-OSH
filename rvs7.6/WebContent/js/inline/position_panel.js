@@ -1753,21 +1753,36 @@ var doFinish=function(evt, hr){
 			}
 		}
 
-		// Ajax提交
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			async : false,
-			url : servicePath + '?method=dofinish',
-			cache : false,
-			data : data,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : doFinish_ajaxSuccess
-		});
+		doFinishPost(data);
 	}
 };
+
+var doFinishPost = function(postData){
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=dofinish',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj, textStatus){
+			var resInfo = $.parseJSON(xhrobj.responseText);
+			if (resInfo.errors.length == 0 && resInfo.warnings.length) {
+				warningConfirm(resInfo.warnings[0].errmsg, function(){
+					postData.confirmed = true;
+					doFinishPost(postData);
+				}, null, null
+				, "继续完成");
+				return;
+			}
+			doFinish_ajaxSuccess(xhrobj, textStatus);
+		}
+	});
+}
 
 var showMaterial = function(material_id) {
 	$process_dialog = $("#process_dialog");

@@ -27,7 +27,7 @@ resize:none;
 		<table class="condform" style="width:100%">
 			<thead>
 				<tr>
-					<td class="ui-state-default td-title" colspan="5">翻修一课</td>
+					<td class="ui-state-default td-title" colspan="5">修理一课</td>
 				</tr>
 			</thead>
 			<tbody>
@@ -74,7 +74,7 @@ resize:none;
 		<table class="condform" style="width:100%">
 			<thead>
 				<tr>
-					<td class="ui-state-default td-title" colspan="5">翻修二课</td>
+					<td class="ui-state-default td-title" colspan="5">修理二课</td>
 				</tr>
 			</thead>
 			<tbody>

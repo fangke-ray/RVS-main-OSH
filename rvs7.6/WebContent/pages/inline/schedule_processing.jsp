@@ -185,6 +185,7 @@ border-collapse: collapse;border-width: 0 1px;border-color: rgb(170, 170, 170);b
 						<input id="reccdbutton" class="ui-button" value="重新更换CCD盖玻璃" type="button"/>
 						<input id="capacity_setting_button" class="ui-button" value="产能设定" type="button"/>
 						<input id="dispatchbutton" class="ui-button" value="课室调度" type="button"/>
+						<input id="attendance_button" class="ui-button" value="当日出勤" type="button"/>
 						<!--input id="cleanbutton" class="ui-button" value="工位作业取消申请" type="button"/>
 						<input id="capacitybutton" class="ui-button" value="设定产能" type="button"/-->
 						<input id="daily_report_button" class="ui-button" value="日报信息确认" type="button" style="float: right; right: 2px">

@@ -37,6 +37,7 @@ import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.ScheduleProcessService;
 import com.osh.rvs.service.inline.ScheduleService;
+import com.osh.rvs.service.manage.AttendanceService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
@@ -485,6 +486,40 @@ public class ScheduleProcessingAction extends BaseAction {
 		log.info("ScheduleProcessingAction.capacity_setting end");
 	}
 	
+	/**
+	 * 出勤设定
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param request 页面请求
+	 * @param response 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={1, 0})
+	public void attendance(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+		log.info("ScheduleProcessingAction.attendance start");
+
+		// 取得用户信息
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+		// 权限区分
+		List<Integer> privacies = user.getPrivacies();
+		if (privacies.contains(RvsConsts.PRIVACY_SCHEDULE)|| privacies.contains(RvsConsts.PRIVACY_PROCESSING)) {
+			req.setAttribute("role", "manager");
+			req.setAttribute("section_id", user.getSection_id());
+		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+			req.setAttribute("role", "lineleader");
+			req.setAttribute("section_id", user.getSection_id());
+			req.setAttribute("line_id", user.getLine_id());
+		} else {
+			req.setAttribute("role", "none");
+		}
+
+		//迁移到画面
+		actionForward = mapping.findForward("attendance");
+		
+		log.info("ScheduleProcessingAction.attendance end");
+	}
 
 	/**
 	 * KPI日报画面片段表示处理
@@ -645,4 +680,67 @@ public class ScheduleProcessingAction extends BaseAction {
 		
 		log.info("ScheduleProcessingAction.setSectionDispatch end");
 	}
+
+	/**
+	 * 出勤信息获得
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 */
+	public void getAttendance(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn){
+		log.info("ScheduleProcessingAction.getAttendance start");
+		
+		Map<String,Object> callbackResponse = new HashMap<String,Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		AttendanceService attdService = new AttendanceService();
+
+		// 取得用户信息
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+		// 权限区分
+		List<Integer> privacies = user.getPrivacies();
+		if (privacies.contains(RvsConsts.PRIVACY_SCHEDULE) 
+				|| privacies.contains(RvsConsts.PRIVACY_PROCESSING)) {
+			attdService.getAttendances(null, null, conn, callbackResponse);
+		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+			attdService.getAttendances(user.getSection_id(), user.getLine_id(), conn, callbackResponse);
+		}
+
+		//检查发生错误时报告错误信息
+		callbackResponse.put("errors",errors);
+		//返回JSON格式响应信息
+		returnJsonResponse(res, callbackResponse);
+		
+		log.info("ScheduleProcessingAction.getAttendance end");
+	}
+
+	/**
+	 * 修改出勤
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 */
+	public void doUpdateAttendance(ActionMapping mapping,ActionForm form,HttpServletRequest req,HttpServletResponse res,SqlSessionManager conn){
+		log.info("ScheduleProcessingAction.doUpdateAttendance start");
+		
+		Map<String,Object> callbackResponse = new HashMap<String,Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		AttendanceService attdService = new AttendanceService();
+
+		attdService.updateAttendance(req,conn);
+
+		//检查发生错误时报告错误信息
+		callbackResponse.put("errors",errors);
+		//返回JSON格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("ScheduleProcessingAction.doUpdateAttendance end");
+	}	
+
 }

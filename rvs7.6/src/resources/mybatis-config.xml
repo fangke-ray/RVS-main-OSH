@@ -164,6 +164,9 @@
 		<typeAlias alias="SuppliesDetailEntity" type="com.osh.rvs.bean.support.SuppliesDetailEntity" />
 		<typeAlias alias="SuppliesOrderEntity" type="com.osh.rvs.bean.support.SuppliesOrderEntity" />
 
+		<typeAlias alias="AttendanceRecordEntity" type="com.osh.rvs.bean.manage.AttendanceRecordEntity"/>
+		<typeAlias alias="AttendanceReportEntity" type="com.osh.rvs.bean.manage.AttendanceReportEntity"/>
+
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">
@@ -261,6 +264,7 @@
 		<mapper resource="com/osh/rvs/mapper/manage/PositionPlanTimeMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/manage/UserDefineCodesMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/manage/InterfaceDataMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/manage/AttendanceMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/partial/BadLossSummaryMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/partial/ConsumableApplicationMapper.xml"/>

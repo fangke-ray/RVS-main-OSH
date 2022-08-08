@@ -42,6 +42,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	
 	<div class="ui-widget-header dwidth-full" style="align:center;padding-top:6px;padding-bottom:6px;margin-bottom:16px;text-align:center;">
 		<span>${userdata.section_name} ${userdata.line_name}</span>
+		<input class="ui-button" style="position:relative; left:10em;" id="attendance_button" value="当日出勤" type="button"/>
 	</div>
 
 <div style="width:1900px;">

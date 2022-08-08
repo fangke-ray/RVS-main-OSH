@@ -161,6 +161,7 @@ ${WORKINFO}
 		<input type="button" class="ui-button" id="printbutton" value="重新打印小票" />
 		<input type="button" class="ui-button" id="printaddbutton" value="补充打印小票" />
 		<input type="button" value="申请消耗品" class="ui-button" onclick="javascript:consumable_application_edit()"/>
+		<input class="ui-button" id="attendance_button" value="当日出勤" type="button"/>
 <% } else if (isEditor) { %>
 		<input type="button" class="ui-button" id="printbutton" value="重新打印小票" />
 		<input type="button" class="ui-button" id="printaddbutton" value="补充打印小票" />

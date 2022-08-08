@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.manage.AttendanceMapper">
+
+	<select id="searchAttendanceReport" parameterType="AttendanceReportEntity" resultType="AttendanceReportEntity">
+		<![CDATA[
+	    SELECT 
+		    report_date,
+		    section_id,
+		    line_id,
+		    px,
+		    attendance_comment
+		FROM
+		    attendance_report
+		]]>
+	   <where>
+			<if test="report_date!=null and report_date!='' ">
+				<![CDATA[
+				AND report_date=#{report_date}
+				]]>
+			</if>
+			<if test="section_id!=null and section_id!='' ">
+				<![CDATA[
+				AND	 section_id =#{section_id}
+				]]>
+			</if>
+			<if test="line_id!=null and line_id!='' ">
+				<![CDATA[
+				AND	 line_id =#{line_id}
+				]]>
+			</if>
+	  </where>
+	  order by report_date desc
+	</select>
+	
+	<select id="checkIsExist" parameterType="AttendanceReportEntity" resultType="AttendanceReportEntity">
+		<![CDATA[
+			 SELECT 
+		    report_date,
+		    section_id,
+		    line_id,
+		    attendance_comment
+		FROM
+		    rvsdb.attendance_report
+		WHERE
+	    	report_date=#{report_date}
+	   		and section_id =#{section_id}
+	   		and line_id = #{line_id}
+	   		and px = #{px}
+		]]>
+	</select>
+	
+	<insert id="insertAttendanceReport" parameterType="AttendanceReportEntity">
+	   <![CDATA[
+	    REPLACE INTO 
+	    	attendance_report 
+	        (report_date,section_id,line_id,px,attendance_comment)
+        VALUES
+        	(#{report_date},#{section_id},#{line_id},#{px},#{attendance_comment})
+	   ]]>
+	</insert>
+
+	<update id="updateAttendanceReport" parameterType="AttendanceReportEntity">
+		<![CDATA[
+		   UPDATE 
+		   		attendance_report 
+		   SET 
+		   		attendance_comment=#{attendance_comment}
+		   WHERE 
+		   		report_date=#{report_date}
+		   		and section_id =#{section_id}
+		   		and line_id = #{line_id}
+		   		and px = #{px}
+		]]>
+	</update>
+	
+	<update id="deleteAttendanceReport" parameterType="AttendanceReportEntity">
+		<![CDATA[
+		    DELETE FROM 
+		    	attendance_report 
+		    WHERE
+		    	report_date=#{report_date}
+		   		and section_id =#{section_id}
+		   		and line_id = #{line_id}
+		]]>
+	</update>
+
+	<select id="getAttendanceRecords" parameterType="int" resultType="AttendanceRecordEntity">
+		<![CDATA[
+		SELECT record_type, section_id, line_id, record_date, px, clue_count
+		FROM
+		]]>
+	<if test="record_type eq 0">
+		<![CDATA[
+		(SELECT record_type, section_id, line_id, record_date, px, clue_count FROM attendance_record
+		WHERE record_type = 0
+		ORDER BY record_date desc) a_t
+		GROUP BY record_type, section_id, line_id, px
+		;
+		]]>
+	</if>
+	<if test="record_type eq 1">
+		<![CDATA[
+		attendance_record
+		WHERE record_type = 1
+		AND record_date = current_date
+		;
+		]]>
+	</if>
+	</select>
+
+	<insert id="insertAttendanceRecord" parameterType="AttendanceRecordEntity">
+	   <![CDATA[
+	    REPLACE INTO 
+	    	attendance_record 
+	        (`section_id`,
+			`line_id`,
+			`record_date`,
+			`record_type`,
+			`px`,
+			`clue_count`)
+        VALUES
+        	(#{section_id},#{line_id},current_date,#{record_type},#{px},#{clue_count});
+	   ]]>
+	</insert>
+
+</mapper>
