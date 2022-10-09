@@ -51,6 +51,21 @@ public class SuppliesReferListEntity implements Serializable {
 	 */
 	private String photo_uuid;
 
+	/**
+	 * 包装数量
+	 */
+	private Integer capacity = 1;
+
+	/**
+	 * 采购单位
+	 */
+	private String package_unit_text;
+
+	/**
+	 * 商品编号
+	 */
+	private String goods_serial;
+
 	public String getRefer_key() {
 		return refer_key;
 	}
@@ -105,5 +120,29 @@ public class SuppliesReferListEntity implements Serializable {
 
 	public void setPhoto_uuid(String photo_uuid) {
 		this.photo_uuid = photo_uuid;
+	}
+
+	public Integer getCapacity() {
+		return capacity;
+	}
+
+	public void setCapacity(Integer capacity) {
+		this.capacity = capacity;
+	}
+
+	public String getPackage_unit_text() {
+		return package_unit_text;
+	}
+
+	public void setPackage_unit_text(String package_unit_text) {
+		this.package_unit_text = package_unit_text;
+	}
+
+	public String getGoods_serial() {
+		return goods_serial;
+	}
+
+	public void setGoods_serial(String goods_serial) {
+		this.goods_serial = goods_serial;
 	}
 }

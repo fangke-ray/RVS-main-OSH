@@ -2,6 +2,7 @@ package com.osh.rvs.service.support;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -14,11 +15,13 @@ import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.support.SuppliesDetailEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.support.SuppliesDetailForm;
 import com.osh.rvs.mapper.master.OperatorMapper;
 import com.osh.rvs.mapper.support.SuppliesDetailMapper;
 import com.osh.rvs.service.RoleService;
 
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 
@@ -62,6 +65,9 @@ public class SuppliesDetailService {
 
 		SuppliesDetailEntity entity = new SuppliesDetailEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		if (entity.getComments() != null && entity.getComments().length() <= 64) {
+			entity.setSupplier(entity.getComments());
+		}
 
 		Calendar now = Calendar.getInstance();
 		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
@@ -247,20 +253,16 @@ public class SuppliesDetailService {
 	
 	/**
 	 * 验收
-	 * @param form
+	 * @param supplies_keys
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void inlineRecept(ActionForm form,SqlSessionManager conn) throws Exception {
+	public void inlineRecept(String supplies_keys, SqlSessionManager conn) throws Exception {
 		SuppliesDetailMapper dao = conn.getMapper(SuppliesDetailMapper.class);
 		
-		SuppliesDetailEntity entity = new SuppliesDetailEntity();
-		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
-		
+		String[] arrSuppliesKeys = supplies_keys.split(";");
 		//验收日期为系统日期
-		entity.setInline_recept_date(Calendar.getInstance().getTime());
-		
-		dao.updateInlineReceptDate(entity);
+		dao.updateInlineReceptDate(arrSuppliesKeys);
 	}
 	
 	/**
@@ -277,7 +279,7 @@ public class SuppliesDetailService {
 		
 		dao.updateInvoiceNo(entity);
 	}
-	
+
 	/**
 	 * 根据物品申购单Key查询申购明细
 	 * @param orderKey 物品申购单Key
@@ -294,5 +296,64 @@ public class SuppliesDetailService {
 		BeanUtil.copyToFormList(list, respFormList, CopyOptions.COPYOPTIONS_NOEMPTY, SuppliesDetailForm.class);
 
 		return respFormList;
+	}
+
+	/**
+	 * 取得本人可签收申购品一览
+	 * 经理权限是本人确认者
+	 * 无经理权限是本人申购者
+	 * 
+	 * @param user 登录会话用户
+	 * @param conn
+	 * @return
+	 */
+	public List<SuppliesDetailForm> getInlineRecept(LoginData user, SqlSession conn) {
+		SuppliesDetailMapper mapper = conn.getMapper(SuppliesDetailMapper.class);
+
+		SuppliesDetailEntity condition = new SuppliesDetailEntity();
+
+		if (user.getPrivacies().contains(RvsConsts.PRIVACY_PROCESSING)) {
+			condition.setConfirmer_id(user.getOperator_id());
+		} else {
+			condition.setApplicator_id(user.getOperator_id());
+		}
+
+		List<SuppliesDetailForm> respFormList = new ArrayList<SuppliesDetailForm>();
+		List<SuppliesDetailEntity> list = mapper.getInlineRecept(condition);
+
+		BeanUtil.copyToFormList(list, respFormList, CopyOptions.COPYOPTIONS_NOEMPTY, SuppliesDetailForm.class);
+
+		return respFormList;
+	}
+
+	/**
+	 * 将申请通知发给上级，待确认
+	 * @param keys
+	 */
+	public void sendPostMessage(ActionForm form, LoginData sender) {
+		SuppliesDetailForm sdForm = (SuppliesDetailForm) form; 
+		RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/supplies_apply/" + sender.getOperator_id()
+				+ "/" + sdForm.getConfirmer_id() + "/" + sdForm.getSupplies_key()
+				);
+	}
+
+	/**
+	 * 将到货通知发给申请者，待验收
+	 * @param keys
+	 */
+	public void sendMailToApplier(List<String> keys) {
+		RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/supplies_recieve/0/" 
+				+ CommonStringUtil.joinBy(",", keys.toArray(new String[keys.size()]))
+				);
+	}
+
+	/**
+	 * 加急申请时，通知给支援人员
+	 * @param keys
+	 */
+	public void sendUrgentNotice(LoginData sender) {
+		RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/supplies_urgent/" + sender.getOperator_id()
+				+ "/" + sender.getOperator_id() + "/" + sender.getOperator_id()
+				);
 	}
 }

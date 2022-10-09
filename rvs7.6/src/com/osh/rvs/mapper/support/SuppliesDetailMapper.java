@@ -96,10 +96,10 @@ public interface SuppliesDetailMapper {
 	/**
 	 * 更新验收日期
 	 * 
-	 * @param entity
+	 * @param arrSuppliesKeys
 	 * @throws Exception
 	 */
-	public void updateInlineReceptDate(SuppliesDetailEntity entity) throws Exception;
+	public void updateInlineReceptDate(String[] arrSuppliesKeys) throws Exception;
 
 	/**
 	 * 更新发票号码
@@ -117,5 +117,13 @@ public interface SuppliesDetailMapper {
 	 * @throws Exception
 	 */
 	public List<SuppliesDetailEntity> getDetailByOrderKey(@Param("order_key") String order_key) throws Exception;
+
+	/**
+	 * 取得在线可签收品
+	 * 
+	 * @param entity
+	 * @return
+	 */
+	public List<SuppliesDetailEntity> getInlineRecept(SuppliesDetailEntity entity);
 
 }

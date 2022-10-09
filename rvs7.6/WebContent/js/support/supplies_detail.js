@@ -2,6 +2,7 @@ let servicePath = "supplies_detail.do";
 let waringUnitPrice = 2000;
 $(function() {
 	$("input.ui-button").button();
+	$("#step_set").buttonset();
 
 	$("#searcharea span.ui-icon").bind("click", function() {
 		$(this).toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
@@ -59,7 +60,7 @@ $(function() {
 	});
 
 	//申请事件
-	$("#applicationButton").click(application);
+	$("#applicationButton").click(addDetailDialog);
 
 	$("#filterSearchButton").click(filterSupplise);
 
@@ -92,6 +93,8 @@ $(function() {
 	});
 
 	findit();
+
+	getReferList();
 });
 
 /**
@@ -191,14 +194,14 @@ function filed_list(listdata) {
 				 {name:'quantity',index:'quantity',width : 30,align:'right',sorttype:'integer'},
 				 {name:'unit_price',index:'unit_price',width : 40,align:'right',sorttype:'currency',formatter:'currency',formatoptions:{thousandsSeparator:',',defaultValue: ''}},
 				 {name:'unit_text',index:'unit_text',width : 30},
-				 {name:'total_price',index:'total_price',width : 40,align:'right',sorttype:'currency',formatter:function(value, options, rData) {
+				 {name:'total_price',index:'total_price',width : 60,align:'right',sorttype:'currency',formatter:function(value, options, rData) {
 					 if(rData.quantity && rData.unit_price){
-						 return parseInt(rData.quantity) * parseFloat(rData.unit_price);
+						 return $.fmatter.util.NumberFormat(parseInt(rData.quantity) * parseFloat(rData.unit_price), {decimalPlaces:2,thousandsSeparator:','});
 					 } else {
 						 return "-";
 					 }
 				 }},
-				{name:'supplier',index:'supplier',width : 60},
+				{name:'supplier',index:'supplier',width : 50},
 				{name:'applicator_name',index:'applicator_name',width : 40},
 				{name:'applicate_date',index:'applicate_date',width : 60,align:'center',sorttype:'date'},
 				{name:'order_no',index:'order_no',width : 60},
@@ -267,7 +270,8 @@ function inlineRecept() {
 	let rowid = $("#list").jqGrid("getGridParam", "selrow");
 	let rowdata = $("#list").jqGrid('getRowData', rowid);
 
-	let content = `确认验收品名【${rowdata.product_name}】,规格【${rowdata.model_name}】申购物品？</label>`;
+	let content = rowdata.model_name ? `确认验收品名【${rowdata.product_name}】,规格【${rowdata.model_name}】的申购物品？</label>` 
+			: `确认验收品名【${rowdata.product_name}】的申购物品？</label>` ;
 	let $confirm = $("#confirmmessage");
 	$confirm.html(content);
 
@@ -284,7 +288,7 @@ function inlineRecept() {
 
 				$.ajax({
 					beforeSend : ajaxRequestType,
-					async : true,
+					async : false,
 					url : servicePath + '?method=doInlineRecept',
 					cache : false,
 					data : data,
@@ -360,7 +364,7 @@ function invoice() {
 
 					$.ajax({
 						beforeSend : ajaxRequestType,
-						async : true,
+						async : false,
 						url : servicePath + '?method=doInvoice',
 						cache : false,
 						data : data,
@@ -805,6 +809,17 @@ function setEditContent(resInfo) {
 	//供应商
 	let supplier = suppliesDetail.supplier || '';
 	$("#update_supplier").val(supplier);
+	$("#update_supplier").autocomplete({
+		source : gArrSuppier, 
+		minLength: 0, 
+		delay: 100
+	});
+	$("#update_supplier").unbind("focus").bind("focus",function() {
+		!this.value && $(this).autocomplete("search");
+	}).unbind("blur").bind("blur",function() {
+		$(this).autocomplete("close");
+	});
+
 	$("#update_label_supplier").text(supplier);
 	//申请课室
 	$("#update_label_section_name").text(suppliesDetail.section_name);
@@ -859,13 +874,13 @@ function setEditContent(resInfo) {
 	});
 
 	$("#okButton").bind("click",()=>{
-		warningConfirm("确认不能修改，是否要确认？",function(){
+		warningConfirm("确认后不能修改，是否要确认？",function(){
 			doComfirm("OK",suppliesDetail);
 		},null);
 	});
 
 	$("#ngButton").bind("click",()=>{
-		warningConfirm("驳回不能修改，是否要驳回？",function(){
+		warningConfirm("驳回后不能修改，是否要驳回？",function(){
 			doComfirm("NG",suppliesDetail);
 		},null);
 	});
@@ -900,7 +915,7 @@ function setEditContent(resInfo) {
 			dynamicRules.unit_price = {
 				required : true,
 				number : true,
-				range : [0.01,9999.99]
+				range : [0.00,9999.99]
 			}
 		}
 		//单位
@@ -1036,7 +1051,7 @@ function doUpdate(suppliesDetail){
 
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : true,
+		async : false,
 		url : servicePath + '?method=doUpdate',
 		cache : false,
 		data : data,
@@ -1075,7 +1090,7 @@ function doComfirm(comfirmFlag,suppliesDetail){
 
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : true,
+		async : false,
 		url : servicePath + '?method=doComfirm',
 		cache : false,
 		data : data,
@@ -1112,7 +1127,7 @@ function doDelete(suppliesDetail){
 
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : true,
+		async : false,
 		url : servicePath + '?method=doDelete',
 		cache : false,
 		data : data,
@@ -1138,10 +1153,13 @@ function doDelete(suppliesDetail){
 	});
 };
 
+let gSuppliesReferList = [];
+let gArrSuppier = ['慧采','亚速旺','易优佰','京东','心承','定制'];
+
 /**
- * 申请
+ * 参考列表
  */
-function application(){
+function getReferList(){
 	$.ajax({
 		beforeSend : ajaxRequestType,
 		async : true,
@@ -1161,9 +1179,11 @@ function application(){
 					// 共通出错信息框
 					treatBackMessages(null, resInfo.errors);
 				} else {
+					gSuppliesReferList = resInfo.list;
 					//常用采购清单
-					let suppliesReferList = resInfo.list;
-					addDetailDialog(suppliesReferList);
+					gSuppliesReferList.map(item => {
+						item.supplier && !gArrSuppier.includes(item.supplier) && gArrSuppier.splice(gArrSuppier.length - 1, 0, item.supplier);
+					});
 				}
 			}catch(e){}
 		}
@@ -1173,16 +1193,12 @@ function application(){
 /**
  * @param {*} list 常用采购清单
  */
-function addDetailDialog(list){
+function addDetailDialog(){
 	$("#add_supplies_detail").find("input[type='text'],textarea").val("").removeClass("errorarea-single");
-	setSuppliseView(list);
+	setSuppliseView(gSuppliesReferList);
 
-	let arrModelName = ['慧采','亚速旺','易优佰','京东','心承','定制'];
-	list.map(item => {
-		!arrModelName.includes(item.model_name) && arrModelName.splice(arrModelName.length - 1, 0, item.model_name);
-	});
 	$("#add_comment").autocomplete({
-		source : arrModelName, 
+		source : gArrSuppier, 
 		minLength: 0, 
 		delay: 100
 	});
@@ -1214,7 +1230,7 @@ function addDetailDialog(list){
 			unit_price:{
 				required:true,
 				number:true,
-				range:[0.01,9999.99]
+				range:[0.00,9999.99]
 			},
 			comment:{
 				maxlength:256
@@ -1239,7 +1255,7 @@ function addDetailDialog(list){
 	let $thisDialg = $("#add_supplies_detail").dialog({
 		title : "申请物品",
 		width : 1250,
-		height : 790,
+		height : 670,
 		resizable : false,
 		modal : true,
 		show:"blind",
@@ -1284,7 +1300,7 @@ function setSuppliseView(list){
 		});
 
 		//模板
-		let template=`<li class="item" data=#{DATA}>
+		let template=`<li class="item">
 						<div class="grid-container">
 							<div>#{img}</div>
 							<div>
@@ -1302,59 +1318,96 @@ function setSuppliseView(list){
 								</div>
 								<div class="grid-item">
 									<div class="title">单位</div>
-									<div class="unit-text">#{unitText}</div>
+									<div class="unit-text">#{unitText}<span class="capacity">#{capacity}</span></div>
 								</div>
-								<div class="grid-item">
+								<div class="grid-item supplier-item">
 									<div class="title">供应商</div>
-									<div class="supplier">#{supplier}</div>
+									<div class="supplier">#{supplier}<span class="goods_serial">#{goods_serial}</span></div>
 								</div>
 								<div class="grid-item add">
-									<input type="button" class="ui-button" value="加入申购明细">
+									<input type="button" class="ui-button" value="设到申购明细">
 								</div>
 							</div>
 						</div>
 					</li>`;
-		let content = '';
+		let $content = $('<content/>');
 		for(let [key,arr] of map){
 			let li = template;
 			li = li.replace("#{productionName}",key);
 
 			let index = 0;
 			let options = "";
+			let oriData = [];
 			for(let itemObj of arr){
-				let imgSrc= "images/noimage128x128.gif";
-				if(itemObj.photo_uuid) {
-					imgSrc = "http://" + document.location.hostname + "/photos/supplies_refer_list/" + itemObj.photo_uuid + "?_s=" + Date.now();
+				if (!itemObj["imgSrc"]) {
+					let imgSrc= "images/noimage128x128.gif";
+					if(itemObj.photo_uuid) {
+						imgSrc = "http://" + document.location.hostname + "/photos/supplies_refer_list/" + itemObj.photo_uuid + "?_s=" + Date.now();
+					}
+					itemObj["imgSrc"] = imgSrc;
+					delete itemObj.photo_uuid;delete itemObj.servletWrapper;delete itemObj.refer_key;
 				}
-				itemObj["imgSrc"] = imgSrc;
 
 				if(index == 0) {
-					li = li.replace("#{DATA}",JSON.stringify(itemObj));
-					let img = `<img src=${imgSrc} width="128" height="128" />`;
+					oriData.push(itemObj);
+					let img = `<img src=${itemObj["imgSrc"]} width="128" height="128" />`;
 					li = li.replace("#{img}",img);
 					li = li.replace("#{unitPrice}",itemObj.unit_price || '');
-					li = li.replace("#{unitText}",itemObj.unit_text || '');
+					li = li.replace("#{unitText}",itemObj.package_unit_text || '');
 					li = li.replace("#{supplier}",itemObj.supplier || '');
-					options += `<option selected value=${JSON.stringify(itemObj)}>${itemObj.model_name || ''}</option>`;
+					options += `<option selected value=${index}>${itemObj.model_name || ''}</option>`;
+					if (!itemObj.supplier) {
+						li = li.replace("supplier-item","supplier-item-hidden");
+						li = li.replace("#{goods_serial}", '');
+					} else {
+						li = li.replace("#{goods_serial}",itemObj.goods_serial || '');
+					}
+					if (!itemObj.capacity || itemObj.capacity == 0 || itemObj.capacity == 1) {
+						li = li.replace("#{capacity}", '');
+					} else {
+						li = li.replace("#{capacity}", '= ' + itemObj.capacity + ' ' + (itemObj.unit_text || ''));
+					}
 				} else {
-					options += `<option value=${JSON.stringify(itemObj)}>${itemObj.model_name || ''}</option>`;
+					oriData.push(itemObj);
+					options += `<option value=${index}>${itemObj.model_name || ''}</option>`;
 				}
 				index++;
 			}
 			li = li.replace("#{modelName}",options);
-			content+=li;
+			let $li = $(li);
+			$li.data({"oriData": oriData, index : 0});
+			$content.append($li);
 		}
 
-		$("#filterContainer > ul").html(content);
+		$("#filterContainer > ul").html($content.children());
 		$("#filterContainer > ul select").change(function() {
-			let selectedItem = JSON.parse(this.value);
+			let index = this.value;
 
 			let $li = $(this).closest("li");
-			$li.attr("data",JSON.stringify(selectedItem));
+			let oriData = $li.data("oriData");
+
+			let selectedItem = oriData[index];
+			$li.data("index",index);
+
 			$li.find("img").attr("src",selectedItem.imgSrc).hide().slideDown(150);
 			$li.find(".price").text(selectedItem.unit_price || '');
-			$li.find(".unit-text").text(selectedItem.unit_text || '');
-			$li.find(".supplier").text(selectedItem.supplier || '');
+			let unitTextHtml = selectedItem.package_unit_text || '';
+			let capacity = selectedItem.capacity;
+			if (!capacity || capacity == 0 || capacity == 1) {
+				unitTextHtml += '<span class="capacity"></span>';
+			} else {
+				unitTextHtml += '<span class="capacity">= ' + capacity + ' ' + (selectedItem.unit_text || '') + '</span>';
+			}
+			$li.find(".unit-text").html(unitTextHtml);
+
+			let supplier = selectedItem.supplier;
+			if (supplier) {
+				$li.find(".supplier-item-hidden").removeClass("supplier-item-hidden").addClass("supplier-item");
+			} else {
+				$li.find(".supplier-item").removeClass("supplier-item").addClass("supplier-item-hidden");
+			}
+			let supplierHtml = selectedItem.supplier || '';
+			$li.find(".supplier").html(supplierHtml + '<span class="goods_serial">' + (selectedItem.goods_serial || '') + '</span>');
 		});
 
 		$("#filterContainer > ul input.ui-button").button().click(function() {
@@ -1383,7 +1436,7 @@ function setSuppliseView(list){
 				"height" : "0px"
 			},250,"swing",()=>{
 				$ball.html("");
-				chooseSupplise(JSON.parse($li.attr("data")));
+				chooseSupplise($li.data("oriData")[$li.data("index")]);
 			});
 		});
 	} else {
@@ -1408,7 +1461,7 @@ function doInsert($thisDialg){
 
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : true,
+		async : false,
 		url : servicePath + '?method=doInsert',
 		cache : false,
 		data : data,
@@ -1442,7 +1495,7 @@ function filterSupplise(){
 
 	$("#filterContainer > ul li").each((index,item)=>{
 		let $li = $(item);
-		let suppliesObj = JSON.parse($li.attr("data"));
+		let suppliesObj = $li.data("oriData")[$li.data("index")];
 		suppliesObj.product_name.indexOf(productName) >= 0 ? $li.fadeIn() : $li.fadeOut();
 	});
 };
@@ -1513,7 +1566,7 @@ function showEditSuppliseDialog(listdata){
 				{name:'unit_text',index:'unit_text',width : 30},
 				{name:'total_price',index:'total_price',width : 40,align:'right',formatter:function(value, options, rData) {
 					if(rData.quantity && rData.unit_price){
-						return parseInt(rData.quantity) * parseFloat(rData.unit_price);
+						return $.fmatter.util.NumberFormat(parseInt(rData.quantity) * parseFloat(rData.unit_price), {decimalPlaces:2,thousandsSeparator:','});
 					} else {
 						return "-";
 					}
@@ -1604,7 +1657,7 @@ function showEditSuppliseDialog(listdata){
 
 					$.ajax({
 						beforeSend : ajaxRequestType,
-						async : true,
+						async : false,
 						url : 'supplies_order.do?method=doInsert',
 						cache : false,
 						data : data,
@@ -1703,7 +1756,7 @@ function showReceptDialog(listdata){
 				{name:'unit_text',index:'unit_text',width : 30},
 				{name:'total_price',index:'total_price',width : 40,align:'right',formatter:function(value, options, rData) {
 					if(rData.quantity && rData.unit_price){
-						return parseInt(rData.quantity) * parseFloat(rData.unit_price);
+						return $.fmatter.util.NumberFormat(parseInt(rData.quantity) * parseFloat(rData.unit_price), {decimalPlaces:2,thousandsSeparator:','});
 					} else {
 						return "-";
 					}
@@ -1757,7 +1810,7 @@ function showReceptDialog(listdata){
 
 				$.ajax({
 					beforeSend : ajaxRequestType,
-					async : true,
+					async : false,
 					url :  servicePath + '?method=doRecept',
 					cache : false,
 					data : data,
@@ -1978,21 +2031,21 @@ function showOrderConfirmDialog(resInfo) {
 				 {name:'quantity',index:'quantity',width : 30,align:'right',sorttype:'integer'},
 				 {name:'unit_price',index:'unit_price',width : 40,align:'right',sorttype:'currency',formatter:'currency',formatoptions:{thousandsSeparator:',',defaultValue: ''}},
 				 {name:'unit_text',index:'unit_text',width : 30},
-				 {name:'total_price',index:'total_price',width : 40,align:'right',sorttype:'currency',formatter:function(value, options, rData) {
+				 {name:'total_price',index:'total_price',width : 60,align:'right',sorttype:'currency',formatter:function(value, options, rData) {
 					 if(rData.quantity && rData.unit_price){
-						 return parseInt(rData.quantity) * parseFloat(rData.unit_price);
+						 return $.fmatter.util.NumberFormat(parseInt(rData.quantity) * parseFloat(rData.unit_price), {decimalPlaces:2,thousandsSeparator:','});
 					 } else {
 						 return "-";
 					 }
 				 }},
-				{name:'supplier',index:'supplier',width : 60},
+				{name:'supplier',index:'supplier',width : 40},
 				{name:'nesssary_reason',index:'nesssary_reason',width : 100},
 				{name:'applicator_name',index:'applicator_name',width : 40},
 				{name:'applicate_date',index:'applicate_date',width : 60,align:'center',sorttype:'date'},
 				{name:'confirmer_name',index:'confirmer_name',width : 40},
 				{name:'scheduled_date',index:'scheduled_date',width : 60,sorttype:'date'},
 				{name:'recept_date',index:'recept_date',width : 60,sorttype:'date'},
-				{name:'budget_month',index:'budget_month',width : 40,},
+				{name:'budget_month',index:'budget_month',width : 40},
 				{name:'inline_recept_date',index:'inline_recept_date',width : 60,sorttype:'date'},
 				{name:'invoice_no',index:'invoice_no',width : 60}
 			],
@@ -2052,7 +2105,7 @@ function showOrderConfirmDialog(resInfo) {
 function doOrderConfirm(data) {
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : true,
+		async : false,
 		url : 'supplies_order.do?method=doSign',
 		cache : false,
 		data : data,

@@ -27,7 +27,8 @@
 			sd.budget_month,
 			sd.inline_recept_date,
 			sd.comments,
-			sd.invoice_no
+			sd.invoice_no,
+			sd.urgent_flg
 		FROM
 			supplies_detail sd
 		JOIN
@@ -120,6 +121,20 @@
 		AND sd.invoice_no = #{invoice_no}
 	]]>
 	</if>
+	<trim prefix="and (" prefixOverrides="or" suffix=")">
+		<if test="(step band 1) eq 1">
+			or sd.confirmer_id IS NULL
+		</if>
+		<if test="(step band 2) eq 2">
+			or (sd.confirmer_id IS NOT NULL and so.order_key IS NULL)
+		</if>
+		<if test="(step band 4) eq 4">
+			or (so.order_key IS NOT NULL and inline_recept_date IS NULL)
+		</if>
+		<if test="(step band 8) eq 8">
+			or (so.order_key IS NOT NULL and inline_recept_date IS NOT NULL)
+		</if>
+	</trim>
 	</where>
 	<![CDATA[
 		ORDER BY
@@ -138,6 +153,7 @@
 			quantity,
 			section_id,
 			applicator_id,
+			urgent_flg,
 			nesssary_reason,
 			applicate_date,
 			confirmer_id,
@@ -159,6 +175,7 @@
 			#{quantity},
 			#{section_id},
 			#{applicator_id},
+			#{urgent_flg},
 			#{nesssary_reason},
 			#{applicate_date},
 			#{confirmer_id},
@@ -187,6 +204,7 @@
 			section.name AS section_name,
 			sd.applicator_id,
 			applicator_op.name AS applicator_name,
+			sd.urgent_flg,
 			sd.nesssary_reason,
 			sd.applicate_date,
 			sd.confirmer_id,
@@ -234,6 +252,7 @@
 			section.name AS section_name,
 			sd.applicator_id,
 			applicator_op.name AS applicator_name,
+			sd.urgent_flg,
 			sd.nesssary_reason,
 			sd.applicate_date,
 			sd.confirmer_id,
@@ -303,6 +322,13 @@
 			unit_text = #{unit_text},
 			quantity = #{quantity},
 			supplier = #{supplier},
+	]]>
+	<if test="urgent_flg!=null and urgent_flg!=''">
+	<![CDATA[
+			urgent_flg = #{urgent_flg},
+	]]>
+	</if>
+	<![CDATA[
 			nesssary_reason = #{nesssary_reason},
 			comments = #{comments},
 			scheduled_date = #{scheduled_date},
@@ -372,15 +398,18 @@
 	]]>
 	</update>
 	
-	<update id="updateInlineReceptDate" parameterType="SuppliesDetailEntity">
+	<update id="updateInlineReceptDate" parameterType="String">
 	<![CDATA[
 		UPDATE
 			supplies_detail
 		SET
-			inline_recept_date = #{inline_recept_date}
+			inline_recept_date = current_date
 		WHERE
-			supplies_key = #{supplies_key}
+			supplies_key IN 
 	]]>
+	<foreach item="supplies_key" collection="array" open="(" separator="," close=")">
+			#{supplies_key}
+	</foreach>
 	</update>
 	
 	<update id="updateInvoiceNo" parameterType="SuppliesDetailEntity">
@@ -431,6 +460,35 @@
 		WHERE
 			sd.order_key = #{order_key}
 	]]>
+	</select>
+
+	<select id="getInlineRecept" resultType="SuppliesDetailEntity" parameterType="SuppliesDetailEntity">
+	<![CDATA[
+		SELECT
+			`supplies_key`,
+			`product_name`,
+			`model_name`,
+			`unit_text`,
+			`quantity`,
+			op.name as `applicator_name`,
+			`applicate_date`,
+			`recept_date`,
+			`nesssary_reason`
+		FROM supplies_detail sd
+		JOIN operator op ON sd.`applicator_id` = op.operator_id
+		WHERE recept_date is NOT NULL
+		AND inline_recept_date is NULL
+	]]>
+	<if test="confirmer_id!=null and confirmer_id!=''">
+	<![CDATA[
+		AND (applicator_id = #{confirmer_id} OR confirmer_id=#{confirmer_id})
+	]]>
+	</if>
+	<if test="confirmer_id==null or confirmer_id=='' and applicator_id!=null and applicator_id!=''">
+	<![CDATA[
+		AND applicator_id = #{applicator_id}
+	]]>
+	</if>
 	</select>
 
 </mapper>

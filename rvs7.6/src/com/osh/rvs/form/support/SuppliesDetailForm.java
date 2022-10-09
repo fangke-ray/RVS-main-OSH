@@ -53,7 +53,7 @@ public class SuppliesDetailForm extends ActionForm implements Serializable {
 	/**
 	 * 数量
 	 */
-	@BeanField(name = "quantity", title = "数量", type = FieldType.Integer, length = 2, notNull = true)
+	@BeanField(name = "quantity", title = "数量", type = FieldType.Integer, length = 4, notNull = true)
 	private String quantity;
 
 	/**
@@ -216,6 +216,15 @@ public class SuppliesDetailForm extends ActionForm implements Serializable {
 	private String confirm_flg;
 	
 	private String isLiner;
+
+	/**
+	 * 进展步骤
+	 */
+	@BeanField(name = "step", title = "step", type = FieldType.Integer, length = 2)
+	private String step;
+
+	@BeanField(name = "urgent_flg", title = "加急申请", type = FieldType.Integer, length = 1)
+	private String urgent_flg;
 
 	public String getSupplies_key() {
 		return supplies_key;
@@ -487,6 +496,28 @@ public class SuppliesDetailForm extends ActionForm implements Serializable {
 
 	public void setSection_full_name(String section_full_name) {
 		this.section_full_name = section_full_name;
+	}
+
+	public String getStep() {
+		return step;
+	}
+
+	public void setStep(String step) {
+		this.step = step;
+	}
+
+	/**
+	 * @return the urgent_flg
+	 */
+	public String getUrgent_flg() {
+		return urgent_flg;
+	}
+
+	/**
+	 * @param urgent_flg the urgent_flg to set
+	 */
+	public void setUrgent_flg(String urgent_flg) {
+		this.urgent_flg = urgent_flg;
 	}
 
 }

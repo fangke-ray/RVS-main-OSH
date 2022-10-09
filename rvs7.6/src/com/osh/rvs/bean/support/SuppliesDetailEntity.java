@@ -177,6 +177,16 @@ public class SuppliesDetailEntity implements Serializable {
 	 */
 	private String section_full_name;
 
+	/**
+	 * 执行步骤
+	 */
+	private Integer step;
+
+	/**
+	 * 加急申请
+	 */
+	private Integer urgent_flg;
+
 	public String getSupplies_key() {
 		return supplies_key;
 	}
@@ -431,6 +441,28 @@ public class SuppliesDetailEntity implements Serializable {
 
 	public void setSection_full_name(String section_full_name) {
 		this.section_full_name = section_full_name;
+	}
+
+	public Integer getStep() {
+		return step;
+	}
+
+	public void setStep(Integer step) {
+		this.step = step;
+	}
+
+	/**
+	 * @return the urgent_flg
+	 */
+	public Integer getUrgent_flg() {
+		return urgent_flg;
+	}
+
+	/**
+	 * @param urgent_flg the urgent_flg to set
+	 */
+	public void setUrgent_flg(Integer urgent_flg) {
+		this.urgent_flg = urgent_flg;
 	}
 
 }

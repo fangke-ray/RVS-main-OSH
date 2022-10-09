@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.imageio.ImageIO;
@@ -25,6 +26,7 @@ import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFPatriarch;
 import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFSimpleShape;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.ClientAnchor;
@@ -37,6 +39,7 @@ import com.osh.rvs.bean.support.SuppliesOrderEntity;
 import com.osh.rvs.common.CopyByPoi;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.common.XlsUtil;
 import com.osh.rvs.form.support.SuppliesOrderForm;
 import com.osh.rvs.mapper.CommonMapper;
@@ -60,7 +63,7 @@ public class SuppliesOrderService {
 	/**
 	 * 慧采
 	 */
-	private final String SPEC_SUPPLIER = "慧采";
+	private final String SPEC_SUPPLIER = "易优佰";
 
 	/**
 	 * 查询订购单
@@ -251,7 +254,7 @@ public class SuppliesOrderService {
 		String path = PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\" + "一般物品申购单.xls";
 		// 目录
 		String basePath = PathConsts.BASE_PATH + PathConsts.REPORT + "\\supplies_order\\" + orderKey + "\\";
-		String cacheFilename = "一般物品申购单#{no}" + orderNo + ".xls";
+		String cacheFilename = "一般物品申购单" + orderNo + "#{no}.xls";
 		
 		String cachePath1 = null;
 		String cachePath2 = null;
@@ -345,11 +348,11 @@ public class SuppliesOrderService {
 
 			// 经理
 			String managerName = PathConsts.BASE_PATH + PathConsts.IMAGES + "\\sign\\" + order.getManager_job_no();
-			insertImage(work, sheet, 10, 6, managerName);
+			insertImage(work, sheet, 10, 10, 6, managerName);
 
 			// 部长
 			String ministerName = PathConsts.BASE_PATH + PathConsts.IMAGES + "\\sign\\" + order.getMinister_job_no();
-			insertImage(work, sheet, 11, 6, ministerName);
+			insertImage(work, sheet, 11, 12, 6, ministerName);
 			
 			if(specFlag) {
 				row = sheet.getRow(9);
@@ -597,7 +600,7 @@ public class SuppliesOrderService {
 	 * @param iLine 行位子
 	 * @param fileName 图片名称
 	 */
-	private void insertImage(HSSFWorkbook work, HSSFSheet sheet, int iCol, int iLine, String fileName) {
+	private void insertImage(HSSFWorkbook work, HSSFSheet sheet, int iCol, int iCol2, int iLine, String fileName) {
 		ByteArrayOutputStream byteArrayOut = null;
 		try {
 			BufferedImage bufferImg = ImageIO.read(new File(fileName));
@@ -607,9 +610,69 @@ public class SuppliesOrderService {
 			if (patriarch == null) {
 				patriarch = sheet.createDrawingPatriarch();
 			}
-			HSSFClientAnchor anchor = new HSSFClientAnchor(0, 0, 1023, 255, (short) iCol, iLine, (short) iCol, iLine + 1);
-			anchor.setAnchorType(ClientAnchor.MOVE_DONT_RESIZE);
-			patriarch.createPicture(anchor, work.addPicture(byteArrayOut.toByteArray(), HSSFWorkbook.PICTURE_TYPE_JPEG)).resize(1);
+
+			// 总宽度
+			List<Integer> widthCols = new ArrayList<Integer>();
+			for (int i = iCol; i <= iCol2; i++) {
+				int w = sheet.getColumnWidth(i); // 单位不是像素，是1/256个字符宽度
+				widthCols.add(w);
+			}
+			int startW = 256;
+			int endW = startW + bufferImg.getWidth() * 33;
+
+			int imageIdx = work.addPicture(byteArrayOut.toByteArray(), HSSFWorkbook.PICTURE_TYPE_JPEG);
+
+			int widthTotal = 0;
+			Integer[] retObj = new Integer[4];
+			for(int i = 0; i < widthCols.size(); i++) {
+				if (retObj[0] != null && retObj[1] != null) break;
+
+				int widthTotalAdded = widthTotal + widthCols.get(i);
+				if (retObj[0] == null && widthTotalAdded > startW) { // 
+					// 起点在这个格子里
+					// col1
+					retObj[2] = iCol + i;
+					// dx1
+					retObj[0] = 1023 * ((startW - widthTotal) * 100 / widthCols.get(i)) / 100;
+				}
+				if (retObj[1] == null && widthTotalAdded > endW) { // 
+					// 终点在这个格子里
+					// col2
+					retObj[3] = iCol + i;
+					// dx2
+					retObj[1] = 1023 * ((endW - widthTotal) * 100 / widthCols.get(i)) / 100;
+				}
+				widthTotal = widthTotalAdded; 
+			}
+			if (retObj[0] == null) {
+				retObj[0] = 0; retObj[2] = iCol;
+			}
+			if (retObj[1] == null) {
+				retObj[1] = 1023; retObj[3] = iCol2;
+			}
+
+			boolean isXiangBuzhang = 
+					((bufferImg.getHeight() + 0.0) / bufferImg.getWidth()) > 0.75;
+			int[] dys = {100, 80};
+			if (isXiangBuzhang) {
+				dys[0] = 15;
+				dys[1] = 230;
+			}
+
+			HSSFClientAnchor anchor = new HSSFClientAnchor(retObj[0], dys[0], retObj[1], dys[1], retObj[2].shortValue(), iLine, retObj[3].shortValue(), iLine + 1);
+			anchor.setAnchorType(ClientAnchor.DONT_MOVE_AND_RESIZE);
+
+			HSSFSimpleShape shape = patriarch.createSimpleShape(anchor);
+			if (!isXiangBuzhang) {
+				shape.setShapeType(HSSFSimpleShape.OBJECT_TYPE_RECTANGLE);
+				shape.setLineStyle(HSSFSimpleShape.LINESTYLE_SOLID);
+				shape.setLineStyleColor(255, 0, 0);
+			}
+
+			patriarch.createPicture(anchor, imageIdx);
+//			anchor.setDx1(retObj[0]);
+//			anchor.setDx2(retObj[1]);
+
 		} catch (Exception e) {
 			_log.error("图片文件不存在" + fileName, e);
 		} finally {
@@ -621,5 +684,15 @@ public class SuppliesOrderService {
 				}
 			}
 		}
+	}
+
+	/**
+	 * 订购单生成时，通知支援课上级
+	 * @param keys
+	 */
+	public void sendOrderNotice(LoginData sender, String order_no) {
+		RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/supplies_sign/" + sender.getOperator_id()
+				+ "/" + order_no + "/" + new Date().getTime()
+				);
 	}
 }

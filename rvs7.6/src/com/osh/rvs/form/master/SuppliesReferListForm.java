@@ -41,6 +41,21 @@ public class SuppliesReferListForm extends UploadForm implements Serializable {
 	@BeanField(name = "photo_uuid", title = "照片 UUID", type = FieldType.String, length = 32)
 	private String photo_uuid;
 
+//	ALTER TABLE `supplies_refer_list` 
+//	CHANGE COLUMN `refer_key` `refer_key` INT(11) UNSIGNED ZEROFILL NOT NULL COMMENT 'KEY' ,
+//	ADD COLUMN `capacity` INT(3) NOT NULL COMMENT '包装数量' DEFAULT 1 AFTER `model_name`,
+//	ADD COLUMN `package_unit_text` VARCHAR(5) NULL COMMENT '采购单位' AFTER `unit_text`,
+//	ADD COLUMN `goods_serial` VARCHAR(45) NULL COMMENT '商品编号' AFTER `package_unit_text`;
+
+	@BeanField(name = "capacity", title = "包装数量", type = FieldType.UInteger, length = 3)
+	private String capacity;
+
+	@BeanField(name = "package_unit_text", title = "采购单位", type = FieldType.String, length = 5)
+	private String package_unit_text;
+
+	@BeanField(name = "goods_serial", title = "商品编号", type = FieldType.String, length = 45)
+	private String goods_serial;
+
 	public String getRefer_key() {
 		return refer_key;
 	}
@@ -95,5 +110,29 @@ public class SuppliesReferListForm extends UploadForm implements Serializable {
 
 	public void setPhoto_uuid(String photo_uuid) {
 		this.photo_uuid = photo_uuid;
+	}
+
+	public String getCapacity() {
+		return capacity;
+	}
+
+	public void setCapacity(String capacity) {
+		this.capacity = capacity;
+	}
+
+	public String getPackage_unit_text() {
+		return package_unit_text;
+	}
+
+	public void setPackage_unit_text(String package_unit_text) {
+		this.package_unit_text = package_unit_text;
+	}
+
+	public String getGoods_serial() {
+		return goods_serial;
+	}
+
+	public void setGoods_serial(String goods_serial) {
+		this.goods_serial = goods_serial;
 	}
 }

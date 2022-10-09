@@ -36,7 +36,48 @@ $(function() {
 	});
 	
 	$("#update_upload_file").parent().on("change", "#update_upload_file", uploadPhoto);
-	
+
+	$("#add_capacity, #update_capacity").on("keyup", function(){
+		var capacity = this.value;
+
+		if (capacity && capacity != 0 && capacity != 1 && !isNaN(capacity)) {
+			$(this).closest("form").addClass("part_vis");
+			var $package_unit_price = $(this).closest("table").find("input[name='package_unit_price']");
+			var package_unit_price = $package_unit_price.val().trim();
+			if (package_unit_price && !isNaN(package_unit_price)) {
+				$package_unit_price.trigger("keyup");
+			}
+		} else {
+			$(this).closest("form").removeClass("part_vis");
+		}
+	});
+
+	$("#add_unit_price, #update_unit_price").on("keyup", function(){
+		var unit_price = this.value;
+		var capacity = $(this).closest("table").find("input[name='capacity']").val().trim();
+
+		if (capacity && !isNaN(capacity)
+			&& unit_price && !isNaN(unit_price)) {
+			var pack_unit_price = +unit_price * +capacity;
+			$(this).parent().children("input[name='package_unit_price']").val(pack_unit_price.toFixed(2));
+		}		
+	});
+
+	$("#add_package_unit_price, #update_package_unit_price").on("keyup", function(){
+		if (!$(this).closest("form").hasClass("part_vis")) {
+			return;
+		}
+		var package_unit_price = this.value;
+		var capacity = $(this).closest("table").find("input[name='capacity']").val().trim();
+
+		if (capacity && !isNaN(capacity)
+			&& package_unit_price && !isNaN(package_unit_price)) {
+			var unit_price = +package_unit_price / +capacity;
+			$(this).parent().children("input[name='unit_price']").val(unit_price.toFixed(2));
+		}		
+	});
+
+	$("td[contenteditable]").on("paste", imgPaste);
 	findit();
 });
 
@@ -94,15 +135,26 @@ function filed_list(listdata){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','KEY','品名','规格','预定单价','单位','供应商', '照片',''],
+			colNames:['','KEY','品名','规格','capacity','unit_text','内容数量','预定单价','单位','供应商','商品编号', '照片',''],
 			colModel:[
 				{name:'myac',width:40, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true, editbutton:false}},
 				{name:'refer_key',index:'refer_key', hidden : true},
-				{name:'product_name',index:'product_name', width : 100},
-				{name:'model_name',index:'model_name',width : 60},
-				{name:'unit_price',index:'unit_price',width : 25,align:'right'},
-				{name:'unit_text',index:'unit_text',width : 25},
-				{name:'supplier',index:'supplier',width : 80},
+				{name:'product_name',index:'product_name', width : 80},
+				{name:'model_name',index:'model_name',width : 50},
+				{name:'capacity',index:'capacity',hidden : true},
+				{name:'unit_text',index:'unit_text',hidden : true},
+				{name:'capacity_text',index:'capacity',width : 35, align:'right', formatter:function(value, options, rData){
+					var capacity_value = rData["capacity"].trim();
+					if (!capacity_value || capacity_value == 1) {
+						return "-";
+					} else {
+						return capacity_value + " " + rData["unit_text"];
+					}
+				}},
+				{name:'unit_price',index:'unit_price',width : 35,align:'right',sorttype:'currency',formatter:'currency',formatoptions:{thousandsSeparator:',',defaultValue: '-'}},
+				{name:'package_unit_text',index:'package_unit_text',width : 25},
+				{name:'supplier',index:'supplier',width : 40},
+				{name:'goods_serial',index:'goods_serial',width : 50},
 				{name:'photo_uuid',index:'photo_uuid',width:15,align:'center',formatter:function(value, options, rData) {
 					if(value){
 						return "有";
@@ -148,7 +200,7 @@ function filed_list(listdata){
 function showAdd(){
 	$("#searcharea").hide();
 	$("#addarea").show();
-	
+	$("#addform").removeClass("part_vis");
 	$("#addform input[type='text']").val("").removeClass("errorarea-single");
 	$("#add_upload_file").val("");
 	
@@ -162,22 +214,28 @@ function showAdd(){
 			model_name:{
 				maxlength:32
 			},
-			unit_price:{
+			package_unit_price:{
 				number:true,
-				range:[0.01,9999.99]
+				range:[0.00,9999.99]
 			},
 			unit_text:{
 				maxlength:3
 			},
+			package_unit_text:{
+				maxlength:3
+			},
 			supplier:{
 				maxlength:64
+			},
+			goods_serial: {
+				maxlength:45
 			}
         }
     });
-	
+
 	$("#addbutton").unbind("click").bind("click",function(){
 		if ($("#addform").valid()) {
-			var unit_price = $("#add_unit_price").val().trim();
+			var unit_price = $("#add_package_unit_price").val().trim();
 			unit_price = +unit_price;
 			if(unit_price > waringUnitPrice){
 				warningConfirm("预定单价高于" + waringUnitPrice +"，请确认是否要创建采购清单？",function(){
@@ -194,11 +252,20 @@ function doInsert(){
 	var postData = {
 		"product_name" : $("#add_product_name").val().trim(),
 		"model_name" : $("#add_model_name").val().trim(),
-		"unit_price" : $("#add_unit_price").val().trim(),
-		"unit_text" : $("#add_unit_text").val().trim(),
-		"supplier" : $("#add_supplier").val().trim()
+		"unit_price" : $("#add_package_unit_price").val().trim(),
+		"package_unit_text" : $("#add_package_unit_text").val().trim(),
+		"supplier" : $("#add_supplier").val().trim(),
+		"goods_serial" : $("#add_goods_serial").val().trim()
 	};
-	
+
+	var capacity = $("#add_capacity").val().trim();
+	if (capacity && capacity != 0 && capacity != 1 && !isNaN(capacity)) {
+		postData["capacity"] = capacity;
+		postData["unit_text"] = $("#add_unit_text").val().trim();
+	} else {
+		postData["capacity"] = 1;
+	}
+
 	$.ajaxFileUpload({
         url : servicePath + "?method=doInsert",
         secureuri : false,
@@ -232,16 +299,23 @@ function showEdit(){
 	});
 	
 	$("#update_product_name").val(rowData.product_name);
-	$("#update_model_name").val(rowData.model_name);
-	$("#update_unit_price").val(rowData.unit_price);
-	$("#update_unit_text").val(rowData.unit_text);
-	$("#update_supplier").val(rowData.supplier);
-	
+	$("#update_model_name").val(rowData.model_name || "");
+	var unit_price = rowData.unit_price;
+	if (unit_price == "-") unit_price = "";
+	$("#update_package_unit_price").val(rowData.unit_price || "");
+	$("#update_package_unit_text").val(rowData.package_unit_text || "");
+	$("#update_supplier").val(rowData.supplier || "");
+	$("#update_goods_serial").val(rowData.goods_serial || "");
+
+	$("#update_unit_price").val("");
+	$("#update_unit_text").val(rowData.unit_text || "")
+	$("#update_capacity").val(rowData.capacity || "").trigger("keyup");
+
 	var imgUrl = "images/noimage128x128.gif";
 	if(rowData.hide_photo_uuid){
 		imgUrl = "http://" + document.location.hostname + "/photos/supplies_refer_list/" + rowData.hide_photo_uuid + "?_s=" + new Date().getTime();
 	}
-	$("#show_photo").attr("src",imgUrl);
+	$("#updateform .show_photo").attr("src",imgUrl);
 	
 	// 前台Validate验证
 	$("#updateform").validate({
@@ -289,11 +363,14 @@ function doUpdate(refer_key){
 		"refer_key" : refer_key,
 		"product_name" : $("#update_product_name").val(),
 		"model_name" : $("#update_model_name").val(),
-		"unit_price" : $("#update_unit_price").val(),
+		"capacity" : $("#update_capacity").val(),
+		"unit_price" : $("#update_package_unit_price").val(),
 		"unit_text" : $("#update_unit_text").val(),
-		"supplier" : $("#update_supplier").val()
+		"package_unit_text" : $("#update_package_unit_text").val(),
+		"supplier" : $("#update_supplier").val(),
+		"goods_serial" : $("#update_goods_serial").val()
 	};
-	
+
 	$.ajax({
 		beforeSend : ajaxRequestType,
 		async : true,
@@ -338,7 +415,7 @@ function uploadPhoto(){
 				treatBackMessages(null, resInfo.errors);
 			} else {
 				var imgUrl = "http://" + document.location.hostname + "/photos/supplies_refer_list/" + resInfo.fileName + "?_s=" + new Date().getTime();
-				$("#show_photo").attr("src",imgUrl);
+				$("#updateform .show_photo").attr("src",imgUrl);
 				$("#update_upload_file").val("");
 				findit();
 			}
@@ -375,4 +452,46 @@ function showDelete(rid) {
 			}
 		});
 	},null,"删除确认");
+}
+
+var imgPaste = function(e){
+	var pastedText = undefined;
+	var browserClipboardData = undefined;
+	if (window.clipboardData && window.clipboardData.getData) { // IE
+		browserClipboardData = window.clipboardData;
+	} else {
+		browserClipboardData = e.originalEvent.clipboardData;
+	}
+	pastedText = browserClipboardData.getData('Text');
+	if(pastedText) {
+		e.preventDefault();
+		return false;
+	}
+
+	var cbFiles = browserClipboardData.files;
+	if (!cbFiles || cbFiles.length == 0) {
+		e.preventDefault();
+		return false;
+	}
+	for (var i in browserClipboardData.items) {
+		var cdItem = browserClipboardData.items[i];
+		if (cdItem.type.indexOf("image") == 0) {
+			var $target = $(e.target);
+			if ($target.length == 1) {
+				$target.html("");
+				var $inpFile = $target.closest("form").find("input:file");
+				if ($inpFile.length == 1) {
+					$inpFile[0].files = cbFiles;
+					$inpFile.trigger("change");
+				}
+				setTimeout(function(){
+					$target.find("img").addClass("show_photo");
+				},20);
+				return true;
+			}
+		}
+	}
+
+	e.preventDefault();
+	return false;
 }

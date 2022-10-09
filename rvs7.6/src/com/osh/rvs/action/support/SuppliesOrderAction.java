@@ -17,7 +17,9 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionForward;
 import org.apache.struts.action.ActionMapping;
 
+import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.PathConsts;
+import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.support.SuppliesDetailForm;
 import com.osh.rvs.form.support.SuppliesOrderForm;
@@ -133,6 +135,10 @@ public class SuppliesOrderAction extends BaseAction {
 					suppliesDetailService.addOrder(suppliesDetailForm, conn);
 				}
 			}
+
+			LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+			service.sendOrderNotice(user, pageForm.getOrder_no());
 		}
 
 		listResponse.put("errors", errors);

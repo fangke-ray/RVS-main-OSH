@@ -22,7 +22,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 <script type="text/javascript" src="js/jquery.mtz.monthpicker.min.js"></script>
-<script type="text/javascript" src="js/support/supplies_detail.js"></script>
+<script type="text/javascript" src="js/support/supplies_detail.es5.js?v=2"></script>
 
 <style type="text/css">
 ul.container{
@@ -81,12 +81,24 @@ ul.container{
 	font-size: 12px;
 }
 
+.item .grid-container .grid-item span.capacity,
+.item .grid-container .grid-item span.goods_serial {
+	margin-left: 1em;
+	font-size: smaller;
+}
+
+.item .grid-container .grid-item.supplier-item-hidden {
+	display:none;
+}
 
 #cutOffTip{
 	display:none;
 	color:#000;
 	font-size: 16px;
 	font-weight: bold;
+	color: gold;
+	float: right;
+	line-height: 2em;
 }
 
 #updateform textarea {
@@ -99,7 +111,12 @@ ul.container{
 	position: fixed;
 	z-index: 2000;
 }
-
+#list button.ui-button-text-only {
+	float: right;
+}
+#list button.ui-button-text-only .ui-button-text {
+	padding: 0 .4em;
+}
 </style>
 
 <title>物品申购</title>
@@ -141,20 +158,23 @@ ul.container{
 									<td class="td-content">
 										<input type="text" id="search_product_name" class="ui-widget-content">
 									</td>
+									<td class="ui-state-default td-title" rowspan="2">申请课室</td>
+									<td class="td-content" rowspan="2" colspan="3">
+										<select id="search_section_id">${sectionOptions }</select>
+									</td>
+								</tr>
+								<tr>
 									<td class="ui-state-default td-title">规格</td>
 									<td class="td-content">
 										<input type="text" id="search_model_name" class="ui-widget-content">
-									</td>
-									<td class="ui-state-default td-title">申请课室</td>
-									<td class="td-content">
-										<select id="search_section_id">${sectionOptions }</select>
 									</td>
 								</tr>
 								<tr>
 									<td class="ui-state-default td-title">申购人员</td>
 									<td class="td-content">
-										<input type="text" id="search_applicator_name" class="ui-widget-content">
+										<input type="text" id="search_applicator_name" style="width:6em;" class="ui-widget-content">
 										<input type="hidden" id="hidden_search_applicator_id">
+										<input type="button" id="btn_self_applicator" class="ui-button" value="本人">
 									</td>
 									<td class="ui-state-default td-title">申请日期</td>
 									<td class="td-content">
@@ -188,11 +208,21 @@ ul.container{
 									<td class="td-content">
 										<input type="text" class="ui-widget-content" id="search_budget_month" readonly="readonly">
 									</td>
-									<td class="ui-state-default td-title">验收日期</td>
-									<td class="td-content">
+									<td class="ui-state-default td-title" rowspan=2>验收日期</td>
+									<td class="td-content" rowspan=2>
 										<input type="text" class="ui-widget-content" id="search_inline_recept_date_start" readonly="readonly">起<br>
 										<input type="text" class="ui-widget-content" id="search_inline_recept_date_end" readonly="readonly">止
 									</td>
+									<td class="ui-state-default td-title" rowspan=2>进行状态</td>
+									<td class="td-content" rowspan=2 id="search_step_set">
+										<input type="checkbox" name="step" <%=(isLiner || isMamager ?"checked" : "")%> id="step_a" class="ui-helper-hidden-accessible" value="1"><label for="step_a" aria-pressed="false">申购提出</label>
+										<input type="checkbox" name="step" <%=(isSupport || signEdit ?"checked" : "")%> id="step_o" class="ui-helper-hidden-accessible" value="2"><label for="step_o" aria-pressed="false">申购过程</label>
+										<input type="checkbox" name="step" <%=(isLiner || isMamager || isSupport ?"checked" : "")%> id="step_t" class="ui-helper-hidden-accessible" value="4"><label for="step_t" aria-pressed="false">等待到货/验收</label>
+										<input type="checkbox" name="step" id="step_f" class="ui-helper-hidden-accessible" value="8"><label for="step_f" aria-pressed="false">已验收</label>
+										<input type="hidden" name="step" id="step_reset">
+									</td>
+								</tr>
+								<tr>
 									<td class="ui-state-default td-title">发票号</td>
 									<td class="td-content">
 										<input type="text" class="ui-widget-content" id="search_invoice_no">
@@ -219,16 +249,22 @@ ul.container{
 						<div id="listpager"></div>
 						<div class="ui-widget-header areabase dwidth-middleright" style="padding-top:4px;">
 							<div id="executes" style="margin-left:4px;margin-top:4px;">
+								<input class="ui-button" id="confirmOrderButton" value="确认订购单" type="button" style="float:right;margin-right: 4px;">
 <%if(isMamager || isLiner || isSupport){ %>						
 								<input class="ui-button" id="applicationButton" value="申请" type="button">
-								<input class="ui-button" id="inlineReceptbutton" value="验收" type="button" style="margin-left: 2px;">
-	<% if(isSupport){ %>
-								<input class="ui-button" id="editButton" value="编辑订购单" type="button" style="margin-left: 2px;">
-								<input class="ui-button" id="receptButton" value="收货" type="button" style="margin-left: 2px;">
-								<input class="ui-button" id="invoiceButton" value="填写发票" type="button" style="margin-left: 2px;">
+	<% if(isLiner){ %>
+								<input class="ui-button" id="postButton" value="发送通知" type="button" style="margin-left: 2px;">
 	<% } %>
+	<% if(isMamager){ %>
+								<input class="ui-button" id="batchOkButton" value="批量确认" type="button" style="margin-left: 2px;">
+	<% } %>
+	<% if(isSupport){ %>
+								<input class="ui-button" id="editButton" value="编辑订购单" type="button" style="float:right;margin-right: 4px;">
+								<input class="ui-button" id="receptButton" value="收货" type="button" style="float:right;margin-right: 4px;">
+								<input class="ui-button" id="invoiceButton" value="填写发票号" type="button" style="float:right;margin-right: 4px;">
+	<% } %>
+								<input class="ui-button" id="inlineReceptbutton" value="验收" type="button" style="margin-left: 2px;">
 <% } %>
-								<input class="ui-button" id="confirmOrderButton" value="确认订购单" type="button" style="float:right;margin-right: 2px;">
 							</div>
 						</div>
 					</div>
@@ -268,12 +304,15 @@ ul.container{
 					</form>
 				</div>
 
-				<div class="ui-widget-content" id="filterContainer" style="overflow-y:scroll;height: 356px;margin-top: 4px;">
+				<div class="ui-widget-content" id="filterContainer" style="overflow-y:scroll;height: 266px;margin-top: 4px;">
 					<ul class="container"></ul>
 				</div>
 
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser" style="margin-top: 4px;">
 					<span class="areatitle">新建物品申购明细</span>
+					<div id="cutOffTip" class="icon-bell">
+						目前已过本周申请截至日期，您的申请将延至下周受理。
+					</div>
 				</div>
 				<div class="ui-widget-content">
 					<form id="addForm" method="POST" onsubmit="return false;">
@@ -309,14 +348,17 @@ ul.container{
 								</td>
 							</tr>
 							<tr>
-								<td class="ui-state-default td-title">用途</td>
+								<td class="ui-state-default td-title">
+									用途
+									<input type="checkbox" id="urgent_flg" class="ui-button"></input>
+									<label style="border:1px solid #db4865;" for="urgent_flg">加急申请</label>
+								</td>
 								<td class="td-content" colspan="3">
 									<textarea id="add_nesssary_reason" name="nesssary_reason" class="ui-widget-content" alt="用途" style="resize: none;font-size: 12px; width: 560px; height: 44px;"></textarea>
 								</td>
 							</tr>
 						</table>
 					</form>
-					<div id="cutOffTip" class="icon-bell">目前已过本周申请截至日期，您的申请将延至下周受理。</div>
 				</div>
 			</div>
 
@@ -402,5 +444,10 @@ ul.container{
 		</div>
 	</div>
 	<div id="ball"></div>
+
+	<div id="postDialog" style="display:none;">
+		<table class="subform" style="cursor:pointer;">${oReferChooser}</table>
+	</div>
+
 </body>
 </html>

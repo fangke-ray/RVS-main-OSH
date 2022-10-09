@@ -462,7 +462,11 @@ public class SuppliesDetailAction extends BaseAction {
 			suppliesDetailForm.setSupplies_key(suppliesKey);
 			suppliesDetailService.recept(suppliesDetailForm, conn);
 		}
-		
+
+		if (keys.size() > 0 && errors.size() == 0) {
+			suppliesDetailService.sendMailToApplier(keys);
+		}
+
 		listResponse.put("errors", errors);
 
 		// 返回Json格式响应信息
@@ -470,7 +474,35 @@ public class SuppliesDetailAction extends BaseAction {
 		
 		log.info("SuppliesDetailAction.doRecept end");
 	}
-	
+
+	/**
+	 * 取得可验收项目
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void getInlineRecept(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SuppliesDetailAction.getInlineRecept start");
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+		listResponse.put("inlineReceptList", suppliesDetailService.getInlineRecept(user, conn));
+
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("SuppliesDetailAction.getInlineRecept end");
+	}
+
 	/**
 	 * 验收
 	 * @param mapping
@@ -486,10 +518,17 @@ public class SuppliesDetailAction extends BaseAction {
 		Map<String, Object> listResponse = new HashMap<String, Object>();
 		
 		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ONLYKEY);
-		
+
+		String supplies_keys = req.getParameter("supplies_key");
+
 		List<MsgInfo> errors = v.validate();
+		if(errors.size() == 1){
+			if ("framework.huiqing.common.util.validator.MaxlengthValidator".equals(errors.get(0).getErrcode())) {
+				errors.clear();
+			}
+		}
 		if(errors.size() == 0){
-			suppliesDetailService.inlineRecept(form, conn);
+			suppliesDetailService.inlineRecept(supplies_keys, conn);
 		}
 		
 		listResponse.put("errors", errors);
@@ -530,4 +569,58 @@ public class SuppliesDetailAction extends BaseAction {
 		log.info("SuppliesOrderAction.doInvoice end");
 	}
 
+	/**
+	 * 发送通知经理确认
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void sendPostMessage(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SuppliesDetailAction.sendPostMessage start");
+
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		suppliesDetailService.sendPostMessage(form, user);
+
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("SuppliesDetailAction.sendPostMessage end");
+	}
+
+	/**
+	 * 发送加急通知确认
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void sendUrgentNotice(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("SuppliesDetailAction.sendUrgentNotice start");
+
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+		suppliesDetailService.sendUrgentNotice(user);
+
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("SuppliesDetailAction.sendUrgentNotice end");
+	}
+	
 }
