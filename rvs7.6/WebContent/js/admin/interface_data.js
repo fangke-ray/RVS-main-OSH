@@ -106,7 +106,7 @@ var showContentDetail = function(){
 	var content_dialog = $("#detail_dialog").hide();
 	// 导入详细画面
 	content_dialog.load("widgets/manage/interface_data_edit.jsp" , function(responseText, textStatus, XMLHttpRequest) {
-		$("#recept_edit_directly_to_sorc,#recept_edit_animal_experiment").buttonset();
+		$("#recept_edit_directly_to_sorc,#recept_edit_animal_experiment,#recept_edit_contract_related").buttonset();
 		$("#recept_edit_ocm_ship_date, #recept_edit_agree_time," +
 		  "#approve_edit_item_receiver_date,#approve_edit_item_input_line_date," +
 		  "#part_order_edit_parts_confrim_date").datepicker({
@@ -195,6 +195,12 @@ var setValue = function(detailForm){
 		} else {
 			$("#animal_experiment_no").attr("checked","checked").trigger("change");
 		}
+		if (content.ContractRelated && content.ContractRelated.length) {
+			$("#contract_related_yes").attr("checked","checked").trigger("change");
+		} else {
+			$("#contract_related_no").attr("checked","checked").trigger("change");
+		}
+		$("#recept_edit_free_flag").val(content.FreeFlag);
 	}else if(kind=="part_order"){
 		$("#part_order_edit_omr_notifi_no").text(content.OMRNotifiNo);//SAP修理通知单No.
 		$("#part_order_edit_sorc_code").text(content.SORCCode);//SORC代码
@@ -397,6 +403,8 @@ var comfirm_f = function(){
 		data.edit_item_receiver_person = $("#recept_edit_item_receiver_person").val();
 		data.edit_failure_descrip = $("#recept_edit_failure_descrip").val();
 		data.edit_animal_experiment = $("#recept_edit_animal_experiment input:checked").val();
+		data.edit_contract_related = $("#recept_edit_contract_related input:checked").val();
+		data.edit_free_flag = $("#recept_edit_free_flag").val();
 	}else if(kind=="part_order"){
 		data.OMRNotifiNo = $("#part_order_edit_omr_notifi_no").text();
 		data.SORCCode = $("#part_order_edit_sorc_code").text();

@@ -23,8 +23,12 @@ import framework.huiqing.common.util.copy.CopyOptions;
 public class MaterialTagService {
 
 	public static final int TAG_ANIMAL_EXPR = 1;
+	public static final int TAG_TO_LEAK_TEST = 2;
+	public static final int TAG_LEAK_TESTED = 3;
 	public static final int TAG_DISINFECT = 4;
 	public static final int TAG_STERIZE = 5;
+	public static final int TAG_CONTRACT_RELATED = 6;
+	public static final int TAG_SHIFT_CONTRACT_RELATED = 7;
 
 	private static Set<String> anml_materials = null;
 
@@ -64,36 +68,57 @@ public class MaterialTagService {
 	 * @param material_id 维修品 ID
 	 * @param tag_type 标签
 	 * @param checked 提交勾选
+	 * @param option 1 = on; -1 = off; 0 = toggle
 	 * @param conn
+	 * @return updateStatus 1 = on; -1 = off; 0 = unchanged 
 	 */
-	public void updataTagByMaterialId(String material_id, Integer tag_type, boolean checked, SqlSessionManager conn) {
+	public int switchTagByMaterialId(String material_id, Integer tag_type, SqlSessionManager conn) {
+		return updataTagByMaterialId(material_id, tag_type, 0, conn);
+	}
+	public int updataTagByMaterialId(String material_id, Integer tag_type, boolean checked, SqlSessionManager conn) {
+		return updataTagByMaterialId(material_id, tag_type, (checked ? 1 : -1), conn);
+	}
+	public int updataTagByMaterialId(String material_id, Integer tag_type, int option, SqlSessionManager conn) {
 		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
 
 		List<Integer> result = mapper.checkTagByMaterialId(material_id, tag_type + "");
+		int updateStatus = 0;
 
-		if (checked) {
+		if (option == 1 || option == 0) {
 			// 不存在则插入
 			if (result == null || result.size() == 0) {
 				MaterialTagEntity entity = new MaterialTagEntity();
 				entity.setMaterial_id(material_id);
 				entity.setTag_type(tag_type);
 				mapper.insert(entity);
+				updateStatus = 1;
 			}
-		} else {
+		} 
+		if (option == -1 || option == 0) {
 			// 存在则删除
 			if (result != null && result.size() > 0) {
 				mapper.deleteTagByMaterialId(material_id, tag_type + "");
+				updateStatus = -1;
 			}
 		}
 
 		if (TAG_ANIMAL_EXPR == tag_type) {
 			resetAnmlMaterials(conn);
 		}
+
+		return updateStatus;
 	}
 
 	public List<Integer> checkTagByMaterialId(String material_id, Integer tag_type, SqlSession conn) {
 		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
 		return mapper.checkTagByMaterialId(material_id, tag_type + "");
+	}
+
+	public boolean checkTagsXorByMaterialId(String material_id, Integer tag_type_a, Integer tag_type_b, SqlSession conn) {
+		MaterialTagMapper mapper = conn.getMapper(MaterialTagMapper.class);
+		boolean a_exists = mapper.checkTagByMaterialId(material_id, tag_type_a + "").size() > 0;
+		boolean b_exists = mapper.checkTagByMaterialId(material_id, tag_type_b + "").size() > 0;
+		return a_exists != b_exists;
 	}
 
 	/**

@@ -118,7 +118,7 @@ tr.three td:first-child{
 						<tr>
 							<td class="ui-state-default td-title">故障信息</td>
 							<td class="td-content">
-								<input type="text" id="recept_edit_failure_descrip" class="ui-widget-content" maxlength="12">
+								<input type="text" id="recept_edit_failure_descrip" class="ui-widget-content" maxlength="200">
 							</td>
 						</tr>
 						<tr>
@@ -126,6 +126,19 @@ tr.three td:first-child{
 							<td class="td-content" id="recept_edit_animal_experiment">
 								<input type="radio" name="animal_experiment" id="animal_experiment_yes" class="ui-widget-content" value="1"><label for="animal_experiment_yes">是</label>
 								<input type="radio" name="animal_experiment" id="animal_experiment_no" class="ui-widget-content" value=""><label for="animal_experiment_no">否</label>
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">合同对象品</td>
+							<td class="td-content" id="recept_edit_contract_related">
+								<input type="radio" name="contract_related" id="contract_related_yes" class="ui-widget-content" value="1"><label for="contract_related_yes">是</label>
+								<input type="radio" name="contract_related" id="contract_related_no" class="ui-widget-content" value=""><label for="contract_related_no">否</label>
+							</td>
+						</tr>
+						<tr>
+							<td class="ui-state-default td-title">无偿区别标志</td>
+							<td class="td-content">
+								<input type="text" id="recept_edit_free_flag" class="ui-widget-content" maxlength="12">
 							</td>
 						</tr>
 					</tbody>

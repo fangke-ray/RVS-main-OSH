@@ -92,7 +92,8 @@
 							ELSE 2
 						END
 				END AS avaliable_end_date_flg,
-				mt.tag_type is not null as anml_exp
+				mt1.tag_type is not null as anml_exp,
+				mt6.tag_type is not null as contract_related
 			FROM material a
 			LEFT JOIN production_feature b
 				ON a.material_id = b.material_id
@@ -103,10 +104,13 @@
 				ON a.customer_id = c.customer_id
 			LEFT JOIN turnover_case_storage tcs ON a.material_id = tcs.material_id
 			JOIN (select date_add(current_date, interval 15 day) as avaliable_date) dy 
-			LEFT JOIN material_tag mt
-				ON a.material_id = mt.material_id AND tag_type = 1
+			LEFT JOIN material_tag mt1
+				ON a.material_id = mt1.material_id AND mt1.tag_type = 1
+			LEFT JOIN material_tag mt6
+				ON a.material_id = mt6.material_id AND mt6.tag_type = 6
 			WHERE a.break_back_flg = 0
-and a.inline_time is null -- [SpeedUp]
+			and a.outline_time is null
+			and a.inline_time is null
 			and not exists (
 				select material_id from production_feature p1
 				where p1.material_id = a.material_id

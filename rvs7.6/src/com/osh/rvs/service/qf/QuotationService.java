@@ -70,6 +70,15 @@ public class QuotationService {
 			ModelService mdlService = new ModelService();
 			ModelEntity model = mdlService.getDetailEntity(entity.getModel_id(), conn);
 			series = model.getSeries();
+
+			if ("URF".equals(series)) {
+				MaterialTagService tagService = new MaterialTagService();
+				if (!tagService.checkTagsXorByMaterialId(entity.getMaterial_id(), 
+						MaterialTagService.TAG_CONTRACT_RELATED, MaterialTagService.TAG_SHIFT_CONTRACT_RELATED,
+						conn)) {
+					series = "URF-UNCONTRACT_RELATED";
+				}
+			}
 		}
 		Date[] workDates = RvsUtils.getTimeLimit(entity.getAgreed_date(), entity.getLevel(), 
 				entity.getFix_type(), entity.getScheduled_expedited(), series, conn, false);

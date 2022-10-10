@@ -13,7 +13,13 @@
 			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
 			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, 
 			  (current_timestamp - `m`.reception_time  > 2000000) * 10 +`m`.quotation_first as quotation_first,
-			  `m`.scheduled_expedited + (mdl.series = 'URF') * 4 as  scheduled_expedited,
+			  `m`.scheduled_expedited + (
+				CASE WHEN mdl.series = 'URF' THEN
+					exists 
+					(select sum(tag_type = 6) xor sum(tag_type = 7) as ts from material_tag where material_id = `m`.material_id group by material_id
+					having ts = 1)
+				ELSE 0 END
+			  ) * 4 as  scheduled_expedited,
 			  mt.tag_type is not null as anml_exp
 			FROM material m
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
@@ -44,7 +50,13 @@
 			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result as now_operate_result,
 			  `psf`.reason as now_pause_reason, `pf`.position_id as processing_position, 
 			  (current_timestamp - `wpf`.action_time) > 2000000 as quotation_first, 
-			  `m`.scheduled_expedited + (mdl.series = 'URF') * 4 as  scheduled_expedited,
+			  `m`.scheduled_expedited + (
+				CASE WHEN mdl.series = 'URF' THEN
+					exists 
+					(select sum(tag_type = 6) xor sum(tag_type = 7) as ts from material_tag where material_id = `m`.material_id group by material_id
+					having ts = 1)
+				ELSE 0 END
+			  ) * 4 as  scheduled_expedited,
 				mt.tag_type is not null as anml_exp
 			FROM material m
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
@@ -145,7 +157,13 @@
 			`m`.selectable,
 			`m`.agreed_date,
 			`m`.bound_out_ocm,
-			`m`.scheduled_expedited + (mdl.series = 'URF') * 4 as scheduled_expedited
+			`m`.scheduled_expedited + (
+				CASE WHEN mdl.series = 'URF' THEN
+					exists 
+					(select sum(tag_type = 6) xor sum(tag_type = 7) as ts from material_tag where material_id = `m`.material_id group by material_id
+					having ts = 1) + 1
+				ELSE 0 END
+			) * 4 as scheduled_expedited
 		 FROM material m 
 		 JOIN v_model mdl
 		 	ON `m`.model_id = `mdl`.model_id

@@ -23,10 +23,6 @@ var stepOptions = "";
 /** 医院autocomplete **/
 var customers = {};
 
-var lightRepairs=[];
-var chosedPat = {};
-var chosedPos = {};
-
 var showWipEmpty=function() {
 	$.ajax({
 		beforeSend : ajaxRequestType,
@@ -575,7 +571,12 @@ var getMaterialInfo = function(resInfo) {
 	if (!resInfo.finish_check) {
 		var scheduled_expedited = resInfo.mform.scheduled_expedited;
 		if (scheduled_expedited >= 4) {
-			$("#material_details td:eq(1)").html("<span class='top_speed'>" + resInfo.mform.model_name + "</span><span class='ui-state-default' style='margin-left: 2em;padding: 4px;'>出货日期</span><span class='top_speed'>" + resInfo.mform.outline_time + "</span>")
+			var top_class = (scheduled_expedited < 8 ? "top_taged" : "top_speed");
+			var switch_text = (scheduled_expedited < 8 ? "切换成疾速修理" : "出货日期");
+			$("#material_details td:eq(1)").html("<span title='切换疾速修理' class='" + top_class + "'>" 
+				+ resInfo.mform.model_name + "</span><span class='ui-state-default' style='margin-left: 2em;padding: 4px;'>" + switch_text + 
+				"</span><span class='" + top_class + "'>" 
+				+ resInfo.mform.outline_time + "</span>")
 				.attr("model_id", resInfo.mform.model_id);
 		} else {
 			$("#material_details td:eq(1)").text(resInfo.mform.model_name).attr("model_id", resInfo.mform.model_id);
@@ -638,7 +639,7 @@ var getMaterialInfo = function(resInfo) {
 			$("#direct_rapid").next().hide();
 		} else {
 			$("#edit_direct_flg").text("直送").addClass("fit2rapid");
-			if (scheduled_expedited == 2 || scheduled_expedited == 6) {
+			if (scheduled_expedited == 2 || scheduled_expedited == 6|| scheduled_expedited == 10) {
 				$("#direct_rapid").attr("checked", "checked")
 					.next().show().children("span").text("快速");
 			} else {
@@ -1293,6 +1294,40 @@ $(function() {
 					pcsO.append(resInfo.appendPcses);
 				}
 			});
+	});
+
+	$("#material_details td[model_id]").click(function(evt){
+		if (evt.target.tagName === "SPAN") {
+			var $top = $(this).find(".top_speed,.top_taged");
+			if ($top.length > 0) {
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : true,
+					url : servicePath + '?method=doSwitchTopSpeed',
+					cache : false,
+					data : {material_id : $("#hide_material_id").val()},
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function(xhrobj) {
+						var resInfo = $.parseJSON(xhrobj.responseText);
+						if (resInfo.errors.length > 0) {
+							// 共通出错信息框
+							treatBackMessages(null, resInfo.errors);
+						} else {
+							if(!resInfo.isTopSpeed) {
+								$top.removeClass("top_speed").addClass("top_taged");
+								$top.next(".ui-state-default").text("切换成疾速修理");
+							} else {
+								$top.removeClass("top_taged").addClass("top_speed");
+								$top.next(".ui-state-default").text("出货日期");
+							}
+						}
+					}
+				});
+			}
+		}
 	});
 });
 

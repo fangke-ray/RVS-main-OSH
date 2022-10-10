@@ -116,6 +116,14 @@ public class HolidayService {
 			Integer fixType = me.getFix_type();
 			Integer scheduledExpedite = me.getScheduled_expedited();
 			String series = me.getKind();
+			if ("URF".equals(series)) {
+				MaterialTagService tagService = new MaterialTagService();
+				if (!tagService.checkTagsXorByMaterialId(me.getMaterial_id(), 
+						MaterialTagService.TAG_CONTRACT_RELATED, MaterialTagService.TAG_SHIFT_CONTRACT_RELATED,
+						conn)) {
+					series = "URF-UNCONTRACT_RELATED";
+				}
+			}
 			String agreedDateGetTimeKey = agreedDate.getTime() + "_" + level + "_" + fixType + "_" + scheduledExpedite + "_" + series;
 
 			if (!catchMap.containsKey(agreedDateGetTimeKey)) {

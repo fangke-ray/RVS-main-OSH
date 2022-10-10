@@ -10,7 +10,13 @@
 			SELECT `m`.material_id,coalesce(m.omr_notifi_no,m.sorc_no) as sorc_no, `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm, `m`.bound_out_ocm,
 				`m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
 				`m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, 
-				`m`.scheduled_expedited + (mdl.series = 'URF') * 4 as  scheduled_expedited,
+				`m`.scheduled_expedited + (
+					CASE WHEN mdl.series = 'URF' THEN
+						exists 
+						(select sum(tag_type = 6) xor sum(tag_type = 7) as ts from material_tag where material_id = `m`.material_id group by material_id
+						having ts = 1)
+					ELSE 0 END
+				) * 4 as  scheduled_expedited,
 				coalesce(`mp`.finish_date,`m`.outline_time) as finish_time,
 				`m`.break_back_flg, tcs.location as wip_location,
 				(SELECT

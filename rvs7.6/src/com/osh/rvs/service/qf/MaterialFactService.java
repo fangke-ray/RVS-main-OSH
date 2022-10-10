@@ -411,8 +411,18 @@ public class MaterialFactService {
 
 		ModelService mdlService = new ModelService();
 		ModelEntity model = mdlService.getDetailEntity(entity.getModel_id(), conn);
+		String series = model.getSeries();
+		if ("URF".equals(series)) {
+			MaterialTagService tagService = new MaterialTagService();
+			if (!tagService.checkTagsXorByMaterialId(entity.getMaterial_id(), 
+					MaterialTagService.TAG_CONTRACT_RELATED, MaterialTagService.TAG_SHIFT_CONTRACT_RELATED,
+					conn)) {
+				series = "URF-UNCONTRACT_RELATED";
+			}
+		}
+
 		Date[] workDates = RvsUtils.getTimeLimit(agreedDate, entity.getLevel(), 
-				entity.getFix_type(), entity.getScheduled_expedited(), model.getSeries(), conn, true);
+				entity.getFix_type(), entity.getScheduled_expedited(), series, conn, true);
 
 		Date workDate = workDates[0];
 		entity.setScheduled_date(workDate);

@@ -293,14 +293,34 @@ public class MaterialProcessAssignService {
 				ModelService mdlService = new ModelService();
 				ModelEntity model = mdlService.getDetailEntity(mBean.getModel_id(), conn);
 				if (decToogle == 1 || nsToogle == 1) {
+					String series = model.getSeries();
+					if ("URF".equals(series)) {
+						MaterialTagService tagService = new MaterialTagService();
+						if (!tagService.checkTagsXorByMaterialId(mBean.getMaterial_id(), 
+								MaterialTagService.TAG_CONTRACT_RELATED, MaterialTagService.TAG_SHIFT_CONTRACT_RELATED,
+								conn)) {
+							series = "URF-UNCONTRACT_RELATED";
+						}
+					}
+
 					Date[] dSchedulePlans = RvsUtils.getTimeLimit(mBean.getAgreed_date(), 
-							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), model.getSeries(), conn, true);
+							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), series, conn, true);
 					scheduledDate = dSchedulePlans[0];
 					beforeScheduledDate = dSchedulePlans[1];
 				}
 				if (comToogle == 1 && scheduledDate == null) {
+					String series = model.getSeries();
+					if ("URF".equals(series)) {
+						MaterialTagService tagService = new MaterialTagService();
+						if (!tagService.checkTagsXorByMaterialId(mBean.getMaterial_id(), 
+								MaterialTagService.TAG_CONTRACT_RELATED, MaterialTagService.TAG_SHIFT_CONTRACT_RELATED,
+								conn)) {
+							series = "URF-UNCONTRACT_RELATED";
+						}
+					}
+
 					Date[] dSchedulePlans = RvsUtils.getTimeLimit(mBean.getAgreed_date(), 
-							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), model.getSeries(), conn, false);
+							mBean.getLevel(), mBean.getFix_type(), mBean.getScheduled_expedited(), series, conn, false);
 					scheduledDate = dSchedulePlans[0];
 				}
 			}

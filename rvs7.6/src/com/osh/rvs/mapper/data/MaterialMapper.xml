@@ -61,6 +61,7 @@
 				mdl.kind,
 				mdl.with_case as unrepair_flg,
 				mdl.series as processing_position,
+				exists (select 1 from material_tag where material_id = m.material_id and tag_type = 6) as contract_related,
 				(CASE
 					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98 OR `m`.level = 99
 						THEN 7

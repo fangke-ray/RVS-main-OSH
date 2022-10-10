@@ -21,6 +21,7 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -424,9 +425,17 @@ public class DownloadService {
 					Date dSchedulePlan = RvsUtils.switchWorkDate(mBean.getAgreed_date(), RvsConsts.TIME_LIMIT, conn);
 					sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
 				} else {
-					// Processing_position = model.series
+					String series = mBean.getProcessing_position();
+					if ("URF".equals(series)) {
+						MaterialTagService tagService = new MaterialTagService();
+						if (!tagService.checkTagsXorByMaterialId(mBean.getMaterial_id(), 
+								MaterialTagService.TAG_CONTRACT_RELATED, MaterialTagService.TAG_SHIFT_CONTRACT_RELATED,
+								conn)) {
+							series = "URF-UNCONTRACT_RELATED";
+						}
+					}
 					Date dSchedulePlan = RvsUtils.getTimeLimit(mBean.getAgreed_date(), mBean.getLevel(), 
-							mBean.getFix_type(), mBean.getScheduled_expedited(), mBean.getProcessing_position(), conn, false)[0];
+							mBean.getFix_type(), mBean.getScheduled_expedited(), series, conn, false)[0];
 					sSchedulePlan = DateUtil.toString(dSchedulePlan, DateUtil.ISO_DATE_PATTERN);
 				}
 			} else {
@@ -472,7 +481,12 @@ public class DownloadService {
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
 			topTable.addCell(cell);
 
-			cell = new PdfPCell(new Paragraph(mBean.getModel_name(), titleFont));
+			String sModelName = mBean.getModel_name();
+			Chunk chModelName = new Chunk(sModelName, titleFont);
+			if (sModelName.length() >= 25 && sModelName.indexOf(" ") > 0) {
+				chModelName.setHorizontalScaling(0.96f-(sModelName.length() - 24)*0.05f);
+			}
+			cell = new PdfPCell(new Paragraph(chModelName));
 			cell.setFixedHeight(22);
 			cell.setHorizontalAlignment(PdfPTable.ALIGN_CENTER);
 			cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
@@ -698,6 +712,20 @@ public class DownloadService {
 			mainTable.addCell(bottomTable);
 
 			document.add(mainTable);
+
+			// 合同用户
+			if (mBean.getContract_related() != null && mBean.getContract_related() == 1) {
+				cd.rectangle(182, 155, 40, 14);
+				cd.setColorFill(BaseColor.WHITE);
+				cd.fillStroke();
+
+				cd.setColorFill(BaseColor.BLACK);
+				cd.beginText();
+				cd.setTextMatrix(188, 160);
+				cd.setFontAndSize(detailFont.getBaseFont(), detailFont.getSize());
+				cd.showText("合同用户");
+				cd.endText();
+			}
 		}
 	}
 

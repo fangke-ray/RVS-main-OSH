@@ -122,6 +122,8 @@ public class MaterialEntity implements Serializable {
 
 	private String optional_fix_id;
 
+	private Integer contract_related;
+
 	private Integer int_search_addition;
 
 	public String getCategory_id() {
@@ -830,6 +832,14 @@ public class MaterialEntity implements Serializable {
 
 	public void setOptional_fix_id(String optional_fix_id) {
 		this.optional_fix_id = optional_fix_id;
+	}
+
+	public Integer getContract_related() {
+		return contract_related;
+	}
+
+	public void setContract_related(Integer contract_related) {
+		this.contract_related = contract_related;
 	}
 	
 }

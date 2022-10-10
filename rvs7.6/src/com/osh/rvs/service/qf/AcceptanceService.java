@@ -69,7 +69,7 @@ public class AcceptanceService {
 		AcceptanceMapper dao = conn.getMapper(AcceptanceMapper.class);
 		dao.insertMaterial(insertBean);
 
-		if (insertBean.getAnml_exp() != null) {
+		if (insertBean.getAnml_exp() != null || insertBean.getContract_related() != null) {
 			needId = true;
 		}
 
@@ -81,6 +81,11 @@ public class AcceptanceService {
 		if (insertBean.getAnml_exp() != null) {
 			MaterialTagService mtService = new MaterialTagService();
 			mtService.updataTagByMaterialId(insertBean.getMaterial_id(), MaterialTagService.TAG_ANIMAL_EXPR, insertBean.getAnml_exp() == 1, conn);
+		}
+
+		if (insertBean.getContract_related() != null) {
+			MaterialTagService mtService = new MaterialTagService();
+			mtService.updataTagByMaterialId(insertBean.getMaterial_id(), MaterialTagService.TAG_CONTRACT_RELATED, insertBean.getContract_related() == 1, conn);
 		}
 
 		return insertBean.getMaterial_id();
@@ -325,6 +330,11 @@ public class AcceptanceService {
 			mtService.updataTagByMaterialId(insertBean.getMaterial_id(), MaterialTagService.TAG_ANIMAL_EXPR, insertBean.getAnml_exp() == 1, conn);
 		}
 
+		// 标签更新
+		if (insertBean.getContract_related() != null) {
+			MaterialTagService mtService = new MaterialTagService();
+			mtService.updataTagByMaterialId(insertBean.getMaterial_id(), MaterialTagService.TAG_CONTRACT_RELATED, insertBean.getContract_related() == 1, conn);
+		}
 	}
 
 	/**

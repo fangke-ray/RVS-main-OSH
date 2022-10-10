@@ -938,6 +938,7 @@ var doResystem=function() {
 		$("#selectable").val(rowdata["selectable"]).trigger("change");
 		$("#edit_anml_exp").val(rowdata["anml_exp"]).trigger("change");
 
+		$("#edit_contract_related").remove();
 		$("#direct,#service_repair,#fix_type,#selectable,#edit_anml_exp,#edit_ocm,#edit_level,#edit_storager").select2Buttons();
 		$("#referchooser_edit").html( $("#model_refer1").html());
 		setReferChooser($("#edit_modelname"), $("#referchooser_edit"));
@@ -1209,6 +1210,8 @@ var showDetail=function(rid) {
 		} else {
 			$("#edit_bound_out_ocm").parents("tr").hide();
 		}
+
+		$("#edit_contract_related").remove();
 
 		$("#direct,#service_repair,#fix_type,#selectable,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm,#edit_anml_exp").select2Buttons();
 

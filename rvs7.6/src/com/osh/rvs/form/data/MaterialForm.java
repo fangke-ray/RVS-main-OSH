@@ -190,6 +190,9 @@ public class MaterialForm extends ActionForm {
 	@BeanField(title = "选择修", name = "optional_fix_id", type = FieldType.String, length = 11)
 	private String optional_fix_id;
 
+	@BeanField(title = "合同对象", name = "contract_related", type = FieldType.Integer, length = 1)
+	private String contract_related;
+
 	@BeanField(title = "-", name = "int_search_addition", type = FieldType.Integer, length = 2)
 	private String search_addition;
 
@@ -921,6 +924,14 @@ public class MaterialForm extends ActionForm {
 
 	public void setOptional_fix_id(String optional_fix_id) {
 		this.optional_fix_id = optional_fix_id;
+	}
+
+	public String getContract_related() {
+		return contract_related;
+	}
+
+	public void setContract_related(String contract_related) {
+		this.contract_related = contract_related;
 	}
 
 }

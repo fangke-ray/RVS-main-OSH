@@ -117,14 +117,29 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<td class="td-content"><input class="ui-widget-content" id="edit_package_no" value="原箱"></input></td>
 				</tr>
 				<tr>
-				<td rowspan="4" class="ui-state-default td-title">备注</td>
-				<td class="td-content" colspan="3">
+				<td rowspan="3" class="ui-state-default td-title">备注</td>
+				<td class="td-content" colspan="2">
 					<select id="direct" class="ui-widget-content">
 						<%=CodeListUtils.getSelectOptions("material_direct", null, "(普通)", false) %>
 					</select>
 					<div>
 					<input type="checkbox" class="ui-button" id="direct_rapid"></input><label for="direct_rapid">快速</label>
 					</div>
+					<select id="edit_contract_related" class="ui-widget-content">
+						<option value="0">(普通)</option>
+						<option value="1">合同对象</option>
+					</select>
+				</td>
+				<td class="td-content" >
+					<select id="selectable" class="ui-widget-content">
+						<option value="0">(普通)</option>
+						<option value="1">选择式报价</option>
+					</select>
+					<select id="edit_anml_exp" class="ui-widget-content">
+						<option value="0">(普通)</option>
+						<option value="1">动物实验用</option>
+					</select>
+					<label id="label_anml_exp"></label>
 				</td>
 				</tr>
 				<tr>
@@ -143,19 +158,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<%=CodeListUtils.getSelectOptions("material_fix_type", null, "", false) %>
 						<% } %>
 					</select>
-				</td>
-				</tr>
-				<tr>
-				<td class="td-content" colspan="3">
-					<select id="selectable" class="ui-widget-content">
-						<option value="0">(普通)</option>
-						<option value="1">选择式报价</option>
-					</select>
-					<select id="edit_anml_exp" class="ui-widget-content">
-						<option value="0">(普通)</option>
-						<option value="1">动物实验用</option>
-					</select>
-					<label id="label_anml_exp"></label>
 				</td>
 				</tr>
 				<tr>

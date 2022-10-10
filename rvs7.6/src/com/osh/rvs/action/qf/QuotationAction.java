@@ -1000,4 +1000,42 @@ public class QuotationAction extends BaseAction {
 
 		log.info("QuotationAction.dofinish end");
 	}
+
+	/**
+	 * 切换急速修理
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit={0})
+	public void doSwitchTopSpeed(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("QuotationAction.doSwitchTopSpeed start");
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String materialId = req.getParameter("material_id");
+
+		MaterialTagService mtService = new MaterialTagService();
+		mtService.switchTagByMaterialId(materialId, 
+				MaterialTagService.TAG_SHIFT_CONTRACT_RELATED, conn);
+
+		if (mtService.checkTagsXorByMaterialId(materialId, 
+				MaterialTagService.TAG_CONTRACT_RELATED, MaterialTagService.TAG_SHIFT_CONTRACT_RELATED,
+				conn)) {
+			cbResponse.put("isTopSpeed", 1);
+		}
+
+		// 检查发生错误时报告错误信息
+		cbResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+
+		log.info("QuotationAction.doSwitchTopSpeed end");
+	}	
+
 }

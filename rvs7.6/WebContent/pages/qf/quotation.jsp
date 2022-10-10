@@ -20,6 +20,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 .tube-liquid .material_flags .service_repair_flg.refee {
 	background-color: rgb(79, 255, 215);
 }
+#material_details .top_speed,
+#material_details .top_taged {
+	cursor: pointer;
+}
+
+#material_details .top_taged {
+	color: #5ad5d5;
+	border: 1px solid brown;
+	padding: 0 4px;
+}
+#material_details .ui-state-default+.top_taged {
+	display:none;
+}
 </style>
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>

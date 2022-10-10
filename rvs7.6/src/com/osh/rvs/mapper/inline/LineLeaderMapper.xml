@@ -211,7 +211,13 @@
 						THEN 8
 					ELSE 14
 				END + (coalesce(`m`.service_repair_flg, 0) = 2)) as ticket_flg,
-				`m`.scheduled_expedited + (mdl.series = 'URF') * 4 as  scheduled_expedited,
+				`m`.scheduled_expedited + (
+				CASE WHEN mdl.series = 'URF' THEN
+					exists 
+					(select sum(tag_type = 6) xor sum(tag_type = 7) as ts from material_tag where material_id = `m`.material_id group by material_id
+					having ts = 1)
+				ELSE 0 END
+				) * 4 as  scheduled_expedited,
 				`ppf1`.position_id as category_id,
 				`m`.bound_out_ocm,
 				coalesce(`m`.pat_id, mdl.default_pat_id) as pat_id,
