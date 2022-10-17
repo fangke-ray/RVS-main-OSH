@@ -267,7 +267,8 @@ var L5 = Object.create(null,{
 		        "code": $("#L5_search_partial_code").val(),
 		        "process_time_start":  $("#L5_search_process_time_start").val(),
 		        "process_time_end": $("#L5_search_process_time_end").val(),
-		        "operator_id": $("#L5_hidden_operator_id").val()
+		        "operator_id": $("#L5_hidden_operator_id").val(),
+		        "sorc_no":  $("#L5_search_omr_notifi_no").val()
 		    };
 			search(data);
 		}

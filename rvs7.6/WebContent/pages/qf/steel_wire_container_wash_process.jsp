@@ -220,6 +220,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 												<input type="text" class="ui-widget-content" id="L5_search_process_time_end" readonly="readonly">止<br>
 											</td>
 										</tr>
+										<tr>
+											<td class="ui-state-default td-title">修理单号</td>
+											<td class="td-content">
+												<input type="text" class="ui-widget-content" id="L5_search_omr_notifi_no">
+											</td>
+											<td class="ui-state-default td-title"></td>
+											<td class="td-content"></td>
+											<td class="ui-state-default td-title"></td>
+											<td class="td-content"></td>
+										</tr>
 									</table>
 									<div style="height:44px">
 										<input class="ui-button" id="L5resetbutton" value="清除" style="float:right;right:2px" type="button">

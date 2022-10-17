@@ -93,6 +93,11 @@
 		AND sw.material_id = #{material_id}
 	]]>
 	</if>
+	<if test="sorc_no!=null and sorc_no!='' ">
+	<![CDATA[
+		AND material.omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%')
+	]]>
+	</if>
 	</where>
 	ORDER BY
 		sw.process_time ASC
