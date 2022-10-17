@@ -507,7 +507,9 @@ public class ScheduleProcessingAction extends BaseAction {
 		if (privacies.contains(RvsConsts.PRIVACY_SCHEDULE)|| privacies.contains(RvsConsts.PRIVACY_PROCESSING)) {
 			req.setAttribute("role", "manager");
 			req.setAttribute("section_id", user.getSection_id());
-		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)
+				|| privacies.contains(RvsConsts.PRIVACY_RECEPT_EDIT)
+				|| privacies.contains(RvsConsts.PRIVACY_QA_MANAGER)) {
 			req.setAttribute("role", "lineleader");
 			req.setAttribute("section_id", user.getSection_id());
 			req.setAttribute("line_id", user.getLine_id());
@@ -705,7 +707,9 @@ public class ScheduleProcessingAction extends BaseAction {
 		if (privacies.contains(RvsConsts.PRIVACY_SCHEDULE) 
 				|| privacies.contains(RvsConsts.PRIVACY_PROCESSING)) {
 			attdService.getAttendances(null, null, conn, callbackResponse);
-		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)) {
+		} else if (privacies.contains(RvsConsts.PRIVACY_LINE)
+				|| privacies.contains(RvsConsts.PRIVACY_RECEPT_EDIT)
+				|| privacies.contains(RvsConsts.PRIVACY_QA_MANAGER)) {
 			attdService.getAttendances(user.getSection_id(), user.getLine_id(), conn, callbackResponse);
 		}
 
