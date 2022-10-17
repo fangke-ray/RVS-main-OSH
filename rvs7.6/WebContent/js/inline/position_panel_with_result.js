@@ -153,21 +153,64 @@ var remapworking = function(workingPfs) {
 var setWoringArea = function($workings, $td, waiting_htmls){
 	var td_for = $td.attr("for");
 	if (waiting_htmls != null) $workings.html(waiting_htmls[td_for.substring(3)]);
-	var size = $workings.find(".waiting:visible").length;
 
-	var lever = $("#" + td_for).attr("lever"); 
+	var textBld = [];
+	var checkLeverResult = checkLever($workings.find(".waiting:visible"), $("#" + td_for), textBld);
 
-	if (lever) {
-		if (size >= parseInt(lever)) {
-			$td.find(".working_cnt").html("<font color='red'>" + size + "</font>/" + lever);
-		} else {
-			$td.find(".working_cnt").html(size + "/" + lever);
-		}
-	} else {
-		$td.find(".working_cnt").html(size);
+	if (textBld.length) {
+		$td.find(".working_cnt").html(textBld[0]);
 	}
 
-	return size;
+	return $workings.find(".waiting:visible").length;
+}
+
+var checkLever = function($countItem, $device, textBld, addNonUdi) {
+	var size = $countItem.length;
+
+	var lever = $device.attr("lever");
+
+	if (lever) {
+		var udiLever = $device.attr("udi_lever");
+
+		if (size >= parseInt(lever)) {
+			if (udiLever) {
+				if (size >= (parseInt(lever) + parseInt(udiLever))) {
+					if (textBld != undefined) textBld.push("<font color='red'>" + size + "</font>/" + lever + " +udi " + udiLever);
+					return -1;
+				} else {
+					udiCnt = $countItem.filter(":contains('光学视管')").length;
+					if (udiCnt >= parseInt(udiLever)) {
+						if (textBld != undefined) textBld.push((size - udiCnt) + "+" + "<font color='red'>" + udiCnt + "</font>/" + lever + " +udi " + udiLever);
+						return 1;
+					}
+					if (addNonUdi 
+						&& ((size - udiCnt) > parseInt(lever))) {
+						if (textBld != undefined) textBld.push("<font color='red'>" + (size - udiCnt) + "+" + "</font>/" + udiCnt + lever + " +udi " + udiLever);
+						return -1;
+					}
+					if (textBld != undefined) textBld.push(size + "/" + lever + "(udi + " + udiLever + ")");
+					return 1;
+				}
+			} else {
+				if (textBld != undefined) {
+					textBld.push("<font color='red'>" + size + "</font>/" + lever);
+				}
+				return -1;
+			}
+		} else {
+			if (textBld != undefined) {
+				if (udiLever) {
+					textBld.push(size + "/" + lever + " +udi " + udiLever);
+				} else {
+					textBld.push(size + "/" + lever);
+				}
+			}
+			return 1;
+		}
+	} else {
+		if (textBld != undefined) textBld.push(size);
+		return 0;
+	}
 }
 
 var treatStart = function(resInfo) {
@@ -426,7 +469,7 @@ var doInit=function(){
 };
 
 var manual_types = [];
-var dmLevels = {};
+var dmLevers = {};
 
 //$(document).ready(function() {
 $(function() {
@@ -455,8 +498,17 @@ $(function() {
 
 	dmLevers = $.parseJSON($("#dm_levers").val());
 	for (var dmId in dmLevers) {
+		if (dmId.indexOf("_udi") >= 0) continue;
+
 		var lever = dmLevers[dmId];
-		$("#dm_" + dmId).attr({"title": "上限" + lever, "lever" : lever});
+		var title = "上限 " + lever;
+		var udiLever = dmLevers[dmId + "_udi"];
+		if (udiLever) {
+			title += " + 光学视管上限 " + udiLever;
+			$("#dm_" + dmId).attr({"title": title, "lever" : lever, "udi_lever" : udiLever});
+		} else {
+			$("#dm_" + dmId).attr({"title": title, "lever" : lever});
+		}
 	}
 
 	doInit();
@@ -618,14 +670,16 @@ var doStart=function(materialId){
 	var posCode = $("#g_process_code").val();
 	var devId = scanClass.substring(styIdx + 4, styIdx + 15);
 
-	var lever = $("#dm_" + devId).attr("lever");
+	if (!materialId) {
+		materialId = $("#scanner_inputer").val();
+	}
 
-	if (lever) {
-		var workingCnt = $("#working_table .sty_" + devId + " .workings .waiting:visible").length;
-		if (parseInt(lever) <= workingCnt){
-			errorPop("当前设备容量已至上限。");
-			return;
-		}
+
+	var checkLeverRst = checkLever($("#working_table .sty_" + devId + " .workings .waiting:visible"), $("#dm_" + devId)
+		, undefined, !$(".waiting#w_" + materialId).is(":contains('光学视管')"));
+	if (checkLeverRst == -1) {
+		errorPop("当前设备容量已至上限。");
+		return;
 	}
 
 	var data = {"pcs_inputs" : 
@@ -932,6 +986,7 @@ var convertMinute =function(sminute) {
 var doStartAll = function(wk_type, processType) {
 	var material_ids = [];
 	var index = 0;
+	var hasNonUdi = false;
 
 	var scanClass = $("#scanner_inputer").attr("class");
 	if (!scanClass) {
@@ -946,8 +1001,6 @@ var doStartAll = function(wk_type, processType) {
 	var posCode = $("#g_process_code").val();
 	var devId = scanClass.substring(styIdx + 4, styIdx + 15);
 
-	var lever = $("#dm_" + devId).attr("lever");
-
 	var data = {"pcs_inputs" : 
 		"{\"ER" + posCode + "01\":\"" + devId + "\"" +
 		(manual_types.indexOf(devId) >= 0 ? ",\"EI" + posCode + "01\":\"manual\"" : "") +
@@ -959,15 +1012,14 @@ var doStartAll = function(wk_type, processType) {
 			var wk_id = $wk.attr("id").replace("w_", "");
 			material_ids[index] = wk_id;
 			index++;
+			if (!hasNonUdi && !$wk.is(":contains('光学视管')")) hasNonUdi = true;
 		}
 	});
 
-	if (lever) {
-		var workingCnt = $("#working_table .sty_" + devId + " .workings .waiting:visible").length;
-		if (parseInt(lever) <= workingCnt + material_ids.length){
-			errorPop("当前设备容量已至上限。");
-			return;
-		}
+	var checkLeverRst = checkLever($("#working_table .sty_" + devId + " .workings .waiting:visible"), $("#dm_" + devId), undefined, hasNonUdi);
+	if (checkLeverRst == -1) {
+		errorPop("当前设备容量已至上限。");
+		return;
 	}
 
 	if (material_ids.length == 0) {

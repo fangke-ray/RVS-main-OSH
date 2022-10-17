@@ -1595,6 +1595,10 @@ public class PositionPanelService {
 			if (!CommonStringUtil.isEmpty(lever) && !lever.startsWith("-")) {
 				dmLeverMap.put(key, lever);
 			}
+			String leverUDI = PathConsts.POSITION_SETTINGS.getProperty("device.capacity.UDI." + manageCode);
+			if (!CommonStringUtil.isEmpty(leverUDI) && !leverUDI.startsWith("-")) {
+				dmLeverMap.put(key + "_udi", leverUDI);
+			}
 		}
 		return dmLeverMap;
 	}
