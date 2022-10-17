@@ -22,7 +22,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
-<script type="text/javascript" src="js/inline/schedule.js"></script>
+<script type="text/javascript" src="js/inline/schedule.js?v=3486"></script>
 <title>Schedule Area</title>
 </head>
 <% 
@@ -166,10 +166,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										<input type="text" id="search_inline_time_start" class="ui-widget-content" readonly="readonly">起<br/>
 										<input type="text" id="search_inline_time_end" class="ui-widget-content" readonly="readonly">止</td>
 									</td>
-									<td class="ui-state-default td-title" rowspan="2">总组工程分线</td>
-									<td class="td-content" rowspan="2">
-										<select name="px" id="search_px" class="ui-widget-content">
-											${pxOptions}
+									<td class="ui-state-default td-title">保内返修/QIS<br>/备品</td>
+									<td class="td-content">
+										<select name="service_repair_flg" id="search_service_repair_flg" class="ui-widget-content" multiple>
+											${srOptions}
 										</select>
 									</td>
 								</tr>
@@ -178,6 +178,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									<td class="td-content" id="search_anml_exp_set">
 										<input type="radio" name="anml_exp" id="search_anml_exp_a" class="ui-widget-content" checked="true" value=""><label for="search_anml_exp_a">(全)</label>
 										<input type="radio" name="anml_exp" id="search_anml_exp_y" class="ui-widget-content" value="1"><label for="search_anml_exp_y">动物实验用</label>
+									</td>
+									<td class="ui-state-default td-title" rowspan="1">总组工程分线</td>
+									<td class="td-content" rowspan="1">
+										<select name="px" id="search_px" class="ui-widget-content">
+											${pxOptions}
+										</select>
 									</td>
 								</tr>
 							</tbody>

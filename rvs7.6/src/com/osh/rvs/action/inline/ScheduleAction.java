@@ -91,6 +91,9 @@ public class ScheduleAction extends BaseAction {
 		// level取得
 		req.setAttribute("lOptions",CodeListUtils.getSelectOptions("material_level_inline", null, "", false));
 
+		// 返修
+		req.setAttribute("srOptions",CodeListUtils.getSelectOptions("material_service_repair", null, "", false));
+
 		// 工位信息取得
 		String pReferChooser = positionService.getOptions(conn);
 		// 工位信息设定

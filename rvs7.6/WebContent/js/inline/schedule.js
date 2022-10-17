@@ -165,7 +165,7 @@ $(function() {
 		}
 	});
 
-	$("#search_level, #search_ocm, #search_category_id, #search_section, #sel_period, #search_px").select2Buttons();
+	$("#search_level, #search_ocm, #search_category_id, #search_section, #sel_period, #search_px, #search_service_repair_flg").select2Buttons();
 
 	setReferChooser($("#search_position_id"), $("#pReferChooser"));
 	setReferChooser($("#search_position_id2"), $("#pReferChooser2"));
@@ -254,6 +254,7 @@ var clearCondiction = function() {
 	$("#search_inline_time_start").val("");
 	$("#search_inline_time_end").val("");
 	$("#search_px").val("").trigger("change");
+	$("#search_service_repair_flg").val("").trigger("change");
 
 	position_eval_data = 2;
 	position_eval_data2 = 0;
@@ -304,6 +305,20 @@ var findForSupport = function() {
 		"px" : $("#search_px").val()
 	};
 
+	if ($("#search_service_repair_flg").val()) {
+		var service_repair_flg_post = 0;
+		var service_repair_flg_val = $("#search_service_repair_flg").val();
+		for (var i in service_repair_flg_val) {
+			switch(service_repair_flg_val[i]) {
+				case "1" : service_repair_flg_post += 1; break;
+				case "2" : service_repair_flg_post += 2; break;
+				case "3" : service_repair_flg_post += 4; break;
+			}
+		}
+		data["service_repair_flg"] = service_repair_flg_post;
+	}
+
+
 	// Ajax提交
 	$.ajax({
 		beforeSend: ajaxRequestType, 
@@ -349,7 +364,20 @@ function exportReport() {
 		"inline_time_end" : $("#search_inline_time_end").val(),
 		"anml_exp" : $("#search_anml_exp_set input:checked").val(),
 		"px" : $("#search_px").val()
-		};
+	};
+
+	if ($("#search_service_repair_flg").val()) {
+		var service_repair_flg_post = 0;
+		var service_repair_flg_val = $("#search_service_repair_flg").val();
+		for (var i in service_repair_flg_val) {
+			switch(service_repair_flg_val[i]) {
+				case "1" : service_repair_flg_post += 1; break;
+				case "2" : service_repair_flg_post += 2; break;
+				case "3" : service_repair_flg_post += 4; break;
+			}
+		}
+		data["service_repair_flg"] = service_repair_flg_post;
+	}
 
 	// Ajax提交
 	$.ajax({
@@ -1225,6 +1253,19 @@ var findit = function() {
 		"px" : $("#search_px").val()
 	};
 
+	if ($("#search_service_repair_flg").val()) {
+		var service_repair_flg_post = 0;
+		var service_repair_flg_val = $("#search_service_repair_flg").val();
+		for (var i in service_repair_flg_val) {
+			switch(service_repair_flg_val[i]) {
+				case "1" : service_repair_flg_post += 1; break;
+				case "2" : service_repair_flg_post += 2; break;
+				case "3" : service_repair_flg_post += 4; break;
+			}
+		}
+		data["service_repair_flg"] = service_repair_flg_post;
+	}
+
 	keepSearchData = data;
 
 	// Ajax提交
@@ -1277,6 +1318,19 @@ var findboth = function() {
 		"anml_exp" : $("#search_anml_exp_set input:checked").val(),
 		"px" : $("#search_px").val()
 	};
+
+	if ($("#search_service_repair_flg").val()) {
+		var service_repair_flg_post = 0;
+		var service_repair_flg_val = $("#search_service_repair_flg").val();
+		for (var i in service_repair_flg_val) {
+			switch(service_repair_flg_val[i]) {
+				case "1" : service_repair_flg_post += 1; break;
+				case "2" : service_repair_flg_post += 2; break;
+				case "3" : service_repair_flg_post += 4; break;
+			}
+		}
+		data["service_repair_flg"] = service_repair_flg_post;
+	}
 
 	keepSearchData = data;
 	keepSearchData["scheduled_assign_date"] = $("#pick_date").val();

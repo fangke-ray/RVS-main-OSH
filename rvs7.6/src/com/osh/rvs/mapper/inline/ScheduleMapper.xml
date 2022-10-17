@@ -36,6 +36,29 @@
 			<if test="direct_flg!= null and direct_flg == 0 ">
 				and (a.direct_flg is null or a.direct_flg = 0)
 			</if>
+			<if test="service_repair_flg!=null">
+				<if test="service_repair_flg eq 1">
+					and (a.service_repair_flg = 1)
+				</if>
+				<if test="service_repair_flg eq 2">
+					and (a.service_repair_flg = 2)
+				</if>
+				<if test="service_repair_flg eq 3">
+					and (a.service_repair_flg = 1 or a.service_repair_flg = 2)
+				</if>
+				<if test="service_repair_flg eq 4">
+					and (a.service_repair_flg = 3)
+				</if>
+				<if test="service_repair_flg eq 5">
+					and (a.service_repair_flg = 1 or a.service_repair_flg = 3)
+				</if>
+				<if test="service_repair_flg eq 6">
+					and (a.service_repair_flg = 2 or a.service_repair_flg = 3)
+				</if>
+				<if test="service_repair_flg eq 7">
+					and (a.service_repair_flg = 1 or a.service_repair_flg = 2 or a.service_repair_flg = 3)
+				</if>
+			</if>
 			<if test="agreed_date_start!= null">
 				<![CDATA[ 
 				and a.agreed_date >= #{agreed_date_start}
@@ -368,24 +391,10 @@
 		<![CDATA[
 			group by mpd.material_id) mp
 			on a.material_id = mp.material_id
-		left join (
-			SELECT material_id, scheduled_date, finish_date, px
-			FROM material_process
-			WHERE line_id = 13
-			) mpn
-			on a.material_id = mpn.material_id
-		left join (
-			SELECT material_id, scheduled_date, finish_date, scheduled_assign_date, px
-			FROM material_process
-			WHERE line_id = 14
-			AND material_id in
-		]]>
-			<foreach item="id" collection="list" open="(" separator="," close=")">
-				#{id}
- 			</foreach> 
-		<![CDATA[
-			) mpc
-			on a.material_id = mpc.material_id
+		left join
+			material_process mpn ON a.material_id = mpn.material_id and mpn.line_id = 13
+		left join
+			material_process mpc ON a.material_id = mpc.material_id and mpc.line_id = 14
 		LEFT JOIN 
 			(SELECT
 			    fsa.`material_id`,
