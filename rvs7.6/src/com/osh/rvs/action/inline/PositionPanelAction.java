@@ -1163,6 +1163,16 @@ public class PositionPanelAction extends BaseAction {
 		ProductionFeatureEntity workingPf = service.getWorkingPf(user, conn);
 		String material_id = workingPf.getMaterial_id();
 
+		// 追加零件
+		if (iReason > 70 &&
+				"231".equals(workingPf.getProcess_code())) {
+			String sReasonText = PathConsts.POSITION_SETTINGS.getProperty("step." + workingPf.getProcess_code() + "." + iReason);
+			if (sReasonText != null && sReasonText.indexOf("追加") >= 0) {
+				ForSolutionAreaService fsoService = new ForSolutionAreaService();
+				fsoService.setAppendPart(material_id, workingPf.getPosition_id(), conn);
+			}
+		}
+
 		if (errors.size() == 0) {
 			service.checkSupporting(material_id, workingPf.getPosition_id(), errors, conn);
 		}
@@ -1275,7 +1285,10 @@ public class PositionPanelAction extends BaseAction {
 		Map<String, Object> listResponse = new HashMap<String, Object>();
 
 		List<MsgInfo> infoes = new ArrayList<MsgInfo>();
+		List<MsgInfo> warnings = new ArrayList<MsgInfo>();
 		List<String> triggerList = new ArrayList<String>();
+
+		String confirmed = req.getParameter("confirmed");
 
 		// 取得用户信息
 		HttpSession session = req.getSession();
@@ -1380,10 +1393,17 @@ public class PositionPanelAction extends BaseAction {
 						soloSnoutService.checkBenchmark(mEntity.getModel_id(), conn);
 					}
 				}
-			}
 
-			OperatorProductionService opService = new OperatorProductionService();
-			listResponse.put("processingPauseStart", opService.getNewPauseStart());
+				// 判断维修品是否经历追加零件
+//				if (!isAnml && !isLightFix && "231".equals(process_code) && confirmed == null) {
+//					if (!service.checkAdditionalPartSet(material_id, workingPf.getPosition_id(), process_code, conn)) {
+//						MsgInfo info = new MsgInfo();
+//						info.setErrcode("info.positionwork.confirmAdditionalPartWhenFinish");
+//						info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmAdditionalPartWhenFinish"));
+//						warnings.add(info);
+//					}
+//				}
+			}
 		}
 
 		// 计算一下总工时：
@@ -1393,7 +1413,7 @@ public class PositionPanelAction extends BaseAction {
 //		/// 加上本次返工内本工位所用全部时间
 //		use_seconds += service.getTotalTimeByRework(workingPf, conn);
 
-		if (infoes.size() == 0) {
+		if (infoes.size() == 0 && warnings.size() == 0) {
 			Integer use_seconds = service.getTotalTimeByRework(workingPf, conn);
 	
 			// 作业信息状态改为，作业完成
@@ -1450,6 +1470,8 @@ public class PositionPanelAction extends BaseAction {
 				}
 			}
 
+			OperatorProductionService opService = new OperatorProductionService();
+			listResponse.put("processingPauseStart", opService.getNewPauseStart());
 			// 通知 TODO
 		}
 
@@ -1460,6 +1482,7 @@ public class PositionPanelAction extends BaseAction {
 
 		// 检查发生错误时报告错误信息
 		listResponse.put("errors", infoes);
+		listResponse.put("warnings", warnings);
 
 		// 返回Json格式响应信息
 		returnJsonResponse(res, listResponse);

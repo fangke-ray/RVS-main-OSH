@@ -36,6 +36,7 @@ import com.osh.rvs.bean.inline.ForSolutionAreaEventEntity;
 import com.osh.rvs.bean.inline.PauseFeatureEntity;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -73,6 +74,7 @@ public class ForSolutionAreaService {
 	private Logger _log = Logger.getLogger(getClass());
 
 	/**
+	 * 检索
 	 * 
 	 * @param form
 	 * @param req
@@ -247,6 +249,15 @@ public class ForSolutionAreaService {
 
 		// 解决中断需
 		triggerList.add("http://localhost:8080/rvspush/trigger/expected_finish_time/" + entity.getMaterial_id() + "/1");
+		// 刷新目标工位
+		ForSolutionAreaEntity fsa = mapper.getByKey(entity.getFor_solution_area_key());
+		MaterialMapper mMapper = conn.getMapper(MaterialMapper.class);
+		MaterialEntity mBean = mMapper.getMaterialEntityByKey(fsa.getMaterial_id());
+		String sectionId = "00000000001";
+		if (mBean != null && mBean.getSection_id() != null) {
+			sectionId = mBean.getSection_id();
+		}
+		triggerList.add("http://localhost:8080/rvspush/trigger/refresh_position/" + fsa.getPosition_id() + "/" + sectionId);
 	}
 
 	public List<ForSolutionAreaEntity> checkBlock(String material_id, String position_id, String line_id, SqlSession conn) {
@@ -459,7 +470,7 @@ public class ForSolutionAreaService {
 	 * @param conn
 	 * @throws Exception
 	 */
-	public void solveBo(String material_id, Integer occur_times, String operater_id, SqlSessionManager conn) throws Exception {
+	public boolean solveBo(String material_id, Integer occur_times, String operater_id, SqlSessionManager conn) throws Exception {
 		String bo_partials = "";
 		ForSolutionAreaMapper mapper = conn.getMapper(ForSolutionAreaMapper.class);
 		MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
@@ -518,6 +529,8 @@ public class ForSolutionAreaService {
 				}
 			}
 		}
+
+		return triggerSent;
 	}
 
 	public void solveBreak(ForSolutionAreaEntity entity, String material_id, String operator_id,
@@ -871,6 +884,39 @@ public class ForSolutionAreaService {
 		
 		return cacheName;
 
+	}
+
+	/**
+	 * 选择追加零件时，进入PA
+	 * 
+	 * @param material_id
+	 * @param position_id
+	 * @param conn
+	 * @throws Exception 
+	 */
+	public void setAppendPart(String material_id, String position_id,
+			SqlSessionManager conn) throws Exception {
+		// 检查维修品的订购清单
+		MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
+		MaterialPartialEntity searchForAddtional = new MaterialPartialEntity();
+		searchForAddtional.setMaterial_id(material_id);
+
+		List<MaterialPartialEntity> l = mpMapper.searchPartialAddtionalInf(searchForAddtional);
+		boolean addForD = false;
+		for (MaterialPartialEntity addtional : l) {
+			if (addtional.getBelongs() == 4) {
+				addForD = true;
+				break;
+			}
+		}
+
+		// 如果已订购追加零件则跳过
+		if (addForD) {
+			return;
+		}
+
+		// 建立当前工位的PA
+		create(material_id, "分解工位追加零件", 4, position_id, conn, false);
 	}
 
 }
