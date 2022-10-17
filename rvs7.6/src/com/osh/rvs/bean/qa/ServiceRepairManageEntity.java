@@ -144,6 +144,16 @@ public class ServiceRepairManageEntity implements Serializable {
 
 	private String actual_fault;// 实发故障
 
+	private String invoice_no; // INVOICE_NO
+
+	private String trouble_parts; // 故障零件号码
+
+	private Date trouble_parts_waste_date; // 故障零件废弃日
+
+	private String deliver_external_no; // 寄送区外单号
+
+	private Date deliver_external_date; // 寄送区外日期
+
 	public String getAnalysis_correspond_suggestion() {
 		return analysis_correspond_suggestion;
 	}
@@ -799,6 +809,76 @@ public class ServiceRepairManageEntity implements Serializable {
 
 	public void setRc_mailsend_date_org(Date rc_mailsend_date_org) {
 		this.rc_mailsend_date_org = rc_mailsend_date_org;
+	}
+
+	/**
+	 * @return the invoice_no
+	 */
+	public String getInvoice_no() {
+		return invoice_no;
+	}
+
+	/**
+	 * @param invoice_no the invoice_no to set
+	 */
+	public void setInvoice_no(String invoice_no) {
+		this.invoice_no = invoice_no;
+	}
+
+	/**
+	 * @return the trouble_parts
+	 */
+	public String getTrouble_parts() {
+		return trouble_parts;
+	}
+
+	/**
+	 * @param trouble_parts the trouble_parts to set
+	 */
+	public void setTrouble_parts(String trouble_parts) {
+		this.trouble_parts = trouble_parts;
+	}
+
+	/**
+	 * @return the trouble_parts_waste_date
+	 */
+	public Date getTrouble_parts_waste_date() {
+		return trouble_parts_waste_date;
+	}
+
+	/**
+	 * @param trouble_parts_waste_date the trouble_parts_waste_date to set
+	 */
+	public void setTrouble_parts_waste_date(Date trouble_parts_waste_date) {
+		this.trouble_parts_waste_date = trouble_parts_waste_date;
+	}
+
+	/**
+	 * @return the deliver_external_no
+	 */
+	public String getDeliver_external_no() {
+		return deliver_external_no;
+	}
+
+	/**
+	 * @param deliver_external_no the deliver_external_no to set
+	 */
+	public void setDeliver_external_no(String deliver_external_no) {
+		this.deliver_external_no = deliver_external_no;
+	}
+
+	/**
+	 * @return the deliver_external_date
+	 */
+	public Date getDeliver_external_date() {
+		return deliver_external_date;
+	}
+
+	/**
+	 * @param deliver_external_date the deliver_external_date to set
+	 */
+	public void setDeliver_external_date(Date deliver_external_date) {
+		this.deliver_external_date = deliver_external_date;
 	}
 
 }

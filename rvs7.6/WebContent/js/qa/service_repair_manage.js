@@ -584,7 +584,12 @@ var show_analysis_Complete = function(xhrobj, textStatus,isQaManager,hidden_rece
 				$("#text_trouble_happen_date").val(resInfo.returnForm.trouble_happen_date);
 				$("#text_use_count").val(resInfo.returnForm.use_count);
 				$("#text_use_elapse").val(resInfo.returnForm.use_elapse);
-				
+
+				$("#text_invoice_no").val(resInfo.returnForm.invoice_no);
+				$("#text_trouble_parts_waste_date").val(resInfo.returnForm.trouble_parts_waste_date);
+				$("#text_deliver_external_no").val(resInfo.returnForm.deliver_external_no);
+				$("#text_deliver_external_date").val(resInfo.returnForm.deliver_external_date);
+
                 var service_repair_flg = $("#hidden_service_repair_flg_val").val();
                 if(service_repair_flg == 2){//QIS判定完成
                     $("#select_corresponse_flg").val(resInfo.returnForm.corresponse_flg).trigger("change");
@@ -595,44 +600,61 @@ var show_analysis_Complete = function(xhrobj, textStatus,isQaManager,hidden_rece
                 
                 if(true){//QIS/返品 判定完成 service_repair_flg == 1 || service_repair_flg == 2
                     var entitySendFlg = resInfo.returnForm.entity_send_flg;
-                    $("#select_entity_send_flg").val(entitySendFlg).trigger("change");
-                    
-                    $("#text_qis3_date").val(resInfo.returnForm.qis3_date);
-                    
-                    if(entitySendFlg == 21 || entitySendFlg == 23){
-                           $("tr.part3 input[type='text']").hide();
-                           $("#text_qis3_date").show();
-                           $("tr.part3 label").show();
-                           $("#text_qis3_date").next().hide();
-                    }else if(entitySendFlg == 22){
-                   		   $("tr.part3 input[type='text']").hide();
-                   		   $("tr.part3 label").show();
-                    }else{
-                           $("tr.part3 input[type='text']").show();
-                           $("tr.part3 label").hide();
-                           $("#text_trouble_item_reception_date").val(resInfo.returnForm.trouble_item_reception_date);
-		                   $("#text_trouble_item_in_bussiness_date").val(resInfo.returnForm.trouble_item_in_bussiness_date);
-		                   $("#text_trouble_item_out_bussiness_date").val(resInfo.returnForm.trouble_item_out_bussiness_date);
-		                   $("#text_qis2_date").val(resInfo.returnForm.qis2_date);
-		                   $("#text_waste_certificated_date").val(resInfo.returnForm.waste_certificated_date);
-                    }
+                    $("#select_entity_send_flg").val(entitySendFlg);
+
+					switch(entitySendFlg) {
+						case "21" : { // 不寄送（OCM送回）
+							$("#text_qis3_date").val(resInfo.returnForm.qis3_date);
+							break;
+						}
+						case "23" : { // 不寄送（发送信息）
+							$("#text_qis3_date").val(resInfo.returnForm.qis3_date);
+							$("#text_trouble_item_reception_date").val(resInfo.returnForm.trouble_item_reception_date);
+							$("#text_trouble_parts").val(resInfo.returnForm.trouble_parts);
+							break;
+						}
+						case "22" : { // 不寄送（非质量问题）
+							break;
+						}
+						default : {
+							$("#text_qis3_date").val(resInfo.returnForm.qis3_date);
+							$("#text_trouble_item_reception_date").val(resInfo.returnForm.trouble_item_reception_date);
+							$("#text_trouble_item_in_bussiness_date").val(resInfo.returnForm.trouble_item_in_bussiness_date);
+							$("#text_trouble_item_out_bussiness_date").val(resInfo.returnForm.trouble_item_out_bussiness_date);
+							// $("#text_qis2_date").val(resInfo.returnForm.qis2_date);
+							$("#text_waste_certificated_date").val(resInfo.returnForm.waste_certificated_date);
+							$("#text_trouble_parts").val(resInfo.returnForm.trouble_parts);
+						}
+					}
 
                     //实物处理 change事件
                     $("#select_entity_send_flg").change(function(){
-                          var value = $(this).val();
-                          if(value == 21 || value == 23){//不寄送（OCM送回）
-                                $("tr.part3 input[type='text']").hide();
-                                $("#text_qis3_date").show();
-                                $("tr.part3 label").show();
-                                $("#text_qis3_date").next().hide();
-                          }else if(value == 22){//不寄送（非质量问题） 不寄送（发送信息）
-                          		$("tr.part3 input[type='text']").hide();
-                                $("tr.part3 label").show();
-                          }else{
-                                $("tr.part3 input[type='text']").show();
-                                $("tr.part3 label").hide();
-                          }
-                    });
+						switch($(this).val()) {
+							case "21" : { // 不寄送（OCM送回）
+								$("tr.part3 input[type='text']").hide();
+								$("tr.part3 label").show();
+								$("#text_qis3_date").show()
+									.next().hide();
+								break;
+							}
+							case "23" : { // 不寄送（发送信息）
+								$("tr.part3 input[type='text']").hide();
+								$("tr.part3 label").show();
+								$("#text_qis3_date,#text_trouble_item_reception_date,#text_trouble_parts").show()
+									.next().hide();
+								break;
+							}
+							case "22" : { // 不寄送（非质量问题）
+								$("tr.part3 input[type='text']").hide();
+								$("tr.part3 label").show();
+								break;
+							}
+							default : {
+								$("tr.part3 input[type='text']").show();
+								$("tr.part3 label").hide();
+							}
+						}
+                    }).trigger("change");
                 }else{
                     $("#part2").remove();
                     $("#ins_serviceRepairManage tr.part3").remove();
@@ -695,7 +717,8 @@ var show_analysis_Complete = function(xhrobj, textStatus,isQaManager,hidden_rece
                 $("#textarea_analysis_correspond_suggestion").val(resInfo.returnForm.analysis_correspond_suggestion);
 			}
 			$("#text_last_shipping_date,#text_trouble_item_reception_date,#text_trouble_item_in_bussiness_date,#text_trouble_item_out_bussiness_date," +
-					"#text_qis2_date,#text_qis3_date,#text_waste_certificated_date,#text_setup_date,#text_trouble_happen_date").datepicker({
+					"#text_qis2_date,#text_qis3_date,#text_waste_certificated_date,#text_setup_date,#text_trouble_happen_date," +
+					"#text_trouble_parts_waste_date,#text_deliver_external_date").datepicker({
 				showButtonPanel : true,
 				dateFormat : "yy/mm/dd",
 				currentText : "今天"
@@ -766,7 +789,13 @@ var show_analysis_Complete = function(xhrobj, textStatus,isQaManager,hidden_rece
                                  "setup_date":$("#text_setup_date").val(),
                                  "trouble_happen_date":$("#text_trouble_happen_date").val(),
                                  "use_count":$("#text_use_count").val(),
-                                 "use_elapse":$("#text_use_elapse").val()
+                                 "use_elapse":$("#text_use_elapse").val(),
+                                 
+                                 "invoice_no":$("#text_invoice_no").val(),
+                                 "trouble_parts":$("#text_trouble_parts").val(),
+                                 "trouble_parts_waste_date":$("#text_trouble_parts_waste_date").val(),
+                                 "deliver_external_no":$("#text_deliver_external_no").val(),
+                                 "deliver_external_date":$("#text_deliver_external_date").val()
 						};
                         //当是品保人员登陆的时候更新责任去分子段
                         if(isQaManager=="privacy_qa_manager"){

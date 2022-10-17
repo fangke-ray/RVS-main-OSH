@@ -535,7 +535,11 @@ public class ServiceRepairManageService {
 					  HSSFCell trouble_item_reception_dateCell =  row.createCell(yPos++);//故障品接收
 					  trouble_item_reception_dateCell.setCellValue("-");
 					  trouble_item_reception_dateCell.setCellStyle(styleAlignCenter);
-					  
+
+					  HSSFCell trouble_partsCell =  row.createCell(yPos++);//故障零件号码
+					  trouble_partsCell.setCellValue("-");
+					  trouble_partsCell.setCellStyle(styleAlignCenter);
+
 					  HSSFCell trouble_item_in_bussiness_dateCell =  row.createCell(yPos++);//故障品提交给业务
 					  trouble_item_in_bussiness_dateCell.setCellValue("-");
 					  trouble_item_in_bussiness_dateCell.setCellStyle(styleAlignCenter);
@@ -544,10 +548,15 @@ public class ServiceRepairManageService {
 					  trouble_item_out_bussiness_dateCell.setCellValue("-");
 					  trouble_item_out_bussiness_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell qis2_dateCell =  row.createCell(yPos++);//QIS2
-					  qis2_dateCell.setCellValue("-");
-					  qis2_dateCell.setCellStyle(styleAlignCenter);
-					  
+//					  HSSFCell qis2_dateCell =  row.createCell(yPos++);//QIS2
+//					  qis2_dateCell.setCellValue("-");
+//					  qis2_dateCell.setCellStyle(styleAlignCenter);
+//					  
+
+					  HSSFCell invoice_noCell =  row.createCell(yPos++);//INVOICE_NO.
+					  invoice_noCell.setCellValue("-");
+					  invoice_noCell.setCellStyle(styleAlignCenter);
+
 					  HSSFCell qis3_dateCell =  row.createCell(yPos++);//QIS3
 					  if("22".equals(entity_send_flg)){
 						  qis3_dateCell.setCellValue("-");
@@ -563,7 +572,11 @@ public class ServiceRepairManageService {
 					  HSSFCell trouble_item_reception_dateCell =  row.createCell(yPos++);//故障品接收
 					  trouble_item_reception_dateCell.setCellValue(form.getTrouble_item_reception_date());
 					  trouble_item_reception_dateCell.setCellStyle(styleAlignCenter);
-					  
+
+					  HSSFCell trouble_partsCell =  row.createCell(yPos++);//故障零件号码
+					  trouble_partsCell.setCellValue(form.getTrouble_parts());
+					  trouble_partsCell.setCellStyle(styleAlignLeft);
+
 					  HSSFCell trouble_item_in_bussiness_dateCell =  row.createCell(yPos++);//故障品提交给业务
 					  trouble_item_in_bussiness_dateCell.setCellValue(form.getTrouble_item_in_bussiness_date());
 					  trouble_item_in_bussiness_dateCell.setCellStyle(styleAlignCenter);
@@ -572,10 +585,14 @@ public class ServiceRepairManageService {
 					  trouble_item_out_bussiness_dateCell.setCellValue(form.getTrouble_item_out_bussiness_date());
 					  trouble_item_out_bussiness_dateCell.setCellStyle(styleAlignCenter);
 					  
-					  HSSFCell qis2_dateCell =  row.createCell(yPos++);//QIS2
-					  qis2_dateCell.setCellValue(form.getQis2_date());
-					  qis2_dateCell.setCellStyle(styleAlignCenter);
-					  
+//					  HSSFCell qis2_dateCell =  row.createCell(yPos++);//QIS2
+//					  qis2_dateCell.setCellValue(form.getQis2_date());
+//					  qis2_dateCell.setCellStyle(styleAlignCenter);
+//					  
+					  HSSFCell invoice_noCell =  row.createCell(yPos++);//INVOICE_NO.
+					  invoice_noCell.setCellValue(form.getInvoice_no());
+					  invoice_noCell.setCellStyle(styleAlignLeft);
+
 					  HSSFCell qis3_dateCell =  row.createCell(yPos++);//QIS3
 					  qis3_dateCell.setCellValue(form.getQis3_date());
 					  qis3_dateCell.setCellStyle(styleAlignCenter);
@@ -598,12 +615,33 @@ public class ServiceRepairManageService {
 				  m_analysis_result_briefCell.setCellStyle(styleAlignCenter);
 				  
 				  HSSFCell m_correspond_methodCell = row.createCell(yPos++);//对应方法(工厂)
-				  m_correspond_methodCell.setCellValue(form.getM_correspond_method());
+				  String sM_correspond_method = form.getM_correspond_method();
+				  if (form.getM_solutions() != null && !"".equals(form.getM_solutions())
+						  && !"-".equals(form.getM_solutions()) && !"/".equals(form.getM_solutions())) {
+					  if (isEmpty(sM_correspond_method)) {
+						  sM_correspond_method = form.getM_solutions();
+					  } else {
+						  sM_correspond_method += "\n" + form.getM_solutions();
+					  }
+				  }
+				  m_correspond_methodCell.setCellValue(sM_correspond_method);
 				  m_correspond_methodCell.setCellStyle(styleAlignCenter);
+
+				  HSSFCell trouble_parts_waste_dateCell = row.createCell(yPos++);//故障零件废弃日期
+				  trouble_parts_waste_dateCell.setCellValue(form.getTrouble_parts_waste_date());
+				  trouble_parts_waste_dateCell.setCellStyle(styleAlignCenter);
+
+				  HSSFCell deliver_external_noCell = row.createCell(yPos++);//寄送区外单号
+				  deliver_external_noCell.setCellValue(form.getDeliver_external_no());
+				  deliver_external_noCell.setCellStyle(styleAlignCenter);
 				  
-				  HSSFCell m_solutionsCell = row.createCell(yPos++);//对策(工厂)
-				  m_solutionsCell.setCellValue(form.getM_solutions());
-				  m_solutionsCell.setCellStyle(styleAlignCenter);
+				  HSSFCell deliver_external_dateCell = row.createCell(yPos++);//寄送区外日期
+				  deliver_external_dateCell.setCellValue(form.getDeliver_external_date());
+				  deliver_external_dateCell.setCellStyle(styleAlignCenter);
+
+//				  HSSFCell m_solutionsCell = row.createCell(yPos++);//对策(工厂)
+//				  m_solutionsCell.setCellValue(form.getM_solutions());
+//				  m_solutionsCell.setCellStyle(styleAlignCenter);
 
 				  HSSFCell setup_dateCell = row.createCell(yPos++);//购买/安装日期
 				  setup_dateCell.setCellValue(form.getSetup_date());
@@ -620,7 +658,6 @@ public class ServiceRepairManageService {
 				  HSSFCell use_elapseCell = row.createCell(yPos++);//使用累计时间
 				  use_elapseCell.setCellValue(form.getUse_elapse());
 				  use_elapseCell.setCellStyle(styleAlignCenter);
-				  
 			}
 			out= new FileOutputStream(cachePath);
 			work.write(out);

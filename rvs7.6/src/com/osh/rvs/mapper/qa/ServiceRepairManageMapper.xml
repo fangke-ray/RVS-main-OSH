@@ -206,7 +206,12 @@
 				sra.setup_date,
 				sra.trouble_happen_date,
 				sra.use_count,
-				sra.use_elapse
+				sra.use_elapse,
+				sra.invoice_no,
+				sra.trouble_parts,
+				sra.trouble_parts_waste_date,
+				sra.deliver_external_no,
+				sra.deliver_external_date
 			FROM
 			    service_repair_manage srm
 			        LEFT JOIN
@@ -639,7 +644,12 @@ and rc_mailsend_date=#{rc_mailsend_date};
 				sra.setup_date,
 				sra.trouble_happen_date,
 				sra.use_count,
-				sra.use_elapse
+				sra.use_elapse,
+				sra.invoice_no,
+				sra.trouble_parts,
+				sra.trouble_parts_waste_date,
+				sra.deliver_external_no,
+				sra.deliver_external_date
 			FROM
 			     service_repair_analysis sra
 			        left join
@@ -714,7 +724,12 @@ and rc_mailsend_date=#{rc_mailsend_date};
 				setup_date,
 				trouble_happen_date,
 				use_count,
-				use_elapse
+				use_elapse,
+				invoice_no,
+				trouble_parts,
+				trouble_parts_waste_date,
+				deliver_external_no,
+				deliver_external_date
 			]]>
 			<if test="service_repair_flg==2">
 				,corresponse_flg
@@ -769,7 +784,12 @@ and rc_mailsend_date=#{rc_mailsend_date};
 				#{setup_date},
 				#{trouble_happen_date},
 				#{use_count},
-				#{use_elapse}
+				#{use_elapse},
+				#{invoice_no},
+				#{trouble_parts},
+				#{trouble_parts_waste_date},
+				#{deliver_external_no},
+				#{deliver_external_date}
 			]]>
 			<if test="service_repair_flg==2">
 				,#{corresponse_flg}

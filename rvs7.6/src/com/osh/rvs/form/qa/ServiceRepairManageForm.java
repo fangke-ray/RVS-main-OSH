@@ -210,13 +210,13 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	@BeanField(title = "实物处理", name = "entity_send_flg", type = FieldType.Integer, length = 2)
 	private String entity_send_flg;// 实物处理
 
-	@BeanField(title = "故障品接收", name = "trouble_item_reception_date", type = FieldType.Date)
+	@BeanField(title = "故障品接收日期", name = "trouble_item_reception_date", type = FieldType.Date)
 	private String trouble_item_reception_date;// 故障品接收
 
-	@BeanField(title = "故障品提交给业务", name = "trouble_item_in_bussiness_date", type = FieldType.Date)
+	@BeanField(title = "故障品提交给业务日期", name = "trouble_item_in_bussiness_date", type = FieldType.Date)
 	private String trouble_item_in_bussiness_date;// 故障品提交给业务
 
-	@BeanField(title = "故障品发送（业务）", name = "trouble_item_out_bussiness_date", type = FieldType.Date)
+	@BeanField(title = "故障品发送（业务）日期", name = "trouble_item_out_bussiness_date", type = FieldType.Date)
 	private String trouble_item_out_bussiness_date;// 故障品发送（业务）
 
 	@BeanField(title = "QIS2", name = "qis2_date", type = FieldType.Date)
@@ -269,6 +269,21 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 
 	@BeanField(title = "使用累计时间", name = "use_elapse", type = FieldType.String, length = 32)
 	private String use_elapse;
+
+	@BeanField(title = "INVOICE_NO.", name = "invoice_no", type = FieldType.String, length = 32)
+	private String invoice_no;
+
+	@BeanField(title = "故障零件号码", name = "trouble_parts", type = FieldType.String, length = 45)
+	private String trouble_parts;
+
+	@BeanField(title = "故障零件废弃日期", name = "trouble_parts_waste_date", type = FieldType.Date)
+	private String trouble_parts_waste_date;
+
+	@BeanField(title = "寄送区外单号", name = "deliver_external_no", type = FieldType.String, length = 32)
+	private String deliver_external_no;
+
+	@BeanField(title = "寄送区外日期", name = "deliver_external_date", type = FieldType.Date)
+	private String deliver_external_date;
 
 	public String getAnalysis_correspond_suggestion() {
 		return analysis_correspond_suggestion;
@@ -914,6 +929,76 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 
 	public void setActual_fault(String actual_fault) {
 		this.actual_fault = actual_fault;
+	}
+
+	/**
+	 * @return the invoice_no
+	 */
+	public String getInvoice_no() {
+		return invoice_no;
+	}
+
+	/**
+	 * @param invoice_no the invoice_no to set
+	 */
+	public void setInvoice_no(String invoice_no) {
+		this.invoice_no = invoice_no;
+	}
+
+	/**
+	 * @return the trouble_parts
+	 */
+	public String getTrouble_parts() {
+		return trouble_parts;
+	}
+
+	/**
+	 * @param trouble_parts the trouble_parts to set
+	 */
+	public void setTrouble_parts(String trouble_parts) {
+		this.trouble_parts = trouble_parts;
+	}
+
+	/**
+	 * @return the trouble_parts_waste_date
+	 */
+	public String getTrouble_parts_waste_date() {
+		return trouble_parts_waste_date;
+	}
+
+	/**
+	 * @param trouble_parts_waste_date the trouble_parts_waste_date to set
+	 */
+	public void setTrouble_parts_waste_date(String trouble_parts_waste_date) {
+		this.trouble_parts_waste_date = trouble_parts_waste_date;
+	}
+
+	/**
+	 * @return the deliver_external_no
+	 */
+	public String getDeliver_external_no() {
+		return deliver_external_no;
+	}
+
+	/**
+	 * @param deliver_external_no the deliver_external_no to set
+	 */
+	public void setDeliver_external_no(String deliver_external_no) {
+		this.deliver_external_no = deliver_external_no;
+	}
+
+	/**
+	 * @return the deliver_external_date
+	 */
+	public String getDeliver_external_date() {
+		return deliver_external_date;
+	}
+
+	/**
+	 * @param deliver_external_date the deliver_external_date to set
+	 */
+	public void setDeliver_external_date(String deliver_external_date) {
+		this.deliver_external_date = deliver_external_date;
 	}
 
 }

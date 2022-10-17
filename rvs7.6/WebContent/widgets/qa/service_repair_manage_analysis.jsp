@@ -168,27 +168,42 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					</td>
 				</tr>
 				<tr class="part3">
-					<td class="ui-state-default td-title">故障品接收</td>
+					<td class="ui-state-default td-title">故障品接收日期</td>
 					<td class="td-content">
 						<input type="text" id="text_trouble_item_reception_date" readonly="readonly" class="ui-widget-content"/>
 						<label style="display: none;">-</label>
 					</td>
-					<td class="ui-state-default td-title">故障品提交给业务</td>
+					<td class="ui-state-default td-title">故障零件号码</td>
 					<td class="td-content">
-						<input type="text" id="text_trouble_item_in_bussiness_date" readonly="readonly" class="ui-widget-content"/>
+						<input type="text" id="text_trouble_parts" class="ui-widget-content" style="width: 18em;"/>
 						<label style="display: none;">-</label>
 					</td>
 				</tr>
 				<tr class="part3">
-					<td class="ui-state-default td-title">故障品发送（业务）</td>
+					<td class="ui-state-default td-title">故障品提交给业务日期</td>
+					<td class="td-content">
+						<input type="text" id="text_trouble_item_in_bussiness_date" readonly="readonly" class="ui-widget-content"/>
+						<label style="display: none;">-</label>
+					</td>
+					<td class="ui-state-default td-title">故障品发送（业务）日期</td>
 					<td class="td-content">
 						<input type="text" id="text_trouble_item_out_bussiness_date" readonly="readonly" class="ui-widget-content"/>
 						<label style="display: none;">-</label>
 					</td>
-					<td class="ui-state-default td-title">QIS2</td>
+					<!--td class="ui-state-default td-title">QIS2</td>
 					<td class="td-content">
 						<input type="text" id="text_qis2_date" readonly="readonly" class="ui-widget-content"/>
 						<label style="display: none;">-</label>
+					</td-->
+				</tr>
+				<tr class="part3">
+					<td class="ui-state-default td-title">INVOICE NO.</td>
+					<td class="td-content">
+						<input type="text" id="text_invoice_no" class="ui-widget-content"/>
+						<label style="display: none;">-</label>
+					</td>
+					<td class="ui-state-default td-title"></td>
+					<td class="td-content">
 					</td>
 				</tr>
 				<tr class="part3">
@@ -224,9 +239,24 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-content">
 						<input type="text" id="text_m_correspond_method" class="ui-widget-content"/>
 					</td>
-					<td class="ui-state-default td-title">对策(工厂)</td>
+					<!--td class="ui-state-default td-title">对策(工厂)</td>
 					<td class="td-content">
 						<input type="text" id="text_m_solutions" class="ui-widget-content"/>
+					</td-->
+					<td class="ui-state-default td-title">故障零件废弃日期</td>
+					<td class="td-content">
+						<input type="text" id="text_trouble_parts_waste_date" readonly="readonly" class="ui-widget-content"/>
+						<label style="display: none;">-</label>
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">寄送区外单号</td>
+					<td class="td-content">
+						<input type="text" id="text_deliver_external_no" class="ui-widget-content"/>
+					</td>
+					<td class="ui-state-default td-title">寄送区外日期</td>
+					<td class="td-content">
+						<input type="text" id="text_deliver_external_date" readonly="readonly" class="ui-widget-content"/>
 					</td>
 				</tr>
 			</tbody>
