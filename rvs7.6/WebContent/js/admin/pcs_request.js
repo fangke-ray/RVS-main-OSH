@@ -115,9 +115,9 @@ $(function() {
 	setReferChooser($("#search_target_model_id"), $("#model_refer"));
 
 	var vato = null;
-	$("#detail_dialog").keypress(function(e){
+	$("#detail_dialog").keyup(function(e){
 	//	if ($("#old_verison_sample").length == 0) return;
-		if (e.ctrlKey && !e.which) {
+		if (e.ctrlKey) { //  && !e.which
 			if(e.keyCode == 37) {
 				$("#old_verison_sample").show();
 				$("#new_verison_sample").hide();
