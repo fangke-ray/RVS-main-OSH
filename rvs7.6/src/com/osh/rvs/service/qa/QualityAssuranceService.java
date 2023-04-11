@@ -2,6 +2,7 @@ package com.osh.rvs.service.qa;
 
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -28,7 +29,6 @@ import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
-import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.master.HolidayMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.service.MaterialService;
@@ -119,12 +119,18 @@ public class QualityAssuranceService {
 				if (!isEmpty(serialNos)) {
 					String[] serialNoArray = serialNos.split(",");
 					Map<String, String> fileTempl = new HashMap<String, String>();
-					fileTempl.put("NS组件组装", PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\excel\\NS 工程\\NS组件组装\\" + mform.getModel_name() + ".xls"); // TODO
-
-					for (int i = 0;i < serialNoArray.length; i++) {
-						PcsUtils.toPdfSnout(fileTempl, mform.getModel_id(), serialNoArray[i], folderPath, conn);
+					String compFileName = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\excel\\NS 工程\\NS组件组装\\" + mform.getModel_name() + ".xls";
+					if (!new File(compFileName).exists()) {
+						compFileName = PcsUtils.getCompTemplateFilepath(null, mform.getModel_name(), getHistory, conn);
 					}
-					
+
+					if (compFileName != null && new File(compFileName).exists()) {
+						fileTempl.put("NS组件组装", compFileName);
+
+						for (int i = 0;i < serialNoArray.length; i++) {
+							PcsUtils.toPdfSnout(fileTempl, mform.getModel_id(), serialNoArray[i], folderPath, conn);
+						}
+					}
 				}
 			}
 		}

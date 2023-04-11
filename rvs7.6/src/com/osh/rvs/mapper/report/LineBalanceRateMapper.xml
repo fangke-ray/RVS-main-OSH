@@ -114,8 +114,15 @@
 	</if>
 	<if test="cell==2">
 	<![CDATA[
-		AND p.position_id NOT IN (select sub_position_id from position_group)
+		AND p.position_id NOT IN (SELECT 
+			sub_position_id
+		FROM
+			position_group pg join position_of_section ps on pg.group_position_id = ps.position_id
 	]]>
+		<if test="section_id!=null and section_id!=''">
+			where section_id = #{section_id}
+		</if>		
+			)
 	</if>
 	<if test="rework==2">
 	<![CDATA[

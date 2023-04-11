@@ -279,6 +279,9 @@ public class ProcessAssignService {
 	}
 
 	public String getGroupOptions(String empty, SqlSession conn) {
+		return getGroupOptions(empty, null, conn);
+	}
+	public String getGroupOptions(String empty, String defaultValue, SqlSession conn) {
 		if (empty == null) empty = "";
 		ProcessAssignMapper dao = conn.getMapper(ProcessAssignMapper.class);
 		List<ProcessAssignTemplateEntity> l = dao.getAllProcessAssignTemplate();
@@ -298,9 +301,9 @@ public class ProcessAssignService {
 				}
 		}
 		return "<optgroup label=\"\"><option value=\"\">" + empty + "</option></optgroup>" 
-		+ "<optgroup label=\"原形\">" + CodeListUtils.getSelectOptions(codeMapNormal, null, null, false) + "</optgroup>"
-		+ "<optgroup label=\"派生\">" + CodeListUtils.getSelectOptions(codeMapDerived, null, null, false) + "</optgroup>"
-		+ "<optgroup label=\"独立流程编制\">" + CodeListUtils.getSelectOptions(codeMapRefer, null, null, false) + "</optgroup>";
+		+ "<optgroup label=\"原形\">" + CodeListUtils.getSelectOptions(codeMapNormal, defaultValue, null, false) + "</optgroup>"
+		+ "<optgroup label=\"派生\">" + CodeListUtils.getSelectOptions(codeMapDerived, defaultValue, null, false) + "</optgroup>"
+		+ "<optgroup label=\"独立流程编制\">" + CodeListUtils.getSelectOptions(codeMapRefer, defaultValue, null, false) + "</optgroup>";
 	}
 
 	public String getAllGroupOptions(String empty, SqlSession conn) {

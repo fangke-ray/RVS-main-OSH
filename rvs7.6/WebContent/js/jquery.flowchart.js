@@ -82,11 +82,11 @@ var drawer = {
 			just.parent().remove();
 
 			// 放回选项
+			var tempoption = inserter.find("select:last option[value='"+ep.attr("code")+"']").remove();
 			if (inserter.find("select:first").has('optgroup').length > 0) {
-				var tempoption = inserter.find("select:last option[value='"+ep.attr("code")+"']").remove();
 				inserter.find("select:first optgroup[label='"+tempoption.attr("plbl")+"']").append(tempoption);
 			} else {
-				inserter.find("select:first").append(inserter.find("select:last option[value='"+ep.attr("code")+"']").remove());
+				inserter.find("select:first").append(tempoption);
 			}
 			inserter.find("select:first").select2Buttons();
 
@@ -100,6 +100,16 @@ var drawer = {
 				posid = ep.attr("posid");
 				poscode = ep.attr("code");
 			}
+
+			var tempoptions = inserter.find("select:last option[value='"+ep.attr("code")+"']").remove();
+			if (tempoptions.length == 0) {
+				tempoptions = $($.map(ep.find(".pos"), function(inpos, idx){
+					var $opt = inserter.find("select:last option[value='"+$(inpos).attr("code")+"']");
+					if ($opt.length == 0) return null;
+					return $opt.remove();
+				}));
+			}
+
 			// 
 			ep.remove();
 			if (posid != null) {
@@ -117,10 +127,13 @@ var drawer = {
 
 			// 放回选项
 			if (inserter.find("select:first").has('optgroup').length > 0) {
-				var tempoption = inserter.find("select:last option[value='"+ep.attr("code")+"']").remove();
-				inserter.find("select:first optgroup[label='"+tempoption.attr("plbl")+"']").append(tempoption);
+				tempoptions.each(function(idx, tempoption){
+					inserter.find("select:first optgroup[label='"+tempoption.attr("plbl")+"']").append(tempoption);
+				})
 			} else {
-				inserter.find("select:first").append(inserter.find("select:last option[value='"+ep.attr("code")+"']").remove());
+				tempoptions.each(function(idx, tempoption){
+					inserter.find("select:first").append(tempoption);
+				})
 			}
 			inserter.find("select:first").select2Buttons();
 			// 关闭工具框
@@ -290,18 +303,28 @@ var flowchart_methods = {
 						while ($("div.chartarea[posid='"+(drawer._subchartcode + 1)+"']").length > 0) {
 							drawer._subchartcode+=10;
 						}
-						var newStep = "<div class='edgeposition'><div class='just just-multi'>" +
-								"<div class='chartarea pos' prevcode='"+ep.parent().find(".pos:first").attr("code")+"' nextcode='"+nextcode+"' posid='"+(drawer._subchartcode + 1)+"' code='"+(drawer._subchartcode + 1)+"'>"+drawer._getinit()+"</div>" +
-								"<div class='chartarea pos' prevcode='"+ep.parent().find(".pos:first").attr("code")+"' nextcode='"+nextcode+"' posid='"+(drawer._subchartcode + 1)+"' code='"+(drawer._subchartcode + 2)+"'>"+drawer._getinit()+"</div>" +
-								"</div></div>";
-						nextNode.before(newStep);
-						// 上下步骤连接
-						ep.parent().children(".pos").each(function(i,item){
-							drawer._changeNext($(item), (drawer._subchartcode + 1));
-						});
-						ep.parent().parent().next(".edgeposition").next(".edgeposition").children().children(".pos").each(function(i,item){
-							drawer._changePrev($(item), (drawer._subchartcode + 1));
-						});
+
+						if (ep.closest(".edgeposition").next().find(".chartarea").length > 0) {
+							var $lca = ep.closest(".edgeposition").next().find(".chartarea:last");
+							var $nca = $lca.clone();
+							$nca.attr("code", parseInt($lca.attr("code")) + 1);
+							$nca.html(drawer._getinit());
+							$lca.after($nca);
+						} else {
+							var newStep = "<div class='edgeposition'><div class='just just-multi'>" +
+									"<div class='chartarea pos' prevcode='"+ep.parent().find(".pos:first").attr("code")+"' nextcode='"+nextcode+"' posid='"+(drawer._subchartcode + 1)+"' code='"+(drawer._subchartcode + 1)+"'>"+drawer._getinit()+"</div>" +
+									"<div class='chartarea pos' prevcode='"+ep.parent().find(".pos:first").attr("code")+"' nextcode='"+nextcode+"' posid='"+(drawer._subchartcode + 1)+"' code='"+(drawer._subchartcode + 2)+"'>"+drawer._getinit()+"</div>" +
+									"</div></div>";
+							nextNode.before(newStep);
+							// 上下步骤连接
+							ep.parent().children(".pos").each(function(i,item){
+								drawer._changeNext($(item), (drawer._subchartcode + 1));
+							});
+							ep.parent().parent().next(".edgeposition").next(".edgeposition").children().children(".pos").each(function(i,item){
+								drawer._changePrev($(item), (drawer._subchartcode + 1));
+							});
+						}
+
 						// 关闭工具框
 						drawer._closeOptions(thisid);
 					});

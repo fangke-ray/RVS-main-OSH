@@ -644,6 +644,10 @@ public class PcsUtils {
 					if (currentProcessCode != null && currentProcessCode.indexOf("\\d") >= 0) {
 						isCurrent = processCode.matches(currentProcessCode);
 					}
+
+					if ("151".equals(currentProcessCode) && pcsName.indexOf("选择修理-") == 0) {
+						processCode = "151";
+					}
 					// if (currentProcessCodeOrg)
 					// 当前可填写工位映射
 					if (isLightFix) {

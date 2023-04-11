@@ -688,13 +688,15 @@ var show_confirm_funcs = {
 				$dialog.dialog("close");
 			}
 		}
-		if (part_procedure.confirm == 0 
-			|| (part_procedure.confirm == 2 && d_job_no != null)
-			|| (part_procedure.confirm == 3 && d_job_no != null && n_job_no != null)
-			) {
-			dialogButtons = {"关闭" : function() {
-				$dialog.dialog("close");
-			}};
+		if (part_procedure) {
+			if (part_procedure.confirm == 0 
+				|| (part_procedure.confirm == 2 && d_job_no != null)
+				|| (part_procedure.confirm == 3 && d_job_no != null && n_job_no != null)
+				) {
+				dialogButtons = {"关闭" : function() {
+					$dialog.dialog("close");
+				}};
+			}
 		}
 
 		$dialog.dialog({

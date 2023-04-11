@@ -438,26 +438,22 @@ public class LoginAction extends BaseAction {
 					PositionService.getPositionUnitizeds(conn); // 确认下取过动物内镜工位映射
 
 					String now_position_id = workingPf.getPosition_id();
+					String specialPage = PositionService.getPositionSpecialPage(now_position_id, conn);
 
-					if (RvsConsts.POSITION_ACCEPTANCE.equals(now_position_id)) { // 受理
-						loginData.setWorking_role_id(RvsConsts.ROLE_ACCEPTOR);
-					} else if (RvsConsts.POSITION_QUOTATION_N.equals(now_position_id)
-								|| RvsConsts.POSITION_QUOTATION_D.equals(now_position_id)
-								|| RvsConsts.POSITION_QUOTATION_P_181.equals(now_position_id)
-								|| RvsConsts.POSITION_ANML_QUOTAION.equals(now_position_id) // IISE检查
-								|| "00000000101".equals(now_position_id)) { // 报价
-						loginData.setWorking_role_id(RvsConsts.ROLE_QUOTATOR);
-					} else if (RvsConsts.POSITION_QA.equals(now_position_id)
-							|| RvsConsts.POSITION_QA_LIGHT.equals(now_position_id)
-							|| RvsConsts.POSITION_QA_P_613.equals(now_position_id)
-							|| RvsConsts.POSITION_QA_P_614.equals(now_position_id)
-							|| RvsConsts.POSITION_ANML_QA.equals(now_position_id)
-							|| RvsConsts.POSITION_ANML_QA_UDI.equals(now_position_id)
-							) { // 出检
-						loginData.setWorking_role_id(RvsConsts.ROLE_QAER);
-					} else if (RvsConsts.POSITION_SHIPPING.equals(now_position_id)
-							|| RvsConsts.POSITION_ANML_SHPPING.equals(now_position_id)) { // 出货
-						loginData.setWorking_role_id(RvsConsts.ROLE_SHIPPPER);
+					if (specialPage != null) {
+						switch(specialPage) {
+						case "acceptance" : 
+							loginData.setWorking_role_id(RvsConsts.ROLE_ACCEPTOR); break;
+						case "quotation" : 
+							loginData.setWorking_role_id(RvsConsts.ROLE_QUOTATOR); break;
+						case "qualityAssurance" : 
+						case "serviceRepairReferee" : 
+							loginData.setWorking_role_id(RvsConsts.ROLE_QAER); break;
+						case "shipping" : 
+							loginData.setWorking_role_id(RvsConsts.ROLE_SHIPPPER); break;
+						default:
+							loginData.setWorking_role_id(RvsConsts.ROLE_OPERATOR);
+						}
 					} else {
 						loginData.setWorking_role_id(RvsConsts.ROLE_OPERATOR);
 					}
