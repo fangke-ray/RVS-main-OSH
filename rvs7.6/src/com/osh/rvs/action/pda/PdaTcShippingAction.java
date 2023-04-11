@@ -166,13 +166,16 @@ public class PdaTcShippingAction extends PdaBaseAction {
 		req.setAttribute("shelfMap", service.getShelfMap(shelf, shippingPlanListOnShelf, conn));
 
 		if (warehoused) {
+			// 切换作业
+			AcceptFactService afService = new AcceptFactService();
+			afService.switchTo(null, true, "131", user.getOperator_id(), true, conn);
+
 			// 更新到现品作业记录（维修品）
 			FactMaterialService fmsService = new FactMaterialService();
 			int updateCount = fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
 			// 通知后台刷新作业标记
 			if (updateCount > 0) {
 				conn.commit();
-				AcceptFactService afService = new AcceptFactService();
 				afService.fingerOperatorRefresh(user.getOperator_id());
 			}
 		}

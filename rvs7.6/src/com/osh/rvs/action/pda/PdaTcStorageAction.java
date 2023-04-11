@@ -205,13 +205,16 @@ public class PdaTcStorageAction extends PdaBaseAction {
 		req.setAttribute("shelfMap", service.getShelfMap(shelf, storagePlanListOnShelf, conn));
 
 		if (storaged) {
+			// 切换作业
+			AcceptFactService afService = new AcceptFactService();
+			afService.switchTo(null, true, "106", user.getOperator_id(), true, conn);
+
 			// 更新到现品作业记录（维修品）
 			FactMaterialService fmsService = new FactMaterialService();
 			int updateCount = fmsService.insertFactMaterial(user.getOperator_id(), entity.getMaterial_id(), 1, conn);
 			// 通知后台刷新作业标记
 			if (updateCount > 0) {
 				conn.commit();
-				AcceptFactService afService = new AcceptFactService();
 				afService.fingerOperatorRefresh(user.getOperator_id());
 			}
 		}
