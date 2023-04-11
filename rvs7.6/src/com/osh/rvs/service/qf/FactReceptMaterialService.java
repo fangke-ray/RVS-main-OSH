@@ -19,7 +19,6 @@ import com.osh.rvs.bean.data.MaterialTagEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.bean.qf.FactReceptMaterialEntity;
-import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialTagForm;
@@ -47,7 +46,20 @@ public class FactReceptMaterialService {
 	private MaterialTagService materialTagService = new MaterialTagService();
 	private ProductionFeatureService featureService = new ProductionFeatureService();
 	private AcceptanceService acceptanceService = new AcceptanceService();
-	
+
+	/**
+	 * 已登记内镜
+	 */
+	public static final String FLAG_REGISTED_SCOPE = "0";
+	/**
+	 * 临时内镜
+	 */
+	public static final String FLAG_TEMPORARY_SCOPE = "1";
+	/**
+	 * 临时内镜
+	 */
+	public static final String FLAG_PRIPHERAL = "3";
+
 	public List<FactReceptMaterialForm> searchReceptMaterial(String search_range, SqlSession conn) {
 		FactReceptMaterialMapper dao = conn.getMapper(FactReceptMaterialMapper.class);
 
@@ -104,8 +116,10 @@ public class FactReceptMaterialService {
 
 		
 		if (entity.getTag_types() == null || entity.getTag_types().indexOf("1") < 0) {
-			String path = tcService.printLabels(entity.getTc_location());
-			tcService.printRemote(path, conn);
+			if (entity.getTc_location() != null) {
+				String path = tcService.printLabels(entity.getTc_location());
+				tcService.printRemote(path, conn);
+			}
 		}
 	}
 
@@ -169,7 +183,7 @@ public class FactReceptMaterialService {
 		MaterialService mService = new MaterialService();
 		MaterialEntity mBean = mService.loadSimpleMaterialDetailEntity(conn, materialID);
 
-		if("0".equals(flag) || "3".equals(flag)){
+		if(FLAG_REGISTED_SCOPE.equals(flag) || FLAG_PRIPHERAL.equals(flag)){
 			Integer ticketFlg = mBean.getTicket_flg();
 
 			// boolean isDid = featureService.checkPositionDid(materialID, "00000000009", "2", null, conn);

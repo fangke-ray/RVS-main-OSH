@@ -2170,7 +2170,7 @@ function showPerlAddDialog() {
                         "model_name": $("#perl_add_model_name").text().trim(),
                         "model_id": $("#perl_add_model_id").val().trim(),
                         "serial_no": $("#perl_add_serial_no").val().trim(),
-                        "flag": "1" //周边
+                        "flag": "3" //周边
                     };
 
                     let types = new Array();
@@ -2596,6 +2596,7 @@ let directObj = {
                 }
 
                 if (initData.material_id) {
+                	initData.flag = "0";
                     showEditDialog(initData);
                 } else {
                     //临时表编辑
@@ -2624,6 +2625,7 @@ let directObj = {
                 }
 
                 if (initData.material_id) {
+                	initData.flag = "0";
                     showEditDialog(initData);
                 } else {
                     //临时表编辑

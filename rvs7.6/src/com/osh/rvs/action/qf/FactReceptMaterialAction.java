@@ -373,13 +373,13 @@ public class FactReceptMaterialAction extends BaseAction {
 			//表单合法性检查
 			Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
 			v.add("serial_no", v.required("机身号"));
-			if("1".equals(flag)){//周边
+			if(FactReceptMaterialService.FLAG_PRIPHERAL.equals(flag)){//周边
 				v.add("model_name", v.required("型号"));
 			}
 			errors = v.validate();
 			
 			if(errors.size() == 0){
-				if("0".equals(factReceptMaterialForm.getFlag())){//维修品
+				if(FactReceptMaterialService.FLAG_REGISTED_SCOPE.equals(factReceptMaterialForm.getFlag())){//维修品
 					if(CommonStringUtil.isEmpty(factReceptMaterialForm.getModel_id())){
 						////找不到型号，型号ID设为00000000000
 						factReceptMaterialForm.setModel_id("00000000000");
