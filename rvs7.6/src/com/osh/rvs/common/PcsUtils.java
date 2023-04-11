@@ -1276,8 +1276,9 @@ public class PcsUtils {
 		return currentProcessCode;
 	}
 
-	/** 测试用工程检查票HTML 单页 */
-	public static String toHtmlTest(String content, String modelName) {
+	/** 测试用工程检查票HTML 单页 
+	 * @param processCodesInFile */
+	public static String toHtmlTest(String content, String modelName, Set<String> processCodesInFile) {
 		if (content == null) {
 			return "文件转换失败!";
 		}
@@ -1294,34 +1295,67 @@ public class PcsUtils {
 		// GC
 		specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{7})\" scope=\"G\" type=\"R\" position=\"\\d{3}\" name=\"\\d{2}\" sub=\"\\d{2}\"/>", "<label>(维修等级)</label>");
 
-		// 输入：I
-		specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d\\d\" scope=\"\\w\" type=\"I\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
-				"<input type=\"text\" name=\"$1\" value=\"\"/ code=\"$2\" class=\"i_act\"><label locate=\"$1\" code=\"$2\" class=\"i_com\"></label>"); // 
+		// matchAll process_codes
+		Pattern pTags = Pattern.compile(
+				"<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"[EL]\" type=\"\\w\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>");
+		Matcher mTags = pTags.matcher(specify);
+		StringBuffer sbConvertTag = new StringBuffer("");
+		while (mTags.find()) {
+			String replacement = "";
 
-		// 单选：R
-		specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d\\d\" scope=\"\\w\" type=\"R\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"(\\d{2})\"/>",
-				" <input type=\"radio\" name=\"$1\" code=\"$2\" value=\"$3\" class=\"i_act\"/><label locate=\"$1\" code=\"$2\" value=\"$3\" class=\"i_com\"></label>");
-		// 合格确认：M
-		specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d\\d\" scope=\"\\w\" type=\"M\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
-				"<section locate=\"$1\" code=\"$2\" value=\"\" class=\"i_com\"></section>" +
-				"<input type=\"radio\" name=\"$1\" id=\"$1_0\" value=\"0\" code=\"$2\" class=\"i_act tag_m\"/><label for=\"$1_0\">不需确认</label>" +
-				"<input type=\"radio\" name=\"$1\" id=\"$1_y\" value=\"1\" code=\"$2\" class=\"i_act tag_m\"/><label for=\"$1_y\">合格</label>" +
-				"<input type=\"radio\" name=\"$1\" id=\"$1_n\" value=\"-1\" code=\"$2\" class=\"i_act tag_m\"/><label for=\"$1_n\">不合格</label>");
-		// 按钮
-		specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d\\d\" scope=\"\\w\" type=\"N\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
-				"<section locate=\"$1\" code=\"$2\" value=\"\" class=\"i_com\"></section>" +
-				"<input type=\"radio\" name=\"$1\" id=\"$1_0\" value=\"0\" code=\"$2\" class=\"i_act tag_n\"/><label for=\"$1_0\">未选</label>" +
-				"<input type=\"radio\" name=\"$1\" id=\"$1_y\" value=\"1\" code=\"$2\" class=\"i_act tag_n\"/><label for=\"$1_y\">确认</label>" +
-				"<input type=\"radio\" name=\"$1\" id=\"$1_n\" value=\"-1\" code=\"$2\" class=\"i_act tag_n\"/><label for=\"$1_n\">不做</label>");
+			if (mTags.groupCount() >= 3) {
+				String pcid = mTags.group(1);
+				String process_code = mTags.group(2);
+				String sub = mTags.group(3);
+				if (pcid.length() == 7) {
+					if (!"000".equals(process_code)) {
+						processCodesInFile.add(process_code);
+					}
+					String type = pcid.substring(1, 2);
+					switch(type) {
+						// 输入：I
+						case "I" :
+							replacement = "<input type=\"text\" name=\"" + pcid + "\" value=\"\"/ code=\"" + process_code 
+								+ "\" class=\"i_act\"><label locate=\"" + pcid + "\" code=\"" + process_code + "\" class=\"i_com\"></label>";
+							break;
+						// 单选：R
+						case "R" :
+							replacement = " <input type=\"radio\" name=\"" + pcid + "\" code=\"" + process_code + "\" value=\"" + sub 
+								+ "\" class=\"i_act\"/><label locate=\"" + pcid + "\" code=\"" + process_code + "\" value=\"" + sub + "\" class=\"i_com\"></label>";
+							break;
+						// 合格确认：M
+						case "M" :
+							replacement = "<section locate=\"" + pcid + "\" code=\"" + process_code + "\" value=\"\" class=\"i_com\"></section>" +
+									"<input type=\"radio\" name=\"" + pcid + "\" id=\"" + pcid + "_0\" value=\"0\" code=\"" + process_code + "\" class=\"i_act tag_m\"/><label for=\"" + pcid + "_0\">不需确认</label>" +
+									"<input type=\"radio\" name=\"" + pcid + "\" id=\"" + pcid + "_y\" value=\"1\" code=\"" + process_code + "\" class=\"i_act tag_m\"/><label for=\"" + pcid + "_y\">合格</label>" +
+									"<input type=\"radio\" name=\"" + pcid + "\" id=\"" + pcid + "_n\" value=\"-1\" code=\"" + process_code + "\" class=\"i_act tag_m\"/><label for=\"" + pcid + "_n\">不合格</label>";
+							break;
+						// 按钮
+						case "N" :
+							replacement = "<section locate=\"" + pcid + "\" code=\"" + process_code + "\" value=\"\" class=\"i_com\"></section>" +
+									"<input type=\"radio\" name=\"" + pcid + "\" id=\"" + pcid + "_0\" value=\"0\" code=\"" + process_code + "\" class=\"i_act tag_n\"/><label for=\"" + pcid + "_0\">未选</label>" +
+									"<input type=\"radio\" name=\"" + pcid + "\" id=\"" + pcid + "_y\" value=\"1\" code=\"" + process_code + "\" class=\"i_act tag_n\"/><label for=\"" + pcid + "_y\">确认</label>" +
+									"<input type=\"radio\" name=\"" + pcid + "\" id=\"" + pcid + "_n\" value=\"-1\" code=\"" + process_code + "\" class=\"i_act tag_n\"/><label for=\"" + pcid + "_n\">不做</label>";
+							break;
+						// 合格总计
+						case "T" :
+							replacement = "<section locate=\"" + pcid + "\" code=\"" + process_code + "\" class=\"i_total\">合格</section>" + 
+									"<input type=\"hidden\" name=\"" + pcid + "\" value=\"1\" code=\"" + process_code + "\" class=\"i_total_hidden\"/>";
+							break;
+						// 备注信息
+						case "C" :
+							replacement = "<textarea name=\"" + pcid + "\" code=\"" + process_code + "\"></textarea><br><textarea name=\"" + pcid + "_container\" readonly disabled style='resize:none;height:80%;'></textarea>";
+							break;
+					}
+				}
+			}
 
-		// 合格总计
-		specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d\\d\" scope=\"\\w\" type=\"T\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
-				"<section locate=\"$1\" code=\"$2\" class=\"i_total\">合格</section>" + 
-				"<input type=\"hidden\" name=\"$1\" value=\"1\" code=\"$2\" class=\"i_total_hidden\"/>");
-
-		// 备注信息
-		specify = specify.replaceAll("<pcinput pcid=\"@#(\\w{2}\\d{5})\\d{2}\" scope=\"\\w\" type=\"C\" position=\"(\\d{3})\" name=\"\\d{2}\" sub=\"\\d{2}\"/>",
-				"<textarea name=\"$1\" code=\"$2\"></textarea><br><textarea name=\"$1_container\" readonly disabled style='resize:none;height:80%;'></textarea>");
+			mTags.appendReplacement(sbConvertTag, replacement);
+		}
+		if (sbConvertTag.length() > 0) {
+			mTags.appendTail(sbConvertTag);
+			specify = sbConvertTag.toString();
+		}
 
 		return specify;
 	}
@@ -1336,6 +1370,11 @@ public class PcsUtils {
 			logger.info("pcsName:"+ pcsName);
 
 			String specify = srcPcses.get(pcsName);
+
+			if (specify == null) {
+				continue;
+			}
+
 			//String orgSpecify = specify;
 			// 全体对象
 			// GI
@@ -1776,6 +1815,62 @@ public class PcsUtils {
 	/** 保存用型号Key */
 	private static String normalize(String modelName) {
 		return modelName.replaceAll(" ", "").replace("（", "(").replace("）", ")");
+	}
+
+	public static String getCompTemplateFilepath(String material_id, String modelName, boolean checkHistory, SqlSession conn) {
+		String lineName = "NS 工程";
+		Map<String, Map<String, String>> lineBinder = fileBinder.get(lineName);
+
+		List<PcsRequestEntity> lH = null;
+		if (material_id != null) {
+			PcsRequestMapper prMapper = conn.getMapper(PcsRequestMapper.class);
+
+			// 如果参照历史,取得指定机型的修改履历
+			if (checkHistory) {
+				lH= prMapper.getFixHistoryOfMaterial(material_id);
+			}
+		}
+
+		for (String pace : lineBinder.keySet()) {
+			if ("NS组件组装".equals(pace)) {
+				String filename = null;
+				if (material_id != null) {
+					String folderTypesKey = getFolderTypesKey(lineName, pace, folderTypes);
+
+					if (checkHistory) {
+						for (PcsRequestEntity pre : lH) {
+							Integer lineType = pre.getLine_type();
+							if ((""+lineType).equals(folderTypesKey)) {
+								filename = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\_request\\" + trimZero(pre.getPcs_request_key())
+										+ "\\old.xls";
+								if (!new File(filename).exists()) {
+									filename = null;
+								}
+								break;
+							}
+						}
+					}
+				}				
+
+
+				if (filename == null) {
+					Map<String, String> files = lineBinder.get(pace);
+
+					String modelNameBFile = normalize(modelName);
+
+					if (files.containsKey(modelNameBFile)) {
+						// 按型号名取得文件
+						filename = files.get(modelNameBFile);
+					}
+
+					if (filename != null) {
+						return filename.replaceAll("\\\\xml\\\\", "\\\\excel\\\\").replaceAll(ext, xls_ext);
+					}
+				}
+			}
+		}
+
+		return null;
 	}
 
 	/** 取得归档模板 **/
@@ -2930,7 +3025,7 @@ public class PcsUtils {
 			FileUtils.copyFile(new File(specify), new File(cacheFile));
 
 			if (setBlank) {
-				
+
 				XlsUtil xls = new XlsUtil(cacheFile);
 				xls.SelectActiveSheet();
 

@@ -1,6 +1,7 @@
 package com.osh.rvs.mapper.master;
 
 import java.util.List;
+import java.util.Set;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -27,6 +28,7 @@ public interface PcsRequestMapper {
 
 	/** 取得测试用工位 */
 	public List<PositionEntity> getTestOflines(String line_id);
+	public List<PositionEntity> getTestOfPositionSet(@Param("processCodes") Set<String> processCodes);
 
 	/** 移除修改依赖 */
 	public int removePcsRequest(String pcs_request_key);
@@ -47,4 +49,5 @@ public interface PcsRequestMapper {
 	public List<PcsRequestEntity> checkMaterialAssignAsOld(String material_id);
 
 	public List<PcsRequestEntity> getFixHistoryOfMaterial(String material_id);
+
 }

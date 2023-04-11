@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,6 @@ import com.osh.rvs.bean.master.PcsRequestEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.PcsUtils;
-import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.XlsUtil;
 import com.osh.rvs.form.master.PcsRequestForm;
 import com.osh.rvs.mapper.CommonMapper;
@@ -171,6 +171,13 @@ public class PcsRequestService {
 		session.removeAttribute(SESSION_FILE);
 	}
 
+	/**
+	 * 复制文件到改废定历史文件夹
+	 * 
+	 * @param uploadfile
+	 * @param savePath
+	 * @param oldTargetFile
+	 */
 	private void writeFile(FormFile uploadfile, String savePath, String oldTargetFile) {
 		FileOutputStream fileOutput;
 		File fSavePPath = new File(savePath);
@@ -405,33 +412,22 @@ public class PcsRequestService {
 
 		String savePath = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\_request\\" + trimZero(pcs_request_key);
 
-		String newContent = PcsUtils.toHtmlTest(getXmlContent(savePath + "\\new.html"), entity.getTarget_model_name());
+		Set<String> processCodesInFile = new TreeSet<String>();
+		String newContent = PcsUtils.toHtmlTest(getXmlContent(savePath + "\\new.html"), entity.getTarget_model_name(), processCodesInFile);
 
 		lResponseResult.put("pcs_content_test", newContent);
 
 		String line_id = entity.getLine_id();
-		// 借用Line_id作为operator_id, Line_name作为job_no
-		List<PositionEntity> pentities = mapper.getTestOflines(line_id);
-		if ("00000000019".equals(line_id)) { // TODO
 
-			PositionEntity pentity181 = new PositionEntity();
-			pentity181.setPosition_id(RvsConsts.POSITION_QUOTATION_P_181);
-			pentity181.setName("周边报价");
-			pentity181.setProcess_code("181");
-			pentities.add(pentity181);
-			
-			PositionEntity pentity811 = new PositionEntity();
-			pentity811.setPosition_id(RvsConsts.POSITION_811);
-			pentity811.setName("周边工程检查");
-			pentity811.setProcess_code("811");
-			pentities.add(pentity811);
-			
-			PositionEntity pentity613 = new PositionEntity();
-			pentity613.setPosition_id(RvsConsts.POSITION_QA_P_613);
-			pentity613.setName("周边出检");
-			pentity613.setProcess_code("613");
-			pentities.add(pentity613);
+		// 借用Line_id作为operator_id, Line_name作为job_no
+		List<PositionEntity> pentities = null;
+
+		if (processCodesInFile.isEmpty()) {
+			pentities = mapper.getTestOflines(line_id);
+		} else {
+			pentities = mapper.getTestOfPositionSet(processCodesInFile);
 		}
+
 		for (PositionEntity pentity : pentities) {
 			if (pentity.getLine_id() == null) {
 				// 无指定主工位
@@ -465,7 +461,7 @@ public class PcsRequestService {
 
 		XlsUtil xls = null;
 		try {
-			xls = new XlsUtil(cacheXlsPath);
+			xls = new XlsUtil(cacheXlsPath, true);
 			xls.SelectActiveSheet();
 
 			// 查找多工位标签
@@ -697,6 +693,7 @@ public class PcsRequestService {
 	 * @param parameterMap
 	 * @param user
 	 * @param conn
+	 * @throws Exception 
 	 */
 	public void importToSystem(Map<String, String[]> parameterMap, LoginData user,
 			SqlSessionManager conn) {

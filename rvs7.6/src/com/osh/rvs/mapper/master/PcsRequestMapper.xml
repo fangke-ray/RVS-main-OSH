@@ -122,6 +122,23 @@
 		order by process_code;
 	</select>
 
+	<select id="getTestOfPositionSet" resultType="PositionEntity" parameterType="String">
+		select p.position_id, p.name, process_code, o.operator_id as line_id, o.job_no as line_name 
+		from position p
+		left join 
+		(select position_id, operator_id, job_no
+		 from operator where delete_flg = 0 order by position_id, (work_count_flg = 1) desc) o
+		on p.position_id = o.position_id
+		where
+		p.process_code IN 
+	<foreach item="process_code" collection="processCodes" open="(" separator="," close=")"> 
+		#{process_code}
+	</foreach>
+		and p.delete_flg = 0
+		group by p.position_id
+		order by process_code;
+	</select>
+
 	<insert id="createPcsRequest" parameterType="PcsRequestEntity">
 		<![CDATA[ 
 			INSERT INTO `pcs_request`
