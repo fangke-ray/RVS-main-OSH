@@ -122,10 +122,13 @@ public class MaterialFactService {
 			} else if (isPeripheral) {
 				section_id = SECTION_3;
 			} else if (resultBean.getCategory_kind() == 3
+					|| resultBean.getCategory_kind() == 4
 					|| resultBean.getCategory_kind() == 6){
 				section_id = SECTION_2;
 			} else if (resultBean.getCategory_kind() == 7){
 				section_id = SECTION_3;
+			} else if (resultBean.getCategory_name() != null && resultBean.getCategory_name().indexOf("超声") >= 0) {
+				section_id = SECTION_2;
 			}
 
 			if (isLightFix || isPeripheral
