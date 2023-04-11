@@ -72,6 +72,27 @@ public class PartialBomService {
 		return responseList;
 	}
 
+	public List<PartialBomForm> searchRankBomForm(ActionForm form, SqlSession conn) {
+
+		List<PartialBomForm> responseList = new ArrayList<PartialBomForm>();
+
+		PartialBomEntity partialBomEntity = new PartialBomEntity();
+		// 复制表单到数据对象
+		CopyOptions cos = new CopyOptions();
+		cos.include("model_id", "level");
+		cos.converter(IntegerConverter.getInstance(), "level");
+		BeanUtil.copyToBean(form, partialBomEntity, cos);
+
+		PartialBomMapper mapper = conn.getMapper(PartialBomMapper.class);
+		List<PartialBomEntity> list = mapper.searchRankBomView(partialBomEntity);
+
+		if (list != null) {
+			BeanUtil.copyToFormList(list, responseList, CopyOptions.COPYOPTIONS_NOEMPTY, PartialBomForm.class);
+			return responseList;
+		}
+		return null;
+	}
+
 	public List<PartialBomEntity> searchRankBom(ActionForm form, SqlSession conn) {
 		PartialBomEntity partialBomEntity = new PartialBomEntity();
 		// 复制表单到数据对象
@@ -100,7 +121,7 @@ public class PartialBomService {
 		// 复制表单到数据对象
 		BeanUtil.copyToBean(form, partialBomEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 		PartialBomMapper dao = conn.getMapper(PartialBomMapper.class);
-		List<PartialBomEntity> responseList = dao.searchPartialBom(partialBomEntity);
+		List<PartialBomEntity> responseList = dao.searchRankBomView(partialBomEntity);
 		
 		try{
 			FileUtils.copyFile(new File(path), new File(cachePath));

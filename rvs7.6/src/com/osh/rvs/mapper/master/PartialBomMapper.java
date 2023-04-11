@@ -28,4 +28,7 @@ public interface PartialBomMapper {
 
 	public List<PartialBomEntity> searchRankBom(
 			PartialBomEntity partialBomEntity);
+
+	public List<PartialBomEntity> searchRankBomView(
+			PartialBomEntity partialBomEntity);
 }

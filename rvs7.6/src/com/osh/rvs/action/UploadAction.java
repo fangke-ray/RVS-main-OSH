@@ -39,6 +39,7 @@ import com.osh.rvs.service.OperatorService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.UploadService;
+import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.PartialAssignService;
 import com.osh.rvs.service.partial.PartialBaseLineValueService;
 import com.osh.rvs.service.partial.PartialPositionService;
@@ -380,7 +381,7 @@ public class UploadAction extends BaseAction {
 		boolean checkRead = false;
 		if (tempfilename.endsWith(".xlsx")) {
 			PartialPositionService ppService = new PartialPositionService();
-			checkRead = ppService.checkReadBomFile(tempfilename, conn, errors);
+			checkRead = ppService.checkReadBomFile(tempfilename, null, conn, errors);
 		}
 
 		if (errors.size() == 0) {

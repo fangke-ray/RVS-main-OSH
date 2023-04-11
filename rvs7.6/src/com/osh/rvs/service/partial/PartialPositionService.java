@@ -175,7 +175,7 @@ public class PartialPositionService {
 	 * @param errors
 	 * @return
 	 */
-	public boolean checkReadBomFile(String tempfilename,
+	public boolean checkReadBomFile(String tempfilename, String targetModelName,
 			SqlSessionManager conn, List<MsgInfo> errors) {
 		boolean acceptableFormat = false;
 		InputStream in = null;
@@ -211,6 +211,22 @@ public class PartialPositionService {
 			int idxProcessCode = -1;
 
 			XSSFRow titleRow = sheet.getRow(0);
+			int rowNumber = 1;
+			for (; rowNumber <= sheet.getLastRowNum(); rowNumber++) {
+				if (titleRow != null) {
+					break;
+				}
+				titleRow = sheet.getRow(rowNumber);
+			}
+			if (titleRow == null) {
+				_log.error("没有表头。");
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("code");
+				error.setErrcode("file.invalidFormat");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("file.invalidFormat") + "没有表头。");
+				errors.add(error);
+				return false;
+			}
 			for (int i = 0; i < titleRow.getLastCellNum(); i++) {
 				XSSFCell titleCell = titleRow.getCell(i);
 				if (titleCell != null && titleCell.getCellType() == XSSFCell.CELL_TYPE_STRING) {
@@ -257,7 +273,7 @@ public class PartialPositionService {
 			// 读入型号列表
 			Map<String, List<PartialPositionEntity>> modelReadIn = new HashMap<String, List<PartialPositionEntity>>();
 
-			for (int rowNumber = 1; rowNumber <= sheet.getLastRowNum(); rowNumber++) {
+			for (; rowNumber <= sheet.getLastRowNum(); rowNumber++) {
 				PartialPositionEntity partialPositionEntity = new PartialPositionEntity();
 				XSSFRow row = sheet.getRow(rowNumber);
 				if (row == null) continue;
@@ -268,6 +284,8 @@ public class PartialPositionService {
 
 				// ProductCode
 				String productCode = CopyByPoi.getCellStringValue(row.getCell(idxProductCode));
+				if (targetModelName != null && !targetModelName.equals(productCode)) continue;
+
 				if (modelLoseCache.contains(productCode)) continue;
 
 				String modelId = ReverseResolution.getModelByName(productCode, conn);
@@ -700,10 +718,15 @@ public class PartialPositionService {
 
 		//Excel临时文件
 		String cacheName ="BOM_position" + new Date().getTime() + ".xlsx";
-		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\" +cacheName; 
-		
+		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\"; 
+		File filePath = new File(cachePath);
+		if(!filePath.exists()){
+			filePath.mkdirs();
+		}
+	
 		OutputStream out = null;
 		try {
+			cachePath += cacheName;
 			File file = new File(cachePath);
 			if(!file.exists()){
 				file.createNewFile();

@@ -121,7 +121,7 @@ var waste_revision_edit = function(){
 }
 /*废改订加载页面事件*/
 var show_adit_Complete = function(xhrobj,textStatus,history_limit_date){
-	    $("#confirmmessage").load("widgets/admin/partial_position_edit.jsp",function(responseText, textStatus, XMLHttpRequest) {		  
+    $("#confirmmessage").load("widgets/admin/partial_position_edit.jsp",function(responseText, textStatus, XMLHttpRequest) {		  
 		$("#operation_id").buttonset();
 	    $("input.ui-button").button();
 	    var resInfo = null;
@@ -486,17 +486,20 @@ var show_download_select = function(){
 					complete : function(xhrobj) {
 						var resInfo = $.parseJSON(xhrobj.responseText);
 						var tempFile = resInfo.file_path;
-						var kind = $("#download_kind > option:selected").text();
+						var kindText = $("#download_kind > option:selected").text();
+						if (kind == -1) {
+							kindText = ($("#label_model_name").text() || "Model").replace(/\s/g, "_");
+						}
 						if (!tempFile) {
-							errorPop("无法下载信息选择类别" + kind + "的零件BOM定位文档。");
+							errorPop("无法下载信息选择类别" + kindText + "的零件BOM定位文档。");
 							$dialog.parent().show();
 						} else {
 							$("#download_dialog").dialog("close");
 							if ($("iframe").length > 0) {
-								$("iframe").attr("src", "download.do"+"?method=output&fileName=" + kind + "零件BOM定位表.xlsx&filePath=" + tempFile);
+								$("iframe").attr("src", "download.do"+"?method=output&fileName=" + kindText + "零件BOM定位表.xlsx&filePath=" + tempFile);
 							} else {
 								var iframe = document.createElement("iframe");
-					            iframe.src = "download.do"+"?method=output&fileName=" + kind + "零件BOM定位表.xlsx&filePath=" + tempFile;
+					            iframe.src = "download.do"+"?method=output&fileName=" + kindText + "零件BOM定位表.xlsx&filePath=" + tempFile;
 					            iframe.style.display = "none";
 					            document.body.appendChild(iframe);
 							}

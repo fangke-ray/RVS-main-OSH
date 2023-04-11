@@ -123,7 +123,10 @@ public class PartialBomAction extends BaseAction {
 		
 		
 		if(msgInfos.size()<=0){
-			List<PartialBomForm> list = service.searchPartialBom(form, conn);
+			List<PartialBomForm> list = service.searchRankBomForm(form, conn);
+			if (list == null || list.size() == 0) {
+				list = service.searchPartialBom(form, conn);
+			}
 			listResponse.put("finished", list);
 		}
 		
