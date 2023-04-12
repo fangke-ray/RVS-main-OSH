@@ -48,7 +48,7 @@ public class ServiceRepairManageForm extends ActionForm implements Serializable 
 	@BeanField(title = "不良内容", name = "fix_demand", length = 500)
 	private String fix_demand;
 	// 不良内容
-	@BeanField(title = "故障描述", name = "trouble_discribe", length = 768)
+	@BeanField(title = "故障描述", name = "trouble_discribe", length = 1000)
 	private String trouble_discribe;
 	// 故障原因
 	@BeanField(title = "故障原因", name = "trouble_cause", length = 768)
