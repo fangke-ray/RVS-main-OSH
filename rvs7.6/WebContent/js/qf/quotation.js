@@ -381,8 +381,9 @@ var paused_list = function(paused) {
 		waiting_html += '<div class="waiting tube" id="w_' + waiting.material_id + '">' +
 							'<div class="tube-liquid  ' +
 							(waiting.agreed_date ? 'tube-green' : 'tube-gray') +
-							'">' +
-								(waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') 
+							'">'
+								+ getLevel(waiting.level)
+								+ (waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') 
 								+ (waiting.scheduled_expedited >=4 ? ("<span class='top_speed'>" + waiting.model_name + "</span>") : waiting.model_name) + ' | ' 
 								+ waiting.serial_no +
 								getFlags(waiting.quotation_first, waiting.scheduled_expedited, waiting.direct_flg, waiting.light_fix, waiting.service_repair_flg, waiting.anml_exp) +
@@ -393,6 +394,17 @@ var paused_list = function(paused) {
 	waiting_html = waiting_html.replace('#count#', subCount);
 
 	$("#wtg_list").html(waiting_html);
+}
+
+var getLevel = function(level) {
+	if (level) {
+		var levelText = "S" + level; // TODO
+		if (level == 9 || level == 91 || level == 92 || level == 93 || level == 99) levelText = "D";
+		if (level == 96 || level == 97 || level == 98 ) levelText = "M";
+		if (level == 56 || level == 57 || level == 58 || level == 59) levelText = "E";
+		return "<span class='level level_" + levelText + "'>" + levelText + "</span>";
+	}
+	return "<span class='level '>Ｘ</span>";
 }
 
 var showBreakOfInfect = function(infectString) {
@@ -1329,6 +1341,11 @@ $(function() {
 			}
 		}
 	});
+	$("#wtg_list").on('dblclick', ".waiting", function(){
+		var material_id = this.id.replace("w_", "");
+		showMaterial(material_id);
+	});
+
 });
 
 function load_list(listdata){
@@ -1441,4 +1458,28 @@ var checkAnmlAlert = function() {
 	if ($("#anml_attendtion").length > 0) {
 		errorPop(WORKINFO.animalExpClean);
 	}
-}
+}	var $process_dialog = $("#material_detail_dialog");
+	if ($process_dialog.length == 0) {
+		$("body").append("<div id='material_detail_dialog'></div>");
+		$process_dialog = $("#material_detail_dialog");
+	}
+	$process_dialog.hide();
+	// 导入编辑画面
+	$process_dialog.load("widget.do?method=materialDetail&material_id=" + material_id,
+		function(responseText, textStatus, XMLHttpRequest) {
+			$process_dialog.dialog({
+				title : "维修对象详细信息",
+				width : 800,
+				show : "blind",
+				height : 'auto' ,
+				resizable : false,
+				modal : true,
+				minHeight : 200,
+				buttons : {
+					"关闭": function(){
+						$process_dialog.dialog('close');
+					}
+				}
+			});
+	});
+};
