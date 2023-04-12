@@ -55,7 +55,7 @@ var showWarehousingPlan = function(){
 							name : 'execute',
 							index : 'execute',
 							width : 50,
-							align : 'center', formatter:'select', editoptions:{value:"2:未修理返还;0:修理完成"}
+							align : 'center', formatter:'select', editoptions:{value:"2:未修理返还;11:1课完成;12:2课完成;13:周边｜硬性镜;0:修理完成"}
 						}
 				],
 				rowNum : 21,

@@ -11,12 +11,26 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <base href="<%=basePath%>">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <style>
-.plan_list td.break_back_2 {
+.plan_list td.section_11 {
+	background-color : wheat;
+}
+.plan_list td.section_12 {
+	background-color : darkseagreen;
+}
+.plan_list td.section_13 {
+	background-color : whitesmoke;
+}
+.plan_list td.section_2 {
 	color: white;
 	background-color : darkred;
 }
 .plan_list td.keep_overflow {
 	width:35px;max-width:35px;text-overflow:ellipsis;overflow:hidden;word-break: keep-all;
+}
+.bottom span {
+	font-size:12px;
+	margin-left: 4px;
+	padding: 0.2px 2.2px;
 }
 </style>
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
@@ -177,8 +191,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<tbody>
 				<logic:iterate id="element" name="shippingPlanListOnShelf" type="TurnoverCaseForm" indexId="index">
 				<tr location="<bean:write name="element" property="location"/>">
-					<td class="break_back_<bean:write name="element" property="execute"/>"><bean:write name="element" property="model_name"/></td>
-					<td class="break_back_<bean:write name="element" property="execute"/>"><bean:write name="element" property="serial_no"/></td>
+					<td class="section_<bean:write name="element" property="execute"/>"><bean:write name="element" property="model_name"/></td>
+					<td class="section_<bean:write name="element" property="execute"/>"><bean:write name="element" property="serial_no"/></td>
 					<td class="keep_overflow"><bean:write name="element" property="bound_out_ocm"/></td>				
 					<td><bean:write name="element" property="level"/></td>
 					<td><bean:write name="element" property="location"/></td>
@@ -192,6 +206,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<input type="hidden" name="method">
 			<!-- 翻页方向 -->
 			<input type="hidden" name="direct_flg">
+			<span style="background-color : wheat;">1 课</span>
+			<span style="background-color : darkseagreen;">2 课</span>
+			<span style="background-color : whitesmoke;">周边｜硬性镜</span>
+			<span style="color: white; background-color : darkred;">未修</span>
 		</div>
 	</div>
 	</form>

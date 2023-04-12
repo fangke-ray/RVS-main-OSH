@@ -127,7 +127,14 @@
 	<select id="getWarehousingPlan" resultType="TurnoverCaseEntity">
 select tcs.location, ma.material_id, mdl.name as model_name, ma.serial_no, 
 		tcs.shelf, ma.level,
-coalesce(ma.bound_out_ocm, ma.ocm) as bound_out_ocm, break_back_flg as `execute`
+coalesce(ma.bound_out_ocm, ma.ocm) as bound_out_ocm, 
+case 
+WHEN ma.section_id = 1 THEN 11
+WHEN ma.section_id = 12 THEN 13
+WHEN ma.section_id = 3 AND LEFT(tcs.shelf, 1) = 'Z' THEN 13 
+WHEN ma.section_id = 3 THEN 12
+ELSE break_back_flg
+END as `execute`
 from material ma 
 JOIN production_feature pf ON  ma.material_id = pf.material_id and position_id in (select position_id from position where special_page = 'shipping')
  and operate_result = 0
