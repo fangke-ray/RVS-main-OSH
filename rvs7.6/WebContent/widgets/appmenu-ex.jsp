@@ -162,7 +162,7 @@ if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js
         <a target="_parent" href="show.do#quotationIndn">报价展示</a><br>
         <a target="_parent" href="show.do#wipProgress">WIP库位</a><br>
 	一课工程展示: <br>
-        <a title="分解工程线长界面" target="_parent" href="show.do#lineLeaderD1">分解</a> <a title="NS工程线长界面" target="_parent" href="show.do#lineLeaderN1">NS</a> <a title="总组工程线长界面" target="_parent" href="show.do#lineSituationP1">总组</a><br>
+        <a title="分解工程线长界面" target="_parent" href="show.do#lineSituationE1">分解</a> <a title="NS工程线长界面" target="_parent" href="show.do#lineLeaderN1">NS</a> <a title="总组工程线长界面" target="_parent" href="show.do#lineSituationP1">总组</a><br>
 	二课工程展示: <br>
         <a title="分解工程+NS 工程" target="_parent" href="show.do#lineRepair2D">分解 + NS</a> <a title="总组工程" target="_parent" href="show.do#lineSituationSec2">总组</a><br>
         <!--a title="" target="_parent" href="show.do#comMatch">内镜维修总组接收匹配展示</a><br-->
