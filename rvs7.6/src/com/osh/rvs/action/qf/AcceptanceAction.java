@@ -17,9 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.nio.client.DefaultHttpAsyncClient;
-import org.apache.http.nio.client.HttpAsyncClient;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.log4j.Logger;
@@ -448,20 +445,20 @@ public class AcceptanceAction extends BaseAction {
 
 		// 分配库位
 		conn.commit();
-		for (MaterialEntity mEntity : mBeans) {
-			HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
-			httpclient.start();
-			try {  
-				HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/assign_tc_space/" 
-					+ mEntity.getMaterial_id() + "/" + mEntity.getKind() + "/"  
-					+ mEntity.getFix_type() + "/"  + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
-				httpclient.execute(request, null);
-			} catch (Exception e) {
-			} finally {
-				Thread.sleep(80);
-				httpclient.shutdown();
-			}
-		}
+//		for (MaterialEntity mEntity : mBeans) {
+//			HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
+//			httpclient.start();
+//			try {  
+//				HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/assign_tc_space/" 
+//					+ mEntity.getMaterial_id() + "/" + mEntity.getKind() + "/"  
+//					+ mEntity.getFix_type() + "/"  + mEntity.getUnrepair_flg()); // with_case as unrepair_flg 
+//				httpclient.execute(request, null);
+//			} catch (Exception e) {
+//			} finally {
+//				Thread.sleep(80);
+//				httpclient.shutdown();
+//			}
+//		}
 
 		if (updateCount > 0) {
 			AcceptFactService afService = new AcceptFactService();
