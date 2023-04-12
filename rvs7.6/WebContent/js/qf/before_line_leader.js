@@ -171,7 +171,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 							},{
 								name : 'level',
 								index : 'level',
-								formatter: "select", editoptions:{value:resInfo.opt_level},
+								formatter: "select", editoptions:{value: "0:(无故障);" + resInfo.opt_level},
 								width : 35,
 								align : 'center'
 							}, 
@@ -1214,6 +1214,8 @@ var showDetail=function(rid) {
 		$("#edit_contract_related").remove();
 
 		$("#direct,#service_repair,#fix_type,#selectable,#edit_level,#edit_storager,#edit_ocm_rank,#edit_bound_out_ocm,#edit_anml_exp").select2Buttons();
+
+		$("#s2b_edit_ocm_rank li:eq(0) > a, #s2b_edit_level li:eq(0) > a").text("(无故障)");
 
 		$("#direct").change(function(){
 			if (this.value == 1) {

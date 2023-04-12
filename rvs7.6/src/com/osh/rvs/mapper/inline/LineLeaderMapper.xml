@@ -275,8 +275,11 @@
 			<if test="serial_no!= null and serial_no!= '' ">
 				AND `m`.serial_no IN (${serial_no})
 			</if>
-			<if test="level!= null and level!= '' ">
+			<if test="level!= null and level!= '' and level!= -1 ">
 				AND `m`.level = #{level}
+			</if>
+			<if test="level == -1 ">
+				AND (`m`.level IS null AND `m`.wip_location IS NOT NULL)
 			</if>
 			<if test="ticket_flg!= null and ticket_flg == 0 ">
 				AND `m`.agreed_date IS NULL

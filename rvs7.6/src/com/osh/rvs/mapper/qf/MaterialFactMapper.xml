@@ -53,6 +53,8 @@
 				b.operate_result = 2 and
 				a.model_id = m.model_id and
 				a.inline_time is null
+				and a.level is not null
+		        and a.ocm_rank is not null
 			<if test="sorc_no!= null and sorc_no!= '' ">
 				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
 			</if>

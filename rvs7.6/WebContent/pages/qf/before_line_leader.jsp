@@ -105,7 +105,8 @@ ${WORKINFO}
 							<td class="ui-state-default td-title" rowspan="2">等级</td>
 							<td class="td-content" rowspan="2">
 								<select id="search_level" class="ui-widget-content">
-									${lOptions};
+									${lOptions}
+									<option value="-1">(无故障)</option>
 								</select>
 							</td>
 							<td class="ui-state-default td-title">客户同意</td>

@@ -106,11 +106,11 @@ public class QuotationAction extends BaseAction {
 		if (isPeripheral) {
 			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_peripheral", null, "(未选)", false));
 		} else {
-			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_endoscope", null, "(未选)", false));
+			req.setAttribute("edit_level", CodeListUtils.getSelectOptions("material_level_endoscope", null, "(无故障)", false));
 		}
 		req.setAttribute("edit_fix_type", CodeListUtils.getSelectOptions("material_fix_type", null, null, false));
 		req.setAttribute("edit_service_repair_flg", CodeListUtils.getSelectOptions("material_service_repair", null, "", false));
-		req.setAttribute("options_ocm_rank", CodeListUtils.getSelectOptions("material_ocm_direct_rank", null, "", false));
+		req.setAttribute("options_ocm_rank", CodeListUtils.getSelectOptions("material_ocm_direct_rank", null, "(无故障)", false));
 		req.setAttribute("edit_material_direct_area", CodeListUtils.getSelectOptions("material_direct_area", null, "(无)", false));
 		
 		// 获得维修流程选项
@@ -169,6 +169,7 @@ public class QuotationAction extends BaseAction {
 		infectString += ppservice.getAbnormalWorkStateByOperator(user.getOperator_id(), conn);
 
 		callbackResponse.put("infectString", infectString);
+
 		if (infectString.indexOf("限制工作") >= 0) {
 			callbackResponse.put("workstauts", WORK_STATUS_FORBIDDEN);
 		} else {
