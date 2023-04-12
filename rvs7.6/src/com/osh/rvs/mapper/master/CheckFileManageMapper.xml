@@ -168,6 +168,7 @@ WHERE `check_file_manage_id` = #{check_file_manage_id};
 	</update>
 
 	<!-- 点检人员身份全部相关表格  -->
+	<!-- TODO and ((`status` = 1 and cfm.access_place != 9) or (`status` = 5 and cfm.access_place != 1)) -->
     <select id="searchManageCodeByOperator" resultType="CheckFileManageEntity" parameterType="CheckResultEntity">
 	   <![CDATA[
 	select dm.devices_manage_id ,dt.name, dm.manage_code, dm.model_name, check_file_manage_id
@@ -182,7 +183,7 @@ WHERE `check_file_manage_id` = #{check_file_manage_id};
 		AND (cfm.specified_model_name IS NULL OR cfm.specified_model_name LIKE concat('%', dm.model_name, '%'))
 	left join position pos
 		on dm.position_id = pos.position_id
-	where manage_level <= 2 and `status` = 1
+	where manage_level != 3 and `status` = 1
 	and section_id = #{section_id}
 	and (dm.position_id = #{position_id} 
 	or (dm.position_id is null AND dm.line_id = #{line_id})
@@ -223,7 +224,7 @@ WHERE `check_file_manage_id` = #{check_file_manage_id};
 		AND (cfm.specified_model_name IS NULL OR cfm.specified_model_name LIKE concat('%', dm.model_name, '%'))
 	left join position pos
 		on dm.position_id = pos.position_id
-	where manage_level <= 2 
+	where manage_level != 3
 	   ]]>
 		<if test="operator_id!=null and operator_id!=''">
 			and `status` = 1 and cfm.access_place != 9

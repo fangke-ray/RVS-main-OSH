@@ -158,7 +158,7 @@ SELECT dm.devices_manage_id,dt.name, dm.section_id, dm.position_id, pos.process_
 		on dm.section_id = sec.section_id
 	join position pos
 		on dm.position_id = pos.position_id
-where dm.delete_flg = 0 and dm.status = 1 and manage_level <= 2 
+where dm.delete_flg = 0 and dm.status = 1 and manage_level != 3
 	and dm.section_id = #{section_id}
 	   ]]>
 		<if test="sheet_manage_no!=null and sheet_manage_no!=''">
@@ -225,7 +225,7 @@ SELECT dm.devices_manage_id,dt.name, dm.section_id, dm.position_id, concat(sec.n
 		on dm.section_id = sec.section_id
 	join position pos
 		on dm.position_id = pos.position_id
-where dm.delete_flg = 0 and dm.status = 1 and manage_level <= 2 
+where dm.delete_flg = 0 and dm.status = 1 and manage_level != 3
 	   ]]>
 		<if test="operator_id!=null and operator_id!=''">
 			and manager_operator_id = #{operator_id}

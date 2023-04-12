@@ -1004,7 +1004,8 @@
 	</codelist>
 
 	<codelist name="devices_manage_level">
-		<value code="1">A</value>
+		<value code="1">A1</value>
+		<value code="6">A2</value>
 		<value code="2">B</value>
 		<value code="3">C</value>
 	</codelist>

@@ -422,6 +422,10 @@ var list=function(datalist){
                            }
                       }
                 }
+
+            	$("#list .jqgrow td").filter(function(){
+            		return $(this).text().trim() == "";
+            	}).text("-");
             }
        });
        $("#gbox_list .ui-jqgrid-hbox").before(
@@ -477,10 +481,10 @@ var searchBaseInfo_handleComplete=function(xhrobj, textStatus){
             	
                 $("#label_name").text(resInfo.finished.name);//品名
 	            $("#label_brand").text(resInfo.finished.brand==null ? "" :resInfo.finished.brand );//厂商
-	            $("#label_model_name").text(resInfo.finished.model_name);//型号
-	            $("#label_products_code").text(resInfo.finished.products_code==null ? "" : resInfo.finished.products_code);//出厂编号
-	            $("#label_section_name").text(resInfo.finished.section_name);//分发课室
-	            $("#label_responsible_line_name").text(resInfo.finished.line_name);//责任工程
+	            $("#label_model_name").text(resInfo.finished.model_name || "-");//型号
+	            $("#label_products_code").text(resInfo.finished.products_code==null ? "-" : resInfo.finished.products_code);//出厂编号
+	            $("#label_section_name").text(resInfo.finished.section_name || "-");//分发课室
+	            $("#label_responsible_line_name").text(resInfo.finished.line_name || "-");//责任工程
             }else{
             	var object_type=$("#hidden_devices_manage_id2").val().split("-")[1];
             	if(object_type==1){
@@ -588,11 +592,11 @@ var searchDetailById_handleComplete=function(xhrobj, textStatus){
         	
             $("#detail_label_manage_code").text(resInfo.finished.manage_code);//管理编号
             $("#detail_label_name").text(resInfo.finished.name);//品名
-            $("#detail_label_brand").text(resInfo.finished.brand);//厂商
-            $("#detail_label_model_name").text(resInfo.finished.model_name);//型号
-            $("#detail_label_products_code").text(resInfo.finished.products_code);//出厂编号
-            $("#detail_label_section_name").text(resInfo.finished.section_name);//分发课室
-            $("#detail_label_responsible_line_name").text(resInfo.finished.line_name);//责任工程
+            $("#detail_label_brand").text(resInfo.finished.brand || "-");//厂商
+            $("#detail_label_model_name").text(resInfo.finished.model_name || "-");//型号
+            $("#detail_label_products_code").text(resInfo.finished.products_code || "-");//出厂编号
+            $("#detail_label_section_name").text(resInfo.finished.section_name || "-");//分发课室
+            $("#detail_label_responsible_line_name").text(resInfo.finished.line_name || "-");//责任工程
             
             var checking_flg=resInfo.finished.checking_flg;//校验状态
             if(checking_flg==1){//校验中

@@ -675,7 +675,7 @@
 			    and dm.section_id =#{section_id}
 			    and dm.position_id =#{position_id}
 				and status in (1 , 5)
-				and manage_level = 1
+				and manage_level in (1,6)
 		GROUP BY dt.devices_type_id
     </select>
 </mapper>
