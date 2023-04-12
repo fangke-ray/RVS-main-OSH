@@ -72,7 +72,8 @@ function filed_list(listdata){
 			datatype: "local",
 			colNames:['分类','KEY','SEQ','OMR通知单号','错误消息'],
 			colModel:[
-					{name:'kind',index:'kind',width:30,align:'center',formatter:'select', editoptions:{value:"recept:修理品接收;approve:投线;part_order:零件订购;quotation_part:报价清单"}},
+					{name:'kind',index:'kind',width:30,align:'center',formatter:'select', 
+						editoptions:{value:"recept:修理品接收;approve:投线;part_order:零件订购;quotation_part:报价清单;shipping:流水线完成"}},
 					{name: 'if_sap_message_key', index: 'if_sap_message_key', width:30, sorttype:'int'},
 					{name: 'seq', index: 'seq', width:15},
 					{name: 'OMRNotifiNo', index: 'OMRNotifiNo', width:30},
