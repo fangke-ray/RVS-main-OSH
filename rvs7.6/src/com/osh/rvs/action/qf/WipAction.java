@@ -386,4 +386,21 @@ public class WipAction extends BaseAction {
 
 		log.info("WipAction.doImgCheck end");
 	}
+
+	public void getBoLocationMap(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("WipAction.getBoLocationMap start");
+		
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		wipService.getBoLocationMap(callbackResponse, conn, errors);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", errors);
+		// 返回Json格式回馈信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("WipAction.getBoLocationMap end");
+	}
 }

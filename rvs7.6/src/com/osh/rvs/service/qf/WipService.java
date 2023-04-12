@@ -6,8 +6,10 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -32,6 +34,7 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.mapper.qf.WipMapper;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.UserDefineCodesService;
 import com.osh.rvs.service.partial.PartialOrderManageService;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -429,3 +432,63 @@ public class WipService {
 		}
 	}
 }
+
+	/**
+	 * 取得BO库位表格
+	 * 
+	 * @param material_id
+	 * @param position_id
+	 * @param recomment
+	 * @param lResponseResult
+	 * @param conn
+	 * @param msgInfos
+	 */
+	public void getBoLocationMap(Map<String, Object> lResponseResult, SqlSession conn,
+			List<MsgInfo> msgInfos) {
+		UserDefineCodesService uService = new UserDefineCodesService();
+		// BO库位表格
+		int iBoWipShelfCount = 10;
+		String sBoWipShelfCount = uService.searchUserDefineCodesValueByCode("BO_WIP_SHELF_COUNT", conn);
+		try {
+			iBoWipShelfCount = Integer.parseInt(sBoWipShelfCount);
+		} catch (NumberFormatException e) {
+		}
+
+		StringBuffer retSb = new StringBuffer("");
+		char shelfName = 'A';
+
+		WipMapper mapper = conn.getMapper(WipMapper.class);
+		List<String> wipBoHeaped = mapper.getWipBoHeaped();
+		Set<String> wipBoHeapedSet = new HashSet<String>();
+		wipBoHeapedSet.addAll(wipBoHeaped);
+
+		retSb.append("<div style=\"margin: 15px; float: left;\"><div class=\"ui-widget-header\" style=\"width: " + (10 * 64) + "px; text-align: center;\">货架 ");
+		retSb.append("</div><table class=\"condform storage-table\" style=\"width: " + (10 * 64) + "px;\">");
+
+		for (int i = 0; i < iBoWipShelfCount; i++) {
+			String shelf = new String(new char[]{shelfName});
+			StringBuffer shelfSb = new StringBuffer("<tr>");
+
+			for (int j = 0; j < 10; j++) {
+				String sCaseCode = "BO-" + shelf + j;
+				shelfSb.append("<td class=\"");
+
+				if (wipBoHeapedSet.contains(sCaseCode)) {
+					shelfSb.append("ui-storage-highlight");
+				} else {
+					shelfSb.append("wip-empty");
+				}
+				shelfSb.append("\">");
+				shelfSb.append(sCaseCode);
+				shelfSb.append("</td>");
+			}
+			shelfSb.append("</tr>");
+
+			retSb.append(shelfSb);
+			shelfName++;
+		}
+		retSb.append("</table></div>");
+		retSb.append("<div class=\"clear\"></div>");
+
+		lResponseResult.put("storageHtml", retSb.toString());
+	}

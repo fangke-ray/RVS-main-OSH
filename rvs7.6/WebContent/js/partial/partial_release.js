@@ -812,6 +812,51 @@ var completeChange=function(xhrobj, textStatus){
 		if (resInfo.errors.length > 0) {
 			treatBackMessages("", resInfo.errors);
 		} else {
+			if (resInfo.omr_notifi_no && localStorage.inline_switch == 1) {
+				window.location.href="materialFact.do?omr_notifi_no=" + resInfo.omr_notifi_no + "&switch_from=partial_distrubute"
+				return;
+			} else if (resInfo.to_wip_material_id) {
+
+				var $wip_pop = $("#wip_pop");
+				if ($wip_pop.length == 0) {
+					$("body").append("<div id='wip_pop'></div>");
+					$wip_pop = $("#wip_pop");
+				}
+				$wip_pop.hide();
+				$wip_pop
+					.attr({material_id : resInfo.to_wip_material_id});
+		
+		
+				showChooseMap($wip_pop, "BO 品入库", 
+					{
+						occupied : 1,
+						for_agreed : 1,
+						material_id : resInfo.to_wip_material_id
+					}, 
+					function(sel_wip_location, options) {
+						var data = {
+							material_id : options.material_id,
+							"wip_location" : sel_wip_location
+						}
+						$.ajax({
+							beforeSend : ajaxRequestType,
+							async : false,
+							url : 'wip.do?method=doputin',
+							cache : false,
+							data : data,
+							type : "post",
+							dataType : "json",
+							success : ajaxSuccessCheck,
+							error : ajaxError,
+							complete : function() {
+								completeChangeBack();
+							}
+						});
+					}
+				);
+	
+//				getBoLocationMap(resInfo.to_wip_material_id);
+			}
 			if (resInfo.componentInstorage) infoPop(resInfo.componentInstorage);
 			$("#body-mdl").show();
 			$("#body-detail").hide();
@@ -863,3 +908,82 @@ var delete_Complete=function(xhrobj, textStatus){
 	};
 };
 
+var getBoLocationMap = function(material_id) {
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : 'wip.do?method=getBoLocationMap',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",// 服务器返回的数据类型
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj, textStatus){
+			getBoLocationMap_handleComplete(xhrobj, material_id);
+		}
+	});
+}
+
+var getBoLocationMap_handleComplete = function(xhrobj, material_id) {
+	var resInfo = $.parseJSON(xhrobj.responseText);
+	if (resInfo.errors && resInfo.errors.length) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+		
+		return;
+	}
+
+	var $wip_pop = $("#wip_pop");
+	if ($wip_pop.length == 0) {
+		$("body").append("<div id='wip_pop'></div>");
+		$wip_pop = $("#wip_pop");
+	}
+	$wip_pop.hide();
+	$wip_pop.html(resInfo.storageHtml)
+		.attr({material_id : material_id});
+
+	var $dialog = $wip_pop.dialog({
+		title : "放入BO库位",
+		width : 720,
+		resizable : false,
+		modal : true,
+		buttons : {
+			"关闭" : function(){
+				$dialog.dialog("close");
+			}
+		}
+	});
+
+	$wip_pop.find("table").click(function(e){
+		if ("TD" == e.target.tagName) {
+			if (!$(e.target).hasClass("wip-heaped")) {
+				var material_id = $wip_pop.attr("material_id");
+
+				wip_location = $(e.target).text();
+
+				var data = {
+					material_id : material_id,
+					"wip_location":wip_location
+				}
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : false,
+					url : 'wip.do?method=doputin',
+					cache : false,
+					data : data,
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function() {
+						completeChangeBack();
+						$wip_pop.dialog("close");
+					}
+				});
+			}
+		}
+	});
+
+	$wip_pop.show();
+}

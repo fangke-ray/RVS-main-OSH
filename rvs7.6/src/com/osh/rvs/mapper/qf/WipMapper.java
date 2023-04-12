@@ -34,4 +34,7 @@ public interface WipMapper {
 	public void changeLocation(@Param("material_id") String material_id, @Param("wip_location") String wip_location);
 
 	public boolean checkImgCheckReworking(@Param("material_id") String material_id, @Param("position_id") String position_id);
+
+	public List<String> getWipBoHeaped();
+
 }

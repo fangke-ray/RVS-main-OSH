@@ -81,6 +81,17 @@
 				a.wip_location
 			 FROM Material a
 			 WHERE wip_location IS NOT NULL
+			 AND wip_location not like 'BO%'
+		]]>
+	</select>
+
+	<select id="getWipBoHeaped" resultType="String">
+		<![CDATA[ 
+			SELECT
+				a.wip_location
+			 FROM Material a
+			 WHERE wip_location IS NOT NULL
+			 AND wip_location like 'BO%'
 		]]>
 	</select>
 
