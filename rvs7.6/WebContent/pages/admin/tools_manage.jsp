@@ -250,16 +250,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-content">
 						<select id="add_manage_level" name="manage_level" alt="管理等级">${manageLevel}</select>
 					</td>
-					<td class="ui-state-default td-title">状态</td>
-					<td class="td-content">
+					<td class="ui-state-default td-title" rowspan="2">状态</td>
+					<td class="td-content" rowspan="2">
 						<select id="add_status" name="status" alt="状态">${status}</select>
 					</td>
 				</tr>
 				<tr>
-					<td class="ui-state-default td-title">总价</td>
+					<!--td class="ui-state-default td-title">总价</td>
 					<td class="td-content">
 						<input type="text" id="add_total_price" name="total_price" alt="总价" class="ui-widget-content">						
-					</td>
+					</td-->
 					<td class="ui-state-default td-title">分类</td>
 					<td class="td-content">
 						<input type="text" id="add_classify" name="classify" alt="分类" class="ui-widget-content">						
@@ -398,16 +398,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<td class="td-content">
 						<select id="update_manage_level" name="manage_level" alt="管理等级">${nCmanageLevel}</select>
 					</td>
-					<td class="ui-state-default td-title">状态</td>
-					<td class="td-content">
+					<td class="ui-state-default td-title" rowspan="2">状态</td>
+					<td class="td-content" rowspan="2">
 						<select id="update_status" name="status" alt="状态">${nCstatus}</select>
 					</td>
 				</tr>
 				<tr>
-					<td class="ui-state-default td-title">总价</td>
+					<!--td class="ui-state-default td-title">总价</td>
 					<td class="td-content">
 						<input type="text" id="update_total_price" name="total_price" alt="总价" class="ui-widget-content">						
-					</td>	
+					</td-->	
 					<td class="ui-state-default td-title">分类</td>
 					<td class="td-content">
 						<input type="text" id="update_classify" name="classify" alt="分类" class="ui-widget-content">						

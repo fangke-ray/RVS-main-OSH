@@ -491,6 +491,9 @@ var deliver_filed_list = function(listdata){
             recordpos : 'left',
             viewsortcols : [true, 'vertical', true],
             gridComplete:function(){
+            	$("#deliver_list .jqgrow td").filter(function(){
+            		return $(this).text().trim() == "";
+            	}).text("-");
             }
         });
     }
@@ -531,7 +534,7 @@ var filed_list=function(listdata){
                         value : $("#hidden_goStatus").val()
                     }
                 },
-                {name:'total_price',index:'total_price',width:60,align:'right'},
+                {name:'total_price',index:'total_price',width:60,align:'right',hidden:true},
                 {name:'section_id',index:'section_id',width:100,align:'center',hidden:true},
                 {name:'section_name',index:'section_name',width:60,align:'center',hidden:false},
                 {name:'line_id',index:'line_id',width:100,align:'center',hidden:true},
@@ -571,7 +574,12 @@ var filed_list=function(listdata){
             pgbuttons : true,
             pginput : false,
             recordpos : 'left',
-            viewsortcols : [true, 'vertical', true]
+            viewsortcols : [true, 'vertical', true],
+            gridComplete:function(){
+            	$("#list .jqgrow td").filter(function(){
+            		return $(this).text().trim() == "";
+            	}).text("-");
+            }
         });
         
         /*登记*/

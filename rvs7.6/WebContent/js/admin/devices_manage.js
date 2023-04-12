@@ -414,10 +414,14 @@ var replace = function(){
     //工程ID
     $("#replace_line_id").val(rowData.line_id).trigger("change"); 
     //工位ID
-	$("#replace_position_id").val(rowData.process_code);  
-    
-    $("#hidden_replace_position_id").val(rowData.position_id);
-    
+    if (rowData.process_code && rowData.process_code != "-") {
+		$("#replace_position_id").val(rowData.process_code);  
+	    $("#hidden_replace_position_id").val(rowData.position_id);
+    } else {
+		$("#replace_position_id").val("");  
+	    $("#hidden_replace_position_id").val("");
+    }
+
     /**点击替换新品时，这几项内容为空**/
     //发放者
     $("#replace_provider").text("");    
@@ -733,7 +737,10 @@ function filed_list(listdata){
 					{name:'position_id',index:'position_id',hidden:true},
 					//{name:'responsible_operator_id',index:'responsible_operator_id',hidden:true},
 	                //{name:'responsible_operator',index:'responsible_operator',hidden:true},
-					{name:'process_code',index:'process_code',width:85,align:'center'},
+					{name:'process_code',index:'process_code',width:85,align:'center',
+						formatter:function(value, options, rData){
+						return value || "-";
+					}},
 	                {name:'import_date',index:'import_date',width:85,align:'center',hidden:true},
 	                {name:'provide_date',index:'provide_date',width:85,align:'center',hidden:true},
 	                {name:'provider',index:'provider',width:85,align:'center',hidden:true,
@@ -1005,10 +1012,14 @@ var showEditContent = function(rowData) {
     //工程ID
     $("#update_line_id").val(rowData.line_id).trigger("change"); 
     //工位ID
-	$("#update_position_id").val(rowData.process_code);  
-    
-    $("#hidden_update_position_id").val(rowData.position_id);
-    
+    if (rowData.process_code && rowData.process_code != "-") {
+		$("#update_position_id").val(rowData.process_code);  
+	    $("#hidden_update_position_id").val(rowData.position_id);
+    } else {
+		$("#update_position_id").val("");  
+	    $("#hidden_update_position_id").val("");
+    }
+
     //发放者
     $("#update_provider").text(rowData.provider);
     

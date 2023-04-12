@@ -160,7 +160,7 @@
 			ON
 				dm.devices_type_id=dt.devices_type_id
 			WHERE
-			    dm.manage_level = 1 AND dm.delete_flg = 0
+			    dm.manage_level in (1, 6) AND dm.delete_flg = 0
 		        AND dm.waste_date IS NULL
 		        AND dm.status IN (1 , 4)
 		        AND dm.devices_manage_id NOT IN 
@@ -186,7 +186,7 @@
 			FROM
 			    tools_manage
 			WHERE
-			    manage_level = 1 AND delete_flg = 0
+			    manage_level in (1, 6) AND delete_flg = 0
 		        AND waste_date IS NULL
 		        AND status IN (1 , 4)
 		        AND tools_manage_id NOT IN 

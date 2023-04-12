@@ -402,7 +402,7 @@
 
 	<select id="searchRegularyDeviceUncheckedOnPosition"  parameterType="CheckResultEntity" resultType="String">
 		<![CDATA[ 
-		SELECT group_concat(distinct dm.manage_code) FROM device_check_result dcr
+		SELECT group_concat(distinct dm.manage_code) FROM device_check_result dcr force index(pri)
 		JOIN check_file_manage cfm
 		on dcr.check_file_manage_id = cfm.check_file_manage_id
 		join devices_manage dm
