@@ -28,6 +28,7 @@ import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.inline.MaterialCommentMapper;
+import com.osh.rvs.mapper.inline.ScheduleMapper;
 import com.osh.rvs.mapper.qf.QuotationMapper;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
@@ -234,6 +235,16 @@ public class QuotationService {
 						pausedMaterialForm.setOperate_result("");
 					} else {
 						pausedMaterialForm.setOperate_result(sReason);
+					}
+					if (pe.getNow_operate_result() != null) {
+						Integer operateResult302 = pfMapper.getMaterialPositionProcessing(pe.getMaterial_id(), "00000000025");
+						if (operateResult302 == null || operateResult302 == 0) {
+							pausedMaterialForm.setProcessing_position2("未处理");
+						} else if (operateResult302 == 2) {
+							pausedMaterialForm.setProcessing_position2("已完成");
+						} else {
+							pausedMaterialForm.setProcessing_position2("进行中");
+						}
 					}
 				} else if (pe.getNow_pause_reason() >= 40){
 					pausedMaterialForm.setOperate_result("暂停");

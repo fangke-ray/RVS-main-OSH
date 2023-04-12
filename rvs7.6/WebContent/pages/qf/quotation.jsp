@@ -9,7 +9,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <link rel="stylesheet" type="text/css" href="css/custom.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
-<link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css?v=3476">
+<link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
 <link rel="stylesheet" type="text/css" href="css/flowchart.css">
 <link rel="stylesheet" type="text/css" href="css/partial/instruction_sheets.css">
@@ -33,6 +33,32 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 #material_details .ui-state-default+.top_taged {
 	display:none;
 }
+	top: 0;
+	border: 1px solid;
+/*	color: transparent; */
+	padding: 0 2px;
+	text-align: center;
+	width: 3em;
+	border-radius: 1em;
+}
+#waitarea .tube-liquid > div.concern:after {
+	width : 100%;
+	top : -1.25em;
+	content: '302';
+	position: absolute;
+	left: 0;
+	background: rgba(0,255,0,.3);
+	border-top-left-radius: 1em;
+	border-top-right-radius: 1em;
+}
+#waitarea .tube-liquid > div.concern.concern_start {
+	border-color: darkgreen;
+	background-color: greenyellow;
+}
+#waitarea .tube-liquid > div.concern.concern_end {
+	border-color: navy;
+	background-color: turquoise;
+}
 </style>
 
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
@@ -45,8 +71,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.flowchart.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
-<script type="text/javascript" src="js/qf/quotation.js?v=3476"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
+<script type="text/javascript" src="js/qf/quotation.js"></script>
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
 <script type="text/javascript" src="js/qf/set_optional_fix.js"></script>

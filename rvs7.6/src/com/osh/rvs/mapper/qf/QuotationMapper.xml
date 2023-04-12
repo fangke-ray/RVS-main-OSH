@@ -47,7 +47,13 @@
 			  `m`.`level`, `m`.direct_flg, 
 			  `m`.service_repair_flg + (qa_referee_time IS NOT NULL) * 10 as service_repair_flg, 
 			  `m`.reception_time, `m`.fix_type,
-			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result as now_operate_result,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, 
+
+              case when `psf`.reason = 72 
+              then 1
+              else null
+              end as now_operate_result,
+
 			  `psf`.reason as now_pause_reason, `pf`.position_id as processing_position, 
 			  (current_timestamp - `wpf`.action_time) > 2000000 as quotation_first, 
 			  `m`.scheduled_expedited + (

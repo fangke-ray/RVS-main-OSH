@@ -385,8 +385,9 @@ var paused_list = function(paused) {
 								+ getLevel(waiting.level)
 								+ (waiting.sorc_no == null ? "" : waiting.sorc_no + ' | ') 
 								+ (waiting.scheduled_expedited >=4 ? ("<span class='top_speed'>" + waiting.model_name + "</span>") : waiting.model_name) + ' | ' 
-								+ waiting.serial_no +
-								getFlags(waiting.quotation_first, waiting.scheduled_expedited, waiting.direct_flg, waiting.light_fix, waiting.service_repair_flg, waiting.anml_exp) +
+								+ waiting.serial_no
+								+ get302(waiting.processing_position2)
+								+ getFlags(waiting.quotation_first, waiting.scheduled_expedited, waiting.direct_flg, waiting.light_fix, waiting.service_repair_flg, waiting.anml_exp) +
 							'</div>' +
 						'</div>';
 		subCount++;
@@ -963,7 +964,7 @@ function acceptted_list(quotation_listdata){
 			width: 1248,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['material_id','受理时间','报价时间', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处','同意日期', '等级', '备注', '结果', 'ts',''],
+			colNames:['material_id','受理时间','报价时间', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处','同意日期', '等级', '备注', '结果', 'ts','CCD盖玻璃更换','CCD线更换'],
 			colModel:[
 				{name:'material_id',index:'material_id', hidden:true},
 				{name:'reception_time',index:'reception_time', width:70, align:'center',
@@ -978,13 +979,14 @@ function acceptted_list(quotation_listdata){
 				{name:'ocm',index:'ocm', width:65, formatter: 'select', editoptions:{value: oOptions}},
 				{name:'agreed_date',index:'agreed_date', width:50, align:'center',
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d', newformat: 'm-d'}},
-				{name:'level',index:'level', width:35, align:'center', formatter: 'select', editoptions:{value: lOptions}},
+				{name:'level',index:'level', width:35, align:'center', formatter: 'select', editoptions:{value: "0:(无故障);" + lOptions}},
 				{name:'fix_type',index:'fix_type', width:120, formatter : function(value, options, rData){
 					return rData['remark'];
 				}},
 				{name:'wip_location',index:'wip_location', width:60},
 				{name:'ticket_flg',index:'ticket_flg', hidden:true},
-				{name:'symbol1',index:'symbol1', hidden:true}
+				{name:'scheduled_expedited',index:'scheduled_expedited', formatter: 'select', editoptions:{value: "1:需要;-1:不需要"}, width:50},
+				{name:'processing_position2',index:'processing_position2', width:50}
 			],
 			rowNum: 20,
 			pager: "#exd_listpager",
@@ -1402,6 +1404,17 @@ function load_list(listdata){
 	}
 
 };
+
+var get302 = function(processing302) {
+	if (processing302) {
+		if (processing302 == "已完成") {
+			return "<div class='concern concern_end'>已完成</div>";
+		} else {
+			return "<div class='concern concern_start'>" + processing302 + "</div>";
+		}
+	}
+	return "";
+}
 
 var getFlags = function(over_time, expedited, direct_flg, light_fix, f_service_repair_flg, anml_exp) {
 	if (expedited >= 4) {
