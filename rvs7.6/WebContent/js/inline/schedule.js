@@ -173,7 +173,7 @@ $(function() {
 	$("#cond_work_procedure_order_template_flg_set").buttonset();
 	$("#scheduled_expedited_set").buttonset();
 	$("#colchooser").buttonset();
-	$("#search_arrival_delay, #search_expedition_diff, #search_direct_flg,#search_anml_exp_set").buttonset();
+	$("#search_arrival_delay, #search_expedition_diff, #search_direct_flg,#search_anml_exp_set, #search_ccd_target").buttonset();
 
 	$("#colchooser input:checkbox").click(function (){
 		var colid = $(this).attr("id");
@@ -255,6 +255,7 @@ var clearCondiction = function() {
 	$("#search_inline_time_end").val("");
 	$("#search_px").val("").trigger("change");
 	$("#search_service_repair_flg").val("").trigger("change");
+	$("#search_ccd_target_flg_a").attr("checked","checked").trigger("change");
 
 	position_eval_data = 2;
 	position_eval_data2 = 0;
@@ -822,6 +823,7 @@ var edit_schedule_popMaterialDetail = function(material_id, break_message_level,
 							});	
 						} else {
 							doMaterialUpdate(material_id);
+							$("#nogood_treat").dialog("close");
 						}
 					},
 					"取消":function(){
@@ -1253,6 +1255,10 @@ var findit = function() {
 		"px" : $("#search_px").val()
 	};
 
+	if ($("#search_ccd_target_flg_t").is(":checked")) {
+		data["ccd_target"] = "1"; 
+	}
+
 	if ($("#search_service_repair_flg").val()) {
 		var service_repair_flg_post = 0;
 		var service_repair_flg_val = $("#search_service_repair_flg").val();
@@ -1318,6 +1324,10 @@ var findboth = function() {
 		"anml_exp" : $("#search_anml_exp_set input:checked").val(),
 		"px" : $("#search_px").val()
 	};
+
+	if ($("#search_ccd_target_flg_t").is(":checked")) {
+		data["ccd_target"] = "1"; 
+	}
 
 	if ($("#search_service_repair_flg").val()) {
 		var service_repair_flg_post = 0;

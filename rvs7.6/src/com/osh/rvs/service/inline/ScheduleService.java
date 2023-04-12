@@ -107,6 +107,18 @@ public class ScheduleService {
 		List<String> ids = dao.searchMaterialIdsByCondition(conditionBean);
 		List<ScheduleForm> retForms = new ArrayList<ScheduleForm>();
 
+		// CCD 对象机型查询
+		if (conditionBean.getCcd_target() != null) {
+			Set<String> ccdLineTargets = dao.getCcdLineTargets();
+			List<String> filtedIds = new ArrayList<String>();
+			for (String id : ids) {
+				if (ccdLineTargets.contains(id)) {
+					filtedIds.add(id);
+				}
+			}
+			ids = filtedIds;
+		}
+
 		if (ids != null && ids.size() > 0) {
 			List<ScheduleEntity> entities = dao.searchMaterialByIds(ids);
 

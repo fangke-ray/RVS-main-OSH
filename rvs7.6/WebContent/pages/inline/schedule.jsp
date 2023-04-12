@@ -161,10 +161,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 											<input type="radio" name="direct_flg" id="search_direct_flg_f" class="ui-widget-content ui-helper-hidden-accessible" value="0"><label for="search_direct_flg_f" aria-pressed="false">分室</label>
 										</div>
 									</td>
-									<td class="ui-state-default td-title" rowspan="2">投线时间</td>
-									<td class="td-content" rowspan="2">
-										<input type="text" id="search_inline_time_start" class="ui-widget-content" readonly="readonly">起<br/>
-										<input type="text" id="search_inline_time_end" class="ui-widget-content" readonly="readonly">止</td>
+									<td class="ui-state-default td-title">CCD 线更换</td>
+									<td class="td-content">
+										<div id="search_ccd_target" class="ui-buttonset">
+											<input type="radio" name="ccd_target" id="search_ccd_target_flg_a" class="ui-widget-content ui-helper-hidden-accessible" value="" checked="checked"><label for="search_ccd_target_flg_a" aria-pressed="false">(全)</label>
+											<input type="radio" name="ccd_target" id="search_ccd_target_flg_t" class="ui-widget-content ui-helper-hidden-accessible" value="1"><label for="search_ccd_target_flg_t" aria-pressed="false">需要更换</label>
+										</div>
 									</td>
 									<td class="ui-state-default td-title">保内返修/QIS<br>/备品</td>
 									<td class="td-content">
@@ -178,6 +180,11 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									<td class="td-content" id="search_anml_exp_set">
 										<input type="radio" name="anml_exp" id="search_anml_exp_a" class="ui-widget-content" checked="true" value=""><label for="search_anml_exp_a">(全)</label>
 										<input type="radio" name="anml_exp" id="search_anml_exp_y" class="ui-widget-content" value="1"><label for="search_anml_exp_y">动物实验用</label>
+									</td>
+									<td class="ui-state-default td-title">投线时间</td>
+									<td class="td-content">
+										<input type="text" id="search_inline_time_start" class="ui-widget-content" readonly="readonly">起<br/>
+										<input type="text" id="search_inline_time_end" class="ui-widget-content" readonly="readonly">止</td>
 									</td>
 									<td class="ui-state-default td-title" rowspan="1">总组工程分线</td>
 									<td class="td-content" rowspan="1">

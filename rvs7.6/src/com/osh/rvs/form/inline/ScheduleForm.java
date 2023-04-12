@@ -170,6 +170,9 @@ public class ScheduleForm extends ActionForm {
 	@BeanField(title = "动物实验用", name = "anml_exp", type = FieldType.Integer, length = 1)
 	private String anml_exp;
 
+	@BeanField(title = "CCD 线更换", name = "ccd_target", type = FieldType.Integer, length = 1)
+	private String ccd_target;
+
 	public String getFinish_date() {
 		return finish_date;
 	}
@@ -646,5 +649,11 @@ public class ScheduleForm extends ActionForm {
 	}
 	public void setAnml_exp(String anml_exp) {
 		this.anml_exp = anml_exp;
+	}
+	public String getCcd_target() {
+		return ccd_target;
+	}
+	public void setCcd_target(String ccd_target) {
+		this.ccd_target = ccd_target;
 	}
 }

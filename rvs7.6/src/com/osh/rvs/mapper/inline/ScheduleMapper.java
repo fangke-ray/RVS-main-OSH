@@ -2,6 +2,7 @@ package com.osh.rvs.mapper.inline;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.osh.rvs.bean.inline.ScheduleEntity;
 
@@ -20,4 +21,6 @@ public interface ScheduleMapper {
 	public void updateToPuse(String id);
 
 	public List<Map<String, Object>> getWorkingOfCategories();
+
+	public Set<String> getCcdLineTargets();
 }

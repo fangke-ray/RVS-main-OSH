@@ -548,4 +548,19 @@
 			GROUP BY ctg.category_id, ctg.name
 		]]>
 	</select>
+
+	<select id="getCcdLineTargets" resultType="String">
+		select material_id from material ma
+		where  
+		outline_time is null 
+		and break_back_flg = 0
+		and pat_id is not null
+		and (agreed_date is not null OR wip_date is not null)
+		and (
+		(level in (2,3) and pat_id in (select process_assign_template_id from process_assign_template where derive_kind = 3))
+		OR
+		(level in (9,91,92,93,96,97,98,99) and exists (select 1 from material_process_assign where material_id = ma.material_id and position_id = 00000000066))
+		)
+	</select>
+
 </mapper>

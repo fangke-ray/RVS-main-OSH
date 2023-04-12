@@ -101,6 +101,8 @@ public class ScheduleEntity implements Serializable {
 
 	private Integer anml_exp;
 
+	private Integer ccd_target;
+
 	public String getLine_id() {
 		return line_id;
 	}
@@ -532,6 +534,12 @@ public class ScheduleEntity implements Serializable {
 	}
 	public void setAnml_exp(Integer anml_exp) {
 		this.anml_exp = anml_exp;
+	}
+	public Integer getCcd_target() {
+		return ccd_target;
+	}
+	public void setCcd_target(Integer ccd_target) {
+		this.ccd_target = ccd_target;
 	}
 
 }
