@@ -112,6 +112,14 @@ public class AlarmMesssageService {
 			condBean.setRole_id(RvsConsts.ROLE_LINELEADER);
 			List<OperatorNamedEntity> leaders = oDao.searchOperator(condBean);
 
+			// 分解/NS 找不到时通知者按对面工程查询
+			if (leaders.size() == 0 && 
+					("00000000012".equals(entity.getLine_id())
+							|| "00000000013".equals(entity.getLine_id()))) {
+				condBean.setLine_id("00000000012".equals(entity.getLine_id()) ? "00000000013" : "00000000012");
+				leaders = oDao.searchOperator(condBean);
+			}
+
 			// 找不到时通知者按全工程查询
 			if (leaders.size() == 0) {
 				condBean.setLine_id(null);
@@ -146,7 +154,7 @@ public class AlarmMesssageService {
 			if (fingerOperators.size() == 1) {
 				noticeString += fingerOperators.get(0) + "/"  + fingerOperators.get(0) + "/" + fingerOperators.get(0) + "/"; // 重要的事情
 			} else if (fingerOperators.size() == 2) {
-				noticeString += fingerOperators.get(0) + "/"  + fingerOperators.get(0) + "/" + fingerOperators.get(1) + "/"; // 重要的事情
+				noticeString += fingerOperators.get(0) + "/"  + fingerOperators.get(0) + "/" + fingerOperators.get(1) + "/";
 			} else {
 				for (String fingerOperator : fingerOperators) {
 					noticeString += fingerOperator + "/";
