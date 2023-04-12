@@ -254,6 +254,27 @@ public class QuotationService {
 		}
 
 		BeanUtil.copyToFormList(finished, finishedForm, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
+		ScheduleMapper saMapper = conn.getMapper(ScheduleMapper.class);
+		Set<String> ccdLineTargets = saMapper.getCcdLineTargets();
+
+		for (MaterialEntity pe : finished) {
+			MaterialForm finMaterialForm = new MaterialForm();
+			BeanUtil.copyToForm(pe, finMaterialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+			if (RvsUtils.getCcdLineModels(conn).contains(finMaterialForm.getModel_id())
+					&& !"1".equals(finMaterialForm.getLevel())) {
+				if (ccdLineTargets.contains(pe.getMaterial_id())) {
+					finMaterialForm.setProcessing_position2("更换");
+				} else {
+					finMaterialForm.setProcessing_position2("不更换");
+				}
+			} else {
+				finMaterialForm.setProcessing_position2("-");
+			}
+			finishedForm.add(finMaterialForm);
+		}
+
+//		BeanUtil.copyToFormList(finished, finishedForm, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
 
 		listResponse.put("waitings", waitingsForm);
 		listResponse.put("paused", pausedForm);
