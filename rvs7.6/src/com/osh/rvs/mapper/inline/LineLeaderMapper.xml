@@ -198,7 +198,7 @@
 				case when `m`.wip_location IS NULL THEN `ppf1`.name ELSE concat('WIP:', `m`.wip_location) END as processing_position,
 				(CASE 
 					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
-						THEN 7
+						THEN 8
 					WHEN mdl.category_id = 00000000013 OR `m`.fix_type = 2
 						THEN 4
 					WHEN mdl.kind = 06
@@ -209,7 +209,7 @@
 						THEN 5 
 					WHEN `m`.level = 1
 						THEN 8
-					ELSE 14
+					ELSE 15
 				END + (coalesce(`m`.service_repair_flg, 0) = 2)) as ticket_flg,
 				`m`.scheduled_expedited + (
 				CASE WHEN mdl.series = 'URF' THEN
