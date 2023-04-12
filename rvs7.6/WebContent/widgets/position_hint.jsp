@@ -83,18 +83,18 @@
 }
 </style>
 
-<div class="lightBox" style="display:none;">
+<!--div class="lightBox" style="display:none;">
 	<table>
 		<thead><tr>
 			<th colspan="3">等待作业相关中小修</th>
 		</tr></thead>
 		<tbody></tbody>
 	</table>
-</div>
+</div-->
 <div class="noticePositions"><!-- 关注工位仕挂数 -->
 ${has_notice}
 </div>
-<script type="text/javascript">
+<!--script type="text/javascript">
 	var dragged = false;
 	var xM = 0;
 	var yM = 0;
@@ -181,7 +181,7 @@ ${has_notice}
 			return "<td>" + fillZero("" + wTimeDate.getHours()) + ":" + fillZero("" + wTimeDate.getMinutes()) + "</td>";
 		}
 	}
-</script>
+</script-->
 
 <script type="text/javascript">
 if (typeof getPositionWork === "undefined") loadJs("js/common/change_position.js");
