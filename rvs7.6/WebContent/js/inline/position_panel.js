@@ -466,6 +466,14 @@ var treatPause = function(resInfo) {
 		$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 		$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
 
+		if ($("#inline_flg").length) {
+			if (resInfo.mform.inline_time || resInfo.mform.wip_location) {
+				$("#inline_flg").val("3");
+			} else {
+				$("#inline_flg").val(resInfo.mform.quotation_time ? "2" : "1");
+			}
+		}
+
 		posClockObj.setAction(resInfo.action_time);
 
 		posClockObj.setLeagalAndSpent(resInfo.leagal_overline, resInfo.spent_mins, resInfo.spent_secs);
@@ -539,6 +547,14 @@ var treatStart = function(resInfo) {
 	$("#material_details td:eq(1)").text(resInfo.mform.sorc_no);
 	$("#material_details td:eq(3)").text(resInfo.mform.model_name);
 	$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
+
+	if ($("#inline_flg").length) {
+		if (resInfo.mform.inline_time || resInfo.mform.wip_location) {
+			$("#inline_flg").val("3");
+		} else {
+			$("#inline_flg").val(resInfo.mform.quotation_time ? "2" : "1");
+		}
+	}
 
 	posClockObj.setAction(resInfo.action_time);
 
@@ -1649,6 +1665,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 			treatBackMessages(null, resInfo.errors);
 		} else {
 			$("#hidden_workstauts").val(resInfo.workstauts);
+
 			if (resInfo.workstauts == 2 || resInfo.workstauts == 5) {
 				treatPause(resInfo);
 			} else if (xhrobj.status == 200) {
@@ -1716,6 +1733,10 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 				if ($("#decsnoutarea").length) {
 					$("#decsnoutarea").hide();
 				}
+
+				if ($("#inline_flg").length) {
+					$("#inline_flg").val("");
+				}
 			}
 		}
 	} catch (e) {
@@ -1753,7 +1774,25 @@ var doFinish=function(evt, hr){
 			}
 		}
 
-		doFinishPost(data);
+		if ($("#inline_flg").length && $("#inline_flg").val() != "3" && typeof showChooseMap === "function") {
+			var $wip_dialog = $("#wip_dialog");
+			if (!$wip_dialog.length) {
+				$("body").append("<div id='wip_dialog'></div>");
+				$wip_dialog = $("#wip_dialog");
+			}
+			showChooseMap($wip_dialog, "WIP 入库选择", 
+			{
+				occupied : 1,
+				for_agreed : ($("#inline_flg").val() == "1" ? -1 : 1),
+				material_id : $("#pauseo_material_id").val()
+			}, 
+			function(selWip){
+				data.wip_location = selWip;
+				doFinishPost(data);
+			});
+		} else {
+			doFinishPost(data);
+		}
 	}
 };
 

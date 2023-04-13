@@ -34,6 +34,7 @@ import com.osh.rvs.bean.infect.PeripheralInfectDeviceEntity;
 import com.osh.rvs.bean.inline.ComposeStorageEntity;
 import com.osh.rvs.bean.inline.DryingProcessEntity;
 import com.osh.rvs.bean.inline.ForSolutionAreaEntity;
+import com.osh.rvs.bean.inline.MaterialFactEntity;
 import com.osh.rvs.bean.inline.PauseFeatureEntity;
 import com.osh.rvs.bean.inline.SoloProductionFeatureEntity;
 import com.osh.rvs.bean.inline.WaitingEntity;
@@ -61,6 +62,7 @@ import com.osh.rvs.mapper.inline.SoloProductionFeatureMapper;
 import com.osh.rvs.mapper.master.DevicesManageMapper;
 import com.osh.rvs.mapper.master.ProcessAssignMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
+import com.osh.rvs.mapper.qf.MaterialFactMapper;
 import com.osh.rvs.mapper.qf.WipMapper;
 import com.osh.rvs.service.CheckResultService;
 import com.osh.rvs.service.DevicesTypeService;
@@ -1303,9 +1305,44 @@ public class PositionPanelService {
 	 */
 	public void getProccessingData(Map<String, Object> listResponse, String material_id, ProductionFeatureEntity pf,
 			LoginData user, SqlSession conn) throws Exception {
+		String process_code = pf.getProcess_code();
+		if (process_code == null) process_code = user.getProcess_code();
+
 		// 取得维修对象信息。
 		MaterialForm mform = this.getMaterialInfo(material_id, conn);
 		mform.setOperate_result(String.valueOf(pf.getOperate_result()));
+		if ("171".equals(process_code) || "302".equals(process_code)) {
+			MaterialService mService = new MaterialService();
+			MaterialEntity mBean = mService.loadSimpleMaterialDetailEntity(conn, material_id);
+			if (mBean.getWip_location() == null) {
+//				coalesce(`m`.inline_time, `m`.outline_time) as inline_time,
+				Date inlineTime = null;
+				if (mBean.getInline_time() != null) {
+					inlineTime = mBean.getInline_time();
+				} else if (mBean.getOutline_time() != null) {
+					inlineTime = mBean.getOutline_time();
+				}
+				if (inlineTime != null) {
+					mform.setInline_time(DateUtil.toString(inlineTime, DateUtil.DATE_TIME_PATTERN));
+				} else {
+					if ("302".equals(process_code)) {
+						MaterialFactMapper mfMapper = conn.getMapper(MaterialFactMapper.class);
+						MaterialFactEntity mfCndi = new MaterialFactEntity();
+						mfCndi.setModel_id(mform.getModel_id());
+						mfCndi.setSerial_no(mform.getSerial_no());
+						List<MaterialFactEntity> hits = mfMapper.searchMaterial(mfCndi);
+						if (hits.size() > 0) {
+							mform.setQuotation_time(
+									DateUtil.toString(hits.get(0).getQuotation_time(), DateUtil.DATE_TIME_PATTERN));
+						}
+					} else if ("171".equals(process_code)) {
+						mform.setQuotation_time("171");
+					}
+				}
+			} else {
+				mform.setWip_location(mBean.getWip_location());
+			}
+		}
 
 		// 动物内镜用
 		if (MaterialTagService.getAnmlMaterials(conn).contains(material_id)) {
@@ -1322,7 +1359,6 @@ public class PositionPanelService {
 
 		// 取得维修对象的作业标准时间。
 		String leagal_overline = RvsUtils.getLevelOverLine(mform.getModel_name(), mform.getCategory_name(), mform.getLevel(), user, null);
-		String process_code = pf.getProcess_code();
 		Map<String, String> snoutModels = ComponentSettingService.getSnoutCompModels(conn);
 		Set<String> snoutSaveTime341Models = RvsUtils.getSnoutSavetime341Models(conn);
 		// 新的算法331一律55分钟，341对应机型减40分钟

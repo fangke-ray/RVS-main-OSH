@@ -40,6 +40,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript">
 ${WORKINFO}
 </script>
+<%
+boolean needWipStorage = false;
+if (request.getAttribute("needWipStorage") != null) {
+	needWipStorage = true;
+%>
+<script type="text/javascript" src="js/qf/wip_locate.js"></script>
+<% 
+} 
+%>
 <title>欢迎登录RVS系统</title>
 </head>
 <body class="outer">
@@ -146,6 +155,9 @@ if (px == null || "0".equals(px)) {
 <%
 }
 %>
+<% if (needWipStorage) { %>
+	<input type="hidden" id="inline_flg">
+<% } %>
 			</div>
 					</div>
 
@@ -167,7 +179,7 @@ if (px == null || "0".equals(px)) {
 	</div-->
 	<div id="comments_sidebar" style="display:none;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix">
-			<span class="areatitle icon-enter-2">提示相关信息</span>
+			<span class="areatitle icon-enter-2" style="cursor: ew-resize;">提示相关信息</span>
 		</div>
 		<div class="comments_area">
 		</div>

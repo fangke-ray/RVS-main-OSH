@@ -109,6 +109,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript">
 ${WORKINFO}
 </script>
+<%
+boolean needWipStorage = false;
+if (request.getAttribute("needWipStorage") != null) {
+	needWipStorage = true;
+%>
+<script type="text/javascript" src="js/qf/wip_locate.js"></script>
+<% 
+} 
+%>
 <title>欢迎登录RVS系统</title>
 </head>
 <body class="outer">
@@ -236,6 +245,9 @@ if (px == null || "0".equals(px)) {
 <%
 }
 %>
+<% if (needWipStorage) { %>
+	<input type="hidden" id="inline_flg">
+<% } %>
 			</div>
 
 <%
