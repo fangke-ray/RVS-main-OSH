@@ -17,96 +17,43 @@ var leverDates = {
 var inlineToggle = {};
 var flowSelections = {};
 
-var showWipEmpty=function(rid) {
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : "wip.do" + '?method=getwipempty',
-		cache : false,
-		data : null,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrobj) {
-			var resInfo = null;
-			try {
-				// 以Object形式读取JSON
-				eval('resInfo =' + xhrobj.responseText);
-				if (resInfo.errors.length > 0) {
-					// 共通出错信息框
-					treatBackMessages(null, resInfo.errors);
-				} else {
-					var $wip_pop = $("#wip_pop");
-					$wip_pop.hide();
-					$wip_pop.load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
-						 //新增
-				
-						$wip_pop.dialog({
-							position : [ 800, 20 ],
-							title : "WIP 入库选择",
-							width : 1000,
-							show: "blind",
-							height : 640,// 'auto' ,
-							resizable : false,
-							modal : true,
-							minHeight : 200,
-							buttons : {}
-						});
+var showWipDialog=function(ev) {
+//	if (ev.target.value == "放入 BO 区域") {
+//		getBoLocationMap();
+//	} else {
+//		showWipEmpty();
+//	}
+	var $wip_pop = $("#wip_pop");
+	var $list = $("#listareas table.ui-jqgrid-btable:visible") ;
+	var rowid = $list.jqGrid("getGridParam","selrow");
+	var rowdata = $list.getRowData(rowid);
 
-						$wip_pop.find("td").addClass("wip-empty");
-						for (var iheap in resInfo.heaps) {
-							$("#wip_pop").find("td[wipid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
-						}
-
-						//$("#quotation_pop").css("cursor", "pointer");
-						$wip_pop.find(".ui-widget-content").click(function(e){
-							if ("TD" == e.target.tagName) {
-								if (!$(e.target).hasClass("wip-heaped")) {
-									var rowid = $("#list").jqGrid("getGridParam","selrow");
-									var rowdata = $("#list").getRowData(rowid);
-
-									wip_location = $(e.target).attr("wipid");
-
-									var data = {
-										material_id : rowdata["material_id"],
-										"wip_location":wip_location
-									}
-									$.ajax({
-										beforeSend : ajaxRequestType,
-										async : false,
-										url : 'wip.do?method=doputin',
-										cache : false,
-										data : data,
-										type : "post",
-										dataType : "json",
-										success : ajaxSuccessCheck,
-										error : ajaxError,
-										complete : function() {
-											findit();
-											$("#wip_pop").dialog("close");
-										}
-									});
-								}
-							}
-						});
-
-						$wip_pop.show();
-
-						var rowid = $("#list").jqGrid("getGridParam", "selrow");
-						var rowdata = $("#list").getRowData(rowid);
-	
-						if (f_isPeripheralFix(rowdata.level)) {
-						setTimeout(function(){$wip_pop[0].scrollTop = 300}, 200);
-						}
-					});
+	showChooseMap($wip_pop, "WIP 入库选择", 
+		{
+			occupied : 1,
+			material_id : rowdata.material_id
+		}, 
+		function(wip_location, options) {
+			var data = {
+				material_id : options["material_id"],
+				"wip_location":wip_location
+			}
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : false,
+				url : 'wip.do?method=doputin',
+				cache : false,
+				data : data,
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : function() {
+					findit(keepSearchData);
 				}
-			} catch (e) {
-				console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
-						+ e.lineNumber + " fileName: " + e.fileName);
-			};
+			});
 		}
-	});
+	);
 }
 
 var enablebuttonsWip1 = function(rowids) {
@@ -419,7 +366,7 @@ var process_set = function(rowdata) {
 		var category_kind = null;
 
 		var material_id = rowdata["material_id"];
-		var srcData = $("#list").jqGrid('getGridParam','data');
+		var srcData = $("#step_list").jqGrid('getGridParam','data');
 
 		var img_operate_result = null;
 		for (var iDatum in srcData) {
@@ -561,10 +508,10 @@ var process_set = function(rowdata) {
 				}
 			}
 
-			$("#search_section_id").val(rowdata["section_id"]).trigger("change");
+			$("#is_section_id").val(rowdata["section_id"]).trigger("change");
 		} else {
 			// 单元投线
-			$("#search_section_id").parent().parent().hide();
+			$("#is_section_id").parent().parent().hide();
 			$("#ref_template").parent().parent().hide();
 			process_dialog($process_dialog, rowdata);
 		}
@@ -619,7 +566,7 @@ $process_dialog.dialog({
 	},
 	buttons : {
 		"投线":function(){
-			var section_id = $("#search_section_id").val();
+			var section_id = $("#is_section_id").val();
 			if (fix_type == 1) {
 				if (!section_id) {
 					treatBackMessages("#editarea", [{"errmsg":"请选择投线课室。"}]);
@@ -647,7 +594,7 @@ $process_dialog.dialog({
 			if (rowdata["ccd_operate_result"] == "已指定"){
 				data.ccd_change = true;
 			}
-			afObj.applyProcess(201, this, doInline, [data]);
+			afObj.applyProcess(202, this, doInline, [data]);
 		}, "关闭" : function(){ $(this).dialog("close"); }
 	}
 });
@@ -1218,18 +1165,18 @@ function initGrid() {
 			width: 1248,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机种', '机身号', '返还要求', '加急','level','等级', '报价日期', '客户同意日','纳期','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
-			,'CCD盖玻璃<br>/零件订购'
-			,'投入课室 ID' ,'维护对象ID'],
+			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机种', '机身号', '返还要求', '加急','level','等级', '报价日期', '客户同意日', '纳期','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
+			,'CCD盖玻璃'
+			,'投入课室 ID' ,'维护对象ID', 'wip_date(过期的)'],
 			colModel:[
 				{name:'myac', width:35, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true,delbutton:false }, hidden:true},
-				{name:'sorc_no',index:'sorc_no', width:75},
+				{name:'sorc_no',index:'sorc_no', width:50},
 				{name:'model_id',index:'model_id', hidden:true},
-				{name:'model_name',index:'model_name', width:125},
+				{name:'model_name',index:'model_name', width:120},
 				{name:'category_kind',index:'category_kind', width:60, hidden : true, formatter:'select', editoptions:{value:$("#kOptions").val()}},
 				{name:'category_name',index:'category_name', width:60},
 				{name:'serial_no',index:'serial_no', width:50},
-				{name:'unrepair_flg',index:'unrepair_flg', align:'center', width:50, formatter:'select', editoptions:{value:"1:Unrepair;0:"}},
+				{name:'unrepair_flg',index:'unrepair_flg', align:'center', width:45, formatter:'select', editoptions:{value:"1:Unrepair;0:"}},
 				{name:'scheduled_expedited',index:'scheduled_expedited', align:'center', width:30, formatter:'select', editoptions:{value:"2:直送快速;1:加急;0:"}},
 				{name:'level',index:'level', hidden:true},
 				{name:'levelName',index:'levelName', width:35, align:'center'},
@@ -1248,8 +1195,8 @@ function initGrid() {
 				{name:'ccd_change',index:'ccd_change', hidden:true},
 				{name:'ccd_operate_result',index:'ccd_operate_result', width:60},
 				{name:'section_id', index:'section_id',hidden:true},
-				{name:'material_id', index:'material_id',hidden:true}
-				
+				{name:'material_id', index:'material_id',hidden:true},
+				{name:'wip_date', index:'wip_date',hidden:true}
 			],
 			rowNum: 50,
 			rownumbers : true,
@@ -1481,17 +1428,19 @@ function initGrid() {
 			width: 1248,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','投线时间', '修理单号', 'ESAS No.', '型号 ID', '型号', '机身号', '等级','投入课室', '客户同意日','unrepair_flg','维护对象ID'],
+			colNames:['','投线时间', '修理单号', '机种', 'ESAS No.', '型号 ID', '型号', '机身号', '等级','投入课室', '当前进度', '客户同意日','unrepair_flg','维护对象ID'],
 			colModel:[
 				{name:'myac', width:35, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true,delbutton:false }, hidden:true},
 				{name:'inline_time',index:'inline_time', width:80, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'H:i'}},
 				{name:'sorc_no',index:'sorc_no', width:105},
+				{name:'category_name',index:'category_name', width:50},
 				{name:'esas_no',index:'esas_no', width:50},
 				{name:'model_id',index:'model_id', hidden:true},
 				{name:'model_name',index:'model_name', width:125},
 				{name:'serial_no',index:'serial_no', width:50},
 				{name:'levelName',index:'levelName', width:35, align:'center'},
 				{name:'section_name',index:'section_name', width:80, align:'center'},
+				{name:'process_code',index:'process_code', width:60, align:'center'},
 //				{name:'old_agreed_time',index:'old_agreed_time', width:50, align:'center', hidden:true},//TODO: ???原客户同意日
 				{name:'agreed_date',index:'agreed_date', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
 				{name:'unrepair_flg',index:'unrepair_flg', hidden:true},
@@ -1501,7 +1450,7 @@ function initGrid() {
 			toppager: false,
 			pager: "#exe_listpager",
 			viewrecords: true,
-			caption: "今日投线一览",
+//			caption: "今日投线一览",
 //			multiselect: true,
 			gridview: true, // Speed up
 			pagerpos: 'right',
@@ -1540,12 +1489,25 @@ function findexeit(xhrobj, textStatus) {
 				eval('resInfo =' + xhrobj.responseText);
 				$("#exe_list").jqGrid().clearGridData();
 				$("#exe_list").jqGrid('setGridParam',{data:resInfo.list}).trigger("reloadGrid", [{current:false}]);
+				setCountExe(resInfo.list);
 			} catch (e) {
 				console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 						+ e.lineNumber + " fileName: " + e.fileName);
 			};
 		}
 	});
+}
+
+var setCountExe = function(list) {
+	var count = {};
+	for (var i in list) {
+		var kind = "" + list[i].category_kind;
+		count[kind] = (count[kind] || 0) + 1;
+	}
+	$("#countarea td[for]").each(function(idx, ele){
+		var $ele = $(ele);
+		$ele.text((count[$ele.attr("for")] || "0") + " 台");
+	})
 }
 
 /*

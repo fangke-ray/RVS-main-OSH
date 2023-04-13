@@ -261,32 +261,14 @@ var makeBreakDialog = function(jBreakDialog) {
 								$(this).dialog("close");
 								return;
 							}
-							$.ajax({
-								beforeSend : ajaxRequestType,
-								async : true,
-								url : "wip.do" + '?method=getwipempty',
-								cache : false,
-								data : null,
-								type : "post",
-								dataType : "json",
-								success : ajaxSuccessCheck,
-								error : ajaxError,
-								complete : function(xhrobj) {
-									var resInfo = null;
-									try {
-										// 以Object形式读取JSON
-										eval('resInfo =' + xhrobj.responseText);
-										if (resInfo.errors.length > 0) {
-											// 共通出错信息框
-											treatBackMessages(null, resInfo.errors);
-										} else {
-											pop_wip(submitBreak, resInfo);
-										}
-									} catch (e) {
-										alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-												+ e.lineNumber + " fileName: " + e.fileName);
-									};
-								}
+							showChooseMap($("#quotation_pop"), "WIP 入库选择", { 
+								occupied : 1,
+								for_agreed: -1,
+								material_id : $("#hide_material_id").val()
+							}, 
+							function(sel_wip_location){
+								wip_location = sel_wip_location;
+								submitBreak();
 							});
 						} else {
 							submitBreak();
@@ -1021,6 +1003,7 @@ function acceptted_list(quotation_listdata){
 			recordpos: 'left',
 			viewsortcols : [true,'vertical',true],
 			gridComplete: function(){
+				$("#ccdtagbutton").hide();
 			}
 		});
 	}
@@ -1127,15 +1110,35 @@ $(function() {
 	$("#continuebutton").hide();
 	$("#pausebutton").show();
 	$("#confirmbutton").click(function(){
-		wip_location = "";
-		doFinishConfirm();
+//		wip_location = "";
+		showChooseMap($("#quotation_pop"), "WIP 入库选择", 
+			{
+				occupied : 1,
+				for_agreed : 0,
+				material_id : $("#hide_material_id").val()
+			}, 
+			function(sel_wip_location){
+				wip_location = sel_wip_location;
+				doFinishConfirm();
+			});
+//		doFinishConfirm();
 	});
 	$("#pausebutton").click(makePause);
 	$("#continuebutton").click(endPause);
 	$("#stepbutton").click(makeStep);
 	$("#wipconfirmbutton").click(function(){
 		if (this.value == '放入WIP')
-			showWipEmpty();
+			showChooseMap($("#quotation_pop"), "WIP 入库选择", 
+				{
+					occupied : 1,
+					for_agreed : -1,
+					material_id : $("#hide_material_id").val()
+				}, 
+				function(sel_wip_location){
+					wip_location = sel_wip_location;
+					doFinishConfirm();
+				});
+//			showWipEmpty();
 		else {
 			wip_location = $("#edit_wip_location").val();
 			doFinishConfirm();
