@@ -29,6 +29,7 @@ import com.osh.rvs.mapper.manage.UserDefineCodesMapper;
 import com.osh.rvs.mapper.partial.FactPartialReleaseMapper;
 import com.osh.rvs.mapper.partial.PartialWarehouseDetailMapper;
 import com.osh.rvs.mapper.qf.AfProductionFeatureMapper;
+import com.osh.rvs.mapper.qf.FactMaterialMapper;
 import com.osh.rvs.service.partial.FactPartialReleaseService;
 import com.osh.rvs.service.qf.FactMaterialService;
 
@@ -212,7 +213,7 @@ public class AcceptFactService {
 		storedStandardFactors.put("SHIPPING_PER_TROLLEY", new BigDecimal(4)); // 维修品出货每车 FOR 133
 
 		storedStandardFactors.put("INLINE_PER_MAT", new BigDecimal("1.5")); // 系统投线 FOR 201
-		storedStandardFactors.put("DISTRIB_PER_PRO", new BigDecimal(20)); // 整理/运输内镜 FOR 201
+		storedStandardFactors.put("DISTRIB_PER_PRO", new BigDecimal(20)); // 整理/运输内镜 FOR 202 (5单/车)
 
 		storedStandardFactors.put("PART_RECPET_TRANS_PER_PRO", new BigDecimal(11)); // 收货（开箱/运输） FOR 211
 
@@ -316,9 +317,6 @@ public class AcceptFactService {
 		case "131" : // 镜箱出库
 			// 每次搬运时间固定
 			standardPart1 = storedStandardFactors.get("TC_OUTSTOR_TRANS_PER_PRO"); break;
-		case "201" : // 投线
-			// 每次整理/运输内镜时间固定
-			standardPart1 = storedStandardFactors.get("DISTRIB_PER_PRO"); break;
 		case "212" : // 入库单导入
 			// 按每次固定
 			standardPart1 = storedStandardFactors.get("UPLOAD_PART_RECPET_PER_PRO"); break;
@@ -420,9 +418,13 @@ public class AcceptFactService {
 					break;
 				}
 				case "201" : // 投线
-					// 通过fact_material表取得现品票打印数量
+					// 通过fact_material表取得投线系统数量
 					// 乘以每单用时
 					standardPart2 = calcFromFactMaterial(key, "INLINE_PER_MAT", conn);
+					break;
+				case "202" : // 投线运输
+					// 每次整理/运输内镜时间固定
+					standardPart2 = calcFromFactMaterialCountTrolley(key, "DISTRIB_PER_PRO", conn); 
 					break;
 				case "213" : // 零件核对/上架
 					// 按零件类别统计零件数
@@ -570,6 +572,24 @@ public class AcceptFactService {
 		BigDecimal factor = storedStandardFactors.get(factorName);
 
 		return factor.multiply(new BigDecimal(list.size()));
+	}
+
+	/**
+	 * 按现品作业表来统计
+	 * @param key
+	 * @param string
+	 * @return
+	 */
+	private BigDecimal calcFromFactMaterialCountTrolley(String key, String factorName, SqlSession conn) {
+
+		FactMaterialMapper mapper = conn.getMapper(FactMaterialMapper.class);
+		Integer count = mapper.countByTrolley(key);
+
+		if (count == null) return BigDecimal.ZERO;
+
+		BigDecimal factor = storedStandardFactors.get(factorName);
+
+		return factor.multiply(new BigDecimal(count));
 	}
 
 	/**

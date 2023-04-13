@@ -736,3 +736,264 @@ public class WipService {
 	private static String SECTION_1 = "00000000001";
 	private static String SECTION_2 = "00000000003";
 	private static String SECTION_3 = "00000000012";
+
+	public void searchForPda(HttpServletRequest req, ActionForm form, SqlSession conn, List<MsgInfo> errors) {
+		PdaMaterialForm pdaMaterialForm = (PdaMaterialForm) form;
+		pdaMaterialForm.setMaterial_id("");
+		pdaMaterialForm.setWip_location("");
+		String message = "";
+		req.setAttribute("notice", message);
+		req.setAttribute("storageMap", "");
+
+		String materialId = req.getParameter("material_id");
+		if (materialId == null) {
+			MsgInfo error = new MsgInfo();error.setErrmsg("扫描失败，请重试。");
+			errors.add(error);
+			return;
+		}
+
+		boolean searchByMaterial = true;
+		Integer ableToInline = 0;
+
+		MaterialEntity entity = null;
+		if (materialId.length() == 11) {
+			MaterialMapper mMapper = conn.getMapper(MaterialMapper.class);
+			entity = mMapper.getMaterialNamedEntityByKey(materialId);
+			if (MaterialTagService.getAnmlMaterials(conn).contains(materialId)) {
+				List<String> anmlPats = ProcessAssignService.getAnmlProcesses(conn);
+				entity.setPat_id(anmlPats.get(0));
+			}
+
+			if (entity == null) {
+				MsgInfo error = new MsgInfo();error.setErrmsg("扫描的维修品小票号或者库位号不存在。");
+				errors.add(error);
+				return;
+			}
+		} else {
+			WipMapper wipMapper = conn.getMapper(WipMapper.class);
+			MaterialEntity cndi = new MaterialEntity();
+			cndi.setWip_location(materialId);
+			List<MaterialEntity> l = wipMapper.searchMaterial(cndi);
+
+			if (l == null || l.size() == 0) {
+				WipStorageEntity cndiStor = new WipStorageEntity();
+				cndiStor.setWip_storage_code(materialId);
+				List<WipStorageEntity> lWip = wipMapper.searchWipStorage(cndiStor);
+				if (lWip.size() == 0) {
+					MsgInfo error = new MsgInfo();error.setErrmsg("扫描的维修品小票号或者库位号不存在。");
+					errors.add(error);
+				} else {
+					MsgInfo error = new MsgInfo();error.setErrmsg("扫描的库位号存在，但系统中此库位无修理品。");
+					errors.add(error);
+				}
+				return;
+			} else {
+				entity = l.get(0);
+				searchByMaterial = false;
+			}
+		}
+
+		boolean isPeripheral = RvsUtils.isPeripheral(entity.getLevel());
+
+		pdaMaterialForm.setPat_id("");
+		pdaMaterialForm.setPat_name("-");
+		pdaMaterialForm.setCcd_operate_result("-");
+
+		if (entity.getWip_location() == null || isPeripheral) {
+			if (entity.getInline_time() != null) {
+				MsgInfo error = new MsgInfo();error.setErrmsg("修理品" + entity.getSorc_no() + "系统中已经投线，无法处理。");
+				errors.add(error);
+				return;
+			} else if (entity.getAgreed_date() == null) {
+				MsgInfo error = new MsgInfo();error.setErrmsg("修理品" + entity.getSorc_no() + "系统中已经既不在库也未同意，无法处理。");
+				errors.add(error);
+				return;
+			}
+
+			// 待出库处理
+			ableToInline = 1;
+			boolean isLight = RvsUtils.isLightFix(entity.getLevel());
+
+			if (entity.getPat_id() != null) {
+				pdaMaterialForm.setPat_id(entity.getPat_id());
+			} else {
+				if (!isLight) {
+					if (MaterialTagService.getAnmlMaterials(conn).contains(materialId)) {
+						List<String> anmlPats = ProcessAssignService.getAnmlProcesses(conn);
+						entity.setPat_id(anmlPats.get(0));
+					} else {
+						ModelMapper mdlMapper = conn.getMapper(ModelMapper.class);
+						pdaMaterialForm.setPat_id(
+								mdlMapper.getModelByID(entity.getModel_id()).getDefault_pat_id());
+					}
+				}
+			}
+
+			if (!isLight) {
+				if (pdaMaterialForm.getPat_id() != null) {
+					ProcessAssignMapper paMapper = conn.getMapper(ProcessAssignMapper.class);
+					ProcessAssignTemplateEntity pat = paMapper.getProcessAssignTemplateByID(pdaMaterialForm.getPat_id());
+
+					if (pat != null) {
+						pdaMaterialForm.setPat_name(pat.getName());
+					}
+				} else {
+					ableToInline += 2;
+				}
+			} else {
+				// 中小修 首工位
+				MaterialProcessAssignMapper paMapper = conn.getMapper(MaterialProcessAssignMapper.class);
+				ProcessAssignEntity firstPos = paMapper.getFirstPosition(materialId);
+				if (firstPos != null) {
+					String firstPosId = firstPos.getPosition_id();
+					PositionService posService = new PositionService();
+					pdaMaterialForm.setPat_name("首工位：" + posService.getPositionEntityByKey(firstPosId, conn).getProcess_code());
+				} else {
+					ableToInline += 2;
+				}
+			}
+
+			if (RvsUtils.getCcdModels(conn).contains(entity.getModel_id())) {
+				ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+				ProductionFeatureEntity cndt = new ProductionFeatureEntity();
+				cndt.setMaterial_id(materialId);
+				cndt.setPosition_id("00000000025");
+
+				List<ProductionFeatureEntity> founds = pfMapper.searchProductionFeature(cndt);
+				if (founds.size() == 0) {
+					MaterialTagService mtService = new MaterialTagService();
+					List<Integer> lForCcdRepalce = mtService.checkTagByMaterialId(materialId, MaterialTagService.TAG_FOR_CCD_REPLACE, conn);
+					if (lForCcdRepalce.size() > 0) {
+						pdaMaterialForm.setCcd_operate_result("待作业");
+					} else {
+						pdaMaterialForm.setCcd_operate_result("-");
+					}
+				} else {
+					pdaMaterialForm.setCcd_operate_result("进行中");
+					for (ProductionFeatureEntity found : founds) {
+						if (found.getOperate_result() == RvsConsts.OPERATE_RESULT_FINISH) {
+							pdaMaterialForm.setCcd_operate_result("完成");
+							break;
+						}
+					}
+				}
+
+				if (!"完成".equals(pdaMaterialForm.getCcd_operate_result())
+						&& !"-".equals(pdaMaterialForm.getCcd_operate_result())) {
+					ableToInline += 4;
+				}
+			}
+		}
+
+		pdaMaterialForm.setMaterial_id(entity.getMaterial_id());
+		pdaMaterialForm.setOmr_notifi_no(entity.getSorc_no());
+		pdaMaterialForm.setModel_name(entity.getModel_name());
+		pdaMaterialForm.setSerial_no(entity.getSerial_no());
+		pdaMaterialForm.setWip_location(entity.getWip_location());
+
+		if (MaterialTagService.getAnmlMaterials(conn).contains(entity.getMaterial_id())) {
+			pdaMaterialForm.setSection_id(SECTION_1);
+			pdaMaterialForm.setSection_name("动物实验");
+		} else {
+			String section_id = entity.getSection_id();
+			if (section_id == null) {
+				Integer level = entity.getLevel();
+				boolean isLightFix = RvsUtils.isLightFix(level);
+
+				section_id = SECTION_1;
+				if (isLightFix) {
+					section_id = SECTION_2;
+				} else if (isPeripheral) {
+					section_id = SECTION_3;
+				} else if ("03".equals(entity.getKind())
+						|| "04".equals(entity.getKind())
+						|| "06".equals(entity.getKind())){
+					section_id = SECTION_2;
+				} else if ("07".equals(entity.getKind())){
+					section_id = SECTION_3;
+				} else if (entity.getCategory_name() != null && entity.getCategory_name().indexOf("超声") >= 0) {
+					section_id = SECTION_2;
+				}
+			}
+			SectionMapper sMappper = conn.getMapper(SectionMapper.class);
+			pdaMaterialForm.setSection_id(section_id);
+			pdaMaterialForm.setSection_name(sMappper.getSectionByID(section_id).getName());
+		}
+
+		// part_status
+		MaterialPartialMapper mpMapper = conn.getMapper(MaterialPartialMapper.class);
+		MaterialPartialEntity mpCndi = new MaterialPartialEntity();
+		mpCndi.setMaterial_id(entity.getMaterial_id());
+		mpCndi.setOccur_times(1);
+		MaterialPartialEntity mp = mpMapper.loadMaterialPartial(mpCndi);
+		if (mp == null) {
+			pdaMaterialForm.setPart_status("未定购");
+		} else if (mp.getArrival_date() == null) {
+			pdaMaterialForm.setPart_status("待发放");
+		} else {
+			pdaMaterialForm.setPart_status("已发放");
+		}
+
+		if (ableToInline > 0) {
+			if (!"已发放".equals(pdaMaterialForm.getPart_status())
+					&& entity.getLevel() != 57) {
+				ableToInline += 8;
+			} 
+		}
+
+		if (searchByMaterial) {
+			if (ableToInline == null || ableToInline == 0) {
+				message = "已扫描维修品单号为[" + pdaMaterialForm.getOmr_notifi_no() + "]。请扫描对应库位号以出库。";
+			} else {
+				
+			}
+		} else {
+			message = "已扫描库位号为[" + pdaMaterialForm.getWip_location() + "]。请扫描对应库位号。扫描其他修理单号会取消作业。";
+		}
+		req.setAttribute("notice", message);
+		req.setAttribute("ableToInline", "" + ableToInline);
+
+		if (entity.getWip_location() != null) {
+			req.setAttribute("storageMap", getStoragePositionInShelf(entity.getWip_location(), conn));
+		}
+
+	}
+
+	public String getStoragePositionInShelf(String location, SqlSession conn) {
+		StringBuffer sbRet = new StringBuffer("");
+
+		WipMapper wipMapper = conn.getMapper(WipMapper.class);
+		WipStorageEntity cndiStor = new WipStorageEntity();
+		cndiStor.setWip_storage_code(location);
+		List<WipStorageEntity> lWip = wipMapper.searchWipStorage(cndiStor);
+
+		if (lWip.size() > 0) {
+			String shelf = lWip.get(0).getShelf();
+			List<String> headChars = new ArrayList<String>();
+
+			cndiStor.setWip_storage_code(null);
+			cndiStor.setShelf(shelf);
+			sbRet.append("<table style='width:99%;'><tr><th colspan=4>货架 " + shelf + "</th>");
+			lWip = wipMapper.searchWipStorage(cndiStor);
+
+			String layer = "-";
+
+			for (WipStorageEntity storage : lWip) {
+				if (!layer.equals("" + storage.getLayer())) {
+					sbRet.append("</tr><tr style='height:1em;'>");
+					layer = "" + storage.getLayer();
+				}
+				setHeadChars(headChars, storage.getWip_storage_code());
+				if (location.equals(storage.getWip_storage_code())) {
+					sbRet.append("<td>■</td>");
+				} else {
+					sbRet.append("<td>□</td>");
+				}
+			}
+
+			sbRet.append("</tr></table>");
+		}
+		return sbRet.toString();
+	}
+
+}

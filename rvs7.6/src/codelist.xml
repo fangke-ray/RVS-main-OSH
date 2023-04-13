@@ -1252,7 +1252,7 @@
 		<value code="3">消毒设备</value>
 		<value code="4">灭菌设备</value>
 		<value code="5">烘干设备</value>
-		<value code="6">周边维修周点检设备</value>
+		<value code="6">周边修理周点检设备</value>
 	</codelist>
 
 	<codelist name="process_assign_derive_kind">
@@ -1278,8 +1278,8 @@
 
 		<value code="20">投线</value>
 		<value code="21">零件入库</value>
-		<value code="22">维修零件订购</value>
-		<value code="23">维修零件出库</value>
+		<value code="22">修理零件订购</value>
+		<value code="23">修理零件出库</value>
 		<value code="24">出货单制作</value>
 		<value code="25">消耗品入库</value>
 		<value code="26">消耗品出库</value>
@@ -1289,28 +1289,30 @@
 
 	<codelist name="qf_production_type">
 		<value code="101">票单打印</value>
-		<value code="102">维修品实物受理/测漏</value>
-		<value code="103">维修品/备品系统受理</value>
+		<value code="102">修理品实物受理/测漏</value>
+		<value code="103">修理品/备品系统受理</value>
 		<value code="104">备品系统导入</value>
 		<value code="105">备品实物受理/测漏</value>
 		<value code="106">镜箱入库</value>
-		<value code="111">维修品消毒</value>
+		<value code="111">修理品消毒</value>
 		<value code="112">备品消毒</value>
 		<value code="113">镜箱消毒</value>
-		<value code="121">维修品灭菌</value>
+		<value code="121">修理品灭菌</value>
 		<value code="122">备品灭菌</value>
 		<value code="131">镜箱出库</value>
-		<value code="132">维修品包装</value>
-		<value code="133">维修品出货</value>
+		<value code="132">修理品包装</value>
+		<value code="133">修理品出货</value>
 
-		<value code="201">投线系统操作/运输</value>
+		<value code="201">投线系统操作</value>
+		<value code="202">投线运输</value>
+
 		<value code="211">零件收货</value>
 		<value code="212">入库单导入</value>
 		<value code="213">零件核对/上架</value>
 		<value code="214">零件分装</value>
 		<value code="221">零件订购单编辑</value>
-		<value code="231">维修零件发放</value>
-		<value code="241">维修出货单制作</value>
+		<value code="231">修理零件发放</value>
+		<value code="241">修理出货单制作</value>
 		<value code="242">未修理返送</value>
 		<value code="251">消耗品收货</value>
 		<value code="252">消耗品核对/上架</value>

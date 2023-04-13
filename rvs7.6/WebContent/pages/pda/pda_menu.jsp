@@ -24,6 +24,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			window.location.href = "pda_turnover_case_shipping.do?method=init";
 		} else if (btn_flg == "subp_in") {
 			window.location.href = "pda_parts_instock.do?method=init";
+		} else if (btn_flg == "wip_out") {
+			window.location.href = "pda_wip_outstock.do?method=init";
 		} else if (btn_flg == "subp_out") {
 			window.location.href = "pda_parts_outstock.do?method=init";
 		} else if (btn_flg == "comp_out") {
@@ -70,7 +72,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 			<div class="button button-half" style="position:fixed;margin-left:160px;margin-top:10px;" onclick="doAction('apply')">消耗品发放</div>
 		</div>
 		<div class="main">
-			<div class="button button-half" style="position:fixed;margin-left:100px;margin-top:-10px;" onclick="doAction('comp_out')">NS 组件出库</div>
+			<div class="button button-half" style="position:fixed;margin-left:20px;margin-top:-10px;" onclick="doAction('wip_out')">WIP 维修出库</div>
+			<div class="button button-half" style="position:fixed;margin-left:160px;margin-top:-10px;" onclick="doAction('comp_out')">NS 组件出库</div>
 		</div>
 		<div class="bottom">
 			<div class="button button-half" style="position:fixed;margin-left:20px;" onclick="doAction('subp_in')">子零件入库</div>

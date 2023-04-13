@@ -43,4 +43,12 @@ public interface FactMaterialMapper {
 	 */
 	public int countFinished(FactMaterialEntity entity);
 	public int countTempFinished(FactMaterialEntity entity);
+
+	/**
+	 * 统计完成数量（按课室区分，5件1车）
+	 * 
+	 * @param af_pf_key
+	 * @return
+	 */
+	public Integer countByTrolley(String af_pf_key);
 }

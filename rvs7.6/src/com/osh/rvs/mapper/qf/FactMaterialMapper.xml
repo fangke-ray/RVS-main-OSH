@@ -195,4 +195,17 @@
 	</if>
 	</select>
 
+
+	<select id="countByTrolley" resultType="int" parameterType="String">
+		select sum(cnt) as cnt from
+		(
+		select section_id, ceil(count(1) / 5) as cnt
+		from 
+		fact_material fm
+		join material ma
+		on fm.material_id = ma.material_id
+		where af_pf_key = #{af_pf_key}
+		group by section_id) sec_tro
+	</select>
+
 </mapper>
