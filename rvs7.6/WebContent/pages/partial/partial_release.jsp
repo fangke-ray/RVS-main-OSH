@@ -35,7 +35,7 @@ background-color:white;}
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
-<script type="text/javascript" src="js/partial/partial_release.js?v=3461"></script>
+<script type="text/javascript" src="js/partial/partial_release.js?v=3463"></script>
 <title>零件发放</title>
 </head>
 <body class="outer" style="align: center;">
@@ -68,8 +68,10 @@ background-color:white;}
 								<tr>
 									<td class="ui-state-default td-title">修理单号</td>
 									<td class="td-content"><input type="text" id="search_sorcno" maxlength="15" class="ui-widget-content"></td>
-									<td class="ui-state-default td-title">零件订购日</td>
-									<td class="td-content"><input name="" id="order_time_start" class="ui-widget-content" readonly="readonly" type="text">起<br><input name="" id="order_time_end" maxlength="50" class="ui-widget-content" readonly="readonly" type="text">止</td>
+									<td class="ui-state-default td-title">存放库位</td>
+									<td class="td-content">
+										<input name="wip_location" id="cond_process_code" maxlength="3" type="text">
+									</td>
 									<td class="ui-state-default td-title">BO状态</td>
 									<td class="td-content" id="bo_flg">
 										<input type="radio" name="bo" id="cond_work_procedure_order_template_a" class="ui-widget-content ui-helper-hidden-accessible" value="" checked="checked"><label for="cond_work_procedure_order_template_a" aria-pressed="false">(全)</label>
@@ -78,6 +80,23 @@ background-color:white;}
 										<input type="hidden" id="cond_work_procedure_order_template">
 									</td>
 								</tr>
+								<tr>
+									<td class="ui-state-default td-title">修理等级</td>
+									<td class="td-content">
+										<select id="cond_level">
+										${oMaterial_level_inline}
+										</select>
+									</td>
+									<td class="ui-state-default td-title">零件订购日</td>
+									<td class="td-content"><input name="" id="order_time_start" class="ui-widget-content" readonly="readonly" type="text">起<br><input name="" id="order_time_end" maxlength="50" class="ui-widget-content" readonly="readonly" type="text">止</td>
+									<td class="ui-state-default td-title">分配课室</td>
+									<td class="td-content">
+										<select id="cond_section_id">
+										${oSection}
+										</select>
+									</td>
+								</tr>
+								
 							</tbody>
 						</table>
 						<div style="height:44px">
@@ -91,7 +110,7 @@ background-color:white;}
 			
 				<div id="listarea" class="">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-						<span class="areatitle">发放维修对象一览</span>
+						<span class="areatitle">发放修理对象一览</span>
 						<a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 							<span class="ui-icon ui-icon-circle-triangle-n"></span>
 						</a>
@@ -105,7 +124,7 @@ background-color:white;}
 			
 			<div id="body-detail" style="width: 994px; float: left;display:none;">
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-					<span class="areatitle">维修对象详细信息</span>
+					<span class="areatitle">修理对象详细信息</span>
 					<a target="_parent" role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 						<span class="ui-icon ui-icon-circle-triangle-n"></span>
 					</a>
@@ -144,13 +163,13 @@ background-color:white;}
 								</td>
 							</tr>
 							<tr>
-								<td class="ui-state-default td-title">维修等级</td>
+								<td class="ui-state-default td-title">修理等级</td>
 								<td class="td-content">
 									<label id="label_level"></label>
 								</td>
-								<td class="ui-state-default td-title">修理分类</td>
+								<td class="ui-state-default td-title">库位</td>
 								<td class="td-content">
-									<label id="label_service_repair_flg"></label>
+									<label id="label_location"></label>
 								</td>
 								<td class="ui-state-default td-title">入库预定日</td>
 								<td class="td-content">
@@ -210,6 +229,11 @@ background-color:white;}
 							<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="取消" role="button" aria-disabled="false" style="float: right; right: 2px">
 							<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="submitbutton" value="发放" role="button" aria-disabled="false" style="float: right; right: 2px">
 							<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="bigsubmitbutton" value="整理准备" role="button" aria-disabled="false" style="float: right; right: 2px">
+							<span style="float: right; margin-right: 10px;">
+								<input type="checkbox" class="ui-button" id="inline_switch" style="float: right; right: 2px">
+								<label for="inline_switch" style="float: right;margin-right: 1em;font-size:14px;">跳转投线</label>
+								<label style="float: right;font-size:14px;line-height: 2em;">大单发放后</label>
+							</span>
 							<span id="submit_dest" style="float: right;margin-right: 1em;line-height: 2em;"></span>
 							<% 
 								String privacy = (String) request.getAttribute("privacy"); 

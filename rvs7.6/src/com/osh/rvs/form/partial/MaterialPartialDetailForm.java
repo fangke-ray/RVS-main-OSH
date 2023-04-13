@@ -141,6 +141,12 @@ public class MaterialPartialDetailForm extends ActionForm {
 	@BeanField(title = "规格种别", name = "spec_kind", type = FieldType.Integer)
 	private String spec_kind;
 
+	@BeanField(title = "等级", name = "level", type = FieldType.Integer, length = 2)
+	private String level;
+
+	@BeanField(title = "分配课室", name = "section_id", type = FieldType.String, length = 11)
+	private String section_id;
+
 	public String getNew_position_id() {
 		return new_position_id;
 	}
@@ -427,6 +433,22 @@ public class MaterialPartialDetailForm extends ActionForm {
 
 	public void setOrder_flg(String order_flg) {
 		this.order_flg = order_flg;
+	}
+
+	public String getLevel() {
+		return level;
+	}
+
+	public void setLevel(String level) {
+		this.level = level;
+	}
+
+	public String getSection_id() {
+		return section_id;
+	}
+
+	public void setSection_id(String section_id) {
+		this.section_id = section_id;
 	}
 
 }

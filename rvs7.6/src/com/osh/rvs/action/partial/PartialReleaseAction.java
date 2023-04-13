@@ -31,8 +31,7 @@ import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.service.AcceptFactService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialService;
-import com.osh.rvs.service.MaterialTagService;
-import com.osh.rvs.service.ProcessAssignService;
+import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -59,7 +58,14 @@ public class PartialReleaseAction extends BaseAction {
 	private Logger log=Logger.getLogger(getClass());
 	public void  init(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSession conn ){
 		log.info("PartialReleaseAction.init start");
-		
+
+		/*等级*/
+		request.setAttribute("oMaterial_level_inline", CodeListUtils.getSelectOptions("material_level_inline",null,""));
+
+		/*课室*/
+		SectionService sService = new SectionService();
+		request.setAttribute("oSection", sService.getOptions(conn, "(全部)"));
+
 		request.setAttribute("goMaterial_level_inline",CodeListUtils.getGridOptions("material_level"));
 		// 取得登录用户权限
 		LoginData user = (LoginData) request.getSession().getAttribute(RvsConsts.SESSION_USER);
@@ -263,42 +269,64 @@ public class PartialReleaseAction extends BaseAction {
 
 							List<String> triggerList = new ArrayList<String> ();
 
-							if (MaterialTagService.getAnmlMaterials(conn).contains(materialPartialEntity.getMaterial_id())) {
-								// 零件发放者完成24D工位
-								service.finishAnmlPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
-							} else {
-								// 零件发放者完成252工位
-								service.finishDecPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
-							}
+//							if (MaterialTagService.getAnmlMaterials(conn).contains(materialPartialEntity.getMaterial_id())) {
+//								// 零件发放者完成24D工位
+//								service.finishAnmlPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+//							} else {
+//
+//								// 零件发放者完成321工位
+//								service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, false, conn);
+//
+//								// 零件发放者完成252工位
+//								service.finishDecPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+//							}
 
 							if (triggerList.size() > 0) {
 								conn.commit();
 								RvsUtils.sendTrigger(triggerList);
 							}
-						}
-					} else {
-						if ("small".equals(flag)) {
-
-							mBean = mService.loadSimpleMaterialDetailEntity(conn, materialPartialEntity.getMaterial_id());
-
-							if (!RvsUtils.isLightFix(mBean.getLevel())) {
-								ProcessAssignService paService = new ProcessAssignService();
-								if (paService.checkPatHasNs(mBean.getPat_id(), conn)) {
-									List<String> triggerList = new ArrayList<String> ();
-
-									// 零件发放者完成321工位
-									service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, false, conn);
-
-									if (triggerList.size() > 0) {
-										conn.commit();
-										RvsUtils.sendTrigger(triggerList);
-									}
+							// 大单全发后，跳转投线界面
+							if (materialPartialEntity.getOccur_times() == 1 && mBean.getInline_time() == null) {
+								if (!"06".equals(mBean.getKind()) || "00000000055".equals(mBean.getCategory_id())) {
+									// Endoeye暂不跳转（硬性镜 - 光学视管）
+									listResponse.put("omr_notifi_no", mBean.getSorc_no());
 								}
 							}
-						}
+						} // isNoBO
+
+					} else {
+						List<String> triggerList = new ArrayList<String> ();
+
+//						if ("small".equals(flag)) {
+//
+//							mBean = mService.loadSimpleMaterialDetailEntity(conn, materialPartialEntity.getMaterial_id());
+//
+//							if (!RvsUtils.isLightFix(mBean.getLevel())) {
+//								ProcessAssignService paService = new ProcessAssignService();
+//								if (paService.checkPatHasNs(mBean.getPat_id(), conn)) {
+//
+//									// 零件发放者完成321工位
+//									service.finishNsPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, false, conn);
+//
+//								}
+//							}
+//						}
 
 						// 检查工位上BO零件为解除
+//						boolean solved = 
 						fsoService.solveBo(materialPartialEntity.getMaterial_id(), materialPartialEntity.getOccur_times(), user.getOperator_id(), conn);
+
+//						if (solved) {
+//							if (MaterialTagService.getAnmlMaterials(conn).contains(materialPartialEntity.getMaterial_id())) {
+//								// 零件发放者完成252工位
+//								service.finishDecPartialRelease(materialPartialEntity.getMaterial_id(), user, triggerList, conn);
+//							}
+//						}
+
+						if (triggerList.size() > 0) {
+							conn.commit();
+							RvsUtils.sendTrigger(triggerList);
+						}
 					}
 
 					// TODO check negative 防止同时发放
@@ -323,7 +351,19 @@ public class PartialReleaseAction extends BaseAction {
 					}
 				}
 			} else { // 判定是否BO
-				service.checkBoFlg(form, request.getParameterMap(), conn);
+				boolean loss = service.checkBoFlg(form, request.getParameterMap(), conn);
+
+				// 有BO时
+				if (loss) {
+					// 判定是否未投线，如未投线则提示是否入BO 库位
+					MaterialService mService = new MaterialService();
+					MaterialEntity mBean = mService.loadSimpleMaterialDetailEntity(conn, request.getParameter("material_id"));
+					if (mBean.getInline_time() == null &&
+							(mBean.getWip_location() == null || !mBean.getWip_location().startsWith("BO"))
+							&& (!"06".equals(mBean.getKind()) || "00000000055".equals(mBean.getCategory_id()))) { // EndoEYE操作流程不变，维持现状
+						listResponse.put("to_wip_material_id", request.getParameter("material_id"));
+					}
+				}
 			}
 		}
 
@@ -389,7 +429,7 @@ public class PartialReleaseAction extends BaseAction {
 	 */
 	public void doDelete(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("PartialReleaseAction.doDelete start");
-		
+
 		/* Ajax回馈对象 */
 		Map<String, Object> callResponse = new HashMap<String, Object>();
 		List<MsgInfo> infos = new ArrayList<MsgInfo>();

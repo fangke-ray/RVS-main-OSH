@@ -135,7 +135,10 @@ public class MaterialPartialForm extends ActionForm {
 
 	@BeanField(title = "订购时间", name = "order_time", type = FieldType.DateTime)
 	private String order_time;
-	
+
+	@BeanField(title = "投线时间", name = "inline_time", type = FieldType.DateTime)
+	private String inline_time;
+
 	public String getTotalPrice() {
 		return totalPrice;
 	}
@@ -468,6 +471,20 @@ public class MaterialPartialForm extends ActionForm {
 	}
 	public void setOrder_time(String order_time) {
 		this.order_time = order_time;
+	}
+
+	/**
+	 * @return the inline_time
+	 */
+	public String getInline_time() {
+		return inline_time;
+	}
+
+	/**
+	 * @param inline_time the inline_time to set
+	 */
+	public void setInline_time(String inline_time) {
+		this.inline_time = inline_time;
 	}
 	
 }

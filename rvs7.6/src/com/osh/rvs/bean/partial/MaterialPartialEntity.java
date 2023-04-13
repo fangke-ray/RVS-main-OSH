@@ -79,6 +79,8 @@ public class MaterialPartialEntity implements Serializable {
 	
 	private Date order_time;
 
+	private Date inline_time;
+
 	public BigDecimal getTotalPrice() {
 		return totalPrice;
 	}
@@ -453,6 +455,14 @@ public class MaterialPartialEntity implements Serializable {
 
 	public void setOrder_time(Date order_time) {
 		this.order_time = order_time;
+	}
+
+	public Date getInline_time() {
+		return inline_time;
+	}
+
+	public void setInline_time(Date inline_time) {
+		this.inline_time = inline_time;
 	}
 
 }

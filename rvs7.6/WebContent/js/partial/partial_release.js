@@ -29,6 +29,7 @@ $(function(){
 			$areacloserIcon.parent().parent().next().hide("blind");
 		}
 	});
+
 	findit();
 
 	$("#resetbutton").click(function(){
@@ -46,11 +47,16 @@ $(function(){
 	/* radio转换成按钮 */
 	$("#bo_flg").buttonset();
 
+	$("#searchform select").select2Buttons();
+
 	/*检索*/
 	$("#searchbutton").click(function(){
 		$("#search_sorcno").data("post",$("#search_sorcno").val());
 		$("#order_time_start").data("post",$("#order_time_start").val());
 		$("#order_time_end").data("post",$("#order_time_end").val());
+		$("#cond_level").data("post",$("#cond_level").val());
+		$("#cond_section_id").data("post",$("#cond_section_id").val());
+		$("#cond_process_code").data("post",$("#cond_process_code").val());
 		findit();
 	});
 	
@@ -72,7 +78,23 @@ $(function(){
 	$("#bigsubmitbutton").click(function(){
 		afObj.applyProcess(231, this, changeMaterialStatus, ["big"]);
 	});
-	
+
+	$("#inline_switch").change(function(){
+		if (this.checked) {
+			$(this).next("label").children("span").text("跳转投线").css({"fontSize": "14px", padding: "0.2em"});
+			localStorage.inline_switch = 1;
+		} else {
+			$(this).next("label").children("span").text("不跳转投线").css({"fontSize": "14px", padding: "0.2em"});
+			localStorage.inline_switch = 0;
+		}
+	});
+	if (localStorage.inline_switch == undefined) localStorage.inline_switch = 1; 
+	if (localStorage.inline_switch && localStorage.inline_switch == 1) {
+		$("#inline_switch").attr("checked", "checked").trigger("change");
+	} else {
+		$("#inline_switch").removeAttr("checked").trigger("change");
+	}
+
 	/*BO 判定*/
 	$("#evalbobutton").click(function(){
 		changeMaterialStatus("check");
@@ -132,6 +154,9 @@ var reset=function(){
 	$("#order_time_end").val("").data("post","");
 	$("#cond_work_procedure_order_template").val("");
 	$("#cond_work_procedure_order_template_a").attr("checked","checked").trigger("change");
+	$("#cond_level").val("").data("post","").trigger("change");
+	$("#cond_section_id").val("").data("post","").trigger("change");
+	$("#cond_process_code").val("").data("post","").trigger("change");
 };
 
 var findit=function(){
@@ -139,7 +164,10 @@ var findit=function(){
 		"sorc_no":$("#search_sorcno").data("post"),
 		"order_date_start":$("#order_time_start").data("post"),
 		"order_date_end":$("#order_time_end").data("post"),
-		"bo_flg":$("#cond_work_procedure_order_template").val()
+		"bo_flg":$("#cond_work_procedure_order_template").val(),
+		"level": $("#cond_level").data("post"),
+		"section_id": $("#cond_section_id").data("post"),
+		"process_code": $("#cond_process_code").data("post")
 	}
 	
 	 $.ajax({
@@ -183,7 +211,7 @@ var partial_list=function(recept_listdata){
 			width: 992,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','','修理单号','订购经过','型号','等级','机身号','发放状态','arrival_date','维修课室','发生工位','进展工位'],
+			colNames:['','','修理单号','订购经过','型号','等级','机身号','发放状态','arrival_date','维修课室', 'SAP 投线','发生工位','进展工位'],
 			colModel:[
 				{
 					name:'material_id',
@@ -198,7 +226,7 @@ var partial_list=function(recept_listdata){
 				{
 					name:'sorc_no',
 					index:'sorc_no',
-					width:80,
+					width:60,
 					formatter:function(cellvalue, options, rowData){
 						if(rowData.occur_times>1){
 							return rowData.sorc_no+'/'+rowData.occur_times
@@ -206,7 +234,7 @@ var partial_list=function(recept_listdata){
 						return rowData.sorc_no
 					}
 				},
-				{name:'order_time',index:'order_time', width:55, align : 'center',
+				{name:'order_time',index:'order_time', width:45, align : 'center',
 					formatter:function(value,b,row) {
 						if(row.bo_flg == 9){
 							if (value == null || value == "") {
@@ -227,7 +255,7 @@ var partial_list=function(recept_listdata){
 				{
 					name:'level',
 					index:'level',
-					width:40,
+					width:30,
 					align:'center',
 					formatter:'select',
 					editoptions:{value:$("#material_level_inline").val()}
@@ -235,7 +263,7 @@ var partial_list=function(recept_listdata){
 				{
 					name:'serial_no',
 					index:'serial_no',
-					width:50,
+					width:40,
 					align:'left'
 				},
 				{
@@ -256,6 +284,13 @@ var partial_list=function(recept_listdata){
 					index : 'section_id',
 					width : 50,
 					align : 'center'
+				}, 
+				{
+					name : 'inline_time',
+					index : 'inline_time',
+					width : 50,
+					align : 'center',
+					formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d H:i'}
 				}, 
 				{
 					name : 'line_name',
@@ -325,20 +360,20 @@ var showPartialDetail=function(material_id,occur_times,bo_flg,section_id){
 			$("#bigsubmitbutton").show();
 			$("#evalbobutton").show();
 			if (occur_times > 1) {
-				$("#bigsubmitbutton").val("追加发放");
+				$("#bigsubmitbutton").val("追加发放").next().hide();
 			} else {
-				$("#bigsubmitbutton").val("大单发放");
+				$("#bigsubmitbutton").val("大单发放").next().show();
 			}
 			if(section_id) $("#submit_dest").text("发送课室：" + section_id); else $("#submit_dest").text("");
 		}else{
 			$("#submitbutton").val("发放").show();
-			$("#bigsubmitbutton").hide();
+			$("#bigsubmitbutton").hide().next().hide();
 			$("#evalbobutton").hide();
 			if(section_id) $("#submit_dest").text("发送课室：" + section_id); else $("#submit_dest").text("");
 		}
 	}else{//零件管理员
 		$("#submitbutton").hide();
-		$("#bigsubmitbutton").hide();
+		$("#bigsubmitbutton").hide().next().hide();
 	}
 
 	var data = {"material_id" :material_id,"occur_times":occur_times};
@@ -373,6 +408,7 @@ var search_handleComplete=function(xhrobj, textStatus) {
 			$("#label_serial_no").text(resInfo.responseForm.serial_no);
 			$("#label_level").text(resInfo.responseForm.levelName);
 			$("#label_service_repair_flg").text(resInfo.responseForm.status);
+			$("#label_location").text(resInfo.responseForm.wip_location || "-");
 			if(resInfo.responseForm.arrival_plan_date_start=="9999/12/31"){
 				$("#label_arrival_plan_date").text("未定");
 			}else{
@@ -858,14 +894,18 @@ var completeChange=function(xhrobj, textStatus){
 //				getBoLocationMap(resInfo.to_wip_material_id);
 			}
 			if (resInfo.componentInstorage) infoPop(resInfo.componentInstorage);
-			$("#body-mdl").show();
-			$("#body-detail").hide();
-			findit();
+			completeChangeBack();
 		}
 	} catch (e) {
 		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
+
+var completeChangeBack=function(){
+	$("#body-mdl").show();
+	$("#body-detail").hide();
+	findit();
+}
 
 var deletePartial=function(){
 	var rowids = $("#arrive_partial_list").jqGrid("getGridParam", "selarrrow");
