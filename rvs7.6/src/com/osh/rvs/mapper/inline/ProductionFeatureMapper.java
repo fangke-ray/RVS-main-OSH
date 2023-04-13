@@ -132,4 +132,6 @@ public interface ProductionFeatureMapper {
 	public int checkFinishedDisinfection(@Param("material_id") String material_id);
 
 	public ProductionFeatureEntity getPeriodInPositionOfMaterialId(ProductionFeatureEntity entity);
+
+	public int continueFromOver(ProductionFeatureEntity entity);
 }

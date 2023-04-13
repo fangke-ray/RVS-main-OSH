@@ -17,6 +17,8 @@
 				mp.order_time,
 				trim(concat(coalesce(blocked.process_code, ''), ' ', coalesce(blocked_ns.process_code, ''))) as line_name,
 				CASE 
+  				WHEN ma.wip_location IS NOT NULL THEN ma.wip_location
+				WHEN ma.inline_time is null THEN coalesce(ma.wip_location, '待投线')
 				WHEN processed.process_code IS NULL THEN
 					'不在线'
 				WHEN ma.inline_time IS NOT NULL AND processed_ns.process_code IS NOT NULL AND LEFT(processed.process_code, 1) = '1' THEN
@@ -116,6 +118,31 @@
 		<if test="bo_flg==9 ">
 			<![CDATA[
 				AND mp.bo_flg in (0,9)
+			]]>
+		</if>
+		<if test="level==1 or level==2 or level==3">
+			<![CDATA[
+				AND ma.level = #{level}
+			]]>
+		</if>
+		<if test="level==5">
+			<![CDATA[
+				AND ma.level in (56,57,58)
+			]]>
+		</if>
+		<if test="level==9">
+			<![CDATA[
+				AND ma.level in (9,91,92,93,95,96,97,98,99)
+			]]>
+		</if>
+		<if test="process_code!=null and process_code!='' ">
+			<![CDATA[
+				AND ma.wip_location = #{process_code}
+			]]>
+		</if>
+		<if test="section_id!=null and section_id!='' ">
+			<![CDATA[
+				AND ma.section_id = #{section_id}
 			]]>
 		</if>
 		<if test="isHistory!=null and isHistory==1">

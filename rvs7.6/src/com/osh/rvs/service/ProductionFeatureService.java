@@ -73,7 +73,7 @@ public class ProductionFeatureService {
 		
 		return listForm;
 	}
-	
+
 	public List<ProductionFeatureForm> getNoBeforeRework(String id, SqlSession conn) {
 		List<ProductionFeatureForm> listForm = new ArrayList<ProductionFeatureForm>();
 		
@@ -230,7 +230,7 @@ public class ProductionFeatureService {
 
 		if ("00000000025".equals(fingerPositionId) 
 				|| "25".equals(fingerPositionId)) {
-			section_id = "00000000001"; // 302 工位固定1课
+			section_id = "00000000009"; // 302 工位固定报价物料课
 		}
 
 		if (fixed) { 
@@ -1274,5 +1274,47 @@ public class ProductionFeatureService {
 	public int checkFinishedDisinfection(String material_id, SqlSession conn) {
 		ProductionFeatureMapper dao = conn.getMapper(ProductionFeatureMapper.class);
 		return dao.checkFinishedDisinfection(material_id);
+	}
+
+	// 将已完成的工位设置为中断后继续开始
+	public void continueFromOver(String material_id, String position_id, String section_id, SqlSession conn) {
+		ProductionFeatureMapper mapper = conn.getMapper(ProductionFeatureMapper.class);
+
+		ProductionFeatureEntity findFinish = new ProductionFeatureEntity();
+		findFinish.setMaterial_id(material_id);
+		findFinish.setPosition_id(position_id);
+		findFinish.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+
+		List<ProductionFeatureEntity> found = mapper.searchProductionFeature(findFinish);
+		int rework = 0; int pace = 0; ProductionFeatureEntity hitEntity = null;
+		if (found.size() > 0) {
+			for (ProductionFeatureEntity entity : found) {
+				if (entity.getRework() >= rework) {
+					rework = entity.getRework(); hitEntity = entity;
+				}
+			}
+			if (hitEntity != null) {
+				pace = hitEntity.getPace() + 1;
+			}
+			// 已完成变成一次正常中断
+			mapper.continueFromOver(hitEntity);
+		}
+
+		ProductionFeatureEntity insEntity = new ProductionFeatureEntity();
+		if (hitEntity != null) {
+			insEntity = hitEntity;
+		} else {
+			insEntity.setMaterial_id(material_id);
+			insEntity.setPosition_id(position_id);
+			insEntity.setSection_id(section_id);
+			insEntity.setRework(rework);
+		}
+
+		insEntity.setPace(pace);
+		insEntity.setAction_time(null);
+		insEntity.setOperator_id(null);
+		insEntity.setOperate_result(RvsConsts.OPERATE_RESULT_PAUSE);
+
+		mapper.insertProductionFeature(insEntity);
 	}
 }

@@ -577,11 +577,11 @@ public class MaterialFactService {
 
 				sampleFirstPositionId = firstPosition_id;
 			} else {
-				// 302指定投线
-				if (entity.getCcd_change() != null && "true".equals(entity.getCcd_change()) ) {
-					featureEntity.setPosition_id("00000000025"); // TODO CCD
-					featureEntity.setSection_id("00000000001");
-				} else {
+//				// 302指定投线
+//				if (entity.getCcd_change() != null && "true".equals(entity.getCcd_change()) ) {
+//					featureEntity.setPosition_id("00000000025"); // TODO CCD
+//					featureEntity.setSection_id("00000000001");
+//				} else {
 					ProcessAssignService pas = new ProcessAssignService();
 					List<String> firstPosition_ids = pas.getFirstPositionIds(pat_id, conn);
 					if (firstPosition_ids.size() > 0) {

@@ -724,4 +724,20 @@
         and action_time is not null
 	</select>
 
+	<update id="continueFromOver" parameterType="ProductionFeatureEntity">
+		<![CDATA[ 
+		UPDATE production_feature
+			SET 
+				OPERATE_RESULT = 3,
+				USE_SECONDS = null
+		WHERE MATERIAL_ID = #{material_id}
+		AND POSITION_ID = #{position_id}
+		AND SECTION_ID = #{section_id}
+		AND PACE = #{pace}
+		AND REWORK = #{rework}
+		AND operate_result = 2
+		;
+		]]>
+	</update>
+
 </mapper>
