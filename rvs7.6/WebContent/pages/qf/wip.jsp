@@ -24,13 +24,15 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery-plus.js"></script>
 <script type="text/javascript" src="js/qf/wip.js?v=3098"></script>
 <script type="text/javascript" src="js/qf/wip_locate.js"></script>
+<script type="text/javascript" src="js/qf/wip_manage.js"></script>
 <title>WIP管理</title>
 </head>
 <body class="outer" style="align: center;">
 
 <% 
 	String editor = (String) request.getAttribute("editor");
-	boolean isEditor = ("true").equals(editor);
+	boolean isAdmin = ("admin").equals(editor);
+	boolean isEditor = ("true").equals(editor) || isAdmin;
 %>
 	<div class="width-full" style="align: center; margin: auto; margin-top: 16px;">
 
@@ -123,7 +125,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 		<div id="listarea" class="dwidth-middleright">
 			<table id="list"></table>
 			<div id="listpager"></div>
-			<div class="clear areaencloser"></div>
+			<div class="clear"></div>
 		</div>
 
 		<div id="functionarea" class="dwidth-middleright">
@@ -138,6 +140,17 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					<input type="button" class="ui-button" value="再报价图象检查" id="imgcheckbutton" style="display:none;" />
 					<input type="button" class="ui-button" id="reportbobutton" value="报表导出" style="float: right; right: 2px; display:none;" />
 					<span style="margin-right: 10px; float: right; height: 44px; line-height: 36px; display:none;">WIP积荷率：<label id="heaprate">16</label>%</span>
+				</div>
+			</div>
+			<div class="clear areaencloser"></div>
+<% } %>
+<% if (isAdmin) { %>
+			<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
+				<div id="executeAdmin" style="margin-left: 4px; margin-top: 4px;">
+					<input type="button" id="createbutton" class="ui-button ui-widget ui-state-default ui-corner-all" value="建立库位" role="button">
+					<input type="button" id="changebutton" class="ui-button ui-widget ui-state-default ui-corner-all" value="调整库位" role="button">
+					<input type="button" id="removebutton" class="ui-button ui-widget ui-state-default ui-corner-all" value="删除库位" role="button">
+					<input type="button" id="viewbutton" class="ui-button ui-widget ui-state-default ui-corner-all" value="显示库位图" role="button" style="float: right; right: 2px;">
 				</div>
 			</div>
 			<div class="clear areaencloser"></div>
@@ -175,6 +188,66 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				<div class="clear"></div>
 		</div>
 	</div>
-				<div id="confirmmessage"></div>
+<% if (isAdmin) { %>
+<div class="ui-widget-content" id="editarea" style="display:none;">
+	<form id="editform" method="POST">
+		<table class="condform">
+		<tbody>
+			<tr>
+				<td class="ui-state-default td-title">库位代码</td>
+				<td class="td-content">
+					<input type="text" name="wip_storage_code" id="edit_wip_storage_code" maxlength="6" class="ui-widget-content">
+				</td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">货架</td>
+				<td class="td-content">
+					<input type="text" name="shelf" id="edit_shelf" maxlength="2" class="ui-widget-content">
+				</td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">层数</td>
+				<td class="td-content">
+					<input type="text" name="layer" id="edit_layer" maxlength="2" class="ui-widget-content">
+				</td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">库位表示</td>
+				<td class="td-content">
+					<input type="text" name="simple_code" id="edit_simple_code" maxlength="6" class="ui-widget-content">
+				</td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">同意分类</td>
+				<td class="td-content" id="edit_for_agreed">
+					<input type="radio" name="for_agreed" id="edit_for_agreed_a" value="0" class="ui-widget-content"><label for="edit_for_agreed_a">无区分</label>
+					<input type="radio" name="for_agreed" id="edit_for_agreed_y" value="1" class="ui-widget-content"><label for="edit_for_agreed_y">已同意用</label>
+					<input type="radio" name="for_agreed" id="edit_for_agreed_n" value="-1" class="ui-widget-content"><label for="edit_for_agreed_n">待同意用</label>
+				</td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">机种</td>
+				<td class="td-content" id="edit_kind">
+					<input type="radio" name="kind" id="edit_kind_1" value="1" class="ui-widget-content"><label for="edit_kind_1">软性镜用</label>
+					<input type="radio" name="kind" id="edit_kind_6" value="6" class="ui-widget-content"><label for="edit_kind_6">Endoeye用</label>
+					<input type="radio" name="kind" id="edit_kind_7" value="7" class="ui-widget-content"><label for="edit_kind_7">周边设备用</label>
+					<input type="radio" name="kind" id="edit_kind_9" value="9" class="ui-widget-content"><label for="edit_kind_9">UDI用</label>
+				</td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">动物实验用</td>
+				<td class="td-content" id="edit_anml_exp">
+					<input type="radio" name="anml_exp" id="edit_anml_exp_y" value="1" class="ui-widget-content"><label for="edit_anml_exp_y">动物实验用</label>
+					<input type="radio" name="anml_exp" id="edit_anml_exp_n" value="0" class="ui-widget-content"><label for="edit_anml_exp_n">(普通)</label>
+				</td>
+			</tr>
+		</tbody>
+		</table>
+	</form>
+</div>
+
+<% } %>
+
+	<div id="confirmmessage"></div>
 </body>
 </html>

@@ -23,35 +23,35 @@ var stepOptions = "";
 /** 医院autocomplete **/
 var customers = {};
 
-var showWipEmpty=function() {
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : "wip.do" + '?method=getwipempty',
-		cache : false,
-		data : null,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrobj) {
-			var resInfo = null;
-			try {
-				// 以Object形式读取JSON
-				eval('resInfo =' + xhrobj.responseText);
-				if (resInfo.errors.length > 0) {
-					// 共通出错信息框
-					treatBackMessages(null, resInfo.errors);
-				} else {
-					pop_wip(doFinishConfirm, resInfo);
-				}
-			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-						+ e.lineNumber + " fileName: " + e.fileName);
-			};
-		}
-	});
-}
+//var showWipEmpty=function() {
+//	$.ajax({
+//		beforeSend : ajaxRequestType,
+//		async : true,
+//		url : "wip.do" + '?method=getwipempty',
+//		cache : false,
+//		data : null,
+//		type : "post",
+//		dataType : "json",
+//		success : ajaxSuccessCheck,
+//		error : ajaxError,
+//		complete : function(xhrobj) {
+//			var resInfo = null;
+//			try {
+//				// 以Object形式读取JSON
+//				eval('resInfo =' + xhrobj.responseText);
+//				if (resInfo.errors.length > 0) {
+//					// 共通出错信息框
+//					treatBackMessages(null, resInfo.errors);
+//				} else {
+//					pop_wip(doFinishConfirm, resInfo);
+//				}
+//			} catch (e) {
+//				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+//						+ e.lineNumber + " fileName: " + e.fileName);
+//			};
+//		}
+//	});
+//}
 
 
 /** 暂停信息弹出框 */
@@ -103,64 +103,64 @@ var makePauseDialog = function(jBreakDialog) {
 	});
 }
 
-var pop_wip = function(call_back, resInfo){
-	var quotation_pop = $("#quotation_pop");
-	quotation_pop.hide();
-	quotation_pop.load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
-		 //新增
-		if ($("#anml_attendtion").length > 0) {
-			quotation_pop.find("div.shelf_model[for!='anml_exp']").hide();
-		} else {
-			quotation_pop.find("div.shelf_model[for='anml_exp']").hide();
-		}
-
-		quotation_pop.dialog({
-			position : [ 800, 20 ],
-			title : "WIP 入库选择",
-			width : 1000,
-			show: "blind",
-			height : 640,// 'auto' ,
-			resizable : false,
-			modal : true,
-			minHeight : 200,
-			buttons : {}
-		});
-
-		quotation_pop.find("td").addClass("wip-empty");
-		for (var iheap in resInfo.heaps) {
-			quotation_pop.find("td[wipid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
-		}
-
-		//$("#quotation_pop").css("cursor", "pointer");
-		quotation_pop.find(".ui-widget-content").click(function(e){
-			if ("TD" == e.target.tagName) {
-				var $td = $(e.target);
-				if (!$td.hasClass("wip-heaped")) {
-					wip_location = $td.attr("wipid");
-					var putAnml_exp = $("#anml_attendtion").length > 0;
-					var isAnml_exp = $td.is("[anml_exp]");
-
-					if (putAnml_exp && !isAnml_exp) {
-						errorPop("请将动物实验用维修品放入专门库位。")
-						return;
-					} else if (!putAnml_exp && isAnml_exp) {
-						errorPop("请不要将普通维修品放入动物实验用专门库位。")
-						return;
-					}
-
-					call_back();
-					quotation_pop.dialog("close");
-				}
-			}
-		});
-
-		quotation_pop.show();
-
-		if ($("#devicearea").length > 0) {
-		setTimeout(function(){quotation_pop[0].scrollTop = 300}, 200);
-		}
-	});
-}
+//var pop_wip = function(call_back, resInfo){
+//	var quotation_pop = $("#quotation_pop");
+//	quotation_pop.hide();
+//	quotation_pop.load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
+//		 //新增
+//		if ($("#anml_attendtion").length > 0) {
+//			quotation_pop.find("div.shelf_model[for!='anml_exp']").hide();
+//		} else {
+//			quotation_pop.find("div.shelf_model[for='anml_exp']").hide();
+//		}
+//
+//		quotation_pop.dialog({
+//			position : [ 800, 20 ],
+//			title : "WIP 入库选择",
+//			width : 1000,
+//			show: "blind",
+//			height : 640,// 'auto' ,
+//			resizable : false,
+//			modal : true,
+//			minHeight : 200,
+//			buttons : {}
+//		});
+//
+//		quotation_pop.find("td").addClass("wip-empty");
+//		for (var iheap in resInfo.heaps) {
+//			quotation_pop.find("td[wipid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
+//		}
+//
+//		//$("#quotation_pop").css("cursor", "pointer");
+//		quotation_pop.find(".ui-widget-content").click(function(e){
+//			if ("TD" == e.target.tagName) {
+//				var $td = $(e.target);
+//				if (!$td.hasClass("wip-heaped")) {
+//					wip_location = $td.attr("wipid");
+//					var putAnml_exp = $("#anml_attendtion").length > 0;
+//					var isAnml_exp = $td.is("[anml_exp]");
+//
+//					if (putAnml_exp && !isAnml_exp) {
+//						errorPop("请将动物实验用维修品放入专门库位。")
+//						return;
+//					} else if (!putAnml_exp && isAnml_exp) {
+//						errorPop("请不要将普通维修品放入动物实验用专门库位。")
+//						return;
+//					}
+//
+//					call_back();
+//					quotation_pop.dialog("close");
+//				}
+//			}
+//		});
+//
+//		quotation_pop.show();
+//
+//		if ($("#devicearea").length > 0) {
+//		setTimeout(function(){quotation_pop[0].scrollTop = 300}, 200);
+//		}
+//	});
+//}
 
 /** 中断信息弹出框 */
 var makeBreakDialog = function(jBreakDialog) {

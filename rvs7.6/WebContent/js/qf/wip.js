@@ -7,8 +7,6 @@ var listdata = {};
 /** 服务器处理路径 */
 var servicePath = "wip.do";
 var lOptions = {};
-var selwip = ""; 
-
 
 var findit = function() {
 	var data = {
@@ -48,6 +46,7 @@ var enablebuttons = function(rowids) {
 		$("#stopbutton").disable();
 		$("#movebutton").disable();
 		$("#imgcheckbutton").hide();
+		$("#changebutton, #removebutton").disable();
 	} else if (rowids.length === 1) {
 		$("#warehousingbutton").enable();
 		var rowdata = $("#list").jqGrid('getRowData', rowids[0]);
@@ -64,12 +63,14 @@ var enablebuttons = function(rowids) {
 			$("#imgcheckbutton").hide();
 		}
 		$("#movebutton").enable();
+		$("#changebutton, #removebutton").enable();
 	} else {
 		$("#warehousingbutton").enable();
 		$("#resystembutton").disable();
 		$("#stopbutton").disable();
 		$("#movebutton").disable();
 		$("#imgcheckbutton").hide();
+		$("#changebutton, #removebutton").disable();
 	}
 };
 
@@ -110,65 +111,13 @@ var insert_handleComplete = function(xhrobj, textStatus) {
 }
 
 var showWipMap=function(rid) {
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : servicePath + '?method=getwipempty',
-		cache : false,
-		data : null,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrobj) {
-			var resInfo = null;
-			try {
-				// 以Object形式读取JSON
-				eval('resInfo =' + xhrobj.responseText);
-				if (resInfo.errors.length > 0) {
-					// 共通出错信息框
-					treatBackMessages(null, resInfo.errors);
-				} else {
-					$("#wip_pop").hide();
-					$("#wip_pop").load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
-						 //新增
-				
-						$("#wip_pop").dialog({
-							position : [ 800, 20 ],
-							title : "WIP 入库选择",
-							width : 1000,
-							show: "blind",
-							height : 640,// 'auto' ,
-							resizable : false,
-							modal : true,
-							minHeight : 200,
-							buttons : {}
-						});
+	
+	showChooseMap($("#wip_pop"), "WIP 入库选择", 
+		{
+			occupied : 1
+		}, 
+		showInput);
 
-						$("#wip_pop").find("td").addClass("wip-empty");
-						for (var iheap in resInfo.heaps) {
-							$("#wip_pop").find("td[wipid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
-						}
-
-						//$("#wip_pop").css("cursor", "pointer");
-						$("#wip_pop").find(".ui-widget-content").click(function(e){
-							if ("TD" == e.target.tagName) {
-								if (!$(e.target).hasClass("wip-heaped")) {
-									selwip = $(e.target).attr("wipid");
-									showInput();
-								}
-							}
-						});
-
-						$("#wip_pop").show();
-					});
-				}
-			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-						+ e.lineNumber + " fileName: " + e.fileName);
-			};
-		}
-	});
 }
 
 var warehousing=function() {
@@ -342,7 +291,7 @@ var reimgcheck=function() {
 	});	
 }
 
-var showInput=function() {
+var showInput=function(selwip) {
 
 	var linkna = "widgets/qf/acceptance-edit.jsp";
 
@@ -362,11 +311,11 @@ var showInput=function() {
 		$("#fix_type").next().remove();
 		$("#fix_type").html("<option value=\"3\" selected>检测备品</option>").select2Buttons();
 		$("#wip_pop").dialog({
-			position : [ 800, 20 ],
+			position : [ 300, 20 ],
 			title : "维修对象信息编辑",
-			width : 400,
+			width : 'auto',
 			show: "blind",
-			height : 550,// 'auto' ,
+			height : 'auto',// 'auto' ,
 			resizable : false,
 			modal : true,
 			minHeight : 200,
@@ -488,81 +437,35 @@ $(function() {
 	});
 	setReferChooser($("#cond_model_id"), $("#model_refer"));
 
+	$("#createbutton").click(createDialog);
+//	$("#changebutton").click(changeDialog);
+//	$("#removebutton").click(removeConfirm);
+
 	findit();
 
 });
 
 var doMove = function() {
+	var rowid = $("#list").jqGrid("getGridParam", "selrow");
+	var rowdata = $("#list").getRowData(rowid);
+
 	var this_dialog = $("#wip_pop");
 	if (this_dialog.length === 0) {
 		$("body.outer").append("<div id='wip_pop'/>");
 		this_dialog = $("#wip_pop");
 	}
 
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : "wip.do" + '?method=getwipempty',
-		cache : false,
-		data : null,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrobj) {
-			var resInfo = null;
-			try {
-				// 以Object形式读取JSON
-				eval('resInfo =' + xhrobj.responseText);
-				if (resInfo.errors.length > 0) {
-					// 共通出错信息框
-					treatBackMessages(null, resInfo.errors);
-				} else {
-					this_dialog.hide();
-					this_dialog.load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
-					//新增
-					this_dialog.dialog({
-						position : [ 800, 20 ],
-						title : "WIP 入库选择",
-						width : 1000,
-						show: "blind",
-						height : 640,// 'auto' ,
-						resizable : false,
-						modal : true,
-						minHeight : 200,
-						buttons : {}
-					});
-			
-					this_dialog.find("td").addClass("wip-empty");
-					for (var iheap in resInfo.heaps) {
-						this_dialog.find("td[wipid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
-					}
-			
-					//this_dialog.css("cursor", "pointer");
-					this_dialog.find(".ui-widget-content").click(function(e){
-						if ("TD" == e.target.tagName) {
-							if (!$(e.target).hasClass("wip-heaped")) {
-								doChangeLocation($(e.target).attr("wipid"));
-								this_dialog.dialog("close");
-							}
-						}
-					});
-			
-					this_dialog.show();
-					});
-				}
-			} catch(e) {
-				
-			}
-		}
-	});
+	showChooseMap(this_dialog, "WIP 移库选择", 
+		{
+			occupied : 1,
+			material_id : rowdata.material_id
+		}, 
+		doChangeLocation);
 }
 
-var doChangeLocation = function(wip_location) {
-	var rowid = $("#list").jqGrid("getGridParam", "selrow");
-	var rowdata = $("#list").getRowData(rowid);
+var doChangeLocation = function(wip_location, option) {
 
-	var data = {material_id : rowdata.material_id ,wip_location : wip_location};
+	var data = {material_id : option.material_id ,wip_location : wip_location};
 
 	$.ajax({
 		beforeSend : ajaxRequestType,

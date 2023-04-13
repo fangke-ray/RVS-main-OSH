@@ -200,4 +200,85 @@
 			and finish_time Is NULL
 		]]>
 	</select>
+
+	<select id="searchWipStorage" resultType="WipStorageEntity" parameterType="WipStorageEntity">
+		<![CDATA[ 
+		SELECT `wip_storage_code`, `shelf`, `layer`, `simple_code`, `anml_exp`
+		]]>
+		<if test="occupied eq 1">
+			,ma.`wip_location` IS not NULL as occupied 
+		</if>
+		<![CDATA[ 
+		FROM `wip_storage` ws
+		]]>
+		<if test="occupied eq 1">
+			LEFT JOIN material ma ON ws.`wip_storage_code` = ma.`wip_location` AND ma.outline_time is null
+		</if>
+		<where>
+			<if test="wip_storage_code!= null and wip_storage_code!= ''">
+				and `wip_storage_code` = #{wip_storage_code}
+			</if>
+			<if test="for_agreed eq 1">
+				and `for_agreed` in (0, 1)
+			</if>
+			<if test="for_agreed eq -1">
+				and `for_agreed` in (0, -1)
+			</if>
+			<if test="shelf!= null and shelf!= ''">
+				and `shelf` = #{shelf}
+			</if>
+			<if test="kind!= null and kind!= ''">
+				and `kind` = #{kind}
+			</if>
+			<if test="anml_exp eq 1">
+				and `anml_exp` = 1
+			</if>
+			<if test="anml_exp eq 0">
+				and `anml_exp` = 0
+			</if>
+		</where>
+		<![CDATA[ 
+		ORDER BY `anml_exp`, `for_agreed`, `kind`, `shelf`, `layer`, `simple_code`, `wip_storage_code`
+		]]>
+	</select>
+
+	<insert id="createStorage" parameterType="WipStorageEntity">
+		<![CDATA[ 
+		INSERT INTO `wip_storage`
+		(`wip_storage_code`,
+		`shelf`,
+		`layer`,
+		`simple_code`,
+		`for_agreed`,
+		`kind`,
+		`anml_exp`)
+		VALUES
+		(#{wip_storage_code},
+		#{shelf},
+		#{layer},
+		#{simple_code},
+		#{for_agreed},
+		#{kind},
+		#{anml_exp});
+		]]>
+	</insert>
+
+	<update id="updateStorage" parameterType="WipStorageEntity">
+		UPDATE `wip_storage`
+		SET
+		`shelf` = #{shelf},
+		`layer` = #{layer},
+		`simple_code` = #{simple_code},
+		`for_agreed` = #{for_agreed},
+		`kind` = #{kind},
+		`anml_exp` = #{anml_exp}
+		WHERE `wip_storage_code` = #{wip_storage_code};
+	</update>
+
+	<delete id="removeStorage" parameterType="String">
+		DETELE FROM `wip_storage`
+		WHERE `wip_storage_code` = #{wip_storage_code};
+	</delete>
+
+
 </mapper>

@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.qf.WipStorageEntity;
 
 public interface WipMapper {
 
@@ -37,4 +38,9 @@ public interface WipMapper {
 
 	public List<String> getWipBoHeaped();
 
+	public List<WipStorageEntity> searchWipStorage(WipStorageEntity wip_storage);
+
+	public void createStorage(WipStorageEntity entity);
+	public void updateStorage(WipStorageEntity entity);
+	public void removeStorage(String wip_storage_code);
 }

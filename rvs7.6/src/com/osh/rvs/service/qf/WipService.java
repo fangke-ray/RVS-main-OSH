@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.ibatis.session.SqlSession;
@@ -23,22 +24,37 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.master.ProcessAssignEntity;
+import com.osh.rvs.bean.master.ProcessAssignTemplateEntity;
+import com.osh.rvs.bean.partial.MaterialPartialEntity;
+import com.osh.rvs.bean.qf.WipStorageEntity;
 import com.osh.rvs.common.FseBridgeUtil;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
+import com.osh.rvs.form.pda.PdaMaterialForm;
+import com.osh.rvs.form.qf.WipStorageForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.MaterialMapper;
+import com.osh.rvs.mapper.inline.MaterialProcessAssignMapper;
 import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
+import com.osh.rvs.mapper.master.ModelMapper;
+import com.osh.rvs.mapper.master.ProcessAssignMapper;
+import com.osh.rvs.mapper.master.SectionMapper;
+import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 import com.osh.rvs.mapper.qa.QualityAssuranceMapper;
 import com.osh.rvs.mapper.qf.WipMapper;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
+import com.osh.rvs.service.PositionService;
+import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.UserDefineCodesService;
 import com.osh.rvs.service.partial.PartialOrderManageService;
 
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.AutofillArrayList;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.IntegerConverter;
@@ -431,7 +447,6 @@ public class WipService {
 			}
 		}
 	}
-}
 
 	/**
 	 * 取得BO库位表格
@@ -492,3 +507,232 @@ public class WipService {
 
 		lResponseResult.put("storageHtml", retSb.toString());
 	}
+
+	/**
+	 * 建立库位
+	 * 
+	 * @param form
+	 * @param msgInfos
+	 * @param conn
+	 */
+	public void create(ActionForm form, List<MsgInfo> msgInfos,
+			SqlSessionManager conn) {
+		WipMapper mapper = conn.getMapper(WipMapper.class);
+
+		WipStorageEntity entity = new WipStorageEntity();
+
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		WipStorageEntity keyEntity = new WipStorageEntity();
+		keyEntity.setWip_storage_code(entity.getWip_storage_code());
+		
+		List<WipStorageEntity> target = mapper.searchWipStorage(keyEntity);
+		if (target != null && target.size() > 0) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("wip_storage_code");
+			error.setErrcode("dbaccess.recordDuplicated");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordDuplicated", "WIP 库位"));
+			msgInfos.add(error);
+			return;
+		}
+
+		mapper.createStorage(entity);
+	}
+
+	/**
+	 * x修改库位设置
+	 * 
+	 * @param form
+	 * @param msgInfos
+	 * @param conn
+	 */
+	public void changeSetting(ActionForm form, List<MsgInfo> msgInfos, SqlSessionManager conn) {
+		WipMapper mapper = conn.getMapper(WipMapper.class);
+
+		WipStorageEntity entity = new WipStorageEntity();
+
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		WipStorageEntity keyEntity = new WipStorageEntity();
+		keyEntity.setWip_storage_code(entity.getWip_storage_code());
+
+		List<WipStorageEntity> target = mapper.searchWipStorage(keyEntity);
+
+		if (target == null ||  target.size() == 0) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("wip_storage_code");
+			error.setErrcode("dbaccess.recordNotExist");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "WIP 库位"));
+			msgInfos.add(error);
+			return;
+		}
+
+		mapper.updateStorage(entity);
+	}
+
+	/**
+	 * 删除库位
+	 * 
+	 * @param form
+	 * @param msgInfos
+	 * @param conn
+	 */
+	public void remove(ActionForm form, List<MsgInfo> msgInfos, SqlSessionManager conn) {
+		WipMapper mapper = conn.getMapper(WipMapper.class);
+
+		WipStorageEntity entity = new WipStorageEntity();
+
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		List<WipStorageEntity> target = mapper.searchWipStorage(entity);
+		if (target == null ||  target.size() == 0) {
+			MsgInfo error = new MsgInfo();
+			error.setComponentid("case_code");
+			error.setErrcode("dbaccess.recordNotExist");
+			error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordNotExist", "WIP 库位"));
+			msgInfos.add(error);
+			return;
+		}
+
+		mapper.removeStorage(entity.getWip_storage_code());
+	}
+
+
+	public void getLocationMap(ActionForm form, Map<String, Object> callbackResponse,
+			SqlSession conn, List<MsgInfo> errors) {
+		WipStorageForm storageForm =  (WipStorageForm) form;
+
+		WipStorageEntity entity = new WipStorageEntity();
+
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		if (storageForm.getMaterial_id() != null) {
+			if (MaterialTagService.getAnmlMaterials(conn).contains(storageForm.getMaterial_id())) {
+				entity.setAnml_exp(1);
+				entity.setFor_agreed(null);
+				entity.setKind(null);
+			} else {
+				entity.setAnml_exp(0);
+				MaterialService ms = new MaterialService();
+				MaterialEntity material = ms.loadSimpleMaterialDetailEntity(conn, storageForm.getMaterial_id());
+				if (entity.getFor_agreed() == null) {
+					entity.setFor_agreed(material.getAgreed_date() == null ? -1 : 1);
+				}
+				if (material.getKind().equals("7") || material.getKind().equals("07")) {
+					entity.setKind(7);
+				} else if (material.getKind().equals("6") || material.getKind().equals("06")) {
+					if (material.getCategory_name().toUpperCase().indexOf("ENDOEYE") >= 0) {
+						entity.setKind(6);
+					} else { // UDI
+						entity.setKind(9);
+					}
+				} else {
+					entity.setKind(1);
+				}
+			}
+		}
+
+		StringBuffer retSb = new StringBuffer("<style>.wip-table td[anml_exp] {border-color : #AA7700;border-radius : 20%;}</style><div class=\"ui-widget-header ui-corner-top ui-helper-clearfix areaencloser\"><span class=\"areatitle\">WIP区域一览</span></div>");
+		StringBuffer retShelfHead = null;
+		StringBuffer retShelf = null;
+		List<String> headChars = new ArrayList<String>();
+		int cols = 120;
+		int rowCols = 0;
+
+		WipMapper mapper = conn.getMapper(WipMapper.class);
+		List<WipStorageEntity> list = mapper.searchWipStorage(entity);
+
+		String shelf = "-";
+		String layer = "-";
+
+		WipStorageEntity storageS = null;
+		for (WipStorageEntity storage : list) {
+			storageS = storage;
+			if (!shelf.equals(storage.getShelf())) {
+				if (retShelf != null) {
+					if (!headChars.isEmpty()) {
+						retShelfHead.append("<tr>");
+
+						retShelfHead.append("<tr>");
+						for (String headChar : headChars) {
+							retShelfHead.append("<th class=\"ui-state-default\" style=\"width: 14px;\">" + headChar + "</th>");
+						}
+						retShelfHead.append("</tr>");
+					}
+					headChars = new ArrayList<String>();
+
+					rowCols += storage.getSimple_code().length() * 14;
+					if (cols < rowCols) {
+						cols = rowCols;
+					}
+					rowCols = storage.getSimple_code().length() * 16;
+					retShelf.append("</tr></tbody></table></div>");
+					retSb.append(retShelfHead.toString().replaceAll("%w%", "" + cols))
+						.append(retShelf);
+					cols = 120;
+				}
+				shelf = storage.getShelf();
+				retShelf = new StringBuffer("");
+				retShelfHead = new StringBuffer("<div style=\"margin: 15px; float: left;\">"
+						+ "<div class=\"ui-widget-header\" style=\"width: %w%px; text-align: center;\">货架 " + shelf + "</div>"
+						+ "<table class=\"condform wip-table\" style=\"width: %w%px;\"><tbody>");
+				layer = "" + storage.getLayer();
+				retShelf.append("<tr>");
+			} else {
+				if (!layer.equals("" + storage.getLayer())) {
+					retShelf.append("</tr><tr>");
+					layer = "" + storage.getLayer();
+					if (cols < rowCols) {
+						cols = rowCols;
+					}
+					rowCols = storage.getSimple_code().length() * 16;
+				} else {
+					rowCols += storage.getSimple_code().length() * 14;
+				}
+			}
+			setHeadChars(headChars, storage.getWip_storage_code());
+			retShelf.append("<td wipid='" + storage.getWip_storage_code() 
+					+ ((storage.getOccupied() != null && storage.getOccupied() == 1) ? "' class=\"ui-storage-highlight wip-heaped\"" : "' class=\"wip-empty\"")
+					+ ((storage.getAnml_exp() != null && storage.getAnml_exp() == 1) ? " anml_exp" : "")
+					+ ">" + storage.getSimple_code() + "</td>");
+		}
+
+		if (retShelf != null) {
+			if (!headChars.isEmpty()) {
+				retShelfHead.append("<tr>");
+
+				retShelfHead.append("<tr>");
+				for (String headChar : headChars) {
+					retShelfHead.append("<th class=\"ui-state-default\" style=\"width: 14px;\">" + headChar + "</th>");
+				}
+				retShelfHead.append("</tr>");
+			}
+			rowCols += storageS.getSimple_code().length() * 16;
+			if (cols < rowCols) {
+				cols = rowCols;
+			}
+			retShelf.append("</tr></tbody></table></div>");
+			retSb.append(retShelfHead.toString().replaceAll("%w%", "" + (cols)))
+				.append(retShelf);
+		}
+
+		callbackResponse.put("storageHtml", retSb.toString());
+	}
+
+	/**
+	 * 
+	 * @param headChars
+	 * @param wip_storage_code
+	 */
+	private void setHeadChars(List<String> headChars, String wip_storage_code) {
+		String headChar = wip_storage_code.replaceAll("\\d", "");
+		if (!CommonStringUtil.isEmpty(headChar) && headChar.length() == 1) {
+			if (!headChars.contains(headChar)) {
+				headChars.add(headChar);
+			}
+		}
+	}
+
+	private static String SECTION_1 = "00000000001";
+	private static String SECTION_2 = "00000000003";
+	private static String SECTION_3 = "00000000012";

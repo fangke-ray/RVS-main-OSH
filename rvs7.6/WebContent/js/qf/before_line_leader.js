@@ -793,95 +793,35 @@ var doCcdChange = function() {
 };
 
 var doMove = function() {
+	var rowid = $("#performance_list").jqGrid("getGridParam", "selrow");
+	var rowdata = $("#performance_list").getRowData(rowid);
+
 	var this_dialog = $("#wip_pop");
 	if (this_dialog.length === 0) {
 		$("body.outer").append("<div id='wip_pop'/>");
 		this_dialog = $("#wip_pop");
 	}
 
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : 'wip.do?method=getwipempty',
-		cache : false,
-		data : null,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrobj) {
-			var resInfo = null;
-			try {
-				// 以Object形式读取JSON
-				eval('resInfo =' + xhrobj.responseText);
-				if (resInfo.errors.length > 0) {
-					// 共通出错信息框
-					treatBackMessages(null, resInfo.errors);
-				} else {
-					this_dialog.hide();
-					this_dialog.load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
-					//新增
-					this_dialog.dialog({
-						position : [ 800, 20 ],
-						title : "WIP 入库选择",
-						width : 1000,
-						show: "blind",
-						height : 640,// 'auto' ,
-						resizable : false,
-						modal : true,
-						minHeight : 200,
-						buttons : {}
-					});
-
-					this_dialog.find("td").addClass("wip-empty");
-					for (var iheap in resInfo.heaps) {
-						this_dialog.find("td[wipid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
-					}
-			
-					//this_dialog.css("cursor", "pointer");
-					this_dialog.find(".ui-widget-content").click(function(e){
-						if ("TD" == e.target.tagName) {
-							var $td = $(e.target);
-							if (!$td.hasClass("wip-heaped")) {
-								doChangeLocation($td.attr("wipid"), $td.is("[anml_exp]"));
-							}
-						}
-					});
-
-					this_dialog.show();
-
-					var rowid = $("#performance_list").jqGrid("getGridParam", "selrow");
-					var rowdata = $("#performance_list").getRowData(rowid);
-
-					
-					if (f_isPeripheralFix(rowdata.level)) {
-					setTimeout(function(){this_dialog[0].scrollTop = 300}, 200);
-					}
-
-					});
-				}
-			} catch(e) {
-		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
-				+ e.lineNumber + " fileName: " + e.fileName);
-			}
-		}
-	});
+	showChooseMap(this_dialog, "WIP 移库选择", 
+		{
+			occupied : 1,
+			material_id : rowdata.material_id
+		}, 
+		doChangeLocation);
 }
 
-var doChangeLocation = function(wip_location, isAnml_exp) {
-	var rowid = $("#performance_list").jqGrid("getGridParam", "selrow");
-	var rowdata = $("#performance_list").getRowData(rowid);
+var doChangeLocation = function(wip_location, options) { // isAnml_exp
+//
+//	if (rowdata.anml_exp == "1" && !isAnml_exp) {
+//		errorPop("请将动物实验用维修品放入专门库位。")
+//		return;
+//	} else if (rowdata.anml_exp != "1" && isAnml_exp) {
+//		errorPop("请不要将普通维修品放入动物实验用专门库位。")
+//		return;
+//	}
+//	$("#wip_pop").dialog("close");
 
-	if (rowdata.anml_exp == "1" && !isAnml_exp) {
-		errorPop("请将动物实验用维修品放入专门库位。")
-		return;
-	} else if (rowdata.anml_exp != "1" && isAnml_exp) {
-		errorPop("请不要将普通维修品放入动物实验用专门库位。")
-		return;
-	}
-	$("#wip_pop").dialog("close");
-
-	var data = {material_id : rowdata.material_id ,wip_location : wip_location};
+	var data = {material_id : options.material_id ,wip_location : wip_location};
 
 	$.ajax({
 		beforeSend : ajaxRequestType,
