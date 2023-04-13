@@ -26,7 +26,7 @@ function showedit_handleComplete(xhrobj, textStatus) {
 }
 
 	$(function() {
-		$("#search_section_id").select2Buttons();
+		$("#is_section_id").select2Buttons();
 		$("#ref_template").select2Buttons();
 
 //		$("#s2b_search_section_id a:contains('2课')").click(function(){
@@ -77,7 +77,7 @@ function showedit_handleComplete(xhrobj, textStatus) {
 			<tr>
 				<td class="ui-state-default td-title">投线课室</td>
 				<td class="td-content" style="width:242px;" colspan="3">
-					<select name="section_id" id="search_section_id" class="ui-widget-content">
+					<select name="section_id" id="is_section_id" class="ui-widget-content">
 						<%=session.getAttribute("sOptions") %>
 					</select>
 				</td>

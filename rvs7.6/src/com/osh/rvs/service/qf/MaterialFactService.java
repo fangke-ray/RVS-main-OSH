@@ -28,6 +28,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.MaterialTimeNodeEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.inline.MaterialFactEntity;
 import com.osh.rvs.bean.inline.MaterialProcessEntity;
@@ -77,7 +78,7 @@ public class MaterialFactService {
 	private static String SECTION_2 = "00000000003";
 	private static String SECTION_3 = "00000000012";
 
-	public List<MaterialFactForm> searchMaterial(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
+	public void searchMaterial(ActionForm form, SqlSession conn, Map<String, Object> listResponse, List<MsgInfo> errors) {
 		// 表单复制到数据对象
 		MaterialFactEntity conditionBean = new MaterialFactEntity();
 		BeanUtil.copyToBean(form, conditionBean, null);
@@ -92,8 +93,8 @@ public class MaterialFactService {
 		List<MaterialFactEntity> lResultBean = dao.searchMaterial(conditionBean);
 
 		// 建立页面返回表单
-		List<MaterialFactForm> lResultForm = new ArrayList<MaterialFactForm>();
-		MaterialPartialService mps = new MaterialPartialService();
+		List<MaterialFactForm> lResultWip1Form = new ArrayList<MaterialFactForm>();
+		List<MaterialFactForm> lResultWip2Form = new ArrayList<MaterialFactForm>();
 
 		List<String> anmlPats = ProcessAssignService.getAnmlProcesses(conn);
 
@@ -103,15 +104,6 @@ public class MaterialFactService {
 
 			MaterialFactForm resultForm = new MaterialFactForm();
 			BeanUtil.copyToForm(resultBean, resultForm, CopyOptions.COPYOPTIONS_NOEMPTY);
-			if (CCD_MODEL_NAMES.contains(resultForm.getModel_name())) {
-				resultForm.setCcd_model("1");
-			}
-
-			if ("9".equals(resultBean.getCcd_operate_result())) {
-				resultForm.setCcd_operate_result("已指定");
-			} else {
-				resultForm.setCcd_operate_result("");
-			}
 
 			Integer level = resultBean.getLevel();
 			boolean isLightFix = RvsUtils.isLightFix(level);
@@ -131,19 +123,52 @@ public class MaterialFactService {
 				section_id = SECTION_2;
 			}
 
-			if (isLightFix || isPeripheral
-					|| "光学视管".equals(resultBean.getCategory_name())) {
-				MaterialPartialForm mp = mps.loadMaterialPartial(conn, resultBean.getMaterial_id(), null);
-				if (mp == null) {
-					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "未订购零件"));
-				} else if ("0".equals(mp.getBo_flg()) || "2".equals(mp.getBo_flg())){
-					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "已订购零件"));
-					resultForm.setCcd_operate_result(getBr(resultForm.getCcd_operate_result(), "零件到达"));
-				} else {
-					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "已订购零件"));
-					resultForm.setCcd_operate_result(getBr(resultForm.getCcd_operate_result(), "缺零件"));
+			if (CCD_MODEL_NAMES.contains(resultForm.getModel_name())) {
+				resultForm.setCcd_model("1");
+			}
+
+			if (!CommonStringUtil.isEmpty(conditionBean.getSection_id())) {
+				if (!conditionBean.getSection_id().equals(section_id)) {
+					continue;
 				}
 			}
+
+			if ("2".equals(resultBean.getCcd_operate_result())) {
+				resultForm.setCcd_operate_result("完成");
+			} else if ("3".equals(resultBean.getCcd_operate_result())) {
+				resultForm.setCcd_operate_result("中断");
+			} else if ("1".equals(resultBean.getCcd_operate_result())) {
+				resultForm.setCcd_operate_result("进行中");
+			} else if ("9".equals(resultBean.getCcd_operate_result())) {
+				resultForm.setCcd_operate_result("已指定");
+			} else {
+				if ("1".equals(resultForm.getCcd_change())) {
+					resultForm.setCcd_operate_result("进行中");
+				} else {
+					resultForm.setCcd_operate_result("");
+					if (!"1".equals(resultForm.getLevel()) && "1".equals(resultForm.getCcd_model())) {
+						MaterialTagService mtService = new MaterialTagService();
+						if (mtService.checkTagByMaterialId(resultBean.getMaterial_id(), 
+								MaterialTagService.TAG_FOR_CCD_REPLACE, conn).size() > 0) {
+							resultForm.setCcd_operate_result("待更换");
+						}
+					}
+				}
+			}
+
+//			if (isLightFix || isPeripheral
+//					|| "光学视管".equals(resultBean.getCategory_name())) {
+//				MaterialPartialForm mp = mps.loadMaterialPartial(conn, resultBean.getMaterial_id(), null);
+//				if (mp == null) {
+//					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "未订购零件"));
+//				} else if ("0".equals(mp.getBo_flg()) || "2".equals(mp.getBo_flg())){
+//					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "已订购零件"));
+//					resultForm.setCcd_operate_result(getBr(resultForm.getCcd_operate_result(), "零件到达"));
+//				} else {
+//					resultForm.setImg_operate_result(getBr(resultForm.getImg_operate_result(), "已订购零件"));
+//					resultForm.setCcd_operate_result(getBr(resultForm.getCcd_operate_result(), "缺零件"));
+//				}
+//			}
 
 			// 动物内镜强制流程
 			if (MaterialTagService.getAnmlMaterials(conn).contains(resultBean.getMaterial_id())) {
@@ -154,10 +179,20 @@ public class MaterialFactService {
 			// 投入课室
 			resultForm.setSection_id(section_id);
 
-			lResultForm.add(resultForm);
+			if (resultForm.getInline_time() == null) {
+				lResultWip1Form.add(resultForm);
+			} else {
+//				if ("1".equals(resultForm.getCcd_model()) 
+//						&& !"完成".equals(resultForm.getCcd_operate_result())) {
+//					lResultWip1Form.add(resultForm);
+//				}
+				lResultWip2Form.add(resultForm);
+			}
 		}
 
-		return lResultForm;
+		// 查询结果放入Ajax响应对象
+		listResponse.put("list", lResultWip1Form);
+		listResponse.put("step_list", lResultWip2Form);
 	}
 
 	public List<MaterialFactForm> searchInlineMaterial(SqlSession conn) {
@@ -399,6 +434,14 @@ public class MaterialFactService {
 		}
 	}
 
+	/**
+	 * 更新投线
+	 * 
+	 * @param entity 投线对象
+	 * @param conn
+	 * @param triggerList
+	 * @throws Exception
+	 */
 	public void updateInline(MaterialFactEntity entity, SqlSessionManager conn, List<String> triggerList) throws Exception {
 
 		MaterialProcessService mpService = new MaterialProcessService();
@@ -612,7 +655,7 @@ public class MaterialFactService {
 						featureEntity.setSection_id(entity.getSection_id());
 						pps.notifyPosition(entity.getSection_id(), firstPosition_id, materialId, false);
 					}
-				}
+//				}
 			}
 
 			// 
@@ -722,6 +765,7 @@ public class MaterialFactService {
 		mfMapper.assginCCDChange(material_id);
 	}
 
+	@SuppressWarnings("unused")
 	private String getBr(String exist_result, String addi_message) {
 		if(CommonStringUtil.isEmpty(exist_result)) {
 			return addi_message;
@@ -957,6 +1001,21 @@ public class MaterialFactService {
 			}
 		}
 		return cacheName;
+	}
+
+	public void doInlineStart(String material_id, SqlSessionManager conn) {
+		MaterialMapper mMapper = conn.getMapper(MaterialMapper.class);
+
+		MaterialTimeNodeEntity entity = mMapper.getMaterialTimeNode(material_id);
+		if (entity == null) {
+			entity = new MaterialTimeNodeEntity();
+			entity.setMaterial_id(material_id);
+			entity.setSap_inline(new Date());
+			mMapper.createMaterialTimeNode(entity);
+		} else if (entity.getSap_inline() == null) {
+			entity.setSap_inline(new Date());
+			mMapper.updateMaterialTimeNode(entity);
+		}
 	}
 
 }

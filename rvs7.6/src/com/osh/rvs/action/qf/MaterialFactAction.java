@@ -18,7 +18,6 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
-import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -26,7 +25,6 @@ import com.osh.rvs.form.master.ModelForm;
 import com.osh.rvs.form.master.ProcessAssignForm;
 import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.form.qf.MaterialFactForm;
-import com.osh.rvs.mapper.qf.WipMapper;
 import com.osh.rvs.service.HolidayService;
 import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.MaterialProcessAssignService;
@@ -37,6 +35,7 @@ import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.MaterialFactService;
+import com.osh.rvs.service.qf.WipService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
@@ -133,9 +132,7 @@ public class MaterialFactAction extends BaseAction {
 
 		if (errors.size() == 0) {
 			// 执行检索
-			List<MaterialFactForm> lResultForm = materialFactService.searchMaterial(form, conn, errors);
-			// 查询结果放入Ajax响应对象
-			listResponse.put("list", lResultForm);
+			materialFactService.searchMaterial(form, conn, listResponse, errors);
 		}
 
 		// 检查发生错误时报告错误信息
@@ -217,7 +214,7 @@ public class MaterialFactAction extends BaseAction {
 	public void doImgCheck(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("MaterialFactAction.doImgCheck start");
 		
-		WipMapper wDao = conn.getMapper(WipMapper.class);
+		WipService wserv = new WipService();
 
 		String ids = req.getParameter("ids");
 		String[] split = ids.split(",");
@@ -231,9 +228,7 @@ public class MaterialFactAction extends BaseAction {
 			entity.setRework(0);
 			productionFeatureService.insert(entity, conn);
 
-			MaterialEntity mBean  = new MaterialEntity();
-			mBean.setMaterial_id(split[i]);
-			wDao.warehousing(mBean);
+			wserv.warehousing(conn, split[i], null);
 		}
 		
 		log.info("MaterialFactAction.doImgCheck end");
@@ -250,7 +245,9 @@ public class MaterialFactAction extends BaseAction {
 	public void doCCDChange(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("MaterialFactAction.doCCDChange start");
 
-		MaterialFactService mfService = new MaterialFactService();
+//		MaterialFactService mfService = new MaterialFactService();
+		WipService wserv = new WipService();
+
 		String ids = req.getParameter("ids");
 		String[] split = ids.split(",");
 		for (int i = 0; i < split.length; i++) {
@@ -360,6 +357,7 @@ public class MaterialFactAction extends BaseAction {
 			returnJsonResponse(response, listResponse);
 			log.info("MaterialFactAction.report.end");
 	    }
+
 	/**
 	 * 导出文件（原先和report配合使用的方法）
 	 * @param mapping
@@ -499,7 +497,7 @@ public class MaterialFactAction extends BaseAction {
 			// 如果没订购零件不能结束
 			// 如果没有任何发放不能结束
 			MsgInfo info = new MsgInfo();
-			info.setErrcode("info.partial.lineWaiting");
+			info.setErrcode("info.partial.withoutOrder");
 			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.partial.withoutOrder"));
 			infoes.add(info);
 		}
@@ -599,5 +597,30 @@ public class MaterialFactAction extends BaseAction {
 		listResponse.put("filePath", filePath);
 		returnJsonResponse(response, listResponse);
 		log.info("MaterialFactAction.reportInlinePlan.end");
+	}
+
+	public void doInlineStart(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("MaterialFactAction.doInlineStart start");
+
+		// Ajax响应对象
+		Map<String, Object> callbackResponse = new HashMap<String, Object>();
+
+		MaterialFactService service = new MaterialFactService();
+		String material_id = req.getParameter("material_id");
+
+		LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+		// 更新到现品作业记录（维修品）
+		FactMaterialService fmsService = new FactMaterialService();
+		fmsService.insertFactMaterial(user.getOperator_id(), material_id, 1, conn);
+
+		service.doInlineStart(material_id, conn);
+
+		// 检查发生错误时报告错误信息
+		callbackResponse.put("errors", new ArrayList<MsgInfo>());
+		// 返回Json格式响应信息
+		returnJsonResponse(res, callbackResponse);
+
+		log.info("MaterialFactAction.doInlineStart end");
 	}
 }

@@ -109,7 +109,8 @@ var showWipEmpty=function(rid) {
 	});
 }
 
-var enablebuttons3 = function(rowids){
+var enablebuttonsWip1 = function(rowids) {
+
 	
 	if (rowids.length > 0) {
 		$("#imgcheckbutton").enable();
@@ -119,13 +120,14 @@ var enablebuttons3 = function(rowids){
 		var scheduled_expedited = false;
 
 		var img_operate_result;
-//		var ccd_operate_result;
+		var ccd_operate_result;
 
 		for (var i in rowids) {
 			var data = $("#list").getRowData(rowids[i]);
 			var level = data["level"];
 //			if (level == 9 || level == 91 || level == 92 ||level == 93) {
-			if (f_isLightFix(level) || f_isPeripheralFix(level) || level == 1) {
+//			f_isLightFix(level) ||
+			if (f_isPeripheralFix(level) || level == 1) {
 				flag_ccd = false;
 			}
 
@@ -158,66 +160,156 @@ var enablebuttons3 = function(rowids){
 			$("#imgcheckbutton").disable();
 		}
 
-		if (flag_ccd) {
-			$("#ccdchangebutton").enable();
-		} else {
-			$("#ccdchangebutton").disable();
-		}
-		
 		if (rowids.length === 1) {
 			var level = data["level"];
-//			if (level == 9 || level == 91 || level == 92 ||level == 93) {
-			if (f_isLightFix(level) || 
-				f_isPeripheralFix(level) || data["category_name"] == "光学视管") {
-				if (data["agreed_date"] == null || data["agreed_date"].trim() == "") {
-					$("#inlinebutton").disable();
-				} else {
-					$("#inlinebutton").enable();
+			if (!level) {
+				$("#inlinestepbutton").disable();
+			} else {
+	//			if (level == 9 || level == 91 || level == 92 ||level == 93) { f_isLightFix(level) ||
+				if ( 
+					f_isPeripheralFix(level) || data["category_name"] == "光学视管") {
+					if (data["agreed_date"] == null || data["agreed_date"].trim() == "") {
+						$("#inlinestepbutton").disable();
+					} else {
+						$("#inlinestepbutton").enable();
+					}
 				}
-			}
-
-			else if (data["agreed_date"] == null || data["agreed_date"].trim() == "") { // 没有同意日
-				$("#inlinebutton").disable();
-			} else if (flag_img) { //都不存在
-				$("#inlinebutton").enable();
-//			} else if (flag_img && !flag_ccd) { //没有有画像有CCD，判断CCD状态
-//				if (ccd_operate_result == "完成" || ccd_operate_result == "中断") {
-//					$("#inlinebutton").enable();
-//				} else {
-//					$("#inlinebutton").disable();
-//				}
-			} else if (!flag_img){ //没有有CCD有画像，判断画像状态
-				if (img_operate_result && img_operate_result.indexOf("完成") >= 0) {
-					$("#inlinebutton").enable();
-				} else {
-					$("#inlinebutton").disable();
+	
+				else if (data["agreed_date"] == null || data["agreed_date"].trim() == "") { // 没有同意日
+					$("#inlinestepbutton").disable();
+				} else if (flag_img) { //都不存在
+					$("#inlinestepbutton").enable();
+	//			} else if (flag_img && !flag_ccd) { //没有有画像有CCD，判断CCD状态
+	//				if (ccd_operate_result == "完成" || ccd_operate_result == "中断") {
+	//					$("#inlinestepbutton").enable();
+	//				} else {
+	//					$("#inlinestepbutton").disable();
+	//				}
+				} else if (!flag_img){ //没有有CCD有画像，判断画像状态
+					if (img_operate_result && img_operate_result.indexOf("完成") >= 0) {
+						$("#inlinestepbutton").enable();
+					} else {
+						$("#inlinestepbutton").disable();
+					}
+				} else { // 都存在
+					if ((img_operate_result == "完成" || img_operate_result == "中断")) { //2个都是完成
+						$("#inlinestepbutton").enable();
+					} else {
+						$("#inlinestepbutton").disable();
+					}
 				}
-//			} else { // 都存在
-//				if ((img_operate_result == "完成" || img_operate_result == "中断") 
-//					&& (ccd_operate_result == "完成" || ccd_operate_result == "中断")) { //2个都是完成
-//					$("#inlinebutton").enable();
-//				} else {
-//					$("#inlinebutton").disable();
-//				}
 			}
 
 			// 放回WIP
-			if (data["wip_location"].trim() == "" && data["agreed_date"].trim() == "") {
+			if (data["wip_location"].trim() == "") {
 				$("#inwipbutton").enable();
+//				if (data["agreed_date"].trim() == "") {
+//					$("#inwipbutton").val("放回WIP");
+//				} else {
+//					$("#inwipbutton").val("放入 BO 区域");
+//				}
+				$("#outwipbutton").disable();
 			} else {
 				$("#inwipbutton").disable();
+				$("#outwipbutton").enable();
 			}
 		} else {
-			$("#inlinebutton").disable();
+			$("#inlinestepbutton").disable();
 			$("#inwipbutton").disable();
+			$("#outwipbutton").disable();
 		}
 
 	} else {
 		$("#imgcheckbutton").disable();
-		$("#ccdchangebutton").disable();
+//		$("#ccdchangebutton").disable();
 		
-		$("#inlinebutton").disable();
+		$("#inlinestepbutton").disable();
 		$("#inwipbutton").disable();
+		$("#outwipbutton").disable();
+
+		$("#expeditebutton").disable();
+	}
+}
+
+var enablebuttonsWip2 = function(data){
+
+	if (data != null) {
+
+		if (data["agreed_date"] == null || data["agreed_date"].trim() == "") {
+			$("#inlinebutton").disable();
+		} else {
+			$("#inlinebutton").enable();
+		}
+
+		var flag_img = true; //没有画像
+		var able_ccd = true; // 可以做CCD
+
+		var ccd_operate_result = "";
+		var img_operate_result;
+
+		var level = data["level"];
+		if (f_isPeripheralFix(level) || level == 1 || data["ccd_model"] != 1) {
+			able_ccd = false;
+		}
+
+		if (flag_img && data["img_check"] != "0") {
+			flag_img = false;
+			img_operate_result = data["img_operate_result"];
+		}
+		if (able_ccd && data["ccd_change"] != "0") {
+			ccd_operate_result = data["ccd_operate_result"];
+		}
+
+		if (flag_img && 
+			(f_isPeripheralFix(level) || data["category_name"] == "光学视管")) {
+			flag_img = false;
+		} else if (flag_img && !able_ccd) { //都不存在
+			$("#inlinebutton").enable();
+		} else if (flag_img && able_ccd) { //没有有画像有CCD，判断CCD状态
+			if (ccd_operate_result == "" || ccd_operate_result == "完成" || ccd_operate_result == "中断") {
+				$("#inlinebutton").enable();
+			} else {
+				$("#inlinebutton").disable();
+			}
+		} else if (!flag_img && !able_ccd){ //没有有CCD有画像，判断画像状态
+			if (img_operate_result && img_operate_result.indexOf("完成") >= 0) {
+				$("#inlinebutton").enable();
+			} else {
+				$("#inlinebutton").disable();
+			}
+		} else { // 都存在
+			if ((img_operate_result == "完成" || img_operate_result == "中断") 
+				&& (ccd_operate_result == "" || ccd_operate_result == "完成" || ccd_operate_result == "中断")) { //2个都是完成
+				$("#inlinebutton").enable();
+			} else {
+				$("#inlinebutton").disable();
+			}
+		}
+
+		if (able_ccd) {
+			$("#ccdchangebutton").enable();
+		} else {
+			$("#ccdchangebutton").disable();
+		}
+
+		// 放回WIP
+		if (data["wip_location"].trim() == "") {
+			$("#inwip2button").enable();
+
+			$("#outwip2button").disable();
+		} else {
+			$("#inwip2button").disable();
+			// 从WIP出库
+			$("#outwip2button").enable();
+		}
+	
+
+	} else {
+		$("#inlinebutton").disable();
+		$("#inwip2button").disable();
+		$("#outwip2button").disable();
+
+		$("#ccdchangebutton").disable();
 
 		$("#expeditebutton").disable();
 	}
@@ -225,23 +317,24 @@ var enablebuttons3 = function(rowids){
 
 /** 根据条件使按钮有效/无效化 */
 var enablebuttons = function() {
-if ($("#listarea span.areatitle").text() === '导入更新一览') {
-	var rowids = $("#list").jqGrid("getGridParam", "selarrrow");
-	if (rowids.length === 0) {
-		$("#agreebutton").disable();
+	if ($("#listarea span.areatitle").text() === '导入更新一览') {
+		var rowids = $("#list").jqGrid("getGridParam", "selarrrow");
+		if (rowids.length === 0) {
+			$("#agreebutton").disable();
+		} else {
+			$("#agreebutton").enable();
+		}	
 	} else {
-		$("#agreebutton").enable();
-	}	
-} else {
-	var rowids = $("#list").jqGrid("getGridParam", "selarrrow");
-	if (rowids.length === 1) {
-		$("#updateagreebutton").enable();
-	} else {
-		$("#updateagreebutton").disable();
+		var rowids = $("#list").jqGrid("getGridParam", "selarrrow");
+		if (rowids.length === 1) {
+			$("#updateagreebutton").enable();
+		} else {
+			$("#updateagreebutton").disable();
+		}
 	}
 }
 
-	enablebuttons3(rowids);
+	enablebuttonsWip1(rowids);
 };
 
 /** 根据条件使按钮有效/无效化 */
@@ -758,10 +851,54 @@ var move_section = function() {
 	infoPop('v' + $("#sections").html());
 }
 
+var winScroll = function(didSwitch) {
+	var jwin = $(window);
+    var scrolls = jwin.scrollTop() + jwin.height();
+	var localer = $("#functionarea").position().top;
+	var bar = $("#functionarea > div:visible");
+    // 
+	if (scrolls - $("#listarea").position().top > 120) {
+        if ((scrolls - localer + 40 > bar.height())){
+        	if (bar.hasClass("bar_fixed")) {
+        		bar.removeClass("bar_fixed");
+        	}
+        } else {
+        	if (!bar.hasClass("bar_fixed") || didSwitch) {
+        		bar.addClass("bar_fixed");
+        	}
+        }
+	} else {
+    	if (bar.hasClass("bar_fixed")) {
+    		bar.removeClass("bar_fixed");
+    	}
+	}
+//
+//        localer = $("#functionarea2").position().top;
+//		bar = $("#functionarea2 div:eq(0)");
+//
+//		if (scrolls - $("#exelistarea").position().top > 120) {
+//			if ((scrolls - localer > bar.height())){
+//	        	if (bar.hasClass("bar_fixed")) {
+//	        		bar.removeClass("bar_fixed");
+//	        	}
+//	        } else {
+//	        	if (!bar.hasClass("bar_fixed")) {
+//	        		bar.addClass("bar_fixed");
+//	        	}
+//	        }
+//		} else {
+//        	if (bar.hasClass("bar_fixed")) {
+//        		bar.removeClass("bar_fixed");
+//        	}
+//		}
+
+}
+
 $(function() {
 	$("input.ui-button").button();
-	$("#search_level, #search_fix_type, #search_direct").select2Buttons();
+	$("#search_level, #search_fix_type, #search_direct, #search_section_id").select2Buttons();
 	setReferChooser($("#search_modelname"));
+	$("#search_agreed").buttonset();
 	
 	$("#search_agreed_date_start, #search_agreed_date_end").datepicker({
 		showButtonPanel:true,
@@ -808,6 +945,7 @@ $(function() {
 		$("#search_fix_type").val("").trigger("change");
 		$("#search_direct").val("").trigger("change");
 		$("#search_esas_no").val("");
+		$("#search_section_id").val("");
 		$("#search_agreed_date_start").val("");
 		$("#search_agreed_date_end").val("");
 		$("#search_wip_location").val("");
@@ -821,55 +959,63 @@ $(function() {
 
 	$("#inlinesbutton").click(showInlinePlan);
 
+	$("#outwipbutton, #outwip2button").click(warehousing);
+
+	$("#steplistarea, #functionarea2, #exelistarea, #functionarea3").hide();
 	// scroll2fix
-	$(window).bind("scroll", function() {
-		var jwin = $(this);
-        var scrolls = jwin.scrollTop() + jwin.height();
-		var localer = $("#functionarea").position().top;
-		var bar = $("#functionarea div:eq(0)");
-        // 
- 		if (scrolls - $("#listarea").position().top > 120) {
-	        if ((scrolls - localer > bar.height())){
-	        	if (bar.hasClass("bar_fixed")) {
-	        		bar.removeClass("bar_fixed");
-	        	}
-	        } else {
-	        	if (!bar.hasClass("bar_fixed")) {
-	        		bar.addClass("bar_fixed");
-	        	}
-	        }
- 		} else {
-        	if (bar.hasClass("bar_fixed")) {
-        		bar.removeClass("bar_fixed");
-        	}
+	$(window).bind("scroll", winScroll);
+
+	$("#countarea > .ui-widget-content:eq(0)").height(
+		$("#searcharea > .ui-widget-content:eq(0)").height());
+
+	$("#listareas .areatitle").click(function(ev) {
+		var $areatitle = $(this);
+		if ($areatitle.hasClass("checked")) {
+			return;
 		}
-
-        localer = $("#functionarea2").position().top;
-		bar = $("#functionarea2 div:eq(0)");
-
-		if (scrolls - $("#exelistarea").position().top > 120) {
-			if ((scrolls - localer > bar.height())){
-	        	if (bar.hasClass("bar_fixed")) {
-	        		bar.removeClass("bar_fixed");
-	        	}
-	        } else {
-	        	if (!bar.hasClass("bar_fixed")) {
-	        		bar.addClass("bar_fixed");
-	        	}
-	        }
-		} else {
-        	if (bar.hasClass("bar_fixed")) {
-        		bar.removeClass("bar_fixed");
-        	}
+		switch($areatitle.text()) {
+			case "准备投线品一览" : {
+				$("#listarea, #functionarea1, #searcharea").show();
+				$("#steplistarea, #exelistarea, #functionarea2, #functionarea3, #countarea").hide();
+				break;
+			}
+			case "投线进行品一览" : {
+				$("#steplistarea, #functionarea2, #searcharea").show();
+				$("#listarea, #exelistarea, #functionarea1, #functionarea3, #countarea").hide();
+				break;
+			}
+			case "今日投线品一览" : {
+				$("#exelistarea, #functionarea3, #countarea").show();
+				$("#listarea, #steplistarea, #functionarea1, #functionarea2, #searcharea").hide();
+				break;
+			}
 		}
-
-    });
+		winScroll(true);
+	});
 
 	$("#printbutton").click(printTicket);
-	$("#inlinebutton").click(function(){
+
+	$("#inlinestepbutton").click(function(){
 		var $list = $("#list");
 		var rowids = $list.jqGrid("getGridParam", "selarrrow");
 		var rowdata = $list.getRowData(rowids[0]);
+		var level = rowdata["level"];
+
+		if (!f_isLightFix(level) && rowdata["ccd_model"] == 1 && rowdata["ccd_operate_result"] == "" && level != 1) {
+			// "是CCD 盖玻璃对象型号的维修对象，请确定不需要做 CCD 盖玻璃更换即可投线？"
+			warningConfirm(rowdata["sorc_no"]+"是CCD 盖玻璃对象型号的维修对象，请确定不需要做 CCD 盖玻璃更换？",
+				function(){
+					afObj.applyProcess(201, this, inline_start, [rowdata]);
+				});
+		} else {
+			afObj.applyProcess(201, this, inline_start, [rowdata]);
+		}
+	});
+
+	$("#inlinebutton").click(function(){
+		var $list = $("#step_list");
+		var rowids = $list.jqGrid("getGridParam", "selrow");
+		var rowdata = $list.getRowData(rowids);
 		var level = rowdata["level"];
 //		var isLightFix = false;
 //		if (level == 9 || level == 91 || level == 92 ||level == 93) {
@@ -878,7 +1024,7 @@ $(function() {
 
 		if (!f_isLightFix(level) && rowdata["ccd_model"] == 1 && rowdata["ccd_operate_result"] == "" && level != 1) {
 			// "是CCD 盖玻璃对象型号的维修对象，请确定不需要做 CCD 盖玻璃更换即可投线？"
-			warningConfirm(rowdata["sorc_no"]+"是CCD 盖玻璃对象型号的维修对象，请确定投线后不需要做 CCD 盖玻璃更换？",
+			warningConfirm(rowdata["sorc_no"]+"是CCD 盖玻璃对象型号的维修对象，请确定不需要做 CCD 盖玻璃更换？",
 				function(){process_set(rowdata)});
 		} else {
 			process_set(rowdata);
@@ -896,7 +1042,8 @@ $(function() {
 	$("#imgcheckbutton").click(doImgCheck);
 	$("#ccdchangebutton").click(doCCDChange);
 	$("#outbutton").click(exportReport);
-	$("#inwipbutton").click(showWipEmpty);
+	$("#inwipbutton").click(showWipDialog);
+	$("#inwip2button").click(showWipDialog);
 
 	leverDates.nege1 = new Date($("#oneDayBefore").val()).getTime() || 0;
 	leverDates.nege2 = new Date($("#twoDaysBefore").val()).getTime() || 0;
@@ -928,7 +1075,7 @@ function takeWs() {
 	});
 	$(".if_message-dialog input[value=刷新]").click(function(){
 		$(".if_message-dialog").removeClass("show");
-		findit();
+		findit(keepSearchData);
 	});
 
 	try {
@@ -940,7 +1087,8 @@ function takeWs() {
     	try {
     		resInfo = $.parseJSON(evt.data);
     		if ("refreshWaiting" == resInfo.method) {
-    			$(".if_message-dialog").addClass("show");
+    			findit(keepSearchData);
+    			// $(".if_message-dialog").addClass("show");
     		}
     	} catch(e) {
     	}
@@ -1007,13 +1155,24 @@ function doImgCheck(){
 }
 
 function doCCDChange(){
-	var rowids = $("#list").jqGrid("getGridParam","selarrrow");
+	var $list = $("#listareas table.ui-jqgrid-btable:visible") ;
+	var rowids = $list.jqGrid("getGridParam","selarrrow");
+	if (rowids.length == 0) {
+		rowid = $list.jqGrid("getGridParam","selrow");
+		if (rowid) {
+			rowids.push(rowid);
+		}
+	}
 	var ids = [];
+
 	for (var i in rowids) {
-		var data = $("#list").getRowData(rowids[i]);
+		var data = $list.getRowData(rowids[i]);
 		ids[ids.length] = data["material_id"];
 	}
-	
+
+	if (ids.length == 0) {
+		return;
+	}
 	$.ajax({
 		data : {ids:ids.join(",")},
 		async: false, 
@@ -1140,11 +1299,11 @@ function initGrid() {
 					if (!img_completed) {
 						if (!f_isPeripheralFix(rowdata.level) && rowdata["category_name"] != "光学视管") {
 							var material_id = rowdata["material_id"];
-							var wip_date = rowdata["inline_time"];
+							var wip_date = rowdata["wip_date"];
 							for (var iDatum in srcData) {
 								var srcDatum = srcData[iDatum];
 								if (srcDatum.material_id == material_id) {
-									wip_date = srcDatum.inline_time;
+									wip_date = srcDatum.wip_date;
 									break;
 								}
 							}
@@ -1155,15 +1314,20 @@ function initGrid() {
 					}
 					// 同意日以外的禁止投线
 					var othForbid = false;
-					if (!f_isLightFix(rowdata.level)) {
-						if (img_operate_result.indexOf("零件") < 0) {
-							othForbid = (img_operate_result != "" && !img_completed);
-						} else {
-							if (rowdata.level != 57) {
-								othForbid = (img_operate_result == "未订购零件") || (rowdata.ccd_operate_result == "缺零件");
-							}
+					if (rowdata.category_name.toUpperCase().indexOf("ENDOEYE") < 0) {
+						switch (rowdata.part_order) {
+							case "1": case "7": othForbid = true; break; 
 						}
 					}
+//					if (!f_isLightFix(rowdata.level)) {
+//						if (img_operate_result.indexOf("零件") < 0) {
+//							othForbid = (img_operate_result != "" && !img_completed);
+//						} else {
+//							if (rowdata.level != 57) {
+//								othForbid = (img_operate_result == "未订购零件") || (rowdata.ccd_operate_result == "缺零件");
+//							}
+//						}
+//					}
 
 					if (!vagreed_date
 						|| othForbid) {
@@ -1172,10 +1336,144 @@ function initGrid() {
 						if (new Date(vagreed_date).getTime() < leverDates.nege2)
 							$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_agreed_date']").addClass("alertCell");
 					}
+
+					if (!rowdata.level) {
+						$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_levelName']").addClass("alertCell");
+					}
+				}
+
+				if (srcData.length == 1) {
+					jthis.jqGrid('setSelection', "1");
 				}
 			}
 		});
-		
+
+		$("#step_list").jqGrid({
+			toppager : true,
+			data: [],
+			height: 1151,
+			width: 1248,
+			rowheight: 23,
+			datatype: "local",
+			colNames:['', '修理单号', '型号 ID', '型号', '类别', '机种', '机身号', '加急','level','等级', '客户同意日', '零件订购', '纳期','同意时间','流水分类','备注', 'WIP位置','存在画像检查','图象检查','CCD对象型号','存在CCD盖玻璃更换'
+			,'CCD盖玻璃', '中小修首工位', 'SAP 投线'
+			,'投入课室 ID' ,'维护对象ID', 'wip_date(过期的)'],
+			colModel:[
+				{name:'myac', width:35, fixed:true, sortable:false, resize:false, formatter:'actions', formatoptions:{keys:true,delbutton:false }, hidden:true},
+				{name:'sorc_no',index:'sorc_no', width:50},
+				{name:'model_id',index:'model_id', hidden:true},
+				{name:'model_name',index:'model_name', width:120},
+				{name:'category_kind',index:'category_kind', width:60, hidden : true, formatter:'select', editoptions:{value:$("#kOptions").val()}},
+				{name:'category_name',index:'category_name', width:60},
+				{name:'serial_no',index:'serial_no', width:50},
+				{name:'scheduled_expedited',index:'scheduled_expedited', align:'center', width:30, formatter:'select', editoptions:{value:"2:直送快速;1:加急;0:"}},
+				{name:'level',index:'level', hidden:true},
+				{name:'levelName',index:'levelName', width:35, align:'center'},
+				{name:'agreed_date',index:'agreed_date', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}},
+				{name:'part_order',index:'part_order', width:50, align:'center', formatter:'select', editoptions:{value:$("#poOptions").val()}},
+				{name:'scheduled_date',index:'scheduled_date', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'m-d'}},
+				{name:'agreed_date_hidden', hidden:true, formatter:function(a,b,row){
+					return row.agreed_date || ""
+				}},
+				{name:'fix_type', index:'fix_type', hidden:true},
+				{name:'remark',index:'remark', width:95},
+				{name:'wip_location',index:'wip_location', width:60},
+				{name:'img_check',index:'img_check', hidden:true},
+				{name:'img_operate_result',index:'img_operate_result', width:60},
+				{name:'ccd_model',index:'ccd_model', hidden:true},
+				{name:'ccd_change',index:'ccd_change', hidden:true},
+				{name:'ccd_operate_result',index:'ccd_operate_result', width:60},
+				{name:'process_code',index:'process_code', width:60, align:'center'},
+				{name:'inline_time',index:'inline_time', width:50, align:'center',
+					sorttype: function($cell){
+						if (!$cell || $cell.trim() === "") {
+							return undefined;
+						}
+						return $cell;
+					},
+					formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d H:i'}},
+				{name:'section_id', index:'section_id',hidden:true},
+				{name:'material_id', index:'material_id',hidden:true},
+				{name:'wip_date', index:'wip_date',hidden:true}
+			],
+			rowNum: 50,
+			rownumbers : true,
+			toppager: false,
+			pager: "#step_listpager",
+			viewrecords: true,
+			caption: "",
+			multiselect: false,
+			gridview: true, // Speed up
+			pagerpos: 'right',
+			pgbuttons: true,
+			pginput: false,
+			recordpos: 'left',
+			viewsortcols : [true,'vertical',true],
+			ondblClickRow : function(rid, iRow, iCol, e) {
+				var data = $("#step_list").getRowData(rid);
+
+				var material_id = data["material_id"];
+				showDetail(material_id);
+			},
+			onSelectRow : function(rowid){
+				enablebuttonsWip2($("#step_list").getRowData(rowid));
+			},
+			gridComplete : function() {
+				enablebuttonsWip2(null);
+				$("#gbox_step_list tr td[aria\\-describedby='step_list_wip_location']").unbind("click");
+				$("#gbox_step_list tr td[aria\\-describedby='step_list_wip_location']").click(function() {
+					var location = $(this).text();
+					if (location && location.substring(0,3) != "BO-") {
+						showLocate(location);
+					}					
+				});
+				var jthis = $("#step_list");
+
+				var srcData = jthis.jqGrid('getGridParam','data');
+
+				var dataIds = jthis.getDataIDs();
+				var length = dataIds.length;
+				for (var i = 0; i < length; i++) {
+					var rowdata = jthis.jqGrid('getRowData', dataIds[i]);
+					var img_operate_result = rowdata["img_operate_result"];
+
+					var img_completed = img_operate_result && (img_operate_result.indexOf("完成") >= 0);
+
+					if (!img_completed) {
+						if (!f_isPeripheralFix(rowdata.level) && rowdata["category_name"] != "光学视管") {
+							var material_id = rowdata["material_id"];
+							var wip_date = rowdata["wip_date"];
+							for (var iDatum in srcData) {
+								var srcDatum = srcData[iDatum];
+								if (srcDatum.material_id == material_id) {
+									wip_date = srcDatum.wip_date;
+									break;
+								}
+							}
+							if (wip_date) {
+								$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_wip_location']").addClass("alertCell");
+							}
+						}
+					}
+					// 同意日以外的禁止投线
+					var othForbid = false;
+					if (rowdata.category_name.toUpperCase().indexOf("ENDOEYE") < 0) {
+						switch (rowdata.part_order) {
+							case "1": case "7": othForbid = true; break; 
+						}
+					}
+
+					if (othForbid) {
+						$("#list tr#" + dataIds[i] + " td").not(".alertCell").css("background-color", "#EEEEEE");
+					}
+				}
+
+				if (srcData.length == 1) {
+					jthis.jqGrid('setSelection', "1");
+				}
+			}
+		});
+
 		$("#exe_list").jqGrid({
 			toppager : true,
 			data:[],
@@ -1262,7 +1560,7 @@ function search_handleComplete(xhrobj, textStatus) {
 			// 共通出错信息框
 			treatBackMessages("#editarea", resInfo.errors);
 		} else {
-			loadData(resInfo.list);
+			loadData(resInfo.list, resInfo.step_list);
 		}
 	} catch (e) {
 		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
@@ -1271,42 +1569,55 @@ function search_handleComplete(xhrobj, textStatus) {
 
 };
 
-function loadData(data) {
-		$("#list").jqGrid().clearGridData();
-		$("#list").jqGrid('setGridParam',{data:data}).trigger("reloadGrid", [{current:false}]);
+function loadData(data, step_list) {
+	$("#list").jqGrid().clearGridData();
+	$("#list").jqGrid('setGridParam',{data:data}).trigger("reloadGrid", [{current:false}]);
+
+	$("#step_list").jqGrid().clearGridData();
+	$("#step_list").jqGrid('setGridParam',{data:step_list}).trigger("reloadGrid", [{current:false}]);
 }
 
 var keepSearchData;
 var findit = function(data) {
-		if (!data) { //新查询
-			keepSearchData = {
-				"sorc_no" : $("#search_sorc_no").val(),
-				"serial_no" : $("#search_serial_no").val(),
-				"model_id" : $("#search_modelname").val(),
-				"level" : $("#search_level").val(),
-				"fix_type" : $("#search_fix_type").val(),
-				"direct_flg" : $("#search_direct").val(),
-				"esas_no" : $("#search_esas_no").val(),
-				"agreed_date_start" : $("#search_agreed_date_start").val(),
-				"agreed_date_end" : $("#search_agreed_date_end").val(),
-				"wip_location": $("#search_wip_location").val()
-			};
+	if (!data) { //新查询
+		keepSearchData = {
+			"sorc_no" : $("#search_sorc_no").val(),
+			"serial_no" : $("#search_serial_no").val(),
+			"model_id" : $("#search_modelname").val(),
+			"level" : $("#search_level").val(),
+			"fix_type" : $("#search_fix_type").val(),
+			"direct_flg" : $("#search_direct").val(),
+			"esas_no" : $("#search_esas_no").val(),
+			"section_id" : $("#search_section_id").val(),
+			"agreed_date_start" : $("#search_agreed_date_start").val(),
+			"agreed_date_end" : $("#search_agreed_date_end").val(),
+			"wip_location": $("#search_wip_location").val()
+		};
+		if ($("#search_agreed_y").is(":checked")) {
+			if (!$("#search_agreed_n").is(":checked")) {
+				keepSearchData["check_agreed_date"] = 1;
+			}
 		} else {
-			keepSearchData = data;
+			if ($("#search_agreed_n").is(":checked")) {
+				keepSearchData["check_agreed_date"] = 2;
+			}
 		}
-		
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			async : true,
-			url : servicePath + '?method=search',
-			cache : false,
-			data : keepSearchData,
-			type : "post",
-			dataType : "json",
-			success : ajaxSuccessCheck,
-			error : ajaxError,
-			complete : search_handleComplete
-		});
+	} else {
+		keepSearchData = data;
+	}
+	
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : true,
+		url : servicePath + '?method=search',
+		cache : false,
+		data : keepSearchData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : search_handleComplete
+	});
 };
 
 
@@ -1320,7 +1631,7 @@ var showDetail = function(material_id){
 	this_dialog.html("");
 	this_dialog.hide();
 	// 导入详细画面
-	this_dialog.load("widget.do?method=materialDetail&material_id=" + material_id,
+	this_dialog.load("widget.do?method=materialDetail&material_id=" + material_id + "&occur_times=1",
 		function(responseText, textStatus, XMLHttpRequest) {
 		$.ajax({
 			data:{
@@ -1714,4 +2025,27 @@ function exportReportInlinePlan() {
 			}
 		}
 	});
+var inline_start=function(rowdata) {
+
+	warningConfirm("此操作通常可以通过SAP投线动作同步。\n通常不需要在此画面操作，是否继续操作？",
+		function(){
+			// Ajax提交
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : true,
+				url : servicePath + '?method=doInlineStart',
+				cache : false,
+				data : {
+					material_id : rowdata.material_id
+				},
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : function(){
+					findit(keepSearchData);
+				}
+			});	
+		}
+	);
 }

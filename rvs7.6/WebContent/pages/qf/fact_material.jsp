@@ -143,55 +143,75 @@ width: 1248px;
 
 <div id="listarea" class="dwidth-full">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
-		<span class="areatitle">现品待投线品一览</span>
-		<a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
-			<span class="ui-icon ui-icon-circle-triangle-n"></span>
-		</a>
+		<span class="areatitle checked">准备投线品一览</span>
+		<span class="areatitle">投线进行品一览</span>
+		<span class="areatitle">今日投线品一览</span>
 	</div>
 	<table id="list"></table>
 	<div id="listpager"></div>
-	<div class="clear areaencloser"></div>
+	<div class="clear"></div>
 </div>
+
+<div id="steplistarea" class="dwidth-full" style="display:none;">
+	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
+		<span class="areatitle">准备投线品一览</span>
+		<span class="areatitle checked">投线进行品一览</span>
+		<span class="areatitle">今日投线品一览</span>
+	</div>
+
+	<table id="step_list"></table>
+	<div id="step_listpager"></div>
+	<div class="clear"></div>
+</div>
+
+<div id="exelistarea" class="dwidth-full" style="display:none;">
+	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
+		<span class="areatitle">准备投线品一览</span>
+		<span class="areatitle">投线进行品一览</span>
+		<span class="areatitle checked">今日投线品一览</span>
+	</div>
+
+	<table id="exe_list"></table>
+	<div id="exe_listpager"></div>
+	<div class="clear"></div>
+</div>
+
 
 <div id="functionarea" class="dwidth-full" style="margin:auto;">
 <% if (isEditor || isManager) { %>
-	<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase bar_fixed">
-		<div id="executes" style="margin-left:4px;margin-top:4px;">
-			<input type="button" id="inlinebutton" class="ui-button" value="投线"/> <!--  disabled -->
+	<div id="functionarea1" class="ui-widget-header ui-corner-all ui-helper-clearfix areabase bar_fixed">
+		<div id="executes_1" style="margin-left:4px;margin-top:4px;">
+			<input type="button" id="inlinestepbutton" class="ui-button" value="准备投线"/>
 			<!-- input type="button" id="agreebutton" class="ui-button" value="导入同意日期/返还要求"/ -->
 <% if (isManager) { %>
 			<input type="button" id="updateagreebutton" class="ui-button" value="修改同意日期"/>
 <% } %>
 			<input type="button" id="imgcheckbutton" class="ui-button" value="进行图象检查"/>
-			<input type="button" id="ccdchangebutton" class="ui-button" value="指定CCD盖玻璃更换"/>
 			<input type="button" id="inwipbutton" class="ui-button" value="放回WIP"/>
+			<input type="button" id="outwipbutton" class="ui-button" value="从WIP出库"/>
 			<input type="button" id="expeditebutton" class="ui-button" value="加急"/>
+		</div>
+	</div>
+	<div id="functionarea2" class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
+		<div id="executes_2" style="margin-left:4px;margin-top:4px;">
+			<input type="button" id="inlinebutton" class="ui-button" value="投入流水线"/>
+			<input type="button" id="ccdchangebutton" class="ui-button" value="进行CCD盖玻璃更换"/>
+			<input type="button" id="inwip2button" class="ui-button" value="放回WIP"/>
+			<input type="button" id="outwip2button" class="ui-button" value="从WIP出库"/>
 			<input type="button" id="inlinesbutton" class="ui-button" style="float:right;margin-right:4px;" value="投线单一览"/>
 		</div>
 	</div>
-	<div id="sections" style="display:none;">${sOptions}</div>
-	<div id="pats" style="display:none;">${paOptions}</div>
-	<div class="clear areaencloser"></div>
-<% } %>
-</div>
-
-<div id="exelistarea" class="dwidth-full">
-
-	<table id="exe_list"></table>
-	<div id="exe_listpager"></div>
-	<div class="clear areaencloser"></div>
-</div>
-
-<div id="functionarea2" class="dwidth-full" style="margin:auto;<% if (isEditor || isManager) { %>min-height:46px;<% } %>">
-<% if (isEditor || isManager) { %>
-	<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
-		<div id="executes" style="margin-left:4px;margin-top:4px;">
+	<div id="functionarea3" class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
+		<div id="executes_3" style="margin-left:4px;margin-top:4px;">
 			<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="printbutton" value="打印小票" role="button" aria-disabled="false">
 			<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="movebutton" value="移动课室" role="button" aria-disabled="false">
 			<input type="button" class="ui-button" id="outbutton" value="报表导出" role="button" aria-disabled="false" style="float:right;right:2px">
 		</div>
 	</div>
+<div class="clear areaencloser" style="height:16px;"></div>
 <% } %>
+</div>
+
 </div>
 
 </div>
@@ -234,4 +254,7 @@ width: 1248px;
 </body>
 <div id="process_dialog">
 </div>
+<div id="sections" style="display:none;">${sOptions}</div>
+<div id="pats" style="display:none;">${paOptions}</div>
+
 </html>
