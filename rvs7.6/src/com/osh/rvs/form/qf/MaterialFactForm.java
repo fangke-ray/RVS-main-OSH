@@ -41,12 +41,16 @@ public class MaterialFactForm extends ActionForm {
 	private String fix_type;
 	private String esas_no;
 	private String wip_location;
-	
+	@BeanField(title = "WIP", name = "wip_date", type = FieldType.Date)
+	private String wip_date;
 	private String agreed_date_start;
 	private String agreed_date_end;
 	
 	@BeanField(title = "同意时间", name = "agreed_date", type = FieldType.Date)
 	private String agreed_date;
+
+	@BeanField(title = "查询同意", name = "check_agreed_date", type = FieldType.Integer)
+	private String check_agreed_date;
 
 	@BeanField(title = "纳期", name = "scheduled_date", type = FieldType.Date)
 	private String scheduled_date;
@@ -82,6 +86,12 @@ public class MaterialFactForm extends ActionForm {
 
 	@BeanField(title = "报价日期", name = "quotation_time", type = FieldType.DateTime)
 	private String quotation_time;
+
+	@BeanField(title = "零件订购", name = "part_order", type = FieldType.Integer)
+	private String part_order;
+
+	@BeanField(title = "工位编号", name = "process_code", type = FieldType.String)
+	private String process_code;
 
 	public String getSection_id() {
 		return section_id;
@@ -317,5 +327,41 @@ public class MaterialFactForm extends ActionForm {
 	}
 	public void setScheduled_date(String scheduled_date) {
 		this.scheduled_date = scheduled_date;
+	}
+	public String getPart_order() {
+		return part_order;
+	}
+	public void setPart_order(String part_order) {
+		this.part_order = part_order;
+	}
+	/**
+	 * @return the wip_date
+	 */
+	public String getWip_date() {
+		return wip_date;
+	}
+	/**
+	 * @param wip_date the wip_date to set
+	 */
+	public void setWip_date(String wip_date) {
+		this.wip_date = wip_date;
+	}
+	/**
+	 * @return the check_agreed_date
+	 */
+	public String getCheck_agreed_date() {
+		return check_agreed_date;
+	}
+	/**
+	 * @param check_agreed_date the check_agreed_date to set
+	 */
+	public void setCheck_agreed_date(String check_agreed_date) {
+		this.check_agreed_date = check_agreed_date;
+	}
+	public String getProcess_code() {
+		return process_code;
+	}
+	public void setProcess_code(String process_code) {
+		this.process_code = process_code;
 	}
 }

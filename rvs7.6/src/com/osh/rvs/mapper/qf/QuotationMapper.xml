@@ -81,11 +81,10 @@
         		AND `wpf`.position_id = 9
         		AND `pf`.rework = `wpf`.rework
         		AND `wpf`.pace = 0
-			LEFT JOIN (select * from pause_feature
-				where PAUSE_FINISH_TIME IS NULL
-				) psf
+			LEFT JOIN pause_feature psf
 				ON `pf`.material_id = `psf`.material_id
 				AND `psf`.position_id = `pf`.position_id
+				AND PAUSE_FINISH_TIME IS NULL
 			LEFT JOIN (select cast(material_id as unsigned) material_id, qa_referee_time 
 				from service_repair_manage where material_id like '0%') `srm`
 				ON `m`.material_id = `srm`.material_id
@@ -115,7 +114,9 @@
 						THEN 8
 					ELSE 15
 				END + (coalesce(`m`.service_repair_flg, 0) = 2)) as ticket_flg,
-			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `m`.inline_time, pf.finish_time as quotation_time
+              pat.name as pat_id,
+			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `m`.inline_time, pf.finish_time as quotation_time,
+			  mt.material_id is not null as scheduled_expedited
 			FROM material m
 			JOIN v_model mdl ON `m`.model_id = `mdl`.model_id
 			JOIN production_feature pf
@@ -131,6 +132,10 @@
 			  AND `m`.inline_time IS NULL
 			  AND `m`.outline_time IS NULL
 			  AND pf.finish_time > current_date
+			LEFT JOIN process_assign_template pat
+	            ON (coalesce(m.pat_id, mdl.default_pat_id) = pat.process_assign_template_id)
+	        LEFT JOIN material_tag mt 
+	        	ON `m`.material_id = mt.material_id and mt.tag_type = 8
 			ORDER BY quotation_time DESC
 		]]>
 	</select>

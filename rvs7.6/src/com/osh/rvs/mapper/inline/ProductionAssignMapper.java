@@ -14,7 +14,7 @@ import com.osh.rvs.bean.inline.ProductionAssignEntity;
  */
 public interface ProductionAssignMapper {
 
-	public List<ProductionAssignEntity> getProductionAssignByOperator(@Param("operator_id") String operator_id);
+//	public List<ProductionAssignEntity> getProductionAssignByOperator(@Param("operator_id") String operator_id);
 
 	public List<ProductionAssignEntity> getProductionAssignByLine(@Param("section_id") String section_id, @Param("line_id") String line_id);
 

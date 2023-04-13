@@ -56,6 +56,13 @@ width: 1248px;
 	background-color : #FFC000;
 	color: white;
 }
+#listareas .areatitle {
+	padding :0 4px;
+	cursor: pointer;
+}
+#listareas .areatitle.checked {
+	background-color:limegreen;
+}
 </style>
 <title>投线管理</title>
 </head>
@@ -78,9 +85,6 @@ width: 1248px;
 <div id="searcharea" class="dwidth-full">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
 		<span class="areatitle">检索条件</span>
-		<a role="link" href="javascript:void(0)" class="HeaderButton areacloser">
-			<span class="ui-icon ui-icon-circle-triangle-n"></span>
-		</a>
 	</div>
 	<div class="ui-widget-content dwidth-full">
 		<form id="searchform" method="POST">
@@ -109,6 +113,8 @@ width: 1248px;
 							<%=CodeListUtils.getSelectOptions("material_fix_type", null, "全部", false) %>
 						</select>
 					</td>
+				</tr>
+				<tr>
 					<td class="ui-state-default td-title">直送</td>
 					<td class="td-content">
 						<select id="search_direct" class="ui-widget-content">
@@ -117,29 +123,91 @@ width: 1248px;
 					</td>
 				</tr>
 				<tr>
-					<td class="ui-state-default td-title">ESAS No.</td>
-					<td class="td-content"><input type="text" id="search_esas_no" maxlength="6" class="ui-widget-content"></td>
-					<td class="ui-state-default td-title">客户同意日</td>
-					<td class="td-content">
-						<input type="text" id="search_agreed_date_start" maxlength="50" class="ui-widget-content" readonly="readonly">起<br>
-						<input type="text" id="search_agreed_date_end" maxlength="50" class="ui-widget-content" readonly="readonly">止
+					<td class="ui-state-default td-title" rowspan="2">修理（默认）课室</td>
+					<td class="td-content" rowspan="2">
+						<select id="search_section_id" class="ui-widget-content">
+							<option value="">(全)</option>
+							${sOptions}
+						</select>
+						<!--input type="text" id="search_esas_no" maxlength="6" class="ui-widget-content"-->
 					</td>
 					<td class="ui-state-default td-title">WIP位置</td>
 					<td class="td-content"><input type="text" name="wiplocation" id="search_wip_location" maxlength="5" class="ui-widget-content"></td>
+					<td class="ui-state-default td-title" rowspan="2">客户同意日</td>
+					<td class="td-content" rowspan="2">
+						<input type="text" id="search_agreed_date_start" maxlength="50" class="ui-widget-content" readonly="readonly">起<br>
+						<input type="text" id="search_agreed_date_end" maxlength="50" class="ui-widget-content" readonly="readonly">止
+					</td>
+				</tr>
+				<tr>
+					<td class="ui-state-default td-title">查询范围</td>
+					<td class="td-content" id="search_agreed">
+						<input type="checkbox" id="search_agreed_y" checked><label for="search_agreed_y">已同意</label>
+						<input type="checkbox" id="search_agreed_n"><label for="search_agreed_n">未同意</label>
+					</td>
 				</tr>
 
 			</tbody></table>
 					<div style="height:44px">
-						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
+						<input type="button" class="ui-button ui-widget ui-state-default ui-corner-all" id="resetbutton" value="清除" role="button" aria-disabled="false" style="float:right;right:2px">
 						<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="searchbutton" value="检索" role="button" aria-disabled="false" style="float:right;right:2px">
 						<input type="hidden" id="twoDaysBefore" value="${twoDaysBefore}"/>
 						<input type="hidden" id="oneDayBefore" value="${oneDayBefore}"/>
 						<input type="hidden" id="kOptions" value="${kOptions}"/>
+						<input type="hidden" id="poOptions" value="${poOptions}"/>
 					</div>
 			</form>
 	</div>
 	<div class="clear areaencloser dwidth-full"></div>
 </div>
+
+<div id="countarea" class="dwidth-full" style="display:none;">
+	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
+		<span class="areatitle">投线统计</span>
+	</div>
+	<div class="ui-widget-content dwidth-full">
+		<table class="condform">
+			<tbody>
+			<tr>
+				<td class="ui-state-default td-title">修理一课 A 线</td>
+				<td class="td-content" for="0"></td>
+				<td class="ui-state-default td-title">修理一课 B1 线</td>
+				<td class="td-content" for="1"></td>
+				<td class="ui-state-default td-title">修理一课 B2 线</td>
+				<td class="td-content" for="2"></td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">修理二课 中小修</td>
+				<td class="td-content" for="5"></td>
+				<td class="ui-state-default td-title">修理二课 纤维镜大修</td>
+				<td class="td-content" for="3"></td>
+				<td class="ui-state-default td-title">修理二课 超声镜大修</td>
+				<td class="td-content" for="4"></td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">修理二课 Endoeye</td>
+				<td class="td-content" for="6"></td>
+				<td class="ui-state-default td-title">修理二课 光学视管</td>
+				<td class="td-content" for="8"></td>
+				<td class="ui-state-default td-title">修理三课 周边设备</td>
+				<td class="td-content" for="7"></td>
+			</tr>
+			<tr>
+				<td class="ui-state-default td-title">动物实验用维修品</td>
+				<td class="td-content" for="9"></td>
+				<td class="ui-state-default td-title"></td>
+				<td class="td-content"></td>
+				<td class="ui-state-default td-title"></td>
+				<td class="td-content"></td>
+			</tr>
+			</tbody>
+		</table>
+
+	</div>
+	<div class="clear areaencloser dwidth-full"></div>
+</div>
+
+<div id="listareas">
 
 <div id="listarea" class="dwidth-full">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">

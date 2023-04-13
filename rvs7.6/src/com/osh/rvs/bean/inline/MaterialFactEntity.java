@@ -26,7 +26,8 @@ public class MaterialFactEntity implements Serializable {
 	private Integer fix_type;
 	private String esas_no;
 	private String wip_location;
-	
+	private Date wip_date;
+
 	private String agreed_date_start;
 	private String agreed_date_end;
 	private Date inline_time;
@@ -36,6 +37,8 @@ public class MaterialFactEntity implements Serializable {
 	private String img_operate_result;//存在画面检查
 	private String ccd_operate_result;//存在CCD盖玻璃更换
 	private Date agreed_date;
+	private Integer check_agreed_date;
+
 	private Date scheduled_date;
 	private String section_id;
 	private String pat_id;
@@ -48,6 +51,10 @@ public class MaterialFactEntity implements Serializable {
 
 	private Integer quotation_first;
 	private Date quotation_time;
+
+	private Integer part_order;
+
+	private String process_code;
 
 	public String getSection_id() {
 		return section_id;
@@ -258,6 +265,34 @@ public class MaterialFactEntity implements Serializable {
 	}
 	public void setQuotation_time(Date quotation_time) {
 		this.quotation_time = quotation_time;
+	}
+	public Integer getPart_order() {
+		return part_order;
+	}
+	public void setPart_order(Integer part_order) {
+		this.part_order = part_order;
+	}
+	public Date getWip_date() {
+		return wip_date;
+	}
+	public void setWip_date(Date wip_date) {
+		this.wip_date = wip_date;
+	}
+
+	public Integer getCheck_agreed_date() {
+		return check_agreed_date;
+	}
+	/**
+	 * @param check_agreed_date the check_agreed_date to set
+	 */
+	public void setCheck_agreed_date(Integer check_agreed_date) {
+		this.check_agreed_date = check_agreed_date;
+	}
+	public String getProcess_code() {
+		return process_code;
+	}
+	public void setProcess_code(String process_code) {
+		this.process_code = process_code;
 	}
 	
 	
