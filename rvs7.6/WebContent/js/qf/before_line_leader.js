@@ -377,6 +377,9 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 					viewsortcols : [true, 'vertical', true],
 					gridComplete : function() {
 						disableButtons();
+
+						$("#performance_list td[aria\\-describedby='performance_list_level'][title='(无故障)']")
+							.css("backgroundColor", "orange");
 					}
 				});
 			}

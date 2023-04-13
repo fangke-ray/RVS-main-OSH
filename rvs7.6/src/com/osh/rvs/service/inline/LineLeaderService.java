@@ -543,6 +543,10 @@ public class LineLeaderService {
 			CustomerService cservice = new CustomerService();
 			entity.setCustomer_id(cservice.getCustomerStudiedId(entity.getCustomer_name(), entity.getOcm(), conn));
 		}
+		// OCM 设为(无故障)
+		if (entity.getOcm_rank() == null) {
+			entity.setOcm_rank(-1);
+		}
 		dao.updateMaterial(entity);
 
 		MaterialForm materialForm = (MaterialForm)form;

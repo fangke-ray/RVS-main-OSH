@@ -118,6 +118,18 @@ public class QuotationService {
 				|| "00000000319".equals(mform.getModel_id())) {
 			responseBean.put("special_notice", mform.getModel_name());
 		}
+
+		// 判断是否CCD盖玻璃更换对象，是的话可标记
+		if (RvsUtils.getCcdModels(conn).contains(mform.getModel_id())) {
+			MaterialTagService mtService = new MaterialTagService();
+			if (mtService.checkTagByMaterialId(material_id, 
+					MaterialTagService.TAG_FOR_CCD_REPLACE, conn).size() > 0) {
+				responseBean.put("tag_ccd", "1");
+			} else {
+				responseBean.put("tag_ccd", "-1");
+			}
+		}
+
 		// 判断是否CCD线更换对象，是的话可选择流程
 		if (RvsUtils.getCcdLineModels(conn).contains(mform.getModel_id())) {
 			Map<String, String> patState = new HashMap<String, String>();
@@ -282,6 +294,11 @@ public class QuotationService {
 			} else {
 				finMaterialForm.setProcessing_position2("-");
 			}
+
+			if (pe.getLevel() == null) {
+				finMaterialForm.setLevel("0");
+			}
+
 			finishedForm.add(finMaterialForm);
 		}
 
