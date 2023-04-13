@@ -21,6 +21,7 @@ import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.inline.LineLeaderService;
@@ -89,7 +90,7 @@ public class BeforeLineLeaderAction extends BaseAction {
 		} else {
 			req.setAttribute("editor", "false");
 		}
-		
+
 		String quotator = "false";
 		List<PositionEntity> positions = user.getPositions();
 		for(PositionEntity entity : positions){
@@ -391,4 +392,29 @@ public class BeforeLineLeaderAction extends BaseAction {
 		returnJsonResponse(res, cbResponse);
 		log.info("BeforeLineLeaderAction.doSetPlanTarget end");
 	}
+
+	public void checkForCcdReplace(ActionMapping mapping, ActionForm form,
+			HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception {
+		log.info("BeforeLineLeaderAction.checkForCcdReplace start");
+		// Ajax回馈对象
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String material_id = req.getParameter("material_id");
+
+		MaterialTagService mtService = new MaterialTagService();
+		if (mtService.checkTagByMaterialId(material_id, 
+				MaterialTagService.TAG_FOR_CCD_REPLACE, conn).size() > 0) {
+			cbResponse.put("tag_ccd", "1");
+		} else {
+			cbResponse.put("tag_ccd", "-1");
+		}
+
+		cbResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+		log.info("BeforeLineLeaderAction.checkForCcdReplace end");
+	}
+
 }

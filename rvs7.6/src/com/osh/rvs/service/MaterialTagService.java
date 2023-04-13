@@ -29,6 +29,7 @@ public class MaterialTagService {
 	public static final int TAG_STERIZE = 5;
 	public static final int TAG_CONTRACT_RELATED = 6;
 	public static final int TAG_SHIFT_CONTRACT_RELATED = 7;
+	public static final int TAG_FOR_CCD_REPLACE = 8;
 
 	private static Set<String> anml_materials = null;
 
@@ -59,7 +60,7 @@ public class MaterialTagService {
 	 */
 	public void deleteByMaterialId(String materialId, SqlSessionManager conn) {
 		MaterialTagMapper dao = conn.getMapper(MaterialTagMapper.class);
-		dao.deleteByMaterialId(materialId);
+		dao.deleteTagsByMaterialId(materialId, new String[]{"1","2","3","4","5"});
 	}
 
 	/**

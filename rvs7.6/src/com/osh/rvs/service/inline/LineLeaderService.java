@@ -497,6 +497,10 @@ public class LineLeaderService {
 				}
 			}
 
+			if (ccdModels.contains(entity.getModel_id())) { // 302作业对象
+				retForm.setStatus("1");
+			}
+
 			if (!ccdLineModels.contains(entity.getModel_id())) { // 非304作业对象
 				retForm.setPat_id(null);
 			}

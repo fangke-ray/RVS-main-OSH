@@ -206,6 +206,10 @@ var makeBreakDialog = function(jBreakDialog) {
 			}
 		}
 
+		if ($("#editform #tag_ccd").next("label").is(":visible")) {
+			b_request.tag_ccd = $("#editform #tag_ccd").is(":checked") ? "1" : "-1";
+		}
+
 		// Ajax提交
 		$.ajax({
 			beforeSend : ajaxRequestType,
@@ -693,6 +697,15 @@ var getMaterialInfo = function(resInfo) {
 		} else {
 			$("#editform .special_notice").hide();
 		}
+		if (resInfo.tag_ccd == "1") {
+			$("#editform #tag_ccd").attr("checked", true).trigger("change")
+				.next().show().children("span").text("CCD盖玻璃 ON");
+		} else if (resInfo.tag_ccd == "-1") {
+			$("#editform #tag_ccd").removeAttr("checked").trigger("change")
+				.next().show().children("span").text("CCD盖玻璃 OFF");
+		} else {
+			$("#editform #tag_ccd").hide().next().hide();
+		}
 	}
 
 	if (resInfo.workstauts == 4 || resInfo.workstauts == 5) {
@@ -924,6 +937,10 @@ var doFinish=function(){
 		}
 		data.bound_out_ocm = $("#edit_bound_out_ocm option:selected").val();
 
+		if ($("#editform #tag_ccd").next("label").is(":visible")) {
+			data.tag_ccd = $("#editform #tag_ccd").is(":checked") ? "1" : "-1";
+		}
+
 		if (confirmMessages.length > 0) {
 			warningConfirm(confirmMessages,
 			null, 
@@ -1013,13 +1030,24 @@ var enablebuttons2 = function(idx) {
 	$("#printbutton").enable().val("重新打印小票" + $("#exd_list tr#" + idx).find("td[aria\-describedby='exd_list_ticket_flg']").text()+"份");
 	$("#printaddbutton").enable();
 
-
 	var rowID = $("#exd_list").jqGrid("getGridParam","selrow");
 	var rowData = $("#exd_list").getRowData(rowID);
-	if(rowData.symbol1==1){
-		$("#modifybutton").enable();
-		$("#downloadbutton").enable();
+	if (rowData.scheduled_expedited) {
+		$("#ccdtagbutton").show();
+		if (rowData.scheduled_expedited == "1") {
+			$("#ccdtagbutton").val("取消CCD盖玻璃标记");
+		} else {
+			$("#ccdtagbutton").val("标记CCD盖玻璃");
+		}
+	} else {
+		$("#ccdtagbutton").hide();
 	}
+
+	// 报价说明书相关内容，估计永远用不到了
+//	if(rowData.symbol1==1){
+//		$("#modifybutton").enable();
+//		$("#downloadbutton").enable();
+//	}
 }
 
 /**
@@ -1131,6 +1159,7 @@ $(function() {
 	$("#printbutton").click(printTicket);
 	$("#printaddbutton").disable();
 	$("#printaddbutton").click(function(){printTicket(1)});
+	$("#ccdtagbutton").hide();
 	$("#tejunbutton").button().toggle(function(){$("#tejunbutton > span > div").show()},function(evt){$("#tejunbutton > span > div").hide()})
 		.find("a").click(function(){window.open(this.href, "_tejun")});
 
@@ -1202,6 +1231,26 @@ $(function() {
 		} else {
 			$(this).next().children("span").text("普通");
 		}
+	}).next().hide();
+
+	$("#editform #tag_ccd").click(function(){
+		var $tag_ccd = $(this);
+		if (this.checked == true) {
+			warningConfirm("是否要将修理品标记为<b>需要更换CCD盖玻璃</b>？", function(){
+				$tag_ccd.next().children("span").text("CCD盖玻璃 ON");
+				$tag_ccd.attr("checked", true).trigger("change");
+			}, function(){
+				$tag_ccd.removeAttr("checked").trigger("change");
+			})
+		} else {
+			warningConfirm("是否要将修理品标记为<b>无须更换CCD盖玻璃</b>？", function(){
+				$tag_ccd.next().children("span").text("CCD盖玻璃 OFF");
+				$tag_ccd.removeAttr("checked").trigger("change");
+			}, function(){
+				$tag_ccd.attr("checked", true).trigger("change");
+			});
+		}
+		return false;
 	}).next().hide();
 
 	$("#modifybutton").disable();
@@ -1343,6 +1392,9 @@ $(function() {
 			}
 		}
 	});
+
+	$("#ccdtagbutton").click(ccdTagAssign);
+
 	$("#wtg_list").on('dblclick', ".waiting", function(){
 		var material_id = this.id.replace("w_", "");
 		showMaterial(material_id);
@@ -1472,6 +1524,34 @@ var checkAnmlAlert = function() {
 		errorPop(WORKINFO.animalExpClean);
 	}
 }	var $process_dialog = $("#material_detail_dialog");
+var ccdTagAssign = function(){
+	var rowID = $("#exd_list").jqGrid("getGridParam","selrow");
+	var rowData = $("#exd_list").getRowData(rowID);
+
+	var postData = {
+		material_id : rowData.material_id,
+		scheduled_expedited : (($("#ccdtagbutton").val() == "取消CCD盖玻璃标记") ? "-1" : "1") 
+	}
+
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=doCcdTagAssign',
+		cache : false,
+		data : postData,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhr, status) {
+			var resInfo = $.parseJSON(xhr.responseText)
+			
+			acceptted_list(resInfo.finished);
+		}
+	});
+
+}
 	if ($process_dialog.length == 0) {
 		$("body").append("<div id='material_detail_dialog'></div>");
 		$process_dialog = $("#material_detail_dialog");

@@ -33,6 +33,13 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 #material_details .ui-state-default+.top_taged {
 	display:none;
 }
+#tag_ccd+label {
+	margin-left : 12px;
+	padding: 0;
+}
+#waitarea .tube-liquid > div.concern {
+	position: absolute;
+	right: -3.5em;
 	top: 0;
 	border: 1px solid;
 /*	color: transparent; */
@@ -234,6 +241,7 @@ if (request.getAttribute("unitizeds")!=null) {
 														<select name="fix_type" alt="流水线分类" id="edit_fix_type" class="ui-widget-content">
 															${edit_fix_type}
 														</select>
+														<input type="checkbox" id="tag_ccd" class="ui-button" style="display:block;"><label for="tag_ccd">CCD盖玻璃 OFF</label>
 														<textarea name="comment" id="edit_comment" alt="备注信息" maxlength="500" class="ui-widget-content" rows="5" style="width: 444px;"></textarea>
 														<textarea name="comment_other" id="edit_comment_other" alt="备注信息" class="ui-widget-content" rows="5" style="width: 444px;font-size:14px" disabled readonly></textarea>
 														<!--select name="service_repair_flg" alt="返修标记" id="edit_service_repair_flg" class="ui-widget-content">
@@ -336,6 +344,7 @@ if (peripheral!=null && peripheral) {
 							<div id="executes" style="margin-left: 4px; margin-top: 4px;">
 								<input type="button" class="ui-button" id="printbutton" value="重新打印小票" />
 								<input type="button" class="ui-button" id="printaddbutton" value="补充打印小票" />
+								<input type="button" class="ui-button" id="ccdtagbutton" value="CCD盖玻璃更换标记" />
 								<!-- <input type="button" class="ui-button" id="modifybutton" value="报价说明书修改" />
 								<input type="button" class="ui-button" id="downloadbutton" value="下载报价说明书" /> -->
 								<input type="hidden" id="hide_material_id" value="" />

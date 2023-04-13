@@ -11,10 +11,13 @@
 	]]>
 	</insert>
 	
-	<delete id="deleteByMaterialId" parameterType="string">
+	<delete id="deleteTagsByMaterialId">
 	<![CDATA[
-		DELETE FROM material_tag WHERE material_id = #{material_id}
+		DELETE FROM material_tag WHERE material_id = #{material_id} AND tag_type in
 	]]>
+		<foreach item="tag_type" collection="tag_types" open="(" separator="," close=")">
+			#{tag_type}
+		</foreach>
 	</delete>
 
 	<select id="checkTagByMaterialId" parameterType="string" resultType="Integer">

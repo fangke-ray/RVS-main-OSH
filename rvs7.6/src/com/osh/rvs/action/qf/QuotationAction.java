@@ -36,6 +36,7 @@ import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.service.AlarmMesssageService;
 import com.osh.rvs.service.CustomerService;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.ProcessAssignService;
@@ -52,7 +53,6 @@ import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
-import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class QuotationAction extends BaseAction {
@@ -202,7 +202,6 @@ public class QuotationAction extends BaseAction {
 			if (join151And161) {
 				process_code = "151";
 			}
-
 
 			// 设定正常中断选项
 			callbackResponse.put("stepOptions", ppService.getStepOptions(process_code));
@@ -689,6 +688,15 @@ public class QuotationAction extends BaseAction {
 			materialForm.setMaterial_id(workingPf.getMaterial_id());
 			
 			qService.updateComment(materialForm, user, conn);
+
+			// 更新CCD标记
+			String tagCcd = req.getParameter("tag_ccd");
+			if (tagCcd != null) {
+				MaterialTagService mtService = new MaterialTagService();
+
+				mtService.updataTagByMaterialId(workingPf.getMaterial_id(), 
+						MaterialTagService.TAG_FOR_CCD_REPLACE, "1".equals(tagCcd), conn);
+			}
 		}
 
 		if (triggerList.size() > 0 && errors.size() == 0) {
@@ -818,6 +826,8 @@ public class QuotationAction extends BaseAction {
 				error.setErrcode("info.linework.workingLost");
 				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingLost"));
 				errors.add(error);
+			} else {
+				materialId = workingPf.getMaterial_id();
 			}
 
 			// 检查工程检查票是否全填写
@@ -825,7 +835,6 @@ public class QuotationAction extends BaseAction {
 				ppService.checkPcsEmpty(pcs_inputs, errors);
 
 			// 同意日与WIP存放check
-			materialId = workingPf.getMaterial_id();
 			if (errors.size() == 0 && !"160".equals(user.getProcess_code())) {
 	
 				mservice.checkRepeatNo(materialId, materialForm, conn, errors);
@@ -905,7 +914,7 @@ public class QuotationAction extends BaseAction {
 			String level = materialForm.getLevel();//等级
 			String fix_type = materialForm.getFix_type();//修理方式
 			//小修理流水线
-			boolean isLightFix = "9".equals(level.substring(0, 1)) && "1".equals(fix_type); 
+			boolean isLightFix = RvsUtils.isLightFix(level) && "1".equals(fix_type); 
 
 			/// 取得本次工时
 			Integer use_seconds = ppService.getTotalTimeByRework(workingPf, conn);
@@ -989,6 +998,15 @@ public class QuotationAction extends BaseAction {
 			
 			//更新维修对象备注
 			qService.updateComment(materialForm, user, conn);
+
+			// 更新CCD标记
+			String tagCcd = req.getParameter("tag_ccd");
+			if (tagCcd != null) {
+				MaterialTagService mtService = new MaterialTagService();
+
+				mtService.updataTagByMaterialId(workingPf.getMaterial_id(), 
+						MaterialTagService.TAG_FOR_CCD_REPLACE, "1".equals(tagCcd), conn);
+			}
 		}
 
 		qService.listRefresh(user, listResponse, conn);
@@ -1039,4 +1057,31 @@ public class QuotationAction extends BaseAction {
 		log.info("QuotationAction.doSwitchTopSpeed end");
 	}	
 
+	public void doCcdTagAssign(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
+		log.info("QuotationAction.doCcdTagAssign start");
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String materialId = req.getParameter("material_id");
+		String scheduledExpedited = req.getParameter("scheduled_expedited");
+
+		MaterialTagService mtService = new MaterialTagService();
+		mtService.updataTagByMaterialId(materialId, MaterialTagService.TAG_FOR_CCD_REPLACE, "1".equals(scheduledExpedited), conn);
+
+		// 取得用户信息
+		HttpSession session = req.getSession();
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+		QuotationService qService = new QuotationService();
+		qService.listFinishRefresh(user, cbResponse, conn);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+
+		// 检查发生错误时报告错误信息
+		cbResponse.put("errors", errors);
+
+		log.info("QuotationAction.doCcdTagAssign end");
+	}
 }

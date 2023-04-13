@@ -141,7 +141,8 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 					rowheight : 23,
 					datatype : "local",
 					colNames : ['修理单号', '型号', '机身号', '条码参照', '不良', '等级', '处理对策', '受理日期', 'outline_time', '报价日期', '客户同意', '优先报价', '位置', '状态', '备注',
-						'position', 'esas_no', 'direct_flg', 'fix_type', 'service_repair_flg', 'model_id', 'selectable', 'anml_exp', 'ts', '', '', '', '' ,'','','vip','scheduled_expedited', '直送区域'],
+						'position', 'esas_no', 'direct_flg', 'fix_type', 'service_repair_flg', 'model_id', 'selectable', 'anml_exp', 'ts', 
+						'ocm', '', '', '' ,'','','status(ccd.model)','scheduled_expedited', '直送区域'],
 					colModel : [{
 								name : 'sorc_no',
 								index : 'sorc_no',
@@ -273,7 +274,7 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
 							{name:'ocm_deliver_date',index:'ocm_deliver_date', hidden:true},
 							{name:'material_id',index:'material_id', hidden:true},
 							{name:'isHistory',index:'isHistory', hidden:true},
-							{name:'vip',index:'vip', hidden:true},
+							{name:'status',index:'status', hidden:true},
 							{name:'scheduled_expedited',index:'scheduled_expedited', hidden:true},
 							{
 								name : 'bound_out_ocm',
@@ -371,7 +372,8 @@ var jsinit_ajaxSuccess = function(xhrobj, textStatus){
                             $("#modifybutton").disable();
                             $("#downloadbutton").disable();
                         }
-					},
+
+                    },
 					viewsortcols : [true, 'vertical', true],
 					gridComplete : function() {
 						disableButtons();
@@ -562,6 +564,38 @@ $(document).ready(function() {
 	$("#search_serialnos").on("click", "span", function(){
 		$(this).remove();
 	})
+
+	$("#pop_treat").on("click", "#edit_label_modelname", function(evt){
+		var $top = $(this).find(".top_speed,.top_taged");
+		if ($top.length > 0) {
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : true,
+				url : 'quotation.do?method=doSwitchTopSpeed',
+				cache : false,
+				data : {material_id : $("#ins_material > #material_id").val()},
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : function(xhrobj) {
+					var resInfo = $.parseJSON(xhrobj.responseText);
+					if (resInfo.errors.length > 0) {
+						// 共通出错信息框
+						treatBackMessages(null, resInfo.errors);
+					} else {
+						if(!resInfo.isTopSpeed) {
+							$top.removeClass("top_speed").addClass("top_taged");
+							$top.next(".ui-state-default").text("切换成疾速修理");
+						} else {
+							$top.removeClass("top_taged").addClass("top_speed");
+							$top.next(".ui-state-default").text("出货日期");
+						}
+					}
+				}
+			});
+		}
+	});
 });
 
 function doQuotationCommentChange(){
@@ -1270,6 +1304,40 @@ var showDetail=function(rid) {
 			}
 		});
 
+		if (rowData.status == "1") {
+			// Ajax提交
+			$.ajax({
+				beforeSend : ajaxRequestType,
+				async : true,
+				url : servicePath+'?method=checkForCcdReplace',
+				cache : false,
+				data : {material_id : rowData.material_id},
+				type : "post",
+				dataType : "json",
+				success : ajaxSuccessCheck,
+				error : ajaxError,
+				complete : function(xhrobj){
+					var resInfo = $.parseJSON(xhrobj.responseText);
+					if (resInfo.tag_ccd) {
+						var tagCcdHtml = '<input type="checkbox" id="tag_ccd" class="ui-button" checked style="display:block;"><label for="tag_ccd">CCD盖玻璃 ON</label>';
+						if (resInfo.tag_ccd == -1) {
+							tagCcdHtml = '<input type="checkbox" id="tag_ccd" class="ui-button" style="display:block;"><label for="tag_ccd">CCD盖玻璃 OFF</label>';
+						}
+						var $tdCmt = $("#fix_type").parent();
+						$tdCmt.attr("colspan", "2").after("<td></td>");
+						$tdCmt.next().html(tagCcdHtml)
+							.children("#tag_ccd").button().click(function(){
+								if (this.checked == true) {
+									$(this).next().children("span").text("CCD盖玻璃 ON");
+								} else {
+									$(this).next().children("span").text("CCD盖玻璃 OFF");
+								}
+							});
+					}
+				}
+			});
+		}
+
 		$(".ui-button[value='清空']").button();
 		jthis.dialog({
 			position : 'auto',
@@ -1323,6 +1391,16 @@ var showDetail=function(rid) {
 							data.pat_id = $("#major_pat").attr("value");
 						}
 					}
+
+					// ccd标记
+					if ($("#tag_ccd").length) {
+						if ($("#tag_ccd").is(":checked")) {
+							data.status = 1;
+						} else {
+							data.status = -1;
+						}
+					}
+
 					$.ajax({
 						beforeSend : ajaxRequestType,
 						async : false,
