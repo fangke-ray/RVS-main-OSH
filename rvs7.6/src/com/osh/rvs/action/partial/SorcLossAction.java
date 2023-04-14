@@ -98,8 +98,10 @@ public class SorcLossAction extends BaseAction {
 
 		BeanUtil.copyToBean(sorcLossForm, sorcLossEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
+		boolean hasBoldData = service.checkConditionDate(sorcLossEntity);
+
 		// SORC损金 数据查询
-		List<SorcLossForm> sorcLossForms = service.searchSorcLoss(sorcLossEntity, conn, errors);
+		List<SorcLossForm> sorcLossForms = service.searchSorcLoss(sorcLossEntity, hasBoldData, conn, errors);
 
 		// 当出货月条件不是空时，月下载的数据就是当前检索页面显示的数据
 		if (!isEmpty(sorcLossForm.getOcm_shipping_month())) {
@@ -125,7 +127,7 @@ public class SorcLossAction extends BaseAction {
 		// 当出货日期和出货月条件不是空时，月下载的数据要进行重新检索---比如输入2014-06-01要查询出整个6月的满足条件的所有数据
 		if (!isEmpty(sorcLossForm.getOcm_shipping_date()) || !isEmpty(sorcLossForm.getOcm_shipping_month())) {
 			// 月损金数据--保内返品维修对象
-			List<SorcLossForm> sorcLossFormMonths = service.searchSorcLossOfRepair(sorcLossEntity, conn, errors);
+			List<SorcLossForm> sorcLossFormMonths = service.searchSorcLossOfRepair(sorcLossEntity, hasBoldData, conn, errors);
 			// 将每次的查询结果都放在session中（为了提供数据给月损金下载）
 			request.getSession().setAttribute("resultOfRepair", sorcLossFormMonths);
 		}

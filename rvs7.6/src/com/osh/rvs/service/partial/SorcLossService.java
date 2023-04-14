@@ -49,19 +49,25 @@ public class SorcLossService {
   /**
    * 查询损金数据
    * @param sorcLossEntity
+ * @param hasBoldData 
    * @param conn
    * @param errors
    * @return
    * @throws Exception
    */
-  public List<SorcLossForm> searchSorcLoss(SorcLossEntity sorcLossEntity,SqlSession conn,List<MsgInfo> errors) throws Exception{
+  public List<SorcLossForm> searchSorcLoss(SorcLossEntity sorcLossEntity,boolean hasBoldData, SqlSession conn,List<MsgInfo> errors) throws Exception{
 	 
 	  List<SorcLossForm> sorcLossForms = new ArrayList<SorcLossForm>();	 
 	  SorcLossMapper dao = conn.getMapper(SorcLossMapper.class);
 	  
 	  //查询 不属于保内返品--SORC损金 详细数据
-	  List<SorcLossEntity> sorcLossEntities = dao.searchSorcLoss(sorcLossEntity);
-	  
+	  List<SorcLossEntity> sorcLossEntities = null;
+	  if (hasBoldData) {
+		  sorcLossEntities = dao.searchSorcLossBold(sorcLossEntity);
+	  } else {
+		  sorcLossEntities = dao.searchSorcLoss(sorcLossEntity);
+	  }
+
 	  BeanUtil.copyToFormList(sorcLossEntities, sorcLossForms,CopyOptions.COPYOPTIONS_NOEMPTY,SorcLossForm.class);
 	  
 	  return sorcLossForms;
@@ -70,17 +76,23 @@ public class SorcLossService {
   /**
    *保内返品--维修对象 
    * @param sorcLossEntity
+ * @param hasBoldData 
    * @param conn
    * @param errors
    * @return
    * @throws Exception
    */
-  public List<SorcLossForm> searchSorcLossOfRepair(SorcLossEntity sorcLossEntity,SqlSession conn,List<MsgInfo> errors) throws Exception{
+  public List<SorcLossForm> searchSorcLossOfRepair(SorcLossEntity sorcLossEntity,boolean hasBoldData, SqlSession conn,List<MsgInfo> errors) throws Exception{
 	  List<SorcLossForm> sorcLossForms = new ArrayList<SorcLossForm>();	 
 	  SorcLossMapper dao = conn.getMapper(SorcLossMapper.class);
 	  
 	  //查询 保内返品---维修对象数据
-	  List<SorcLossEntity> sorcLossEntities = dao.searchSorcLossOfRepair(sorcLossEntity);
+	  List<SorcLossEntity> sorcLossEntities = null;
+	  if (hasBoldData) {
+		  sorcLossEntities = dao.searchSorcLossOfRepairBold(sorcLossEntity);
+	  } else {
+		  sorcLossEntities = dao.searchSorcLossOfRepair(sorcLossEntity);
+	  }
 	  
 	  BeanUtil.copyToFormList(sorcLossEntities, sorcLossForms,CopyOptions.COPYOPTIONS_NOEMPTY,SorcLossForm.class);
 	  
@@ -568,6 +580,30 @@ public class SorcLossService {
 		list = srmMapper.searchServiceRepair(entity);
 		if (list.size() > 0) {
 			return true;
+		}
+		return false;
+	}
+
+	private static final Date BOLD_START = DateUtil.toDate("2023/02/01", DateUtil.DATE_PATTERN);
+	/**
+	 * 判断检查条件的日期是否可以参考BOLD时间点
+	 * 2023-2-1起有交付出货时间，不再参考OCM出库日期
+	 * @param sorcLossEntity
+	 * @return
+	 */
+	public boolean checkConditionDate(SorcLossEntity sorcLossEntity) {
+		Date condition_date = sorcLossEntity.getOcm_shipping_date();
+		String condition_month = sorcLossEntity.getOcm_shipping_month();
+
+		if (condition_date == null && condition_month == null) {
+			return true;
+		}
+		if (condition_month != null) {
+			return condition_month.compareTo("2023/02/01") >= 0;
+		} else {
+			if (condition_date != null) {
+				return condition_date.compareTo(BOLD_START) >= 0;
+			}
 		}
 		return false;
 	}

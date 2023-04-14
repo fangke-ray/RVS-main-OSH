@@ -11,9 +11,16 @@ public interface SorcLossMapper {
   //查询SORC损金表的详细数据
   public List<SorcLossEntity> searchSorcLoss(SorcLossEntity sorcLossEntity);
   
-  //查询维修对象损金详细数据
+  //查询保内无偿维修对象损金详细数据
   public List<SorcLossEntity> searchSorcLossOfRepair(SorcLossEntity sorcLossEntity);
-  
+ 
+
+  //查询SORC损金表的详细数据(有时间节点后)
+  public List<SorcLossEntity> searchSorcLossBold(SorcLossEntity sorcLossEntity);
+
+  //查询保内无偿维修对象损金详细数据(有时间节点后)
+  public List<SorcLossEntity> searchSorcLossOfRepairBold(SorcLossEntity sorcLossEntity);
+
   //查询月损金数据
   public List<SorcLossEntity> searchSorcLossMonth(SorcLossEntity sorcLossEntity);
 
