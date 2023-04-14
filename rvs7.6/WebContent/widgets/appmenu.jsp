@@ -155,6 +155,7 @@ $(function() {
 		        <a href="line_balance_rate.do">流水线平衡率分析</a><br>
 		        <a href="foundry.do">代工时间统计</a><br>
 		        <a href="waitting_time_report.do">等待时间、中断时间统计</a><br>
+		        <a href="waitting_time_report.do?method=bold">BOLD 时间点统计</a><br>
 		        <a href="remain_time_report.do">倒计时达成状况</a><br>
 				<a href="work_duration.do">作业时间分析</a>
 	</div>

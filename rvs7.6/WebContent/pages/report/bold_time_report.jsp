@@ -23,12 +23,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/exporting.js"></script>
 <script type="text/javascript" src="js/report/waitting_time_report.js"></script>
 
-<title>等待时间、中断时间统计</title>
+<title>BOLD 时间点统计</title>
 </head>
 <body class="outer" style="align: center;">
 	<div class="width-full" style="align: center; margin: auto; margin-top: 16px;">
 		<div id="basearea" class="dwidth-full" style="margin: auto;">
-			<jsp:include page="/header.do" flush="true">
+			<jsp:include page="/header.do?method=init" flush="true">
 				<jsp:param name="part" value="2" />
 			</jsp:include>
 		</div>
@@ -83,27 +83,12 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										<select id="search_section_id" class="ui-widget-content">${sSection}</select>
 										<input type="hidden" id="search_section_name">
 									</td>
-									<td class="ui-state-default td-title">零件BO</td>
-									<td class="td-content">
-										<select id="search_bo_flg" class="ui-widget-content">${sBoflg}</select></td>
-									</tr>
-								<tr>
-									<td class="ui-state-default td-title">加急</td>
-									<td class="td-content" id="search_scheduled_expedited">
-										<input type="radio" name="scheduled_expedited" id="scheduled_expedited_all" class="ui-widget-content" value="0"><label for="scheduled_expedited_all">全部</label>
-										<input type="radio" name="scheduled_expedited" id="scheduled_expedited_y" class="ui-widget-content" value="1"><label for="scheduled_expedited_y">是</label>
-										<input type="radio" name="scheduled_expedited" id="scheduled_expedited_n" class="ui-widget-content" value="2"><label for="scheduled_expedited_n">否</label>
-									</td>
 									<td class="ui-state-default td-title">是否包含返工</td>
 									<td class="td-content" id="search_rework">
 										<input type="radio" name="rework" id="rework_y" class="ui-widget-content" value="1" checked="checked"><label for="rework_y">是</label>
 										<input type="radio" name="rework" id="rework_n" class="ui-widget-content" value="2"><label for="rework_n">否</label>
 									</td>
-									<td class="ui-state-default td-title">直送</td>
-									<td class="td-content">
-										<select id="search_direct_flg" class="ui-widget-content">${sDirect}</select>
-									</td>
-								</tr>
+								<tr>
 								<tr>
 									<td class="ui-state-default td-title">完成时间</td>
 									<td class="td-content">
@@ -121,20 +106,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 										<input type="text" id="search_arrival_date_end" class="ui-widget-content" readonly>止
 									</td>
 								</tr>
-								<tr>
-									<td class="ui-state-default td-title">分解工程分线</td>
-									<td class="td-content">
-										<select id="search_dec_px" class="ui-widget-content">${px}</select>
-									</td>
-									<td class="ui-state-default td-title">NS工程分线</td>
-									<td class="td-content">
-										<select id="search_ns_px" class="ui-widget-content">${px}</select>
-									</td>
-									<td class="ui-state-default td-title">总组工程分线</td>
-									<td class="td-content">
-										<select id="search_com_px" class="ui-widget-content">${mpx}</select>
-									</td>
-								</tr>
 							</tbody>
 						</table>
 						<div style="height:44px;">
@@ -148,24 +119,19 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				
 				<div id="listarea">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
-						<span class="areatitle">等待时间、中断时间统计</span>
+						<span class="areatitle">BOLD 时间点统计</span>
 						<a target="_parent" role="link" href="javascript:void(0)" class="HeaderButton areacloser">
 							<span class="ui-icon ui-icon-circle-triangle-n"></span>
 						</a>
 					</div>
 					<div>
-						<div id="container1" class="ui-widget-content" style="height: 300px;width:780px;float:left;"></div>
-						<div id="container2" class="ui-widget-content" style="height: 300px;width:200px;float:right;"></div>
-						<div class="clear"></div>
-						<div id="container3" class="ui-widget-content" style="height: 300px;width:780px;float:left;margin-top:10px;"></div>
-						<div id="container4" class="ui-widget-content" style="height: 300px;width:200px;float:right;margin-top:10px;"></div>
+						<div id="listcount1" class="ui-widget-content" style="height: 3em; width:100%; float:left;font-size: 18px;line-height: 3em;padding-left: 1em;box-sizing: border-box;"></div>
 						<div class="clear"></div>
 					</div>
 				</div>
 				
 				<div class="ui-widget-header ui-helper-clearfix areabase" style="padding-top:4px;">
 					<input id="boldbutton" class="ui-button" value="BOLD 统计列表" style="float:right;right:2px" type="button">
-					<input id="exportbutton" class="ui-button" value="等待/中断时间图表" style="float:right;right:2px" type="button">
 				</div>
 				
 				<div id="search_model_id_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:10000">

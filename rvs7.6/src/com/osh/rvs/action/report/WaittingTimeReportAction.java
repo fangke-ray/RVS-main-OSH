@@ -87,7 +87,45 @@ public class WaittingTimeReportAction extends BaseAction {
 		
 		log.info("WaittingTimeReportAction.init end");
 	}
+
+	/**
+	 * 页面初始化
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
 	
+	public void bold(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,SqlSession conn) throws Exception {
+		log.info("WaittingTimeReportAction.bold start");
+		
+		// 机种
+		CategoryService categoryService = new CategoryService();
+		String sCategory = categoryService.getOptions(conn);
+		req.setAttribute("sCategory", sCategory);
+
+		// 型号
+		ModelService modelService = new ModelService();
+		String mReferChooser = modelService.getOptions(conn);
+		req.setAttribute("mReferChooser", mReferChooser);
+
+		// 等级
+		String sLevel = CodeListUtils.getSelectOptions("material_level_inline", null, "");
+		req.setAttribute("sLevel", sLevel);
+
+		// 课室
+		SectionService sectionService = new SectionService();
+		String sSection = sectionService.getOptions(conn, "", null);
+		req.setAttribute("sSection", sSection);
+		
+		// 迁移到页面
+		actionForward = mapping.findForward("bold");
+		
+		log.info("WaittingTimeReportAction.bold end");
+	}
+
 	/**
 	 * 查询
 	 * @param mapping
@@ -121,7 +159,42 @@ public class WaittingTimeReportAction extends BaseAction {
 
 		log.info("WaittingTimeReportAction.search end");
 	}
-	
+
+
+	/**
+	 * 查询 IDs
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void searchIds(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+		log.info("WaittingTimeReportAction.search start");
+		
+		// Ajax回馈对象
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		// 检索条件表单合法性检查
+		List<MsgInfo> errors = new ArrayList<>();
+		
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+		errors = v.validate();
+		
+		if(errors.size() == 0){
+			WaittingTimeReportService service = new WaittingTimeReportService();
+			service.searchIds(form, listResponse, req,conn);
+		}
+		
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("WaittingTimeReportAction.search end");
+	}
+
 	/**
 	 * 导出
 	 * @param mapping
@@ -156,5 +229,38 @@ public class WaittingTimeReportAction extends BaseAction {
 	}
 	
 	
+	/**
+	 * 导出
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void exportBold(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
+		log.info("WorkTimeAnalysisAction.exportBOLD start");
+
+		// Ajax回馈对象
+		Map<String, Object> cbResponse = new HashMap<String, Object>();
+		// 检索条件表单合法性检查
+		List<MsgInfo> errors = new ArrayList<>();
+
+		WaittingTimeReportService service = new WaittingTimeReportService();
+		String fileName = "BOLD_修理时间点统计.xlsx";
+		String filePath = service.createBoldExcel(req, conn);
+
+		cbResponse.put("fileName", fileName);
+		cbResponse.put("filePath", filePath);
+
+		// 检查发生错误时报告错误信息
+		cbResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, cbResponse);
+
+		log.info("WorkTimeAnalysisAction.exportBOLD end");
+	}
+
 	
 }

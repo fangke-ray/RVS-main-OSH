@@ -141,6 +141,9 @@ public class WaittingTimeReportEntity implements Serializable {
 	/** 总组分线 **/
 	private Integer com_px;
 
+	/** 投线操作时间 **/
+	private Integer inline_trans_time;
+
 	public String getCategory_id() {
 		return category_id;
 	}
@@ -508,6 +511,14 @@ public class WaittingTimeReportEntity implements Serializable {
 
 	public void setCom_px(Integer com_px) {
 		this.com_px = com_px;
+	}
+
+	public Integer getInline_trans_time() {
+		return inline_trans_time;
+	}
+
+	public void setInline_trans_time(Integer inline_trans_time) {
+		this.inline_trans_time = inline_trans_time;
 	}
 
 }

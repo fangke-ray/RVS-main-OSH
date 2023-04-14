@@ -34,6 +34,13 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFSimpleShape;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFCellStyle;
+import org.apache.poi.xssf.usermodel.XSSFFont;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.report.WaittingTimeReportEntity;
@@ -50,7 +57,7 @@ import framework.huiqing.common.util.copy.DateUtil;
 
 public class WaittingTimeReportService {
 	private Logger log = Logger.getLogger(getClass());
-	
+
 	public void search(ActionForm form,Map<String, Object> listResponse, HttpServletRequest req,SqlSession conn) throws Exception{
 		WaittingTimeReportEntity entity = new WaittingTimeReportEntity();
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
@@ -97,8 +104,6 @@ public class WaittingTimeReportService {
 		} finally {
 		}
 
-
-	
 		List<WaittingTimeReportEntity> rList = new ArrayList<WaittingTimeReportEntity>();
 		int length = material_ids.size();
 		int limit = 10000;
@@ -375,6 +380,39 @@ public class WaittingTimeReportService {
 		listResponse.put("series4_2", series4_2);
 		listResponse.put("series4_3", series4_3);
 	
+	}
+
+	public void searchIds(ActionForm form, Map<String, Object> listResponse,
+			HttpServletRequest req, SqlSession conn) throws Exception {
+		WaittingTimeReportEntity entity = new WaittingTimeReportEntity();
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		if (entity.getOutline_time_start() == null) {
+			// 2022-11-01
+			Calendar cal = Calendar.getInstance();
+			cal.set(Calendar.YEAR, 2022);
+			cal.set(Calendar.MONTH, Calendar.NOVEMBER);
+			cal.set(Calendar.DAY_OF_MONTH, 1);
+			cal.set(Calendar.HOUR_OF_DAY, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
+
+			entity.setOutline_time_start(cal.getTime());
+		}
+
+		WaittingTimeReportMapper dao = conn.getMapper(WaittingTimeReportMapper.class);
+		if (entity.getLevel() == null) entity.setLevel(0);
+		List<WaittingTimeReportEntity> list = dao.getMaterailIds(entity);
+
+		List<String> material_ids = new ArrayList<String>();
+		for (WaittingTimeReportEntity e : list) {
+			material_ids.add(e.getMaterial_id());
+		}
+
+		req.getSession().setAttribute("material_ids", material_ids);
+
+		listResponse.put("listSize", material_ids.size());
 	}
 
 	private WaittingTimeReportEntity merge(WaittingTimeReportEntity prev,WaittingTimeReportEntity next){
@@ -1102,7 +1140,727 @@ public class WaittingTimeReportService {
 		shape.setShapeType(HSSFSimpleShape.OBJECT_TYPE_LINE);   
 		shape.setLineStyle(HSSFSimpleShape.LINESTYLE_SOLID) ; 
 	}
-	
+
+	private static int WIDTH_DATETIME = 14*256;
+	private static int WIDTH_GAPTIME = 11*256;
+	private static int STANDARD_PART_RELEASE = 120;
+	private static int STANDARD_INLINE_PER_MAT = 4; // (int)3.5
+	private static int STANDARD_DISTRIB_PER_PRO = 10;
+
+	public String createBoldExcel(HttpServletRequest req,SqlSession conn) throws Exception{
+
+		//Excel临时文件
+		String cacheName = "BOLD 修理时间点统计" + new Date().getTime() + ".xlsx";
+		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\";
+
+		@SuppressWarnings("unchecked")
+		List<String> material_ids = (List<String>)req.getSession().getAttribute("material_ids");
+
+		WaittingTimeReportMapper mapper = conn.getMapper(WaittingTimeReportMapper.class);
+		List<WaittingTimeReportEntity> rList = mapper.searchBoldDetails(material_ids);
+
+		List<Map<String, Object>> ndList = mapper.getTimeNodes(material_ids);
+		Map<String, Map<String, Object>> ndMap = new HashMap<String, Map<String, Object>>();
+		for (Map<String, Object> nd : ndList) {
+			ndMap.put(CommonStringUtil.fillChar("" + nd.get("material_id"), '0', 11, true) , nd);
+		}
+
+		OutputStream out = null;
+		try {
+			File file = new File(cachePath);
+			if(!file.exists()){
+				file.mkdirs();
+			}
+
+			file = new File(cachePath + cacheName);
+			if(!file.exists()){
+				file.createNewFile();
+			}
+
+			XSSFWorkbook work=new XSSFWorkbook();
+			XSSFSheet sheet = work.createSheet("BOLD 修理时间点明细");
+
+			XSSFRow row = null;
+			XSSFCell cell = null;
+
+			XSSFFont font=work.createFont();
+			font.setFontHeightInPoints((short)9);
+			font.setFontName("微软雅黑");
+
+			XSSFFont whiteFont=work.createFont();
+			whiteFont.setFontHeightInPoints((short)9);
+			whiteFont.setColor(HSSFColor.WHITE.index);
+			whiteFont.setFontName("微软雅黑");
+
+			XSSFFont titlefont=work.createFont();
+			titlefont.setFontHeightInPoints((short)10);
+			titlefont.setFontName("微软雅黑");
+			titlefont.setColor(HSSFColor.WHITE.index);
+
+			XSSFFont titleBfont=work.createFont();
+			titleBfont.setFontHeightInPoints((short)10);
+			titleBfont.setFontName("微软雅黑");
+			titleBfont.setColor(HSSFColor.BLACK.index);
+
+			XSSFFont boldTitlefont=work.createFont();
+			boldTitlefont.setFontHeightInPoints((short)11);
+			boldTitlefont.setFontName("微软雅黑");
+			boldTitlefont.setBoldweight(XSSFFont.BOLDWEIGHT_BOLD);
+			boldTitlefont.setColor(HSSFColor.WHITE.index);
+
+			XSSFCellStyle cellStyle = work.createCellStyle();
+			cellStyle.setBorderLeft(XSSFCellStyle.BORDER_THIN);
+			cellStyle.setBorderTop(XSSFCellStyle.BORDER_THIN);
+			cellStyle.setBorderRight(XSSFCellStyle.BORDER_THIN);
+			cellStyle.setBorderBottom(XSSFCellStyle.BORDER_THIN);
+			cellStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
+			cellStyle.setVerticalAlignment(XSSFCellStyle.VERTICAL_CENTER);
+			cellStyle.setWrapText(true);
+			cellStyle.setFont(font);
+
+			XSSFCellStyle titleStyle = work.createCellStyle();
+			titleStyle.cloneStyleFrom(cellStyle);
+			titleStyle.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+			titleStyle.setFillForegroundColor(HSSFColor.GREEN.index);
+			titleStyle.setFont(titlefont);
+
+			XSSFCellStyle detailTitleStyle = work.createCellStyle();
+			detailTitleStyle.cloneStyleFrom(cellStyle);
+			detailTitleStyle.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+			detailTitleStyle.setFillForegroundColor(HSSFColor.GREEN.index);
+			detailTitleStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
+			detailTitleStyle.setVerticalAlignment(XSSFCellStyle.VERTICAL_CENTER);
+			detailTitleStyle.setWrapText(true);
+			detailTitleStyle.setFont(titlefont);
+
+			XSSFCellStyle detailExpTitleStyle = work.createCellStyle();
+			detailExpTitleStyle.cloneStyleFrom(detailTitleStyle);
+			detailExpTitleStyle.setFillForegroundColor(HSSFColor.BRIGHT_GREEN.index);
+			detailExpTitleStyle.setFont(titleBfont);
+
+			XSSFCellStyle detailBoldTitleStyle = work.createCellStyle();
+			detailBoldTitleStyle.cloneStyleFrom(cellStyle);
+			detailBoldTitleStyle.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+			detailBoldTitleStyle.setFillForegroundColor(HSSFColor.BLUE_GREY.index);
+			detailBoldTitleStyle.setAlignment(XSSFCellStyle.ALIGN_CENTER);
+			detailBoldTitleStyle.setVerticalAlignment(XSSFCellStyle.VERTICAL_CENTER);
+			detailBoldTitleStyle.setWrapText(true);
+			detailBoldTitleStyle.setFont(boldTitlefont);
+
+			XSSFCellStyle timeStyle = work.createCellStyle();
+			timeStyle.cloneStyleFrom(cellStyle);
+			timeStyle.setDataFormat(work.createDataFormat().getFormat("yyyy/mm/dd hh:mm"));
+
+			XSSFCellStyle timeRedBackgroundStyle = work.createCellStyle();
+			timeRedBackgroundStyle.cloneStyleFrom(cellStyle);
+			timeRedBackgroundStyle.setFont(whiteFont);
+			timeRedBackgroundStyle.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+			timeRedBackgroundStyle.setFillForegroundColor(HSSFColor.ORANGE.index);
+			timeRedBackgroundStyle.setDataFormat(work.createDataFormat().getFormat("yyyy/mm/dd hh:mm"));
+
+			XSSFCellStyle timeLightBlueBackgroundStyle = work.createCellStyle();
+			timeLightBlueBackgroundStyle.cloneStyleFrom(cellStyle);
+			timeLightBlueBackgroundStyle.setFont(whiteFont);
+			timeLightBlueBackgroundStyle.setFillPattern(XSSFCellStyle.SOLID_FOREGROUND);
+			timeLightBlueBackgroundStyle.setFillForegroundColor(HSSFColor.LIGHT_BLUE.index);
+			timeLightBlueBackgroundStyle.setDataFormat(work.createDataFormat().getFormat("yyyy/mm/dd hh:mm"));
+
+			setBoldTitle(sheet, detailTitleStyle, detailExpTitleStyle, detailBoldTitleStyle);
+
+			sheet.createFreezePane(2, 2);
+
+			for(int i = 0;i<rList.size();i++){
+				WaittingTimeReportEntity meentity = rList.get(i);
+				row = sheet.createRow(i + 2);
+
+				Map<String, Object> nd = ndMap.get(meentity.getMaterial_id());
+				if (nd == null) {
+					log.error("nd");
+					continue;
+				}
+
+				int colIdx = 0;
+
+				cell = row.createCell(colIdx++);//序号
+				cell.setCellValue(i+1);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//修理单号
+				cell.setCellValue(meentity.getOmr_notifi_no());
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//内镜型号
+				cell.setCellValue(meentity.getModel_name());
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//等级
+				cell.setCellValue(CodeListUtils.getValue("material_level",String.valueOf(meentity.getLevel())));
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//装运到达
+				if (nd.containsKey("nd1")) {
+					setDatetime(cell, nd, "nd1");
+					cell.setCellStyle(timeStyle);
+				} else {
+					cell.setCellValue("-");
+					cell.setCellStyle(timeRedBackgroundStyle);
+				}
+
+				cell = row.createCell(colIdx++);//收货
+				Date nd2 = castDate(nd.get("nd2"));
+				Date nd3 = castDate(nd.get("nd3"));
+				if (nd2 == null || nd2.compareTo(nd3) == 0) {
+					cell.setCellValue("-");
+					cell.setCellStyle(timeRedBackgroundStyle);
+				} else {
+					setDatetime(cell, nd, "nd2");
+					cell.setCellStyle(timeStyle);
+				}
+
+				cell = row.createCell(colIdx++);//登记
+				setDatetime(cell, nd, "nd3");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//耗时-收货、受理
+				int aRcpt = getInteger(nd, "a1");
+				if (aRcpt == 0) {
+					cell.setCellValue("-");
+					cell.setCellStyle(timeRedBackgroundStyle);
+				} else {
+					cell.setCellValue(aRcpt);
+					cell.setCellStyle(cellStyle);
+				}
+
+				cell = row.createCell(colIdx++);//CDS 开始
+				setDatetime(cell, nd, "nd4");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//CDS 完成
+				setDatetime(cell, nd, "nd5");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//OER/EOG/其它
+				String cdsMachine = "" + nd.get("cds_m");
+				cell.setCellStyle(cellStyle);
+				if (cdsMachine.indexOf("manual") >= 0) {
+					cell.setCellValue("其它");
+				} else if (cdsMachine.indexOf("121") >= 0) {
+					cell.setCellValue("OER");
+				} else if (cdsMachine.indexOf("131") >= 0) {
+					cell.setCellValue("EOG");
+				} else {
+					cell.setCellValue("其 它");
+				}
+
+				cell = row.createCell(colIdx++);//耗时-CDS-M
+				int mCds = getInteger(nd, "m2");
+				cell.setCellValue(mCds);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-CDS-W
+				int wCds = getMinusInteger(nd, "a2", "m2");
+				cell.setCellValue(wCds);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-CDS
+				int aCds = getInteger(nd, "a2");
+				cell.setCellValue(aCds);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//报价检查开始
+				setDatetime(cell, nd, "nd6");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//报价检查完成
+				setDatetime(cell, nd, "nd7");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//耗时-报价检查-T
+				int tQuoto = getInteger(nd, "t3");
+				cell.setCellValue(tQuoto);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-报价检查-W
+				int wQuoto = getMinusInteger(nd, "a3", "t3");
+				cell.setCellValue(wQuoto);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-报价检查
+				int aQuoto = getInteger(nd, "a3");
+				cell.setCellValue(aQuoto);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//用户同意
+				Date nd8 = castDate(nd.get("nd8"));
+				cell.setCellValue(nd8);
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//耗时-报价检查
+				cell.setCellValue(getInteger(nd, "h4", false));
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//投线起点（标记:同意后报价出货）
+				Date nd7_1 = castDate(nd.get("nd7_1"));
+				cell.setCellValue(nd7_1);
+				cell.setCellStyle(timeStyle);
+				if (nd7_1 != null) {
+					if (nd7_1.compareTo(nd8) > 0) {
+						cell.setCellStyle(timeLightBlueBackgroundStyle);
+					}
+				}
+
+				cell = row.createCell(colIdx++);//投线准备
+				setDatetime(cell, nd, "nd9_1");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//零件订购确认
+				if (meentity.getOrder_date_start() != null) {
+					cell.setCellValue(meentity.getOrder_date_start());
+					cell.setCellStyle(timeStyle);
+				} else {
+					cell.setCellValue("-");
+					cell.setCellStyle(cellStyle);
+				}
+
+				cell = row.createCell(colIdx++);//零件发放
+				if (meentity.getOrder_date_end() != null) {
+					cell.setCellValue(meentity.getOrder_date_end());
+					cell.setCellStyle(timeStyle);
+				} else {
+					cell.setCellValue("-");
+					cell.setCellStyle(cellStyle);
+				}
+
+				cell = row.createCell(colIdx++);//作业准备
+				cell.setCellValue(meentity.getInline_time());
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//耗时-工作准备-Touch	
+				// 工作准备的总时间 inline_time - customer-agree
+				int a4 = getInteger(nd, "a4");
+
+				// 准备作业总用时
+				int aPreLine = 0;
+
+				// 投线作业用时
+				int tPreLine = 0;
+				// 投线等待用时
+				int wPreLine = 0;
+				// 零件发放作业用时
+				Integer tPart = meentity.getWait_partial_distrubute_time();
+				// 零件发放等待用时
+				int wPart = 0;
+
+				Date releaseTime = meentity.getOrder_date_end();
+
+				if (tPart == null) {
+					// 无零件发放（E2）
+					tPart = 0;
+				} else {
+					// 最大发放用时 TODO 标准时间也就是1~10
+					if (tPart > STANDARD_PART_RELEASE) {
+						wPart = tPart - STANDARD_PART_RELEASE;
+						tPart = STANDARD_PART_RELEASE;
+					}
+				}
+
+				// 投线计算方式
+				// 投线系统操作即“准备投线” 3.5
+				// 但要看 投线起点 到 准备投线 之间有没有这些时间
+				// 投线整理/运输内镜 	维修品(车) 10
+				// 但要看零件发放到投线运输之间有没有这些时间
+				aPreLine = a4 - tPart - wPart;
+				int tPreLine0 = STANDARD_INLINE_PER_MAT;
+				int tPreLine1 = STANDARD_DISTRIB_PER_PRO;
+
+				if (aPreLine < 0) {
+					tPreLine = tPreLine0 + tPreLine1;
+					wPart = a4 - tPart - tPreLine;
+					if (wPart < 0) {
+						wPart = 0;
+					}
+				} else	if (releaseTime != null) {
+
+					int tPreLine0_calc = 0;
+					if (nd7_1 != null) {
+						if (nd7_1.compareTo(nd8) > 0) {
+							tPreLine0_calc = getMinute(nd7_1, releaseTime);
+						} else {
+							tPreLine0_calc = getMinute(nd8, releaseTime);
+						}
+					} else {
+						tPreLine0_calc = getMinute(nd8, releaseTime);
+					}
+					if (tPreLine0 > tPreLine0_calc && tPreLine0_calc > 0) {
+						tPreLine0 = tPreLine0_calc;
+					}
+
+					int tPreLine1_calc = getMinute(releaseTime, meentity.getInline_time());
+					if (tPreLine1 > tPreLine1_calc && tPreLine1_calc > 0) {
+						tPreLine1 = tPreLine1_calc;
+					}
+					tPreLine = tPreLine0 + tPreLine1;
+				}
+
+				wPreLine = aPreLine - tPreLine;
+				if (wPreLine < 0) {
+					wPreLine = 0;
+				}
+
+				cell.setCellValue(tPreLine);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-工作准备-Wait
+				cell.setCellValue(wPreLine);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-零件发放-Touch
+				cell.setCellValue(tPart);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-零件发放-Wait
+				cell.setCellValue(wPart);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-工作准备、零件发放-ALL
+				cell.setCellValue(a4);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//修理开始
+				setDatetime(cell, nd, "nd11");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//修理完成
+				setDatetime(cell, nd, "nd12");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//耗时-修理-Touch
+				int tLine = getInteger(nd, "t6");
+				cell.setCellValue(tLine);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-修理-Drying
+				int mLine = 0;
+				if (meentity.getCom_drying_time() != null) mLine+= meentity.getCom_drying_time(); 
+				int wLine = getMinusInteger(nd, "a6", "t6");
+				wLine -= mLine;
+//				if (wLine < 0) {
+//					
+//				}
+				cell.setCellValue(mLine);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-修理-Wait
+				if (wLine < 0) {
+					cell.setCellValue("-");
+					cell.setCellStyle(timeRedBackgroundStyle);
+				} else {
+					cell.setCellValue(wLine);
+					cell.setCellStyle(cellStyle);
+				}
+
+				cell = row.createCell(colIdx++);//耗时-修理-ALL
+				int a6 = getInteger(nd, "a6");
+				cell.setCellValue(a6);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//最终检查开始
+				setDatetime(cell, nd, "nd13");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//最终检查完成
+				setDatetime(cell, nd, "nd14");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//耗时-最终检查-T
+				int tQa = getInteger(nd, "t7");
+				cell.setCellValue(tQa);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-最终检查-W
+				int wQa = getMinusInteger(nd, "a7", "t7");
+				cell.setCellValue(wQa);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-最终检查
+				int aQa = getInteger(nd, "a7");
+				cell.setCellValue(aQa);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//出货开始
+				setDatetime(cell, nd, "nd15");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//准备装运
+				setDatetime(cell, nd, "nd16", "nd15_2");
+				cell.setCellStyle(timeStyle);
+
+				cell = row.createCell(colIdx++);//耗时-出货-T
+				int tShip = getInteger(nd, "t8");
+				cell.setCellValue(tShip);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-出货-W
+				int wShip = getMinusInteger(nd, "a8", "t8");
+				cell.setCellValue(wShip);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//耗时-出货
+				int aShip = getInteger(nd, "a8");
+				cell.setCellValue(aShip);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//Pre-repair
+				int pre = getInteger(nd, "pre");
+				cell.setCellValue(pre);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//Repair & Post-repair
+				int post = getInteger(nd, "post");
+				cell.setCellValue(post);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//ALL Touch
+				cell.setCellValue(tQuoto + tPreLine + tPart + tLine + tQa + tShip);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//ALL Machine
+				cell.setCellValue(mCds + mLine);
+				cell.setCellStyle(cellStyle);
+
+				cell = row.createCell(colIdx++);//ALL
+				setAddInteger(cell, nd, "pre", "post");
+				cell.setCellStyle(cellStyle);
+
+			}
+
+			out= new FileOutputStream(file);
+			work.write(out);
+		}catch (FileNotFoundException e) {
+			throw e;
+		} catch (IOException e) {
+			throw e;
+		}finally{
+			if(out!=null){
+				out.close();
+			}
+		}
+
+		return cacheName;
+	}
+
+	private int getMinute(Date date1, Date date2) {
+		long diffMinusecond = date2.getTime() - date1.getTime();
+		return (int) ((diffMinusecond + 30000) / 60000);
+	}
+
+	private int getInteger(Map<String, Object> nd,
+			String key, boolean avoidNegetive) {
+		if (nd.containsKey(key)) {
+			Object entry = nd.get(key);
+			Integer iEntry = castInteger(entry);
+			if (iEntry < 0 && avoidNegetive) iEntry = 0;
+			return iEntry;
+		}
+		return 0;
+	}
+	private int getInteger(Map<String, Object> nd,
+			String key) {
+		return getInteger(nd, key, true);
+	}
+
+	private Integer getMinusInteger(Map<String, Object> nd,
+			String minuend, String... subtrahends) {
+		if (nd.containsKey(minuend)) {
+			Object entry = nd.get(minuend);
+			Integer iEntry = castInteger(entry);
+
+			int iDifference = iEntry;
+			for (String subtrahend : subtrahends) {
+				if (nd.containsKey(subtrahend)) {
+					entry = nd.get(subtrahend);
+					iDifference -= castInteger(entry);
+				}
+			}
+			if (iDifference < 0) iDifference = 0;
+			return iDifference;
+		}
+		return 0;
+	}
+
+	private void setAddInteger(XSSFCell cell, Map<String, Object> nd,
+			String addend, String... additions) {
+		if (nd.containsKey(addend)) {
+			Object entry = nd.get(addend);
+			Integer iEntry = castInteger(entry);
+
+			int iTotal = iEntry;
+			for (String addition : additions) {
+				if (nd.containsKey(addition)) {
+					entry = nd.get(addition);
+					iTotal += castInteger(entry);
+				}
+			}
+			cell.setCellValue(iTotal);
+		}
+	}
+
+	private Integer castInteger(Object entry) {
+		if (entry instanceof String) {
+			return Integer.parseInt((String) entry);
+		} else if (entry instanceof Integer) {
+			return (Integer) entry;
+		} else if (entry instanceof Long) {
+			return ((Long) entry).intValue();
+		} else if (entry instanceof BigDecimal) {
+			return ((BigDecimal) entry).intValueExact();
+		}
+		return 0;
+	}
+
+	private void setDatetime(XSSFCell cell, Map<String, Object> nd,
+			String key) {
+		if (nd.containsKey(key)) {
+			Object entry = nd.get(key);
+			if (entry instanceof String) {
+				cell.setCellValue((String) nd.get(key));
+				cell.setCellType(XSSFCell.CELL_TYPE_STRING);
+			} else if (entry instanceof Date) {
+				cell.setCellValue((Date) entry);
+			} else if (entry instanceof Long) {
+				cell.setCellValue(new Date((Long) entry));
+			}
+		}
+	}
+
+	private void setDatetime(XSSFCell cell, Map<String, Object> nd,
+			String key, String key2) {
+		if (nd.containsKey(key)) {
+			setDatetime(cell, nd, key);
+		} else {
+			setDatetime(cell, nd, key2);
+		}
+	}
+
+	private Date castDate(Object entry) {
+		if (entry instanceof String) {
+			return DateUtil.toDate((String) entry, DateUtil.DATE_TIME_PATTERN);
+		} else if (entry instanceof Date) {
+			return (Date) entry;
+		} else if (entry instanceof Long) {
+			return new Date((Long) entry);
+		}
+		return null;
+	}
+
+	private void setBoldTitle(XSSFSheet sheet, XSSFCellStyle detailTitleStyle, XSSFCellStyle detailExpTitleStyle,
+			XSSFCellStyle detailBoldTitleStyle) {
+		XSSFRow row = sheet.createRow(0);
+		XSSFRow rowPart = sheet.createRow(1);
+
+		int colIdx = 0;
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "序号", detailTitleStyle, 6*256, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "修理单号", detailTitleStyle, 9*256, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "型号", detailTitleStyle, 20*256, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "修理等级", detailTitleStyle, (int)(7.5*256), null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "①装运到达", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "②收货", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "③登记", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-收货、受理", detailBoldTitleStyle, WIDTH_GAPTIME, new String[]{"ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "④CDS 开始", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑤CDS 完成", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "OER/EOG/其它", detailExpTitleStyle, WIDTH_GAPTIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-CDS", detailBoldTitleStyle, WIDTH_GAPTIME, new String[]{"Machine", "Wait", "ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑥报价检查开始", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑦报价检查完成", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-报价检查", detailBoldTitleStyle, WIDTH_GAPTIME, new String[]{"Touch", "Wait", "ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑧用户同意", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑧-⑦", detailExpTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "投线起点\r\n（标记:同意后报价出货）", detailExpTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "投线准备", detailExpTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "零件订购确认", detailExpTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑨零件发放", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑩作业准备完成", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-工作准备、零件发放", detailBoldTitleStyle, WIDTH_GAPTIME, 
+				new String[]{"工作准备-Touch", "工作准备-Wait", "零件发放-Touch", "零件发放-Wait", "ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑪修理开始", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑫修理完成", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-修理", detailBoldTitleStyle, WIDTH_GAPTIME, 
+				new String[]{ "修理-Touch", "修理-Drying", "修理-Wait", "ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑬最终检查开始", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑭最终检查完成", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-最终检查", detailBoldTitleStyle, WIDTH_GAPTIME, new String[]{"Touch", "Wait", "ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑮出货开始", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑯准备装运", detailTitleStyle, WIDTH_DATETIME, null);
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-出货", detailBoldTitleStyle, WIDTH_GAPTIME, new String[]{"Touch", "Wait", "ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "Turn-Around-Time", detailBoldTitleStyle, WIDTH_GAPTIME, new String[]{"Pre-repair", "Repair & Post-repair", "TAT Touch", "TAT Machine", "ALL"});
+
+	}
+
+	private int setTitleCell(XSSFSheet sheet, XSSFRow row, XSSFRow rowPart,
+			int colIdx, String title, XSSFCellStyle style, int width,
+			String[] partTitles) {
+
+		if (partTitles == null) {
+			XSSFCell cell = row.createCell(colIdx);
+			cell.setCellValue(title);
+			cell.setCellStyle(style);
+			cell = rowPart.createCell(colIdx);
+			cell.setCellStyle(style);
+			sheet.addMergedRegion(new CellRangeAddress(0, 1, colIdx, colIdx));
+			sheet.setColumnWidth(colIdx, width);
+			colIdx++;
+		} else {
+			XSSFCell cell = row.createCell(colIdx);
+			cell.setCellValue(title);
+			cell.setCellStyle(style);
+			for (int i = 0; i < partTitles.length; i++) {
+				cell = rowPart.createCell(colIdx);
+				cell.setCellValue(partTitles[i]);
+				cell.setCellStyle(style);
+				sheet.setColumnWidth(colIdx, width);
+
+				colIdx++;
+			}
+			if (partTitles.length > 1)
+				sheet.addMergedRegion(new CellRangeAddress(0, 0, colIdx - partTitles.length, colIdx - 1));
+		}
+		return colIdx;
+	}
+
 	private void setCellValue(int rowIndex,String itemName,String itemValue,HSSFSheet sheet,HSSFCellStyle titleStyle,HSSFCellStyle cellStyle){
 		HSSFRow row = sheet.createRow(rowIndex);
 		HSSFCell cell = row.createCell(0);

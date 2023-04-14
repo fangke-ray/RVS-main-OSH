@@ -148,7 +148,23 @@ $(function(){
 			complete: export_handleComplete
 		});
 	});
-	
+
+	$("#boldbutton").click(function(){
+
+		$.ajax({
+			beforeSend: ajaxRequestType, 
+			async: true, 
+			url: servicePath + '?method=exportBold', 
+			cache: false, 
+			data: null, 
+			type: "post", 
+			dataType: "json", 
+			success: ajaxSuccessCheck, 
+			error: ajaxError, 
+			complete: export_handleComplete
+		});
+	});
+
 	reset();
 });
 
@@ -173,7 +189,7 @@ var reset = function(){
 	$("#searchform select").val("").trigger("change");
 	$("#rework_y,#scheduled_expedited_all").attr("checked","checked").trigger("change");
 	
-	$("#exportbutton").disable();
+	$("#exportbutton,#boldbutton").disable();
 	$("#container1,#container3").html("").css("width","780px");
 	$("#container2,#container4").html("").show();
 };
@@ -201,10 +217,15 @@ var findit = function(){
 		"com_px":$("#search_com_px").data("post")
 	};
 
+	var searchUrl = servicePath + '?method=search';
+	if ($("#container1").length == 0) {
+		searchUrl = servicePath + '?method=searchIds';
+	}
+
 	$.ajax({
 		beforeSend: ajaxRequestType, 
 		async: false, 
-		url: servicePath + '?method=search', 
+		url: searchUrl, 
 		cache: false, 
 		data: data, 
 		type: "post", 
@@ -212,7 +233,8 @@ var findit = function(){
 		success: ajaxSuccessCheck, 
 		error: ajaxError, 
 		complete: search_handleComplete
-	});
+	});		
+
 };
 
 var search_handleComplete = function(xhrObj){
@@ -220,11 +242,20 @@ var search_handleComplete = function(xhrObj){
 	if (resInfo.errors && resInfo.errors.length > 0) {
 		treatBackMessages(null, resInfo.errors);
 	}else{
+		if (resInfo.listSize) {
+			$("#listcount1").text("符合条件的修理对象为" + resInfo.listSize + "件，请点击【BOLD 统计列表】下载详细列表。");
+			$("#boldbutton").enable();
+			return;
+		} else if (resInfo.listSize == 0) {
+			$("#listcount1").text("没有符合条件的修理对象，请更改条件重新查询。");
+			$("#boldbutton").disable();
+		}
+
 		if(!$.isEmptyObject(chart1)) chart1 = chart1.destroy();
 		if(!$.isEmptyObject(chart2)) chart2 = chart2.destroy();
 		if(!$.isEmptyObject(chart3)) chart3 = chart3.destroy();
 		if(!$.isEmptyObject(chart4)) chart4 = chart4.destroy();
-		
+
 		if(resInfo.S1num == 0){
 			$("#container1").html('<div style="width:100px;margin:100px auto;font-size:20px;">S1无数据</div>').css("width","992px");
 			$("#container2").html("").hide();
@@ -244,9 +275,9 @@ var search_handleComplete = function(xhrObj){
 		}
 		
 		if(resInfo.S1num == 0 && resInfo.S2S3num == 0){
-			$("#exportbutton").disable();
+			$("#exportbutton,#boldbutton").disable();
 		}else{
-			$("#exportbutton").enable();
+			$("#exportbutton,#boldbutton").enable();
 		}
 	}
 };

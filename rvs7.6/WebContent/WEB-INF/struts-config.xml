@@ -1611,7 +1611,7 @@
 			<forward name="main_page" path="/pages/partial/material_part_instruct-page.jsp?from=main" />
 			<forward name="qf_page" path="/pages/partial/material_part_instruct-page.jsp?from=qf" />
 		</action>
-		
+
 		<!-- master 常用采购清单 -->
 		<action path="/supplies_refer_list"
 				type="com.osh.rvs.action.master.SuppliesReferListAction"

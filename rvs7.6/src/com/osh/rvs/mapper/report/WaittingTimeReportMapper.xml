@@ -51,11 +51,11 @@
 	</if>
 	<![CDATA[
 		WHERE
-			ma.level IN(1,2,3)
+			ma.outline_time IS NOT NULL
 		AND
 			ma.break_back_flg = 0
 		AND
-			ma.outline_time IS NOT NULL
+			ma.fix_type in (1,2)
 	]]>
 	<if test="category_id!=null and category_id!='' ">
 	<![CDATA[
@@ -77,9 +77,24 @@
 		AND v_model.model_id = #{model_id}
 	]]>
 	</if>
-	<if test="level!= null">
+	<if test="level eq null">
+	<![CDATA[
+		AND ma.level IN(1,2,3)
+	]]>
+	</if>
+	<if test="(level eq 1) or (level eq 2) or (level eq 3)">
 	<![CDATA[
 		AND ma.level = #{level}
+	]]>
+	</if>
+	<if test="level eq 5">
+	<![CDATA[
+		AND ma.level IN (56,57,58,59)
+	]]>
+	</if>
+	<if test="level eq 9">
+	<![CDATA[
+		AND ma.level IN (91,92,93,96,97,98,99)
 	]]>
 	</if>
 	<if test="section_id!=null and section_id!='' ">
@@ -245,6 +260,7 @@
 	<select id="searchDetails" resultType="WaittingTimeReportEntity" parameterType="list">
 	<![CDATA[
 		SELECT
+			ma.material_id,
 			ma.outline_time AS outline_date,
 			coalesce(ma.omr_notifi_no,ma.sorc_no) AS omr_notifi_no,
 		    model.name AS model_name,
@@ -283,4 +299,144 @@
 	]]>
 	</foreach> 
 	</select>
+
+	<select id="searchBoldDetails" resultType="WaittingTimeReportEntity" parameterType="list">
+	<![CDATA[
+	SELECT
+		material_id,
+	    outline_time,
+	    omr_notifi_no,
+	    model_name,
+	    level,
+	    inline_time,
+	    order_date_start,
+	    order_date_end,
+	    com_drying_time,
+	    f_diffminutes(order_date_start, order_date_end) as wait_partial_distrubute_time,
+	    f_diffminutes(order_date_end, inline_time) as inline_trans_time
+	FROM (
+		SELECT
+			ma.material_id,
+			ma.outline_time,
+			ma.omr_notifi_no,
+		    model.name AS model_name,
+		    ma.level,
+            ma.inline_time,
+			(select order_time from material_partial
+				where material_id = ma.material_id
+				and occur_times = 1) as order_date_start,
+			(select min(recent_signin_time) from material_partial_detail 
+				where material_id = ma.material_id
+				and status <= 4) as order_date_end,
+			sum(dj.drying_time) as com_drying_time
+		FROM 
+			material ma
+		JOIN
+			model
+		ON
+			ma.model_id = model.model_id
+		LEFT JOIN 
+			drying_process dp
+		ON
+			ma.material_id = dp.material_id
+		LEFT JOIN
+			drying_job dj
+		ON
+			dp.drying_job_id = dj.drying_job_id
+		WHERE
+			ma.material_id in
+	]]>
+	<foreach item="material_id" collection="list" open="(" separator="," close=")">
+	<![CDATA[
+		#{material_id}
+	]]>
+	</foreach> 
+	<![CDATA[
+		GROUP BY ma.material_id
+	) aldr
+	]]>
+	</select>
+
+	<select id="getTimeNodes" resultType="map" parameterType="list">
+	<![CDATA[
+	select material_id,
+		nd1,nd2,nd3,nd4,nd5,nd6,coalesce(nd7,nd7_1) as nd7,nd7_1,nd8,nd9_1,nd9,nd11,nd12,nd13,nd14,nd15,nd15_2,nd16,
+		f_diffminutes(coalesce(nd1,nd2),
+			case when nd2 between nd2 and nd4 then nd3
+				else nd2
+			end
+		) as a1,
+		case when cds is not null and cds < 28500 then round(cds / 60) 
+			else f_diffminutes(nd4,nd5) end as m2,
+		f_diffminutes(
+			nd2
+		,nd5) as a2,
+		round(quote / 60) as t3,
+		f_diffminutes(nd5,coalesce(nd7,nd7_1)) as a3,
+		f_diffminutes(nd9_1,nd9) as t4,
+		f_diffminutes(coalesce(nd7,nd7_1),nd8) as h4,
+		f_diffminutes(nd8,nd9) as a4,
+		round(inline / 60) as t6,
+		f_diffminutes(nd11,nd12) as a6,
+		round(qa / 60) as t7,
+		f_diffminutes(nd12,nd14) as a7,
+		f_diffminutes(nd15,coalesce(nd16, nd15_2)) as t8,
+		f_diffminutes(nd14,coalesce(nd16, nd15_2)) as a8,
+		f_diffminutes(coalesce(nd1, nd2, nd3), coalesce(nd7,nd7_1)) as pre,
+		f_diffminutes(nd8,coalesce(nd16, nd15_2)) as post,
+		cds_m
+	from (
+		select 
+			ma.material_id,
+			nd.sorc_reception as nd1,
+			ma.reception_time as nd2,
+			min(CASE WHEN pos.special_page = 'acceptance' THEN pf.finish_time END) as nd3,
+			min(CASE WHEN pos.process_code in ('121', '131') and pf.operate_result != 5 THEN pf.action_time END) as nd4,
+			max(CASE WHEN pos.process_code in ('121', '131') and pf.operate_result = 2 THEN pf.finish_time END) as nd5,
+            group_concat(CASE WHEN pos.process_code in ('121', '131') and pf.operate_result = 2 THEN pf.pcs_inputs END) as cds_m,
+			min(CASE WHEN pos.special_page = 'quotation' OR pos.process_code = '141' THEN pf.action_time END) as nd6,
+			(select min(pause_start_time) from pause_feature 
+				where material_id = ma.material_id
+				and reason in (73,74)
+				and position_id in (select position_id from position where special_page = 'quotation')
+			) as nd7,
+			max(CASE WHEN pos.special_page = 'quotation' THEN pf.finish_time END) as nd7_1,
+			coalesce(nd.customer_agreement, ma.agreed_date) as nd8,
+			coalesce(nd.sap_inline, nd.customer_agreement, ma.agreed_date) as nd9_1,
+			ma.inline_time as nd9,
+			min(CASE WHEN ln.inline_flg = 1 AND process_code != '301' THEN pf.action_time END) as nd11,
+			max(CASE WHEN ln.inline_flg = 1 THEN pf.finish_time END) as nd12,
+			min(CASE WHEN pos.special_page = 'qualityAssurance' THEN pf.action_time END) as nd13,
+			ma.outline_time as nd14,
+			min(CASE WHEN pos.special_page = 'shipping' THEN pf.action_time END) as nd15,
+			max(CASE WHEN pos.special_page = 'shipping' THEN pf.finish_time END) as nd15_2,
+			nd.shipment as nd16,
+			sum(CASE WHEN pos.process_code in ('121') and pf.operate_result != 5 THEN pf.use_seconds END) as cds,
+			sum(CASE WHEN pos.special_page = 'quotation' OR pos.process_code = '141' THEN pf.use_seconds END) as quote,
+			sum(CASE WHEN ln.inline_flg = 1 THEN pf.use_seconds END) as inline,
+			sum(CASE WHEN pos.special_page = 'qualityAssurance' THEN pf.use_seconds END) as qa
+		from 
+			material ma 
+		left join
+			material_time_node nd
+			on ma.material_id = nd.material_id
+		join
+			production_feature pf
+			on ma.material_id = pf.material_id
+		join
+			position pos
+			on pf.position_id = pos.position_id
+		join
+			line ln
+			on pos.line_id = ln.line_id
+		where ma.material_id in 
+		]]>
+		<foreach item="material_id" collection="list" open="(" separator="," close=")">
+		<![CDATA[
+			#{material_id}
+		]]>
+		</foreach> 
+		group by ma.material_id) aldr;
+	</select>
+
 </mapper>
