@@ -44,6 +44,7 @@ import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.MaterialTimeNodeEntity;
 import com.osh.rvs.bean.data.PostMessageEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.inline.MaterialProcessEntity;
@@ -152,7 +153,8 @@ public class MaterialService {
 		CopyOptions cos = new CopyOptions();
 		cos.excludeEmptyString();
 		cos.excludeNull();
-		cos.dateConverter(DateUtil.ISO_DATE_PATTERN, "reception_time", "agreed_date", "scheduled_date", "scheduled_date_end", "outline_time", "partial_order_date", "arrival_plan_date");
+		cos.dateConverter(DateUtil.ISO_DATE_PATTERN, "reception_time", "scheduled_date", "scheduled_date_end", "outline_time", "partial_order_date", "arrival_plan_date");
+		cos.dateConverter(DateUtil.ISO_DATE_TIME_PATTERN, "agreed_date");
 		BeanUtil.copyToFormList(lResultBean, lResultForm, cos, MaterialForm.class);
 		
 		return lResultForm;
@@ -909,7 +911,7 @@ public class MaterialService {
 	}
 
 	public void createReport(String fileFullPath, List<MaterialForm> lResultForm, String searchAddition, 
-			boolean fromSupport, boolean additionOptional, SqlSession conn) {
+			int fromSupport, boolean additionOptional, SqlSession conn) {
 		FileUtils.copyFile(PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\维修对象一览报表模板.xls", fileFullPath);
 		
 		POIFSFileSystem fs;
@@ -938,6 +940,15 @@ public class MaterialService {
             defaultCell.setDataFormat(thdf.getFormat("@"));
 			defaultCell.setFont(fontYH);
 
+			HSSFCellStyle grayCell = book.createCellStyle(); // 暗色
+			grayCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
+			grayCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
+			grayCell.setBorderTop(HSSFCellStyle.BORDER_THIN);//上边框
+			grayCell.setBorderRight(HSSFCellStyle.BORDER_THIN);//右边框
+			grayCell.setFillForegroundColor(HSSFColor.GREY_40_PERCENT.index);
+			grayCell.setFillPattern(HSSFCellStyle.SOLID_FOREGROUND);
+			grayCell.setFont(fontYH);
+
 			HSSFCellStyle highlightCell = book.createCellStyle(); // 亮色
 			highlightCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
 			highlightCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
@@ -955,6 +966,16 @@ public class MaterialService {
 			dateCell.setAlignment(HSSFCellStyle.ALIGN_CENTER);
 			dateCell.setDataFormat(book.createDataFormat().getFormat("yy-mm-dd")); 
 			dateCell.setFont(fontYH);
+
+			HSSFCellStyle fullTimeCell = book.createCellStyle(); // 居中
+			fullTimeCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
+			fullTimeCell.setBorderLeft(HSSFCellStyle.BORDER_THIN);//左边框
+			fullTimeCell.setBorderTop(HSSFCellStyle.BORDER_THIN);//上边框
+			fullTimeCell.setBorderRight(HSSFCellStyle.BORDER_THIN);//右边框
+			fullTimeCell.setAlignment(HSSFCellStyle.ALIGN_CENTER);
+			fullTimeCell.setDataFormat(book.createDataFormat().getFormat("yyyy-MM-dd h:mm")); // HSSFDataFormat.getBuiltinFormat("MM/dd h:mm")
+			fullTimeCell.setFillForegroundColor((short) 1);
+			fullTimeCell.setFont(fontYH);
 
 			HSSFCellStyle timeCell = book.createCellStyle(); // 居中
 			timeCell.setBorderBottom(HSSFCellStyle.BORDER_THIN); //下边框
@@ -982,10 +1003,12 @@ public class MaterialService {
 			boolean showQuote = (intSearchAddition & 2) == 2;
 			boolean showPartorder = (intSearchAddition & 4) == 4;
 			boolean showOutshore = (intSearchAddition & 8) == 8;
+			boolean showLogitics = (intSearchAddition & 16) == 16;
 			HSSFRow rowHeader = listSheet.getRow(0);
 			int colCur = -1;
 
 			listSheet.setDefaultColumnStyle(++colCur, highlightCell);
+			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
 			listSheet.setDefaultColumnStyle(++colCur, defaultCell);
@@ -1003,6 +1026,14 @@ public class MaterialService {
 				removeHeaderColumn(rowHeader, colCur + 1);
 			}
 
+			// 物流到货
+			if (showLogitics) {
+				listSheet.setDefaultColumnStyle(++colCur, fullTimeCell);
+				listSheet.setColumnWidth(colCur, 4160);
+			} else {
+				removeHeaderColumn(rowHeader, colCur + 1);
+			}
+
 			listSheet.setDefaultColumnStyle(++colCur, dateCell);
 
 			// 消毒灭菌完成	报价日期
@@ -1015,16 +1046,21 @@ public class MaterialService {
 			}
 
 			listSheet.setDefaultColumnStyle(++colCur, dateCell);
+			listSheet.setColumnWidth(colCur, 4160);
 			listSheet.setDefaultColumnStyle(++colCur, dateCell);
 
 			MaterialProcessMapper mapper = null;
 			// 投线时间 ～ NS 完成
-			if (fromSupport) {
+			if (fromSupport == 1) {
 				mapper = conn.getMapper(MaterialProcessMapper.class);
 
 				listSheet.setDefaultColumnStyle(++colCur, dateCell);
 				listSheet.setDefaultColumnStyle(++colCur, dateCell);
 				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+			} else if (fromSupport == 2) {
+				listSheet.setDefaultColumnStyle(++colCur, dateCell);
+				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
 			} else {
 				removeHeaderColumn(rowHeader, colCur + 1);
 				removeHeaderColumn(rowHeader, colCur + 1);
@@ -1041,6 +1077,14 @@ public class MaterialService {
 				listSheet.setColumnWidth(colCur, 3290);
 			} else {
 				removeHeaderColumn(rowHeader, colCur + 1);
+				removeHeaderColumn(rowHeader, colCur + 1);
+			}
+
+			// 物流出货
+			if (showLogitics) {
+				listSheet.setDefaultColumnStyle(++colCur, fullTimeCell);
+				listSheet.setColumnWidth(colCur, 4160);
+			} else {
 				removeHeaderColumn(rowHeader, colCur + 1);
 			}
 
@@ -1075,7 +1119,13 @@ public class MaterialService {
 				cell.setCellValue(i+1);
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+				if (!"0".equals(resultForm.getBreak_back_flg())) {
+					cell.setCellStyle(grayCell);
+				}
 				cell.setCellValue(resultForm.getSorc_no());
+
+				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+				cell.setCellValue(resultForm.getCategory_name());
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getModel_name());
@@ -1110,6 +1160,20 @@ public class MaterialService {
 					cell.setCellValue(resultForm.getProcessing_position2());
 				}
 
+				// 物流到货
+				if (showLogitics) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					String sSorcReception = resultForm.getSorc_reception();
+					if (isEmpty(sSorcReception)) {
+						cell.setCellValue("-");
+					} else if (sSorcReception.endsWith("00:00:00")) {
+						cell.setCellStyle(dateCell);
+						cell.setCellValue(sSorcReception.substring(0, 10));
+					} else {
+						cell.setCellValue(sSorcReception.substring(0, 10) + " " + sSorcReception.substring(11, 16));
+					}
+				}
+
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				String sReceptionTime = resultForm.getReception_time();
 				if (sReceptionTime != null && sReceptionTime.length() > 10)
@@ -1125,12 +1189,20 @@ public class MaterialService {
 				}
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-				cell.setCellValue(resultForm.getAgreed_date());
+				String sAgreedDate = resultForm.getAgreed_date();
+				if (isEmpty(sAgreedDate)) {
+					cell.setCellValue("-");
+				} else if (sAgreedDate.endsWith("00:00:00")) {
+					cell.setCellValue(sAgreedDate.substring(0, 10));
+				} else {
+					cell.setCellStyle(fullTimeCell);
+					cell.setCellValue(sAgreedDate.substring(0, 10) + " " + sAgreedDate.substring(11, 16));
+				}
 
 				cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 				cell.setCellValue(resultForm.getScheduled_date());
 
-				if (fromSupport) {
+				if (fromSupport > 0) {
 					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
 					if (resultForm.getInline_time() != null) {
 						cell.setCellValue(resultForm.getInline_time().replace('/', '-'));
@@ -1138,20 +1210,22 @@ public class MaterialService {
 						cell.setCellValue("-");
 					}
 
-					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-					MaterialProcessEntity mpEntity = mapper.loadMaterialProcessOfLine(resultForm.getMaterial_id(), "00000000012");
-					if (mpEntity == null || mpEntity.getFinish_date() == null) {
-						cell.setCellValue("-");
-					} else {
-						cell.setCellValue(DateUtil.toString(mpEntity.getFinish_date(), DateUtil.ISO_DATE_PATTERN));
-					}
+					if (fromSupport == 1) {
+						cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+						MaterialProcessEntity mpEntity = mapper.loadMaterialProcessOfLine(resultForm.getMaterial_id(), "00000000012");
+						if (mpEntity == null || mpEntity.getFinish_date() == null) {
+							cell.setCellValue("-");
+						} else {
+							cell.setCellValue(DateUtil.toString(mpEntity.getFinish_date(), DateUtil.ISO_DATE_PATTERN));
+						}
 
-					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
-					mpEntity = mapper.loadMaterialProcessOfLine(resultForm.getMaterial_id(), "00000000013");
-					if (mpEntity == null || mpEntity.getFinish_date() == null) {
-						cell.setCellValue("-");
-					} else {
-						cell.setCellValue(DateUtil.toString(mpEntity.getFinish_date(), DateUtil.ISO_DATE_PATTERN));
+						cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+						mpEntity = mapper.loadMaterialProcessOfLine(resultForm.getMaterial_id(), "00000000013");
+						if (mpEntity == null || mpEntity.getFinish_date() == null) {
+							cell.setCellValue("-");
+						} else {
+							cell.setCellValue(DateUtil.toString(mpEntity.getFinish_date(), DateUtil.ISO_DATE_PATTERN));
+						}
 					}
 				}
 
@@ -1183,6 +1257,20 @@ public class MaterialService {
 						cell.setCellValue(outshoreTime);
 					} else {
 						cell.setCellValue("");
+					}
+				}
+
+				// 物流出货
+				if (showLogitics) {
+					cell = row.createCell(++colCur, HSSFCell.CELL_TYPE_STRING);
+					String sSorcShipment = resultForm.getSorc_shipment();
+					if (isEmpty(sSorcShipment)) {
+						cell.setCellValue("-");
+					} else 	if (sSorcShipment.endsWith("00:00:00")) {
+						cell.setCellStyle(dateCell);
+						cell.setCellValue(sSorcShipment.substring(0, 10));
+					} else {
+						cell.setCellValue(sSorcShipment.substring(0, 10) + " " + sSorcShipment.substring(11, 16));
 					}
 				}
 
@@ -1600,9 +1688,8 @@ public class MaterialService {
 				
 				return o2.getFile_time().compareTo(o1.getFile_time());
 			}
-			
 		});
-		
+
 		return monthFilesDownloadForms;
 	}
 
@@ -1664,5 +1751,19 @@ public class MaterialService {
 		List<MaterialEntity> retEntites = mapper.searchMaterialPerlTempFiling();
 
 		return checkFileExist(retEntites);
+	}
+}
+	/**
+	 * 取得修理品时间节点
+	 * 
+	 * @param material_id
+	 * @param conn
+	 * @return
+	 */
+	public MaterialTimeNodeEntity getMaterialTimeNode(String material_id, SqlSession conn) {
+		MaterialMapper mMapper = conn.getMapper(MaterialMapper.class);
+
+		MaterialTimeNodeEntity entity = mMapper.getMaterialTimeNode(material_id);
+		return entity;
 	}
 }

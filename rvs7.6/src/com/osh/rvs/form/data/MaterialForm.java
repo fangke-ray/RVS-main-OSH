@@ -193,6 +193,12 @@ public class MaterialForm extends ActionForm {
 	@BeanField(title = "合同对象", name = "contract_related", type = FieldType.Integer, length = 1)
 	private String contract_related;
 
+	@BeanField(title="物流到货",name="sorc_reception",type=FieldType.DateTime)
+	private String sorc_reception;
+
+	@BeanField(title="物流出货",name="sorc_shipment",type=FieldType.DateTime)
+	private String sorc_shipment;
+
 	@BeanField(title = "-", name = "int_search_addition", type = FieldType.Integer, length = 2)
 	private String search_addition;
 
@@ -932,6 +938,22 @@ public class MaterialForm extends ActionForm {
 
 	public void setContract_related(String contract_related) {
 		this.contract_related = contract_related;
+	}
+
+	public String getSorc_reception() {
+		return sorc_reception;
+	}
+
+	public void setSorc_reception(String sorc_reception) {
+		this.sorc_reception = sorc_reception;
+	}
+
+	public String getSorc_shipment() {
+		return sorc_shipment;
+	}
+
+	public void setSorc_shipment(String sorc_shipment) {
+		this.sorc_shipment = sorc_shipment;
 	}
 
 }

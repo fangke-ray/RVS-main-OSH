@@ -231,6 +231,11 @@
 		<if test="category_id=='00000000055'">
 				,serial_ring.ring_code
 		</if>
+		<if test="(int_search_addition band 16) eq 16">
+		<![CDATA[
+			 ,tn.sorc_reception, tn.shipment as sorc_shipment
+		]]>
+		</if>
 		<![CDATA[
 			 from Material a left join material_process mpr on mpr.material_id = a.material_id and mpr.line_id = 14
 		]]>
@@ -247,6 +252,7 @@
 		<if test="category_id=='00000000055'">
 			left join serial_ring on a.material_id = serial_ring.material_id
 		</if>
+			left join material_time_node tn on a.material_id = tn.material_id
 		<where>
 				a.break_back_flg IN(0,1,2)
 			<if test="model_id!= null and model_id!= ''">

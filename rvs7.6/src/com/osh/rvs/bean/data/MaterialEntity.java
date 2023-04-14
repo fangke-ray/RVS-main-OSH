@@ -126,6 +126,10 @@ public class MaterialEntity implements Serializable {
 
 	private Integer int_search_addition;
 
+	private Date sorc_reception;
+
+	private Date sorc_shipment;
+
 	public String getCategory_id() {
 		return category_id;
 	}
@@ -840,6 +844,22 @@ public class MaterialEntity implements Serializable {
 
 	public void setContract_related(Integer contract_related) {
 		this.contract_related = contract_related;
+	}
+
+	public Date getSorc_reception() {
+		return sorc_reception;
+	}
+
+	public void setSorc_reception(Date sorc_reception) {
+		this.sorc_reception = sorc_reception;
+	}
+
+	public Date getSorc_shipment() {
+		return sorc_shipment;
+	}
+
+	public void setSorc_shipment(Date sorc_shipment) {
+		this.sorc_shipment = sorc_shipment;
 	}
 	
 }

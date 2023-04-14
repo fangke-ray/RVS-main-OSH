@@ -204,6 +204,7 @@ var colsname_process = ['section_name','processing_position','processing_positio
 var colsname_quote = ['quotation_date_start','quotation_time'];
 var colsname_partorder = ['partial_order_date','arrival_plan_date'];
 var colsname_outshore = ['outline_time','finish_time'];
+var colsname_logitics = ['sorc_reception','sorc_shipment'];
 
 function initGrid() {
 	$("#list").jqGrid({
@@ -214,10 +215,13 @@ function initGrid() {
 		rowheight : 23,
 		datatype : "local",
 		colNames : ['维修对象ID','修理单号','型号','等级', '机身号', '委托处', 
-				'维修课室' , '当前位置', 'NS<br>当前位置', 
+				'维修课室' , '当前位置', 'NS<br>当前位置',
+				'物流到货',
 				'消毒灭菌' , '报价完成', 
 				'受理日期','同意日期',
-				'纳期','总组出货<br>安排','总组完成','品保通过','出货时间','零件订购日','入库预定日','延误','返还','环序号'],
+				'纳期','总组出货<br>安排','总组完成','品保通过','包装出货',
+				'物流出货',
+				'零件订购日','入库预定日','延误','返还','环序号'],
 		colModel : [
 			{name:'material_id',index:'material_id', hidden:true, key: true},
 			{name:'sorc_no',index:'sorc_no', width:55},
@@ -228,6 +232,7 @@ function initGrid() {
 			{name:'section_name',index:'section_name', width:45},
 			{name:'processing_position',index:'processing_position', width:45, align:'center'},
 			{name:'processing_position2',index:'processing_position2', width:45, align:'center'},
+			{name:'sorc_reception',index:'sorc_reception', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d H\\h'}},
 			{name:'quotation_date_start',index:'quotation_date_start', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
 			{name:'quotation_time',index:'quotation_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
 			{name:'reception_time',index:'reception_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
@@ -248,6 +253,7 @@ function initGrid() {
 			{name:'finish_time_end',index:'finish_time_end', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'y-m-d'}},
 			{name:'outline_time',index:'outline_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
 			{name:'finish_time',index:'finish_time', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d'}},
+			{name:'sorc_shipment',index:'sorc_shipment', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'y-m-d H\\h'}},
 			
 			{name:'partial_order_date',index:'partial_order_date', width:45, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d',newformat:'y-m-d'}},
 			{name:'arrival_plan_date',index:'arrival_plan_date', width:45, align:'center', 
@@ -346,7 +352,13 @@ function search_handleComplete(xhrobj, textStatus) {
 	} else {
 		Array.prototype.push.apply(hideCols, colsname_outshore)
 	}
-	
+
+	if($("#searchAdditional_logitics").is(":checked")) {
+		Array.prototype.push.apply(showCols, colsname_logitics)
+	} else {
+		Array.prototype.push.apply(hideCols, colsname_logitics)
+	}
+
 	if(keepSearchData.category_id == '00000000055'){
 		Array.prototype.push.apply(showCols, ['ring_code'])
 	}else{
