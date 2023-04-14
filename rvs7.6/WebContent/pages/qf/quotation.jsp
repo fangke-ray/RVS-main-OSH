@@ -83,7 +83,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
 <script type="text/javascript" src="js/qf/set_optional_fix.js"></script>
-<script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=3476"></script>
+<script type="text/javascript" src="js/qf/wip_locate.js"></script>
+<script type="text/javascript" src="js/partial/common/instruction_sheets.js"></script>
 <script type="text/javascript">
 ${WORKINFO}
 </script>
@@ -318,7 +319,7 @@ if (peripheral!=null && peripheral) {
 	Boolean needPcs = (Boolean) request.getAttribute("needPcs");
 	if (needPcs!=null && needPcs) {
 %>
-	<script type="text/javascript" src="js/common/pcs_editor.js?v=3476"></script>
+	<script type="text/javascript" src="js/common/pcs_editor.js"></script>
 	<div id="manualdetailarea" style="margin-bottom: 16px;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
 			<span class="areatitle">工程检查票</span>

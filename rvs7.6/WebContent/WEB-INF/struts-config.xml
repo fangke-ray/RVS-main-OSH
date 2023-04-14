@@ -1671,6 +1671,14 @@
 				scope="request">
 		</action>
 
+		<!-- WIP库位编辑 -->
+		<action path="/wip_storage"
+			type="com.osh.rvs.action.qf.WipStorageAction"
+			name="wipStorageForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+		</action>
 
 		<!-- 修理品待投线出库 -->
 		<action path="/pda_wip_outstock"

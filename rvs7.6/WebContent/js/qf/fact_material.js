@@ -279,7 +279,6 @@ var enablebuttons = function() {
 			$("#updateagreebutton").disable();
 		}
 	}
-}
 
 	enablebuttonsWip1(rowids);
 };
@@ -1223,7 +1222,10 @@ function initGrid() {
 				enablebuttons();
 				$("#gbox_list tr td[aria\\-describedby='list_wip_location']").unbind("click");
 				$("#gbox_list tr td[aria\\-describedby='list_wip_location']").click(function() {
-					showLocate($(this).text());
+					var location = $(this).text();
+					if (location && location.substring(0,3) != "BO-") {
+						showLocate(location);
+					}					
 				});
 				var jthis = $("#list");
 
@@ -1960,6 +1962,7 @@ function exportReportInlinePlan() {
 			}
 		}
 	});
+}
 var inline_start=function(rowdata) {
 
 	warningConfirm("此操作通常可以通过SAP投线动作同步。\n通常不需要在此画面操作，是否继续操作？",

@@ -74,7 +74,11 @@ public class WipAction extends BaseAction {
 		if (privacies.contains(RvsConsts.PRIVACY_RECEPT_FACT)  // TODO quotationer
 				|| privacies.contains(RvsConsts.PRIVACY_RECEPT_EDIT) 
 				|| privacies.contains(RvsConsts.PRIVACY_FACT_MATERIAL)) {
-			req.setAttribute("editor", "true");
+			if (privacies.contains(RvsConsts.PRIVACY_ADMIN)) {
+				req.setAttribute("editor", "admin");
+			} else {
+				req.setAttribute("editor", "true");
+			}
 		} else {
 			req.setAttribute("editor", "false");
 		}
