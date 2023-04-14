@@ -1368,4 +1368,12 @@
 		<value code="5">已提交订单</value>
 	</codelist>
 
+	<codelist name="shipping_trolley">
+		<value code="1">7F 推车</value>
+		<value code="2">6F 内镜推车</value>
+		<value code="3">6F 周边推车</value>
+		<value code="4">5F 推车</value>
+		<value code="5">1F 推车</value>
+	</codelist>
+
 </codelist-config>

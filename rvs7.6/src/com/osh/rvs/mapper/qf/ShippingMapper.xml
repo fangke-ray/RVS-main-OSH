@@ -21,15 +21,15 @@
 				`m`.break_back_flg, tcs.location as wip_location,
 				(SELECT
 					action_time
-				FROM fact_material
+				FROM fact_material force index(material)
 				JOIN af_production_feature ON fact_material.af_pf_key = af_production_feature.af_pf_key
 				WHERE
 					fact_material.material_id = m.material_id
-					and af_production_feature.production_type = 241) 
+					and af_production_feature.production_type = 241 limit 1) 
 				as filing_time
 			FROM material m
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
-			JOIN production_feature pf
+			JOIN production_feature pf force index(Action_time)
 			  ON `m`.material_id = `pf`.material_id
 			  AND `pf`.position_id = #{position_id}
 			  AND `pf`.operate_result = 0
@@ -55,6 +55,7 @@
 			  AND `pf`.position_id = #{position_id}
 			  AND `pf`.operate_result = 2
 			  AND `pf`.finish_time > current_date
+			  AND not exists (select 1 from `shipping_trolley` where material_id = m.material_id)
 			ORDER BY quotation_time DESC
 		]]>
 	</select>
@@ -89,5 +90,47 @@
 		 WHERE `m`.material_id = #{material_id};
 	]]>
 	</select>
+
+	<insert id="putIntoTrolley" parameterType="String">
+		INSERT INTO `shipping_trolley`
+		(`trolley_code`,
+		`material_id`)
+		VALUES
+		(#{trolley_code},
+		#{material_id});
+	</insert>
+
+	<select id="getInTrolleyMaterials" resultType="MaterialEntity">
+		select ma.omr_notifi_no as sorc_no, ma.serial_no, ma.break_back_flg, 
+			mdl.name as model_name, 
+			ctg.name as category_name,
+			tro.trolley_code as wip_location
+		from shipping_trolley tro join material ma 
+			on tro.material_id = ma.material_id
+		join model mdl
+			on ma.model_id = mdl.model_id
+		join category ctg
+			on mdl.category_id = ctg.category_id
+		join production_feature pf
+			on tro.material_id = pf.material_id and pf.position_id in (select position_id from position where special_page = 'shipping')
+			and pf.operate_result = 2
+		order by pf.finish_time desc
+		;
+	</select>
+
+	<delete id="clearTrolley" parameterType="String">
+		DELETE FROM `shipping_trolley`
+		WHERE `trolley_code` = #{trolley_code} 
+		;
+	</delete>
+
+	<update id="updateMaterialTimeNodeShipment" parameterType="String">
+		<![CDATA[
+			UPDATE `material_time_node` SET
+			`shipment` = current_timestamp,
+			`ots_reception` = null
+			where material_id in (select material_id from shipping_trolley where trolley_code = #{trolley_code})
+		]]>
+	</update>
 
 </mapper>

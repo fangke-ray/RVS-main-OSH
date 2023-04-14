@@ -104,9 +104,11 @@ public class ShippingService {
 		
 	}
 
-	public void scanMaterial(SqlSessionManager conn, String material_id, HttpServletRequest req, List<MsgInfo> errors,
+	public ProductionFeatureEntity scanMaterial(SqlSessionManager conn, String material_id, HttpServletRequest req, List<MsgInfo> errors,
 			Map<String, Object> listResponse) throws Exception {
 		PositionPanelService ppService = new PositionPanelService();
+
+		ProductionFeatureEntity waitingPf = null;
 
 		// 取得用户信息
 		HttpSession session = req.getSession();
@@ -131,7 +133,7 @@ public class ShippingService {
 		} else {
 		
 			// 判断维修对象在等待区，并返回这一条作业信息
-			ProductionFeatureEntity waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
+			waitingPf = ppService.checkMaterialId(material_id, "true", user, errors, conn);
 
 			if (errors.size() == 0) {
 				getProccessingData(listResponse, material_id, waitingPf, user, conn);
@@ -156,6 +158,8 @@ public class ShippingService {
 		}
 
 		user.setSection_id(section_id); // TODO
+
+		return waitingPf;
 	}
 
 	public void getProccessingData(Map<String, Object> listResponse, String material_id, ProductionFeatureEntity pf,
@@ -172,6 +176,25 @@ public class ShippingService {
 		BeanUtil.copyToForm(materialEntity, materialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
 
 		return materialForm;
+	}
+
+	public void putinTrolley(String material_id, String trolley_code,
+			SqlSessionManager conn) {
+		ShippingMapper mapper = conn.getMapper(ShippingMapper.class);
+		mapper.putIntoTrolley(trolley_code, material_id);
+	}
+
+	public List<MaterialEntity> getInTrolleyMaterials(SqlSession conn) {
+		ShippingMapper mapper = conn.getMapper(ShippingMapper.class);
+		return mapper.getInTrolleyMaterials();
+	}
+
+	public void finishForTrolley(String trolley_code, SqlSessionManager conn) {
+		ShippingMapper mapper = conn.getMapper(ShippingMapper.class);
+
+		mapper.updateMaterialTimeNodeShipment(trolley_code);
+		mapper.clearTrolley(trolley_code);
+		
 	}
 
 }

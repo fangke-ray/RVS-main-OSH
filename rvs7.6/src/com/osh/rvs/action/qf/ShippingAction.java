@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -21,9 +22,11 @@ import com.osh.rvs.bean.data.ProductionFeatureEntity;
 import com.osh.rvs.bean.qf.FactMaterialEntity;
 import com.osh.rvs.bean.qf.TurnoverCaseEntity;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.qf.ShippingMapper;
 import com.osh.rvs.service.MaterialService;
+import com.osh.rvs.service.ProductionFeatureService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.qf.FactMaterialService;
 import com.osh.rvs.service.qf.ShippingService;
@@ -59,6 +62,18 @@ public class ShippingAction extends BaseAction {
 		log.info("ShippingAction.init start");
 
 		req.setAttribute("oBoundOutOcm", CodeListUtils.getSelectOptions("material_direct_ocm", null, ""));
+
+		Map<String, String> dmMap = CodeListUtils.getList("shipping_trolley");
+
+		req.setAttribute("dm_styles", ppService.getDmStyles(dmMap));
+//
+//		String ret = "<span class=\"device_manage_select\"><select class=\"manager_no\" code=\"ER71101\">" + CodeListUtils.getSelectOptions(dmMap, "", null, false) + "</select></span>"
+//				+ "<span class=\"device_manage_item ui-state-default\">推车No. 选择: </span>";
+
+		req.setAttribute("oManageNo", dmMap);
+
+		// req.setAttribute("oManageNo", ret);
+
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 
@@ -163,20 +178,31 @@ public class ShippingAction extends BaseAction {
 		List<MsgInfo> errors = new ArrayList<MsgInfo>();
 
 		String material_id = req.getParameter("material_id");
+		String trolley_code = req.getParameter("trolley_code");
 
-		TurnoverCaseService tcService = new TurnoverCaseService();
-		TurnoverCaseEntity tce = tcService.getStorageByMaterial(material_id, conn);
-		if (tce != null) {
-			MsgInfo info = new MsgInfo();
-			info.setErrcode("info.turnoverCase.materialShippingWithoutCase");
-			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.turnoverCase.materialShippingWithoutCase"));
-			errors.add(info);
+		// 检查出货单是否制作
+		MaterialService mService = new MaterialService();
+		MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, material_id);
+
+		if (mEntity == null) {
+			// 维修对象不在用户所在等待区
+			MsgInfo msgInfo = new MsgInfo();
+			msgInfo.setComponentid("material_id");
+			msgInfo.setErrcode("info.linework.notInWaiting");
+			msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.notInWaiting"));
+			errors.add(msgInfo);
+		} else {
+			TurnoverCaseService tcService = new TurnoverCaseService();
+			TurnoverCaseEntity tce = tcService.getStorageByMaterial(material_id, conn);
+			if (tce != null) {
+				MsgInfo info = new MsgInfo();
+				info.setErrcode("info.turnoverCase.materialShippingWithoutCase");
+				info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.turnoverCase.materialShippingWithoutCase"));
+				errors.add(info);
+			}
 		}
 
 		if (errors.size() == 0) {
-			// 检查出货单是否制作
-			MaterialService mService = new MaterialService();
-			MaterialEntity mEntity = mService.loadSimpleMaterialDetailEntity(conn, material_id);
 			if (mEntity.getBreak_back_flg() == 0) { // 维修品
 
 				FactMaterialService factMaterialService = new FactMaterialService();
@@ -198,7 +224,32 @@ public class ShippingAction extends BaseAction {
 
 		if (errors.size() == 0) {
 			ShippingService service = new ShippingService();
-			service.scanMaterial(conn, material_id, req, errors, listResponse);
+			ProductionFeatureEntity waitingPf = service.scanMaterial(conn, material_id, req, errors, listResponse);
+
+			if (errors.size() == 0 && trolley_code != null) {
+				// 放入推车
+				service.putinTrolley(material_id, trolley_code, conn);
+
+				// 完成出货工位
+				// 取得用户信息
+				HttpSession session = req.getSession();
+				LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+				ProductionFeatureService pfService = new ProductionFeatureService();
+				// 标准作业时间
+				String usString = RvsUtils.getZeroOverLine("_default", null, user, "711");
+				Integer use_seconds = 300;
+				try {
+					use_seconds = Integer.valueOf(usString) * 60;
+				} catch (Exception e) {
+				}
+				
+				waitingPf.setUse_seconds(use_seconds);
+				waitingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+				pfService.finishProductionFeatureSetFinish(waitingPf, conn);
+
+				listRefresh(listResponse, user.getPosition_id(), conn);
+			}
 		}
 
 		// 检查发生错误时报告错误信息
@@ -235,7 +286,6 @@ public class ShippingAction extends BaseAction {
 			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
 			listRefresh(listResponse, user.getPosition_id(), conn);
-
 		}
 
 		// 检查发生错误时报告错误信息
@@ -248,12 +298,12 @@ public class ShippingAction extends BaseAction {
 	}
 
 	private void listRefresh(Map<String, Object> listResponse, String postion_id, SqlSession conn) {
-		ShippingMapper sDao = conn.getMapper(ShippingMapper.class);
+		ShippingService sService = new ShippingService();
 		// 取得待品保处理对象一览 711
-		List<MaterialEntity> waitings = sDao.getWaitings(postion_id);
+		List<MaterialEntity> waitings = sService.getWaitingMaterial(postion_id, conn);
 
 		// 取得今日已完成处理对象一览
-		List<MaterialEntity> finished = sDao.getFinished(postion_id);
+		List<MaterialEntity> finished = sService.getFinishedMaterial(postion_id, conn);
 
 		List<MaterialForm> waitingsForm = new ArrayList<MaterialForm>();
 		List<MaterialForm> finishedForm = new ArrayList<MaterialForm>();
@@ -264,5 +314,51 @@ public class ShippingAction extends BaseAction {
 		listResponse.put("waitings", waitingsForm);
 		listResponse.put("finished", finishedForm);
 
+		listResponse.put("inTrolleyMaterials", sService.getInTrolleyMaterials(conn));
+	}
+
+	/**
+	 * 推车清空
+	 * 
+	 * @param mapping ActionMapping
+	 * @param form 表单
+	 * @param req 页面请求
+	 * @param res 页面响应
+	 * @param conn 数据库会话
+	 * @throws Exception
+	 */
+	@Privacies(permit = { 0 })
+	public void doFinishForTrolley(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
+		log.info("ShippingAction.doFinishForTrolley start");
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		String trolley_code = req.getParameter("trolley_code");
+
+		if (errors.size() == 0) {
+			service.finishForTrolley(trolley_code, conn);
+
+			// 取得用户信息
+			HttpSession session = req.getSession();
+			LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+
+			// 取得今日已完成处理对象一览
+			List<MaterialEntity> finished = service.getFinishedMaterial(user.getPosition_id(), conn);
+
+			List<MaterialForm> finishedForm = new ArrayList<MaterialForm>();
+
+			BeanUtil.copyToFormList(finished, finishedForm, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
+
+			listResponse.put("finished", finishedForm);
+		}
+
+		// 检查发生错误时报告错误信息
+		listResponse.put("errors", errors);
+
+		// 返回Json格式响应信息
+		returnJsonResponse(res, listResponse);
+
+		log.info("ShippingAction.doFinishForTrolley end");
 	}
 }

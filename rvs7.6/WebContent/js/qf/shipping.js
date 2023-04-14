@@ -66,6 +66,10 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			load_list(resInfo.waitings);
 			acceptted_list(resInfo.finished);
 
+			if (resInfo.inTrolleyMaterials) {
+				remapTrolley(resInfo.inTrolleyMaterials);
+			}
+
 			// 存在进行中作业的时候
 			if(resInfo.workstauts == 1) {
 				treatStart(resInfo);
@@ -75,7 +79,7 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			}
 		}
 	} catch (e) {
-		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
+		console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
 				+ e.lineNumber + " fileName: " + e.fileName);
 	};
 };
@@ -95,6 +99,8 @@ var doShippingInit=function(){
 		complete : doInit_ajaxSuccess
 	});
 };
+
+var dmLevers = {};
 
 $(function() {
 	$("input.ui-button").button();
@@ -126,6 +132,54 @@ $(function() {
 
 	$("#tcWarehouseButton").click(function() {
 		afObj.applyProcess(131, this, showWarehousingPlan, arguments);
+	});
+
+	$("#executearea .device_manage_item")
+		.click(function(e){
+		var item_class = $(this).attr("class");
+		$("#executearea .device_manage_select").removeClass("device_manage_select");
+		$(this).addClass("device_manage_select");
+		if (item_class) {
+			var item_classar = item_class.split(" ");
+			for (var iar in item_classar) {
+				if (item_classar[iar].indexOf("sty_") == 0) {
+					$("#scanner_inputer").attr("class", "scanner_inputer dwidth-half")
+						.addClass(item_classar[iar]);
+					return;
+				}
+			}
+		}
+	});
+
+	var $workingTd = $("#working_table tr:eq(0) > td");
+	if ($workingTd.length > 2) {
+		$workingTd.click(function(){
+			$("#working_table td.showing").removeClass("showing");
+			$(this).addClass("showing");
+		});
+	}
+
+	dmLevers = $.parseJSON($("#dm_levers").val());
+	for (var dmId in dmLevers) {
+		var lever = dmLevers[dmId];
+		var title = "上限 " + lever;
+		$("#dm_" + dmId).attr({"title": title, "lever" : lever});
+	}
+
+	$(".finishbutton").click(function(){
+		var $finishbutton = $(this);
+		var $td = $finishbutton.closest("td");
+		var forList = $td.attr("for");
+		var $targetTd = $("#working_table tr:eq(0) td[for=" + forList + "]");
+		if ($targetTd.length == 0 || $targetTd.find(".waiting").length == 0) {
+			errorPop("此推车是空的。");
+			return;
+		}
+		warningConfirm("是否要完成以下设备的作业：" + $("#working_table tr:eq(0) td[for=" + forList + "] .w_group").text() + "？",
+			function(){
+				afObj.applyProcess(132, this, doFinishForTrolley, [forList]);
+			}
+		);
 	});
 
 	doShippingInit();
@@ -380,7 +434,11 @@ var doStart_ajaxSuccess=function(xhrobj){
 			// 共通出错信息框
 			treatBackMessages(null, resInfo.errors);
 		} else {
-			treatStart(resInfo);
+			if (resInfo.inTrolleyMaterials) {
+				remapTrolley(resInfo.inTrolleyMaterials);
+			} else {
+				treatStart(resInfo);
+			}
 		}
 	} catch (e) {
 		alert("name: " + e.name + " message: " + e.message + " lineNumber: "
@@ -389,8 +447,27 @@ var doStart_ajaxSuccess=function(xhrobj){
 };
 
 var doStart=function(){
+	var scanClass = $("#scanner_inputer").attr("class");
+
+	var styIdx = scanClass.indexOf("sty_");
+	if (styIdx < 0) {
+		errorPop("请选择使用的设备。");
+		$("#scanner_inputer").val("");
+		return;
+	}
+
+	var devId = scanClass.substring(styIdx + 4, styIdx + 5);
+
+//	var checkLeverRst = checkLever($("#working_table .sty_" + devId + " .workings .waiting:visible"), $("#dm_" + devId)
+//		, undefined, !$(".waiting#w_" + materialId).is(":contains('光学视管')"));
+//	if (checkLeverRst == -1) {
+//		errorPop("当前设备容量已至上限。");
+//		return;
+//	}
+
 	var data = {
-		material_id : $("#scanner_inputer").val()
+		material_id : $("#scanner_inputer").val(),
+		trolley_code : devId
 	}
 
 	$("#scanner_inputer").attr("value", "");
@@ -412,4 +489,119 @@ var doStartPost = function(data) {
 		error : ajaxError,
 		complete : doStart_ajaxSuccess
 	});
+}
+
+var doFinishForTrolley = function(forTrolley) {
+	// Ajax提交
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : servicePath + '?method=doFinishForTrolley',
+		cache : false,
+		data : {trolley_code : forTrolley.replace('dm_', '')},
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj, textStatus) {
+			doFinishForTrolley_ajaxSuccess(xhrobj, textStatus, forTrolley);
+		}
+	});
+}
+
+var doFinishForTrolley_ajaxSuccess = function(xhrobj, textStatus, forTrolley){
+	var resInfo = $.parseJSON(xhrobj.responseText);
+
+	if (resInfo.errors && resInfo.errors.length) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+		return;
+	}
+
+	var $target = $("#working_table td[for='" + forTrolley + "']").eq(0);
+
+	$target.children(".workings").children().hide("drop", {direction: 'right'}, function() {
+		$(this).remove();
+	});
+
+	acceptted_list(resInfo.finished);
+}
+
+var remapTrolley = function(inTrolleyMaterials) {
+
+	var waiting_htmls = {};
+	for (var iworking = 0; iworking < inTrolleyMaterials.length; iworking++) {
+
+		var waiting = inTrolleyMaterials[iworking];
+
+		var pI = waiting.wip_location;
+
+		if (waiting_htmls[pI] == null) {
+			waiting_htmls[pI] = "";
+		}
+
+		var item_html = '<div class="waiting tube">' +
+						'<div class="tube-liquid' + expeditedColor(waiting)  + '">' +
+							waiting.sorc_no + ' | ' + waiting.category_name + ' | ' + waiting.model_name + ' | ' + waiting.serial_no;
+		item_html +=	'</div>';
+		item_html +=	'</div>';
+
+		waiting_htmls[pI] += item_html;
+	}
+
+	var $focTd = null;
+	$(".workings").each(function(idx,ele){
+		var $workings = $(ele); 
+		var $td = $workings.closest("td");
+		
+		size = setWoringArea($workings, $td, waiting_htmls);
+
+		if (size > 0 && $focTd == null) $focTd = $td;
+	});
+	if ($focTd != null) {
+		$focTd.trigger("click");
+	}
+
+}
+
+var expeditedColor = function(waiting) {
+	if (waiting.break_back_flg == 2) return ' tube-red';
+	return ' tube-green';
+}
+
+var setWoringArea = function($workings, $td, waiting_htmls){
+	var td_for = $td.attr("for");
+	if (waiting_htmls != null) $workings.html(waiting_htmls[td_for.substring(3)]);
+
+	var textBld = [];
+	var checkLeverResult = checkLever($workings.find(".waiting:visible"), $("#" + td_for), textBld);
+
+	if (textBld.length) {
+		$td.find(".working_cnt").html(textBld[0]);
+	}
+
+	return $workings.find(".waiting:visible").length;
+}
+
+var checkLever = function($countItem, $device, textBld, addNonUdi) {
+	var size = $countItem.length;
+
+	var lever = $device.attr("lever");
+
+	if (lever) {
+		if (size >= parseInt(lever)) {
+			if (textBld != undefined) {
+				textBld.push("<font color='red'>" + size + "</font>/" + lever);
+			}
+			return -1;
+		} else {
+			if (textBld != undefined) {
+				textBld.push(size + "/" + lever);
+			}
+			return 1;
+		}
+	} else {
+		if (textBld != undefined) textBld.push(size);
+		return 0;
+	}
 }
