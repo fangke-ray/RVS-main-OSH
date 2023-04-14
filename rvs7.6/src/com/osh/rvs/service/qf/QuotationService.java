@@ -7,6 +7,9 @@
 */ 
 package com.osh.rvs.service.qf;
 
+import static com.osh.rvs.common.RvsConsts.POSITION_QUOTATION_D;
+import static com.osh.rvs.common.RvsConsts.POSITION_QUOTATION_D_PREV;
+import static com.osh.rvs.common.RvsConsts.POSITION_QUOTATION_N;
 import static framework.huiqing.common.util.CommonStringUtil.isEmpty;
 
 import java.util.ArrayList;
@@ -28,6 +31,7 @@ import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.mapper.inline.MaterialCommentMapper;
+import com.osh.rvs.mapper.inline.ProductionFeatureMapper;
 import com.osh.rvs.mapper.inline.ScheduleMapper;
 import com.osh.rvs.mapper.qf.QuotationMapper;
 import com.osh.rvs.service.CustomerService;
@@ -36,7 +40,6 @@ import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.OptionalFixService;
 import com.osh.rvs.service.ProcessAssignService;
-import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.MaterialPartInstructService;
 
 import framework.huiqing.common.util.CommonStringUtil;
@@ -228,6 +231,8 @@ public class QuotationService {
 
 		String process_code = "";
 
+		ProductionFeatureMapper pfMapper = conn.getMapper(ProductionFeatureMapper.class);
+
 		for (MaterialEntity pe : paused) {
 			MaterialForm pausedMaterialForm = new MaterialForm();
 			BeanUtil.copyToForm(pe, pausedMaterialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
@@ -237,9 +242,9 @@ public class QuotationService {
 			if (pe.getNow_pause_reason() != null)
 				if (pe.getNow_pause_reason() >= 70) {
 					process_code = "";
-					if ("00000000013".equals(pe.getProcessing_position())) process_code = "151";//TODO zhenggui
-					else if ("00000000014".equals(pe.getProcessing_position())) process_code = "161";
-					else if ("00000000101".equals(pe.getProcessing_position())) process_code = "160";
+					if (POSITION_QUOTATION_N.equals(pe.getProcessing_position())) process_code = "151";//TODO zhenggui
+					else if (POSITION_QUOTATION_D.equals(pe.getProcessing_position())) process_code = "161";
+					else if (POSITION_QUOTATION_D_PREV.equals(pe.getProcessing_position())) process_code = "160";
 
 					String sReason = PathConsts.POSITION_SETTINGS.getProperty("step." + process_code + "." + pe.getNow_pause_reason());
 					pausedMaterialForm.setStatus("" + pe.getNow_pause_reason());
@@ -276,13 +281,20 @@ public class QuotationService {
 			pausedForm.add(pausedMaterialForm);
 		}
 
-		BeanUtil.copyToFormList(finished, finishedForm, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialForm.class);
 		ScheduleMapper saMapper = conn.getMapper(ScheduleMapper.class);
 		Set<String> ccdLineTargets = saMapper.getCcdLineTargets();
 
 		for (MaterialEntity pe : finished) {
 			MaterialForm finMaterialForm = new MaterialForm();
 			BeanUtil.copyToForm(pe, finMaterialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+			if (RvsUtils.getCcdModels(conn).contains(finMaterialForm.getModel_id())) {
+				if (!"1".equals(finMaterialForm.getScheduled_expedited())) {
+					finMaterialForm.setScheduled_expedited("-1");
+				}
+			} else {
+				finMaterialForm.setScheduled_expedited(null);
+			}
 
 			if (RvsUtils.getCcdLineModels(conn).contains(finMaterialForm.getModel_id())
 					&& !"1".equals(finMaterialForm.getLevel())) {

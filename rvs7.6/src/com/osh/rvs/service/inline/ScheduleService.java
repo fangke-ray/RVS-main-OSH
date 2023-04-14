@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -138,42 +139,44 @@ public class ScheduleService {
 					String processing_position = entity.getProcessing_position();
 					Integer px = entity.getPx();
 					// (coalesce(mpn.px, 0) * 10 + mpc.px)
-					if (processing_position.startsWith("1")) {
-						retForm.setPx("");
-					} else if (processing_position.startsWith("2")) {
-						if (entity.getLevel() > 3)
-							retForm.setPx("B");
-						else
-							retForm.setPx("A");
-					} else {
-						if (processing_position.startsWith("4") || processing_position.startsWith("5")) {
-							px = px % 10;
-						} else {
-							px = px / 10;
-						}
-
-						entity.setPosition_id(ReverseResolution.getPositionByProcessCode(entity.getProcessing_position(), conn));
-
-//						if (dividePositions.contains(entity.getPosition_id()) 
-//								|| (dividePositions.contains(entity.getPosition_id2()) && entity.getNs_finish_date() == null)) {
-							if (px == 1) {
-//								if (processing_position.startsWith("4") || processing_position.startsWith("5")) {
-//									retForm.setPx("B1");
-//								} else {
+					if (processing_position != null) {
+						if (processing_position.startsWith("1")) {
+							retForm.setPx("");
+						} else if (processing_position.startsWith("2")) {
+							if (entity.getLevel() > 3)
 								retForm.setPx("B");
-//								}
-							}
-							else if (px == 4)
-								retForm.setPx("B1");
-							else if (px == 7)
-								retForm.setPx("B2");
-							else if (px == 2)
-								retForm.setPx("C");
 							else
 								retForm.setPx("A");
-//						} else {
-//							retForm.setPx("");
-//						}
+						} else {
+							if (processing_position.startsWith("4") || processing_position.startsWith("5")) {
+								px = px % 10;
+							} else {
+								px = px / 10;
+							}
+
+							entity.setPosition_id(ReverseResolution.getPositionByProcessCode(entity.getProcessing_position(), conn));
+
+//							if (dividePositions.contains(entity.getPosition_id()) 
+//									|| (dividePositions.contains(entity.getPosition_id2()) && entity.getNs_finish_date() == null)) {
+								if (px == 1) {
+//									if (processing_position.startsWith("4") || processing_position.startsWith("5")) {
+//										retForm.setPx("B1");
+//									} else {
+									retForm.setPx("B");
+//									}
+								}
+								else if (px == 4)
+									retForm.setPx("B1");
+								else if (px == 7)
+									retForm.setPx("B2");
+								else if (px == 2)
+									retForm.setPx("C");
+								else
+									retForm.setPx("A");
+//							} else {
+//								retForm.setPx("");
+//							}
+						}
 					}
 					if (entity.getNs_processing_position() != null && entity.getNs_processing_position().startsWith("3") && entity.getNs_finish_date() == null) {
 						px = entity.getPx() / 10;

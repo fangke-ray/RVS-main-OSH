@@ -29,6 +29,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/partial/consumable_application_edit.js"></script>
 <script type="text/javascript" src="js/qf/set_material_process_assign.js"></script>
 <script type="text/javascript" src="js/qf/set_optional_fix.js"></script>
+<script type="text/javascript" src="js/qf/wip_locate.js"></script>
 <script type="text/javascript" src="js/partial/common/instruction_sheets.js?v=2"></script>
 <title>现品报价课 受理报价工程</title>
 </head>
@@ -143,7 +144,16 @@ ${WORKINFO}
 <div id="workarea" class="dwidth-full" style="margin-bottom:16px;">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser">
 		<span class="areatitle">今日 现品报价课 受理报价工程 一览</span>
-	</div>
+<% if (isQuotator) {%>
+<%@include file="/widgets/qf/record_quotation.jsp"%>
+<% } %>
+<% if (isManager) { %>
+		<input class="ui-button" id="attendance_button" style="float:right;margin-right:4px;" value="当日出勤" type="button"/>
+		<input type="button" value="申请消耗品" class="ui-button" style="float:right;margin-right:4px;" onclick="javascript:consumable_application_edit()"/>
+<% } else if (isEditor) { %>
+		<input type="button" value="申请消耗品" class="ui-button" style="float:right;margin-right:4px;" onclick="javascript:consumable_application_edit()"/>
+<% } %>
+		</div>
 	<div class="ui-widget-content">
 		<div style="padding:2px;padding-left:6px;padding-top:8px;height:36px;">
 <% if (isManager) { %>
@@ -161,18 +171,14 @@ ${WORKINFO}
 		</div>
 		<input type="button" class="ui-button" id="printbutton" value="重新打印小票" />
 		<input type="button" class="ui-button" id="printaddbutton" value="补充打印小票" />
-		<input type="button" value="申请消耗品" class="ui-button" onclick="javascript:consumable_application_edit()"/>
-		<input class="ui-button" id="attendance_button" value="当日出勤" type="button"/>
 <% } else if (isEditor) { %>
 		<input type="button" class="ui-button" id="printbutton" value="重新打印小票" />
 		<input type="button" class="ui-button" id="printaddbutton" value="补充打印小票" />
-		<input type="button" value="申请消耗品" class="ui-button" onclick="javascript:consumable_application_edit()"/>
 <% } %>
 <% if (isQuotator) {%>
 		<input type="button" class="ui-button" value="未修理返还" id="stopbutton" />
 		<input type="button" class="ui-button" value="报价备注" id="quotationcommentbutton" />
 		<input type="button" class="ui-button" value="工作指示单编辑" id="instuctbutton" />
-<%@include file="/widgets/qf/record_quotation.jsp"%>
 <% } %>
 	</div>
 		<table id="performance_list"></table>

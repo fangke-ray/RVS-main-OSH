@@ -80,6 +80,7 @@ public class RvsConsts extends BaseConst {
 	public static final String POSITION_ACCEPTANCE = "00000000009";
 	public static final String POSITION_QUOTATION_N = "00000000013";
 	public static final String POSITION_QUOTATION_D = "00000000014";
+	public static final String POSITION_QUOTATION_D_PREV = "00000000101";
 	public static final String POSITION_QA = "00000000046";
 	public static final String POSITION_SHIPPING = "00000000047";
 	public static final String POSITION_QA_LIGHT = "00000000052";

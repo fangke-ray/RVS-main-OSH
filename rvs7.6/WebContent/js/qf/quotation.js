@@ -1003,7 +1003,21 @@ function acceptted_list(quotation_listdata){
 			recordpos: 'left',
 			viewsortcols : [true,'vertical',true],
 			gridComplete: function(){
+				$("#printbutton").disable();
+				$("#printaddbutton").disable();
 				$("#ccdtagbutton").hide();
+
+				var jthis = $("#exd_list");
+
+				var dataIds = jthis.getDataIDs();
+				var length = dataIds.length;
+				for (var i = 0; i < length; i++) {
+					var rowdata = jthis.jqGrid('getRowData', dataIds[i]);
+
+					if (rowdata.level == "0") {
+						$("#exd_list tr#" + dataIds[i] + " td[aria\\-describedby='exd_list_level']").css("backgroundColor", "orange");
+					}
+				}
 			}
 		});
 	}

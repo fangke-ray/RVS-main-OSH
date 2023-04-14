@@ -3,6 +3,7 @@ package com.osh.rvs.service;
 import static framework.huiqing.common.util.CommonStringUtil.joinBy;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ import com.osh.rvs.service.proxy.ProcessAssignProxy;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
 public class ProductionFeatureService {
@@ -480,15 +482,16 @@ public class ProductionFeatureService {
 			boolean anml_flg = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
 
 			if (mEntity.getDirect_flg()!=null && 1 == mEntity.getDirect_flg()) {
-				nextPositions.add("00000000101"); // IISE确认
+				nextPositions.add(RvsConsts.POSITION_QUOTATION_D_PREV); // IISE确认
 			} else if (anml_flg) {
 				nextPositions.add(RvsConsts.POSITION_ANML_QUOTAION); // 报价
 			} else if ((mEntity.getService_repair_flg()!=null && (mEntity.getService_repair_flg() == 1 || mEntity.getService_repair_flg() == 2))) {
-				nextPositions.add(RvsConsts.POSITION_QUOTATION_D); // 直送报价
+				nextPositions.add(RvsConsts.POSITION_QUOTATION_D_PREV); // IISE确认
+//				nextPositions.add(RvsConsts.POSITION_QUOTATION_D); // 直送报价
 			} else {
 				nextPositions.add(RvsConsts.POSITION_QUOTATION_N); // 报价
 			}
-		} else if ("00000000101".equals(position_id)) { // IISE
+		} else if (RvsConsts.POSITION_QUOTATION_D_PREV.equals(position_id)) { // IISE
 
 			boolean anml_flg = MaterialTagService.getAnmlMaterials(conn).contains(workingPf.getMaterial_id());
 

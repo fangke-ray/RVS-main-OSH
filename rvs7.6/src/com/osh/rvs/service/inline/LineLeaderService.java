@@ -519,6 +519,10 @@ public class LineLeaderService {
 					}
 				}
 			}
+
+			if (entity.getLevel() == null && entity.getProcessing_position().contains("WIP:")) {
+				retForm.setLevel("0");
+			}
 			
 			ret.add(retForm);
 		}

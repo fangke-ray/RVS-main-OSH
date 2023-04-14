@@ -1204,6 +1204,7 @@ function initGrid() {
 			viewrecords: true,
 			caption: "",
 			multiselect: true,
+			multiboxonly: true,
 			gridview: true, // Speed up
 			pagerpos: 'right',
 			pgbuttons: true,
@@ -1963,6 +1964,115 @@ function exportReportInlinePlan() {
 		}
 	});
 }
+
+var getBoLocationMap = function() {
+	var rowid = $("#list").jqGrid("getGridParam", "selrow");
+	var rowData = $("#list").getRowData(rowid);
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : 'wip.do?method=getBoLocationMap',
+		cache : false,
+		data : null,
+		type : "post",
+		dataType : "json",// 服务器返回的数据类型
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function(xhrobj, textStatus){
+			getBoLocationMap_handleComplete(xhrobj, rowData);
+		}
+	});
+}
+
+var getBoLocationMap_handleComplete = function(xhrobj, rowData) {
+	var resInfo = $.parseJSON(xhrobj.responseText);
+	if (resInfo.errors && resInfo.errors.length) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+		
+		return;
+	}
+
+	var $wip_pop = $("#wip_pop");
+	$wip_pop.hide();
+	$wip_pop.html(resInfo.storageHtml)
+		.attr({material_id : rowData.material_id});
+
+	var $dialog = $wip_pop.dialog({
+		title : "放入BO库位",
+		width : 720,
+		resizable : false,
+		modal : true,
+		buttons : {
+			"关闭" : function(){
+				$dialog.dialog("close");
+			}
+		}
+	});
+
+	$wip_pop.find("table").click(function(e){
+		if ("TD" == e.target.tagName) {
+			if (!$(e.target).hasClass("wip-heaped")) {
+				var material_id = $wip_pop.attr("material_id");
+
+				wip_location = $(e.target).text();
+
+				var data = {
+					material_id : rowData["material_id"],
+					"wip_location":wip_location
+				}
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : false,
+					url : 'wip.do?method=doputin',
+					cache : false,
+					data : data,
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function() {
+						findit();
+						$wip_pop.dialog("close");
+					}
+				});
+			}
+		}
+	});
+
+	$wip_pop.show();
+}
+
+var warehousing=function() {
+
+	var $list = $("#listareas table.ui-jqgrid-btable:visible") ;
+
+	var rowid = $list.jqGrid("getGridParam","selrow");
+	var rowdata = $list.getRowData(rowid);
+
+	var data = {};
+
+	data["material.material_id[0]"] = rowdata["material_id"];
+	data["material.break_back_flg[0]"] = "0";
+	data["material.fix_type[0]"] = rowdata["fix_type"];
+
+	$.ajax({
+		beforeSend : ajaxRequestType,
+		async : false,
+		url : 'wip.do?method=dowarehousing',
+		cache : false,
+		data : data,
+		type : "post",
+		dataType : "json",
+		success : ajaxSuccessCheck,
+		error : ajaxError,
+		complete : function() {
+			findit(keepSearchData);
+		}
+	});	
+}
+
 var inline_start=function(rowdata) {
 
 	warningConfirm("此操作通常可以通过SAP投线动作同步。\n通常不需要在此画面操作，是否继续操作？",

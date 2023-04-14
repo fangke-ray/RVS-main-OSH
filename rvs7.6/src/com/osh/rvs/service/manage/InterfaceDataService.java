@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import net.arnx.jsonic.JSON;
 
@@ -43,8 +44,24 @@ public class InterfaceDataService {
 				InterfaceDataForm.class);
 
 		for (InterfaceDataForm resultForm : lResultForm) {
-			InterfaceDataForm tmpForm = JSON.decode(resultForm.getContent(), InterfaceDataForm.class);
-			resultForm.setOMRNotifiNo(tmpForm.getOMRNotifiNo());
+			if ("shipping".equals(resultForm.getKind())) {
+				try {
+					Map<String, Object> tmpForm = JSON.decode(resultForm.getContent(), Map.class);
+					if (tmpForm != null && tmpForm.containsKey("MT_RVS004")) {
+						Map itemRepair = (Map) tmpForm.get("MT_RVS004");
+						if (itemRepair.containsKey("itemRepair")) {
+							List<Object> items = (List<Object>) itemRepair.get("itemRepair");
+							InterfaceDataForm itemForm = JSON.decode(JSON.encode(items.get(0)), InterfaceDataForm.class);
+							resultForm.setOMRNotifiNo(itemForm.getOMRNotifiNo());
+						}
+					}
+				} catch (Exception e) {
+				
+				}
+			} else {
+				InterfaceDataForm tmpForm = JSON.decode(resultForm.getContent(), InterfaceDataForm.class);
+				resultForm.setOMRNotifiNo(tmpForm.getOMRNotifiNo());
+			}
 		}
 
 		return lResultForm;
