@@ -562,8 +562,9 @@ public class SuppliesOrderService {
 			out = new FileOutputStream(filePath);
 			// 写入文件
 			work.write(out);
+			out.close();
 			_log.info("设置Excel内容结束");
-			
+
 			_log.info("保存为pdf文件开始");
 			XlsUtil xls = new XlsUtil(filePath);
 			xls.SaveAsPdf(pdfName);

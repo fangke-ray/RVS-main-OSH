@@ -696,7 +696,7 @@ public class PcsRequestService {
 	 * @throws Exception 
 	 */
 	public void importToSystem(Map<String, String[]> parameterMap, LoginData user,
-			SqlSessionManager conn) {
+			SqlSessionManager conn) throws Exception {
 		// keys.pcs_request_key
 		PcsRequestMapper prMapper = conn.getMapper(PcsRequestMapper.class);
 		// 对应型号
@@ -772,8 +772,12 @@ public class PcsRequestService {
 						"\\excel\\" + targetPath + entity.getOrg_file_name() + ".xls";
 				String oldTargetFileHtml = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + 
 						"\\xml\\" + targetPath + entity.getOrg_file_name() + ".html";
-				new File(oldTargetFileXls).delete();
-				new File(oldTargetFileHtml).delete();
+				boolean deleted = true;
+				deleted = deleted && new File(oldTargetFileXls).delete();
+				deleted = deleted && new File(oldTargetFileHtml).delete();
+				if (!deleted) {
+					throw new Exception("文件系统不允许删除" + oldTargetFileXls + "或" + oldTargetFileHtml);
+				}
 			}
 
 			// 复制到目标目录

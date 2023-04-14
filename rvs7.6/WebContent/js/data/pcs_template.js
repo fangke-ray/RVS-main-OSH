@@ -13,7 +13,7 @@ $(function(){
 		$("#reference_model_id").val("").prev().val("");
 		$("#result_area").hide();
 	}
-	
+
 	$("#resetbutton").click(clearContent);
 
 	$("#referencebutton").click(function(){

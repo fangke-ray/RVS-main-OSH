@@ -138,7 +138,12 @@
 			mp.order_date,
 			a.section_id,
 			sc.name as section_name,
-			dismantle.action_time as dismantle_time,
+			(
+			select min(action_time) from production_feature
+			where position_id = 16
+			and material_id = a.material_id
+			group by material_id
+			) as dismantle_time,
 			(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id <>13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as processing_position,
 			(select p1.process_code from position p1 join production_feature p2 on p1.position_id = p2.position_id where p2.material_id = a.material_id and p1.line_id =13 and p2.operate_result not in (5, 8) order by (1-ISNULL(p2.action_time)), p2.action_time desc limit 1) as ns_processing_position,
 			mpd.scheduled_date as dec_plan_date,
@@ -185,32 +190,15 @@
 		<![CDATA[
 			group by mpd.material_id) mp
 			on a.material_id = mp.material_id
-		left join (
-			SELECT material_id, scheduled_date, finish_date
-			FROM material_process
-			WHERE line_id = 12
-			) mpd
-			on a.material_id = mpd.material_id
-		left join (
-			SELECT material_id, scheduled_date, finish_date
-			FROM material_process
-			WHERE line_id = 13
-			) mpn
-			on a.material_id = mpn.material_id
-		left join (
-			SELECT material_id, scheduled_date, finish_date, scheduled_assign_date
-			FROM material_process
-			WHERE line_id = 14
-			) mpc
-			on a.material_id = mpc.material_id
-		left join (
-			select material_id, min(action_time) as action_time from production_feature
-			where position_id = 16
-			group by material_id
-			) dismantle
-			on a.material_id = dismantle.material_id
+		left join
+			material_process mpd ON a.material_id = mpd.material_id and mpd.line_id = 12
+		left join
+			material_process mpn ON a.material_id = mpn.material_id and mpn.line_id = 13
+		left join
+			material_process mpc ON a.material_id = mpc.material_id and mpc.line_id = 14
 		where
 			break_back_flg = 0
+			AND (a.outline_time >= current_date OR a.outline_time IS Null)
 			and a.material_id in
 		]]>
 			<foreach item="id" collection="list" open="(" separator="," close=")">

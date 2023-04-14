@@ -590,14 +590,17 @@ public class PartialReleaseService {
 		return respFormList;
 	}
 
+	@Deprecated
 	public void finishNsPartialRelease(String material_id, LoginData user, List<String> triggerList, boolean checkWaiting, SqlSessionManager conn) throws Exception {
 		finishPartialRelease(material_id, "00000000027", user, triggerList, checkWaiting, conn);
 	}
 
+	@Deprecated
 	public void finishDecPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
 		finishPartialRelease(material_id, "00000000021", user, triggerList, true, conn);
 	}
 
+	@Deprecated
 	public void finishAnmlPartialRelease(String material_id, LoginData user, List<String> triggerList, SqlSessionManager conn) throws Exception {
 		String anmlRecPositionId = null;
 		Map<String, String> positionUnitizedRevers = PositionService.getPositionUnitizedRevers(conn);

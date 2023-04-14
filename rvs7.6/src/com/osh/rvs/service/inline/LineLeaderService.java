@@ -29,7 +29,6 @@ import com.osh.rvs.bean.inline.PauseFeatureEntity;
 import com.osh.rvs.bean.master.OperatorEntity;
 import com.osh.rvs.bean.master.OperatorNamedEntity;
 import com.osh.rvs.bean.master.PositionEntity;
-import com.osh.rvs.common.FseBridgeUtil;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -581,12 +580,16 @@ public class LineLeaderService {
 			mtService.updataTagByMaterialId(entity.getMaterial_id(), MaterialTagService.TAG_ANIMAL_EXPR, entity.getAnml_exp() == 1, conn);
 		}
 
-		// FSE 数据同步
-		try{
-			FseBridgeUtil.toUpdateMaterial(entity.getMaterial_id(), "ll_update");
-		} catch (Exception e) {
-			e.printStackTrace();
+		if (materialForm.getStatus() != null) {
+			MaterialTagService mtService = new MaterialTagService();
+			mtService.updataTagByMaterialId(entity.getMaterial_id(), MaterialTagService.TAG_FOR_CCD_REPLACE, "1".equals(materialForm.getStatus()), conn);
 		}
+//		// FSE 数据同步
+//		try{
+//			FseBridgeUtil.toUpdateMaterial(entity.getMaterial_id(), "ll_update");
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
 	}
 
 	/**

@@ -82,68 +82,6 @@ var insert_handleComplete = function(xhrobj, textStatus) {
 	};
 }
 
-var showWipMap=function(rid) {
-	$.ajax({
-		beforeSend : ajaxRequestType,
-		async : true,
-		url : servicePath + '?method=getwipempty',
-		cache : false,
-		data : null,
-		type : "post",
-		dataType : "json",
-		success : ajaxSuccessCheck,
-		error : ajaxError,
-		complete : function(xhrobj) {
-			var resInfo = null;
-			try {
-				// 以Object形式读取JSON
-				eval('resInfo =' + xhrobj.responseText);
-				if (resInfo.errors.length > 0) {
-					// 共通出错信息框
-					treatBackMessages(null, resInfo.errors);
-				} else {
-					$("#wip_pop").hide();
-					$("#wip_pop").load("widgets/qf/wip_map.jsp", function(responseText, textStatus, XMLHttpRequest) {
-						 //新增
-				
-						$("#wip_pop").dialog({
-							position : [ 800, 20 ],
-							title : "WIP 入库选择",
-							width : 1000,
-							show: "blind",
-							height : 640,// 'auto' ,
-							resizable : false,
-							modal : true,
-							minHeight : 200,
-							buttons : {}
-						});
-
-						$("#wip_pop").find("td").addClass("wip-empty");
-						for (var iheap in resInfo.heaps) {
-							$("#wip_pop").find("td[wipid="+resInfo.heaps[iheap]+"]").removeClass("wip-empty").addClass("ui-storage-highlight wip-heaped");
-						}
-
-						//$("#wip_pop").css("cursor", "pointer");
-						$("#wip_pop").find(".ui-widget-content").click(function(e){
-							if ("TD" == e.target.tagName) {
-								if (!$(e.target).hasClass("wip-heaped")) {
-									selwip = $(e.target).attr("wipid");
-									showInput();
-								}
-							}
-						});
-
-						$("#wip_pop").show();
-					});
-				}
-			} catch (e) {
-				alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-						+ e.lineNumber + " fileName: " + e.fileName);
-			};
-		}
-	});
-}
-
 var warehousing=function() {
 	var rowid = $("#list").jqGrid("getGridParam", "selrow");
 

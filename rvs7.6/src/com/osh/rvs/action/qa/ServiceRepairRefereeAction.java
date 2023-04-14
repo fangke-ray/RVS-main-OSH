@@ -397,6 +397,12 @@ public class ServiceRepairRefereeAction extends BaseAction{
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 
 		SoloProductionFeatureEntity org = service.checkWorkingPfServiceRepair(user.getOperator_id(), conn, msgInfos);
+		if (org == null) {
+			MsgInfo info=new MsgInfo();
+			info.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("info.linework.workingLost"));
+			info.setErrcode("info.linework.workingLost");
+			msgInfos.add(info);
+		}
 
 		if(msgInfos.size()==0){
 			service.updateServiceRepair(form,conn);

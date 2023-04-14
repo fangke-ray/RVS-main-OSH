@@ -34,8 +34,19 @@ var ajaxRequestType = function(XMLHttpRequest){
  */
 var ajaxSuccessCheck = function(data, textStatus) {
 
-	if (data.redirect) {
-		window.location.href = data.redirect;
+	if (data) {
+		if (typeof data === "object") {
+			if (data.redirect) {
+				window.location.href = data.redirect;
+			}
+		} else if (typeof data === "string") {
+			if (data.charAt(0) == '{'  && data.indexOf("redirect") >= 0) {
+				var dataObj = $.parseJSON(data);
+				if (dataObj.redirect) {
+					window.location.href = dataObj.redirect;
+				}
+			}
+		}
 	}
 }
 
@@ -185,7 +196,7 @@ function killWindowOverlay(){
 
 	$.fn.overlay = function(options) {
 
-	    var opts = $.extend({}, $.fn.overlay.defaults, options);
+		var opts = $.extend({}, $.fn.overlay.defaults, options);
 
 		if (opts.action === "close") {
 			var overlay = $(this).find(".overlay").eq(0);

@@ -171,10 +171,16 @@ ${dm_styles}
 				<div id="manualarea" style="float: right;">
 					<div class="ui-widget-header ui-corner-top ui-helper-clearfix dwidth-half">
 						<div class="ui-state-default td-title">扫描录入区域</div>
+<%
+	if (oManageNo != null) {
+%>
 <logic:iterate id="device" name="oManageNo">
 <div class="device_manage_item sty_<bean:write name="device" property="key"/>" id="dm_<bean:write name="device" property="key"/>"><bean:write name="device" property="value"/></div>
 </logic:iterate>
 <input type=hidden id="dm_levers" value='${dm_levers}'/>
+<%
+	}
+%>
 					</div>
 					<div class="ui-widget-content dwidth-half" id="scanner_container" style="min-height: 198px;">
 						<input type="text" id="scanner_inputer" title="扫描前请点入此处" class="scanner_inputer dwidth-half"></input>

@@ -95,7 +95,7 @@ public class BeforeLineLeaderAction extends BaseAction {
 		List<PositionEntity> positions = user.getPositions();
 		for(PositionEntity entity : positions){
 			// 报价人员
-			if("151".equals(entity.getProcess_code()) || "181".equals(entity.getProcess_code())){
+			if("151".equals(entity.getProcess_code()) || "152".equals(entity.getProcess_code()) || "181".equals(entity.getProcess_code())){
 				quotator = "true";
 				break;
 			}

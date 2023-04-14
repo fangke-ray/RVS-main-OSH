@@ -45,7 +45,7 @@ public class LightFixAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 2, 0 })
+	@Privacies(permit = { 1, 0 })
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
 		log.info("LightFixAction.init start");
@@ -92,7 +92,7 @@ public class LightFixAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 2, 0 })
+	@Privacies(permit = { 1, 0 })
 	public void search(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
 		log.info("LightFixAction.search start");
@@ -134,7 +134,7 @@ public class LightFixAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 2, 0 })
+	@Privacies(permit = { 1, 0 })
 	public void detail(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
 		log.info("LightFixAction.detail start");
@@ -174,7 +174,7 @@ public class LightFixAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 2, 0 })
+	@Privacies(permit = { 1, 0 })
 	public void doinsert(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSessionManager conn) throws Exception {
 		log.info("LightFixAction.doinsert start");
@@ -211,7 +211,7 @@ public class LightFixAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 2, 0 })
+	@Privacies(permit = { 1, 0 })
 	public void doupdate(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSessionManager conn) throws Exception {
 		log.info("LightFixAction.doupdate start");
@@ -249,7 +249,7 @@ public class LightFixAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 2, 0 })
+	@Privacies(permit = { 1, 0 })
 	public void dodelete(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSessionManager conn) throws Exception {
 		log.info("LightFixAction.dodelete start");

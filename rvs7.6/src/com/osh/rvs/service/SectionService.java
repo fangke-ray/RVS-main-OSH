@@ -130,6 +130,16 @@ public class SectionService {
 		}
 	}
 
+	public String getNameById(String section_id, SqlSession conn) {
+		if (!nameCache.containsKey(section_id)) {
+			// 从数据库中查询记录
+			SectionMapper dao = conn.getMapper(SectionMapper.class);
+			SectionEntity resultBean = dao.getSectionByID(section_id);
+			nameCache.put(section_id, resultBean.getName());
+		}
+		return nameCache.get(section_id);
+	}
+
 	/**
 	 * 标准检查以外的合法性检查
 	 * @param sectionForm 表单
@@ -179,6 +189,7 @@ public class SectionService {
 
 			// 清空工位/课室关系
 			sectionLaPosition.clear();
+			nameCache.clear();
 		}
 	}
 
@@ -214,6 +225,7 @@ public class SectionService {
 
 			// 清空工位/课室关系
 			sectionLaPosition.clear();
+			nameCache.clear();
 		}
 	}
 
@@ -242,6 +254,7 @@ public class SectionService {
 
 			// 清空工位/课室关系
 			sectionLaPosition.clear();
+			nameCache.clear();
 		}
 	}
 
@@ -263,6 +276,7 @@ public class SectionService {
 	}
 
 	private static Map<String, List<String>> sectionLaPosition = new HashMap<String, List<String>>();
+	private static Map<String, String> nameCache = new HashMap<String, String>();
 
 	/**
 	 * 取得存在工位的课室信息

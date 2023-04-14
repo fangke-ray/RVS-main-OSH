@@ -31,7 +31,7 @@
 
 	<insert id="inputMaterialComment" parameterType="map">
 	<![CDATA[ 
-		REPLACE INTO `material_comment` 
+		INSERT INTO `material_comment` 
 			(`material_id`, `operator_id`, `comment`, `create_datetime`) 
 		VALUES (#{material_id}, #{operator_id}, #{comment}, #{create_datetime});
 	]]>
