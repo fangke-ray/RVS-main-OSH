@@ -223,7 +223,7 @@ public class MaterialFactService {
 	public String createReport(SqlSession conn) throws Exception {
 		// 模板路径
 		
-		String path = PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\" + "今日投线一览.xls";
+		String path = PathConsts.BASE_PATH + PathConsts.REPORT_TEMPLATE + "\\" + "今日投线一览FY2023.xls";
 		String cacheName = "今日投线一览" + new Date().getTime() + ".xls";
 		String cachePath = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\" + cacheName;
 		try {
@@ -285,7 +285,7 @@ public class MaterialFactService {
 				
 				//ESAS NO.
 				HSSFCell esasNoCell = row.createCell(3);
-				esasNoCell.setCellValue(materialFactEntity.getEsas_no());
+				esasNoCell.setCellValue(materialFactEntity.getCategory_name());
 				esasNoCell.setCellStyle(styleAlignLeft);
 				
 				//型号
@@ -322,7 +322,11 @@ public class MaterialFactService {
 				
 				//投入科室
 				HSSFCell sectionNameCell = row.createCell(7);
-				sectionNameCell.setCellValue(materialFactEntity.getSection_name());
+				if (MaterialTagService.getAnmlMaterials(conn).contains(materialFactEntity.getMaterial_id())) {
+					sectionNameCell.setCellValue("动物实验用");
+				} else {
+					sectionNameCell.setCellValue(materialFactEntity.getSection_name());
+				}
 				sectionNameCell.setCellStyle(styleAlignCenter);
 				
 				//客户同意日
@@ -674,7 +678,12 @@ public class MaterialFactService {
 			}
 
 			if (featureEntity.getPosition_id() != null) {
-				featureMapper.insertProductionFeature(featureEntity);
+//				if ("00000000025".equals(featureEntity.getPosition_id())) {
+//					ProductionFeatureService pfService = new ProductionFeatureService();
+//					pfService.continueFromOver(materialId, featureEntity.getPosition_id(), featureEntity.getSection_id(), conn);
+//				} else {
+					featureMapper.insertProductionFeature(featureEntity);
+//				}
 			}
 		} else
 		if (fix_type != null && fix_type == 2) { // //如果是单元进展记录
