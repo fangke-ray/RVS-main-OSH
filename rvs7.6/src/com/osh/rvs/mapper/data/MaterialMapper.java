@@ -176,4 +176,6 @@ public interface MaterialMapper {
 	public List<MaterialEntity> searchMaterialPerlTempFiling();
 
 	public MaterialTimeNodeEntity getMaterialTimeNode(String material_id);	
+	public void createMaterialTimeNode(MaterialTimeNodeEntity material);	
+	public void updateMaterialTimeNode(MaterialTimeNodeEntity material);	
 }

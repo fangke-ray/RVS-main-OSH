@@ -1114,4 +1114,32 @@
 		]]>
 	</select>
 
+	<insert id="createMaterialTimeNode" parameterType="MaterialTimeNodeEntity">
+		<![CDATA[
+		INSERT INTO `material_time_node`
+		(`material_id`,
+		`sorc_reception`,
+		`customer_agreement`,
+		`sap_inline`,
+		`shipment`)
+		VALUES
+		(#{material_id},
+		#{sorc_reception},
+		#{customer_agreement},
+		#{sap_inline},
+		#{shipment});
+		]]>
+	</insert>
+
+	<update id="updateMaterialTimeNode" parameterType="MaterialTimeNodeEntity">
+		<![CDATA[
+			UPDATE `material_time_node` SET
+			`sorc_reception` = coalesce(#{sorc_reception}, `sorc_reception`),
+			`customer_agreement` = coalesce(#{customer_agreement}, `customer_agreement`),
+			`sap_inline` = coalesce(#{sap_inline}, `sap_inline`),
+			`shipment` = #{shipment}
+			where material_id = #{material_id}
+		]]>
+	</update>
+
 </mapper>

@@ -14,6 +14,7 @@
 				a.model_id,
 				mdl.category_name,
 				mdl.name as model_name,
+				mdl.kind as kind,
 				a.serial_no,
 				a.level,
 				a.direct_flg,
