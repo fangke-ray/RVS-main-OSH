@@ -787,81 +787,55 @@ var edit_schedule_popMaterialDetail = function(material_id, break_message_level,
 	this_dialog.html("");
 	this_dialog.hide();
 	// 导入详细画面
-	this_dialog.load("widget.do?method=materialDetail&material_id=" + material_id , function(responseText, textStatus, XMLHttpRequest) {
-		$.ajax({
-			data:{
-				"id": material_id
-			},
-			url : "material.do?method=getDetial",
-			type : "post",
-			complete : function(xhrobj, textStatus){
-				var resInfo = null;
-				var detail_buttons = {
-					"确定":function(){
-						if (break_message_level != "") { // TODO 判断返回值后
-							var data = {
-								material_id : selectedMaterial.material_id,
-								position_id : selectedMaterial.position_id,
-								alarm_messsage_id : selectedMaterial.alarm_messsage_id,
-								comment : $("#nogood_comment").val()
-							};
-							// Ajax提交
-							$.ajax({
-								beforeSend : ajaxRequestType,
-								async : false,
-								url : 'alarmMessage.do?method=doreleasebeak',
-								cache : false,
-								data : data,
-								type : "post",
-								dataType : "json",
-								success : ajaxSuccessCheck,
-								error : ajaxError,
-								complete : function() {
-									doMaterialUpdate(material_id);
-									$("#nogood_treat").dialog("close");
-								}
-							});	
-						} else {
+	this_dialog.load("widget.do?method=materialDetail&from=process&material_id=" + material_id , function(responseText, textStatus, XMLHttpRequest) {
+		var detail_buttons = {
+			"确定":function(){
+				if (break_message_level != "") { // TODO 判断返回值后
+					var data = {
+						material_id : selectedMaterial.material_id,
+						position_id : selectedMaterial.position_id,
+						alarm_messsage_id : selectedMaterial.alarm_messsage_id,
+						comment : $("#nogood_comment").val()
+					};
+					// Ajax提交
+					$.ajax({
+						beforeSend : ajaxRequestType,
+						async : false,
+						url : 'alarmMessage.do?method=doreleasebeak',
+						cache : false,
+						data : data,
+						type : "post",
+						dataType : "json",
+						success : ajaxSuccessCheck,
+						error : ajaxError,
+						complete : function() {
 							doMaterialUpdate(material_id);
 							$("#nogood_treat").dialog("close");
 						}
-					},
-					"取消":function(){
-						this_dialog.dialog('close');
-					}
-				};
-
-				try {
-					// 以Object形式读取JSON
-					eval('resInfo =' + xhrobj.responseText);
-					// TODO
-					if ($("#planned_functionarea").length == 0) {
-						case0();
-						detail_buttons = {"关闭":function(){
-							this_dialog.dialog('close');
-						}};
-					} else {
-						case2();
-					}
-					setLabelText(resInfo.materialForm, resInfo.materialPartialFormList, resInfo.processForm, resInfo.timesOptions, material_id);
-				} catch (e) {
-					console.log("name: " + e.name + " message: " + e.message + " lineNumber: "
-							+ e.lineNumber + " fileName: " + e.fileName);
-				};
-				
-				this_dialog.dialog({
-					position : [400, 20],
-					title : "维修对象详细画面",
-					width : 820,
-					show : "",
-					height :  'auto',
-					resizable : false,
-					modal : is_modal,
-					buttons :  detail_buttons
-				});
-			
-				this_dialog.show();
+					});	
+				} else {
+					doMaterialUpdate(material_id);
+				}
+			},
+			"取消":function(){
+				this_dialog.dialog('close');
 			}
+		};
+		if (this_dialog.find("editable").length == 0) {
+			detail_buttons = {"关闭":function(){
+				this_dialog.dialog('close');
+			}};		
+		}
+
+		this_dialog.dialog({
+			position : [400, 20],
+			title : "维修对象详细画面",
+			width : 820,
+			show : "",
+			height :  'auto',
+			resizable : false,
+			modal : is_modal,
+			buttons :  detail_buttons
 		});
 	});
 }

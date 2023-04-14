@@ -1417,8 +1417,9 @@ function load_list(listdata){
 			width: 1248,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['受理时间', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处','同意日期', '优先报价', '等级', '备注'],
+			colNames:['material_id','受理时间', '修理单号', 'ESAS No.', '型号 ID', '型号' , '机身号','委托处','同意日期', '优先报价', '等级', '备注'],
 			colModel:[
+				{name:'material_id',index:'material_id', hidden:true, key:true},
 				{name:'reception_time',index:'reception_time', width:70, align:'center',
 					sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d'}},
 				{name:'sorc_no',index:'sorc_no', width:80},
@@ -1451,7 +1452,9 @@ function load_list(listdata){
 			pagerpos: 'right',
 			pgbuttons: true,
 			pginput: false,
-			// ondblClickRow : popMaterialDetail,
+			ondblClickRow : function(rid, iRow, iCol, e) {
+				showMaterial(rid);
+			},
 			recordpos: 'left',
 			viewsortcols : [true,'vertical',true]
 			// gridComplete: function(){
@@ -1526,7 +1529,8 @@ var checkAnmlAlert = function() {
 	if ($("#anml_attendtion").length > 0) {
 		errorPop(WORKINFO.animalExpClean);
 	}
-}	var $process_dialog = $("#material_detail_dialog");
+}
+
 var ccdTagAssign = function(){
 	var rowID = $("#exd_list").jqGrid("getGridParam","selrow");
 	var rowData = $("#exd_list").getRowData(rowID);
@@ -1555,6 +1559,9 @@ var ccdTagAssign = function(){
 	});
 
 }
+
+var showMaterial = function(material_id) {
+	var $process_dialog = $("#material_detail_dialog");
 	if ($process_dialog.length == 0) {
 		$("body").append("<div id='material_detail_dialog'></div>");
 		$process_dialog = $("#material_detail_dialog");

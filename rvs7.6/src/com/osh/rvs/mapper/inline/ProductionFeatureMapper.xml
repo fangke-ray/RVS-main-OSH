@@ -740,4 +740,21 @@
 		]]>
 	</update>
 
+	<select id="getMaterialPositionProcessing" parameterType="String" resultType="Integer">
+		select operate_result from production_feature 
+        where material_id = #{material_id}
+        and position_id = #{position_id}
+		order by finish_time is not null, finish_time desc
+		limit 1
+	</select>
+
+	<select id="getFinishTimeForSpecialPageOfMaterial" parameterType="String" resultType="Date">
+		SELECT MAX(pf.finish_time) as finish_time
+		FROM production_feature pf
+		WHERE material_id = #{material_id}
+		AND pf.position_id in (select position_id from position where special_page = #{special_page}) 
+		AND pf.position_id != 101
+		AND pf.operate_result = 2
+	</select>
+
 </mapper>

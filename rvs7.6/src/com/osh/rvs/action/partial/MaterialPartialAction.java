@@ -14,6 +14,7 @@ import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.ibatis.session.SqlSession;
@@ -22,6 +23,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.master.PositionEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.PathConsts;
@@ -38,6 +40,7 @@ import com.osh.rvs.service.inline.ForSolutionAreaService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.Converter;
@@ -286,8 +289,14 @@ public class MaterialPartialAction extends BaseAction {
 		log.info("MaterialPartialAction.searchMaterialPartialDetail start");
 		// Ajax回馈对象	
 		Map<String, Object> listResponse = new HashMap<String, Object>();
-		
+
 		String materialId = req.getParameter("material_id");
+		if (materialId == null) {
+			Object oBean = req.getSession().getAttribute("materialDetail");
+			if (oBean != null) {
+				materialId = ((MaterialEntity) oBean).getMaterial_id();
+			}			
+		}
 		String occurTimes = req.getParameter("occur_times");
 		String lineId = req.getParameter("line_id");
 		
@@ -647,5 +656,50 @@ public class MaterialPartialAction extends BaseAction {
 		// 返回Json格式回馈信息
 		returnJsonResponse(res, callbackResponse);
 		log.info("MaterialPartialAction.updateSnouts end");
+	}
+
+	/**
+	 * 维修对象零件订购详细
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 */
+	public void getDetail(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) {
+		log.info("MaterialPartialAction.getDetail start");
+
+		String id = req.getParameter("id");
+		String occur_times = req.getParameter("occur_times");
+
+		// 取得用户信息
+		HttpSession session = req.getSession();
+
+		Object oBean = session.getAttribute("materialDetail");
+		Object sessionFrom = session.getAttribute("material_detail_from");
+		req.setAttribute("from", sessionFrom);
+
+		MaterialPartialForm partialForm = (MaterialPartialForm) form;
+
+		if (oBean != null) {
+			id = ((MaterialEntity) oBean).getMaterial_id();
+		}
+
+		Integer iOccur_times = null;
+		if (occur_times != null) {
+			iOccur_times = Integer.parseInt(occur_times);
+		}
+		partialForm = materialPartialService.loadMaterialPartial(conn, id, iOccur_times); //改了
+
+		if (partialForm != null) {
+			partialForm.setBo_flg(CodeListUtils.getValue("material_partial_bo_flg", partialForm.getBo_flg()));
+
+			req.setAttribute("partialForm", partialForm);
+		}
+
+		// 迁移到页面
+		actionForward = mapping.findForward("detail");
+
+		log.info("MaterialPartialAction.getDetail end");
 	}
 }

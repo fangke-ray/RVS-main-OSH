@@ -8,16 +8,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <div id="material_detail_content" style="margin:auto;">
 
 <%
+	boolean fromPartial = (request.getAttribute("from_partial") != null);
 	boolean showDjLoan = (request.getAttribute("showDjLoan") != null);
 %>
 
-
 <div style="height:44px;width:770px;" id="material_detail_infoes" class="dwidth-full">
 
-	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_base" role="button" checked><label for="material_detail_infoes_base" title="">基本信息</label>
+	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_base" role="button" <%=fromPartial ? "" : "checked"%>><label for="material_detail_infoes_base" title="">基本信息</label>
 	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_product" role="button"><label for="material_detail_infoes_product" title="">作业信息</label>
-	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_change" role="button" style="display: none"><label for="material_detail_infoes_change" style="display: none">变更信息</label>
-	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_partical" role="button"><label for="material_detail_infoes_partical">零件信息</label>
+	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_change" role="button" style="display: none"><label for="material_detail_infoes_change" style="display: none;">变更信息</label>
+	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_partical" role="button" <%=fromPartial ? "checked" : ""%>><label for="material_detail_infoes_partical">零件信息</label>
 <% if (showDjLoan) { %>
 	<input type="radio" name="material_detail_infoes" class="ui-button ui-corner-up" id="material_detail_infoes_dj_loan" role="button"><label for="material_detail_infoes_dj_loan">设备工具清洗记录</label>
 <% } %>
@@ -445,7 +445,7 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 		</div>
 		<div class="ui-widget-content dwidth-middle">
 				<div id="distributions">	
-				    <input type="radio"  name="distributions" class="ui-button ui-corner-up" id="decompose_use_radio" value="12" checked>
+				    <input type="radio"  name="distributions" class="ui-button ui-corner-up" id="decompose_use_radio" value="12">
 					<label for="decompose_use_radio">分解工程</label>
 
 					<input type="radio" name="distributions" class="ui-button ui-corner-up" id="ns_use_radio" value="13">
@@ -453,7 +453,6 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 
 					<input type="radio" name="distributions" class="ui-button ui-corner-up" id="compose_use_radio" value="14">
 					<label for="compose_use_radio">总组工程</label>
-
 				</div>	
 				
 				<table id="exd_list"></table>
@@ -468,6 +467,7 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 <!-- 维修违治具借用信息 -->
 <div class="ui-widget-content material_detail_tabcontent" for="material_detail_infoes_dj_loan" style="width:786px;text-align:center;display:none;" lazyload="device_jig_loan.do?method=detailMaterial">
 </div>
+
 <% } %>
 
 <div class="clear areacloser"></div>

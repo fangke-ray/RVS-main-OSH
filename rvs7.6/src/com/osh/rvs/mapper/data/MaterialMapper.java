@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.MaterialTimeNodeEntity;
 
 
 public interface MaterialMapper {
@@ -172,6 +173,7 @@ public interface MaterialMapper {
 	 */
 	public void updateMaterialOutlineTime(@Param("material_id") String material_id);
 
-	public List<MaterialEntity> searchMaterialPerlTempFiling();	
+	public List<MaterialEntity> searchMaterialPerlTempFiling();
+
 	public MaterialTimeNodeEntity getMaterialTimeNode(String material_id);	
 }

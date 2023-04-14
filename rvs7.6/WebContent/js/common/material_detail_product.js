@@ -9,7 +9,6 @@ var findit = function(){
 	$.ajax({
 		url: serverPath + "?method=search",
 		data: {
-				"material_id": $("#global_material_id").val(),
 				"noRework" : noRework,
 				"onlyFinish": onlyFinish
 		},

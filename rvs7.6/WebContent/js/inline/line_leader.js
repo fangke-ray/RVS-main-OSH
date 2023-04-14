@@ -818,42 +818,20 @@ var showMaterial = function(material_id) {
 	// 导入编辑画面
 	$material_detail.load("widget.do?method=materialDetail&material_id=" + material_id,
 		function(responseText, textStatus, XMLHttpRequest) {
-			$.ajax({
-			data:{
-				"id": material_id // , occur_times: occur_times
-			},
-			url : "material.do?method=getDetial",
-			type : "post",
-			complete : function(xhrobj, textStatus){
-				var resInfo = null;
-				try {
-					// 以Object形式读取JSON
-					eval('resInfo =' + xhrobj.responseText);
-					case0();
-					setLabelText(resInfo.materialForm, resInfo.partialForm, resInfo.processForm, resInfo.timesOptions, material_id);
-					
-				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-							+ e.lineNumber + " fileName: " + e.fileName);
-				};
-				
-				$material_detail.dialog({
-					title : "维修对象详细信息",
-					width : 800,
-					show : "blind",
-					height : 'auto' ,
-					resizable : false,
-					modal : true,
-					minHeight : 200,
-					buttons : {
-						"关闭": function(){
-							$material_detail.dialog('close');
-						}
+			$material_detail.dialog({
+				title : "维修对象详细信息",
+				width : 800,
+				show : "blind",
+				height : 'auto' ,
+				resizable : false,
+				modal : true,
+				minHeight : 200,
+				buttons : {
+					"关闭": function(){
+						$material_detail.dialog('close');
 					}
-				});
-				$material_detail.show();
-			}
-		});
+				}
+			});
 	});
 
 };

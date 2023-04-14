@@ -436,7 +436,7 @@ public class PartialReleaseService {
 		this.updateBoFlg(form, conn, flag);
 	}
 
-	public void checkBoFlg(ActionForm form, Map<String, String[]> parameterMap,
+	public boolean checkBoFlg(ActionForm form, Map<String, String[]> parameterMap,
 			SqlSessionManager conn) throws Exception {
 		boolean loss = false;
 		List<MaterialPartialDetailForm> materialPartialDetails = new AutofillArrayList<MaterialPartialDetailForm>(MaterialPartialDetailForm.class);
@@ -570,6 +570,8 @@ public class PartialReleaseService {
 			newCompSubPart.setStep("0");
 			cmService.insert(newCompSubPart, conn);
 		}
+
+		return loss;
 	}
 
 	public List<MaterialPartialDetailForm> countQuantityOfKind(ActionForm form, SqlSession conn) {

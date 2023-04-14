@@ -1,6 +1,7 @@
 package com.osh.rvs.mapper.inline;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -134,4 +135,8 @@ public interface ProductionFeatureMapper {
 	public ProductionFeatureEntity getPeriodInPositionOfMaterialId(ProductionFeatureEntity entity);
 
 	public int continueFromOver(ProductionFeatureEntity entity);
+
+	public Integer getMaterialPositionProcessing(@Param("material_id") String material_id, @Param("position_id") String position_id);
+
+	public Date getFinishTimeForSpecialPageOfMaterial(@Param("material_id") String material_id, @Param("special_page") String special_page);
 }

@@ -60,6 +60,7 @@ public class PositionProductionAction extends BaseAction {
 		
 		String pReferChooser = positionService.getOptions(conn);
 		req.setAttribute("pReferChooser", pReferChooser);
+
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
 		

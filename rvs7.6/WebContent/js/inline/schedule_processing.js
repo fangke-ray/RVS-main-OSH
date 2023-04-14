@@ -536,44 +536,18 @@ var edit_schedule_popMaterialDetail = function(material_id, is_modal){
 	this_dialog.hide();
 	// 导入详细画面
 	this_dialog.load("widget.do?method=materialDetail&material_id=" + material_id , function(responseText, textStatus, XMLHttpRequest) {
-		$.ajax({
-			data:{
-				"id": material_id		
-			},
-			url : "material.do?method=getDetial",
-			type : "post",
-			complete : function(xhrobj, textStatus){
-				var resInfo = null;
-				try {
-					// 以Object形式读取JSON
-					eval('resInfo =' + xhrobj.responseText);
-					setLabelText(resInfo.materialForm, resInfo.materialPartialFormList, resInfo.processForm, resInfo.timesOptions, material_id);
-					if (caseId == 2) {
-						case2();
-					} else {
-						case0();
-					}
-				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-							+ e.lineNumber + " fileName: " + e.fileName);
-				};
-				
-				this_dialog.dialog({
-					position : [400, 20],
-					title : "维修对象详细画面",
-					width : 820,
-					show : "",
-					height :  'auto',
-					resizable : false,
-					modal : is_modal,
-					buttons :  {
-						"取消":function(){
-							this_dialog.dialog('close');
-						}
-					}
-				});
-			
-				this_dialog.show();
+		this_dialog.dialog({
+			position : [400, 20],
+			title : "维修对象详细画面",
+			width : 820,
+			show : "",
+			height :  'auto',
+			resizable : false,
+			modal : is_modal,
+			buttons :  {
+				"取消":function(){
+					this_dialog.dialog('close');
+				}
 			}
 		});
 	});

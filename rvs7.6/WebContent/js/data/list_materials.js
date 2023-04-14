@@ -437,86 +437,38 @@ var showDetail = function(material_id, is_modal){
 	this_dialog.html("");
 	this_dialog.hide();
 	// 导入详细画面
-	this_dialog.load("widget.do?method=materialDetail&material_id="+material_id , function(responseText, textStatus, XMLHttpRequest) {
-		$.ajax({
-			beforeSend : ajaxRequestType,
-			data:{
-				"id": material_id		
+	this_dialog.load("widget.do?method=materialDetail&from=data&material_id="+material_id , function(responseText, textStatus, XMLHttpRequest) {
+		var buttons = {
+			"小票下载":function(){
+				ticket(material_id);
 			},
-			url : "material.do?method=getDetial",
-			type : "post",
-			complete : function(xhrobj, textStatus){
-				var buttons = {
-					"小票下载":function(){
-						ticket(material_id);
-					},
-					"取消":function(){
-						this_dialog.dialog('close');
-					}
-				};
-				var resInfo = null;
-				try {
-					// 以Object形式读取JSON
-					eval('resInfo =' + xhrobj.responseText);
-					caseId = resInfo.caseId;
-					if (caseId == 0) {
-						case0();
-						// var buttons = {};
-					} else if (caseId == 1){
-						case1();
-					} else if (caseId == 2){
-						case2();
-						buttons = {
-							"补打小票":function(){
-								ticket(material_id);
-							},
-							"确定":function(){
-								doMaterialUpdate(material_id);
-							},
-							"取消":function(){
-								this_dialog.dialog('close');
-							}
-						};
-					} else if (caseId == 3){
-						case3();
-					} else if (caseId == 4){
-						case1();
-						$("#distributions").hide();
-						buttons = {
-//							"补充记录":function(){
-//								case4();
-//								isNew = true;
-//							},
-							"补打小票":function(){
-								ticket(material_id);
-							},
-							"确定":function(){
-								doMaterialUpdate(material_id);
-							},
-							"取消":function(){
-								this_dialog.dialog('close');
-							}
-						};
-					}
-					setLabelText(resInfo.materialForm, resInfo.partialForm, resInfo.processForm,resInfo.timesOptions, material_id);
-				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-							+ e.lineNumber + " fileName: " + e.fileName);
-				};
-				
-				this_dialog.dialog({
-					position : [400, 20],
-					title : "维修对象详细画面",
-					width : 820,
-					show : "",
-					height :  'auto',
-					resizable : false,
-					modal : is_modal,
-					buttons : buttons
-				});
-			
-				this_dialog.show();
+			"关闭":function(){
+				this_dialog.dialog('close');
 			}
+		};
+		if (this_dialog.find("editable").length > 0) {
+			buttons = {
+				"补打小票":function(){
+					ticket(material_id);
+				},
+				"确定更新":function(){
+					doMaterialUpdate(material_id);
+				},
+				"关闭":function(){
+					this_dialog.dialog('close');
+				}
+			};			
+		}
+
+		this_dialog.dialog({
+			position : [400, 20],
+			title : "维修对象详细画面",
+			width : 820,
+			show : "",
+			height :  'auto',
+			resizable : false,
+			modal : is_modal,
+			buttons : buttons
 		});
 	});
 };

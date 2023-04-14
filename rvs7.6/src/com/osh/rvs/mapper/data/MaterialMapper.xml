@@ -149,7 +149,7 @@
 		coalesce(omr_notifi_no, sorc_no) as sorc_no,
 		`m`.`esas_no`,`m`.`model_id`,
 		`m`.`serial_no`,`m`.`ocm`,`m`.`level`,`m`.`reception_time`,
-		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`,
+		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`, `m`.scheduled_date,
 		`m`.`storager`,`m`.`fix_type`,`m`.`service_repair_flg`,
 		`m`.`section_id`,`m`.`wip_location` as wip_location,`m`.`direct_flg`,
 		`m`.`am_pm`,`m`.`scheduled_expedited`,`m`.`scheduled_manager_comment`,`m`.`quotation_first`,
@@ -165,7 +165,7 @@
 		coalesce(omr_notifi_no, sorc_no) as sorc_no,
 		`m`.`esas_no`,`m`.`model_id`,
 		`m`.`serial_no`,`m`.`ocm`,`m`.`level`,`m`.`ocm_rank`, `m`.`reception_time`,
-		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`,
+		`m`.`agreed_date`,`m`.`inline_time`,`m`.`package_no`, `m`.scheduled_date,
 		`m`.`storager`,`m`.`fix_type`,`m`.`service_repair_flg`,
 		`m`.`section_id`,`m`.`wip_location`,`m`.`direct_flg`, `m`.`bound_out_ocm`, 
 		`m`.`am_pm`,`m`.`scheduled_expedited`,`m`.`scheduled_manager_comment`,`m`.`quotation_first`,
@@ -185,7 +185,8 @@
 				a.material_id,
 				coalesce(omr_notifi_no, sorc_no) as sorc_no,
 				a.model_id,
-				(select name from model where model_id = a.model_id) as model_name,
+				mdl.name as model_name,
+				mdl.category_name,
 				a.serial_no,
 				a.ocm,
 				a.level,
@@ -219,12 +220,12 @@
 		</if>
 		<if test="(int_search_addition band 8) eq 8">
 		<![CDATA[
-				(select finish_time from production_feature where material_id = a.material_id and position_id = 47 and operate_result = 2) as finish_time,
+				(select finish_time from production_feature where material_id = a.material_id and position_id in (select position_id from position where special_page = 'shipping') and operate_result = 2) as finish_time,
 		]]>
 		</if>
 		<![CDATA[
 				a.reception_time,
-				a.agreed_date,
+				coalesce(tn.customer_agreement, a.agreed_date) as agreed_date,
 				a.ocm_shipping_date,
 				a.break_back_flg
 		]]>
@@ -238,6 +239,7 @@
 		</if>
 		<![CDATA[
 			 from Material a left join material_process mpr on mpr.material_id = a.material_id and mpr.line_id = 14
+			 join v_model mdl on a.model_id = mdl.model_id
 		]]>
 		<if test="(int_search_addition band 4) eq 4">
 		<![CDATA[
@@ -820,7 +822,12 @@
 			,customer_id = #{customer_id}
 			</if>
 			<if test="ocm_rank != null">
-			,ocm_rank = #{ocm_rank}
+				<if test="ocm_rank eq -1">
+				,ocm_rank = null
+				</if>
+				<if test="ocm_rank neq -1">
+				,ocm_rank = #{ocm_rank}
+				</if>
 			</if>
 			<if test="bound_out_ocm != null">
 			,bound_out_ocm = #{bound_out_ocm}
@@ -947,6 +954,9 @@
 				ma.serial_no,
 				ma.level,
 				ma.service_repair_flg,
+				CASE WHEN ma.wip_location is NOT NULL THEN ma.wip_location
+				ElSE (SELECT group_concat(`process_code`,'工位:',`case_code`) FROM `disassemble_storage` ds join position pos on ds.position_id = pos.position_id WHERE `material_id` = `ma`.material_id)
+				END as wip_location,
 				ma.direct_flg,
 				srm.service_free_flg,
 				mp.arrival_plan_date AS arrival_plan_date_start
@@ -977,7 +987,8 @@
 			from
 				material
 			where
-				wip_location is not null and model_id = #{model_id} and level = #{level}
+				wip_location is not null and wip_location not like 'BO%'  
+				and model_id = #{model_id} and level = #{level}
 		]]>
 	</select>
 

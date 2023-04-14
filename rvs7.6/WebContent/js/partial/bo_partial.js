@@ -9,61 +9,28 @@ var partialCodeAc = null;
 
 var edit_bo = function(material_id, occur_times) {
 
-	$("#process_dialog").hide();
+	var $process_dialog = $("#process_dialog").hide();
 	// 导入编辑画面
-	$("#process_dialog").load("widget.do?method=materialDetail&material_id=" + material_id,
+	$process_dialog.load("widget.do?method=materialDetail&from=partial&material_id=" + material_id + "&occur_times=" + occur_times,
 		function(responseText, textStatus, XMLHttpRequest) {
-			$.ajax({
-			data:{
-				"id": material_id , occur_times: occur_times
-			},
-			url : "material.do?method=getDetial",
-			type : "post",
-			complete : function(xhrobj, textStatus){
-				var resInfo = null;
-				try {
-					// 以Object形式读取JSON
-					eval('resInfo =' + xhrobj.responseText);
-					setLabelText(resInfo.materialForm, resInfo.partialForm, resInfo.processForm, resInfo.timesOptions, material_id, occur_times);
-					if (resInfo.caseId == 3) {
-						case3();
-					} else if (resInfo.caseId == 4) {
-						case1();
-						$("#distributions").hide();
-					} else {
-						case0();
+			$process_dialog.dialog({
+				title : "零件订购信息信息编辑",
+				width : 800,
+				show : "blind",
+				height : 'auto' ,
+				resizable : false,
+				modal : true,
+				minHeight : 200,
+				buttons : {
+				"确定":function(){
+						doOk(material_id, occur_times);
+					},
+				"取消": function(){
+						$process_dialog.dialog('close');
 					}
-					
-				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-							+ e.lineNumber + " fileName: " + e.fileName);
-				};
-				
-				$("#process_dialog").dialog({
-	//				position : [800, 20],
-					title : "零件订购信息信息编辑",
-					width : 800,
-					show : "blind",
-					height : 'auto' ,
-					resizable : false,
-					modal : true,
-					minHeight : 200,
-					buttons : {
-					"确定":function(){
-							doOk(material_id,resInfo.materialPartialFormList,occur_times);
-						},
-					"取消": function(){
-							$("#process_dialog").dialog('close');
-						}
-					}
-				});
-				$("#material_detail_infoes_partical").trigger("click").trigger("change");
-				$("#process_dialog").show();
-			}
-		});
-		
-		});
-
+				}
+			});
+	});
 };
 
 /** 根据条件使按钮有效/无效化 */
@@ -366,11 +333,11 @@ var findit = function(data) {
 	});
 };
 
-function doOk(material_id){
+function doOk(material_id, occur_times){
 	var partial = {
 		"material_id" : material_id,
-		"occur_times":$("#edit_occur_times").val() || $("#global_occur_times").val(),
-		"sorc_no": $("#edit_sorc_no").val(),
+		"occur_times": occur_times,
+		"sorc_no": $("#material_detail_basearea input[name='sorc_no']").val() || $("#material_detail_basearea td.td-content:eq(0) > label").text(),
 //		"bo_flg": $("#edit_bo_flg").val(),
 //		"order_date": $("#edit_order_date").val(),
 //		"arrival_plan_date": $("#edit_arrival_plan_date").val(),

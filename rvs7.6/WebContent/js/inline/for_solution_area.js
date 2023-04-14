@@ -618,90 +618,61 @@ var showMaterial = function(material_id, reason, comment) {
 	$process_dialog = $("#detail_dialog");
 	$process_dialog.hide();
 	// 导入编辑画面
-	$process_dialog.load("widget.do?method=materialDetail&material_id=" + material_id,
+	$process_dialog.load("widget.do?method=materialDetail&from=process&material_id=" + material_id , 
 		function(responseText, textStatus, XMLHttpRequest) {
-			$.ajax({
-			data:{
-				"id": material_id // , occur_times: occur_times
-			},
-			url : "material.do?method=getDetial",
-			type : "post",
-			complete : function(xhrobj, textStatus){
-				var resInfo = null;
-				var detail_buttons = {
-					"确定":function(){
-//						if (break_message_level != "") { // TODO 判断返回值后
-//							var data = {
-//								material_id : selectedMaterial.material_id,
-//								position_id : selectedMaterial.position_id,
-//								alarm_messsage_id : selectedMaterial.alarm_messsage_id,
-//								comment : $("#nogood_comment").val()
-//							};
-//							// Ajax提交
-//							$.ajax({
-//								beforeSend : ajaxRequestType,
-//								async : false,
-//								url : 'alarmMessage.do?method=doreleasebeak',
-//								cache : false,
-//								data : data,
-//								type : "post",
-//								dataType : "json",
-//								success : ajaxSuccessCheck,
-//								error : ajaxError,
-//								complete : function() {
-//									doMaterialUpdate(material_id);
-//									$("#nogood_treat").dialog("close");
-//								}
-//							});	
-//						} else {
-							doMaterialUpdate(material_id);
-//						}
-					},
-					"取消":function(){
-						$process_dialog.dialog('close');
-					}
-				};
-				try {
-					// 以Object形式读取JSON
-					eval('resInfo =' + xhrobj.responseText);
-					setLabelText(resInfo.materialForm, resInfo.materialPartialFormList, resInfo.processForm, resInfo.timesOptions, material_id);
-					if (reason == 1 && comment) {
-						if ($("#edit_scheduled_manager_comment").val().indexOf(comment) < 0) {
-							$("#edit_scheduled_manager_comment").val("缺品零件：" + comment + "\n" + $("#edit_scheduled_manager_comment").val());
-						}
-					}
+			var detail_buttons = {
+				"确定":function(){
+						doMaterialUpdate(material_id);
+				},
+				"取消":function(){
+					$process_dialog.dialog('close');
+				}
+			};
 
-					if ($("#planned_functionarea").length == 0) {
-						case0();
-						detail_buttons = {"关闭":function(){
-							$process_dialog.dialog('close');
-						}};
-					} else {
-						caseId = 2;
-						case2();
-					}
-				} catch (e) {
-					alert("name: " + e.name + " message: " + e.message + " lineNumber: "
-							+ e.lineNumber + " fileName: " + e.fileName);
-				};
-				
-				$process_dialog.dialog({
-					title : "维修对象详细信息",
-					width : 800,
-					show : "blind",
-					height : 'auto' ,
-					resizable : false,
-					modal : true,
-					minHeight : 200,
-					buttons : detail_buttons
-				});
-				$process_dialog.show();
+			if ($process_dialog.find("editable").length == 0) {
+				detail_buttons = {"关闭":function(){
+					$process_dialog.dialog('close');
+				}};		
 			}
-		});
+
+			if (reason == 1 && comment) {
+				addLeakComment(comment);
+			}
+
+			$process_dialog.dialog({
+				title : "维修对象详细信息",
+				width : 800,
+				show : "blind",
+				height : 'auto' ,
+				resizable : false,
+				modal : true,
+				minHeight : 200,
+				close : function(){
+					if (cmmtTO != null) {
+						clearTimeout(cmmtTO);
+						cmmtTO = null;
+					}
+				},
+				buttons : detail_buttons
+			});
 	});
 
 };
 
+var cmmtTO = null;
+
+var addLeakComment = function(comment) {
+	var $commetTg = $("#edit_scheduled_manager_comment");
+	if ($commetTg.length == 0) {
+		cmmtTO = setTimeout(function(){
+			addLeakComment(comment);
+		}, 500);
+	} else {
+		if ($commetTg.val().indexOf(comment) < 0) {
+			$commetTg.val("缺品零件：" + comment + "\n" + $commetTg.val());
+		}
+	}
+}
 
 // TODO like schedule start
 

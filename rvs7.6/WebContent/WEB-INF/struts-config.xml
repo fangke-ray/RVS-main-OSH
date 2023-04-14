@@ -140,6 +140,7 @@
 		<form-bean name="SuppliesDetailForm" type="com.osh.rvs.form.support.SuppliesDetailForm" />
 
 		<form-bean name="disassembleStorageForm" type="com.osh.rvs.form.inline.DisassembleStorageForm"/>
+		<form-bean name="wipStorageForm" type="com.osh.rvs.form.qf.WipStorageForm"/>
 	</form-beans>
 
 
@@ -342,12 +343,14 @@
 		<action path="/material" type="com.osh.rvs.action.data.MaterialAction" parameter="method" validate="false" name="materialForm" scope="request">
 			<forward name="init" path="/pages/data/list_materials-page.jsp" />
 			<forward name="success" path="/pages/data/list_materials-page.jsp" />
+			<forward name="detail" path="/widgets/material-detail-main.jsp" />
 		</action>
- 		
+ 	
 		<!-- partial 订购零件 -->
 		<action path="/materialPartial" type="com.osh.rvs.action.partial.MaterialPartialAction" parameter="method" validate="false" name="materialPartialForm" scope="request">
 			<forward name="init" path="/pages/partial/bo_partial.jsp" />
 			<forward name="success" path="/pages/partial/bo_partial.jsp" />
+			<forward name="detail" path="/widgets/material-detail-partial.jsp" />
 		</action>
  		
 		<!-- inline 维修进度 -->
@@ -525,6 +528,7 @@
 			<forward name="nogoodedit" path="/widgets/nogood-edit.jsp" />
 			<forward name="rework" path="/widgets/rework.jsp" />
 			<forward name="materialDetail" path="/widgets/material-detail.jsp" />
+			<forward name="materialDetailComment" path="/widgets/material-detail-comment.jsp" />
 			<forward name="cleanPosition" path="/widgets/clean-position.jsp" />
 			<forward name="photoEditor" path="/widgets/photo_editor.jsp" />
 			<forward name="pauseWorkreport" path="/widgets/pause-workreport.jsp" />
@@ -1370,6 +1374,7 @@
 				scope="request"
 				validate="false">
 			   <forward name="init" path="/pages/report/waitting_time_report.jsp" />
+			   <forward name="bold" path="/pages/report/bold_time_report.jsp" />
 		</action>
 		
 		<!-- 倒计时 -->
@@ -1665,6 +1670,17 @@
 				scope="request">
 		</action>
 
+
+		<!-- 修理品待投线出库 -->
+		<action path="/pda_wip_outstock"
+			type="com.osh.rvs.action.pda.PdaWipOutstockAction"
+			name="pdaMaterialForm"
+			scope="request"
+			parameter="method"
+			validate="false">
+			<forward name="init" path="/pages/pda/pda_wip_outstock.jsp" />
+			<forward name="success" path="/pages/pda/pda_wip_outstock.jsp" />
+		</action>
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->
 

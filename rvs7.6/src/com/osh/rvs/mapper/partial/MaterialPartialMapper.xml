@@ -680,6 +680,9 @@
 		<where>
 			c.belongs in(3,4,5,6,7,8)
 			<!-- AND a.outline_time is NULL -->
+			<if test="material_id!= null and material_id!= '' ">
+				and c.material_id = #{material_id}
+			</if>
 			<if test="sorc_no!= null and sorc_no!= '' ">
 				and (sorc_no LIKE CONCAT('%', #{sorc_no}, '%') or omr_notifi_no LIKE CONCAT('%', #{sorc_no}, '%'))
 			</if>

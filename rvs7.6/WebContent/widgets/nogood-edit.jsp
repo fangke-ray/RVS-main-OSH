@@ -7,7 +7,7 @@ var nogoodJs = function(){
 
 	var popServicePath = "alarmMessage.do";
 
-	$(function() {
+	{ // $(function() 
 		$("#nogoodform").validate({
 			rules : {
 				comment : {
@@ -187,7 +187,7 @@ var nogoodJs = function(){
 				}
 			});
 		}
-	});
+	}; // $(function() 
 } // nogoodJs
 
 var loadNogoodEditJqueryPlus = function(){

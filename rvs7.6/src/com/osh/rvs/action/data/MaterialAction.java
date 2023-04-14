@@ -28,8 +28,11 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
+import com.osh.rvs.bean.data.MaterialTimeNodeEntity;
 import com.osh.rvs.bean.data.ProductionFeatureEntity;
+import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.ProcessAssignEntity;
+import com.osh.rvs.bean.master.ProcessAssignTemplateEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -216,6 +219,204 @@ public class MaterialAction extends BaseAction {
 	 * @param res
 	 * @param conn
 	 */
+	public void getDetail(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) {
+		log.info("MaterialAction.getDetail start");
+
+		// 取得用户信息
+		HttpSession session = req.getSession();
+
+		Object oBean = session.getAttribute("materialDetail");
+		Object sessionFrom = session.getAttribute("material_detail_from");
+		req.setAttribute("from", sessionFrom);
+
+		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
+		List<Integer> privacies = user.getPrivacies();
+		if (privacies.contains(RvsConsts.PRIVACY_PROCESSING)
+				|| privacies.contains(RvsConsts.PRIVACY_RECEPT_EDIT)
+				|| privacies.contains(RvsConsts.PRIVACY_LINE)) {
+			req.setAttribute("comment_edit", "true");
+		}
+
+		if (oBean != null)
+		{
+			MaterialForm materialForm = new MaterialForm();
+			CopyOptions cos = new CopyOptions();
+			cos.excludeEmptyString(); cos.excludeNull();
+			cos.dateConverter(DateUtil.DATE_TIME_PATTERN, "inline_time");
+			BeanUtil.copyToForm(oBean, materialForm, cos);
+
+			String materialId = materialForm.getMaterial_id();
+
+			// 取得型号
+			ModelService mdlService = new ModelService();
+			ModelEntity mdlEntity = mdlService.getDetailEntity(materialForm.getModel_id(), conn);
+			if (mdlEntity != null) materialForm.setModel_name(mdlEntity.getName());
+
+			// 取得报价时间
+			ProductionFeatureService pfService = new ProductionFeatureService();
+			materialForm.setFinish_time(pfService.getFinishTimeForSpecialPageOfMaterial(materialId, "quotation", conn));
+
+			// 判断正常/未修理出货
+			if ("2".equals(materialForm.getBreak_back_flg())) {
+				req.setAttribute("unrepair", "true");
+			}
+
+			// 取得工程进度
+			if (materialForm.getInline_time() == null) {
+
+			} else {
+				MaterialProcessForm processForm = materialProcessService.loadMaterialProcess(conn, materialId);
+				if (processForm.getDec_plan_date() != null) {
+					req.setAttribute("hasDecom", "true");
+				}
+				if (processForm.getNs_plan_date() != null) {
+					req.setAttribute("hasNs", "true");
+				}
+				req.setAttribute("processForm", processForm);
+
+				req.setAttribute("inline", "true");
+			}
+
+			// 取得进展中位置
+			if (materialForm.getOutline_time() == null) {
+				materialService.setLocation(materialForm, conn);
+			} else {
+				req.setAttribute("outline", "true");
+			}
+
+			// 取得选择修理项目
+			if (!RvsUtils.isPeripheral(materialForm.getLevel())) {
+				OptionalFixService ofService = new OptionalFixService();
+				List<String> optional_fix_items = ofService.getMaterialOptionalFixItems(materialId, conn);
+
+				if (optional_fix_items != null && optional_fix_items.size() > 0)
+				materialForm.setOptional_fix_id(CommonStringUtil.joinBy("；", optional_fix_items.toArray()));
+			}
+
+			MaterialTimeNodeEntity timeNode = materialService.getMaterialTimeNode(materialId, conn);
+			if (timeNode != null) {
+				if (timeNode.getSorc_reception() != null) {
+					materialForm.setSorc_reception(DateUtil.toString(timeNode.getSorc_reception(), DateUtil.DATE_TIME_PATTERN));
+					req.setAttribute("sorc_reception", "true");
+				}
+				if (timeNode.getCustomer_agreement() != null) {
+					materialForm.setAgreed_date(DateUtil.toString(timeNode.getCustomer_agreement(), DateUtil.DATE_TIME_PATTERN));
+				}
+				if (timeNode.getShipment() != null) {
+					materialForm.setSorc_shipment(DateUtil.toString(timeNode.getShipment(), DateUtil.DATE_TIME_PATTERN));
+					req.setAttribute("sorc_shipment", "true");
+				}
+			}
+
+			if (sessionFrom == null || "partial".equals(sessionFrom)) {
+				// 只读模式
+				if (!isEmpty(materialForm.getOcm())) {
+					materialForm.setOcm(CodeListUtils.getValue("material_ocm", materialForm.getOcm()));
+				}
+				if (!isEmpty(materialForm.getLevel())) {
+					materialForm.setLevel(CodeListUtils.getValue("material_level", materialForm.getLevel()));
+				}
+				if (!isEmpty(materialForm.getSection_id())) {
+					materialForm.setSection_name(sectionService.getNameById(materialForm.getSection_id(), conn));
+				}
+				if (!isEmpty(materialForm.getPat_id())) {
+					ProcessAssignService pas = new ProcessAssignService();
+					ProcessAssignTemplateEntity pae = pas.getDetail(materialForm.getPat_id(), conn);
+					if (pae != null) {
+						materialForm.setPat_id(pae.getName());
+					}
+				}
+				if (!isEmpty(materialForm.getScheduled_expedited())) {
+					switch (materialForm.getScheduled_expedited()) {
+					case "1" : materialForm.setScheduled_expedited("加急"); break;
+					case "2" : materialForm.setScheduled_expedited("直送快速"); break;
+					default : materialForm.setScheduled_expedited("-");
+					}
+				}
+			} else if ("data".equals(sessionFrom)) {
+				materialForm.setOcm(CodeListUtils.getSelectOptions("material_ocm", materialForm.getOcm(), "", false));
+
+				materialForm.setLevel(CodeListUtils.getSelectOptions("material_level", materialForm.getLevel(), "(未定)", false));
+				if (materialForm.getInline_time() == null) {
+					materialForm.setSection_name("");
+				} else {
+					materialForm.setSection_name(sectionService.getOptions(conn, "", materialForm.getSection_id()));
+				}
+
+				ProcessAssignService paService = new ProcessAssignService();
+				String patOptions = paService.getGroupOptions(null, materialForm.getPat_id(), conn);
+				materialForm.setPat_id(patOptions);
+
+				materialForm.setScheduled_expedited(
+						CodeListUtils.getSelectOptions("material_scheduled_expedited", materialForm.getScheduled_expedited(), "0::(普通)", false));
+
+				materialForm.setDirect_flg(
+						CodeListUtils.getSelectOptions("material_direct", materialForm.getDirect_flg(), "0::(普通)", false));
+
+				materialForm.setService_repair_flg(
+						CodeListUtils.getSelectOptions("material_service_repair", materialForm.getService_repair_flg(), "0::(普通)", false));
+
+				materialForm.setFix_type(
+						CodeListUtils.getSelectOptions("material_fix_type", materialForm.getFix_type(), "0::(普通)", false));
+
+				materialForm.setAm_pm(
+						CodeListUtils.getSelectOptions("material_time", materialForm.getAm_pm(), "", false));
+			} else if ("process".equals(sessionFrom)) {
+				if (!isEmpty(materialForm.getOcm())) {
+					materialForm.setOcm(CodeListUtils.getValue("material_ocm", materialForm.getOcm()));
+				}
+
+				String lOptions = null;
+				if (materialForm.getInline_time() == null) { // 尚未投线
+					if (materialForm.getLevel() == null) {
+						lOptions = CodeListUtils.getSelectOptions("material_level", materialForm.getLevel(), "(未定)", false);
+					} else if (RvsUtils.isPeripheral(materialForm.getLevel())) {
+						lOptions = CodeListUtils.getSelectOptions("material_level_peripheral", materialForm.getLevel(), "(未定)", false);
+					} else {
+						lOptions = CodeListUtils.getSelectOptions("material_level_endoscope", materialForm.getLevel(), "(未定)", false);
+					}
+				} else {
+					if ("1".equals(materialForm.getFix_type())) {
+						boolean isLightFix = RvsUtils.isLightFix(materialForm.getLevel());
+						if (isLightFix) {
+							lOptions = CodeListUtils.getSelectOptions("material_level_light", materialForm.getLevel(), null, false);
+						} else if (RvsUtils.isPeripheral(materialForm.getLevel())) {
+							lOptions = CodeListUtils.getSelectOptions("material_level_peripheral", materialForm.getLevel(), null, false);
+						} else {
+							lOptions = CodeListUtils.getSelectOptions("material_level_heavy", materialForm.getLevel(), null, false);
+						}
+					} else {
+						lOptions = CodeListUtils.getSelectOptions("material_level_cell", materialForm.getLevel(), null, false);
+					}
+				}
+				materialForm.setLevel(lOptions);
+
+				if (materialForm.getInline_time() == null) {
+					materialForm.setSection_name("");
+				} else {
+					materialForm.setSection_name(sectionService.getOptions(conn, null, materialForm.getSection_id()));
+				}
+
+				ProcessAssignService paService = new ProcessAssignService();
+				String patOptions = paService.getGroupOptions(null, materialForm.getPat_id(), conn);
+				materialForm.setPat_id(patOptions);
+
+				materialForm.setScheduled_expedited(
+						CodeListUtils.getSelectOptions("material_scheduled_expedited", materialForm.getScheduled_expedited(), "0::(普通)", false));
+
+				materialForm.setAm_pm(
+						CodeListUtils.getSelectOptions("material_time", materialForm.getAm_pm(), "", false));
+
+			}
+
+			req.setAttribute("materialForm", materialForm);
+		}
+
+		// 迁移到页面
+		actionForward = mapping.findForward("detail");
+
+		log.info("MaterialAction.getDetail end");
+	}
 	public void getDetial(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) {
 		log.info("MaterialAction.getDetail start");
 		// Ajax响应对象	
@@ -228,8 +429,7 @@ public class MaterialAction extends BaseAction {
 		MaterialProcessForm processForm = new MaterialProcessForm();
 		// 订购次数的可选项
 		List<String> occutTimes = new ArrayList<String>();
-		int caseId = 0;
-		HttpSession session = req.getSession();
+
 		if (id != null && !"".equals(id)) {
 			
 			materialForm = materialService.loadMaterialDetail(conn, id);
@@ -290,16 +490,12 @@ public class MaterialAction extends BaseAction {
 
 			processForm = materialProcessService.loadMaterialProcess(conn, id);
 			occutTimes = materialPartialService.getOccurTimes(conn, id);
-			caseId = chooseCase(session, partialForm != null , processForm != null);
-
-			session.setAttribute("material_detail_target", id);
 		}
 
 		detailResponse.put("materialForm", materialForm);
 		detailResponse.put("partialForm", partialForm);
 		detailResponse.put("processForm", processForm);
 		detailResponse.put("timesOptions", occutTimes);
-		detailResponse.put("caseId", caseId);
 
 		if (!RvsUtils.isPeripheral(materialForm.getLevel())) {
 			OptionalFixService ofService = new OptionalFixService();
@@ -308,13 +504,7 @@ public class MaterialAction extends BaseAction {
 			if (optional_fix_items != null && optional_fix_items.size() > 0)
 			materialForm.setOptional_fix_id(CommonStringUtil.joinBy("；", optional_fix_items.toArray()));
 		}
-		
-		session.setAttribute("caseId", Integer.valueOf(caseId).toString());
-//		String sOptions = sectionService.getOptions(conn, null);
-//		session.setAttribute("sOptions", sOptions);
-//		String mReferChooser = modelService.getOptions(conn);
-//		session.setAttribute("mReferChooser", mReferChooser);
-		
+
 		returnJsonResponse(res, detailResponse);
 		
 		log.info("MaterialAction.getDetail end");
@@ -345,7 +535,7 @@ public class MaterialAction extends BaseAction {
 		listResponse.put("mform", mform);
 
 		String sLine_id = user.getLine_id();
-		
+
 		//String role = user.getRole_id();
 
 		// 经理以上/计划全览工程
@@ -448,14 +638,16 @@ public class MaterialAction extends BaseAction {
 		log.info("MaterialAction.doUpdate start");
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
 		
-		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_ALL);
-		String caseId = (String) req.getSession().getAttribute("caseId");
+		Validators v = BeanUtil.createBeanValidators(form, BeanUtil.CHECK_TYPE_PASSEMPTY);
+
+		Object sessionFrom = req.getSession().getAttribute("material_detail_from");
+		boolean updAsSchedule = "process".equals(sessionFrom);
+		boolean updAsAdmin = "data".equals(sessionFrom);
+
 		List<String> triggerList = new ArrayList<String>();
 
 		MaterialForm newForm = (MaterialForm) form;
-//		if ("2".equals(caseId)){
-//			v.add("", v.required());
-//		}
+
 		List<MsgInfo> errors = v != null ? v.validate(): new ArrayList<MsgInfo>();
 		int check = -1;
 		if (errors.size() == 0) {
@@ -465,7 +657,7 @@ public class MaterialAction extends BaseAction {
 			// 旧流程有NS，新流程没有时
 			boolean nsClose = false;
 
-			if ("2".equals(caseId)){//计划权限，修改等级或课时，进行判断有无operate_result=1的作业报告
+			if (updAsSchedule){//计划权限，修改等级或课时，进行判断有无operate_result=1的作业报告
 				MaterialForm oldForm = materialService.loadSimpleMaterialDetail(conn, material_id);
 				check = 0;
 
@@ -485,34 +677,53 @@ public class MaterialAction extends BaseAction {
 					}
 				}
 
+				newForm.setSorc_no(oldForm.getSorc_no());
+				newForm.setEsas_no(oldForm.getEsas_no());
+				newForm.setModel_id(oldForm.getModel_id());
+				newForm.setSerial_no(oldForm.getSerial_no());
+
+				newForm.setDirect_flg(oldForm.getDirect_flg());
+				newForm.setService_repair_flg(oldForm.getService_repair_flg());
+				newForm.setFix_type(oldForm.getFix_type());
+
+				if (isEmpty(newForm.getLevel())) {
+					newForm.setLevel(oldForm.getLevel());
+				}
+			} else if (updAsAdmin){
+				MaterialForm oldForm = materialService.loadSimpleMaterialDetail(conn, material_id);
+				newForm.setModel_id(oldForm.getModel_id());
+				newForm.setSerial_no(oldForm.getSerial_no());
+				check = 0;
 			} else {
 				check = 0;
 			}
 
 			if (check == 0) {
-				// 更新维修对象自身
-				materialService.update(form, conn);
+				if (updAsSchedule || updAsAdmin) {
+					// 更新维修对象自身
+					materialService.update(form, conn);
 
-				// 更改等级 TODO // 更改维修流程 TODO
-				if ("2".equals(caseId) && (!levelKeep || !patKeep)) {
-					ProductionFeatureMapper ppDao = conn.getMapper(ProductionFeatureMapper.class);
-					// 本工位作业状态等待的记录中取得Rework
-					int rework = 0;
-					rework = ppDao.getReworkCount(material_id);
-					// 删除目前的等待作业
-					featureService.removeWorking(material_id, null, conn);
+					// 更改等级 TODO // 更改维修流程 TODO
+					if (updAsSchedule && (!levelKeep || !patKeep)) {
+						ProductionFeatureMapper ppDao = conn.getMapper(ProductionFeatureMapper.class);
+						// 本工位作业状态等待的记录中取得Rework
+						int rework = 0;
+						rework = ppDao.getReworkCount(material_id);
+						// 删除目前的等待作业
+						featureService.removeWorking(material_id, null, conn);
 
-					// 单追组件后，NS工程算当时结束 TODO 维修对象进度表的终了时间，要根据实际工位需要状况，改动
-					if (nsClose) {
-						materialProcessService.finishMaterialProcess(material_id, "00000000013", triggerList, conn);
+						// 单追组件后，NS工程算当时结束 TODO 维修对象进度表的终了时间，要根据实际工位需要状况，改动
+						if (nsClose) {
+							materialProcessService.finishMaterialProcess(material_id, "00000000013", triggerList, conn);
+						}
+
+						// 按新流程重新指派
+						featureService.reprocess(material_id, rework, ppDao, triggerList, conn);
 					}
-
-					// 按新流程重新指派
-					featureService.reprocess(material_id, rework, ppDao, triggerList, conn);
-				}
-				// 更改课室
-				if (!sectionKeep && !CommonStringUtil.isEmpty(newForm.getSection_id())) {
-					featureService.changeSection(newForm.getMaterial_id(), newForm.getSection_id(), conn);
+					// 更改课室
+					if (!sectionKeep && !CommonStringUtil.isEmpty(newForm.getSection_id())) {
+						featureService.changeSection(newForm.getMaterial_id(), newForm.getSection_id(), conn);
+					}
 				}
 			} else if (check == 1) {
 				MsgInfo info = new MsgInfo();
@@ -603,30 +814,6 @@ public class MaterialAction extends BaseAction {
 		return 0;
 	}
 	
-	private int chooseCase(HttpSession session, boolean partial, boolean process) {
-		List<Integer> privacies = getPrivacies(session);
-		
-		if (privacies.contains(RvsConsts.PRIVACY_OVEREDIT) && privacies.contains(1)) {
-			return 4; //汇总操作，系统管理员
-		} else if (privacies.contains(RvsConsts.PRIVACY_SCHEDULE) && process) {
-			return 2; //计划操作
-		} else if ((privacies.contains(RvsConsts.PRIVACY_FACT_MATERIAL) 
-				|| privacies.contains(RvsConsts.PRIVACY_PARTIAL_MANAGER)) && partial) {
-			return 3; //现品操作
-		} else if (privacies.contains(RvsConsts.PRIVACY_OVEREDIT)) {
-			return 1; //汇总操作
-		} else {
-			return 0; //详细状态
-		}
-	}
-	
-	private List<Integer> getPrivacies(HttpSession session) {
-		LoginData loginData = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
-		List<Integer> privacies = loginData.getPrivacies();
-		
-		return privacies;
-	}
-
 	/**
 	 * 小票打印
 	 * @param mapping ActionMapping
@@ -871,11 +1058,16 @@ public class MaterialAction extends BaseAction {
 
 		String search_addition = req.getParameter("search_addition");
 
-		boolean fromSupport = user.getRole_id().equals(RvsConsts.ROLE_SYSTEM) || "00000000006".equals(user.getSection_id());
-		if (fromSupport || additionOptional) { // 支援课
+		int fromSupport = 0;
+		if (user.getRole_id().equals(RvsConsts.ROLE_SYSTEM) || "00000000006".equals(user.getSection_id())) {
+			fromSupport = 1;
+		} else if (user.getRole_id().equals(RvsConsts.ROLE_MANAGER)) {
+			fromSupport = 2;
+		}
+		if (fromSupport == 1 || additionOptional) { // 支援课
 			materialService.createReport(fileFullPath, lResultForm, search_addition, fromSupport, additionOptional, conn);
 		} else {
-			materialService.createReport(fileFullPath, lResultForm, search_addition, false, false, null);
+			materialService.createReport(fileFullPath, lResultForm, search_addition, fromSupport, false, null);
 		}
 
 		listResponse.put("filePath", filePath);
