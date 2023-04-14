@@ -471,6 +471,7 @@ public class LineLeaderService {
 		LineLeaderMapper dao = conn.getMapper(LineLeaderMapper.class);
 		List<MaterialEntity> listEntities = dao.getBeforePerformanceList(bean);
 
+		Set<String> ccdModels = RvsUtils.getCcdModels(conn);
 		Set<String> ccdLineModels = RvsUtils.getCcdLineModels(conn);
 
 		Set<String> anmlMaterials = MaterialTagService.getAnmlMaterials(conn);

@@ -321,6 +321,45 @@ public class QuotationService {
 		listResponse.put("finished", finishedForm);
 	}
 
+	public void listFinishRefresh(LoginData user, Map<String, Object> listResponse, SqlSession conn) {
+		String position_id = user.getPosition_id();
+		boolean join151And161 = "00000000013".equals(position_id) || "00000000014".equals(position_id);
+		String[] position_ids = null; 
+		if (join151And161) {
+			position_ids = new String[]{"00000000013", "00000000014"};
+		} else {
+			position_ids = new String[]{position_id};
+		}
+
+		QuotationMapper qDao = conn.getMapper(QuotationMapper.class);
+
+		// 取得今日已完成处理对象一览
+		List<MaterialEntity> finished = qDao.getFinished(position_ids);
+
+		List<MaterialForm> finishedForm = new ArrayList<MaterialForm>();
+
+		for (MaterialEntity pe : finished) {
+			MaterialForm finMaterialForm = new MaterialForm();
+			BeanUtil.copyToForm(pe, finMaterialForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+			if (RvsUtils.getCcdModels(conn).contains(finMaterialForm.getModel_id())) {
+				if (!"1".equals(finMaterialForm.getScheduled_expedited())) {
+					finMaterialForm.setScheduled_expedited("-1");
+				}
+			} else {
+				finMaterialForm.setScheduled_expedited(null);
+			}
+
+			if (pe.getLevel() == null) {
+				finMaterialForm.setLevel("0");
+			}
+
+			finishedForm.add(finMaterialForm);
+		}
+
+		listResponse.put("finished", finishedForm);
+	}
+
 	public void updateComment(MaterialForm materialForm,LoginData user,SqlSessionManager conn){
 		//画面上提交的备注内容为空时，进一步查询原来是否已经存在备注了
 		if(CommonStringUtil.isEmpty(materialForm.getComment())){
