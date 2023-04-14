@@ -173,4 +173,5 @@ public interface MaterialMapper {
 	public void updateMaterialOutlineTime(@Param("material_id") String material_id);
 
 	public List<MaterialEntity> searchMaterialPerlTempFiling();	
+	public MaterialTimeNodeEntity getMaterialTimeNode(String material_id);	
 }

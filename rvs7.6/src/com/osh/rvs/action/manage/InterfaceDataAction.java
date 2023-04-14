@@ -260,6 +260,8 @@ public class InterfaceDataAction extends BaseAction {
 				content.put("AnimalExperiment", req.getParameter("edit_animal_experiment"));
 				content.put("ContractRelated", req.getParameter("edit_contract_related"));
 				content.put("FreeFlag", req.getParameter("edit_free_flag"));
+				content.put("OTSRepairOrder", req.getParameter("edit_ots_repair_order"));
+
 			}else if("quotation_part".equals(kind)){
 
 				content.put("OMRNotifiNo", req.getParameter("edit_omr_notifi_no"));

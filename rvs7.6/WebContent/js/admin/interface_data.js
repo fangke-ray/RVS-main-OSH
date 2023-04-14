@@ -202,6 +202,7 @@ var setValue = function(detailForm){
 			$("#contract_related_no").attr("checked","checked").trigger("change");
 		}
 		$("#recept_edit_free_flag").val(content.FreeFlag);
+		$("#recept_edit_ots_repair_order").val(content.OTSRepairOrder);
 	}else if(kind=="part_order"){
 		$("#part_order_edit_omr_notifi_no").text(content.OMRNotifiNo);//SAP修理通知单No.
 		$("#part_order_edit_sorc_code").text(content.SORCCode);//SORC代码
@@ -406,6 +407,7 @@ var comfirm_f = function(){
 		data.edit_animal_experiment = $("#recept_edit_animal_experiment input:checked").val();
 		data.edit_contract_related = $("#recept_edit_contract_related input:checked").val();
 		data.edit_free_flag = $("#recept_edit_free_flag").val();
+		data.edit_ots_repair_order = $("#recept_edit_ots_repair_order").val();
 	}else if(kind=="part_order"){
 		data.OMRNotifiNo = $("#part_order_edit_omr_notifi_no").text();
 		data.SORCCode = $("#part_order_edit_sorc_code").text();

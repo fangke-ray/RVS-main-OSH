@@ -141,6 +141,12 @@ tr.three td:first-child{
 								<input type="text" id="recept_edit_free_flag" class="ui-widget-content" maxlength="12">
 							</td>
 						</tr>
+						<tr>
+							<td class="ui-state-default td-title">OTS修理运单号</td>
+							<td class="td-content">
+								<input type="text" id="recept_edit_ots_repair_order" class="ui-widget-content" maxlength="12">
+							</td>
+						</tr>
 					</tbody>
 				</table>
 			</div>

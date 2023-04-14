@@ -1085,4 +1085,16 @@
 		]]>
 	</select>
 
+	<select id="getMaterialTimeNode" resultType="MaterialTimeNodeEntity" parameterType="String">
+		<![CDATA[
+		SELECT `material_id`,
+		    `sorc_reception`,
+		    `customer_agreement`,
+		    `sap_inline`,
+		    `shipment`
+		FROM `material_time_node`
+		WHERE `material_id` = #{material_id}
+		]]>
+	</select>
+
 </mapper>
