@@ -633,7 +633,7 @@ public class QuotationAction extends BaseAction {
 
 					ProductionFeatureEntity ccdworkingPf = new ProductionFeatureEntity();
 					ccdworkingPf.setPosition_id("00000000025");
-					ccdworkingPf.setSection_id("00000000001"); // 暂时固定 TODO
+					ccdworkingPf.setSection_id("00000000009"); // 暂时固定 TODO
 					ccdworkingPf.setRework(pfservice.getReworkCountWithLine(workingPf.getMaterial_id(), "00000000013", conn));
 
 					pfservice.removeWorking(workingPf.getMaterial_id(), "00000000025", conn);

@@ -265,15 +265,19 @@ public class MaterialFactAction extends BaseAction {
 		String ids = req.getParameter("ids");
 		String[] split = ids.split(",");
 		for (int i = 0; i < split.length; i++) {
-//			ProductionFeatureEntity entity = new ProductionFeatureEntity();
-//			entity.setMaterial_id(split[i]);
-//			entity.setPosition_id("25");
-//			entity.setSection_id("00000000003"); // 固定为新2课
-//			entity.setPace(0);
-//			entity.setOperate_result(0);
-//			entity.setRework(0);
-//			productionFeatureService.insert(entity, conn);
-			mfService.assginCCDChange(split[i], conn);
+			String material_id = split[i];
+			if (! productionFeatureService.checkPositionDid(material_id, "00000000025", null, "" + 0, conn)){ 
+				ProductionFeatureEntity entity = new ProductionFeatureEntity();
+				entity.setMaterial_id(material_id);
+				entity.setPosition_id("00000000025");
+				entity.setSection_id("00000000009"); // 固定为报价物料课
+				entity.setPace(0);
+				entity.setOperate_result(0);
+				entity.setRework(0);
+				productionFeatureService.insert(entity, conn);
+			}
+//			mfService.assginCCDChange(split[i], conn);
+			wserv.warehousing(conn, material_id, null);
 		}
 		
 		log.info("MaterialFactAction.doCCDChange end");
