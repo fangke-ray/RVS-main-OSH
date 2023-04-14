@@ -142,6 +142,8 @@
 
 		<form-bean name="disassembleStorageForm" type="com.osh.rvs.form.inline.DisassembleStorageForm"/>
 		<form-bean name="wipStorageForm" type="com.osh.rvs.form.qf.WipStorageForm"/>
+		<form-bean name="pdaMaterialForm" type="com.osh.rvs.form.pda.PdaMaterialForm"/>
+
 	</form-beans>
 
 

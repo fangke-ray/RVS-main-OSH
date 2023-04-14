@@ -73,6 +73,7 @@ import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.partial.ComponentSettingService;
 import com.osh.rvs.service.partial.MaterialPartInstructService;
 import com.osh.rvs.service.partial.PartialReceptService;
+import com.osh.rvs.service.qf.WipService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.action.Privacies;
@@ -232,6 +233,10 @@ public class PositionPanelAction extends BaseAction {
 
 			if (PositionService.getInlineStorageFromPositions(conn).containsKey(position_id)) {
 				req.setAttribute("sendStoragePosition", "1");
+			}
+
+			if ("302".equals(process_code) || "171".equals(process_code)) {
+				req.setAttribute("needWipStorage", "1");
 			}
 
 			String special_forwards = PathConsts.POSITION_SETTINGS.getProperty("page." + process_code);
@@ -1289,6 +1294,7 @@ public class PositionPanelAction extends BaseAction {
 		List<String> triggerList = new ArrayList<String>();
 
 		String confirmed = req.getParameter("confirmed");
+		String wip_location = req.getParameter("wip_location");
 
 		// 取得用户信息
 		HttpSession session = req.getSession();
@@ -1448,30 +1454,37 @@ public class PositionPanelAction extends BaseAction {
 				conn.rollback();
 			}
 
-			// 判断是否是可追加零件订购的工位
-			String addi = PositionService.isAddiOrderPosition(workingPf.getPosition_id(), conn);
-			if (addi != null && "3".equals(addi)) { // 是最后工位
-				MaterialPartInstructService mpiService = new MaterialPartInstructService();
-				// 设定
-				int confirm = mpiService.setProcedureConfirm(material_id, user.getSection_id(), user.getLine_id(), triggerList, conn);
-				if (confirm == 0 
-						&& !RvsUtils.isLightFix(mEntity.getLevel())) {
-					// 直接提交241订购工位完成 TODO
-					workingPf.setPosition_id(PositionService.ORDER_POSITION);
-					// 241工位结束
-					pfService.fingerSpecifyPosition(material_id, true, workingPf, triggerList, conn);
-
-					LineLeaderService llService = new LineLeaderService();
-					// “零件订购”工位线长处理
-					llService.partialResolve(material_id, mEntity.getModel_name(), workingPf.getSection_id(), workingPf.getPosition_id(), conn, user);
-					// 触发之后工位
-					workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
-					pfService.fingerNextPosition(material_id , workingPf, conn, triggerList);
+			if (infoes.size() == 0) {
+				if (wip_location != null) {
+					WipService wipService = new WipService();
+					wipService.warehousing(conn, material_id, wip_location);
 				}
-			}
 
-			OperatorProductionService opService = new OperatorProductionService();
-			listResponse.put("processingPauseStart", opService.getNewPauseStart());
+				// 判断是否是可追加零件订购的工位
+				String addi = PositionService.isAddiOrderPosition(workingPf.getPosition_id(), conn);
+				if (addi != null && "3".equals(addi)) { // 是最后工位
+					MaterialPartInstructService mpiService = new MaterialPartInstructService();
+					// 设定
+					int confirm = mpiService.setProcedureConfirm(material_id, user.getSection_id(), user.getLine_id(), triggerList, conn);
+					if (confirm == 0 
+							&& !RvsUtils.isLightFix(mEntity.getLevel())) {
+//						// 直接提交241订购工位完成 TODO
+//						workingPf.setPosition_id(PositionService.ORDER_POSITION);
+//						// 241工位结束
+//						pfService.fingerSpecifyPosition(material_id, true, workingPf, triggerList, conn);
+
+//						LineLeaderService llService = new LineLeaderService();
+//						// “零件订购”工位线长处理
+//						llService.partialResolve(material_id, mEntity.getModel_name(), workingPf.getSection_id(), workingPf.getPosition_id(), conn, user);
+//						// 触发之后工位
+//						workingPf.setOperate_result(RvsConsts.OPERATE_RESULT_FINISH);
+//						pfService.fingerNextPosition(material_id , workingPf, conn, triggerList);
+					}
+				}
+
+				OperatorProductionService opService = new OperatorProductionService();
+				listResponse.put("processingPauseStart", opService.getNewPauseStart());
+			}
 			// 通知 TODO
 		}
 

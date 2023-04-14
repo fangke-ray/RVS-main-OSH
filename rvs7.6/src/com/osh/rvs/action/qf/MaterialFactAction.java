@@ -70,7 +70,10 @@ public class MaterialFactAction extends BaseAction {
 	 */
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 		log.info("MaterialFactAction.init start");
-		
+
+		String omr_notifi_no = req.getParameter("omr_notifi_no");
+		String switch_from = req.getParameter("switch_from");
+
 		String mReferChooser = modelService.getOptions(conn);
 		req.setAttribute("mReferChooser", mReferChooser);
 	
@@ -104,6 +107,17 @@ public class MaterialFactAction extends BaseAction {
 		// 取得类别下拉框信息
 		String kOptions = CodeListUtils.getGridOptions("category_kind");
 		req.setAttribute("kOptions", kOptions);
+
+		// 零件订购状态
+		String poOptions = CodeListUtils.getGridOptions("material_partial_bo_flg");
+		req.setAttribute("poOptions", poOptions);
+
+		req.setAttribute("omr_notifi_no", omr_notifi_no);
+		if ("partial_distrubute".equals(switch_from)) {
+			if (privacies.contains(RvsConsts.PRIVACY_FACT_MATERIAL)) {
+				req.setAttribute("switch_from", switch_from);
+			}
+		}
 
 		// 迁移到页面
 		actionForward = mapping.findForward(FW_INIT);
