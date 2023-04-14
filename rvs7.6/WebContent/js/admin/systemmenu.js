@@ -24,6 +24,7 @@ links['#user_define_codes'] = "user_define_codes.do";
 links['#drying_oven_device'] = "drying_oven_device.do";
 // links['#pcs_request'] = "pcs_request.do";
 links['#optional_fix'] = "optional_fix.do";
+links['#standard_partial_addition'] = "standard_partial_addition.do";
 
 /*
  * URIの制御処理。アンカーを使う。

@@ -4,17 +4,22 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionManager;
 import org.apache.log4j.Logger;
 import org.apache.poi.hssf.usermodel.HSSFCell;
 import org.apache.poi.hssf.usermodel.HSSFCellStyle;
@@ -24,19 +29,26 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.struts.action.ActionForm;
 
 import com.osh.rvs.bean.master.ModelEntity;
 import com.osh.rvs.bean.master.PositionEntity;
+import com.osh.rvs.bean.master.StandardPartialAdditionEntity;
 import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.master.ModelForm;
+import com.osh.rvs.form.master.StandardPartialAdditionForm;
 import com.osh.rvs.mapper.master.ModelMapper;
 import com.osh.rvs.mapper.master.PositionMapper;
+import com.osh.rvs.mapper.master.StandardPartialAdditionMapper;
 import com.osh.rvs.service.partial.ComponentSettingService;
 
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.FileUtils;
+import framework.huiqing.common.util.copy.BeanUtil;
+import framework.huiqing.common.util.copy.CopyOptions;
 import framework.huiqing.common.util.copy.DateUtil;
 import framework.huiqing.common.util.message.ApplicationMessage;
 
@@ -386,7 +398,10 @@ public class StandardWorkTimeService {
 
 	private void setCell(HSSFSheet sheetMaterial, int retRow, Map<String, Integer> posIdx, String processCode,
 			String modelName, String categoryName, String level) throws Exception {
-		int idx = posIdx.get(processCode);
+		Integer idx = posIdx.get(processCode);
+		if (idx == null) {
+			return;
+		}
 
 		HSSFRow row = sheetMaterial.getRow(retRow);
 		HSSFCell cell = row.createCell(3 + idx);
@@ -396,6 +411,107 @@ public class StandardWorkTimeService {
 			cell.setCellValue("无设定");
 		} else {
 			cell.setCellValue(Integer.parseInt(lever));
+		}
+	}
+
+	/**
+	 * 根据检索条件得到零件
+	 * @param condition
+	 * @param conn
+	 * @return
+	 */
+	public List<StandardPartialAdditionForm> searchPartialAddition(
+			StandardPartialAdditionEntity condition, SqlSession conn) {
+		StandardPartialAdditionMapper mapper = conn.getMapper(StandardPartialAdditionMapper.class); 
+		List<StandardPartialAdditionEntity> ret = mapper.search(condition);
+
+		List<StandardPartialAdditionForm> retForms = new ArrayList<StandardPartialAdditionForm>();
+		BeanUtil.copyToFormList(ret, retForms, null, StandardPartialAdditionForm.class);
+
+		return retForms;
+	}
+
+	public void delete(ActionForm form, SqlSessionManager conn) {
+		StandardPartialAdditionMapper mapper = conn.getMapper(StandardPartialAdditionMapper.class); 
+
+		StandardPartialAdditionEntity entity = new StandardPartialAdditionEntity();
+
+		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+		mapper.delete(entity);
+	}
+
+	public List<StandardPartialAdditionEntity> getEditForPosition(
+			String position_id, SqlSession conn) {
+		StandardPartialAdditionMapper mapper = conn.getMapper(StandardPartialAdditionMapper.class); 
+		return mapper.getAllByPosition(position_id);
+	}
+
+	public List<StandardPartialAdditionEntity> getEditForModel(
+			String model_id, SqlSession conn) {
+		StandardPartialAdditionMapper mapper = conn.getMapper(StandardPartialAdditionMapper.class); 
+		return mapper.getAllByModel(model_id);
+	}
+
+	public void updatePatch(Map<String, String[]> parameterMap,
+			SqlSessionManager conn) {
+		List<StandardPartialAdditionEntity> upds = new AutofillArrayList<StandardPartialAdditionEntity>(StandardPartialAdditionEntity.class);
+		Pattern p = Pattern.compile("(\\w+)\\[(\\d+)\\].(\\w+)");
+
+		String globalPositionId = null;
+		// 整理提交数据
+		for (String parameterKey : parameterMap.keySet()) {
+			Matcher m = p.matcher(parameterKey);
+			if (m.find()) {
+				String entity = m.group(1);
+				if ("update".equals(entity)) {
+					String column = m.group(3);
+					int icounts = Integer.parseInt(m.group(2));
+					String[] value = parameterMap.get(parameterKey);
+					switch(column) {
+//					postData["update[" + idx + "].upd"] = $td.attr("upd_stat");
+//					if ($td.next().length) {
+//						postData["update[" + idx + "]."] = "0";
+//					}
+
+					case "partial_id" : {
+						upds.get(icounts).setPartial_id(value[0]);
+						break;
+					}
+					case "position_id" : {
+						upds.get(icounts).setPosition_id(value[0]);
+						break;
+					}
+					case "addition" : {
+						upds.get(icounts).setAddition(new BigDecimal(value[0]));
+						break;
+					}
+					case "upd" : {
+						if (!"crea".equals(value[0])) {
+							upds.get(icounts).setBase_addition(BigDecimal.ONE);
+						}
+						break;
+					}
+					}
+				}
+			} else if ("position_id".equals(parameterKey)) {
+				globalPositionId = parameterMap.get(parameterKey)[0];
+			}
+		}
+
+		StandardPartialAdditionMapper mapper = conn.getMapper(StandardPartialAdditionMapper.class); 
+
+		for (StandardPartialAdditionEntity upd : upds) {
+			if (upd.getPosition_id() == null) {
+				upd.setPosition_id(globalPositionId);
+			}
+			if (upd.getBase_addition() == null) {
+				mapper.insert(upd);
+			} else if (upd.getAddition().equals(BigDecimal.ZERO)) {
+				mapper.delete(upd);
+			} else {
+				mapper.update(upd);
+			}
 		}
 	}
 }

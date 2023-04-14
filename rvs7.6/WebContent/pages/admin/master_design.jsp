@@ -88,6 +88,7 @@ $(function() {
 				        <a href="adminmenu.do#holiday">假日管理</a><br>
 				        <!--a href="#resttime">作息管理</a><br-->
 				        <a href="adminmenu.do#parameters">系统参数配置</a><br>
+				        <a href="adminmenu.do#standard_partial_addition">更换零件标准工时补正</a><br>
 				        <a href="adminmenu.do#system_image_manage">系统图片管理</a><br>
 				        <a href="adminmenu.do#pcsFixOrder">工程检查票输入修正</a><br>
 				        <a href="pcs_request.do">工程检查票修正履历</a><br>

@@ -35,6 +35,7 @@
 		<typeAlias alias="PartialEntity" type="com.osh.rvs.bean.master.PartialEntity"/>
 		<typeAlias alias="PartialPositionEntity" type="com.osh.rvs.bean.master.PartialPositionEntity"/>
 		<typeAlias alias="PartialBomEntity" type="com.osh.rvs.bean.master.PartialBomEntity"/>
+		<typeAlias alias="StandardPartialAdditionEntity" type="com.osh.rvs.bean.master.StandardPartialAdditionEntity"/>
 
 		<typeAlias alias="DevicesTypeEntity" type="com.osh.rvs.bean.master.DevicesTypeEntity"/>
 		<typeAlias alias="DevicesManageEntity" type="com.osh.rvs.bean.master.DevicesManageEntity"/>
@@ -209,6 +210,7 @@
 		<mapper resource="com/osh/rvs/mapper/master/PartialBussinessStandardMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/SuppliesReferListMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/master/OptionalFixMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/master/StandardPartialAdditionMapper.xml"/>
 
 		<mapper resource="com/osh/rvs/mapper/data/AlarmMesssageMapper.xml" />
 		<mapper resource="com/osh/rvs/mapper/data/MaterialMapper.xml" />

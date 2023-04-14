@@ -69,6 +69,7 @@
 		<form-bean name="CheckUnqualifiedRecordForm" type="com.osh.rvs.form.infect.CheckUnqualifiedRecordForm"></form-bean>
 		<form-bean name="ToolsTypeForm" type="com.osh.rvs.form.master.ToolsTypeForm"></form-bean>
 		<form-bean name="ToolsManageForm" type="com.osh.rvs.form.master.ToolsManageForm"></form-bean>
+		<form-bean name="standardPartialAdditionForm" type="com.osh.rvs.form.master.StandardPartialAdditionForm"></form-bean>
 
 		<form-bean name="DailyCheckResultForm" type="com.osh.rvs.form.infect.DailyCheckResultForm"></form-bean>
 		<form-bean name="ToolsCheckResultForm" type="com.osh.rvs.form.infect.ToolsCheckResultForm"></form-bean>
@@ -1681,6 +1682,14 @@
 			<forward name="init" path="/pages/pda/pda_wip_outstock.jsp" />
 			<forward name="success" path="/pages/pda/pda_wip_outstock.jsp" />
 		</action>
+
+		<!-- master 标准工时零件补正 -->
+		<action path="/standard_partial_addition" type="com.osh.rvs.action.master.StandardPartialAdditionAction" name="standardPartialAdditionForm"
+			scope="request" parameter="method" validate="false">
+			<forward name="init" path="/pages/admin/standard_partial_addition.jsp" />
+			<forward name="success" path="/pages/admin/standard_partial_addition.jsp" />
+		</action>
+
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->
 

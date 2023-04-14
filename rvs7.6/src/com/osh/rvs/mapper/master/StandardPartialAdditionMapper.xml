@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.master.StandardPartialAdditionMapper">
+
+
+	<!-- 导入 标准工时零件补正 -->
+	<insert id="insert" parameterType="StandardPartialAdditionEntity">
+		<![CDATA[
+			INSERT INTO `standard_partial_addition`
+			(`partial_id`,
+			`position_id`,
+			`addition`)
+			VALUES
+			(#{partial_id},
+			#{position_id},
+			#{addition});
+		]]>
+	</insert>
+
+	<select id="search" parameterType="StandardPartialAdditionEntity" resultType="StandardPartialAdditionEntity">
+		<![CDATA[
+			select 
+			    spa.partial_id,
+				spa.position_id,
+				spa.addition,
+				ptl.code as partial_code,
+				ptl.name as partial_name,
+				coalesce(pos.process_code, '任意') as process_code
+			FROM
+			    standard_partial_addition spa
+			JOIN
+				partial ptl
+			ON
+				spa.partial_id=ptl.partial_id
+			LEFT JOIN
+				position pos
+			ON
+				spa.position_id=pos.position_id
+		]]>
+		<where>
+			<if test="partial_id !=null and partial_id !='' ">
+				<![CDATA[
+					spa.partial_id =#{partial_id}
+				]]>
+			</if>
+			<if test="partial_code !=null and partial_code !='' ">
+				<![CDATA[
+					ptl.code like concat(#{partial_code}, '%')
+				]]>
+			</if>
+			<if test="position_id !=null and position_id !='' ">
+				<![CDATA[
+					AND spa.position_id=#{position_id}
+				]]>
+			</if>
+			<if test="model_id !=null and model_id !='' ">
+				<![CDATA[
+					AND spa.partial_id IN (
+						SELECT partial_id FROM partial_position_belong
+						WHERE model_id = #{model_id}
+						AND current_date between active_date and history_limit_date
+				]]>
+				<if test="position_id !=null and position_id !='' ">
+					<![CDATA[
+						AND position_id=#{position_id}
+					]]>
+				</if>
+				<![CDATA[
+					)
+				]]>
+			</if>
+		</where>
+		order by
+			partial_code, process_code
+	</select>
+
+	<!-- 更新 标准工时零件补正  -->
+	<update id="update"  parameterType="StandardPartialAdditionEntity">
+		<![CDATA[
+			UPDATE 
+				standard_partial_addition
+			SET 
+				addition=#{addition}
+			WHERE
+				partial_id=#{partial_id} AND position_id=#{position_id}
+		]]>
+	</update>
+
+
+	<!-- 删除 标准工时零件补正-->
+	<delete id="delete" parameterType="StandardPartialAdditionEntity">
+		<![CDATA[
+			DELETE FROM 
+				`standard_partial_addition`
+			WHERE 
+				partial_id=#{partial_id} AND position_id=#{position_id}
+		]]>
+	</delete>
+
+	<select id="getAllByPosition" parameterType="String" resultType="StandardPartialAdditionEntity">
+		select 
+			ptl.partial_id, ptl.code as partial_code, ptl.name as partial_name, 
+			spa.addition as base_addition, spp.addition
+		from partial_position_belong pb
+		join partial ptl on pb.partial_id = ptl.partial_id
+		left join standard_partial_addition spa
+			on ptl.partial_id = spa.partial_id
+			and spa.position_id = 0
+		left join standard_partial_addition spp
+			on ptl.partial_id = spp.partial_id
+			and spp.position_id = pb.position_id
+		where pb.position_id = #{position_id}
+		group by pb.partial_id
+		order by partial_code;
+	</select>
+
+	<select id="getAllByModel" parameterType="String" resultType="StandardPartialAdditionEntity">
+		select 
+			ptl.partial_id, ptl.code as partial_code, ptl.name as partial_name,
+			pb.position_id, pos.process_code,
+			sum(parent_partial_id != '00000000000') / count(1) as sub,
+			spp.addition
+		from partial_position_belong pb
+		join partial ptl on pb.partial_id = ptl.partial_id
+		left join standard_partial_addition spp
+			on ptl.partial_id = spp.partial_id
+		left join position pos
+			on pb.position_id = pos.position_id
+		where pb.model_id = #{model_id}
+		group by pb.partial_id, pb.position_id
+		order by sub, partial_code, pb.position_id
+		;
+	</select>
+
+</mapper>

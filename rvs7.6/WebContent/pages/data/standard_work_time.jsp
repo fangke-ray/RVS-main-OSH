@@ -25,7 +25,6 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 </head>
 <body class="outer" style="align: center;">
 
- 
 	<div class="width-full" style="align: center; margin: auto; margin-top: 16px;">
 		<div id="basearea" class="dwidth-full" style="margin: auto;">
 			<jsp:include page="/header.do" flush="true">
