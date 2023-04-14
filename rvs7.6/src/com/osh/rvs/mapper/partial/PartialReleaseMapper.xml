@@ -25,7 +25,9 @@
 					processed_ns.process_code
 				ELSE
 					trim(concat(coalesce(processed.process_code, ''), ' ', coalesce(processed_ns.process_code, '')))
-				END as process_name
+				END as process_name,
+				CASE WHEN ma.inline_time IS NULL THEN tn.sap_inline
+				ELSE null END as inline_time
 			FROM 
 				(
 				select material_id, occur_times from
@@ -92,6 +94,10 @@
 				section sec 
 			ON
 				sec.section_id = ma.section_id
+			LEFT JOIN 
+				`material_time_node` tn 
+			ON
+				ma.material_id = tn.material_id
 			WHERE 
 				mp.bo_flg not in (7, 8)
 		]]>

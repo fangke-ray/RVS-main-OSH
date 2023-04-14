@@ -24,7 +24,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <script type="text/javascript" src="js/jquery.select2buttons.js"></script>
 <script type="text/javascript" src="js/jquery.flowchart.js"></script>
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
-<script type="text/javascript" src="js/qf/fact_material.js?v=3458"></script>
+<script type="text/javascript" src="js/qf/fact_material.js?v=3459"></script>
 <script type="text/javascript" src="js/common/material_detail_ctrl.js"></script>
 <script type="text/javascript" src="js/qf/wip_locate.js"></script>
 
@@ -91,7 +91,7 @@ width: 1248px;
 			<table class="condform">
 				<tbody><tr>
 					<td class="ui-state-default td-title">修理单号</td>
-					<td class="td-content"><input type="text" id="search_sorc_no" maxlength="15" class="ui-widget-content"></td>
+					<td class="td-content"><input type="text" id="search_sorc_no" maxlength="15" value="${omr_notifi_no}" class="ui-widget-content"></td>
 					<td class="ui-state-default td-title">维修对象型号</td>
 					<td class="td-content">
 						<input type="text" class="ui-widget-content" readonly="readonly" id="txt_modelname">
@@ -101,8 +101,8 @@ width: 1248px;
 					<td class="td-content"><input type="text" id="search_serial_no" maxlength="20" class="ui-widget-content"></td>
 				</tr>
 				<tr>
-					<td class="ui-state-default td-title">等级</td>
-					<td class="td-content">
+					<td class="ui-state-default td-title" rowspan=2>等级</td>
+					<td class="td-content" colspan=3 rowspan=2>
 						<select id="search_level" class="ui-widget-content">
 							<%=CodeListUtils.getSelectOptions("material_level", null, "全部", false) %>
 						</select>
@@ -155,6 +155,8 @@ width: 1248px;
 						<input type="hidden" id="oneDayBefore" value="${oneDayBefore}"/>
 						<input type="hidden" id="kOptions" value="${kOptions}"/>
 						<input type="hidden" id="poOptions" value="${poOptions}"/>
+						<input type="hidden" id="switch_from" value="${switch_from}" />
+		${empty switch_from ? '' : '<input type="button" class="ui-button" id="switchbutton" value="返回零件发放" role="button" style="float: right; right: 2px" onclick="javascript:window.location.href=($(\'#switch_from\').val()+\'.do\')">'}
 					</div>
 			</form>
 	</div>

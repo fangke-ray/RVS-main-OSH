@@ -1320,4 +1320,13 @@ public class ProductionFeatureService {
 
 		mapper.insertProductionFeature(insEntity);
 	}
+
+	public String getFinishTimeForSpecialPageOfMaterial(String material_id,
+			String special_page, SqlSession conn) {
+		ProductionFeatureMapper mapper = conn.getMapper(ProductionFeatureMapper.class);
+
+		Date dt = mapper.getFinishTimeForSpecialPageOfMaterial(material_id, special_page);
+		if (dt == null) return "-";
+		return DateUtil.toString(dt, DateUtil.DATE_TIME_PATTERN);
+	}
 }

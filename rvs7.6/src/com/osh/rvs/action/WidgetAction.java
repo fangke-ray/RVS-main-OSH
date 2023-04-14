@@ -1,7 +1,7 @@
 /**
  * 系统名：OSH-RVS<br>
- * 模块名：系统管理<br>
- * 机能名：维修对象机种系统管理事件<br>
+ * 模块名：通用<br>
+ * 机能名：页面片段显示<br>
  * @author 龚镭敏
  * @version 0.01
  */
@@ -24,13 +24,11 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.common.RvsConsts;
-import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.mapper.data.MaterialMapper;
 import com.osh.rvs.service.MaterialTagService;
 import com.osh.rvs.service.PauseFeatureService;
 import com.osh.rvs.service.ProcessAssignService;
 import com.osh.rvs.service.ProductionFeatureService;
-import com.osh.rvs.service.SectionService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.common.util.BaseConst;
@@ -259,88 +257,66 @@ public class WidgetAction extends BaseAction {
 
 		log.info("WidgetAction.materialDetail start");
 
+		String from = req.getParameter("from");
+		String sessionFrom = null;
+
+		req.setAttribute("from", from);
+
 		// 取得用户信息
 		HttpSession session = req.getSession();
+
 		LoginData user = (LoginData) session.getAttribute(RvsConsts.SESSION_USER);
 		List<Integer> privacies = user.getPrivacies();
-		String editLevel = null;
-		if (privacies.contains(RvsConsts.PRIVACY_SA) 
+		if (from != null && privacies.contains(RvsConsts.PRIVACY_SA) 
 				|| privacies.contains(RvsConsts.PRIVACY_ADMIN)) {
-			editLevel = "3";
-			req.setAttribute("level", "3");
-		} else if (privacies.contains(RvsConsts.PRIVACY_SCHEDULE)) {
-			req.setAttribute("level", "2");
-		} else if (privacies.contains(RvsConsts.PRIVACY_PROCESSING)
-				|| privacies.contains(RvsConsts.PRIVACY_RECEPT_EDIT)
-				|| privacies.contains(RvsConsts.PRIVACY_LINE)) {
-			req.setAttribute("level", "1");
+			sessionFrom = from;
 		} else {
-			req.setAttribute("level", "0");
+			if (privacies.contains(RvsConsts.PRIVACY_SCHEDULE) && "process".equals(from)) {
+				sessionFrom = from;
+			}
+
+			if (privacies.contains(RvsConsts.PRIVACY_PARTIAL_MANAGER) && "partial".equals(from)) {
+				sessionFrom = from;
+			}
+
+			if (privacies.contains(RvsConsts.PRIVACY_PROCESSING)
+					|| privacies.contains(RvsConsts.PRIVACY_RECEPT_EDIT)
+					|| privacies.contains(RvsConsts.PRIVACY_LINE)) {
+				// sessionFrom = "comment";
+			}
 		}
 
-		// 可用链接设定到画面
-		req.setAttribute("linkto", req.getParameter("linkto"));
+		session.setAttribute("material_detail_from", sessionFrom);
+		if (sessionFrom != null) {
+			req.setAttribute("editable", "true");
+		}
+
 		String material_id = req.getParameter("material_id");
 		MaterialMapper mdao = conn.getMapper(MaterialMapper.class);
 		MaterialEntity mBean = mdao.getMaterialEntityByKey(material_id);
 
-		req.setAttribute("hasDecom", true);
-
 		if (mBean == null) {
 
 		} else {
-			if (mBean.getInline_time() == null) { // 尚未投线
-				if (mBean.getLevel() == null) {
-					req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level", null, "(未定)", false));
-				} else if (RvsUtils.isPeripheral(mBean.getLevel())) {
-					req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_peripheral", null, "(未定)", false));
-					req.setAttribute("hasDecom", false);
-				} else {
-					req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_endoscope", null, "(未定)", false));
-				}
-				req.setAttribute("sOptions", "");
-			} else {
-				if (mBean.getFix_type() == 1) {
-					boolean isLightFix = RvsUtils.isLightFix(mBean.getLevel());
-//					if (mBean.getLevel()==9 || mBean.getLevel()==91 || mBean.getLevel()==92 || mBean.getLevel()==93) {
-					if (isLightFix) {
-						req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_light", null, null, false));
-					} else if (RvsUtils.isPeripheral(mBean.getLevel())) {
-						req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_peripheral", null, null, false));
-						req.setAttribute("hasDecom", false);
-					} else {
-						req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_heavy", null, null, false));
-					}
-				} else {
-					req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level_cell", null, null, false));
-				}
-				SectionService sService = new SectionService();
-				req.setAttribute("sOptions", sService.getOptions(conn, null));
-				ProcessAssignService paService = new ProcessAssignService();
-				String patOptions = paService.getGroupOptions(null, conn);
-				req.setAttribute("patOptions", patOptions);
-			}
-			if ("3".equals(editLevel)) {
-				req.setAttribute("lOptions", CodeListUtils.getSelectOptions("material_level", null, "(未定)", false));
-			}
-
 
 			boolean isAnmlExp = false;
 			if (mBean.getOutline_time() != null) { // 完成
-				isAnmlExp = MaterialTagService.getAnmlMaterials(conn).contains(material_id);
-			} else {
 				MaterialTagService mtService = new MaterialTagService(); 
 				List<Integer> l = mtService.checkTagByMaterialId(material_id, MaterialTagService.TAG_ANIMAL_EXPR, conn);
 				isAnmlExp = l.size() > 0;
+			} else {
+				isAnmlExp = MaterialTagService.getAnmlMaterials(conn).contains(material_id);
 			}
 			if (isAnmlExp) {
 				req.setAttribute("showDjLoan", "yes");
 			}
 
+			session.setAttribute("materialDetail", mBean);
+			req.setAttribute("global_material_id", material_id);
 		}
 
 		// 迁移到页面
-		actionForward = mapping.findForward(req.getParameter(BaseConst.METHOD));
+		actionForward = mapping.findForward("materialDetailComment");
 
 		log.info("WidgetAction.materialDetail end");
 	}

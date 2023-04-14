@@ -169,6 +169,8 @@
 		<typeAlias alias="AttendanceReportEntity" type="com.osh.rvs.bean.manage.AttendanceReportEntity"/>
 
 		<typeAlias alias="WipStorageEntity" type="com.osh.rvs.bean.qf.WipStorageEntity"/>
+		<typeAlias alias="MaterialTimeNodeEntity" type="com.osh.rvs.bean.data.MaterialTimeNodeEntity"/>
+
 	</typeAliases>
 	<typeHandlers />
 	<environments default="development">

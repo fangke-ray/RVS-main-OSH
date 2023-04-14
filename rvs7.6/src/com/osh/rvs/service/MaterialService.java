@@ -1752,7 +1752,50 @@ public class MaterialService {
 
 		return checkFileExist(retEntites);
 	}
-}
+
+	public void setLocation(MaterialForm materialForm, SqlSession conn) {
+		String location = materialForm.getWip_location();
+		if (location != null && !"".equals(location)) { //location不为空，设置当前状态WIP
+
+			List<Map<String, String>> positions = getLastPositionAndStatus(materialForm.getMaterial_id(), conn);
+			int positionSize = positions.size();
+			String[] locations = new String[positionSize];
+			String[] statuses = new String[positionSize];
+
+			for (int i =0 ; i < positionSize ; i++) {
+				Map<String, String> positionMap = positions.get(i);
+				if ("2".equals(positionMap.get("operate_result"))) continue;
+				locations[i] = "" + positionMap.get("process_code") + " " + positionMap.get("position_name");
+				statuses[i] = CodeListUtils.getValue("material_operate_result", positionMap.get("operate_result")) + " (" + positionMap.get("process_code") + " " + positionMap.get("position_name") + ")";
+			}
+
+			String sLocations = CommonStringUtil.joinBy("\n", locations);
+			String sStatus = CommonStringUtil.joinBy("\n", statuses);
+			if (isEmpty(sStatus)) {
+				materialForm.setStatus("WIP");
+				materialForm.setProcessing_position(location);
+			} else {
+				materialForm.setStatus("WIP\n" + sStatus);
+				materialForm.setProcessing_position(location + "\n" + sLocations);
+			}
+		} else { //否则，根据Operate_result查找状态
+			String position = materialForm.getProcessing_position();
+			materialForm.setWip_location(position);
+
+			List<Map<String, String>> positions = getLastPositionAndStatus(materialForm.getMaterial_id(), conn);
+			int positionSize = positions.size();
+			String[] locations = new String[positionSize];
+			String[] statuses = new String[positionSize];
+			for (int i =0 ; i < positionSize ; i++) {
+				Map<String, String> positionMap = positions.get(i);
+				locations[i] = "" + positionMap.get("process_code") + " " + positionMap.get("position_name");
+				statuses[i] = CodeListUtils.getValue("material_operate_result", positionMap.get("operate_result")) + " (" + positionMap.get("process_code") + " " + positionMap.get("position_name") + ")";
+			}
+			materialForm.setProcessing_position(CommonStringUtil.joinBy("\n", locations));
+			materialForm.setStatus(CommonStringUtil.joinBy("\n", statuses));
+		}
+	}
+
 	/**
 	 * 取得修理品时间节点
 	 * 
