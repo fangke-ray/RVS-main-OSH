@@ -1278,7 +1278,8 @@ public class RvsUtils {
 	public static boolean isLightFix(Integer level) {
 		boolean isLightFix = (level != null) &&
 				((level == 9 || level== 91 || level == 92 || level == 93) ||
-						(level== 96 || level == 97 || level == 98 || level == 99));
+						(level== 96 || level == 97 || level == 98 || level == 94
+						|| level == 99));
 		return isLightFix;
 	}	
 	public static boolean isMediumFix(String level) {
@@ -1290,7 +1291,7 @@ public class RvsUtils {
 	}
 	public static boolean isMediumFix(Integer level) {
 		boolean isMediumFix = (level != null) &&
-				((level== 96 || level == 97 || level == 98));
+				((level== 96 || level == 97 || level == 98 || level == 94));
 		return isMediumFix;
 	}	
 	public static boolean isPeripheral(String level) {

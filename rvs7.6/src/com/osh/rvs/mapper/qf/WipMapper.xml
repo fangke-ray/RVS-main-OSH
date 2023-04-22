@@ -52,7 +52,7 @@
 				and a.level = #{level}
 			</if>
 			<if test="level!= null and level == 9">
-				and a.level in (9,91,92,93,96,97,98,99)
+				and a.level in (9,91,92,93,94,96,97,98,99)
 			</if>
 			<if test="level!= null and level == 5">
 				and a.level in (56,57,58,59)

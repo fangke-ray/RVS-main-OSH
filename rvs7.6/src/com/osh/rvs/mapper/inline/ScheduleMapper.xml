@@ -93,7 +93,7 @@
 				and a.level = #{level}
 			</if>
 			<if test="level!= null and level == 9">
-				and a.level in (9,91,92,93,96,97,98,99)
+				and a.level in (9,91,92,93,94,96,97,98,99)
 			</if>
 			<if test="level!= null and level == 5">
 				and a.level in (56,57,58,59)
@@ -145,7 +145,7 @@
 							<when test="position_id == 32 and support_date != null">
 						<![CDATA[
 						and (
-						(a.level in (9,91,92,93,96,97,98,99,56,57,58,59) and a.agreed_date is not null)
+						(a.level in (9,91,92,93,94,96,97,98,99,56,57,58,59) and a.agreed_date is not null)
 						or
 						exists(select material_id from production_feature d join position d_p on d.position_id = d_p.position_id and d_p.line_id = 14 where d.material_id = a.material_id)
 						)
@@ -280,7 +280,7 @@
 		ORDER BY 
 		a.scheduled_date = current_date DESC, a.scheduled_date < current_date DESC, 
 		(a.scheduled_expedited = 1) DESC, a.scheduled_date,
-		a.level in (9,91,92,93,96,97,98,99) DESC, a.direct_flg DESC
+		a.level in (9,91,92,93,94,96,97,98,99) DESC, a.direct_flg DESC
 				]]>
 
 			<if test="support_count!= null">
@@ -559,7 +559,7 @@
 		and (
 		(level in (2,3) and pat_id in (select process_assign_template_id from process_assign_template where derive_kind = 3))
 		OR
-		(level in (9,91,92,93,96,97,98,99) and exists (select 1 from material_process_assign where material_id = ma.material_id and position_id = 00000000066))
+		(level in (9,91,92,93,94,96,97,98,99) and exists (select 1 from material_process_assign where material_id = ma.material_id and position_id = 00000000066))
 		)
 	</select>
 

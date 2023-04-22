@@ -387,7 +387,7 @@ var getLevel = function(level) {
 	if (level) {
 		var levelText = "S" + level; // TODO
 		if (level == 9 || level == 91 || level == 92 || level == 93 || level == 99) levelText = "D";
-		if (level == 96 || level == 97 || level == 98 ) levelText = "M";
+		if (level == 94 || level == 96 || level == 97 || level == 98 ) levelText = "M";
 		if (level == 56 || level == 57 || level == 58 || level == 59) levelText = "E";
 		return "<span class='level level_" + levelText + "'>" + levelText + "</span>";
 	}

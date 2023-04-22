@@ -51,7 +51,7 @@
 		    (select operate_result from production_feature where material_id = a.material_id and position_id = 25 and rework = 0 and operate_result not in (5, 8) order by (1-ISNULL(action_time)), action_time desc limit 1) as ccd_operate_result
 		    ,mp.bo_flg as part_order,
 			case 
-				when tn.`sap_inline` IS NOT NULL AND level in (9,91,92,93,96,97,98,99)
+				when tn.`sap_inline` IS NOT NULL AND level in (9,91,92,93,94,96,97,98,99)
             THEN 
 				(select group_concat(process_code) from material_process_assign pa join position pos on pa.position_id = pos.position_id where pa.material_id = a.material_id and pa.line_id = 9000000 and prev_position_id = 0)
             end as process_code
@@ -151,7 +151,7 @@
 				when section_id = 1 and px = 7 then 2
 				when section_id = 3 and mdl.CATEGORY_ID = 00000000055 then 8
 				when section_id = 3 and mdl.kind = 6 then 6
-				when section_id = 3 and level in (9,91,92,93,96,97,98,99) THEN 5
+				when section_id = 3 and level in (9,91,92,93,94,96,97,98,99) THEN 5
 				when section_id = 3 and mdl.kind = 3 then 3
 				when section_id = 3 then 4
 			end as category_kind,
@@ -229,7 +229,7 @@
 				WHEN
 					ma.inline_time is not null THEN 0
 				WHEN
-					ma.level not in (9,56,57,58,59,91,92,93,96,97,98,99) THEN 0
+					ma.level not in (9,56,57,58,59,91,92,93,94,96,97,98,99) THEN 0
 				WHEN
 					not exists (select 1 from material_partial where material_id = ma.material_id)
 				THEN 1
@@ -252,7 +252,7 @@
 			left join section sec on ip.section_id = sec.section_id
 			left join process_assign_template pat on ip.pat_id = pat.process_assign_template_id
 			order by
-				(ma.level in (9,56,57,58,59,91,92,93,96,97,98,99) and quotation_first > 0), 
+				(ma.level in (9,56,57,58,59,91,92,93,94,96,97,98,99) and quotation_first > 0), 
 				scheduled_expedited desc,
 				agreed_date,
 				direct_flg desc,

@@ -321,7 +321,7 @@
 				and a.level = #{level}
 			</if>
 			<if test="level!= null and level == 9">
-				and a.level in (9,91,92,93,96,97,98,99)
+				and a.level in (9,91,92,93,94,96,97,98,99)
 			</if>
 			<if test="level!= null and level == 5">
 				and a.level in (56,57,58,59)
@@ -540,7 +540,7 @@
 			<choose>
 				<when test="kind==1">
 					<![CDATA[
-						and ca.kind not in(6,7) and a.level not in(9,91,92,93,96,97,98)
+						and ca.kind not in(6,7) and a.level not in(9,91,92,93,94,96,97,98)
 					]]>
 				</when>
 				<when test="kind==2">
@@ -550,7 +550,7 @@
 				</when>
 				<when test="kind==3">
 					<![CDATA[
-						and a.level in(9,91,92,93,96,97,98,99) 
+						and a.level in(9,91,92,93,94,96,97,98,99) 
 					]]>
 				</when>
 				<when test="kind==4">

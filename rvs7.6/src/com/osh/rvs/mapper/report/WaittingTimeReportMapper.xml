@@ -94,7 +94,7 @@
 	</if>
 	<if test="level eq 9">
 	<![CDATA[
-		AND ma.level IN (91,92,93,96,97,98,99)
+		AND ma.level IN (91,92,93,94,96,97,98,99)
 	]]>
 	</if>
 	<if test="section_id!=null and section_id!='' ">

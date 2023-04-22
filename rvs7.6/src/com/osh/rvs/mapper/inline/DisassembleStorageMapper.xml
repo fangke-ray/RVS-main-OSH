@@ -50,7 +50,7 @@
 		</if>
 		<if test="level eq 9">
 		<![CDATA[
-				AND ma.level  in (9,91,92,93,96,97,98,99)
+				AND ma.level  in (9,91,92,93,94,96,97,98,99)
 		]]>
 		</if>
 		<if test="case_code!=null and case_code!='' ">

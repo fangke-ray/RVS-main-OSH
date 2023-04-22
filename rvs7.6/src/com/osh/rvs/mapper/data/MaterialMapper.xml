@@ -63,7 +63,9 @@
 				mdl.series as processing_position,
 				exists (select 1 from material_tag where material_id = m.material_id and tag_type = 6) as contract_related,
 				(CASE
-					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98 OR `m`.level = 99
+					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 
+						OR `m`.level = 94
+						OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98 OR `m`.level = 99
 						THEN 8
 					WHEN mdl.category_id = 00000000013 OR `m`.fix_type = 2
 						THEN 4
@@ -80,7 +82,8 @@
 			coalesce(`m`.scheduled_date,
 			f_addworkdays(`m`.agreed_date,
 			CASE
-				WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98 OR `m`.level = 99
+				WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 
+					OR `m`.level = 94 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98 OR `m`.level = 99
 					THEN 2
 				ELSE 5
 			END
@@ -515,7 +518,7 @@
 				and a.level = #{level}
 			</if>
 			<if test="level!= null and level == 9">
-				and a.level in (9,91,92,93,96,97,98,99)
+				and a.level in (9,91,92,93,94,96,97,98,99)
 			</if>
 			<if test="level!= null and level == 5">
 				and a.level in (56,57,58,59)

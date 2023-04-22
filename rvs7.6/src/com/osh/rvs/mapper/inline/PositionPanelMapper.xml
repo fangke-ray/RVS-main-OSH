@@ -208,7 +208,7 @@
 			coalesce(`mp`.scheduled_assign_date = current_date, 0) as today, 
 			(`mp`.rework_trigger_position_id is not null) as reworked,
 			coalesce(`m`.direct_flg, 0) as direct_flg,
-			m.level in (9,91,92,93,96,97,98,99) as light_fix,
+			m.level in (9,91,92,93,94,96,97,98,99) as light_fix,
 			m.level,
 	]]>
 	<if test='level == "1"'>
@@ -330,7 +330,7 @@
 			coalesce(`mp`.scheduled_assign_date = current_date, 0) as today, 
 			(`mp`.rework_trigger_position_id is not null) as reworked,
 			coalesce(`m`.direct_flg, 0) as direct_flg,
-			m.level in (9,91,92,93,96,97,98,99) as light_fix,
+			m.level in (9,91,92,93,94,96,97,98,99) as light_fix,
 			m.level,
 			date_format(m.scheduled_date, '%m-%d') as scheduled_monthday,
 			pos.position_id, pos.process_code,
@@ -578,7 +578,7 @@
 			0 as today, 
 			0 as reworked,
 			coalesce(`m`.direct_flg, 0) as direct_flg,
-			m.level in (9,91,92,93,96,97,98,99) as light_fix,
+			m.level in (9,91,92,93,94,96,97,98,99) as light_fix,
 			`m`.fix_type as block_status
 		FROM production_feature pf
 		JOIN material m

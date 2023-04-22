@@ -38,7 +38,7 @@
 			        p.finish_time IS NULL
 			            AND p.operate_result not in (5, 7)
 			            AND p.SECTION_ID = #{section_id}
-			            and m.level in (9 , 91, 92, 93, 96, 97, 98, 99)
+			            and m.level in (9 , 91, 92, 93, 94, 96, 97, 98, 99)
 					    AND pos.line_id = #{line_id}
 			    GROUP BY p.position_id, mpx) pf2
 			    ON `p`.position_id = pf2.position_id
@@ -56,7 +56,7 @@
 			        p.finish_time IS NULL
 			            AND p.operate_result not in (5, 7)
 			            AND p.SECTION_ID = #{section_id}
-			            and m.level not in (9 , 91, 92, 93, 96, 97, 98, 99)
+			            and m.level not in (9 , 91, 92, 93, 94, 96, 97, 98, 99)
 					    AND pos.line_id = #{line_id}
 			    GROUP BY p.position_id, mpx) pf
 			    ON `p`.position_id = pf.position_id
@@ -197,7 +197,8 @@
 				case when `m`.wip_location IS NULL THEN `ppf1`.operate_result ELSE '-1' END as operate_result,
 				case when `m`.wip_location IS NULL THEN `ppf1`.name ELSE concat('WIP:', `m`.wip_location) END as processing_position,
 				(CASE 
-					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
+					WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 
+						OR `m`.level = 94 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98
 						THEN 8
 					WHEN mdl.category_id = 00000000013 OR `m`.fix_type = 2
 						THEN 4
@@ -332,8 +333,8 @@
 		<![CDATA[
 		select CAST(group_position_id as char) as group_position_id, CAST(sub_position_id as char) as sub_position_id, next_position_id, control_trigger,
 			po.process_code, po.name,
-			pf1.material_id as working_material_id, m1.level in (9 , 91, 92, 93, 96, 97, 98, 99) as working_light_fix,
-			pf2.material_id as finish_material_id, m2.level in (9 , 91, 92, 93, 96, 97, 98, 99) as finish_light_fix
+			pf1.material_id as working_material_id, m1.level in (9 , 91, 92, 93, 94, 96, 97, 98, 99) as working_light_fix,
+			pf2.material_id as finish_material_id, m2.level in (9 , 91, 92, 93, 94, 96, 97, 98, 99) as finish_light_fix
 		from position_group pg
 		join position po on pg.group_position_id = po.position_id
 		join position_of_section pos

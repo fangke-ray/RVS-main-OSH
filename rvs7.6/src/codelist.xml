@@ -84,6 +84,7 @@
 		<value code="96">M1</value>
 		<value code="97">M2</value>
 		<value code="98">M3</value>
+		<value code="94">M4</value>
 	</codelist>
 
 	<codelist name="material_level_inline">
@@ -115,6 +116,7 @@
 		<value code="96">M1</value>
 		<value code="97">M2</value>
 		<value code="98">M3</value>
+		<value code="94">M4</value>
 	</codelist>
 
 	<codelist name="material_level_endoscope">
@@ -132,6 +134,7 @@
 		<value code="96">M1</value>
 		<value code="97">M2</value>
 		<value code="98">M3</value>
+		<value code="94">M4</value>
 	</codelist>
 
 	<codelist name="material_level_peripheral">
@@ -146,9 +149,10 @@
 		<value code="7">B</value>
 		<value code="8">C</value>
 		<value code="9">D</value>
-		<value code="96">M-1</value>
-		<value code="97">M-2</value>
-		<value code="98">M-3</value>
+		<value code="96">M1</value>
+		<value code="97">M2</value>
+		<value code="98">M3</value>
+		<value code="94">M4</value>
 	</codelist>
 
 	<codelist name="material_ocm_rank">
@@ -166,9 +170,10 @@
 		<value code="57">E2</value>
 		<value code="58">E3</value>
 		<value code="59">EW</value>
-		<value code="96">M-1</value>
-		<value code="97">M-2</value>
-		<value code="98">M-3</value>
+		<value code="96">M1</value>
+		<value code="97">M2</value>
+		<value code="98">M3</value>
+		<value code="94">M4</value>
 	</codelist>
 	
 	<codelist name="material_storager">

@@ -175,7 +175,7 @@ function selecOptions2Object(selecOptions) {
 function f_isLightFix(level) {
 	var isLightFix = (level != null) &&
 			((level == 9 || level== 91 || level == 92 || level == 93 || level == 99) ||
-					(level== 96 || level == 97 || level == 98));
+					(level == 94 || level== 96 || level == 97 || level == 98));
 	return isLightFix;
 }
 
