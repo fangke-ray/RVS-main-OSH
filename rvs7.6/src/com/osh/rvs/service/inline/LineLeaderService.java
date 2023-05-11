@@ -469,6 +469,11 @@ public class LineLeaderService {
 		BeanUtil.copyToBean(form, bean, CopyOptions.COPYOPTIONS_NOEMPTY);
 
 		LineLeaderMapper dao = conn.getMapper(LineLeaderMapper.class);
+		if (!isEmpty(bean.getSerial_no())) {
+			String[] serialNos = bean.getSerial_no().split(",");
+			bean.setSerial_no("'" + CommonStringUtil.joinBy("','", serialNos) + "'");
+		}
+
 		List<MaterialEntity> listEntities = dao.getBeforePerformanceList(bean);
 
 		Set<String> ccdModels = RvsUtils.getCcdModels(conn);

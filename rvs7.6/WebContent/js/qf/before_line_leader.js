@@ -527,14 +527,15 @@ $(document).ready(function() {
 
     /* return isFull */
     var multiSerialNo = function(serialNo) {
-    	if (isNaN(serialNo)) {
+    	if (!serialNo) {
+//    	if (isNaN(serialNo)) {
     		return false;
     	}
 		if ($("#search_serialnos span").length >= 10) {
 			blink($("#search_serialnos"), "errorarea-blink", 6);
 			return true;
 		} else {
-			$("#search_serialnos").append("<span>" + serialNo + "</span>");
+			$("#search_serialnos").append("<span>" + serialNo.trim() + "</span>");
 			$("#search_serialno").val("");
 			return false;
 		}
