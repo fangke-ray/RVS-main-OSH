@@ -1,6 +1,8 @@
 package com.osh.rvs.common;
 
 
+import java.io.UnsupportedEncodingException;
+
 import org.apache.log4j.Logger;
 
 import com.jacob.activeX.ActiveXComponent;
@@ -105,7 +107,9 @@ public class XlsUtil {
 					new Object[] { filename, new Variant(false), new Variant(readonly) },// 是否以只读方式打开
 					new int[1]).toDispatch();
 		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
+			String errorMsg = "========Error:[" + filename + "]文档打开失败：" + file + "\r\n" + e.getMessage();
+			logger.error(errorMsg);
+			mailAssist(errorMsg);
 			Release();
 			throw e;
 		}
@@ -120,7 +124,9 @@ public class XlsUtil {
 			Dispatch.call(workbook, "Save");
 			Dispatch.call(workbook, "Close", new Variant(f));
 		} catch (Exception e) {
-			e.printStackTrace();
+			String errorMsg = "========Error:[" + filename + "]文档保存失败：\r\n" + e.getMessage();
+			logger.error(errorMsg);
+			mailAssist(errorMsg);
 		} finally {
 			xl.invoke("Quit", new Variant[] {});
 			if (release) ComThread.Release();
@@ -136,7 +142,9 @@ public class XlsUtil {
 			Dispatch.call(workbook, "Close", new Variant(f));
 			xl.invoke("Quit", new Variant[] {});
 		} catch (Exception e) {
-			e.printStackTrace();
+			String errorMsg = "========Error:[" + filename + "]文档关闭失败：\r\n" + e.getMessage();
+			logger.error(errorMsg);
+			mailAssist(errorMsg);
 		} finally {
 			if (release) ComThread.Release();
 		}
@@ -211,8 +219,10 @@ public class XlsUtil {
 			Dispatch.call(workbook, "Close", f);
 			xl.invoke("Quit", new Variant[] {});
 		} catch (Exception e) {
-			logger.error("========Error:文档转换失败：" + e.getMessage());
+			String errorMsg = "========Error:[" + filename + "]文档转换失败：" + target + "\r\n" + e.getMessage();
+			logger.error(errorMsg);
 			CloseExcel(false);
+			mailAssist(errorMsg);
 			throw e;
 		} finally {
 			Release();
@@ -228,7 +238,9 @@ public class XlsUtil {
 			Variant f = new Variant(false);
 			Dispatch.call(workbook, "Close", f);
 		} catch (Exception e) {
-			logger.error("========Error:文档转换失败：" + e.getMessage());
+			String errorMsg = "========Error:[" + filename + "]文档转换失败：" + target + "\r\n" + e.getMessage();
+			logger.error(errorMsg);
+			mailAssist(errorMsg);
 			throw e;
 		} finally {
 			Release();
@@ -244,7 +256,9 @@ public class XlsUtil {
 			Variant f = new Variant(false);
 			Dispatch.call(workbook, "Close", f);
 		} catch (Exception e) {
-			logger.error("========Error:文档转换失败：" + e.getMessage());
+			String errorMsg = "========Error:[" + filename + "]文档转换失败：" + target + "\r\n" + e.getMessage();
+			logger.error(errorMsg);
+			mailAssist(errorMsg);
 			throw e;
 		} finally {
 			Release();
@@ -260,7 +274,9 @@ public class XlsUtil {
 			Variant f = new Variant(false);
 			Dispatch.call(workbook, "Close", f);
 		} catch (Exception e) {
-			logger.error("========Error:文档转换失败：" + e.getMessage());
+			String errorMsg = "========Error:[" + filename + "]文档保存失败：" + target + "\r\n" + e.getMessage();
+			logger.error(errorMsg);
+			mailAssist(errorMsg);
 			throw e;
 		} finally {
 		}
@@ -299,7 +315,7 @@ public class XlsUtil {
 	    Variant xlLookAt = new Variant(new Integer(2));  
 		  
 	    Variant xlSearchOrder = new Variant(new Integer(1));  
-	  
+
 	    Variant matchCase = new Variant(true);  
 
 	    Dispatch.invoke(cell, "Replace", Dispatch.Method, new Object[] { source,
@@ -393,6 +409,12 @@ public class XlsUtil {
 
 		Dispatch.put(interior, "Color", colorCode);
 	}
+	public static void SetCelFontColor(Dispatch cell, String colorCode) {
+		if (cell == null) return;
+		Dispatch font = Dispatch.get(cell, "Font").toDispatch();
+
+		Dispatch.put(font, "Color", colorCode);
+	}
 
 	/**
 	 * Excel列编号转序号
@@ -482,7 +504,7 @@ public class XlsUtil {
 		Dispatch.call(cell, "Select");
 		return xl.getProperty("Selection").toDispatch();
 	}
-	
+
 	public static void Print(String path) {
 		 ComThread.InitSTA();
 		 
@@ -511,5 +533,13 @@ public class XlsUtil {
 			return 100;
 		}
 		return zoom;
+	}
+
+	private static void mailAssist(String errorMsg) {
+		try {
+			RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/mail_assist/excel.file.access/" + 
+					java.net.URLEncoder.encode(errorMsg, "UTF-8").replaceAll("\\+", "%20"));
+		} catch (UnsupportedEncodingException e) {
+		}
 	}
 }
