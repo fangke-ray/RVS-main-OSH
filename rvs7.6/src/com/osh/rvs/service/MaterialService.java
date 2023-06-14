@@ -892,10 +892,17 @@ public class MaterialService {
 		Validators v = BeanUtil.createBeanValidators(materialForm, BeanUtil.CHECK_TYPE_ALL);
 		v.delete("model_id");
 		v.delete("serial_no");
+
+		if (isEmpty(materialForm.getAgreed_date())) {
+			v.delete("level");
+		} else {
+			v.add("ocm_rank", v.required("OCM 修理等级"));
+		}
+
+
 		v.add("sorc_no", v.required("修理单号"));
 		// v.add("esas_no", v.required("ESAS NO."));
 		// v3 Add Start
-		v.add("ocm_rank", v.required("OCM 修理等级"));
 		v.add("ocm_deliver_date", v.required("OCM 配送日"));
 		v.add("customer_name", v.required("顾客名"));
 

@@ -1526,6 +1526,14 @@ public class WaittingTimeReportService {
 				cell.setCellValue(a4);
 				cell.setCellStyle(cellStyle);
 
+				cell = row.createCell(colIdx++); // 零件 BO
+				if (meentity.getBo_flg() == 1) {
+					cell.setCellValue("有");
+				} else {
+					cell.setCellValue("无");
+				}
+				cell.setCellStyle(cellStyle);
+
 				cell = row.createCell(colIdx++);//修理开始
 				setDatetime(cell, nd, "nd11");
 				cell.setCellStyle(timeStyle);
@@ -1806,6 +1814,8 @@ public class WaittingTimeReportService {
 
 		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "耗时-工作准备、零件发放", detailBoldTitleStyle, WIDTH_GAPTIME, 
 				new String[]{"工作准备-Touch", "工作准备-Wait", "零件发放-Touch", "零件发放-Wait", "ALL"});
+
+		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "零件 BO", detailExpTitleStyle, (int)(7.5*256), null);
 
 		colIdx = setTitleCell(sheet, row, rowPart, colIdx, "⑪修理开始", detailTitleStyle, WIDTH_DATETIME, null);
 

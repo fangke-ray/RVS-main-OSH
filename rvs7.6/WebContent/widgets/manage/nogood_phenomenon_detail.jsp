@@ -155,7 +155,7 @@ loadNewPhenomenonJs();
 <form id="newPhenoform">
 	<div id="newPhenoformBaseArea" style="margin-top:16px;margin-left:0;margin-bottom:16px;">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middle">
-		<span class="areatitle">维修品信息</span>
+		<span class="areatitle">修理品信息</span>
 	</div>
 	<div class="ui-widget-content dwidth-middle">
 		<table class="condform">

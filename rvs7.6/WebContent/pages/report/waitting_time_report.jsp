@@ -164,7 +164,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				</div>
 				
 				<div class="ui-widget-header ui-helper-clearfix areabase" style="padding-top:4px;">
-					<input id="boldbutton" class="ui-button" value="BOLD 统计列表" style="float:right;right:2px" type="button">
+					<!--input id="boldbutton" class="ui-button" value="BOLD 统计列表" style="float:right;right:2px" type="button"-->
 					<input id="exportbutton" class="ui-button" value="等待/中断时间图表" style="float:right;right:2px" type="button">
 				</div>
 				

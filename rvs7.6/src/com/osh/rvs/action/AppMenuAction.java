@@ -338,6 +338,7 @@ public class AppMenuAction extends BaseAction {
 
 		// 文档管理
 		menuLinks.put("文档管理", false);
+		menuLinks.put("文档管理-manager", false);
 
 		// 归档
 		if (privacies.contains(RvsConsts.PRIVACY_FILING)
@@ -346,6 +347,12 @@ public class AppMenuAction extends BaseAction {
 			menuLinks.put("文档管理", true);
 		} else {
 			menuLinks.put("filing", false);
+		}
+
+		// 文档管理-manager
+		if (privacies.contains(RvsConsts.PRIVACY_PROCESSING)
+				|| privacies.contains(RvsConsts.PRIVACY_QA_MANAGER)) {
+			menuLinks.put("文档管理-manager", true);
 		}
 
 		///////////////////////////////////////////////////////////////////

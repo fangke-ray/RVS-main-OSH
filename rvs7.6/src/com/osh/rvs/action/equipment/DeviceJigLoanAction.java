@@ -17,6 +17,7 @@ import org.apache.struts.action.ActionForm;
 import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
+import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.equipment.DeviceJigLoanEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.equipment.DeviceJigLoanForm;
@@ -138,16 +139,22 @@ public class DeviceJigLoanAction extends BaseAction {
 
 		DeviceJigLoanService service = new DeviceJigLoanService();
 
-		List<DeviceJigLoanEntity> list = service.getLoanApplyTraceByMaterial(req.getSession().getAttribute("material_detail_target").toString() ,
-				null, null, conn);
-		List<DeviceJigLoanForm> listdata = new ArrayList<DeviceJigLoanForm>();
-		CopyOptions cos = new CopyOptions();
-		cos.excludeNull();
-		cos.include("object_type", "type_name", "manage_code", "process_code", "operator_name", "on_loan_time", "revent_time");
+		HttpSession session = req.getSession();
 
-		BeanUtil.copyToFormList(list, listdata, cos, DeviceJigLoanForm.class);
+		Object oBean = session.getAttribute("materialDetail");
+		if (oBean != null) {
+			
+			List<DeviceJigLoanEntity> list = service.getLoanApplyTraceByMaterial(((MaterialEntity) oBean).getMaterial_id() ,
+					null, null, conn);
+			List<DeviceJigLoanForm> listdata = new ArrayList<DeviceJigLoanForm>();
+			CopyOptions cos = new CopyOptions();
+			cos.excludeNull();
+			cos.include("object_type", "type_name", "manage_code", "process_code", "operator_name", "on_loan_time", "revent_time");
 
-		req.setAttribute("listdata", JSON.encode(listdata));
+			BeanUtil.copyToFormList(list, listdata, cos, DeviceJigLoanForm.class);
+
+			req.setAttribute("listdata", JSON.encode(listdata));
+		}
 
 		// 迁移到页面
 		actionForward = mapping.findForward("detail_of_material");

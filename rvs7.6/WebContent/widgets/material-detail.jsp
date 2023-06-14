@@ -26,7 +26,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 <div class="ui-widget-content material_detail_tabcontent" for="material_detail_infoes_base" style="width:786px;text-align:left;">
 	<div id="material_detail_basearea" style="margin-top:22px;margin-left:9px;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middle">
-			<span class="areatitle">维修对象基本信息</span>
+			<span class="areatitle">修理品基本信息</span>
 		</div>
 		<div class="ui-widget-content dwidth-middle">
 			<table class="condform">
@@ -124,7 +124,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 
 	<div id="material_detail_basearea" style="margin-left:9px;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middle">
-			<span class="areatitle">维修对象作业信息</span>
+			<span class="areatitle">修理品作业信息</span>
 		</div>
 		<div class="ui-widget-content dwidth-middle" id="old_info">
 			<table class="condform">
@@ -335,7 +335,7 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 			</table>
 		</div>
 		<div class="clear" style="height:22px;"></div>
-		<!-- 维修对象作业信息 -->
+		<!-- 修理品作业信息 -->
 	</div>
 
 </div>
@@ -350,7 +350,7 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 	
 	<div id="material_detail_paticalarea" class="dwidth-middle" style="margin-top:22px;margin-left:9px;margin-bottom:22px;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middle">
-			<span class="areatitle">维修对象零件订购信息</span>
+			<span class="areatitle">修理品零件订购信息</span>
 		</div>
 		<div class="ui-widget-content dwidth-middle"><!-- lazy load-->
 			<table class="condform">
@@ -441,7 +441,7 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 	
 	<div id="material_detail_paticalarea" class="dwidth-middle" style="margin-top:22px;margin-left:9px;margin-bottom:22px;">
 		<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middle">
-			<span class="areatitle">维修对象零件一览</span>
+			<span class="areatitle">维修品使用零件一览</span>
 		</div>
 		<div class="ui-widget-content dwidth-middle">
 				<div id="distributions">	
@@ -461,7 +461,7 @@ if(level != null && ("1".equals(level) || "2".equals(level))) {
 		</div>	
 </div>
 
-<!-- 维修对象变更信息 -->
+<!-- 修理品变更信息 -->
 <% if (showDjLoan) { %>
 
 <!-- 维修违治具借用信息 -->

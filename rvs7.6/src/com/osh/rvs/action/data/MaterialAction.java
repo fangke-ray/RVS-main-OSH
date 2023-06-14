@@ -266,13 +266,15 @@ public class MaterialAction extends BaseAction {
 
 			} else {
 				MaterialProcessForm processForm = materialProcessService.loadMaterialProcess(conn, materialId);
-				if (processForm.getDec_plan_date() != null) {
-					req.setAttribute("hasDecom", "true");
+				if (processForm != null) {
+					if (processForm.getDec_plan_date() != null) {
+						req.setAttribute("hasDecom", "true");
+					}
+					if (processForm.getNs_plan_date() != null) {
+						req.setAttribute("hasNs", "true");
+					}
+					req.setAttribute("processForm", processForm);
 				}
-				if (processForm.getNs_plan_date() != null) {
-					req.setAttribute("hasNs", "true");
-				}
-				req.setAttribute("processForm", processForm);
 
 				req.setAttribute("inline", "true");
 			}

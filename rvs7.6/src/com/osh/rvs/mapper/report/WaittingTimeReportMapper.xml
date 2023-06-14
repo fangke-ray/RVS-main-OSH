@@ -313,7 +313,8 @@
 	    order_date_end,
 	    com_drying_time,
 	    f_diffminutes(order_date_start, order_date_end) as wait_partial_distrubute_time,
-	    f_diffminutes(order_date_end, inline_time) as inline_trans_time
+	    f_diffminutes(order_date_end, inline_time) as inline_trans_time,
+        exists(select 1 from material_partial where material_id = aldr.material_id and bo_flg in (1,2)) as bo_flg
 	FROM (
 		SELECT
 			ma.material_id,
@@ -372,18 +373,18 @@
 			nd2
 		,nd5) as a2,
 		round(quote / 60) as t3,
-		f_diffminutes(nd5,coalesce(nd7,nd7_1)) as a3,
+		f_ab_diffminutes(nd5,coalesce(nd7,nd7_1)) as a3,
 		f_diffminutes(nd9_1,nd9) as t4,
-		f_diffminutes(coalesce(nd7,nd7_1),nd8) as h4,
-		f_diffminutes(nd8,nd9) as a4,
+		f_ab_diffminutes(coalesce(nd7,nd7_1),nd8) as h4,
+		f_ab_diffminutes(greatest(nd7_1, nd8), nd9) as a4,
 		round(inline / 60) as t6,
-		f_diffminutes(nd11,nd12) as a6,
+		f_ab_diffminutes(nd9,nd12) as a6,
 		round(qa / 60) as t7,
-		f_diffminutes(nd12,nd14) as a7,
+		f_ab_diffminutes(nd12,nd14) as a7,
 		f_diffminutes(nd15,coalesce(nd16, nd15_2)) as t8,
-		f_diffminutes(nd14,coalesce(nd16, nd15_2)) as a8,
-		f_diffminutes(coalesce(nd1, nd2, nd3), coalesce(nd7,nd7_1)) as pre,
-		f_diffminutes(nd8,coalesce(nd16, nd15_2)) as post,
+		f_ab_diffminutes(nd14,coalesce(nd16, nd15_2)) as a8,
+		f_ab_diffminutes(coalesce(nd1, nd2, nd3), coalesce(nd7,nd7_1)) as pre,
+		f_ab_diffminutes(greatest(nd7_1, nd8), coalesce(nd16, nd15_2)) as post,
 		cds_m
 	from (
 		select 
