@@ -111,6 +111,7 @@
 				<tr>
 					<td class="ui-state-default">013<span class="model_indicate">GIF-H290</span></td>
 					<td nsid="Z0201301">01</td>
+					<td nsid="Z0201302">02</td>
 				</tr>
 			</table>
 		</div>
@@ -194,6 +195,7 @@
 				<tr>
 					<td class="ui-state-default">013<span class="model_indicate">GIF-H290</span></td>
 					<td nsid="Z0101301">01</td>
+					<td nsid="Z0101302">02</td>
 				</tr>
 			</table>
 		</div>

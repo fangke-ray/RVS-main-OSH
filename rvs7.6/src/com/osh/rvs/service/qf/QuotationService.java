@@ -156,11 +156,11 @@ public class QuotationService {
 			}
 		}
 
-		// 判断是否NS组件组装对象
-		Set<String> nsCompModels = ComponentSettingService.getNsCompModels(conn);
-		if (nsCompModels.contains(mform.getModel_id())) {
-			responseBean.put("component_setting", "csBean.getIdentify_code()");
-		}
+		// 判断是否NS组件组装对象 22.11.15 暂停 NS组件组装， 不做显示
+//		Set<String> nsCompModels = ComponentSettingService.getNsCompModels(conn);
+//		if (nsCompModels.contains(mform.getModel_id())) {
+//			responseBean.put("component_setting", "csBean.getIdentify_code()");
+//		}
 
 		// 取得维修对象的作业标准时间。
 		responseBean.put("leagal_overline", RvsUtils.getZeroOverLine(mform.getModel_name(), mform.getCategory_name(), user, null));
