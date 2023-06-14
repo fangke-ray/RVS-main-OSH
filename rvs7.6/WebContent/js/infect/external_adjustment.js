@@ -362,13 +362,13 @@ var list=function(datalist){
                 {name:'checked_date',index:'checked_date',width:100,align:'center',sorttype:'date',formatter:'date',
                     formatoptions:{
                         srcformat:'Y/m/d',
-                        newformat:'Y年m月'
+                        newformat:'y年m月d日'
                     }
                 },
                 {name:'available_end_date',index:'available_end_date',width:100,align:'center',sorttype:'date',formatter:'date',
                     formatoptions:{
                         srcformat:'Y/m/d',
-                        newformat:'Y年m月'
+                        newformat:'y年m月d日'
                     }
                 },
                 {name:'effect_interval',index:'effect_interval',width:60,formatter:'select',align:'center',

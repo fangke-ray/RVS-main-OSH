@@ -1083,7 +1083,7 @@ public class CheckResultService {
 			checkContent.append("<tr class='tcs_content' stat manage_id='"+manage_id+"'>"
 					+ "<td>"+(ii+ 1)+"</td>"
 					+ "<td>" +toolsCheckResultForm.getManage_code()+ "</td>"
-					+ "<td>"+(hasPhoto ? "<a href='javascript:void(0)' class='t_pic icon-printer'>" + toolsNo + "</a>" : toolsNo)+ "</td>"
+					+ "<td>"+(hasPhoto ? "<a href='javascript:void(0)' tabindex='-1' class='t_pic icon-printer'>" + toolsNo + "</a>" : toolsNo)+ "</td>"
 					+ "<td class='HL WT'>"+toolsCheckResultForm.getTools_name()+"</td>"
 					+ "<td>1</td>"
 					+ "<td>1月/次</td>"
@@ -1518,8 +1518,10 @@ public class CheckResultService {
 				// 删除等待点检信息
 				mapper.removeWaitDeviceCheck(entity);
 
-				if (2 == entity.getChecked_status() || 3 == entity.getChecked_status()) {
-					blockID = entity.getManage_id();
+				if (entity.getChecked_status() != null) {
+					if (2 == entity.getChecked_status() || 3 == entity.getChecked_status()) {
+						blockID = entity.getManage_id();
+					}
 				}
 			}
 
@@ -2975,7 +2977,7 @@ public class CheckResultService {
 			//#J
 			Dispatch cell = cacheXls.Locate("#J");
 			while (cell != null) {
-				String stamp = Dispatch.get(cell, "Value").toString();
+				String stamp = Dispatch.get(cell, "Value").toString().trim();
 				String jobNo = stamp.replaceAll("#J\\[(.*)#", "$1");
 				cacheXls.SetValue(cell, "");
 				cacheXls.sign(PathConsts.BASE_PATH + PathConsts.IMAGES + "\\sign\\" + jobNo.toUpperCase(), cell, pageZoom);
@@ -4066,7 +4068,7 @@ public class CheckResultService {
 
 		XlsUtil cacheXls = null;
 		try {
-			cacheXls = new XlsUtil(cachePath, true);
+			cacheXls = new XlsUtil(cachePath, false);
 			cacheXls.SelectActiveSheet();
 
 			// 取得本期

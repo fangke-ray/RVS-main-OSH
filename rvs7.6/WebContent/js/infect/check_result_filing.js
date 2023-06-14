@@ -301,7 +301,7 @@ var detail_handleComplete=function(xhrobj, textStatus){
 
 /*下载*/
 var downExcel = function(fileName,work_period,check_manage_code) {
-	var dlSrc = "filingdownload.do"+"?method=output&filePath=%2F"+work_period +"%2F"+ check_manage_code+"%2F&fileName="+ fileName;
+	var dlSrc = "filingdownload.do"+"?method=output&filePath=%2F"+work_period +"%2F"+ check_manage_code+"%2F&fileName="+ encodeURIComponent(fileName);
 	if ($("iframe").length > 0) {
 		$("iframe").attr("src", dlSrc);
 	} else {
