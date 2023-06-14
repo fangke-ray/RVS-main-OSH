@@ -345,5 +345,8 @@
 		<mapper resource="com/osh/rvs/mapper/support/SuppliesDetailMapper.xml"/>
 		<mapper resource="com/osh/rvs/mapper/support/SuppliesOrderMapper.xml"/>
 
+		<mapper resource="com/osh/rvs/mapper/master/ConsumablePositionMapper.xml"/>
+		<mapper resource="com/osh/rvs/mapper/partial/MaterialConsumableDetailMapper.xml"/>
+
 	</mappers>
 </configuration> 

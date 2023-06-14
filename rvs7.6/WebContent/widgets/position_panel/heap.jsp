@@ -32,14 +32,16 @@ String concernPosition = (String) request.getAttribute("concernPosition");
 		</a>
 	</div>
 
-	<div class="ui-widget-content dwidth-half" id="scanner_container" style="min-height: 215px;">
+		<div class="ui-widget-content dwidth-half" id="scanner_placeholder" style="min-height: 215px;">
+		</div>
+		<div class="ui-widget-content dwidth-half" id="scanner_container" style="min-height: 215px;display:none;">
 		<div class="ui-state-default td-title">扫描录入区域</div>
 		<input type="text" id="scanner_inputer" title="扫描前请点入此处" class="scanner_inputer dwidth-half"></input>
 		<div style="text-align: center;">
 			<img src="images/barcode.png" style="margin: auto; width: 150px; padding-top: 4px;">
 		</div>
 	</div>
-	<div class="ui-widget-content dwidth-half" id="material_details" style="min-height: 215px;">
+	<div class="ui-widget-content dwidth-half" id="material_details" style="min-height: 215px;display:none;">
 		<table class="condform">
 			<tbody>
 				<tr>

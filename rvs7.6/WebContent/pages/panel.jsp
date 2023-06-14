@@ -91,10 +91,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 	}
 	} else {
 %>
-									<input type="radio" name="section" value="00000000001" id="section_00000000001" <% if ("00000000001".equals(section_id)) { %>checked<% } %>><label for="section_00000000001"><span>翻修1课</span></label>
-									<input type="radio" name="section" value="00000000003" id="section_00000000003" <% if ("00000000003".equals(section_id)) { %>checked<% } %>><label for="section_00000000003"><span>翻修2课</span></label>
-									<input type="radio" name="section" value="00000000012" id="section_00000000012" <% if ("00000000012".equals(section_id)) { %>checked<% } %>><label for="section_00000000012"><span>翻修3课</span></label>
-									<input type="radio" name="section" value="00000000006" id="section_00000000006" <% if ("00000000006".equals(section_id)) { %>checked<% } %>><label for="section_00000000006"><span>支援课</span></label>
+									<input type="radio" name="section" value="00000000001" id="section_00000000001" <% if ("00000000001".equals(section_id)) { %>checked<% } %>><label for="section_00000000001"><span>修理1课</span></label>
+									<input type="radio" name="section" value="00000000003" id="section_00000000003" <% if ("00000000003".equals(section_id)) { %>checked<% } %>><label for="section_00000000003"><span>修理2课</span></label>
+									<input type="radio" name="section" value="00000000012" id="section_00000000012" <% if ("00000000012".equals(section_id)) { %>checked<% } %>><label for="section_00000000012"><span>修理3课</span></label>
+									<input type="radio" name="section" value="00000000006" id="section_00000000006" <% if ("00000000006".equals(section_id)) { %>checked<% } %>><label for="section_00000000006"><span>修理运营课</span></label>
 									<input type="radio" name="section" value="00000000007" id="section_00000000007" <% if ("00000000007".equals(section_id)) { %>checked<% } %>><label for="section_00000000007"><span>品保课</span></label>
 									<input type="radio" name="section" value="00000000009" id="section_00000000009" <% if ("00000000009".equals(section_id)) { %>checked<% } %>><label for="section_00000000009"><span>报价物料课</span></label>
 <%
@@ -175,10 +175,10 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 						<div class="ui-widget-content" id="system_verison" style="">
 							<div class="ui-widget-content">
 								<p>系统版本:</p>
-								<p id="nee">9.2.3445.474</p>
+								<p id="nee">10.4.3532.482</p>
 								<p>&nbsp;</p>
 								<p>发布时间:</p>
-								<p>2021年11月4日</p>
+								<p>2023年6月14日</p>
 							</div>
 						</div>
 <%
@@ -186,6 +186,81 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 %>
 						<div class="ui-widget-content" id="system_verison_content">
 							<div class="ui-widget-content" style="max-height: 560px;overflow: auto;">
+								<p>--------------------------------------</p>
+								<p>23/6/14 10.4.3532.482 更新</p>
+								<p>生产线/物料: 在线消耗品使用记录</p>
+								<p>--------------------------------------</p>
+								<p>23/4/25 10.3.3523.482 更新</p>
+								<p>分析管理: 维修品BOLD作业信息</p>
+								<p>全局: 修理品一览/详细画面BOLD对应</p>
+								<p>分析管理: 零件影响标准工时设置</p>
+								<p>分析管理: 作业者月明细报表</p>
+								<p>--------------------------------------</p>
+								<p>23/3/27 10.3.3519.480 更新</p>
+								<p>展示: 分解分工时展示</p>
+								<p>设备: 设备管理改善要求</p>
+								<p>--------------------------------------</p>
+								<p>23/2/23 10.3.3517.480 更新</p>
+								<p>生产线: 超声镜/混合镜转2课修理</p>
+								<p>--------------------------------------</p>
+								<p>23/1/9 10.3.3511.479 更新</p>
+								<p>报价/生产线: ID烧录交给报价作业</p>
+								<p>出货: 记录出货给到物流的时间</p>
+								<p>--------------------------------------</p>
+								<p>22/12/23 10.3.3508.479 更新</p>
+								<p>接口: OTS货物物流到货时间查询</p>
+								<p>接口: Rvs004接口超时重发/报警</p>
+								<p>--------------------------------------</p>
+								<p>22/12/5 10.2.3506.477 更新</p>
+								<p>生产线: SA画面查询CCD线更换对象</p>
+								<p>报价: 报价界面显示CCD线对象</p>
+								<p>报价: 报价关注CCD盖玻璃更换进度</p>
+								<p>报价: 允许以修理等级“无故障”完成报价</p>
+								<p>--------------------------------------</p>
+								<p>22/11/24 10.2.3501.477 更新</p>
+								<p>报价: 需CCD盖玻璃更换标记</p>
+								<p>出货: 提示通箱出货楼层</p>
+								<p>投线: 建立BO品WIP库位</p>
+								<p>投线: 获取客户同意时间</p>
+								<p>--------------------------------------</p>
+								<p>22/11/15 10.1.3496.477 更新</p>
+								<p>投线/物料: 维修品与一次零件同步投线新流程(WIP1/WIP2)</p>
+								<p>--------------------------------------</p>
+								<p>22/10/17 9.3.3490.477 更新</p>
+								<p>生产线: 231工位追加零件提交PA</p>
+								<p>受理CDS: 灭菌仓位UDI分别计算</p>
+								<p>受理: 合同用户标记获取和打印</p>
+								<p>生产线: 工作岗位取消标准工时与计时</p>
+								<p>支援: 物品申购机制修改</p>
+								<p>--------------------------------------</p>
+								<p>22/8/17 9.3.3484.476 更新</p>
+								<p>物料/生产线: 零件/修理品同时投线</p>
+								<p>--------------------------------------</p>
+								<p>22/8/8 9.2.3483.475 更新</p>
+								<p>展示: RVS可视化界面改善</p>
+								<p>展示: 受理/报价新可视化界面导入</p>
+								<p>--------------------------------------</p>
+								<p>22/7/31 9.2.3479.475 更新</p>
+								<p>生产线: 周边修理工位2次扫描开始</p>
+								<p>--------------------------------------</p>
+								<p>22/6/20 9.2.3474.475 更新</p>
+								<p>报价/生产线: 选择修理</p>
+								<p>--------------------------------------</p>
+								<p>22/4/20 9.2.3468.474 更新</p>
+								<p>生产线: 分解库位管理</p>
+								<p>受理: URF内镜极速修理</p>
+								<p>查询：维修对象一览增加栏目</p>
+								<p>--------------------------------------</p>
+								<p>22/2/8 9.2.3461.474 更新</p>
+								<p>物料: 零件提前订购及二次发放</p>
+								<p>生产线: 工位界面关注他工位进度</p>
+								<p>--------------------------------------</p>
+								<p>22/1/17 9.2.3461.474 更新</p>
+								<p>生产线: 实物受理自动打印周转箱库位票</p>
+								<p>--------------------------------------</p>
+								<p>21/12/29 9.2.3459.474 更新</p>
+								<p>生产线: D/E 组装(原先端预制)重新启用</p>
+								<p>安全性：密码提交时混淆，密码错误时需要验证码</p>
 								<p>--------------------------------------</p>
 								<p>21/11/4 9.2.3445.474 更新</p>
 								<p>报价/流水线/物料: 工作指示单无纸化（首单订购）</p>

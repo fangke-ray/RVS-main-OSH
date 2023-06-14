@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.osh.rvs.mapper.partial.MaterialConsumableDetailMapper">
+
+	<!-- cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"> 
+		</cache -->
+	<select id="search" resultType="MaterialPartialDetailEntity" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[ 
+			SELECT `material_id`,
+			    `partial_id`,
+			    `position_id`,
+			    `rework`,
+			    `r_operator_id`,
+			    `receive_quantity` as recept_quantity,
+			    `recent_receive_time`
+			FROM `material_consumable_detail`
+		]]>
+		<where>
+			<![CDATA[ 
+				material_id = #{material_id}
+			]]>
+			<if test="partial_id != null and partial_id != ''">
+				and `partial_id` = #{partial_id}
+			</if>
+			<if test="position_id != null and position_id != ''">
+				and `position_id` = #{position_id}
+			</if>
+			<if test="occur_times != null and occur_times != ''">
+				and `rework` = #{occur_times}
+			</if>
+			<if test="r_operator_id != null and r_operator_id != ''">
+				and `r_operator_id` = #{r_operator_id}
+			</if>
+		</where>
+	</select>
+
+	<select id="searchForMaterialWithLine" resultType="MaterialPartialDetailEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT 
+				mcd.material_id,
+				mcd.partial_id,
+				mcd.position_id,
+				mcd.rework as occur_times,
+			    ptl.code as `partial_code`,
+			    ptl.name as `partial_name`,
+			    pos.`process_code`,
+			    `r_operator_id`,
+			    `receive_quantity` as cur_quantity,
+			    `recent_receive_time` as recent_signin_time
+			FROM `material_consumable_detail` mcd
+			JOIN `position` pos
+			ON mcd.position_id = pos.position_id
+			JOIN `partial` ptl
+			ON mcd.partial_id = ptl.partial_id
+		]]>
+		<where>
+			<![CDATA[ 
+				mcd.material_id = #{material_id}
+			]]>
+			<if test="line_id != null and line_id != ''">
+				and pos.`line_id` = #{line_id}
+			</if>
+		</where>
+	</select>
+
+	<update id="updateQuantity" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[ 
+			UPDATE `material_consumable_detail`
+			SET
+			`receive_quantity` = #{recept_quantity},
+			`recent_receive_time` = current_timestamp
+			WHERE `material_id` = #{material_id} 
+			AND `partial_id` = #{partial_id} 
+			AND `position_id` = #{position_id} 
+			AND `rework` = #{occur_times}
+			AND `r_operator_id` = #{r_operator_id};
+		]]>
+	</update>
+
+	<insert id="insert" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[ 
+			INSERT INTO `material_consumable_detail`
+			(`material_id`,
+			`partial_id`,
+			`position_id`,
+			`rework`,
+			`r_operator_id`,
+			`receive_quantity`,
+			`recent_receive_time`)
+			VALUES
+			(#{material_id},
+			#{partial_id},
+			#{position_id},
+			#{occur_times},
+			#{r_operator_id},
+			#{recept_quantity},
+			current_timestamp);
+		]]>
+	</insert>
+
+	<delete id="remove" parameterType="MaterialPartialDetailEntity">
+		<![CDATA[ 
+			DELETE FROM `material_consumable_detail`
+			WHERE `material_id` = #{material_id} 
+			AND `partial_id` = #{partial_id} 
+			AND `position_id` = #{position_id} 
+			AND `rework` = #{occur_times}
+			AND `r_operator_id` = #{r_operator_id};
+		]]>
+	</delete>
+
+	<select id="archiveOfConsumablesRecept" resultType="MaterialPartialDetailEntity" parameterType="String">
+		<![CDATA[ 
+			select
+				0 as occur_times,
+				pa.code as partial_code,
+				pa.name as partial_name,
+				mpd.receive_quantity as quantity,
+				mpd.recent_receive_time,
+				oper.job_no
+			from
+				material ma
+			join
+				material_consumable_detail mpd
+			on
+				ma.material_id=mpd.material_id
+			join
+				partial pa
+			on
+				mpd.partial_id=pa.partial_id
+			left join
+				operator oper
+			on
+				oper.operator_id=mpd.r_operator_id
+			where 
+				ma.material_id=#{material_id} 
+			order by
+				occur_times , mpd.recent_receive_time , pa.code
+		]]>
+	</select>
+</mapper>

@@ -72,17 +72,23 @@ var enableButton = function() {
 
 	// 选择行，并获取行
 	var row = $("#consumable_list").jqGrid("getGridParam", "selrow");
-	if (row !=null) {
+	if (row != null) {
 		$("#edit_button").enable();
 		$("#remove_button").enable();
 		$("#measuring_set_button").enable();
 		$("#image_load_button").enable();
 		var rowdata = $("#consumable_list").getRowData(row);
 
-		if (rowdata['type'] == "6") {
+		$("#heatshrinkable_tube_button").hide();
+		$("#position_button").hide();
+		switch (rowdata['type']) {
+		case "6" :
 			$("#heatshrinkable_tube_button").show();
-		} else {
-			$("#heatshrinkable_tube_button").hide();
+			break;
+		case "1" :
+		case "3" :
+			$("#position_button").show();
+			break;
 		}
 	} else {
 		$("#edit_button").disable();
@@ -90,6 +96,7 @@ var enableButton = function() {
 		$("#measuring_set_button").disable();
 		$("#image_load_button").disable();
 		$("#heatshrinkable_tube_button").hide();
+		$("#position_button").hide();
 	}
 };
 
@@ -1236,6 +1243,7 @@ var getHeatshrinkableLength_Complete = function(xhjObj, code, description) {
 		});
 	}
 }
+
 var setHeatshrinkableLength = function(partail_id){
 	var postData = {"partail_id" : partail_id, "content": $("#hshl_cut_lengths").val()};
 	$.ajax({

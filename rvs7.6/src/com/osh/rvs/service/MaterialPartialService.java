@@ -59,6 +59,7 @@ import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.mapper.CommonMapper;
 import com.osh.rvs.mapper.data.PostMessageMapper;
 import com.osh.rvs.mapper.master.OperatorMapper;
+import com.osh.rvs.mapper.partial.MaterialConsumableDetailMapper;
 import com.osh.rvs.mapper.partial.MaterialPartialMapper;
 
 import framework.huiqing.bean.message.MsgInfo;
@@ -1434,6 +1435,21 @@ public class MaterialPartialService {
 
 		FileUtils.copyFile(path, cachePath);
 
+		makeArchire(mform, folderPath, cachePath, list, "货物到达验收确认单.pdf");
+
+		String cachePathConsumable = PathConsts.BASE_PATH + PathConsts.LOAD_TEMP + "\\" + DateUtil.toString(new Date(), "yyyyMM") + "\\CNSB_" + cacheName; 
+
+		MaterialConsumableDetailMapper cMapper = conn.getMapper(MaterialConsumableDetailMapper.class);
+		List<MaterialPartialDetailEntity> listCnsb = cMapper.archiveOfConsumablesRecept(mform.getMaterial_id());
+
+		if (listCnsb.size() > 0) {
+			FileUtils.copyFile(path, cachePathConsumable);
+			makeArchire(mform, folderPath, cachePathConsumable, listCnsb, "消耗品验收确认单.pdf");
+		}
+	}
+	
+	private void makeArchire(MaterialForm mform, String folderPath,
+			String cachePath, List<MaterialPartialDetailEntity> list, String pdfFileName) {
 		OutputStream out = null;
 		InputStream in = null;
 
@@ -1641,7 +1657,7 @@ public class MaterialPartialService {
 
 					// 转换到Pdf
 					XlsUtil xlsUtil = new XlsUtil(cachePath);
-					xlsUtil.SaveAsPdf(folderPath + "\\货物到达验收确认单.pdf");
+					xlsUtil.SaveAsPdf(folderPath + "\\" + pdfFileName);
 				}
 			}
 		}catch(Exception e){
@@ -1663,7 +1679,7 @@ public class MaterialPartialService {
 			}
 		}
 	}
-	
+
 	/**
 	 * 插入图片
 	 * @param work Excel表格

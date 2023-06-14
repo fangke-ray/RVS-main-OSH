@@ -309,6 +309,12 @@ loadJs("js/inline/position_panel_use_snout.js", function(){});
 </script>
 <% } %>
 
+<%
+String inlineConsumable = (String) request.getAttribute("inlineConsumable");
+if (inlineConsumable != null) { 
+%>
+<%@include file="/widgets/position_panel/inline_consumable.jsp"%>
+<% } %>
 			<div id="manualdetailarea" style="margin-bottom: 16px;">
 				<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-full">
 					<span class="areatitle">工程检查票</span>

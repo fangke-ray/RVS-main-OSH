@@ -37,6 +37,7 @@ import com.osh.rvs.service.MaterialPartialService;
 import com.osh.rvs.service.ModelService;
 import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
+import com.osh.rvs.service.partial.ConsumablePositionService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -301,7 +302,12 @@ public class MaterialPartialAction extends BaseAction {
 		String lineId = req.getParameter("line_id");
 		
 		List<MaterialPartialDetailForm> lResultForm = materialPartialService.searchMaterialPartialDetail(conn, materialId, occurTimes, lineId);
-		
+		ConsumablePositionService cpService = new ConsumablePositionService();
+		List<MaterialPartialDetailForm> cplist = cpService.getConsumableReceptOfMaterial(materialId, lineId, conn);
+		if (cplist.size() > 0) {
+			lResultForm.addAll(cplist);
+		}
+
 		listResponse.put("list", lResultForm);
 		
 		returnJsonResponse(res, listResponse);

@@ -191,7 +191,7 @@
 			b.code as partial_code,
 			b.name as partial_name,
 			cm.available_inventory,
-			a.quantity - a.waiting_quantity as cur_quantity,
+			a.quantity - a.waiting_receive_quantity as cur_quantity,
 			a.quantity,
 			p.process_code,
 			p.line_id,

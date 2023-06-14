@@ -479,7 +479,7 @@ var treatPause = function(resInfo) {
 		posClockObj.setLeagalAndSpent(resInfo.leagal_overline, resInfo.spent_mins, resInfo.spent_secs);
 	
 		$("#working_detail").show()
-			.next().hide();
+			.nextAll().show();
 
 		if (resInfo.peripheralData && resInfo.peripheralData.length > 0) {
 			showPeripheral(resInfo);
@@ -565,7 +565,7 @@ var treatStart = function(resInfo) {
 	posClockObj.recountTopClock();
 
 	$("#working_detail").show()
-		.next().show();
+		.nextAll().show();
 
 	var section_id = $("#g_pos_id").val().substring(0,11);
 //	if (section_id == "00000000001") {
@@ -757,6 +757,10 @@ var treatStart = function(resInfo) {
 		}
 
 	};
+
+	if(typeof cnsm_obj == "object" && resInfo.mform && resInfo.mform.material_id) {
+		cnsm_obj.load(resInfo.mform.material_id);
+	}
 };
 
 //var refreshPositionTime = function(resInfo){
@@ -830,6 +834,8 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			treatBackMessages(null, resInfo.errors);
 
 		} else {
+			$("#scanner_placeholder").remove();
+
 			$("#hidden_workstauts").val(resInfo.workstauts);
 			if (resInfo.workstauts == -1) {
 				if (resInfo.infectString.indexOf("javascript:opd_pop") >= 0) {
@@ -850,7 +856,8 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 
 			if (resInfo.infectString) {
 				$("#toInfect").show()
-				.find("td:eq(1)").html(decodeClick(decodeText(resInfo.infectString)));
+				.find("td:eq(1)").html(decodeClick(decodeText(resInfo.infectString)))
+				.css("wordWrap", "anywhere");
 			} else {
 				$("#toInfect").hide();
 			}
@@ -933,6 +940,10 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 						} else {
 							$("#comments_sidebar").hide();
 						}
+						$("#scanner_container").show();
+						setTimeout(function (){
+        					$("#scanner_container").focus();
+						}, 1000);
 					}
 
 					// 如果打开作业中但是没有
@@ -1012,7 +1023,7 @@ var getJustWorkingFingers = function(material_id) {
 //			try {
 				// 以Object形式读取JSON
 				eval('resInfo =' + xhrobj.responseText);
-
+				var flowtext = "";
 				if (resInfo.fingers) flowtext = decodeClick(resInfo.fingers) + (resInfo.past_fingers ? "<br>" + resInfo.past_fingers : "");
 				$("#flowtext").html(flowtext);
 				if (resInfo.fingers && resInfo.fingers.indexOf("[lick") >= 0
@@ -1136,7 +1147,7 @@ $(function() {
 	$("#working_detail").hide().click(function(){
 		var material_id = $("#pauseo_material_id").val();
 		showMaterial(material_id);
-	}).end().next().hide();
+	}).end().nextAll().hide();
 
 	$("#position_status").css("color", "white");
 
@@ -1249,7 +1260,7 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus, postData){
 			} else if (resInfo.workstauts == 3) {
 				showPartialRecept(resInfo);
 			} else if (resInfo.workstauts == 3.9) {
-				doFinish();
+				doFinishConfirmed();
 			}
 			dryProcesses = getDryProcessesTable(resInfo.dryProcesses);
 		}
@@ -1659,7 +1670,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 			} 
 			var error1 = resInfo.errors[0];
 			if (error1.errcode === "info.countdown.unreach") {
-				if (typeof(showDelayReasonDialog) === "function") showDelayReasonDialog(resInfo.causes, doFinish);
+				if (typeof(showDelayReasonDialog) === "function") showDelayReasonDialog(resInfo.causes, doFinishConfirmed);
 				return;
 			}
 			treatBackMessages(null, resInfo.errors);
@@ -1682,7 +1693,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 				if (resInfo.past_fingers) $("#flowtext").text(resInfo.past_fingers);
 
 				$("#working_detail").hide()
-					.next().hide();
+					.nextAll().hide();
 
 				posClockObj.stopClock();
 
@@ -1746,6 +1757,30 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 }
 
 var doFinish=function(evt, hr){
+	if (typeof cnsm_obj == "object") {
+		var cnsm_confirmMessage = cnsm_obj.valued();
+		if (cnsm_confirmMessage) {
+			if (cnsm_confirmMessage == "禁止") {
+				errorPop("本工位有建议的消耗品可以使用，但没有记录安装数。需要记录后才能完成作业。");
+				return;
+			} else if (cnsm_confirmMessage.indexOf("超出") >= 0) {
+				errorPop(cnsm_confirmMessage);
+				return;
+			} else {
+				warningConfirm(cnsm_confirmMessage + "<br>如需修改请取消后进行操作。", 
+				function(){
+					doFinishConfirmed(evt, hr);
+				}, cnsm_obj.open, null
+				, "继续完成", "取消去修改");
+
+				return;
+			}
+		}
+	}
+
+	doFinishConfirmed(evt, hr);
+}
+var doFinishConfirmed = function(evt, hr){
 	if ($("#desnout:visible").length > 0) {
 		if ($("#desnout").children("button").length > 0) {
 			errorPop("请选择 C 本体需要回收还是废弃。");

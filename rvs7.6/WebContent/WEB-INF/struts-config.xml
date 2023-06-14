@@ -1700,6 +1700,15 @@
 			<forward name="success" path="/pages/admin/standard_partial_addition.jsp" />
 		</action>
 
+		<!-- partial 零件发放 -->
+		<action path="/material_consumable"
+				type="com.osh.rvs.action.partial.MaterialConsumableAction"
+				parameter="method"
+				scope="request"
+				name="materialPartialDetailForm"
+				validate="false">
+		</action>
+
 	</action-mappings>
 	<!-- ======================================== Message Resources Definitions -->
 

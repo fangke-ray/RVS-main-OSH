@@ -12,11 +12,34 @@
 <link rel="stylesheet" type="text/css" href="css/olympus/jquery-ui-1.9.1.custom.css">
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
-
 <style>
 td.image-link {
 	cursor:pointer;
 	text-decoration: underline solid blue;
+}
+#consumable_position_dialog > table {
+	width:680px;
+}
+#consumable_position_dialog > table td.ui-state-default {
+	border:1px solid white;
+}
+#consumable_position_dialog > table input[type='text'] {
+	width:6em;
+	cursor: pointer;
+}
+#consumable_position_dialog > table input[type='text'][updated],
+#consumable_position_dialog > table input[type='text'][updated] + * {
+	background-color: lightgreen;
+}
+#consumable_position_dialog > table input[type='number'] {
+	width:4em;
+}
+#consumable_position_dialog > table > thead tr th {
+	position:sticky;
+	top:0;
+}
+#positions_dialog > .subform {
+	cursor: pointer;	
 }
 </style>
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
@@ -34,6 +57,7 @@ td.image-link {
 <script type="text/javascript" src="js/common/photo_editor.js"></script>
 
 <script type="text/javascript" src="js/partial/consumable_list.js"></script>
+<script type="text/javascript" src="js/partial/consumable_position.js"></script>
 <% 
 	String role_fact = (String) request.getAttribute("role_fact");
 	boolean isFact = ("fact").equals(role_fact);
@@ -142,6 +166,9 @@ td.image-link {
 				<input id="adjust_button" class="ui-button" value="盘点" role="button" type="button">
 				<p style="height:6px;margin: 0;"></p>
 				<input id="image_load_button" class="ui-button" value="照片上传" role="button" type="button"><input type="hidden" id="got_uuid" type="text" value=""/>
+				<% } %>
+				<% if (isPm) { %>
+				<input id="position_button" class="ui-button" value="定位用量设置" role="button" type="button">
 				<% } %>
 				<% if (isFact) { %>
 				<input id="measuring_set_button" class="ui-button" value="计量单位设置" role="button" type="button">
@@ -434,6 +461,10 @@ td.image-link {
 			<div class="clear"></div>
 		</div>
 	<div class="clear"></div>
+
+	<div class="referchooser ui-widget-content" id="pReferChooser" tabindex="-1">
+		<table class="subform">${pReferChooser}</table>
+	</div>
 
 
 	<div id="footarea"></div>

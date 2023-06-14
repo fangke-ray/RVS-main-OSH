@@ -474,7 +474,7 @@ var treatPause = function(resInfo) {
 	if (resInfo) {
 		$("#anml_attendtion").remove();
 
-		$("#working_detail").hide();
+		$("#working_detail").hide().nextAll().hide();
 
 		if (resInfo.mform) {
 			var $hidden_id = $("#material_details td:eq(0) input:hidden");
@@ -487,7 +487,7 @@ var treatPause = function(resInfo) {
 			$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
 
 			if (resInfo.mform.material_id) {
-				$("#working_detail").show();
+				$("#working_detail").show().nextAll().show();
 			}
 		}
 
@@ -555,7 +555,7 @@ var treatStart = function(resInfo) {
 	}
 
 	$("#anml_attendtion").remove();
-	$("#working_detail").hide();
+	$("#working_detail").hide().nextAll().hide();
 
 	if (resInfo.mform) {
 		var $hidden_id = $("#material_details td:eq(0) input:hidden");
@@ -571,7 +571,7 @@ var treatStart = function(resInfo) {
 		$("#material_details td:eq(5)").text(resInfo.mform.serial_no);
 
 		if (resInfo.mform.material_id) {
-			$("#working_detail").show();
+			$("#working_detail").show().nextAll().show();
 		}
 	}
 
@@ -669,6 +669,9 @@ var treatStart = function(resInfo) {
 
 	};
 
+	if(typeof cnsm_obj == "object" && resInfo.mform && resInfo.mform.material_id) {
+		cnsm_obj.load(resInfo.mform.material_id);
+	}
 };
 
 var refreshCurPositionTime = function(cur_process_code){
@@ -696,6 +699,8 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 			treatBackMessages(null, resInfo.errors);
 
 		} else {
+			$("#scanner_placeholder").remove();
+
 			$("#hidden_workstauts").val(resInfo.workstauts);
 			if (resInfo.workstauts == -1) {
 				if (resInfo.infectString.indexOf("javascript:opd_pop") >= 0) {
@@ -717,7 +722,8 @@ var doInit_ajaxSuccess = function(xhrobj, textStatus){
 
 			if (resInfo.infectString) {
 				$("#toInfect").show()
-				.find("td:eq(1)").html(decodeClick(decodeText(resInfo.infectString)));
+				.find("td:eq(1)").html(decodeClick(decodeText(resInfo.infectString)))
+				.css("wordWrap", "anywhere");
 			} else {
 				$("#toInfect").hide();
 			}
@@ -1021,7 +1027,7 @@ $(function() {
 	$("#working_detail").hide().click(function(){
 		var material_id = $("#pauseo_material_id").val();
 		showMaterial(material_id);
-	});
+	}).nextAll().hide();
 
 	$("#position_status").css("color", "white");
 
@@ -1523,7 +1529,7 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 
 				if (resInfo.past_fingers) $("#flowtext").text(resInfo.past_fingers);
 
-				$("#working_detail").hide();
+				$("#working_detail").hide().nextAll().hide();
 
 				posClockObj.stopClock();
 
@@ -1575,6 +1581,21 @@ var doFinish_ajaxSuccess = function(xhrobj, textStatus){
 }
 
 var doFinish=function(evt, hr){
+	var confirmMessage = "";
+	if (typeof cnsm_obj == "object" && !cnsm_obj.valued()) {
+		confirmMessage += "本工位有建议的消耗品可以使用，但没有使用记录。如需使用请取消后进行操作。"
+	}
+	if (confirmMessage.length) {
+		warningConfirm(confirmMessage, function(){
+			doFinishConfirmed(evt, hr);
+		}, null, null
+		, "继续完成", "取消去签收");
+
+		return;
+	} 
+	doFinishConfirmed(evt, hr);
+}
+var doFinishConfirmed = function(evt, hr){
 	if ((typeof checkStorageSent === "function") && checkStorageSent()) {
 		return;
 	}

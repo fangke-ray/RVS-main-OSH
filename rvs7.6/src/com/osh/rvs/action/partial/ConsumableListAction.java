@@ -23,7 +23,9 @@ import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.partial.ConsumableListForm;
 import com.osh.rvs.service.ModelService;
+import com.osh.rvs.service.PositionService;
 import com.osh.rvs.service.partial.ConsumableListService;
+import com.osh.rvs.service.partial.ConsumablePositionService;
 
 import framework.huiqing.action.BaseAction;
 import framework.huiqing.bean.message.MsgInfo;
@@ -79,6 +81,8 @@ public class ConsumableListAction extends BaseAction{
 			req.setAttribute("role_pm", "other");
 		}
 
+		PositionService pService = new PositionService();
+		req.setAttribute("pReferChooser", pService.getOptions(conn));
 		
 		actionForward = mapping.findForward(FW_INIT);
 		log.info("ConsumableListAction.init end");
@@ -587,5 +591,64 @@ public class ConsumableListAction extends BaseAction{
 
 		returnJsonResponse(response, listResponse);
 		log.info("ConsumableListAction.setHeatshrinkableLength end");
+	}
+
+	/**
+	 * 消耗品定位设置
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 * @throws Exception
+	 */
+	public void getPositions(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response,
+			SqlSession conn) throws Exception {
+		log.info("ConsumableListAction.getPositions start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		MaterialPartialDetailEntity conditionEntity = new MaterialPartialDetailEntity();
+		/* 表单复制到Bean */
+		conditionEntity.setPartial_id(request.getParameter("partial_id"));;
+
+		/* 查询 */
+		ConsumablePositionService pService = new ConsumablePositionService();
+		List<MaterialPartialDetailEntity> list = pService.findPositionBelong(conditionEntity, conn);
+		if (list.size() > 0) {
+
+			List<MaterialPartialDetailEntity> listSetting = new ArrayList<MaterialPartialDetailEntity>();
+			for (MaterialPartialDetailEntity itm : list) {
+				MaterialPartialDetailEntity e = new MaterialPartialDetailEntity();
+				e.setModel_id(itm.getModel_id()); e.setModel_name(itm.getModel_name());
+				e.setPosition_id(itm.getPosition_id()); e.setProcess_code(itm.getProcess_code());
+				e.setQuantity(itm.getQuantity()); e.setBom_quantity(itm.getBom_quantity());
+				listSetting.add(e);
+			}
+			listResponse.put("listSetting", listSetting);
+		}
+
+		listResponse.put("errors", errors);
+
+		returnJsonResponse(response, listResponse);
+		log.info("ConsumableListAction.getPositions end");
+	}
+
+	public void doSetPositions(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response,
+			SqlSessionManager conn) throws Exception {
+		log.info("ConsumableListAction.doSetPositions start");
+
+		Map<String, Object> listResponse = new HashMap<String, Object>();
+		List<MsgInfo> errors = new ArrayList<MsgInfo>();
+
+		ConsumablePositionService pService = new ConsumablePositionService();
+		pService.setPositionBelong(request , conn, errors);
+
+		listResponse.put("errors", errors);
+
+		returnJsonResponse(response, listResponse);
+		log.info("ConsumableListAction.doSetPositions end");
 	}
 }

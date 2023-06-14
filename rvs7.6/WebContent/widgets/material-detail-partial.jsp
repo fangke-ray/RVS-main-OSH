@@ -5,7 +5,7 @@
 
 <div id="material_detail_orderarea" class="dwidth-middle" style="margin-top:22px;margin-left:9px;margin-bottom:22px;">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middle">
-		<span class="areatitle">维修对象零件订购信息</span>
+		<span class="areatitle">修理品零件订购信息</span>
 	</div>
 	<div class="ui-widget-content dwidth-middle">
 		<table class="condform">
@@ -67,7 +67,7 @@ if ("partial".equals(from)) {
 
 <div id="material_detail_partialarea" class="dwidth-middle" style="margin-top:22px;margin-left:9px;margin-bottom:22px;">
 	<div class="ui-widget-header ui-corner-top ui-helper-clearfix areaencloser dwidth-middle">
-		<span class="areatitle">维修对象零件一览</span>
+		<span class="areatitle">修理品使用零件一览</span>
 	</div>
 	<div class="ui-widget-content dwidth-middle">
 		<div id="distributions"
@@ -148,16 +148,19 @@ $(function() {
 			width: 768,
 			rowheight: 23,
 			datatype: "local",
-			colNames:['','零件编号','零件名称','数量','工位','消耗品<br>库存','签收日期','入库预定日'],
+			colNames:['','零件编号','零件名称','数量','工位','消耗品<br>库存','使用日期','入库预定日'],
 			colModel:[
 				{name:'material_partial_detail_key',index:'material_partial_detail_key', hidden:true},
 				{name : 'partial_code',index : 'partial_code',width : 60,align : 'left'},
 				{name : 'partial_name',index : 'partial_name',width : 300,align : 'left'},
 				{name : 'quantity',index : 'quantity',width : 60,align : 'right', formatter : function(value, options, rData) {
-					return (rData["cur_quantity"] || "0") + "/" + rData["quantity"];
+					if (rData["quantity"]) {
+						return (rData["cur_quantity"] || "0") + "/" + rData["quantity"];
+					}
+					return (rData["cur_quantity"] || "0") + "(" + (rData["quantity"] || '消耗品') + ")";
 				}},
 				{name :'process_code',index:'process_code',width:60,align:'center' },
-				{name :'available_inventory',index:'available_inventory',width:50,align:'center', sorttype : 'integer'},
+				{name :'available_inventory',index:'available_inventory',width:50,align:'center', sorttype : 'integer', hidden: true},
 				{name :'recent_signin_time',index:'recent_signin_time',width:100,align:'center', sorttype : 'date',
 					formatter : 'date',
 					formatoptions : {
@@ -220,10 +223,12 @@ $(function() {
 					// 从上到下获取一条信息
 					var rowData = $exd_list.jqGrid('getRowData', IDS[i]);
 					var quantity = rowData["quantity"];
-					var quantities = quantity.split("/");
-					if (quantities.length == 2) {
-						if(quantities[1]>quantities[0]){
-							$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='exd_list_quantity']").addClass("ui-state-active");
+					if (quantities) {
+						var quantities = quantity.split("/");
+						if (quantities.length == 2) {
+							if(quantities[1]>quantities[0]){
+								$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='exd_list_quantity']").addClass("ui-state-active");
+							}
 						}
 					}
 				}

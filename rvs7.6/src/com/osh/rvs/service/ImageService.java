@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -28,6 +27,7 @@ import com.sun.image.codec.jpeg.JPEGEncodeParam;
 import com.sun.image.codec.jpeg.JPEGImageEncoder;
 
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.FileUtils;
 
 public class ImageService {
@@ -69,8 +69,9 @@ public class ImageService {
 		int iCutHeight = (int) (dCutHeight / fator);
 
 		String sFileName = req.getParameter("fileName");
+		String dividing = req.getParameter("dividing");
 
-		String ipath = getImagePath(sFileName, null, 0);
+		String ipath = getImagePath(sFileName, dividing, 0);
 
 		String dpath = ipath + "_fix.jpg";
 		// 截取
@@ -85,7 +86,8 @@ public class ImageService {
 	public String resetImage(HttpServletRequest req, List<MsgInfo> msgs) {
 		String sFileName = req.getParameter("fileName");
 
-		String ipath = getImagePath(sFileName, null, 0);
+		String dividing = req.getParameter("dividing");
+		String ipath = getImagePath(sFileName, dividing, 0);
 
 		String spath = ipath + ".jpg";
 		String dpath = ipath + "_fix.jpg";
@@ -96,9 +98,10 @@ public class ImageService {
 	}
 
 	private String getImagePath(String sFileName, String sType, int iCutHeight) {
-		String path = PathConsts.BASE_PATH + PathConsts.PHOTOS + "/" + sFileName.substring(0,4) + "/" + sFileName;
-
-		return path;
+		if (CommonStringUtil.isEmpty(sType)) {
+			return PathConsts.BASE_PATH + PathConsts.PHOTOS + "/uuid/" + sFileName.substring(0,4) + "/" + sFileName;
+		}
+		return PathConsts.BASE_PATH + PathConsts.PHOTOS + "/" + sType + "/" + sFileName;
 	}
 
 	public void getOriginalImageSize(File confFile,

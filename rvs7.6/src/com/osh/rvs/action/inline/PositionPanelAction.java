@@ -71,6 +71,7 @@ import com.osh.rvs.service.inline.LineLeaderService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.partial.ComponentSettingService;
+import com.osh.rvs.service.partial.ConsumablePositionService;
 import com.osh.rvs.service.partial.MaterialPartInstructService;
 import com.osh.rvs.service.partial.PartialReceptService;
 import com.osh.rvs.service.qf.WipService;
@@ -219,6 +220,8 @@ public class PositionPanelAction extends BaseAction {
 			req.setAttribute("position_name", service.getGroupShowPositionName(user.getPosition_name(), user, subPositionIds, conn));
 			req.setAttribute("userPositionId", position_id);
 
+			req.setAttribute("inlineConsumable", "3");
+
 			actionForward = mapping.findForward("group");
 		} else {
 			// 取得工位信息
@@ -299,6 +302,15 @@ public class PositionPanelAction extends BaseAction {
 		// 判断是否是可追加零件订购的工位
 		if (PositionService.isAddiOrderPosition(position_id, conn) != null) {
 			req.setAttribute("addi_order", "true");
+		}
+
+		// 判断是否可以使用在线消耗品
+		if (ConsumablePositionService.isConsumableInlinePositions(position_id, conn)) {
+			if ("00000000009".equals(section_id)) {
+				// req.setAttribute("inlineConsumable", "1");
+			} else {
+				req.setAttribute("inlineConsumable", "3");
+			}
 		}
 
 		session.setAttribute(RvsConsts.SESSION_USER, user);
