@@ -386,13 +386,19 @@ public class WidgetAction extends BaseAction {
 		req.setAttribute("linkto", req.getParameter("linkto"));
 
 		String photo_uuid = req.getParameter("photo_uuid");
+		String dividing = req.getParameter("dividing");
 
 		if (isEmpty(photo_uuid)) {
 			req.setAttribute("no_image", "没有图片");
 			req.setAttribute("photo_uuid", "");
 		} else {
-			req.setAttribute("no_image", "");
-			req.setAttribute("photo_uuid", photo_uuid);
+			if (dividing == null) {
+				req.setAttribute("no_image", "");
+				req.setAttribute("photo_uuid", photo_uuid);
+			} else {
+				req.setAttribute("no_image", "");
+				req.setAttribute("photo_uuid", photo_uuid);
+			}
 		}
 
 		// 迁移到页面

@@ -132,7 +132,7 @@ String errors = (String) request.getAttribute("errors");
 				</div>
 				<div class="right" style="width:128px;border:1px solid;">
 					<div style="width:128px;height:128px;">
-						<img src="...jpg" alt="128*128图片" onerror="javascript:this.src='images/noimage128x128.gif'"/>
+						<img style="max-width:128px;max-height:128px;" src="<logic:notEmpty name="pdaSupplyForm">/photos/consumable/<bean:write name="pdaSupplyForm" property="code"/></logic:notEmpty>_fix.jpg" alt="128*128图片" onerror="javascript:this.src='images/noimage128x128.gif'"/>
 					</div>
 				</div>
 				<div class="clear"></div>

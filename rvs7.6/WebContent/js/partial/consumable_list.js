@@ -55,11 +55,11 @@ $(function() {
 	$("#add_button").click(showAdd);
 	$("#edit_button").click(showEdit);
 	$("#remove_button").click(
-			function(){
-				warningConfirm("确认移出消耗品库存？", function(){delConsumable();}, null);
-			}
+		function(){
+			warningConfirm("确认移出消耗品库存？", function(){delConsumable();}, null);
+		}
 	);
-//	$("#image_load_button").click(showImgLoad);
+	$("#image_load_button").click(showImgLoad);
 	$("#adjust_button").click(showAdjust);
 	$("#measuring_set_button").click(showSet);
 	$("#post_clipboard_button").bind("click", postClipboard);
@@ -70,12 +70,13 @@ $(function() {
 /*判断修改库存设置，移出消耗品库存按钮enable、disable(当选择了消耗品之后enable；否则是disable)*/
 var enableButton = function() {
 
-	// 选择行，并获取行数
+	// 选择行，并获取行
 	var row = $("#consumable_list").jqGrid("getGridParam", "selrow");
 	if (row !=null) {
 		$("#edit_button").enable();
 		$("#remove_button").enable();
 		$("#measuring_set_button").enable();
+		$("#image_load_button").enable();
 		var rowdata = $("#consumable_list").getRowData(row);
 
 		if (rowdata['type'] == "6") {
@@ -87,6 +88,7 @@ var enableButton = function() {
 		$("#edit_button").disable();
 		$("#remove_button").disable();
 		$("#measuring_set_button").disable();
+		$("#image_load_button").disable();
 		$("#heatshrinkable_tube_button").hide();
 	}
 };
@@ -216,7 +218,7 @@ var showAdd = function() {
 								"consumpt_quota":$("#add_consumpt_quota").val(),
 								"in_shelf_cost" : $("#add_in_shelf_cost").val(),
 								"out_shelf_cost" : $("#add_out_shelf_cost").val(),
-								"hazardous_flg" : $("#add_hazardous_flg input:checked").val(),
+								"hazardous_flg" : $("#add_hazardous_flg input:checked").val()
 							};
 						 $.ajax({
 								beforeSend : ajaxRequestType,
@@ -245,7 +247,7 @@ var showAdd = function() {
 							"consumpt_quota":$("#add_consumpt_quota").val(),
 							"in_shelf_cost" : $("#add_in_shelf_cost").val(),
 							"out_shelf_cost" : $("#add_out_shelf_cost").val(),
-							"hazardous_flg" : $("#add_hazardous_flg input:checked").val(),
+							"hazardous_flg" : $("#add_hazardous_flg input:checked").val()
 						};
 					$.ajax({
 						beforeSend : ajaxRequestType,
@@ -554,7 +556,7 @@ var update_consumable_manage = function(){
 			"consumpt_quota":$("#edit_consumpt_quota").val(),
 			"in_shelf_cost" : $("#edit_in_shelf_cost").val(),
 			"out_shelf_cost" : $("#edit_out_shelf_cost").val(),
-			"hazardous_flg" : $("#edit_hazardous_flg input:checked").val(),
+			"hazardous_flg" : $("#edit_hazardous_flg input:checked").val()
 		};
 	 $.ajax({
 			beforeSend : ajaxRequestType,
@@ -1056,6 +1058,7 @@ function show_consumable_list(consumableList) {
 			viewsortcols : [ true, 'vertical', true ],
 			gridComplete : function() {
 				var IDS = $("#consumable_list").getDataIDs();
+				var img_v = (new Date()).getMilliseconds();
 				// 当前显示多少条
 				var length = IDS.length;
 				var $exd_list = $("#consumable_list");
@@ -1077,9 +1080,18 @@ function show_consumable_list(consumableList) {
 					if (hazardous_flg == 1 ) {
 						$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='consumable_list_code']").addClass("ui-state-error");
 					}
+
+					if (rowData["image_uploaded_flg"] == 1) {
+						$exd_list.find("tr#" + IDS[i] + " td[aria\\-describedby='consumable_list_code']")
+							.attr("href", "/photos/consumable/" + rowData["code"] + "_fix.jpg?v=" + img_v)
+							.addClass("image-link")
+							.preview();
+					}
 				}
+
 			}
 		});
+
 		var tname=['myac'];
 		//当不是系统管理员和零件管理员时隐藏所有可以修改和更新功能
 		if($("#hidden_isOperator").val()=='other'){
@@ -1223,7 +1235,6 @@ var getHeatshrinkableLength_Complete = function(xhjObj, code, description) {
 			}
 		});
 	}
-
 }
 var setHeatshrinkableLength = function(partail_id){
 	var postData = {"partail_id" : partail_id, "content": $("#hshl_cut_lengths").val()};
@@ -1247,4 +1258,14 @@ var setHeatshrinkableLength = function(partail_id){
 			}
 		}
 	});
+}
+
+var showImgLoad = function() {
+	$("#got_uuid").val("");
+	var row = $("#consumable_list").jqGrid("getGridParam", "selrow");
+	var rowData = $("#consumable_list").getRowData(row);
+	$("#got_uuid").val(rowData.code);
+	photo_editor_functions.editImgFor($("#got_uuid"), function(uuid, changed){
+		if (changed) findit();
+	}, "consumable");
 }

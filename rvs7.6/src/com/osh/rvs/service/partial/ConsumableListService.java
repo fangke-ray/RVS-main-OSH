@@ -55,7 +55,15 @@ public class ConsumableListService {
 		ConsumableListMapper dao = conn.getMapper(ConsumableListMapper.class);
 		List<ConsumableListForm> resultForm = new ArrayList<ConsumableListForm>();
 		List<ConsumableListEntity> resultList = dao.searchConsumableList(consumableListEntity);
-		BeanUtil.copyToFormList(resultList, resultForm, null, ConsumableListForm.class);
+		for (ConsumableListEntity result : resultList) {
+			ConsumableListForm retForm = new ConsumableListForm(); 
+			BeanUtil.copyToForm(result, retForm, CopyOptions.COPYOPTIONS_NOEMPTY);
+
+			if (new File(PathConsts.BASE_PATH + PathConsts.PHOTOS + "/consumable/" + result.getCode() + "_fix.jpg").exists()) {
+				retForm.setImage_uploaded_flg("1");
+			}
+			resultForm.add(retForm);
+		}
 		return resultForm;
 	}
 	public String getcost_rate_alram_belowline(SqlSession conn) {
@@ -621,5 +629,5 @@ public class ConsumableListService {
 
 		return pReferChooser;
 	}
-	
+
 }

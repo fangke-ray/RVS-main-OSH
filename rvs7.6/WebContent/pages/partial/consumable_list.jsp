@@ -1,8 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ taglib uri="http://struts.apache.org/tags-bean" prefix="bean"%>
-<%@ taglib uri="http://struts.apache.org/tags-html" prefix="html"%>
-<%@ taglib uri="http://struts.apache.org/tags-logic" prefix="logic"%>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<!DOCTYPE html>
 <html>
 <head>
 
@@ -15,6 +13,12 @@
 <link rel="stylesheet" type="text/css" href="css/ui.jqgrid.css">
 <link rel="stylesheet" type="text/css" href="css/olympus/select2Buttons.css">
 
+<style>
+td.image-link {
+	cursor:pointer;
+	text-decoration: underline solid blue;
+}
+</style>
 <script type="text/javascript" src="js/jquery-1.8.2.min.js"></script>
 <script type="text/javascript" src="js/jquery-ui-1.9.1.custom.min.js"></script>
 <script type="text/javascript" src="js/jquery.validate.min.js"></script>
@@ -25,11 +29,16 @@
 <script type="text/javascript" src="js/ajaxfileupload.js"></script>
 <script type="text/javascript" src="js/utils.js"></script>
 <script type="text/javascript" src="js/jquery-plus.js"></script>
+<script type="text/javascript" src="js/jquery.imagePreview.1.0.js"></script>
+<script type="text/javascript" src="js/jquery.Jcrop.js"></script>
+<script type="text/javascript" src="js/common/photo_editor.js"></script>
 
 <script type="text/javascript" src="js/partial/consumable_list.js"></script>
 <% 
-	String role = (String) request.getAttribute("role");
-	boolean isFact = ("fact").equals(role);
+	String role_fact = (String) request.getAttribute("role_fact");
+	boolean isFact = ("fact").equals(role_fact);
+	String role_pm = (String) request.getAttribute("role_pm");
+	boolean isPm = ("pm").equals(role_pm);
 %>
 
 <title>消耗品仓库库存一览</title>
@@ -123,15 +132,19 @@
 		</table>
 		<div id="consumable_list_pager"></div>
 		<div id="confirmmessage"></div>
-		<div class="ui-widget-header areabase" style="padding-top: 4px; margin-button: 6px; margin-bottom: 16px;">
+		<% if (isFact || isPm) { %>
+		<div class="ui-widget-header areabase" style="padding-top: 4px; margin-button: 6px; margin-bottom: 16px; height:78px;">
 			<div id="executes" style="margin-left: 4px; margin-top: 2px;">
 				<% if (isFact) { %>
 				<input id="add_button" class="ui-button" value="加入库存设置" role="button" type="button">
 				<input id="edit_button" class="ui-button" value="修改库存设置" role="button" type="button">
 				<input id="remove_button" class="ui-button" value="移出消耗品库存" role="button" type="button">
-				<!--input id="image_load_button" class="ui-button" value="消耗品照片上传" role="button" type="button"-->
 				<input id="adjust_button" class="ui-button" value="盘点" role="button" type="button">
-				<input id="measuring_set_button" class="ui-button" value="消耗品计量单位设置" role="button" type="button">
+				<p style="height:6px;margin: 0;"></p>
+				<input id="image_load_button" class="ui-button" value="照片上传" role="button" type="button"><input type="hidden" id="got_uuid" type="text" value=""/>
+				<% } %>
+				<% if (isFact) { %>
+				<input id="measuring_set_button" class="ui-button" value="计量单位设置" role="button" type="button">
 				<input id="heatshrinkable_tube_button" class="ui-button" value="剪裁长度设置" role="button" type="button">
 				<input id="post_clipboard_button" class="ui-button" value="报表导出到剪贴板" role="button" type="button" style="float:right;">
 				<input id="download_button" class="ui-button" value="导出" role="button" type="button" style="float:right;">
@@ -139,6 +152,7 @@
 				<div class="clear"></div>
 			</div>
 		</div>
+		<% } %>
 		</div>
 	</div>
 	<div class="clear"/>

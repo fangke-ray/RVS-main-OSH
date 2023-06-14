@@ -53,9 +53,17 @@ public class ImageAction extends BaseAction {
 
 			File confFile = new File(tempFilePath);
 			if (confFile.exists()) {
-				UUID uuid = UUID.randomUUID();
-				tempfilename = uuid.toString().replaceAll("-", "");
-				String targetPath = PathConsts.BASE_PATH + PathConsts.PHOTOS + "/" + tempfilename.substring(0,4) + "/" + tempfilename;
+				String dividing = req.getParameter("dividing");
+
+				String targetPath = PathConsts.BASE_PATH + PathConsts.PHOTOS + "/";
+				if (dividing == null) {
+					UUID uuid = UUID.randomUUID();
+					tempfilename = uuid.toString().replaceAll("-", "");
+					targetPath += "/uuid/" + tempfilename.substring(0,4) + "/" + tempfilename;
+				} else {
+					tempfilename = req.getParameter("filename");
+					targetPath += dividing + "/" + tempfilename;
+				}
 				FileUtils.copyFile(tempFilePath, targetPath+".jpg", true);
 				FileUtils.copyFile(tempFilePath, targetPath+"_fix.jpg", true);
 				service.getOriginalImageSize(confFile, jsonResponse, 800);

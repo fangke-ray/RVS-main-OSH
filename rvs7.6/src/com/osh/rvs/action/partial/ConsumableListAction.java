@@ -19,6 +19,7 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.partial.ConsumableListEntity;
+import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.partial.ConsumableListForm;
 import com.osh.rvs.service.ModelService;
@@ -40,12 +41,13 @@ public class ConsumableListAction extends BaseAction{
 			SqlSession conn) throws Exception {
 		log.info("ConsumableListAction.init start");
 
-		ModelService modelService = new ModelService();
-		String mReferChooser = modelService.getOptions(conn);
-		req.setAttribute("mReferChooser", mReferChooser);// 维修对象型号集合
-		Calendar   cal_1=Calendar.getInstance();
-		cal_1.set(Calendar.DAY_OF_MONTH,1);
-		req.setAttribute("first",DateUtil.toString(cal_1.getTime(), DateUtil.DATE_PATTERN));
+//		ModelService modelService = new ModelService();
+//		String mReferChooser = modelService.getOptions(conn);
+//		req.setAttribute("mReferChooser", mReferChooser);// 维修对象型号集合
+//
+		Calendar calFirstOfMonth=Calendar.getInstance();
+		calFirstOfMonth.set(Calendar.DAY_OF_MONTH,1);
+		req.setAttribute("first",DateUtil.toString(calFirstOfMonth.getTime(), DateUtil.DATE_PATTERN));
 		String cost_rate_alram_belowline =service.getcost_rate_alram_belowline(conn);
 		req.setAttribute("cost_rate_alram_belowline", cost_rate_alram_belowline);
 		/* 分类 */
@@ -67,9 +69,14 @@ public class ConsumableListAction extends BaseAction{
 		//权限区分
 		List<Integer> privacies = user.getPrivacies();
 		if (privacies.contains(RvsConsts.PRIVACY_FACT_MATERIAL)) {
-			req.setAttribute("role", "fact");
+			req.setAttribute("role_fact", "fact");
 		} else {
-			req.setAttribute("role", "other");
+			req.setAttribute("role_fact", "other");
+		}
+		if (privacies.contains(RvsConsts.PRIVACY_PARTIAL_MANAGER)) {
+			req.setAttribute("role_pm", "pm");
+		} else {
+			req.setAttribute("role_pm", "other");
 		}
 
 		
@@ -104,7 +111,7 @@ public class ConsumableListAction extends BaseAction{
 		if(consumableListForm.getSearch_count_period_end()=="" || consumableListForm.getSearch_count_period_end()==null){
 			consumableListForm.setSearch_count_period_end(DateUtil.toString(new Date(), DateUtil.DATE_PATTERN));
 		}
-		
+
 		/* 表单复制到Bean */
 		BeanUtil.copyToBean(consumableListForm, consumableListEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 		if(consumableListEntity.getConsumed_rate_alarmline() == null){
