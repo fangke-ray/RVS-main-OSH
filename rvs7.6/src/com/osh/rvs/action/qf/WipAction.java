@@ -114,7 +114,12 @@ public class WipAction extends BaseAction {
 
 		if (errors.size() == 0) {
 			// 执行检索
-			List<MaterialForm> lResultForm = wipService.searchMaterial(form, conn, errors);
+
+			// 取得登录用户权限
+			LoginData user = (LoginData) req.getSession().getAttribute(RvsConsts.SESSION_USER);
+
+			List<MaterialForm> lResultForm = wipService.searchMaterial(form, 
+					user.getPrivacies().contains(RvsConsts.PRIVACY_ADMIN), conn, errors);
 
 			// 查询结果放入Ajax响应对象
 			listResponse.put("list", lResultForm);

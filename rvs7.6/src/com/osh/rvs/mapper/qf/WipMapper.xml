@@ -204,7 +204,7 @@
 
 	<select id="searchWipStorage" resultType="WipStorageEntity" parameterType="WipStorageEntity">
 		<![CDATA[ 
-		SELECT `wip_storage_code`, `shelf`, `layer`, `simple_code`, `anml_exp`
+		SELECT `wip_storage_code`, `shelf`, `layer`, `simple_code`, `anml_exp`, `kind`, `for_agreed`
 		]]>
 		<if test="occupied eq 1">
 			,ma.`wip_location` IS not NULL as occupied 
@@ -212,8 +212,8 @@
 		<![CDATA[ 
 		FROM `wip_storage` ws
 		]]>
-		<if test="occupied eq 1">
-			LEFT JOIN material ma ON ws.`wip_storage_code` = ma.`wip_location` AND ma.outline_time is null
+		<if test="occupied eq 1 or occupied eq -1">
+			LEFT JOIN material ma force index(WIP_LOCATION) ON ws.`wip_storage_code` = ma.`wip_location` AND ma.outline_time is null
 		</if>
 		<where>
 			<if test="wip_storage_code!= null and wip_storage_code!= ''">
@@ -236,6 +236,9 @@
 			</if>
 			<if test="anml_exp eq 0">
 				and `anml_exp` = 0
+			</if>
+			<if test="occupied eq -1">
+				and ma.`wip_location` IS NULL
 			</if>
 		</where>
 		<![CDATA[ 
@@ -267,17 +270,18 @@
 	<update id="updateStorage" parameterType="WipStorageEntity">
 		UPDATE `wip_storage`
 		SET
+		`wip_storage_code` = #{wip_storage_code},
 		`shelf` = #{shelf},
 		`layer` = #{layer},
 		`simple_code` = #{simple_code},
 		`for_agreed` = #{for_agreed},
 		`kind` = #{kind},
 		`anml_exp` = #{anml_exp}
-		WHERE `wip_storage_code` = #{wip_storage_code};
+		WHERE `wip_storage_code` = #{origin_wip_storage_code};
 	</update>
 
 	<delete id="removeStorage" parameterType="String">
-		DETELE FROM `wip_storage`
+		DELETE FROM `wip_storage`
 		WHERE `wip_storage_code` = #{wip_storage_code};
 	</delete>
 

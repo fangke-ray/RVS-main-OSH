@@ -33,6 +33,8 @@ public class WipStorageEntity implements Serializable {
 	// 占用
 	private Integer occupied;
 
+	private String origin_wip_storage_code;
+
 	/**
 	 * @return the 位置
 	 */
@@ -137,5 +139,13 @@ public class WipStorageEntity implements Serializable {
 
 	public void setOccupied(Integer occupied) {
 		this.occupied = occupied;
+	}
+
+	public String getOrigin_wip_storage_code() {
+		return origin_wip_storage_code;
+	}
+
+	public void setOrigin_wip_storage_code(String origin_wip_storage_code) {
+		this.origin_wip_storage_code = origin_wip_storage_code;
 	}
 }

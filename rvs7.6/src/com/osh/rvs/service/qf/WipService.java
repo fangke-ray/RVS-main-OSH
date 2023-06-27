@@ -67,11 +67,12 @@ public class WipService {
 	/**
 	 * 检索WIP中的全部维修对象
 	 * @param form 提交表单
+	 * @param manager 管理库位权限
 	 * @param conn 数据库连接
 	 * @param errors 错误内容列表
 	 * @return List<ModelForm> 查询结果表单
 	 */
-	public List<MaterialForm> searchMaterial(ActionForm form, SqlSession conn, List<MsgInfo> errors) {
+	public List<MaterialForm> searchMaterial(ActionForm form, boolean manager, SqlSession conn, List<MsgInfo> errors) {
 		MaterialEntity conditionBean = new MaterialEntity();
 		BeanUtil.copyToBean(form, conditionBean, null);
 
@@ -82,7 +83,19 @@ public class WipService {
 		List<MaterialForm> lResultForm = new ArrayList<MaterialForm>();
 		
 		BeanUtil.copyToFormList(lResultBean, lResultForm, null, MaterialForm.class);
-		
+
+		if (manager) {
+			WipStorageEntity emptyCond = new WipStorageEntity();
+			emptyCond.setWip_storage_code(conditionBean.getWip_location());
+			emptyCond.setOccupied(-1);
+			List<WipStorageEntity> emptyStorages = dao.searchWipStorage(emptyCond);
+			for (WipStorageEntity emptyStorage : emptyStorages) {
+				MaterialForm empty = new MaterialForm();
+				empty.setWip_location(emptyStorage.getWip_storage_code());
+				lResultForm.add(empty);
+			}
+		}
+
 		return lResultForm;
 	}
 
@@ -321,7 +334,7 @@ public class WipService {
 				mBean.setOutline_time(null);
 				qaMapper.updateMaterial(mBean);
 
-				if (!(mBean.getLevel() != null && mBean.getLevel() == 57)) {
+				if (!(mBean.getLevel() == null || mBean.getLevel() == 57)) {
 					// 182 不修理返还
 					entity.setPosition_id(RvsConsts.POSITION_PERP_UNREPIAR);
 					entity.setSection_id("00000000009");
@@ -554,7 +567,7 @@ public class WipService {
 		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
 		WipStorageEntity keyEntity = new WipStorageEntity();
-		keyEntity.setWip_storage_code(entity.getWip_storage_code());
+		keyEntity.setWip_storage_code(entity.getOrigin_wip_storage_code());
 
 		List<WipStorageEntity> target = mapper.searchWipStorage(keyEntity);
 
@@ -567,6 +580,20 @@ public class WipService {
 			return;
 		}
 
+		if (!entity.getWip_storage_code().equals(entity.getOrigin_wip_storage_code())) {
+			keyEntity = new WipStorageEntity();
+			keyEntity.setWip_storage_code(entity.getWip_storage_code());
+			
+			target = mapper.searchWipStorage(keyEntity);
+			if (target != null && target.size() > 0) {
+				MsgInfo error = new MsgInfo();
+				error.setComponentid("wip_storage_code");
+				error.setErrcode("dbaccess.recordDuplicated");
+				error.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("dbaccess.recordDuplicated", "WIP 库位"));
+				msgInfos.add(error);
+				return;
+			}
+		}
 		mapper.updateStorage(entity);
 	}
 
@@ -996,4 +1023,19 @@ public class WipService {
 		return sbRet.toString();
 	}
 
+	public WipStorageEntity getLocationDetail(
+			String wip_storage_code, SqlSession conn) {
+
+		WipMapper wipMapper = conn.getMapper(WipMapper.class);
+
+		WipStorageEntity codeCond = new WipStorageEntity();
+		codeCond.setWip_storage_code(wip_storage_code);
+		List<WipStorageEntity> emptyStorages = wipMapper.searchWipStorage(codeCond);
+
+		if (emptyStorages.size() > 0) {
+			return emptyStorages.get(0);
+		}
+
+		return null;
+	}
 }

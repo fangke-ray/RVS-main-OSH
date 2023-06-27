@@ -40,6 +40,8 @@ public class WipStorageForm extends ActionForm implements Serializable {
 
 	private String material_id;
 
+	private String origin_wip_storage_code;
+
 	/**
 	 * @return the 位置
 	 */
@@ -164,6 +166,14 @@ public class WipStorageForm extends ActionForm implements Serializable {
 	 */
 	public void setMaterial_id(String material_id) {
 		this.material_id = material_id;
+	}
+
+	public String getOrigin_wip_storage_code() {
+		return origin_wip_storage_code;
+	}
+
+	public void setOrigin_wip_storage_code(String origin_wip_storage_code) {
+		this.origin_wip_storage_code = origin_wip_storage_code;
 	}
 
 }

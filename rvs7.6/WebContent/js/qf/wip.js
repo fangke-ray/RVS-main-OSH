@@ -50,20 +50,24 @@ var enablebuttons = function(rowids) {
 	} else if (rowids.length === 1) {
 		$("#warehousingbutton").enable();
 		var rowdata = $("#list").jqGrid('getRowData', rowids[0]);
-		if (rowdata["break_back_flg"] == "0") {
-			$("#resystembutton").enable();
-			$("#stopbutton").enable();
+
+		if (rowdata["material_id"] != "") {
+			if (rowdata["break_back_flg"] == "0") {
+				$("#resystembutton").enable();
+				$("#stopbutton").enable();
+			} else {
+				$("#resystembutton").disable();
+				$("#stopbutton").disable();
+			}
+			if (rowdata["operate_result"] == "1") {
+				$("#imgcheckbutton").show();
+			} else {
+				$("#imgcheckbutton").hide();
+			}
+			$("#movebutton").enable();
 		} else {
-			$("#resystembutton").disable();
-			$("#stopbutton").disable();
+			$("#changebutton, #removebutton").enable();
 		}
-		if (rowdata["operate_result"] == "1") {
-			$("#imgcheckbutton").show();
-		} else {
-			$("#imgcheckbutton").hide();
-		}
-		$("#movebutton").enable();
-		$("#changebutton, #removebutton").enable();
 	} else {
 		$("#warehousingbutton").enable();
 		$("#resystembutton").disable();
@@ -486,138 +490,135 @@ var doChangeLocation = function(wip_location, option) {
  */
 function search_handleComplete(xhrobj, textStatus) {
 
-	var resInfo = null;
-	try {
-		// 以Object形式读取JSON
-		eval('resInfo =' + xhrobj.responseText);
+	// 以Object形式读取JSON
+	var resInfo = JSON.parse(xhrobj.responseText);
 
-		if (resInfo.errors.length > 0) {
-			// 共通出错信息框
-			treatBackMessages(null, resInfo.errors);
+	if (resInfo.errors.length > 0) {
+		// 共通出错信息框
+		treatBackMessages(null, resInfo.errors);
+	} else {
+		lOptions = resInfo.lOptions;
+		listdata = resInfo.list;
+		if ($("#gbox_list").length > 0) {
+			$("#list").jqGrid().clearGridData();
+			$("#list").jqGrid('setGridParam', {data : listdata}).trigger("reloadGrid", [{current : false}]);
+			for (var ilistdata in listdata) {
+				$("#wiparea").find("td[wipid="+listdata[ilistdata].wip_location+"]").addClass("ui-storage-highlight wip-heaped");
+			}
 		} else {
-			lOptions = resInfo.lOptions;
-			listdata = resInfo.list;
-			if ($("#gbox_list").length > 0) {
-				$("#list").jqGrid().clearGridData();
-				$("#list").jqGrid('setGridParam', {data : listdata}).trigger("reloadGrid", [{current : false}]);
-				for (var ilistdata in listdata) {
-					$("#wiparea").find("td[wipid="+listdata[ilistdata].wip_location+"]").addClass("ui-storage-highlight wip-heaped");
-				}
-			} else {
-				$("#list").jqGrid({
-					toppager : true,
-					data : listdata,
-					height : 231,
-					width : 992,
-					rowheight : 23,
-					datatype : "local",
-					colNames : ['', '修理单号', '机种', '型号 ID', '型号', '机身号', '等级', '受理时间','返还要求','备注', 'WIP货架位置','','','','','wip_overceed'],
-					colModel : [{name:'material_id',index:'material_id', hidden:true},
-							{
-								name : 'sorc_no',
-								index : 'sorc_no',
-								width : 95
-							}, {
-								name : 'category_name',
-								index : 'category_name',
-								width : 60
-							}, {
-								name : 'model_id',
-								index : 'model_id',
-								hidden : true
-							}, {
-								name : 'model_name',
-								index : 'model_id',
-								width : 125
-							}, {
-								name : 'serial_no',
-								index : 'serial_no',
-								width : 50
-							}, {
-								name : 'level',
-								index : 'level',
-								width : 35,
-								align : 'center', formatter: 'select', editoptions:{value: lOptions}
-							}, {
-								name : 'reception_time',
-								index : 'reception_time',
-								width : 50,
-								align : 'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}
-							}, {
-								name : 'unrepair_flg',
-								index : 'unrepair_flg',
-								width : 50,
-								align : 'center', formatter:'select', editoptions:{value:"1:Unrepair;0:"}
-							}, {
-								name : 'comments',
-								index : 'comments',
-								width : 50, formatter : function(value, options, rData){
-									return rData['remark'];
-		   						}
-							}, {
-								name : 'wip_location',
-								index : 'wip_location',
-								width : 80
-							}, {
-								name : 'wip_date',
-								index : 'wip_date',
-								hidden : true
-							}, {
-								name : 'break_back_flg',
-								index : 'break_back_flg',
-								hidden : true
-							}, {
-								name : 'direct_flg',
-								index : 'direct_flg',
-								hidden : true
-							}, {
-								name : 'service_repair_flg',
-								index : 'service_repair_flg',
-								hidden : true
-							}, {
-								name : 'operate_result',
-								index : 'operate_result',
-								hidden : true
-							}
-		
-					],
-					rowNum : 50,
-					toppager : false,
-					pager : "#listpager",
-					viewrecords : true,
-					caption : modelname + "一览",
-					hidegrid : false,
-					multiselect : true,
-					gridview : true, // Speed up
-					pagerpos : 'right',
-					pgbuttons : true,
-					pginput : false,
-					recordpos : 'left',
-					viewsortcols : [true, 'vertical', true],
-					ondblClickRow : function(rid, iRow, iCol, e) {
-						popMaterialDetail(rid, true);
-					},
-					onSelectRow : mappingwip,
-					onSelectAll : mappingwip,
-					gridComplete : function() {
-						mappingwip()
+			$("#list").jqGrid({
+				toppager : true,
+				data : listdata,
+				height : 231,
+				width : 992,
+				rowheight : 23,
+				datatype : "local",
+				colNames : ['', '修理单号', '机种', '型号 ID', '型号', '机身号', '等级', '受理时间','返还要求','备注', 'WIP货架位置','','','','','wip_overceed'],
+				colModel : [{name:'material_id',index:'material_id', hidden:true},
+						{
+							name : 'sorc_no',
+							index : 'sorc_no',
+							width : 95
+						}, {
+							name : 'category_name',
+							index : 'category_name',
+							width : 60
+						}, {
+							name : 'model_id',
+							index : 'model_id',
+							hidden : true
+						}, {
+							name : 'model_name',
+							index : 'model_id',
+							width : 125
+						}, {
+							name : 'serial_no',
+							index : 'serial_no',
+							width : 50
+						}, {
+							name : 'level',
+							index : 'level',
+							width : 35,
+							align : 'center', formatter: 'select', editoptions:{value: lOptions}
+						}, {
+							name : 'reception_time',
+							index : 'reception_time',
+							width : 50,
+							align : 'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d'}
+						}, {
+							name : 'unrepair_flg',
+							index : 'unrepair_flg',
+							width : 50,
+							align : 'center', formatter:'select', editoptions:{value:"1:Unrepair;0:"}
+						}, {
+							name : 'comments',
+							index : 'comments',
+							width : 50, formatter : function(value, options, rData){
+								return rData['remark'];
+	   						}
+						}, {
+							name : 'wip_location',
+							index : 'wip_location',
+							width : 80
+						}, {
+							name : 'wip_date',
+							index : 'wip_date',
+							hidden : true
+						}, {
+							name : 'break_back_flg',
+							index : 'break_back_flg',
+							hidden : true
+						}, {
+							name : 'direct_flg',
+							index : 'direct_flg',
+							hidden : true
+						}, {
+							name : 'service_repair_flg',
+							index : 'service_repair_flg',
+							hidden : true
+						}, {
+							name : 'operate_result',
+							index : 'operate_result',
+							hidden : true
+						}
+	
+				],
+				rowNum : 50,
+				toppager : false,
+				pager : "#listpager",
+				viewrecords : true,
+				caption : modelname + "一览",
+				hidegrid : false,
+				multiselect : true,
+				multiboxonly: true,
+				gridview : true, // Speed up
+				pagerpos : 'right',
+				pgbuttons : true,
+				pginput : false,
+				recordpos : 'left',
+				viewsortcols : [true, 'vertical', true],
+				ondblClickRow : function(rid, iRow, iCol, e) {
+					// popMaterialDetail(rid, true);
+				},
+				onSelectRow : mappingwip,
+				onSelectAll : mappingwip,
+				gridComplete : function() {
+					mappingwip()
 
-						var jthis = $("#list");
-						var dataIds = jthis.getDataIDs();
-						var length = dataIds.length;
-						for (var i = 0; i < length; i++) {
-							var rowdata = jthis.jqGrid('getRowData', dataIds[i]);
-							var vunrepair_flg = rowdata["unrepair_flg"];
-								if (vunrepair_flg == "1") {
-									$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_unrepair_flg']").css("background-color", "#FFC000");
-							}
+					var jthis = $("#list");
+					var dataIds = jthis.getDataIDs();
+					var length = dataIds.length;
+					for (var i = 0; i < length; i++) {
+						var rowdata = jthis.jqGrid('getRowData', dataIds[i]);
+						var vunrepair_flg = rowdata["unrepair_flg"];
+							if (vunrepair_flg == "1") {
+								$("#list tr#" + dataIds[i] + " td[aria\\-describedby='list_unrepair_flg']").css("background-color", "#FFC000");
 						}
 					}
-		
-				});
-			}
+				}
+	
+			});
 		}
-	} catch (e){
-		errorPop(e);
 	}
+
 };
