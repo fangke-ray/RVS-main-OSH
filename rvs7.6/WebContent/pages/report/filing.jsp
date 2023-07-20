@@ -125,7 +125,16 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 					</div>
 					<div class="clear areaencloser"></div>
 				</div-->
-			
+<% if (isEditor) { %>
+				<div id="functionarea" class="dwidth-middleright">
+					<div class="ui-widget-header ui-corner-all ui-helper-clearfix areabase">
+						<div id="executes" style="margin-left: 4px; margin-top: 4px;">
+							<input type="button" class="ui-button-primary ui-button ui-widget ui-state-default ui-corner-all" id="filingbutton" value="归档补生成" role="button" aria-disabled="false" style="float: left; right: 2px;">
+						</div>
+					</div>
+					<div class="clear areaencloser"></div>
+				</div>
+<% } %>
 				<div id="exd_listarea" class="width-middleright">
 					<table id="exd_list"></table>
 					<div id="exd_listpager"></div>

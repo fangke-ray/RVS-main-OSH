@@ -50,18 +50,13 @@ var rePdf = function(sorc_no, material_id) {
 		});
 	})
 }
-var doFiling = function(type) {
 
-	var selectedId = $("#qa_list").getGridParam("selrow");
-	var rowData = $("#qa_list").getRowData(selectedId);
-
-	var data = {material_id : rowData["material_id"]};
-
-	// Ajax提交
+var rePdfBatch = function(material_id) {
+	var data = {material_id : material_id};
 	$.ajax({
 		beforeSend : ajaxRequestType,
-		async : false,
-		url : servicePath + '?method=dofiling',
+		async : true,
+		url : 'download.do?method=file',
 		cache : false,
 		data : data,
 		type : "post",
@@ -69,13 +64,70 @@ var doFiling = function(type) {
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete : function() {
-			$("#scanner_inputer").attr("value", "");
-			$("#material_details").hide();
-			$("#scanner_container").show();
-			$("#pcsarea").hide();
-			doInit();
+			griddata_update(quotation_listdata, "material_id", material_id, "isHistory", "1", false);
+			$("#exd_list").jqGrid('setGridParam',{data:quotation_listdata}).trigger("reloadGrid", [{current:true}]);
+			if ($("#infostring:visible").length) {
+				doFiling("batch");
+			}
 		}
-	});
+	});	
+}
+
+var doFiling = function(type) {
+
+	var iLiseSize=0;
+	var selectData = null;
+	for (var i in quotation_listdata) {
+		var data = quotation_listdata[i];
+		if (!data.isHistory) {
+			iLiseSize++;
+			if (selectData == null) selectData = data;
+		}
+	}
+
+	if (selectData == null) {
+		if ($("#infostring:visible").length) {
+			$('div#infostring').dialog("close");
+		} else {
+			errorPop("没有未归档维修品，如果要对维修品重新归档，需点击单独链接处理。");
+		}
+		return;
+	}
+
+	if ($("#infostring:visible").length) {
+		$("#infostring > .informationarea").children("span:eq(0)").text(selectData.sorc_no)
+			.end().children("span:eq(1)").text(iLiseSize);
+	} else {
+		infoPop("当前检索条件中，未归档维修品数为 " + iLiseSize 
+			+ "。<br>当前处理维修品<span>" + selectData.sorc_no 
+			+ "</span> (<span>" + iLiseSize + "</span>/" + iLiseSize + ")");
+	}
+	if (selectData.material_id) (rePdfBatch(selectData.material_id));
+
+//	var selectedId = $("#qa_list").getGridParam("selrow");
+//	var rowData = $("#qa_list").getRowData(selectedId);
+//
+//	var data = {material_id : rowData["material_id"]};
+//
+//	// Ajax提交
+//	$.ajax({
+//		beforeSend : ajaxRequestType,
+//		async : false,
+//		url : servicePath + '?method=dofiling',
+//		cache : false,
+//		data : data,
+//		type : "post",
+//		dataType : "json",
+//		success : ajaxSuccessCheck,
+//		error : ajaxError,
+//		complete : function() {
+//			$("#scanner_inputer").attr("value", "");
+//			$("#material_details").hide();
+//			$("#scanner_container").show();
+//			$("#pcsarea").hide();
+//			doInit();
+//		}
+//	});
 };
 
 var doInit_ajaxSuccess = function(xhrobj, textStatus){
