@@ -78,20 +78,20 @@ $(function(){
 		$(".ui-jqgrid-hbox").prev().show();
 		if(process_type == 1){
 			$("#list").jqGrid('showCol','lot_no');
-			$("#list").jqGrid('hideCol',['cut_length','sorc_no','case_code','partial_case','process_time_end']);
+			$("#list").jqGrid('hideCol',['cut_length','sorc_no','case_code','partial_case','process_time_end', 'px']);
 			L1.findit();
 		} else if (process_type == 2){
 			$("#list").jqGrid('showCol','cut_length');
-			$("#list").jqGrid('hideCol',['lot_no','sorc_no','case_code','partial_case','process_time_end']);
+			$("#list").jqGrid('hideCol',['lot_no','sorc_no','case_code','partial_case','process_time_end', 'px']);
 			L2.findit();
 		} else if (process_type == 3){
-			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no','case_code','partial_case','process_time_end']);
+			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no','case_code','partial_case','process_time_end', 'px']);
 			L3.findit();
 		} else if (process_type == 4){
-			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no','case_code','partial_case','process_time_end']);
+			$("#list").jqGrid('hideCol',['lot_no','cut_length','sorc_no','case_code','partial_case','process_time_end', 'px']);
 			L4.findit();
 		} else if (process_type == 5){
-			$("#list").jqGrid('showCol',['sorc_no','case_code','partial_case','process_time_end']);
+			$("#list").jqGrid('showCol',['sorc_no','case_code','partial_case','process_time_end', 'px']);
 			$("#list").jqGrid('hideCol',['lot_no','cut_length']);
 			$(".ui-jqgrid-hbox").prev().hide();
 			L5.findit();
@@ -366,47 +366,60 @@ function list(listdata){
             rowheight: 23,
             datatype: "local",
             colNames:['partial_id','process_type','hid_process_time','品名','入库批号','切割长度','数量','处理日期','责任人'
-            	,'material_id','维修对象修理单号','零件箱','纳期','总组库位'],
-            colModel:[
-            	  {name:'partial_id',index:'partial_id',hidden:true},
-            	  {name:'process_type',index:'process_type',hidden:true},
-            	  {name:'hid_process_time',index:'hid_process_time',hidden:true,formatter : function(value, options, rData) {
-            	  	var process_time = rData["process_time"];
-            	  	if (process_time <= "2012") {
-            	  		return "";
-            	  	}
-            	  	return process_time;
-            	  }},
-	              {name:'code',index:'code',width:100},
-                  {name:'lot_no',index:'lot_no',width:50},
-                  {name:'cut_length',index:'cut_length',width:50,align:'right',formatter : function(value, options, rData) {
-                	  if(!rData["lot_no"]){
-                		  return "-"; 
-                	  }else{
-                		  return rData["lot_no"];
-                	  }
-                   }},
-                  {name:'quantity',index:'quantity',width:50,align:'right'},
-                  {name:'process_time',index:'process_time',width:90,align:'center',sorttype:'date',formatter:'date',formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'Y-m-d'}},
-                  {name:'operator_name',index:'operator_name',width:60},
-                  {name:'material_id',index:'material_id',hidden:true},
-                  {name:'sorc_no',index:'sorc_no',width:100},
-                  {name:'partial_case',index:'partial_case',width:30,formatter : function(value, options, rData) {
-                	  if(!rData["operator_id"]){
-                		  return "-"; 
-                	  }else{
-                		  return "已入库";
-                	  }
-                  }},
-                  {name:'process_time_end',index:'process_time_end',width:90,align:'center',sorttype:'date',formatter:'date',formatoptions:{srcformat:'Y/m/d',newformat:'Y-m-d'}},
-                  {name:'case_code',index:'case_code',width:70,formatter : function(value, options, rData) {
-                	  if(!rData["lot_no"]){
-                		  return "-"; 
-                	  }else{
-                		  return rData["lot_no"];
-                	  }
-                  }}
-            ],
+            	,'material_id','维修对象修理单号','零件箱','纳期','总组分线','总组库位'],
+			colModel:[
+				{name:'partial_id',index:'partial_id',hidden:true},
+				{name:'process_type',index:'process_type',hidden:true},
+				{name:'hid_process_time',index:'hid_process_time',hidden:true,formatter : function(value, options, rData) {
+					var process_time = rData["process_time"];
+					if (process_time <= "2012") {
+						return "";
+					}
+					return process_time;
+				}},
+				{name:'code',index:'code',width:100},
+				{name:'lot_no',index:'lot_no',width:50},
+				{name:'cut_length',index:'cut_length',width:50,align:'right',formatter : function(value, options, rData) {
+					if(!rData["lot_no"]){
+						return "-"; 
+					}else{
+						return rData["lot_no"];
+					}
+				}},
+				{name:'quantity',index:'quantity',width:40,align:'right'},
+				{name:'process_time',index:'process_time',width:90,align:'center',sorttype:'date',formatter:'date',formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'Y-m-d'}},
+				{name:'operator_name',index:'operator_name',width:60},
+				{name:'material_id',index:'material_id',hidden:true},
+				{name:'sorc_no',index:'sorc_no',width:100},
+				{name:'partial_case',index:'partial_case',width:30,formatter : function(value, options, rData) {
+					if(!rData["operator_id"]){
+						return "-"; 
+					}else{
+						return "已入库";
+					}
+				}},
+				{name:'process_time_end',index:'process_time_end',width:90,align:'center',sorttype:'date',formatter:'date',formatoptions:{srcformat:'Y/m/d',newformat:'Y-m-d'}},
+				{name:'px',index:'px',width:50, formatter:function(value, options, rData){
+					if (value == undefined) {
+						return '<span style="color:orange;">未投线</span>';
+					} else {
+						switch (value) {
+							case '0' : return 'A 线';
+							case '4' : return 'B1 线';
+							case '7' : return 'B2 线(碳粉)';
+							case '8' : return 'B2 线(滑石粉)';
+						}
+					}
+					return '-';
+				}},
+				{name:'case_code',index:'case_code',width:70,formatter : function(value, options, rData) {
+					if(!rData["lot_no"]){
+						return "-"; 
+					}else{
+						return rData["lot_no"];
+					}
+				}}
+			],
             rowNum: 20,
             toppager : false,
             pager : "#listpager",

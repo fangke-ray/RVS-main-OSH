@@ -51,6 +51,11 @@ public class SteelWireContainerWashProcessEntity implements Serializable {
 	/** 修理单号 **/
 	private String sorc_no;
 
+	/** 分线	 */
+	private Integer px;
+
+	private String model_name;
+
 	public String getPartial_id() {
 		return partial_id;
 	}
@@ -145,6 +150,22 @@ public class SteelWireContainerWashProcessEntity implements Serializable {
 
 	public void setSorc_no(String sorc_no) {
 		this.sorc_no = sorc_no;
+	}
+
+	public Integer getPx() {
+		return px;
+	}
+
+	public void setPx(Integer px) {
+		this.px = px;
+	}
+
+	public String getModel_name() {
+		return model_name;
+	}
+
+	public void setModel_name(String model_name) {
+		this.model_name = model_name;
 	}
 
 }

@@ -14,6 +14,7 @@ import org.apache.struts.action.ActionForm;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.qf.SteelWireContainerWashProcessEntity;
+import com.osh.rvs.common.PathConsts;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.form.data.MaterialForm;
 import com.osh.rvs.form.qf.SteelWireContainerWashProcessForm;
@@ -41,13 +42,35 @@ public class SteelWireContainerWashProcessService {
 	public List<SteelWireContainerWashProcessForm> search(ActionForm form, SqlSession conn) throws Exception {
 		SteelWireContainerWashProcessMapper dao = conn.getMapper(SteelWireContainerWashProcessMapper.class);
 
-		SteelWireContainerWashProcessEntity entity = new SteelWireContainerWashProcessEntity();
+		SteelWireContainerWashProcessEntity condEntity = new SteelWireContainerWashProcessEntity();
 		// 拷贝表单数据到对象
-		BeanUtil.copyToBean(form, entity, CopyOptions.COPYOPTIONS_NOEMPTY);
+		BeanUtil.copyToBean(form, condEntity, CopyOptions.COPYOPTIONS_NOEMPTY);
 
 		List<SteelWireContainerWashProcessForm> retLIst = new ArrayList<SteelWireContainerWashProcessForm>();
 
-		List<SteelWireContainerWashProcessEntity> list = dao.search(entity);
+		List<SteelWireContainerWashProcessEntity> list = null;
+		if (condEntity.getProcess_type() != null && condEntity.getProcess_type() == 5) {
+			list = dao.searchUnpack(condEntity);
+
+			// 取得滑石粉机型
+			String talcumModels = PathConsts.POSITION_SETTINGS.getProperty("com_storage.talcum.models");
+			for (SteelWireContainerWashProcessEntity entity : list) {
+				if (entity.getPx() != null && entity.getPx() == 7) {
+					if (talcumModels != null) {
+						String[] talcumModelArray = talcumModels.split(",");
+						for (String talcumModel : talcumModelArray) {
+							if (talcumModel.equals(entity.getModel_name())) {
+								entity.setPx(8);
+								break;
+							}
+						}
+					}
+				}
+			}
+		} else {
+			list = dao.search(condEntity);
+		}
+
 		if (list != null && list.size() > 0) {
 			BeanUtil.copyToFormList(list, retLIst, CopyOptions.COPYOPTIONS_NOEMPTY, SteelWireContainerWashProcessForm.class);
 		}
@@ -157,7 +180,7 @@ public class SteelWireContainerWashProcessService {
 		// 判断是否已有等待记录
 		entity.setProcess_type(5);
 		entity.setProcess_time_start(new Date());
-		List<SteelWireContainerWashProcessEntity> list = mapper.search(entity);
+		List<SteelWireContainerWashProcessEntity> list = mapper.searchUnpack(entity);
 		if (list != null && list.size() > 0) {
 			return;
 		}

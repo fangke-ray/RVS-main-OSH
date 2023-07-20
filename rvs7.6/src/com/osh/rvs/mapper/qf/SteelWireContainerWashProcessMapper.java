@@ -12,7 +12,10 @@ import com.osh.rvs.bean.qf.SteelWireContainerWashProcessEntity;
  */
 public interface SteelWireContainerWashProcessMapper {
 	public List<SteelWireContainerWashProcessEntity> search(
-			SteelWireContainerWashProcessEntity entity) throws Exception;
+			SteelWireContainerWashProcessEntity entity);
+
+	public List<SteelWireContainerWashProcessEntity> searchUnpack(
+			SteelWireContainerWashProcessEntity condEntity);
 
 	public void insert(SteelWireContainerWashProcessEntity entity)
 			throws Exception;
@@ -29,7 +32,7 @@ public interface SteelWireContainerWashProcessMapper {
 	 * 插入维修品的组件信息，并取得用于表示待处理的最大时间
 	 * @return
 	 */
-	public int insertForWaitUnpack(SteelWireContainerWashProcessEntity entity);
+	public int insertForWaitUnpack(SteelWireContainerWashProcessEntity entity) throws Exception;
 
 	public void finishForMaterial(SteelWireContainerWashProcessEntity entity)
 			throws Exception;

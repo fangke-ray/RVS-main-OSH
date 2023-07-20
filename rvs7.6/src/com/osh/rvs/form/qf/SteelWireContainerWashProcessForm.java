@@ -65,6 +65,10 @@ public class SteelWireContainerWashProcessForm extends ActionForm {
 	@BeanField(title = "修理单号", name = "sorc_no", type = FieldType.String)
 	private String sorc_no;
 
+	/** 分线 **/
+	@BeanField(title = "分线", name = "px", type = FieldType.Integer, length = 1)
+	private String px;
+
 	public String getPartial_id() {
 		return partial_id;
 	}
@@ -159,6 +163,14 @@ public class SteelWireContainerWashProcessForm extends ActionForm {
 
 	public void setSorc_no(String sorc_no) {
 		this.sorc_no = sorc_no;
+	}
+
+	public String getPx() {
+		return px;
+	}
+
+	public void setPx(String px) {
+		this.px = px;
 	}
 
 }
