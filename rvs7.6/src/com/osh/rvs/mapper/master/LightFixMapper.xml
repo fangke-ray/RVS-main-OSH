@@ -51,7 +51,7 @@
 			light_fix_id,
 			activity_code,
 			description,
-			rank,
+			`rank`,
 			correlated_pat_id,
 			(select name from operator where operator_id = light_fix.updated_by) as updated_by,
 			updated_time
@@ -77,7 +77,7 @@
 	<insert id="insertLightFix" parameterType="LightFixEntity">
 		<![CDATA[ 
 		INSERT INTO light_fix 
-			(activity_code, description, rank, correlated_pat_id, delete_flg, updated_by, updated_time) 
+			(activity_code, description, `rank`, correlated_pat_id, delete_flg, updated_by, updated_time) 
 		VALUES 
 			(#{activity_code}, #{description}, #{rank}, #{correlated_pat_id}, 0, #{updated_by}, current_timestamp)
 		]]>
@@ -88,7 +88,7 @@
 		UPDATE light_fix SET
 			activity_code = #{activity_code},
 			description = #{description},
-			rank = #{rank},
+			`rank` = #{rank},
 			correlated_pat_id = #{correlated_pat_id},
 			updated_by = #{updated_by},
 			updated_time = current_timestamp

@@ -17,6 +17,7 @@ import org.apache.struts.action.ActionMapping;
 
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.common.RvsConsts;
+import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.manage.NewPhenomenonForm;
 import com.osh.rvs.service.LineService;
 import com.osh.rvs.service.manage.NewPhenomenonService;
@@ -40,7 +41,7 @@ public class NewPhenomenonAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 1, 0 })
+	@Privacies(permit = { 111 })
 	public void init(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
 
@@ -80,7 +81,7 @@ public class NewPhenomenonAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	@Privacies(permit = { 1, 0 })
+	@Privacies(permit = { 104, 105, 106 })
 	public void detail(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,
 			SqlSession conn) throws Exception {
 
@@ -154,7 +155,7 @@ public class NewPhenomenonAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
+	@Privacies(permit={111})
 	public void search(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSession conn) throws Exception{
 
 		log.info("NewPhenomenonAction.search start");
@@ -190,7 +191,7 @@ public class NewPhenomenonAction extends BaseAction {
 	 * @param conn 数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={1, 0})
+	@Privacies(permit={104, 105, 106, 108, 114})
 	public void doUpdate(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		log.info("NewPhenomenonAction.doupdate start");
 		Map<String, Object> callbackResponse = new HashMap<String, Object>();
@@ -204,7 +205,13 @@ public class NewPhenomenonAction extends BaseAction {
 			String post = req.getParameter("post");
 
 			// 执行更新
-			service.update(form, req.getSession(), post != null, conn, errors);
+			String trigger = service.update(form, req.getSession(), post != null, conn, errors);
+
+			if (trigger != null) {
+				conn.commit();
+				RvsUtils.sendTrigger(trigger);
+			}
+
 		}
 
 		// 检查发生错误时报告错误信息

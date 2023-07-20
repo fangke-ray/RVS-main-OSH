@@ -22,7 +22,6 @@ import com.osh.rvs.service.UploadService;
 import com.osh.rvs.service.partial.PartialStorageService;
 
 import framework.huiqing.action.BaseAction;
-import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
@@ -159,7 +158,6 @@ public class PartialStorageAction extends BaseAction {
 	 * @param conn	数据库会话
 	 * @throws Exception
 	 */
-	@Privacies(permit={2, 0})
 	public void doDelete(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception{
 		logger.info("PartialStorageAction.doDelete start");
 		

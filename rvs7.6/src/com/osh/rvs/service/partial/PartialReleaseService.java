@@ -155,7 +155,7 @@ public class PartialReleaseService {
 		List<MaterialPartialDetailEntity> returnList=dao.secrchPartialOfRelease(entity);
 		
 		List<MaterialPartialDetailForm> responseFormList=new ArrayList<MaterialPartialDetailForm>();
-		 
+
 		 //复制数据到表单
 		BeanUtil.copyToFormList(returnList, responseFormList, CopyOptions.COPYOPTIONS_NOEMPTY, MaterialPartialDetailForm.class);
 		 

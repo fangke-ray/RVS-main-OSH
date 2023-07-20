@@ -1,7 +1,7 @@
 $(function () {
 	$(".ui-button").button();
 	$("#infoes").buttonset();
-	
+
 	$("span.ui-icon.ui-icon-circle-triangle-n").bind("click", function() {
 		$(this).toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
 		if ($(this).hasClass('ui-icon-circle-triangle-n')) {
@@ -10,20 +10,20 @@ $(function () {
 			$(this).parent().parent().next().hide("blind");
 		}
 	});
-    
+
 	$("#infoes input:radio").click(function(){
 		showList(this.value);
 		$(".record_page").hide();
 		$("#" + this.value).show();
 	});
-	
+
 	$(".record_page").hide();
 	$("#page_arrangement").show();
 	$("#page_arrangement_tab").attr("checked","checked").trigger("change");
-	
+
 	page_arrangement.init();
 	page_arrangement.findit();
-	
+
 	page_case.init();
 	//page_case.findit();
 });
@@ -40,17 +40,17 @@ var page_arrangement = {
 	"servicePath" : "waste_partial_arrangement.do",
 	"init" : function(){
 		setReferChooser($("#hidden_model_id") , $("#search_model_id_referchooser"));
-		
+
 		$("#search_arr_collect_time_start,#search_arr_collect_time_end").datepicker({
 			showButtonPanel : true,
 			dateFormat : "yy/mm/dd",
 			currentText : "今天"
 		});
-		
+
 		$("#arr_resetbutton").click(function(){
 			$("#searcharrform input[type='text'],#searchform input[type='hidden']").val("");
 		});
-		
+
 		$("#arr_searchbutton").click(function(){
 			page_arrangement.findit();
 		});
@@ -64,7 +64,7 @@ var page_arrangement = {
 			"collect_time_end" : $("#search_arr_collect_time_end").val(),
 			"case_code" : $("#search_arr_case_code").val()
 		};
-		
+
 		$.ajax({
 			beforeSend : ajaxRequestType,
 			async : true,
@@ -109,7 +109,7 @@ var page_arrangement = {
 					var part = $tr.find("td[aria\\-describedby='arrangementlist_part']").text();
 					warningConfirm("是否要删除维修品" + omrNotifiNo + "回收部分" + part + "的整理记录？"
 						, function(){
-							page_arrangement.removeRecord(materialId, part);						
+							page_arrangement.removeRecord(materialId, part);
 						}, null
 						,"删除确认");
 				});
@@ -138,7 +138,7 @@ var page_arrangement = {
 				rownumbers : true,
 				pager : "#arrangementlistpager",//翻页
 				viewrecords : true,//显示总记录数
-				gridview : true, 
+				gridview : true,
 				pagerpos : 'right',
 				ondblClickRow : null,
 				onSelectRow :null,
@@ -182,35 +182,35 @@ var page_arrangement = {
 
 var page_case = {
 	"servicePath" : "waste_partial_recycle_case.do",
-	
+
 	"init" : function(){
 		$("#search_case_collect_kind, #search_use_state").buttonset();
-		
+
 		$("#search_case_package_date_start,#search_case_package_date_end,#search_case_waste_apply_date_start,#search_case_waste_apply_date_end,#waste_update_waste_apply_date").datepicker({
 			showButtonPanel : true,
 			dateFormat : "yy/mm/dd",
 			currentText : "今天"
 		});
-		
+
 		$("#case_resetbutton").click(function(){
 			$("#searchcaseform input[type='text']").val("");
 			$("#add_collect_kind_all").attr("checked","checked").trigger("change");
 			$("#search_use_state_all").attr("checked","checked").trigger("change");
 		});
-		
+
 		$("#case_searchbutton").click(function(){
 			page_case.findit();
 		});
-		
+
 		$("#waste_apply_button").disable().click(page_case.doWaste);
 		$("#search_use_state_wait_to_apply").attr("checked","checked").trigger("change");
-		
+
 		$("#canclecasebutton,#update_case_area span.ui-icon.ui-icon-circle-triangle-w").click(function(){
 			$("#search_case_area").show();
 			$("#update_case_area").hide();
 		});
 	},
-	
+
 	"findit" : function(){
 		var data = {
 			"case_code" : $("#search_case_case_code").val(),
@@ -267,8 +267,8 @@ var page_case = {
 				datatype : "local",
 				colNames : ['','装箱编号','用途种类','打包日期','重量','废弃申请日期','备注'],
 				colModel : [
-				    {name:'case_id',index:'case_code',hidden:true},
-				    {name:'case_code',index:'case_code',width:30},
+					{name:'case_id',index:'case_code',hidden:true},
+					{name:'case_code',index:'case_code',width:30},
 					{name:'collect_kind',index:'collect_kind',width:30,formatter : 'select',editoptions:{value : "1:内窥镜;2:周边设备"}},
 					{name:'package_date',index:'package_date',width:30,align:'center'},
 					{name:'weight',index:'weight',width:30,align:'right',formatter:"number",formatoptions:{suffix:' kg',defaultValue:'-',decimalPlaces:1}},
@@ -280,7 +280,7 @@ var page_case = {
 				rownumbers : true,
 				pager : "#caselistpager",//翻页
 				viewrecords : true,//显示总记录数
-				gridview : true, 
+				gridview : true,
 				pagerpos : 'right',
 				ondblClickRow : page_case.showEdit,
 				onSelectRow :page_case.enablebuttons,
@@ -305,17 +305,17 @@ var page_case = {
 			}
 		}else{
 			$("#waste_apply_button").disable();
-		}   
+		}
 	},
 	"doWaste" : function(){
 		var rowID = $("#caselist").jqGrid("getGridParam", "selrow");
 		var rowData = $("#caselist").getRowData(rowID);
-		
+
 		var now = new Date();
 		var year = now.getFullYear();
 		var month = now.getMonth() + 1;
 		var date = now.getDate();
-		
+
 		var weight = rowData.weight;
 		if(weight == '-'){
 			$("#waste_update_weight").val("").removeClass("errorarea-single");
@@ -373,18 +373,18 @@ var page_case = {
 	"showEdit" : function(){
 		var rowID = $("#caselist").jqGrid("getGridParam", "selrow");
 		var rowData = $("#caselist").getRowData(rowID);
-		
+
 		if(rowData.waste_apply_date){
 			return;
 		}
-		
+
 		$("#update_case_code").val(rowData.case_code);
 		if(rowData.collect_kind == 1){
 			$("#label_collect_kind_name").text("内窥镜");
 		} else {
 			$("#label_collect_kind_name").text("周边设备");
 		}
-		
+
 		var weight = rowData.weight;
 		if(weight == '-'){
 			$("#update_weight").val("");
@@ -394,7 +394,7 @@ var page_case = {
 		$("#update_comment").val(rowData.comment);
 		$("#search_case_area").hide();
 		$("#update_case_area").show();
-		
+
 		$("#updatecasebutton").unbind("click").bind("click",function(){
 			var data = {
 				"case_id" : rowData.case_id,

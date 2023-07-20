@@ -177,7 +177,7 @@
 			</if>
 				<![CDATA[
 				kind = #{kind},
-				rank=#{rank},
+				`rank`=#{rank},
 				service_free_flg=#{service_free_flg},
 				workshop=#{workshop},
 				countermeasures=#{countermeasures},

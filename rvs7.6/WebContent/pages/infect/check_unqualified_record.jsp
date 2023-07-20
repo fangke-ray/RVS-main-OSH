@@ -189,7 +189,7 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 									</tr>
 									<tr>
 										<td class="ui-state-default td-title">不合格项目</td>
-										<td class="td-content>
+										<td class="td-content">
 											<label id="label_check_item"></label>
 										</td>
 										<td class="ui-state-default td-title">不合格描述</td>

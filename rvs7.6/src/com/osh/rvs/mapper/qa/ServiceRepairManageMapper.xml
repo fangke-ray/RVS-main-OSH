@@ -34,7 +34,7 @@
 			ANSWER_IN_DEADLINE,
 			SERVICE_FREE_FLG,
 			QA_SECONDARY_REFEREE_DATE,
-			RANK,
+			`RANK`,
 			WORKSHOP,
 			COUNTERMEASURES,
 			actual_fault,
@@ -394,10 +394,10 @@
 	<select id="getRankAutoCompletes" resultType="String">
 		<![CDATA[
 			SELECT DISTINCT 
-				rank
+				`rank`
 			FROM
 				service_repair_manage
-			WHERE rank is not null
+			WHERE `rank` is not null
 		]]>
 	</select>
 	
@@ -490,7 +490,7 @@ and rc_mailsend_date=#{rc_mailsend_date};
 			SET
 				kind = #{kind},
 				service_repair_flg=#{service_repair_flg},
-				rank = #{rank},
+				`rank` = #{rank},
 				service_free_flg=#{service_free_flg},
 				workshop=#{workshop},
 		]]>

@@ -563,7 +563,7 @@ if ($.datepicker) {
 		onChangeMonthYear : gMonthHoliday
 	});
 	$(".ui-datepicker-close").live("click", function (){
-			datepicker_CurrentInput.value = "";
+		datepicker_CurrentInput.value = "";
 	});
 }
 

@@ -11,7 +11,7 @@
 			opf.optional_fix_id,
 			opf.standard_code,
 			opf.infection_item,
-			group_concat(opfr.rank) as rank,
+			group_concat(opfr.rank) as `rank`,
 			opf.updated_by,
 			opf.updated_time
 		FROM optional_fix opf
@@ -29,7 +29,7 @@
 			AND opf.infection_item LIKE CONCAT('%', #{infection_item}, '%')
 		</if>
 		<if test="rank != null and rank != '' ">
-			AND EXISTS(select 1 from optional_fix_for_rank where optional_fix_id = opf.optional_fix_id and rank = #{rank})
+			AND EXISTS(select 1 from optional_fix_for_rank where optional_fix_id = opf.optional_fix_id and `rank` = #{rank})
 		</if>
 		</where>
 		GROUP BY opf.optional_fix_id
@@ -108,13 +108,13 @@
 
 	<select id="getRanks" resultType="String">
 		<![CDATA[ 
-		SELECT rank FROM optional_fix_for_rank WHERE optional_fix_id = #{optional_fix_id}
+		SELECT `rank` FROM optional_fix_for_rank WHERE optional_fix_id = #{optional_fix_id}
 		]]>
 	</select>
 
 	<insert id="insertRank" parameterType="OptionalFixEntity">
 		<![CDATA[ 
-		INSERT INTO optional_fix_for_rank (optional_fix_id, rank) VALUES (#{optional_fix_id}, #{rank})
+		INSERT INTO optional_fix_for_rank (optional_fix_id, `rank`) VALUES (#{optional_fix_id}, #{rank})
 		]]>
 	</insert>
 

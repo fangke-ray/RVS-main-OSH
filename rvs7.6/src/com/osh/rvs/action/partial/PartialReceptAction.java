@@ -26,6 +26,7 @@ import com.osh.rvs.service.partial.PartialAssignService;
 import com.osh.rvs.service.partial.PartialReceptService;
 
 import framework.huiqing.action.BaseAction;
+import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 
 /**
@@ -131,8 +132,17 @@ public class PartialReceptAction extends BaseAction{
 		
 		log.info("PartialReceptAction.searchMaterialDetail end");
 	}
-	
-	
+
+	/**
+	 * 退回零件操作（按工程）
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 * @throws Exception
+	 */
+	@Privacies(permit={105, 106, 107})
 	public void doUpdatePartialUnnessaray(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn)throws Exception{
 		log.info("PartialOrderAction.doUpdatePartialUnnessaray start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();
@@ -159,6 +169,16 @@ public class PartialReceptAction extends BaseAction{
 		log.info("PartialOrderAction.doUpdatePartialUnnessaray end");
 	}
 
+	/**
+	 * 零件签收使用（按工程）
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @param conn
+	 * @throws Exception
+	 */
+	@Privacies(permit={105, 106, 107})
 	public void doUpdatePartialRecept(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn)throws Exception{
 		log.info("PartialOrderAction.doUpdatePartialRecept start");
 		Map<String, Object> listResponse = new HashMap<String, Object>();

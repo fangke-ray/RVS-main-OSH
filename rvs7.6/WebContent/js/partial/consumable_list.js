@@ -1135,7 +1135,7 @@ var postClipboard = function(e){
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete : function(xhrObj){
-			var resInfo = $.parseJSON(xhrObj.responseText);
+			var resInfo = JSON.parse(xhrObj.responseText);
 			if (resInfo.errors.length == 0) {
 				var clipboardData = undefined;
 
@@ -1173,7 +1173,7 @@ var download = function() {
 		success: ajaxSuccessCheck, 
 		error: ajaxError, 
 		complete: function(xhrObj){
-		 	var resInfo = $.parseJSON(xhrObj.responseText);
+		 	var resInfo = JSON.parse(xhrObj.responseText);
 			if (resInfo.errors && resInfo.errors.length > 0) {
 				treatBackMessages(null, resInfo.errors);
 				return;
@@ -1216,7 +1216,7 @@ var getHeatshrinkableLength = function(){
 var getHeatshrinkableLength_Complete = function(xhjObj, code, description) {
 	var $pop_window = $("#pop_heatshrink_length");
 	// 以Object形式读取JSON
-	var resInfo = $.parseJSON(xhjObj.responseText);
+	var resInfo = JSON.parse(xhjObj.responseText);
 	if (resInfo.errors.length > 0) {
 		// 共通出错信息框
 		treatBackMessages(null, resInfo.errors);
@@ -1257,7 +1257,7 @@ var setHeatshrinkableLength = function(partail_id){
 		success : ajaxSuccessCheck,
 		error : ajaxError,
 		complete : function(xhjObj){
-			var resInfo = $.parseJSON(xhjObj.responseText);
+			var resInfo = JSON.parse(xhjObj.responseText);
 			if (resInfo.errors.length > 0) {
 				// 共通出错信息框
 				treatBackMessages(null, resInfo.errors);

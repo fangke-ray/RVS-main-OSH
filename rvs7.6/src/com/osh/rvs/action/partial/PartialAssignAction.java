@@ -22,6 +22,7 @@ import com.osh.rvs.form.partial.MaterialPartialForm;
 import com.osh.rvs.service.partial.PartialAssignService;
 
 import framework.huiqing.action.BaseAction;
+import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 
 /**
@@ -119,6 +120,7 @@ public class PartialAssignAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
+	@Privacies(permit={1, 117})
 	public void doUpdateMaterialPartialDetail(ActionMapping mapping,ActionForm form,HttpServletRequest request,HttpServletResponse response,SqlSessionManager conn)throws Exception{
 		log.info("PartialAssignAction.updateMaterialPartialDetail start");
 		// 对Ajax的响应

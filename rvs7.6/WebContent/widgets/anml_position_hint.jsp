@@ -44,7 +44,7 @@ var rerollNotice = function(){
 	currentShow++;
 };
 var anmlNotice = function(instorage, anmlNotice){
-	warningConfirm("动物实验用维修品【" + instorage.material + "】已经进入【" + instorage.process_code + "】工位仕挂，请相关人员着手作业。");
+	warningConfirm("动物实验用修理品【" + instorage.material + "】已经进入【" + instorage.process_code + "】工位仕挂，请相关人员着手作业。");
 	if (anmlNotice) {
 		$("#position_instore").html(anmlNotice);
 	} else {

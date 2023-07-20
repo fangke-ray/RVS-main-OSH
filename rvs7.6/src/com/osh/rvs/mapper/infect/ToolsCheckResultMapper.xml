@@ -163,11 +163,11 @@
       <![CDATA[
       SELECT 
 		    date(n_cr.check_confirm_time) as check_confirm_time,
-		    op.name as operator ,
+		    op.name as operator , op.job_no as operator_id,
 		    CASE
 		        WHEN n_cr.broken > 0 THEN 2
 		        WHEN n_cr.lost > 0 THEN 3
-		        WHEN n_cr.stored > 0 THEN 4
+		        WHEN n_cr.`stored` > 0 THEN 4
 		        WHEN n_cr.inuse > 0 THEN 1
 		        ELSE 0
 		    END AS checked_status
@@ -178,12 +178,12 @@
 		            sum(checked_status = 1) inuse,
 		            sum(checked_status = 2) broken,
 		            sum(checked_status = 3) lost,
-		            sum(checked_status = 4) stored
+		            sum(checked_status = 4) `stored`
 		    FROM
 		        tool_check_result cr
 		    WHERE
 		        cr.check_confirm_time >=#{firstDate}
-		            and DATE(cr.check_confirm_time) <#{lastDate}
+		            and cr.check_confirm_time <#{lastDate}
 		            and cr.manage_id = #{manage_id}
 		    GROUP BY cr.manage_id , cr.operator_id , DATE(cr.check_confirm_time)) n_cr
 		left join operator op on op.operator_id =n_cr.operator_id

@@ -17,7 +17,6 @@ import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.inline.PauseFeatureEntity;
 import com.osh.rvs.bean.manage.NewPhenomenonEntity;
 import com.osh.rvs.common.RvsConsts;
-import com.osh.rvs.common.RvsUtils;
 import com.osh.rvs.form.manage.NewPhenomenonForm;
 import com.osh.rvs.mapper.data.AlarmMesssageMapper;
 import com.osh.rvs.mapper.data.MaterialMapper;
@@ -211,7 +210,7 @@ public class NewPhenomenonService {
 	 * @param conn
 	 * @param errors
 	 */
-	public void update(ActionForm form, HttpSession session,
+	public String update(ActionForm form, HttpSession session,
 			boolean needPost, SqlSessionManager conn, List<MsgInfo> errors) {
 		NewPhenomenonMapper mapper = conn.getMapper(NewPhenomenonMapper.class);
 
@@ -231,13 +230,13 @@ public class NewPhenomenonService {
 			entity.setDetermine_operator_id(user.getOperator_id());
 			mapper.update(entity);
 
-			conn.commit();
+			return "http://10.220.142.227:8080/rvsIf/phenomenon/" + entity.getKey();
 
-			RvsUtils.sendTrigger("http://10.220.142.227:8080/rvsIf/phenomenon/" + entity.getKey());
 		} else if (hit != null) {
 			mapper.update(entity);
 		}
 
+		return null;
 	}
 
 }
