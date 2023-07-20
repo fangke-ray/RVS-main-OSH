@@ -12,8 +12,9 @@
 			  `m`.esas_no, `m`.model_id, `m`.serial_no, `m`.ocm,
 			  `m`.`level`, `m`.direct_flg, `m`.service_repair_flg, `m`.reception_time, `m`.fix_type,
 			  `m`.wip_location, `m`.agreed_date, `mdl`.name as model_name, `pf`.operate_result, `m`.scheduled_date, `m`.scheduled_expedited,
-			  `mp`.finish_date as finish_time,m.qa_check_time,
-			  mt.tag_type is not null as anml_exp
+			  m.qa_check_time,
+			  mt.tag_type is not null as anml_exp,
+              (select max(finish_time) from production_feature where material_id = `m`.material_id and position_id in (select position_id from position where line_id = 14)) as finish_time
 			FROM material m
 			JOIN model mdl ON `m`.model_id = `mdl`.model_id
 			JOIN production_feature pf
@@ -21,12 +22,9 @@
 			  AND `pf`.position_id = #{position_id}
 			  AND `pf`.action_time is null
 			  AND  pf.finish_time is null
-			LEFT JOIN material_process mp
-				ON mp.material_id = m.material_id
-				AND mp.line_id = 14
 			LEFT JOIN material_tag mt
 				ON `m`.material_id = mt.material_id AND tag_type = 1
-			ORDER BY operate_result DESC, reception_time
+			ORDER BY operate_result DESC, finish_time
 		]]>
 	</select>
 

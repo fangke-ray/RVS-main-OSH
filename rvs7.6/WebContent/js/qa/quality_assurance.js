@@ -447,7 +447,7 @@ function load_list(t_listdata) {
 						index : 'finish_time',
 						width : 65,
 						align : 'center', 
-						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d', newformat: 'm-d'}
+						sorttype: 'date', formatter: 'date', formatoptions: {srcformat: 'Y/m/d H:i:s', newformat: 'm-d H:i'}
 					}, {
 						name : 'sorc_no',
 						index : 'sorc_no',
