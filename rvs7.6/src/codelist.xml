@@ -334,6 +334,7 @@
 		<value code="9">入库新品不良</value>
 		<value code="8">新品零件不良</value>
 		<value code="4">保修期不良(OGZ)</value>
+		<value code="5">QIS品预检查</value>
 	</codelist>
 
 	<codelist name="workshop">

@@ -46,7 +46,7 @@ $(function(){
 	});		
 	/*选择QIS不良品发生的事件*/
 	$("#add_service_repair_flg").change(function(){
-		if($(this).val()=='2' || $(this).val() == '9' || $(this).val() == '8' || $(this).val() == '4'){
+		if($(this).val()=='2' || $(this).val() == '9' || $(this).val() == '8' || $(this).val() == '4' || $(this).val() == '5'){
 			$("tr.qis_payout").show();
 			$("#add_rank").removeAttr("readonly").removeAttr("style");
 		}else{
