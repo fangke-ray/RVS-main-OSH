@@ -5,6 +5,9 @@ var chart3 = null;
 var chart4 = null;
 $(function(){
 	$("input.ui-button").button();
+	$("input:radio[name='lt_type']").button()
+		.next("label").children("span").addClass("ui-widget");
+	
 	
 	$("span.ui-icon, #detailsearcharea span.ui-icon").bind("click", function() {
         $(this).toggleClass('ui-icon-circle-triangle-n').toggleClass('ui-icon-circle-triangle-s');
@@ -153,10 +156,10 @@ $(function(){
 
 		$.ajax({
 			beforeSend: ajaxRequestType, 
-			async: true, 
+			async: false, 
 			url: servicePath + '?method=exportBold', 
 			cache: false, 
-			data: null, 
+			data: {lt_type: $("input:radio[name='lt_type']:checked").val()}, 
 			type: "post", 
 			dataType: "json", 
 			success: ajaxSuccessCheck, 

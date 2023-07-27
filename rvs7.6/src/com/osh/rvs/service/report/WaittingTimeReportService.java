@@ -1147,7 +1147,7 @@ public class WaittingTimeReportService {
 	private static int STANDARD_INLINE_PER_MAT = 4; // (int)3.5
 	private static int STANDARD_DISTRIB_PER_PRO = 10;
 
-	public String createBoldExcel(HttpServletRequest req,SqlSession conn) throws Exception{
+	public String createBoldExcel(HttpServletRequest req, String ltType, SqlSession conn) throws Exception{
 
 		//Excel临时文件
 		String cacheName = "BOLD 修理时间点统计" + new Date().getTime() + ".xlsx";
@@ -1159,7 +1159,12 @@ public class WaittingTimeReportService {
 		WaittingTimeReportMapper mapper = conn.getMapper(WaittingTimeReportMapper.class);
 		List<WaittingTimeReportEntity> rList = mapper.searchBoldDetails(material_ids);
 
-		List<Map<String, Object>> ndList = mapper.getTimeNodes(material_ids);
+		List<Map<String, Object>> ndList = null;
+		if ("8".equals(ltType)) {
+			ndList = mapper.getTimeNodes(material_ids);
+		} else {
+			ndList = mapper.getTimeNodesWithNatureLt(material_ids);
+		}
 		Map<String, Map<String, Object>> ndMap = new HashMap<String, Map<String, Object>>();
 		for (Map<String, Object> nd : ndList) {
 			ndMap.put(CommonStringUtil.fillChar("" + nd.get("material_id"), '0', 11, true) , nd);
@@ -1309,7 +1314,7 @@ public class WaittingTimeReportService {
 				cell = row.createCell(colIdx++);//收货
 				Date nd2 = castDate(nd.get("nd2"));
 				Date nd3 = castDate(nd.get("nd3"));
-				if (nd2 == null || nd2.compareTo(nd3) == 0) {
+				if (nd2 == null || (nd3 != null && nd2.compareTo(nd3) == 0)) {
 					cell.setCellValue("-");
 					cell.setCellStyle(timeRedBackgroundStyle);
 				} else {
@@ -1849,6 +1854,7 @@ public class WaittingTimeReportService {
 			cell.setCellValue(title);
 			cell.setCellStyle(style);
 			cell = rowPart.createCell(colIdx);
+			cell.setCellValue(title);
 			cell.setCellStyle(style);
 			sheet.addMergedRegion(new CellRangeAddress(0, 1, colIdx, colIdx));
 			sheet.setColumnWidth(colIdx, width);

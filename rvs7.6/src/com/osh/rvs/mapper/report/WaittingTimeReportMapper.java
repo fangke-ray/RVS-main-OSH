@@ -14,6 +14,8 @@ public interface WaittingTimeReportMapper {
 
 	public List<Map<String, Object>> getTimeNodes(List<String> material_ids);
 
+	public List<Map<String, Object>> getTimeNodesWithNatureLt(List<String> material_ids);
+
 	public List<WaittingTimeReportEntity> searchBoldDetails(
 			List<String> material_ids);
 }

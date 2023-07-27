@@ -247,8 +247,12 @@ public class WaittingTimeReportAction extends BaseAction {
 		List<MsgInfo> errors = new ArrayList<>();
 
 		WaittingTimeReportService service = new WaittingTimeReportService();
+		String lt_type = req.getParameter("lt_type");
 		String fileName = "BOLD_修理时间点统计.xlsx";
-		String filePath = service.createBoldExcel(req, conn);
+		if ("8".equals(lt_type)) {
+			fileName = "BOLD_修理时间点统计(8小时LT).xlsx";
+		}
+		String filePath = service.createBoldExcel(req, lt_type, conn);
 
 		cbResponse.put("fileName", fileName);
 		cbResponse.put("filePath", filePath);

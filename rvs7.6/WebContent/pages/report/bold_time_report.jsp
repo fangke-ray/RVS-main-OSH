@@ -132,6 +132,8 @@ String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.
 				
 				<div class="ui-widget-header ui-helper-clearfix areabase" style="padding-top:4px;">
 					<input id="boldbutton" class="ui-button" value="BOLD 统计列表" style="float:right;right:2px" type="button">
+					<input id="lt_type_na" name="lt_type" value="24" type="radio" checked><label style="float:right;right:2px" for="lt_type_na">自然时间 LT</label>
+					<input id="lt_type_ab" name="lt_type" value="8" type="radio"><label style="float:right;right:2px" for="lt_type_ab">出勤时间 LT</label>
 				</div>
 				
 				<div id="search_model_id_referchooser" class="referchooser ui-widget-content" tabindex="-1" style="display:none;position:absolute;z-index:10000">
