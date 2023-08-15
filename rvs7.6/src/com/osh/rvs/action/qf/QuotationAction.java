@@ -858,21 +858,22 @@ public class QuotationAction extends BaseAction {
 						}
 					}
 				} else {
-					if (orginAgreedDate != null) { // 前台提交着无同意日的状态放入WIP
-						if (isEmpty(materialForm.getAgreed_date())) {
-							MsgInfo error = new MsgInfo();
-							error.setErrcode("info.agreedDateChanged.byIf");
-							error.setErrmsg("在您先前作业期间同意日已经更新，请确认是否仍然放WIP？");
-							errors.add(error);
-							listResponse.put("agreed_date", DateUtil.toString(orginAgreedDate, DateUtil.DATE_PATTERN));
-						} else {
-							MsgInfo error = new MsgInfo();
-							error.setErrcode("info.agreedDateChanged.byIf");
-							error.setErrmsg("已经有同意日，请确认是否仍然放WIP？");
-							errors.add(error);
-							listResponse.put("agreed_date", DateUtil.toString(orginAgreedDate, DateUtil.DATE_PATTERN));
-						}
-					}
+					// 10 期 有同意日也放库位
+//					if (orginAgreedDate != null) { // 前台提交着无同意日的状态放入WIP
+//						if (isEmpty(materialForm.getAgreed_date())) {
+//							MsgInfo error = new MsgInfo();
+//							error.setErrcode("info.agreedDateChanged.byIf");
+//							error.setErrmsg("在您先前作业期间同意日已经更新，请确认是否仍然放WIP？");
+//							errors.add(error);
+//							listResponse.put("agreed_date", DateUtil.toString(orginAgreedDate, DateUtil.DATE_PATTERN));
+//						} else {
+//							MsgInfo error = new MsgInfo();
+//							error.setErrcode("info.agreedDateChanged.byIf");
+//							error.setErrmsg("已经有同意日，请确认是否仍然放WIP？");
+//							errors.add(error);
+//							listResponse.put("agreed_date", DateUtil.toString(orginAgreedDate, DateUtil.DATE_PATTERN));
+//						}
+//					}
 
 					// 判断竞合
 					WipService wipService = new WipService();
