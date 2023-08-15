@@ -2124,6 +2124,7 @@ public class PositionPanelService {
 		varWorkInfo += "confirmPcsWhenBreak : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmPcsWhenBreak") + "\",";
 		varWorkInfo += "chooseDryingProcess : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.chooseDryingProcess") + "\",";
 		varWorkInfo += "confirmSelectFirstSnout : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.confirmSelectFirstSnout") + "\",";
+		varWorkInfo += "attentionForInfects : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.attentionForInfect") + "\",";
 		varWorkInfo += "abnormalSnoutOrigin : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.abnormalSnoutOrigin") + "\",";
 		varWorkInfo += "animalExpNotice : \"" + ApplicationMessage.WARNING_MESSAGES.getMessage("info.positionwork.animalExpNotice") + "\",";
 		varWorkInfo += "animalExpClean : \""
@@ -2231,6 +2232,7 @@ public class PositionPanelService {
 
 			if (infectString.length() == 0 || infectString.indexOf("限制工作") < 0) {
 				CheckResultService.setInfectPass(section_id, position_id);
+				infectPassedPosition = true;
 			}
 		}
 
@@ -2241,6 +2243,7 @@ public class PositionPanelService {
 
 			if (infectStringOp.length() == 0) {
 				CheckResultService.setInfectPass(section_id, position_id, operator_id);
+				infectPassedOperator = true;
 			} else {
 				infectString = infectString + "\n" + infectStringOp;
 			}

@@ -67,7 +67,6 @@ import com.osh.rvs.service.equipment.DeviceJigLoanService;
 import com.osh.rvs.service.inline.DryingProcessService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.inline.FoundryService;
-import com.osh.rvs.service.inline.LineLeaderService;
 import com.osh.rvs.service.inline.PositionPanelService;
 import com.osh.rvs.service.inline.SoloSnoutService;
 import com.osh.rvs.service.partial.ComponentSettingService;
@@ -361,11 +360,18 @@ public class PositionPanelAction extends BaseAction {
 		String sGroupPositionId = user.getGroup_position_id();
 		String infectString = "";
 
+		ProductionFeatureEntity workingPf = null;
 		// 虚拟组不在加载时判断待点检
 		if (sGroupPositionId == null) {
 
 			infectString = service.checkPositionInfectWorkOnPass(section_id, position_id, line_id, user.getOperator_id(), conn, listResponse);
 
+		} else if (position_id != null) {
+			// 虚拟组，如果进行中
+			workingPf = service.getWorkingOrSupportingPf(user, conn);
+			if (workingPf != null) {
+				infectString = service.checkPositionInfectWorkOnPass(section_id, position_id, line_id, user.getOperator_id(), conn, listResponse);
+			}
 		}
 
 		// 判断操作者异常作业状态
@@ -786,64 +792,67 @@ public class PositionPanelAction extends BaseAction {
 		ProductionFeatureEntity waitingPf = service.checkMaterialId(material_id, dryingConfirmed, user, 
 				reqPositionId, errors, conn);
 
-		// 是否虚拟组工位
-		String sGroupPositionId = user.getGroup_position_id();
+		if (errors.size() == 0) {
+			// 是否虚拟组工位
+			String sGroupPositionId = user.getGroup_position_id();
 
-		if (sGroupPositionId != null) {
-			Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
-			if (!PositionService.isGroupSubPosition(reqPositionId, user.getSection_id(), conn)
-					|| !groupSubPositions.get(reqPositionId).equals(sGroupPositionId)) {
-				MsgInfo msgInfo = new MsgInfo();
-				msgInfo.setComponentid("position_id");
-				msgInfo.setErrcode("privacy.objectOutOfDomain");
-				msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "维修对象"));
-				errors.add(msgInfo);
-			} else 
-			// 判断操作者有权限
-			if (!user.getPosition_id().equals(reqPositionId)) {
-				boolean hasPrivay = false;
-				for (PositionEntity pos : user.getPositions()) {
-					if (pos.getPosition_id().equals(reqPositionId)) {
-						hasPrivay = true;
-						user.setPosition_id(pos.getPosition_id());
-						user.setProcess_code(pos.getProcess_code());
-						user.setPosition_name(pos.getName());
-
-						// 设定正常中断选项
-						listResponse.put("stepOptions", service.getStepOptions(pos.getProcess_code()));
-
-						// 设定异常中断选项
-						listResponse.put("breakOptions", service.getBreakOptions(pos.getProcess_code()));
-						break;
-					}
-				}
-				if (!hasPrivay) {
+			if (sGroupPositionId != null) {
+				Map<String, String> groupSubPositions = PositionService.getGroupSubPositions(conn);
+				if (!PositionService.isGroupSubPosition(reqPositionId, user.getSection_id(), conn)
+						|| !groupSubPositions.get(reqPositionId).equals(sGroupPositionId)) {
 					MsgInfo msgInfo = new MsgInfo();
 					msgInfo.setComponentid("position_id");
 					msgInfo.setErrcode("privacy.objectOutOfDomain");
 					msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "维修对象"));
 					errors.add(msgInfo);
-				} else {
-					// 虚拟组在新工位时判断待点检
-					// 取得待点检信息
-					String infectString = 
-							service.checkPositionInfectWorkOnPass(user.getSection_id(), reqPositionId, user.getLine_id(), user.getOperator_id(), conn, listResponse);
+				} else 
+				// 判断操作者有权限
+				if (!user.getPosition_id().equals(reqPositionId)) {
+					boolean hasPrivay = false;
+					for (PositionEntity pos : user.getPositions()) {
+						if (pos.getPosition_id().equals(reqPositionId)) {
+							hasPrivay = true;
+							user.setPosition_id(pos.getPosition_id());
+							user.setProcess_code(pos.getProcess_code());
+							user.setPosition_name(pos.getName());
 
-					listResponse.put("infectString", infectString);
+							// 设定正常中断选项
+							listResponse.put("stepOptions", service.getStepOptions(pos.getProcess_code()));
 
-					if (infectString.indexOf("限制工作") >= 0) {
-						listResponse.put("workstauts", WORK_STATUS_FORBIDDEN);
+							// 设定异常中断选项
+							listResponse.put("breakOptions", service.getBreakOptions(pos.getProcess_code()));
+							break;
+						}
+					}
+					if (!hasPrivay) {
 						MsgInfo msgInfo = new MsgInfo();
 						msgInfo.setComponentid("position_id");
 						msgInfo.setErrcode("privacy.objectOutOfDomain");
-						msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "工位"));
+						msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "维修对象"));
 						errors.add(msgInfo);
 					}
+
+					if(errors.size() == 0) {
+						// 没有问题, 切换作业工位
+						session.setAttribute(RvsConsts.SESSION_USER, user);
+					}	
 				}
-				if(errors.size() == 0) {
-					// 没有问题, 切换作业工位
-					session.setAttribute(RvsConsts.SESSION_USER, user);
-				}	
+
+				// 虚拟组在新工位时判断待点检
+				// 取得待点检信息
+				String infectString = 
+						service.checkPositionInfectWorkOnPass(user.getSection_id(), reqPositionId, user.getLine_id(), user.getOperator_id(), conn, listResponse);
+
+				listResponse.put("infectString", infectString);
+
+				if (infectString.indexOf("限制工作") >= 0) {
+					listResponse.put("workstauts", WORK_STATUS_FORBIDDEN);
+					MsgInfo msgInfo = new MsgInfo();
+					msgInfo.setComponentid("position_id");
+					msgInfo.setErrcode("privacy.objectOutOfDomain");
+					msgInfo.setErrmsg(ApplicationMessage.WARNING_MESSAGES.getMessage("privacy.objectOutOfDomain", "工位"));
+					errors.add(msgInfo);
+				}
 			}
 		}
 

@@ -940,6 +940,7 @@ var showBreakOfInfect = function(infectString) {
 		}
 	}
 	if (infectString.indexOf("点检") >= 0) {
+		$break_dialog.append("<p style='font-weight:bold'>" + WORKINFO.attentionForInfects + "</p>");
 		closeButtons ={
 			"进行点检":function() {
 				window.location.href = "./usage_check.do?from=position";

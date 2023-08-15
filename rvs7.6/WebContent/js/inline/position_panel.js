@@ -982,6 +982,7 @@ var showBreakOfInfect = function(infectString) {
 		}
 	}
 	if (infectString.indexOf("点检") >= 0) {
+		$break_dialog.append("<p style='font-weight:bold'>" + WORKINFO.attentionForInfects + "</p>");
 		closeButtons ={
 			"进行点检":function() {
 				window.location.href = "./usage_check.do?from=position";
@@ -1217,6 +1218,32 @@ var doStart_ajaxSuccess = function(xhrobj, textStatus, postData){
 	try {
 		// 以Object形式读取JSON
 		eval('resInfo =' + xhrobj.responseText);
+
+		if (resInfo.jsinitInfect) {
+			setTimeout(function(){
+				// Ajax提交
+				$.ajax({
+					beforeSend : ajaxRequestType,
+					async : true,
+					url : servicePath + '?method=jsinitInfect',
+					cache : false,
+					data : null,
+					type : "post",
+					dataType : "json",
+					success : ajaxSuccessCheck,
+					error : ajaxError,
+					complete : function(xhrObj){
+						var resInfoIn = JSON.parse(xhrObj.responseText);
+						if (resInfoIn.infectString) {
+							$("#toInfect").show()
+							.find("td:eq(1)").html(decodeClick(decodeText(resInfoIn.infectString)));
+						} else {
+							$("#toInfect").hide();
+						}
+					}
+				});
+			}, 10);
+		}
 
 		if (resInfo.errors.length > 0) {
 			var error1 = resInfo.errors[0];
