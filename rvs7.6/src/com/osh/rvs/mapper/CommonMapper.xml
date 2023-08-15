@@ -11,4 +11,29 @@
 		]]>
 	</select>
 
+	<!-- sql片段 -->  
+	<sql id="ticket_count">  
+		(CASE 
+		WHEN `m`.level = 9 OR `m`.level = 91 OR `m`.level = 92 OR `m`.level = 93 
+			OR `m`.level = 94 OR `m`.level = 96 OR `m`.level = 97 OR `m`.level = 98 OR `m`.level = 99
+			THEN 8
+		WHEN mdl.category_id = 00000000018 AND level = 1
+			THEN 13
+		WHEN mdl.category_id = 00000000018
+			THEN 18
+		WHEN mdl.category_id = 00000000013 OR `m`.fix_type = 2
+			THEN 4
+		WHEN mdl.kind = 06
+			THEN 5
+		WHEN mdl.kind = 03
+			THEN 6 
+		WHEN mdl.kind = 07
+			THEN 5 
+		WHEN `m`.level = 1
+			THEN 8
+		ELSE 15
+		END + (coalesce(`m`.service_repair_flg, 0) = 2)
+		)
+	</sql> 
+
 </mapper>
