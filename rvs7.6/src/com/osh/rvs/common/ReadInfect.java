@@ -741,6 +741,9 @@ public class ReadInfect {
 		cellText = cellText.replaceAll("#G\\[NAME\\[U.*#" , "<name/>");
 		// 责任者
 		cellText = cellText.replaceAll("#G\\[RESPONCOR#" , "<responcor/>");
+		// 分页
+		cellText = cellText.replaceAll("#G\\[PAGE#" , "１");
+		cellText = cellText.replaceAll("#G\\[PAGE\\[M#" , "１");
 
 		// cellText = cellText.replaceAll("#.*#" , "");
 
