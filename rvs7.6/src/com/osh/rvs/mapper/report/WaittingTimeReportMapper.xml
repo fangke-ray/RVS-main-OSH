@@ -445,8 +445,7 @@
 		f_n_diffminutes(coalesce(nd1,nd2),
 			greatest(coalesce(nd2,'2000-1-1'), nd3)
 		) as a1,
-		case when cds is not null and cds < 28500 then round(cds / 60) 
-			else f_diffminutes(nd4,nd5) end as m2,
+		f_n_diffminutes(nd4,nd5) as m2,
 		f_n_diffminutes(
 			greatest(coalesce(nd2,'2000-1-1'), nd3)
 		,nd5) as a2,
@@ -490,7 +489,6 @@
 			min(CASE WHEN pos.special_page = 'shipping' THEN pf.action_time END) as nd15,
 			max(CASE WHEN pos.special_page = 'shipping' THEN pf.finish_time END) as nd15_2,
 			nd.shipment as nd16,
-			sum(CASE WHEN pos.process_code in ('121') and pf.operate_result != 5 THEN pf.use_seconds END) as cds,
 			sum(CASE WHEN pos.special_page = 'quotation' OR pos.process_code = '141' THEN pf.use_seconds END) as quote,
 			sum(CASE WHEN ln.inline_flg = 1 THEN pf.use_seconds END) as inline,
 			sum(CASE WHEN pos.special_page = 'qualityAssurance' THEN pf.use_seconds END) as qa
