@@ -10,6 +10,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -47,9 +49,11 @@ import com.osh.rvs.mapper.partial.ConsumableApplicationMapper;
 import com.osh.rvs.mapper.partial.ConsumableListMapper;
 import com.osh.rvs.mapper.partial.ConsumableOnlineMapper;
 import com.osh.rvs.service.AcceptFactService;
+import com.osh.rvs.service.MaterialService;
 import com.osh.rvs.service.PostMessageService;
 
 import framework.huiqing.bean.message.MsgInfo;
+import framework.huiqing.common.util.AutofillArrayList;
 import framework.huiqing.common.util.CommonStringUtil;
 import framework.huiqing.common.util.copy.BeanUtil;
 import framework.huiqing.common.util.copy.CopyOptions;
@@ -887,5 +891,151 @@ public class ConsumableApplyService {
 			return "2";
 		}
 		return null;
+	}
+
+	/**
+	 * 取得CCD盖玻璃预发放零件
+	 */
+	public Map<String, ConsumableApplicationDetailEntity> getCcdAdvancedByMaterial(String material_id, SqlSession conn) {
+		ConsumableApplicationMapper appMapper = conn.getMapper(ConsumableApplicationMapper.class);
+		ConsumableApplicationEntity app = appMapper.getCcdAdvancedByMaterial(material_id);
+		if (app == null) {
+			return null;
+		}
+
+		// 取得现有订购明细
+		ConsumableApplicationDetailMapper appdMapper = conn.getMapper(ConsumableApplicationDetailMapper.class);
+		List<ConsumableApplicationDetailEntity> orgLst = appdMapper.getDetailSimple(app.getConsumable_application_key());
+
+		Map<String, ConsumableApplicationDetailEntity> retMap = new HashMap<String, ConsumableApplicationDetailEntity>();
+		for (ConsumableApplicationDetailEntity org : orgLst) {
+			retMap.put(org.getPartial_id(), org);
+		}
+
+		return retMap;
+	}
+
+	/**
+	 * 提交CCD盖玻璃
+	 * 
+	 * @param request
+	 * @param user
+	 * @param conn
+	 * @throws Exception 
+	 */
+	public void commitAssemble(HttpServletRequest request, LoginData user,
+			SqlSessionManager conn) throws Exception {
+		List<ConsumableApplicationDetailEntity> entities = new AutofillArrayList<ConsumableApplicationDetailEntity>(ConsumableApplicationDetailEntity.class);
+		Pattern p = Pattern.compile("(\\w+)\\[(\\d+)\\].(\\w+)");
+
+		String material_id = request.getParameter("material_id");
+
+		Map<String, String[]> parameterMap = request.getParameterMap();
+		// 整理提交数据
+		for (String parameterKey : parameterMap.keySet()) {
+			Matcher m = p.matcher(parameterKey);
+			if (m.find()) {
+				String entity = m.group(1);
+				if ("assemble".equals(entity)) {
+					String column = m.group(3);
+					int icounts = Integer.parseInt(m.group(2));
+					String[] value = parameterMap.get(parameterKey);
+
+					switch(column) {
+					case "partial_id" : entities.get(icounts).setPartial_id(CommonStringUtil.fillChar(value[0], '0', 11, true)); break;
+					case "recept_quantity" : entities.get(icounts).setApply_quantity(Integer.parseInt(value[0])); break;
+					}
+				}
+			}
+		}
+
+		ConsumableApplicationMapper appMapper = conn.getMapper(ConsumableApplicationMapper.class);
+		ConsumableApplicationEntity app = appMapper.getCcdAdvancedByMaterial(material_id);
+		String key = null;
+		if (app == null) {
+			MaterialService mServ = new MaterialService();
+			MaterialForm mBean = mServ.loadSimpleMaterialDetail(conn, material_id);
+			ConsumableApplicationEntity insertEntity = new ConsumableApplicationEntity();
+			insertEntity.setApplication_no("CCD" + mBean.getSorc_no());
+			insertEntity.setSection_id(user.getSection_id());
+			insertEntity.setLine_id(user.getLine_id());
+			insertEntity.setPosition_id(user.getPosition_id());
+			insertEntity.setApply_time(new Date());
+			insertEntity.setMaterial_id(material_id);
+			insertEntity.setApply_reason("CCD盖玻璃消耗品提前发放");
+			insertEntity.setConfirmer_id(user.getOperator_id());
+			appMapper.insert(insertEntity);
+
+			CommonMapper commonMapper = conn.getMapper(CommonMapper.class);
+			key = commonMapper.getLastInsertID();
+
+			// 更新为自动发放
+			appMapper.autoSupply(key);
+
+		} else {
+			key = app.getConsumable_application_key();
+		}
+
+		// 取得现有订购明细
+		ConsumableApplicationDetailMapper appdMapper = conn.getMapper(ConsumableApplicationDetailMapper.class);
+		List<ConsumableApplicationDetailEntity> orgLst = appdMapper.getDetailSimple(key);
+		Map<String, Integer> orgApplyMap = new HashMap<String, Integer>();
+		Map<String, Integer> changedApplyMap = new HashMap<String, Integer>();
+		for (ConsumableApplicationDetailEntity orgEntity : orgLst) {
+			orgApplyMap.put(orgEntity.getPartial_id(), orgEntity.getApply_quantity());
+		}
+
+		// 更新申请单明细
+		for (ConsumableApplicationDetailEntity entity : entities) {
+			entity.setConsumable_application_key(key);
+			entity.setApply_method(3);
+			entity.setPetitioner_id(user.getOperator_id());
+			entity.setPack_method(1);
+
+			if (!orgApplyMap.containsKey(entity.getPartial_id())) {
+				if (entity.getApply_quantity() > 0) {
+					appdMapper.insertDetail(entity);
+					changedApplyMap.put(entity.getPartial_id(), -entity.getApply_quantity());
+				}
+			} else {
+				if (entity.getApply_quantity() == 0) {
+					appdMapper.deleteDetail(entity);
+					changedApplyMap.put(entity.getPartial_id(), orgApplyMap.get(entity.getPartial_id()));
+				} else if (entity.getApply_quantity() != orgApplyMap.get(entity.getPartial_id())) {
+					appdMapper.editApplyQuantity(entity);
+					changedApplyMap.put(entity.getPartial_id(), 
+							orgApplyMap.get(entity.getPartial_id()) - entity.getApply_quantity());
+				}
+			}
+		}
+
+		if (!changedApplyMap.isEmpty()) {
+			// 更新为自动发放
+			appdMapper.autoSupply(key);
+
+			// 取得当前在库数量
+			Map<String, Integer> nowAvailableInventoryMap = new HashMap<String, Integer>();
+			ConsumableListMapper clMapper = conn.getMapper(ConsumableListMapper.class);
+			Set<String> targetPartialIds = changedApplyMap.keySet();
+			if (targetPartialIds.size() > 0) {
+				List<ConsumableListEntity> availableInventories = clMapper.getAvailableInventories(targetPartialIds);
+				for (ConsumableListEntity availableInventory : availableInventories) {
+					nowAvailableInventoryMap.put(CommonStringUtil.fillChar("" + availableInventory.getPartial_id(), '0', 11, true), 
+							availableInventory.getAvailable_inventory());
+				}
+			}
+
+			// 更新库存
+			for (String partial_id : changedApplyMap.keySet()) {
+				Integer available_inventory = nowAvailableInventoryMap.get(partial_id);
+				available_inventory += changedApplyMap.get(partial_id);
+
+				ConsumableApplicationDetailEntity entity = new ConsumableApplicationDetailEntity();
+				entity.setPartial_id(partial_id);
+				entity.setAvailable_inventory(available_inventory);
+				appdMapper.updateAvailableInventory(entity);
+			}
+		}
+
 	}
 }

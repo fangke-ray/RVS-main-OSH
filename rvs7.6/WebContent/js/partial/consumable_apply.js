@@ -306,7 +306,7 @@ var page_apply = {
 
 			var type = form.type;//分类
 
-			if(apply_method == 1){//在线
+			if(apply_method == 1 || apply_method == 3){//在线
 				aOnline.push(form);
 			}else if(type == 8){ //乙材
 				aDailyApplyB.push(form);

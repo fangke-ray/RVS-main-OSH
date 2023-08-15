@@ -18,6 +18,7 @@ import org.apache.struts.action.ActionMapping;
 import com.osh.rvs.bean.LoginData;
 import com.osh.rvs.bean.data.MaterialEntity;
 import com.osh.rvs.bean.partial.ComponentSettingEntity;
+import com.osh.rvs.bean.partial.ConsumableApplicationDetailEntity;
 import com.osh.rvs.bean.partial.MaterialPartialEntity;
 import com.osh.rvs.common.RvsConsts;
 import com.osh.rvs.common.RvsUtils;
@@ -35,6 +36,8 @@ import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.inline.ForSolutionAreaService;
 import com.osh.rvs.service.partial.ComponentManageService;
 import com.osh.rvs.service.partial.ComponentSettingService;
+import com.osh.rvs.service.partial.ConsumableApplicationDetailService;
+import com.osh.rvs.service.partial.ConsumableApplyService;
 import com.osh.rvs.service.partial.FactPartialReleaseService;
 import com.osh.rvs.service.partial.PartialReleaseService;
 import com.osh.rvs.service.partial.PremakePartialService;
@@ -122,7 +125,22 @@ public class PartialReleaseAction extends BaseAction {
 		String occur_times=request.getParameter("occur_times");
 		MaterialForm responseForm = service.searchMaterialPartialDetail(form, occur_times, conn);
 		
-		List<MaterialPartialDetailForm>  responseList=service.secrchPartialOfRelease(form, conn);
+		List<MaterialPartialDetailForm> responseList=service.secrchPartialOfRelease(form, conn);
+
+		// CCD 盖玻璃
+		if (RvsUtils.getCcdModels(conn).contains(responseForm.getModel_id())
+				&& !"1".equals(responseForm.getLevel())) {
+			// 标记已经被使用发放零件
+			ConsumableApplyService caServ = new ConsumableApplyService();
+			Map<String, ConsumableApplicationDetailEntity> advMap = caServ.getCcdAdvancedByMaterial(responseForm.getMaterial_id(), conn);
+			if (advMap != null && !advMap.isEmpty()) {
+				for (MaterialPartialDetailForm f : responseList) {
+					if (advMap.containsKey(f.getPartial_id())) {
+						f.setConsumable_flg("预发放 " + advMap.get(f.getPartial_id()).getApply_quantity());
+					}
+				}
+			}
+		}
 
 		listResponse.put("responseForm", responseForm);
 		listResponse.put("responseList", responseList);
@@ -293,6 +311,12 @@ public class PartialReleaseAction extends BaseAction {
 								}
 							}
 						} // isNoBO
+
+						if (RvsUtils.getCcdModels(conn).contains(mBean.getModel_id()) && (mBean.getLevel() != null && mBean.getLevel() != 1)) {
+							// 302消耗品（CCD）签收时间记录为订购单签收时间
+							ConsumableApplicationDetailService cnsmServ = new ConsumableApplicationDetailService();
+							cnsmServ.setConsumables2OrderParts(materialPartialEntity.getMaterial_id(), conn);
+						}
 
 					} else {
 						List<String> triggerList = new ArrayList<String> ();

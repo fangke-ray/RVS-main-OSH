@@ -356,7 +356,7 @@ var showPartialDetail=function(material_id,occur_times,bo_flg,section_id){
 
 	if(privacy!="pm"){
 		if(bo_flg==9 || bo_flg==9.1){
-			$("#submitbutton").val("小单发放").show();
+			$("#submitbutton").val("小单发放").hide(); // 2023.5.16 不显示小单发放
 			$("#bigsubmitbutton").show();
 			$("#evalbobutton").show();
 			if (occur_times > 1) {
@@ -521,11 +521,20 @@ var arrive_partial_list=function(responseList){
 				},
 				{
 					name:'append',
-					index:'append',
+					index:function (row) {
+						if (row["consumable_flg"]) {
+							return 9999;
+						} 
+						return parseInt(row["append"] || 0);
+					},
+					sorttype : 'integer',
 					width:50,
 					align:'center',
 					formatter:function(cellValue,options,rowData){
 						var retValue = ""
+						if (rowData["consumable_flg"]) {
+							return rowData["consumable_flg"];
+						}
 						if(cellValue!=null){
 							
 							if(rowData.waiting_quantity!=0){
@@ -639,7 +648,10 @@ var arrive_partial_list=function(responseList){
 						if (order_flg == 2) {
 							pill.find("tr#" + ID + " td[aria\\-describedby='arrive_partial_list_partial_name']").css({"color": "lightsalmon", "fontWeight": "bold"});
 						}
+						$("#arrive_partial_list td[aria\\-describedby='arrive_partial_list_append']").filter(function(){return this.innerText.startsWith("预")})
+							.css({"backgroundColor": "lightblue", "fontWeight": "bold"});
 					}
+
 					changevalue();
 					//$pill_parent.append(pill);
 				}
@@ -966,7 +978,7 @@ var getBoLocationMap = function(material_id) {
 }
 
 var getBoLocationMap_handleComplete = function(xhrobj, material_id) {
-	var resInfo = $.parseJSON(xhrobj.responseText);
+	var resInfo = JSON.parse(xhrobj.responseText);
 	if (resInfo.errors && resInfo.errors.length) {
 		// 共通出错信息框
 		treatBackMessages(null, resInfo.errors);

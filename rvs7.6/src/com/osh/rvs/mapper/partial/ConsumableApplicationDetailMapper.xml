@@ -62,7 +62,7 @@
 				AND petitioner_id = #{petitioner_id}
 		]]>
 	</update>
-	
+
 	<update id="updateAvailableInventory" parameterType="ConsumableApplicationDetailEntity">
 		<![CDATA[
 			UPDATE
@@ -251,5 +251,45 @@
 			AND petitioner_id = #{petitioner_id}
 		]]>
 	</delete>
+
+	<select id="searchCcdAdvanced" resultType="MaterialPartialDetailEntity" parameterType="String">
+		<![CDATA[ 
+			SELECT ap.position_id, apd.partial_id, apply_quantity as recept_quantity, apply_time as `recent_receive_time` 
+			FROM consumable_application ap join consumable_application_detail apd 
+			on ap.consumable_application_key = apd.consumable_application_key
+			where ap.material_id = #{material_id} and apply_method = 3;
+		]]>
+	</select>
+
+
+	<select id="getDetailSimple" resultType="ConsumableApplicationDetailEntity" parameterType="String">
+		<![CDATA[ 
+		SELECT 
+			cad.`partial_id`,
+			`apply_method`,
+			`petitioner_id`,
+			`apply_quantity`,
+			`supply_quantity`,
+			`pack_method`
+			type, available_inventory
+		FROM consumable_application_detail cad
+		join consumable_manage cm
+			on cad.partial_id= cm.partial_id
+		where cad.consumable_application_key = #{consumable_application_key}
+		;
+		]]>
+	</select>
+
+	<update id="autoSupply" parameterType="String">
+		<![CDATA[
+			UPDATE
+				consumable_application_detail
+			SET
+				supply_quantity = apply_quantity
+			WHERE
+				consumable_application_key = #{consumable_application_key}
+				AND apply_method = 3
+		]]>
+	</update>
 
  </mapper>

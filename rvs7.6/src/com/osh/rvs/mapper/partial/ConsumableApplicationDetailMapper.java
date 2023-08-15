@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.osh.rvs.bean.partial.ConsumableApplicationDetailEntity;
+import com.osh.rvs.bean.partial.MaterialPartialDetailEntity;
 
 public interface ConsumableApplicationDetailMapper {
 	public List<ConsumableApplicationDetailEntity> serach(String consumable_application_key);
@@ -37,4 +38,10 @@ public interface ConsumableApplicationDetailMapper {
 	public void updateParticular(ConsumableApplicationDetailEntity cadEntity);
 
 	public void deleteParticular(ConsumableApplicationDetailEntity cadEntity);
+
+	public List<MaterialPartialDetailEntity> searchCcdAdvanced(String material_id);
+
+	public List<ConsumableApplicationDetailEntity> getDetailSimple(String material_id);
+
+	public void autoSupply(String key);
 }

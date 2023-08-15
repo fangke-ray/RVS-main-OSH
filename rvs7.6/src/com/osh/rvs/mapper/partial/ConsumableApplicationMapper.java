@@ -28,4 +28,8 @@ public interface ConsumableApplicationMapper {
 	/** 插入新申请表单 */
 	public void insert(ConsumableApplicationEntity insertEntity) throws Exception;
 	public void confirm(ConsumableApplicationEntity entity) throws Exception;
+
+	public ConsumableApplicationEntity getCcdAdvancedByMaterial(String material_id);
+
+	public void autoSupply(String key);
 }

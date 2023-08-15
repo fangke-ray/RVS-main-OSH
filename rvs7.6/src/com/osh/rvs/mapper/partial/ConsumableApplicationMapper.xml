@@ -230,4 +230,24 @@
 		]]>
 	</insert>
 
+	<select id="getCcdAdvancedByMaterial" parameterType="String" resultType="ConsumableApplicationEntity">
+		<![CDATA[ 
+		SELECT consumable_application_key,application_no, apply_time FROM consumable_application 
+		where material_id = #{material_id} and application_no like 'CCD%';
+		]]>
+	</select>
+
+	<update id="autoSupply" parameterType="String">
+		<![CDATA[
+			UPDATE
+				consumable_application
+			SET
+				supplier_id = 0,
+				supply_time = current_timestamp,
+				all_supplied = 1
+			WHERE
+				consumable_application_key = #{consumable_application_key}
+		]]>
+	</update>
+
 </mapper>
