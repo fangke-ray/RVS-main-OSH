@@ -50,7 +50,7 @@ var doExchange = function(){
 				var resInfo = $.parseJSON(xhrObj.responseText);
 				if (resInfo.errors.length == 0) {
 					$("#manage_replace_panel").dialog("close");
-					$(".tcs_sheet").dialog("close");
+					$("dtag").closest(".tcs_sheet").dialog("close");
 					if (typeof findit === "function") findit();
 				}
 			}

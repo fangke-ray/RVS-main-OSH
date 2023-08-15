@@ -262,8 +262,8 @@ public class RvsUtils {
 			// UTF-8全角三字节
 			return "^" + modelName.replaceAll("[\\{\\(\\[｛【「『（]", "【")
 					.replaceAll("[\\}\\)\\]｝】」』）]", "】")
-					.replaceAll("【", "[^A-Z0-9]{1,3}")
-					.replaceAll("】", "[^A-Z0-9]{0,3}")
+					.replaceAll("【", "[^A-Za-z0-9]{1,3}")
+					.replaceAll("】", "[^A-Za-z0-9]{0,3}")
 					.replaceAll("[  　]", "[  　]{0,1}") + "$";
 		}
 	}
@@ -1492,7 +1492,7 @@ public class RvsUtils {
 			}
 		}
 	}
-	
+
 	public static String charEncode(String tsring) {
 		if (tsring == null)
 			return null;

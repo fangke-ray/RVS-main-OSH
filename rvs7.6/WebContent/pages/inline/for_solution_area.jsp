@@ -171,7 +171,7 @@ border-collapse: collapse;border-width: 0 1px;border-color: rgb(170, 170, 170);b
 
 				<table id="list"></table>
 				<div id="listpager"></div>
-				<div class="clear areaencloser"></div>
+				<div class="clear <% if (isPlanner) { %>areaencloser<%}%>"></div>
 			</div>
 
 			<div id="functionarea" class="dwidth-full" style="margin: auto;">
@@ -194,7 +194,7 @@ border-collapse: collapse;border-width: 0 1px;border-color: rgb(170, 170, 170);b
 					</div>
 					<% } %>
 				</div>
-				<div class="clear areaencloser"></div>
+				<div class="clear <% if (isPlanner) { %>areaencloser<%}%>>"></div>
 			</div>
 
 <% if (isPlanner) { %>

@@ -652,8 +652,7 @@ var initGrid = function(){
 	findit();
 	findSchedule();
 
-//	$("#show_process").attr("checked", true).trigger("click");
-	$("#show_process").attr("checked", true).trigger("click");
+	$("#show_process").trigger("click");
 }
 
 var showMaterial = function(material_id, reason, comment) {
@@ -750,6 +749,8 @@ function planned_list_handleComplete(xhrobj, textStatus) {
 };
 
 var findSchedule = function(lineId){
+	if (!$("#planned_list").length) return;
+
 	var data = {
 		scheduled_assign_date:$("#pick_date").val(),
 		line_id: $("#select_line").val()

@@ -369,10 +369,7 @@ var show_adit_Complete = function(xhrobj,textStatus){
 		$("#edit_partial_id").val(resInfo.returnForm.partial_id);		
 		
 		//操作默认被选中废止
-		$("#edit_choose_discontinue").attr("checked",function(){	
-			$(".discontinue_edit").show();
-			$(".decided_edit").hide();
-		});
+		$("#edit_choose_discontinue").prop("checked", true).trigger("change");
 		
 	    //废止radio button
 		$("#edit_choose_discontinue").click(function(){	

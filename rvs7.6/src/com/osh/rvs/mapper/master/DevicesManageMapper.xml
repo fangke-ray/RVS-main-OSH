@@ -304,7 +304,6 @@
 				waste_date=#{waste_date},
 				delete_flg=#{delete_flg},
 				updated_by=#{updated_by},
-				updated_time=#{updated_time},
 				status=#{status},
 				comment =#{comment},
 				delete_flg=0
@@ -373,7 +372,6 @@
 				waste_date,
 				delete_flg,
 				updated_by,
-				updated_time,
 				status,
 				comment
 				)
@@ -397,7 +395,6 @@
 				#{waste_date},
 				0,
 				#{updated_by},
-				#{updated_time},
 				#{status},
 				#{comment}
 				)
@@ -425,7 +422,6 @@
 				waste_date,
 				delete_flg,
 				updated_by,
-				updated_time,
 				status,
 				comment
 				)
@@ -448,7 +444,6 @@
 				#{waste_date},
 				0,
 				#{updated_by},
-				#{updated_time},
 				#{status},
 				#{comment}
 				)

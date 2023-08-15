@@ -160,7 +160,7 @@ $(document).ajaxComplete(function(evt, request, settings) {
 	if(panelOverlay == 0) {
 		killWindowOverlay();
 	}
-	if(request.status && request.status != 200) {
+	if(request.status && request.status != 200 && request.status != 504) {
 		alert("通信失败！请检查网络连接 status=" + request.status);
 		return false;
 	}

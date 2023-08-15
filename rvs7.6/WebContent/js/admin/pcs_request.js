@@ -258,9 +258,6 @@ var initGrid = function(){
 
 	setData();
 	findit();
-
-//	$("#show_process").attr("checked", true).trigger("click");
-	$("#show_process").attr("checked", true).trigger("click");
 }
 
 var showPcsRequest = function(pcs_request_key) {
@@ -970,7 +967,7 @@ var showTest = function(pcs_request_key){
 								return;
 							}
 							$process_dialog.find(".i_com[code="+process_code+"]").hide();
-							$process_dialog.find(".i_act[code="+process_code+"]").show().each(function(idx, ele){
+							$process_dialog.find(".i_act[code="+process_code+"]").show().filter("[id]").each(function(idx, ele){
 								$process_dialog.find("label[for=" + ele.id + "]").show();
 							});
 
@@ -1005,7 +1002,8 @@ var showTest = function(pcs_request_key){
 									}
 								}
 
-								$process_dialog.find("label[for=" + ele.id + "]").hide();
+								if (ele.id)
+									$process_dialog.find("label[for=" + ele.id + "]").hide();
 								$ele.hide();
 							});
 							$process_dialog.find("textarea[code]").each(function(idx,ele){
@@ -1030,7 +1028,7 @@ var showTest = function(pcs_request_key){
 							posStats.job_no = $option.attr("job_no");
 						}	
 					});
-					$process_dialog.find(".i_act").hide().each(function(idx, ele){
+					$process_dialog.find(".i_act").hide().filter("[id]").each(function(idx, ele){
 						$process_dialog.find("label[for=" + ele.id + "]").hide();
 					});
 					$process_dialog.find(".i_com").show();

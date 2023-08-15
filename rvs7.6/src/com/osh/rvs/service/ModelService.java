@@ -186,8 +186,7 @@ public class ModelService {
 			}
 		}
 
-		imbalanceModelOfLine = null;
-		kindOfModel = null;
+		clearCache();
 	}
 
 	/**
@@ -235,8 +234,7 @@ public class ModelService {
 
 		// 清空反查缓存
 		ReverseResolution.modelRever.clear();
-		imbalanceModelOfLine = null;
-		kindOfModel = null;
+		clearCache();
 
 	}
 
@@ -263,8 +261,7 @@ public class ModelService {
 
 		dao.deleteModelImbalanceLine(updateBean);
 
-		imbalanceModelOfLine = null;
-		kindOfModel = null;
+		clearCache();
 	}
 
 	/***
@@ -288,22 +285,25 @@ public class ModelService {
 		
 		return mRet;
 	}
+
 	/**
 	 * 取得全部型号
 	 * @param conn
 	 * @return
 	 */
 	public List<ModelForm> getAllModel(SqlSession conn) {
-		
-		ModelMapper dao = conn.getMapper(ModelMapper.class);
 
-		List<ModelEntity> lResultBean = dao.getAllModel();
-		
-		List<ModelForm> lResultForm = new ArrayList<ModelForm>();
-		// 数据对象复制到表单
-		BeanUtil.copyToFormList(lResultBean, lResultForm, null, ModelForm.class);
+		if (allModel == null) {
+			ModelMapper dao = conn.getMapper(ModelMapper.class);
 
-		return lResultForm;
+			List<ModelEntity> lResultBean = dao.getAllModel();
+
+			allModel = new ArrayList<ModelForm>();
+			// 数据对象复制到表单
+			BeanUtil.copyToFormList(lResultBean, allModel, CopyOptions.COPYOPTIONS_NOEMPTY, ModelForm.class);
+		}
+
+		return allModel;
 	}
 	
 	/**
@@ -686,6 +686,13 @@ public class ModelService {
 
 	private static Map<String, Set<String>> imbalanceModelOfLine = null;
 	private static Map<String, String> kindOfModel = null;
+	private static List<ModelForm> allModel = null;
+
+	private static void clearCache() {
+		imbalanceModelOfLine = null;
+		kindOfModel = null;
+		allModel = null;
+	}
 
 	/**
 	 * 确认机型在工程是否不平衡

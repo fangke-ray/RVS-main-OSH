@@ -1917,30 +1917,20 @@ public class PositionPanelAction extends BaseAction {
 		String position_id = user.getPosition_id(); 
 
 		// 工位临时报表
-		HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
-		httpclient.start();
-		try { 
-			if ("00000000009".equals(position_id)) {
-	            HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/preport/accept/00000000009");
-				log.info("finger:"+request.getURI());
-	            httpclient.execute(request, null);
-			} else if ("00000000010".equals(position_id)) {
-	            HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/preport/disinfect/00000000010");
-				log.info("finger:"+request.getURI());
-	            httpclient.execute(request, null);
-			} else if ("00000000011".equals(position_id)) {
-	            HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/preport/sterilize/00000000011");
-				log.info("finger:"+request.getURI());
-	            httpclient.execute(request, null);
-			} else if (RvsConsts.POSITION_SHIPPING.equals(position_id) || RvsConsts.POSITION_ANML_SHPPING.equals(position_id)) {
-	            HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/preport/shipping/00000000047");
-				log.info("finger:"+request.getURI());
-	            httpclient.execute(request, null);
-			}
-        } catch (Exception e) {
-		} finally {
-			Thread.sleep(100);
-			httpclient.shutdown();
+		String triggerPath = null;
+		if ("00000000009".equals(position_id)) {
+			triggerPath = "http://localhost:8080/rvspush/trigger/preport/accept/00000000009";
+		} else if ("00000000010".equals(position_id)) {
+			triggerPath = "http://localhost:8080/rvspush/trigger/preport/disinfect/00000000010";
+		} else if ("00000000011".equals(position_id)) {
+			triggerPath = "http://localhost:8080/rvspush/trigger/preport/sterilize/00000000011";
+		} else if (RvsConsts.POSITION_SHIPPING.equals(position_id)
+				|| RvsConsts.POSITION_ANML_SHPPING.equals(position_id)) {
+			triggerPath = "http://localhost:8080/rvspush/trigger/preport/shipping/00000000047";
+		}
+
+		if (triggerPath != null) {
+			RvsUtils.sendTrigger(triggerPath);
 		}
 
 		// 检查发生错误时报告错误信息

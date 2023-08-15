@@ -1338,7 +1338,8 @@ var showPartialRecept = function(resInfo, finish){
 					width:30,
 					align:'right',
 					formatter:'integer',
-					sorttype:'integer'
+					sorttype:'integer',
+					hidden:true
 				},
 				{
 					name:'arrival_plan_date',
@@ -1361,7 +1362,8 @@ var showPartialRecept = function(resInfo, finish){
 					width:20,
 					formatter:'select',
 					align:'center',
-					editoptions:{value:':;1:消耗品;7:组装组件'}
+					editoptions:{value:':;1:消耗品;7:组装组件'},
+					hidden:true
 				},
 				{
 					name:'bom_quantity',
@@ -1494,7 +1496,7 @@ var showPartialRecept = function(resInfo, finish){
 	});
 
 	if (resInfo.notMatch) {
-		errorPop("您在本工位清点的零件情况与定位设定不符。<br>请确认您的点检结果，或者报告线长处理。");
+		errorPop("您没有将定位在本工位的零件全部清点完成。<br>请再次确认您的清点结果。<br>如实物与此表单不符，请报告线长处理。");
 	}
 }
 

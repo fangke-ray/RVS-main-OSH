@@ -752,18 +752,11 @@ public class QualityAssuranceAction extends BaseAction {
 			service.updateCountForbid(conn);
 
 			// 推送邮件
-			// 通知
-			HttpAsyncClient httpclient = new DefaultHttpAsyncClient();
-			httpclient.start();
 			try {
 				conn.commit();
-	            HttpGet request = new HttpGet("http://localhost:8080/rvspush/trigger/forbid/" + material_id + "/" + workingPf.getSection_id());
-	            log.info("finger:"+request.getURI());
-	            httpclient.execute(request, null);
+				// 通知
+				RvsUtils.sendTrigger("http://localhost:8080/rvspush/trigger/forbid/" + material_id + "/" + workingPf.getSection_id());
 	        } catch (Exception e) {
-			} finally {
-				Thread.sleep(80);
-				httpclient.shutdown();
 			}
 		}
 

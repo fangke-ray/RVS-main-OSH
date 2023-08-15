@@ -372,7 +372,16 @@ public class BeforeLineLeaderAction extends BaseAction {
 		log.info("BeforeLineLeaderAction.getPlanTarget end");
 	}
 
-	@Privacies(permit = { 107 })
+	/**
+	 * 设定计划数
+	 * @param mapping
+	 * @param form
+	 * @param req
+	 * @param res
+	 * @param conn
+	 * @throws Exception
+	 */
+	@Privacies(permit = { 106, 109 })
 	public void doSetPlanTarget(ActionMapping mapping, ActionForm form,
 			HttpServletRequest req, HttpServletResponse res, SqlSessionManager conn) throws Exception {
 		log.info("BeforeLineLeaderAction.doSetPlanTarget start");

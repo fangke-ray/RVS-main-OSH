@@ -43,6 +43,7 @@ var findit = function(data) {
 		keepSearchData = data;
 	}
 	keepSearchData["completed"] = $("#completed_set input:checked").val();
+	keepSearchData["search_addition"] = 1;
 	// data[""] = 
 	$.ajax({
 		beforeSend : ajaxRequestType,

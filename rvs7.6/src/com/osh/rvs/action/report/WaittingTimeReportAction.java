@@ -19,6 +19,7 @@ import com.osh.rvs.service.SectionService;
 import com.osh.rvs.service.report.WaittingTimeReportService;
 
 import framework.huiqing.action.BaseAction;
+import framework.huiqing.action.Privacies;
 import framework.huiqing.bean.message.MsgInfo;
 import framework.huiqing.common.util.CodeListUtils;
 import framework.huiqing.common.util.copy.BeanUtil;
@@ -97,7 +98,7 @@ public class WaittingTimeReportAction extends BaseAction {
 	 * @param conn
 	 * @throws Exception
 	 */
-	
+	@Privacies(permit = { 1, 106 })
 	public void bold(ActionMapping mapping, ActionForm form, HttpServletRequest req, HttpServletResponse res,SqlSession conn) throws Exception {
 		log.info("WaittingTimeReportAction.bold start");
 		
