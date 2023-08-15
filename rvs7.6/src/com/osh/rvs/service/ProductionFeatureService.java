@@ -366,19 +366,20 @@ public class ProductionFeatureService {
 	}
 
 	private Integer getPutinOperateResult(String sectionId, String prePositionId, String nextPositionId, SqlSession conn) {
-		if (!"00000000001".equals(sectionId)) {
-			return RvsConsts.OPERATE_RESULT_NOWORK_WAITING;
-		}
-		// 虚拟组工位后续工位
-		prePositionId = CommonStringUtil.fillChar(prePositionId, '0', 11, true);
-		nextPositionId = CommonStringUtil.fillChar(nextPositionId, '0', 11, true);
-		Map<String, String> groupNextPositions = PositionService.getGroupNextPositions(conn);
-		if (groupNextPositions.containsKey(nextPositionId)
-				&& groupNextPositions.get(nextPositionId).equals(prePositionId)) {
-			return RvsConsts.OPERATE_RESULT_BATCHWORKING;
-		} else {
-			return RvsConsts.OPERATE_RESULT_NOWORK_WAITING;
-		}
+		return RvsConsts.OPERATE_RESULT_NOWORK_WAITING;
+//		if (!"00000000001".equals(sectionId)) {
+//			return RvsConsts.OPERATE_RESULT_NOWORK_WAITING;
+//		}
+//		// 虚拟组工位后续工位
+//		prePositionId = CommonStringUtil.fillChar(prePositionId, '0', 11, true);
+//		nextPositionId = CommonStringUtil.fillChar(nextPositionId, '0', 11, true);
+//		Map<String, String> groupNextPositions = PositionService.getGroupNextPositions(conn);
+//		if (groupNextPositions.containsKey(nextPositionId)
+//				&& groupNextPositions.get(nextPositionId).equals(prePositionId)) {
+//			return RvsConsts.OPERATE_RESULT_BATCHWORKING;
+//		} else {
+//			return RvsConsts.OPERATE_RESULT_NOWORK_WAITING;
+//		}
 	}
 
 	/** 判断线长点检 */
@@ -938,7 +939,10 @@ public class ProductionFeatureService {
 				section_id = workingPf.getSection_id();
 			}
 		} else {
-			if (section_id == null) workingPf.getSection_id();
+			if (section_id == null) section_id = workingPf.getSection_id();
+		}
+		if (section_id == null) {
+			section_id = isLightFix ? "00000000003" : "00000000001";
 		}
 		ProcessAssignProxy paProxy = new ProcessAssignProxy(material_id, mEntity.getPat_id(), section_id, isLightFix, conn);
 
@@ -1134,14 +1138,19 @@ public class ProductionFeatureService {
 
 		List<String> startPositions = paProxy.getPartStart("" + RvsConsts.PROCESS_ASSIGN_LINE_BASE);
 		List<String> groupPositions = new ArrayList<String>(); // 作为大分支
+		List<String> delovePositions = new ArrayList<String>(); // 下分支追加
+
 		for (String startPosition : startPositions) {
 			if (Integer.parseInt(startPosition) > RvsConsts.PROCESS_ASSIGN_LINE_BASE) {
-				startPositions.addAll(paProxy.getPartStart(startPosition));
+				delovePositions.addAll(paProxy.getPartStart(startPosition));
 				groupPositions.add(startPosition);
 			}
 		}
 		for (String startPosition : groupPositions) {
 			startPositions.remove(startPosition);
+		}
+		if (delovePositions.size() > 0) {
+			startPositions.addAll(delovePositions);
 		}
 
 		ProductionFeatureEntity workingPf = new ProductionFeatureEntity();

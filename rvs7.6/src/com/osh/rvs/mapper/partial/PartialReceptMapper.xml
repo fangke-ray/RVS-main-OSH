@@ -68,7 +68,7 @@
 			set
 				waiting_receive_quantity=waiting_receive_quantity - #{recept_quantity},
 				r_operator_id = #{r_operator_id},
-				recent_receive_time=now()
+				recent_receive_time=coalesce(#{recent_receive_time}, now())
 			where
 				material_partial_detail_key=#{material_partial_detail_key}
 		]]>

@@ -439,8 +439,11 @@ var cnsm_obj = function() {
 				var $tr = $recmd.closest("tr");
 
 				var partial_id = $tr.attr("id");
-				var inp = (assembleMap[partial_id].recept_quantity || 0) 
-					+ (assembleMap[partial_id].other_recept_quantity || 0);
+				var inp = 0;
+				if (assembleMap[partial_id]) {
+					inp = (assembleMap[partial_id].recept_quantity || 0) 
+						+ (assembleMap[partial_id].other_recept_quantity || 0);
+				}
 
 				if ($tr.is(".otherPosition") && inp == 0) {
 					return;
@@ -451,7 +454,7 @@ var cnsm_obj = function() {
 				}
 			})
 			return unmatch;
-		}
+		},
 		"valuedCcd" : function(){
 
 			if ($("#cnsmCnfmList input.cur_quantity").length == 0) {
@@ -471,8 +474,11 @@ var cnsm_obj = function() {
 				var $tr = $recmd.closest("tr");
 
 				var partial_id = $tr.attr("id");
-				var inp = (assembleMap[partial_id].recept_quantity || 0) 
-					+ (assembleMap[partial_id].other_recept_quantity || 0);
+				var inp = 0;
+				if (assembleMap[partial_id]) {
+					inp = (assembleMap[partial_id].recept_quantity || 0) 
+						+ (assembleMap[partial_id].other_recept_quantity || 0);
+				}
 
 				if ($tr.is(".otherPosition") && inp == 0) {
 					return;

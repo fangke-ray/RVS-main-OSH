@@ -29,7 +29,7 @@ public class StandardPartialAdditionForm extends ActionForm implements Serializa
 
 	private String process_code;
 
-	@BeanField(title = "补正分钟", name = "addition", type = FieldType.Double, length = 3, scale = 1)
+	@BeanField(title = "补正分钟", name = "addition", type = FieldType.Double, length = 5, scale = 1)
 	private String addition;
 
 	@BeanField(title = "修理型号 ID", name = "model_id", type = FieldType.String, length = 11)
@@ -39,7 +39,7 @@ public class StandardPartialAdditionForm extends ActionForm implements Serializa
 
 	private String partial_name;
 
-	@BeanField(title = "补正分钟", name = "addition", type = FieldType.Double, length = 3, scale = 1)
+	@BeanField(title = "补正分钟", name = "addition", type = FieldType.Double, length = 5, scale = 1)
 	private String base_addition;
 
 	public String getPartial_id() {

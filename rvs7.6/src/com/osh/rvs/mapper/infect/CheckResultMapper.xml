@@ -414,7 +414,7 @@
 		and cfm.access_place = 2
 		and cfm.cycle_type = #{cycle_type}
 		AND cfm.delete_flg = 0 AND dm.delete_flg = 0 AND dm.status = 1
-		and check_confirm_time between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and check_confirm_time between #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		and dm.section_id = #{section_id}
 		and (dm.position_id = #{position_id}
 			or (dm.position_id is null and dm.line_id = #{line_id}))
@@ -434,7 +434,7 @@
 		where dcr.checked_status = 0
 		and dcr.check_file_manage_id = 98
 		and dm.delete_flg = 0 AND dm.status = 1
-		and check_confirm_time between #{check_confirm_time_start} and #{check_confirm_time_end}
+		and check_confirm_time between #{check_confirm_time_start} and date_add(#{check_confirm_time_end}, INTERVAL 1 DAY)
 		and dm.section_id = #{section_id}
 		and (dm.position_id = #{position_id}
 			or (dm.position_id is null and dm.line_id = #{line_id}))

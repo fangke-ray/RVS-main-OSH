@@ -1417,6 +1417,7 @@ var chooseTcLocation = function(category_id, $target) {
 				shelf = emptyloc.shelf;
 				if (groupCount > 0) tcLocationHtml += "</div>";
 				tcLocationHtml += "<div class='location_group' for='" + emptyloc.shelf + "'>";
+				groupCount++;
 			}
 
 			tcLocationHtml += "<span class='tc_location'>" + emptyloc.location + "</span>"

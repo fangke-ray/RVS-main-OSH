@@ -232,7 +232,7 @@ public class PcsRequestService {
 		// 文件Map
 		String pathId = testForm.getLine_type();
 		Map<String, String> folderTypes = PcsUtils.getFolderTypes();
-		String path = folderTypes.get(pathId);
+		String templateStoragePath = folderTypes.get(pathId);
 
 		// 设定对应工程
 		testForm.setLine_id(testForm.getLine_type().substring(0, 2));
@@ -331,9 +331,9 @@ public class PcsRequestService {
 		if (CHANGE_MEANS_EDIT.equals(testForm.getChange_means())
 				|| CHANGE_MEANS_REFRESH.equals(""+insert.getChange_means())) {
 
-			if (path != null) {
-				path = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\excel\\" +  path.replaceAll("\n", "/");
-				File nowTemplate = new File(path + "/" + testForm.getFile_name() + ".xls");
+			if (templateStoragePath != null) {
+				templateStoragePath = PathConsts.BASE_PATH + PathConsts.PCS_TEMPLATE + "\\excel\\" +  templateStoragePath.replaceAll("\n", "/");
+				File nowTemplate = new File(templateStoragePath + "/" + testForm.getFile_name() + ".xls");
 				if (!nowTemplate.exists()) {
 					MsgInfo info = new MsgInfo();
 					info.setErrcode("file.notExist");
@@ -346,7 +346,7 @@ public class PcsRequestService {
 					}
 					// 提供文件列表
 					ArrayList<String> files = new ArrayList<String>();
-					File listPath = new File(path);
+					File listPath = new File(templateStoragePath);
 					if (listPath.isDirectory()) {
 						for (File tfile : listPath.listFiles()) {
 							String listFileName = tfile.getName();
@@ -359,10 +359,12 @@ public class PcsRequestService {
 					}
 					lResponseResult.put("orgFiles", files);
 				} else {
+					// 新文件存在，源文件同名
 					insert.setOrg_file_name(insert.getFile_name());
 				}
 			}
 		}
+
 		httpSession.setAttribute(SESSION_ENTITY, insert);
 		httpSession.setAttribute(SESSION_FILE, file);
 
@@ -871,7 +873,7 @@ public class PcsRequestService {
 
 		// 上传的文件
 		FormFile file = testForm.getFile();
-		if (file == null) {
+		if (file == null || file.getFileSize() <= 0) {
 			httpSession.setAttribute(SESSION_FILE, null);
 		} else {
 			String fileName = "";
@@ -916,7 +918,6 @@ public class PcsRequestService {
 
 		httpSession.removeAttribute(SESSION_ENTITY);
 	}
-
 
 	private static String trimZero(String pcs_request_key) {
 		if (pcs_request_key == null)

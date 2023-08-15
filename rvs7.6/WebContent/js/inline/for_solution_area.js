@@ -236,6 +236,8 @@ $(function() {
 	});
 
 	$("#closebutton").click(solve);
+	$("#pausebutton").click(break_plan);
+
 	$("#downbutton").click(download);
 	$("#lines input[name=lines]").click(function(){
 		keepSearchData.line_id = this.value;
@@ -244,6 +246,46 @@ $(function() {
 
 	initGrid();
 })
+
+var break_plan = function() {
+
+	var rowid = $("#list").jqGrid("getGridParam", "selrow");
+	var rowData = $("#list").getRowData(rowid);
+	if (rowData.solved_time.length > 1) {
+		errorPop("已处理中断品不能进行未修理返还操作。可以在待处理时使用未修理返还作为处理手段。");
+		return;
+	}
+
+	var data = {
+		id : rowData.material_id
+	}
+
+	var warningText = "未修理返还后，维修对象["+encodeText(rowData.sorc_no)+"]将会退出RVS系统中的显示，直接出货，确认操作吗？";
+	if (!rowData.inline_time || !rowData.inline_time.trim()) {
+		warningText = "未修理返还后，维修对象["+encodeText(rowData.sorc_no)+"]将会退出RVS系统中的显示，等待画像检查后出货，确认操作吗？";
+	}
+	if (rowData.levelName && rowData.levelName.charAt(0) === "E") {
+		warningText = "未修理返还后，维修对象["+encodeText(rowData.sorc_no)+"]将会退出RVS系统中的显示，等待不修理处理后出货，确认操作吗？";
+	}
+
+	warningConfirm(warningText, 
+	function() {
+		$.ajax({
+			beforeSend : ajaxRequestType,
+			async : false,
+			url : 'schedule.do?method=doStop',
+			cache : false,
+			data : data,
+			type : "post",
+			dataType : "json",
+			success : ajaxSuccessCheck,
+			error : ajaxError,
+			complete : function() {
+				findit();
+			}
+		});	
+	}, null, "返还操作确认");
+};
 
 var enablebuttons = function() {
 	var rowids = $("#list").jqGrid("getGridParam", "selarrrow");
@@ -441,7 +483,7 @@ var initGrid = function(){
 			{name:'reason',index:'reason', width:40, align:'center', formatter:'select', editoptions: {value:$("#h_or_eo").val()}},
 			{name:'comment',index:'comment', width:115},
 			{name:'solved_time',index:'solved_time', width:50, align:'center', formatter:'date', formatoptions:{srcformat:'Y/m/d H:i:s',newformat:'m-d H:i'}},
-			{name:'resolver_name',resolver_name:'comment', width:40},
+			{name:'resolver_name',index:'resolver_name', width:40},
 
 			{name:'level',index:'level', width:25, align:'center', formatter:'select', editoptions: {value:$("#h_level_eo").val()}},
 			{name:'direct_flg',index:'direct_flg', align:'center', width:30, formatter:'select', editoptions:{value:"1:直送;0:"},hidden:true},

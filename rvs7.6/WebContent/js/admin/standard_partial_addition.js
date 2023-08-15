@@ -149,7 +149,7 @@ $(function() {
 				],
 				toppager : false,
 				rowNum : 20,
-				pager : "#listpager",
+				pager : "#list_pager",
 				viewrecords : true,
 				caption : null,
 				gridview : true, // Speed up
