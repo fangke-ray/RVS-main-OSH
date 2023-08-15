@@ -401,9 +401,11 @@ public class DownloadService {
 		Integer directflg = mBean.getDirect_flg();
 		if (directflg == null) directflg = -1;
 		// 受理在直送时打印两张
-		if (RvsConsts.TICKET_RECEPTOR == operator && directflg >= 1) {
-			if (!"07".equals(mBean.getKind())) {
-				printTimes = 2;
+		if (RvsConsts.TICKET_RECEPTOR == operator) {
+			if (directflg >= 1 || mBean.getLevel() == null) {
+				if (!"07".equals(mBean.getKind())) {
+					printTimes = 2;
+				}
 			}
 		} else
 		// 补打一张
